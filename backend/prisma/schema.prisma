@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev2.db"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  phone         String   @unique
+  phoneVerified Boolean  @default(false)
+  role          String   @default("user") // 'user' | 'admin'
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  products Product[]
+  rentals  Rental[]
+  lessons  Lesson[]
+
+  @@map("users")
+}
+
+model SkiResort {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rentals Rental[]
+  lessons Lesson[]
+
+  @@map("ski_resorts")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  brand       String
+  price       Int
+  image       String
+  category    String   // 'new' | 'used'
+  description String?
+  rating      Float?
+  reviewCount Int?
+  condition   String?  // For used items: '상', '중', '하'
+  usageCount  String?  // For used items
+  userId      String?  // null for admin-crawled items, set for user-submitted
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Rental {
+  id         String    @id @default(uuid())
+  name       String
+  price      Int
+  duration   String
+  equipment  String
+  image      String
+  resortId   String
+  resort     SkiResort @relation(fields: [resortId], references: [id])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  approved   Boolean   @default(false) // 관리자 승인 필요
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("rentals")
+}
+
+model Lesson {
+  id          String    @id @default(uuid())
+  name        String
+  price       Int
+  duration    String
+  level       String    // 'beginner' | 'intermediate' | 'advanced'
+  maxStudents Int
+  image       String
+  resortId    String
+  resort      SkiResort @relation(fields: [resortId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  approved    Boolean   @default(false) // 관리자 승인 필요
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("lessons")
+}
+
+model PhoneVerification {
+  id        String   @id @default(uuid())
+  phone     String
+  code      String
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("phone_verifications")
+}
