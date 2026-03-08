@@ -19,9 +19,9 @@ const Used = () => {
 
   const conditions = [
     { id: 'all', name: '전체' },
-    { id: '상', name: '상' },
-    { id: '중', name: '중' },
-    { id: '하', name: '하' },
+    { id: '1시즌 이하', name: '1시즌 이하' },
+    { id: '2시즌 이하', name: '2시즌 이하' },
+    { id: '3시즌 이상', name: '3시즌 이상' },
   ];
 
   const usedProducts = [
