@@ -25,14 +25,14 @@ const Used = () => {
   ];
 
   const usedProducts = [
-    { id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol', price: 450000, originalPrice: 850000, image: '🎿', condition: '상', usageCount: '5회', category: 'ski' },
-    { id: '2', name: 'Burton Custom (2021)', brand: 'Burton', price: 380000, originalPrice: 720000, image: '🏂', condition: '중', usageCount: '10회', category: 'board' },
-    { id: '3', name: 'Salomon S/Pro 100 (2023)', brand: 'Salomon', price: 280000, originalPrice: 520000, image: '🥾', condition: '상', usageCount: '3회', category: 'ski-boots' },
-    { id: '4', name: 'Burton Ruler BOA (2022)', brand: 'Burton', price: 190000, originalPrice: 380000, image: '👢', condition: '중', usageCount: '8회', category: 'board-boots' },
-    { id: '5', name: 'Smith Vantage 헬멧 + I/O MAG 고글', brand: 'Smith', price: 250000, originalPrice: 480000, image: '⛑️', condition: '상', usageCount: '5회', category: 'helmet-goggle' },
-    { id: '6', name: 'Hestra Fall Line 장갑', brand: 'Hestra', price: 85000, originalPrice: 180000, image: '🧤', condition: '중', usageCount: '10회', category: 'gloves' },
-    { id: '7', name: 'Descente 스키복 상하세트', brand: 'Descente', price: 320000, originalPrice: 650000, image: '🧥', condition: '상', usageCount: '3회', category: 'wear' },
-    { id: '8', name: 'Atomic Maverick 86 (2023)', brand: 'Atomic', price: 520000, originalPrice: 920000, image: '🎿', condition: '상', usageCount: '2회', category: 'ski' },
+    { id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol', price: 450000, originalPrice: 850000, image: '🎿', condition: '1시즌 이하', category: 'ski' },
+    { id: '2', name: 'Burton Custom (2021)', brand: 'Burton', price: 380000, originalPrice: 720000, image: '🏂', condition: '2시즌 이하', category: 'board' },
+    { id: '3', name: 'Salomon S/Pro 100 (2023)', brand: 'Salomon', price: 280000, originalPrice: 520000, image: '🥾', condition: '1시즌 이하', category: 'ski-boots' },
+    { id: '4', name: 'Burton Ruler BOA (2022)', brand: 'Burton', price: 190000, originalPrice: 380000, image: '👢', condition: '2시즌 이하', category: 'board-boots' },
+    { id: '5', name: 'Smith Vantage 헬멧 + I/O MAG 고글', brand: 'Smith', price: 250000, originalPrice: 480000, image: '⛑️', condition: '1시즌 이하', category: 'helmet-goggle' },
+    { id: '6', name: 'Hestra Fall Line 장갑', brand: 'Hestra', price: 85000, originalPrice: 180000, image: '🧤', condition: '3시즌 이상', category: 'gloves' },
+    { id: '7', name: 'Descente 스키복 상하세트', brand: 'Descente', price: 320000, originalPrice: 650000, image: '🧥', condition: '1시즌 이하', category: 'wear' },
+    { id: '8', name: 'Atomic Maverick 86 (2023)', brand: 'Atomic', price: 520000, originalPrice: 920000, image: '🎿', condition: '1시즌 이하', category: 'ski' },
   ];
 
   const filteredProducts = usedProducts.filter(p => {
