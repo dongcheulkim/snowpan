@@ -160,11 +160,47 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Webcam Quick Links */}
+      <div className="px-4 mt-6">
+        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          📹 <span>스키장 실시간 웹캠</span>
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/skiNboard/webcam.do', gradient: 'from-blue-500/20 to-cyan-500/20' },
+            { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/pyeongchang/phoenix-cam', gradient: 'from-purple-500/20 to-pink-500/20' },
+            { name: '하이원리조트', url: 'https://www.high1.com/ski/webcam/liveView.do', gradient: 'from-emerald-500/20 to-green-500/20' },
+            { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.cctv.ds', gradient: 'from-orange-500/20 to-amber-500/20' },
+            { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/webcam.asp', gradient: 'from-rose-500/20 to-red-500/20' },
+            { name: '지산리조트', url: 'https://www.jisanresort.co.kr/ski/webcam.asp', gradient: 'from-indigo-500/20 to-blue-500/20' },
+          ].map((cam) => (
+            <a
+              key={cam.name}
+              href={cam.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass rounded-2xl p-4 card-hover group relative overflow-hidden"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${cam.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+              <div className="relative flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-dark-700 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                  📹
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">{cam.name}</div>
+                  <div className="text-xs text-gray-500 group-hover:text-neon-blue transition-colors">실시간 보기 →</div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/5 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', icon: '🏠', label: '홈', active: true },
-          { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
+          { to: '/used', icon: '♻️', label: '중고', active: false },
           { to: '/rental', icon: '🏔️', label: '렌탈', active: false },
           { to: '/admin-approval', icon: '⚙️', label: '관리', active: false },
         ].map((item) => (
