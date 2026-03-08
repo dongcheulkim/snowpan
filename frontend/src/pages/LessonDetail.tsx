@@ -11,7 +11,7 @@ const LessonDetail = () => {
   }> = {
     '1': {
       id: '1', name: '스키 그룹레슨', resort: '용평리조트', price: 80000, duration: '2시간',
-      level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️',
+      level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️',
       instructor: '김강사 (KSIA 레벨2)',
       description: '스키를 처음 접하는 분들을 위한 그룹레슨입니다. 기본 자세부터 플루그 턴까지 배울 수 있으며, 안전한 환경에서 즐겁게 스키를 시작할 수 있습니다.',
       schedule: '09:00 / 11:00 / 14:00 / 16:00', includes: ['레슨비', '리프트 이용', '보험'],
