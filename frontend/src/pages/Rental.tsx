@@ -96,23 +96,20 @@ const Rental = () => {
       </div>
 
       {/* Resort Filter */}
-      <div className="glass rounded-xl p-4">
-        <h2 className="text-sm font-bold mb-3 text-white">스키장 선택</h2>
-        <div className="flex flex-wrap gap-2">
-          {resorts.map((resort) => (
-            <button
-              key={resort.id}
-              onClick={() => setSelectedResort(resort.id)}
-              className={`px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 ${
-                selectedResort === resort.id
-                  ? 'bg-gradient-to-r from-neon-purple to-neon-pink text-white shadow-lg shadow-neon-purple/25'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
-              }`}
-            >
-              {resort.name}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {resorts.map((resort) => (
+          <button
+            key={resort.id}
+            onClick={() => setSelectedResort(resort.id)}
+            className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+              selectedResort === resort.id
+                ? 'bg-gradient-to-r from-neon-purple to-neon-pink text-white shadow-lg shadow-neon-purple/25'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+            }`}
+          >
+            {resort.name}
+          </button>
+        ))}
       </div>
 
       {/* Rental Items */}
