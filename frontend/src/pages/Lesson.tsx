@@ -25,6 +25,14 @@ const Lesson = () => {
     { id: 'phoenix', name: '휘닉스평창' },
     { id: 'high1', name: '하이원' },
     { id: 'vivaldi', name: '비발디파크' },
+    { id: 'elysian', name: '엘리시안' },
+    { id: 'wellihilli', name: '웰리힐리' },
+    { id: 'o2', name: '오투리조트' },
+    { id: 'alpensia', name: '알펜시아' },
+    { id: 'konjiam', name: '곤지암' },
+    { id: 'jisan', name: '지산' },
+    { id: 'muju', name: '무주' },
+    { id: 'oakvalley', name: '오크밸리' },
   ];
 
   const levels = [
@@ -43,6 +51,21 @@ const Lesson = () => {
     { id: '6', name: '보드 그룹레슨', resort: '하이원', resortId: 'high1', price: 70000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '🏂' },
     { id: '7', name: '스키 그룹레슨', resort: '비발디파크', resortId: 'vivaldi', price: 75000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 10, image: '⛷️' },
     { id: '8', name: '보드 개인레슨', resort: '비발디파크', resortId: 'vivaldi', price: 130000, duration: '2시간', level: 'advanced', levelText: '상급', maxStudents: 1, image: '🏂' },
+    { id: '9', name: '스키 그룹레슨', resort: '엘리시안', resortId: 'elysian', price: 70000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️' },
+    { id: '10', name: '보드 그룹레슨', resort: '웰리힐리', resortId: 'wellihilli', price: 75000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '🏂' },
+    { id: '11', name: '스키 개인레슨', resort: '웰리힐리', resortId: 'wellihilli', price: 140000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '⛷️' },
+    { id: '12', name: '스키 그룹레슨', resort: '오투리조트', resortId: 'o2', price: 65000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 6, image: '⛷️' },
+    { id: '13', name: '보드 개인레슨', resort: '오투리조트', resortId: 'o2', price: 130000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '🏂' },
+    { id: '14', name: '스키 그룹레슨', resort: '알펜시아', resortId: 'alpensia', price: 85000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 6, image: '⛷️' },
+    { id: '15', name: '스키 상급반', resort: '알펜시아', resortId: 'alpensia', price: 210000, duration: '3시간', level: 'advanced', levelText: '상급', maxStudents: 4, image: '⛷️' },
+    { id: '16', name: '스키 그룹레슨', resort: '곤지암', resortId: 'konjiam', price: 78000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️' },
+    { id: '17', name: '보드 개인레슨', resort: '곤지암', resortId: 'konjiam', price: 145000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '🏂' },
+    { id: '18', name: '스키 그룹레슨', resort: '지산', resortId: 'jisan', price: 70000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 10, image: '⛷️' },
+    { id: '19', name: '보드 그룹레슨', resort: '지산', resortId: 'jisan', price: 68000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '🏂' },
+    { id: '20', name: '스키 그룹레슨', resort: '무주', resortId: 'muju', price: 80000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️' },
+    { id: '21', name: '스키 개인레슨', resort: '무주', resortId: 'muju', price: 160000, duration: '2시간', level: 'advanced', levelText: '상급', maxStudents: 1, image: '⛷️' },
+    { id: '22', name: '스키 그룹레슨', resort: '오크밸리', resortId: 'oakvalley', price: 72000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️' },
+    { id: '23', name: '보드 개인레슨', resort: '오크밸리', resortId: 'oakvalley', price: 135000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '🏂' },
   ];
 
   const filteredItems = lessonItems.filter(item => {
