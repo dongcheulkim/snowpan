@@ -119,9 +119,12 @@ const Home = () => {
               }`}
             >
               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
-              <div className="relative z-10">
-                <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
-                <p className="text-sm text-gray-300 mt-0.5">{banner.desc}</p>
+              <div className="relative z-10 flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">{banner.tag}</span>
+                  <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
+                </div>
+                <p className="text-sm text-gray-300">{banner.desc}</p>
               </div>
             </div>
           ))}
