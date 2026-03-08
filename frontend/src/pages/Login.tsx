@@ -96,25 +96,26 @@ const Login = () => {
   };
 
   const handleSendVerification = () => {
-    // 여기에 실제 SMS 인증 로직이 들어갈 예정
     setVerificationSent(true);
     alert('인증번호가 발송되었습니다.');
   };
 
   const handleVerifyCode = () => {
-    // 여기에 실제 인증번호 확인 로직이 들어갈 예정
     setPhoneVerified(true);
     alert('인증이 완료되었습니다.');
   };
 
+  const inputClass = "w-full px-4 py-3 bg-dark-700/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-blue/50 transition-all";
+
   return (
-    <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-8">
+    <div className="max-w-md mx-auto animate-fade-in">
+      <div className="glass rounded-2xl p-8 neon-border">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="text-4xl mb-3">⛷️</div>
+          <h1 className="text-2xl font-bold text-white mb-2">
             {isLogin ? '로그인' : '회원가입'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm text-gray-400">
             스노우프라이스에 오신 것을 환영합니다
           </p>
         </div>
@@ -122,7 +123,7 @@ const Login = () => {
         <form className="space-y-4" onSubmit={isLogin ? handleLogin : handleSignup}>
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 이름
               </label>
               <input
@@ -131,13 +132,13 @@ const Login = () => {
                 value={signupName}
                 onChange={(e) => setSignupName(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={inputClass}
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               이메일
             </label>
             <input
@@ -146,12 +147,12 @@ const Login = () => {
               value={isLogin ? loginEmail : signupEmail}
               onChange={(e) => isLogin ? setLoginEmail(e.target.value) : setSignupEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className={inputClass}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               비밀번호
             </label>
             <input
@@ -160,14 +161,14 @@ const Login = () => {
               value={isLogin ? loginPassword : signupPassword}
               onChange={(e) => isLogin ? setLoginPassword(e.target.value) : setSignupPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className={inputClass}
             />
           </div>
 
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   비밀번호 확인
                 </label>
                 <input
@@ -176,12 +177,12 @@ const Login = () => {
                   value={signupPasswordConfirm}
                   onChange={(e) => setSignupPasswordConfirm(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   휴대폰 번호
                 </label>
                 <div className="flex space-x-2">
@@ -191,27 +192,27 @@ const Login = () => {
                     value={signupPhone}
                     onChange={(e) => setSignupPhone(e.target.value)}
                     required
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={`flex-1 ${inputClass}`}
                     disabled={phoneVerified}
                   />
                   <button
                     type="button"
                     onClick={handleSendVerification}
                     disabled={phoneVerified}
-                    className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+                    className={`px-5 py-3 rounded-xl font-medium text-sm transition-all ${
                       phoneVerified
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-primary text-white hover:bg-secondary'
+                        ? 'bg-neon-green/20 text-neon-green border border-neon-green/30 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-neon-blue to-neon-purple text-white hover:shadow-lg hover:shadow-neon-blue/25'
                     }`}
                   >
-                    {phoneVerified ? '인증완료' : '인증'}
+                    {phoneVerified ? '완료' : '인증'}
                   </button>
                 </div>
               </div>
 
               {verificationSent && !phoneVerified && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     인증번호
                   </label>
                   <div className="flex space-x-2">
@@ -219,17 +220,17 @@ const Login = () => {
                       type="text"
                       placeholder="인증번호 6자리"
                       maxLength={6}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className={`flex-1 ${inputClass}`}
                     />
                     <button
                       type="button"
                       onClick={handleVerifyCode}
-                      className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                      className="px-5 py-3 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all"
                     >
                       확인
                     </button>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 mt-2">
                     * 3분 이내에 인증번호를 입력해주세요
                   </p>
                 </div>
@@ -240,16 +241,23 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-secondary transition-colors disabled:bg-gray-400"
+            className="w-full py-3.5 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
-            {loading ? '처리 중...' : (isLogin ? '로그인' : '회원가입')}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                처리 중...
+              </span>
+            ) : (
+              isLogin ? '로그인' : '회원가입'
+            )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:text-secondary font-medium"
+            className="text-sm text-neon-blue hover:text-neon-blue/80 font-medium transition-colors"
           >
             {isLogin
               ? '계정이 없으신가요? 회원가입'
@@ -258,27 +266,30 @@ const Login = () => {
         </div>
 
         {isLogin && (
-          <div className="mt-4 text-center">
-            <a href="#" className="text-sm text-gray-500 hover:text-gray-700">
+          <div className="mt-3 text-center">
+            <a href="#" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
               비밀번호를 잊으셨나요?
             </a>
           </div>
         )}
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-center text-sm text-gray-600 mb-4">
+        <div className="mt-8 pt-6 border-t border-white/5">
+          <p className="text-center text-xs text-gray-500 mb-4">
             소셜 로그인
           </p>
           <div className="grid grid-cols-3 gap-3">
-            <button className="py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <span className="text-2xl">K</span>
-            </button>
-            <button className="py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <span className="text-2xl">N</span>
-            </button>
-            <button className="py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <span className="text-2xl">G</span>
-            </button>
+            {[
+              { label: 'K', color: 'from-yellow-500 to-yellow-600', hover: 'hover:shadow-yellow-500/25' },
+              { label: 'N', color: 'from-green-500 to-green-600', hover: 'hover:shadow-green-500/25' },
+              { label: 'G', color: 'from-blue-500 to-blue-600', hover: 'hover:shadow-blue-500/25' },
+            ].map((social) => (
+              <button
+                key={social.label}
+                className={`py-3 rounded-xl bg-gradient-to-r ${social.color} text-white font-bold text-lg transition-all ${social.hover} hover:shadow-lg active:scale-95`}
+              >
+                {social.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>

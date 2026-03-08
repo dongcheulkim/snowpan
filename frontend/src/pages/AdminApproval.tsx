@@ -29,7 +29,6 @@ const AdminApproval = () => {
   const [pendingLessons, setPendingLessons] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 승인 대기 목록 조회
   const fetchPendingItems = async () => {
     setLoading(true);
     try {
@@ -64,7 +63,6 @@ const AdminApproval = () => {
     fetchPendingItems();
   }, []);
 
-  // 승인 처리
   const handleApprove = async (id: string, type: 'rental' | 'lesson') => {
     try {
       const token = localStorage.getItem('token');
@@ -79,7 +77,7 @@ const AdminApproval = () => {
 
       if (res.ok) {
         alert('승인되었습니다!');
-        fetchPendingItems(); // 목록 새로고침
+        fetchPendingItems();
       } else {
         alert('승인 실패');
       }
@@ -89,7 +87,6 @@ const AdminApproval = () => {
     }
   };
 
-  // 거부 처리
   const handleReject = async (id: string, type: 'rental' | 'lesson') => {
     if (!confirm('정말 거부하시겠습니까?')) return;
 
@@ -106,7 +103,7 @@ const AdminApproval = () => {
 
       if (res.ok) {
         alert('거부되었습니다.');
-        fetchPendingItems(); // 목록 새로고침
+        fetchPendingItems();
       } else {
         alert('거부 실패');
       }
@@ -119,35 +116,36 @@ const AdminApproval = () => {
   const currentItems = activeTab === 'rental' ? pendingRentals : pendingLessons;
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-20">
-      {/* 헤더 */}
-      <div className="bg-gradient-to-br from-blue-600 to-cyan-500 px-4 pt-8 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="text-white text-2xl">←</Link>
-          <h1 className="text-2xl font-black text-white">관리자 승인</h1>
+    <div className="min-h-screen pb-24 bg-dark-900 bg-mesh animate-fade-in">
+      {/* Header */}
+      <div className="relative overflow-hidden px-4 pt-8 pb-6">
+        <div className="absolute inset-0 bg-gradient-to-br from-neon-blue/10 via-transparent to-neon-purple/10" />
+        <div className="relative flex items-center justify-between mb-4">
+          <Link to="/" className="text-gray-400 hover:text-white text-2xl transition-colors">←</Link>
+          <h1 className="text-2xl font-black gradient-text">관리자 승인</h1>
           <div className="w-8"></div>
         </div>
       </div>
 
-      {/* 카테고리 탭 */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      {/* Category Tabs */}
+      <div className="glass-strong border-b border-white/5 sticky top-0 z-10">
         <div className="flex">
           <button
             onClick={() => setActiveTab('rental')}
-            className={`flex-1 py-4 text-center font-bold transition-colors ${
+            className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'rental'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500'
+                ? 'text-neon-blue border-b-2 border-neon-blue'
+                : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             렌탈 ({pendingRentals.length})
           </button>
           <button
             onClick={() => setActiveTab('lesson')}
-            className={`flex-1 py-4 text-center font-bold transition-colors ${
+            className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'lesson'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500'
+                ? 'text-neon-blue border-b-2 border-neon-blue'
+                : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             레슨 ({pendingLessons.length})
@@ -155,25 +153,25 @@ const AdminApproval = () => {
         </div>
       </div>
 
-      {/* 상태 탭 */}
-      <div className="px-4 pt-4">
-        <div className="flex gap-2 mb-4">
+      {/* Status Tabs */}
+      <div className="px-4 pt-5">
+        <div className="flex gap-3 mb-5">
           <button
             onClick={() => setStatusTab('pending')}
-            className={`px-6 py-2 rounded-full font-bold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
               statusTab === 'pending'
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-200 text-gray-600'
+                ? 'bg-gradient-to-r from-neon-orange to-orange-500 text-white shadow-lg shadow-neon-orange/25'
+                : 'bg-white/5 text-gray-500 border border-white/5 hover:bg-white/10'
             }`}
           >
             승인 대기
           </button>
           <button
             onClick={() => setStatusTab('approved')}
-            className={`px-6 py-2 rounded-full font-bold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
               statusTab === 'approved'
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-200 text-gray-600'
+                ? 'bg-gradient-to-r from-neon-green to-emerald-500 text-white shadow-lg shadow-neon-green/25'
+                : 'bg-white/5 text-gray-500 border border-white/5 hover:bg-white/10'
             }`}
           >
             승인 완료
@@ -181,13 +179,16 @@ const AdminApproval = () => {
         </div>
       </div>
 
-      {/* 목록 */}
+      {/* Items List */}
       <div className="px-4">
         {loading ? (
-          <div className="text-center py-10 text-gray-500">로딩 중...</div>
+          <div className="text-center py-16 glass rounded-2xl">
+            <div className="w-8 h-8 border-2 border-neon-blue/30 border-t-neon-blue rounded-full animate-spin mx-auto mb-3" />
+            <span className="text-gray-500 text-sm">로딩 중...</span>
+          </div>
         ) : statusTab === 'pending' ? (
           currentItems.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-16 glass rounded-2xl text-gray-500 text-sm">
               승인 대기 중인 항목이 없습니다.
             </div>
           ) : (
@@ -195,18 +196,20 @@ const AdminApproval = () => {
               {currentItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl p-4 shadow-md"
+                  className="glass rounded-2xl p-5 card-hover"
                 >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="text-4xl">{item.image}</div>
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-800 mb-1">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-dark-700 flex items-center justify-center text-3xl flex-shrink-0">
+                      {item.image}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-white mb-1">
                         {item.name}
                       </div>
-                      <div className="text-sm text-gray-500 mb-1">
+                      <div className="text-xs text-gray-500 mb-1">
                         {item.resort.name} · {item.resort.location}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs text-gray-400">
                         등록자: {item.user.name} ({item.user.phone})
                       </div>
                       {activeTab === 'rental' ? (
@@ -219,27 +222,26 @@ const AdminApproval = () => {
                         </div>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-black text-blue-600">
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-lg font-black text-neon-blue">
                         {(item.price / 10000).toFixed(0)}만원
                       </div>
-                      <div className="text-xs text-orange-600 font-bold mt-1">
+                      <div className="text-xs text-neon-orange font-bold mt-1">
                         승인 대기
                       </div>
                     </div>
                   </div>
 
-                  {/* 승인/거부 버튼 */}
-                  <div className="flex gap-2 pt-3 border-t">
+                  <div className="flex gap-3 pt-4 border-t border-white/5">
                     <button
                       onClick={() => handleReject(item.id, activeTab)}
-                      className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold active:bg-gray-300"
+                      className="flex-1 py-3 bg-white/5 text-gray-400 rounded-xl font-bold text-sm hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all active:scale-95"
                     >
                       거부
                     </button>
                     <button
                       onClick={() => handleApprove(item.id, activeTab)}
-                      className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold active:bg-blue-700"
+                      className="flex-1 py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-95"
                     >
                       승인
                     </button>
@@ -249,30 +251,27 @@ const AdminApproval = () => {
             </div>
           )
         ) : (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-16 glass rounded-2xl text-gray-500 text-sm">
             승인 완료된 항목은 각 카테고리 페이지에서 확인하세요.
           </div>
         )}
       </div>
 
-      {/* 하단 고정 네비게이션 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-3 flex justify-around">
-        <Link to="/" className="flex flex-col items-center gap-1">
-          <span className="text-2xl">🏠</span>
-          <span className="text-xs text-gray-500">홈</span>
-        </Link>
-        <Link to="/new-equipment" className="flex flex-col items-center gap-1">
-          <span className="text-2xl">🎿</span>
-          <span className="text-xs text-gray-500">장비</span>
-        </Link>
-        <Link to="/rental" className="flex flex-col items-center gap-1">
-          <span className="text-2xl">🏔️</span>
-          <span className="text-xs text-gray-500">렌탈</span>
-        </Link>
-        <Link to="/admin-approval" className="flex flex-col items-center gap-1">
-          <span className="text-2xl">⚙️</span>
-          <span className="text-xs font-medium text-blue-600">관리</span>
-        </Link>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/5 px-4 py-3 flex justify-around z-50">
+        {[
+          { to: '/', icon: '🏠', label: '홈', active: false },
+          { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
+          { to: '/rental', icon: '🏔️', label: '렌탈', active: false },
+          { to: '/admin-approval', icon: '⚙️', label: '관리', active: true },
+        ].map((item) => (
+          <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
+            <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
+            <span className={`text-xs font-medium ${item.active ? 'text-neon-blue' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
+              {item.label}
+            </span>
+          </Link>
+        ))}
       </div>
     </div>
   );
