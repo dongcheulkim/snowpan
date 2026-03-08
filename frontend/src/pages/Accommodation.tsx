@@ -134,6 +134,48 @@ const Accommodation = () => {
       features: ['5성급', '스키인/아웃', '뷔페조식'],
       image: '🌟',
     },
+    {
+      id: '7', name: '웰리힐리 콘도', resortId: 'wellihilli', resort: '웰리힐리',
+      type: 'condo', typeText: '콘도', price: 160000, originalPrice: 220000,
+      rating: 4.4, reviewCount: 198, guests: '4인',
+      features: ['스키장 직결', '키친', '주차무료'], image: '🏨',
+    },
+    {
+      id: '8', name: '오투리조트 호텔', resortId: 'o2', resort: '오투',
+      type: 'hotel', typeText: '호텔', price: 140000, originalPrice: 190000,
+      rating: 4.2, reviewCount: 134, guests: '2인',
+      features: ['산속 힐링', '조식포함', '셔틀'], image: '🏩',
+    },
+    {
+      id: '9', name: '알펜시아 인터컨티넨탈', resortId: 'alpensia', resort: '알펜시아',
+      type: 'hotel', typeText: '호텔', price: 300000, originalPrice: 400000,
+      rating: 4.9, reviewCount: 356, guests: '2인',
+      features: ['5성급', '스키장 직결', '수영장'], image: '🌟',
+    },
+    {
+      id: '10', name: '곤지암 리조트콘도', resortId: 'konjiam', resort: '곤지암',
+      type: 'condo', typeText: '콘도', price: 170000, originalPrice: 230000,
+      rating: 4.3, reviewCount: 267, guests: '4인',
+      features: ['서울근교', '스키장 직결', '워터파크'], image: '🏨',
+    },
+    {
+      id: '11', name: '지산 스키빌리지 펜션', resortId: 'jisan', resort: '지산',
+      type: 'pension', typeText: '펜션', price: 100000, originalPrice: 150000,
+      rating: 4.0, reviewCount: 112, guests: '6인',
+      features: ['바베큐', '가성비', '5분거리'], image: '🏡',
+    },
+    {
+      id: '12', name: '무주덕유산리조트 호텔', resortId: 'muju', resort: '무주',
+      type: 'hotel', typeText: '호텔', price: 200000, originalPrice: 280000,
+      rating: 4.6, reviewCount: 289, guests: '2인',
+      features: ['온천', '스키장 직결', '뷔페조식'], image: '🏩',
+    },
+    {
+      id: '13', name: '오크밸리 리조트콘도', resortId: 'oakvalley', resort: '오크밸리',
+      type: 'condo', typeText: '콘도', price: 150000, originalPrice: 200000,
+      rating: 4.4, reviewCount: 176, guests: '4인',
+      features: ['골프장', '키친', '주차무료'], image: '🏔️',
+    },
   ];
 
   const filteredItems = accommodations.filter(item => {
