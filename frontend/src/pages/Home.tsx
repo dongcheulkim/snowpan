@@ -29,6 +29,15 @@ const Home = () => {
       gradient: 'from-orange-600/80 to-amber-500/80',
       glow: 'hover:shadow-orange-500/20',
     },
+    {
+      id: 'accommodation',
+      icon: '🏨',
+      title: '숙소',
+      desc: '스키장 근처',
+      link: '/accommodation',
+      gradient: 'from-rose-600/80 to-pink-500/80',
+      glow: 'hover:shadow-rose-500/20',
+    },
   ];
 
   const hotDeals = [
