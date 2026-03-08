@@ -13,7 +13,7 @@ const Navbar = () => {
             <Link to="/" className="flex items-center space-x-3 group">
               <span className="text-2xl group-hover:animate-float">⛷️</span>
               <span className="text-xl font-bold gradient-text tracking-tight">
-                스노우프라이스
+                스노우판
               </span>
             </Link>
           </div>

@@ -116,7 +116,7 @@ const Login = () => {
             {isLogin ? '로그인' : '회원가입'}
           </h1>
           <p className="text-sm text-gray-400">
-            스노우프라이스에 오신 것을 환영합니다
+            스노우판에 오신 것을 환영합니다
           </p>
         </div>
 
