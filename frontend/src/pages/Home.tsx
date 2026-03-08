@@ -6,22 +6,25 @@ const Home = () => {
 
   const banners = [
     {
-      title: '시즌 오픈 특가',
-      desc: '중고 장비 최대 60% 할인',
+      title: '보드팩토리 강남점',
+      desc: '시즌 오픈 전 장비 튜닝 50% 할인 이벤트',
       gradient: 'from-neon-blue/30 to-neon-purple/30',
       accent: 'text-neon-blue',
+      tag: 'AD',
     },
     {
-      title: '렌탈 얼리버드',
-      desc: '1월 렌탈 예약 시 20% 할인',
+      title: '스키프로샵 홍대점',
+      desc: '24/25 신상 부츠 피팅 무료 · 장비 풀세트 특가',
       gradient: 'from-neon-purple/30 to-neon-pink/30',
       accent: 'text-neon-purple',
+      tag: 'AD',
     },
     {
-      title: '그룹 레슨 할인',
-      desc: '4인 이상 그룹 레슨 30% OFF',
+      title: '라이더스클럽 판교점',
+      desc: '중고 장비 위탁판매 수수료 0% · 왁싱 서비스',
       gradient: 'from-neon-orange/30 to-amber-500/30',
       accent: 'text-neon-orange',
+      tag: 'AD',
     },
   ];
 
