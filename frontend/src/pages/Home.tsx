@@ -211,6 +211,7 @@ const Home = () => {
           { to: '/', icon: '🏠', label: '홈', active: true },
           { to: '/used', icon: '♻️', label: '중고', active: false },
           { to: '/rental', icon: '🏔️', label: '렌탈', active: false },
+          { to: '/accommodation', icon: '🏨', label: '숙소', active: false },
           { to: '/admin-approval', icon: '⚙️', label: '관리', active: false },
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
