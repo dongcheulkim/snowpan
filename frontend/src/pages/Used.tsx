@@ -6,15 +6,15 @@ const Used = () => {
   const [selectedCondition, setSelectedCondition] = useState('all');
 
   const categories = [
-    { id: 'all', name: '전체', icon: '📦' },
-    { id: 'ski', name: '스키', icon: '🎿' },
-    { id: 'board', name: '보드', icon: '🏂' },
-    { id: 'ski-boots', name: '스키부츠', icon: '🥾' },
-    { id: 'board-boots', name: '보드부츠', icon: '👢' },
-    { id: 'helmet-goggle', name: '헬멧/고글', icon: '⛑️' },
-    { id: 'gloves', name: '장갑', icon: '🧤' },
-    { id: 'wear', name: '스키복', icon: '🧥' },
-    { id: 'etc', name: '기타', icon: '🎒' },
+    { id: 'all', name: '전체' },
+    { id: 'ski', name: '스키' },
+    { id: 'board', name: '보드' },
+    { id: 'ski-boots', name: '스키부츠' },
+    { id: 'board-boots', name: '보드부츠' },
+    { id: 'helmet-goggle', name: '헬멧/고글' },
+    { id: 'gloves', name: '장갑' },
+    { id: 'wear', name: '스키복' },
+    { id: 'etc', name: '기타' },
   ];
 
   const conditions = [
