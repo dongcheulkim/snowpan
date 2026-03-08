@@ -59,14 +59,13 @@ const Used = () => {
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+            className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedCategory === cat.id
                 ? 'bg-gradient-to-r from-neon-green to-emerald-500 text-white shadow-lg shadow-neon-green/25'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
             }`}
           >
-            <span>{cat.icon}</span>
-            <span>{cat.name}</span>
+            {cat.name}
           </button>
         ))}
       </div>
