@@ -101,8 +101,44 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Ad Banner Slider */}
+      <div className="px-4 -mt-6 mb-4">
+        <div className="relative overflow-hidden rounded-2xl glass h-24">
+          {banners.map((banner, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${
+                idx === currentBanner
+                  ? 'opacity-100 translate-x-0'
+                  : idx < currentBanner
+                  ? 'opacity-0 -translate-x-full'
+                  : 'opacity-0 translate-x-full'
+              }`}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+              <div className="relative z-10">
+                <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
+                <p className="text-sm text-gray-300 mt-0.5">{banner.desc}</p>
+              </div>
+            </div>
+          ))}
+          {/* Dots */}
+          <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
+            {banners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentBanner(idx)}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentBanner ? 'bg-white w-4' : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Category Grid */}
-      <div className="px-4 -mt-4">
+      <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
           {categories.map((cat, idx) => (
             <Link
