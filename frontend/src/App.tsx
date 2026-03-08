@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Used from './pages/Used';
 import Rental from './pages/Rental';
 import Lesson from './pages/Lesson';
+import Accommodation from './pages/Accommodation';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
 
