@@ -3,15 +3,6 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const categories = [
     {
-      id: 'new',
-      icon: '🎿',
-      title: '새 장비',
-      desc: '최저가 비교',
-      link: '/new-equipment',
-      gradient: 'from-blue-600/80 to-cyan-500/80',
-      glow: 'hover:shadow-blue-500/20',
-    },
-    {
       id: 'used',
       icon: '♻️',
       title: '중고',
