@@ -23,6 +23,7 @@ const Navbar = () => {
               { to: '/used', label: '중고' },
               { to: '/rental', label: '렌탈' },
               { to: '/lesson', label: '레슨' },
+              { to: '/accommodation', label: '숙소' },
             ].map(({ to, label }) => (
               <Link
                 key={to}
