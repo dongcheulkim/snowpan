@@ -59,7 +59,7 @@ const LessonDetail = () => {
     },
     '7': {
       id: '7', name: '스키 그룹레슨', resort: '비발디파크', price: 75000, duration: '2시간',
-      level: 'beginner', levelText: '초급', maxStudents: 10, image: '⛷️',
+      level: 'lv1', levelText: 'LV1', maxStudents: 10, image: '⛷️',
       instructor: '윤강사 (KSIA 레벨2)',
       description: '비발디파크 초급 코스에서 진행되는 스키 그룹레슨. 서울 근교에서 편하게 배울 수 있습니다.',
       schedule: '09:00 / 11:00 / 14:00 / 19:00', includes: ['레슨비', '보험'],
@@ -67,9 +67,9 @@ const LessonDetail = () => {
     },
     '8': {
       id: '8', name: '보드 개인레슨', resort: '비발디파크', price: 130000, duration: '2시간',
-      level: 'advanced', levelText: '상급', maxStudents: 1, image: '🏂',
+      level: 'lv3', levelText: 'LV3', maxStudents: 1, image: '🏂',
       instructor: '강강사 (프로보더)',
-      description: '프로보더 출신 강사의 1:1 상급 레슨. 점프, 지빙, 카빙 등 원하는 기술을 집중 훈련합니다.',
+      description: '프로보더 출신 강사의 1:1 LV3 레슨. 점프, 지빙, 카빙 등 원하는 기술을 집중 훈련합니다.',
       schedule: '예약 시 협의', includes: ['레슨비', '보험', '영상 촬영', '장비 점검'],
       contact: '033-434-7000',
     },
