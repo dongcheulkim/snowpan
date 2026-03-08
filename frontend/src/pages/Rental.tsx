@@ -25,6 +25,13 @@ const Rental = () => {
     { id: 'high1', name: '하이원' },
     { id: 'vivaldi', name: '비발디파크' },
     { id: 'elysian', name: '엘리시안' },
+    { id: 'wellihilli', name: '웰리힐리' },
+    { id: 'o2', name: '오투리조트' },
+    { id: 'alpensia', name: '알펜시아' },
+    { id: 'konjiam', name: '곤지암' },
+    { id: 'jisan', name: '지산' },
+    { id: 'muju', name: '무주' },
+    { id: 'oakvalley', name: '오크밸리' },
   ];
 
   const rentalItems = [
@@ -38,6 +45,20 @@ const Rental = () => {
     { id: '8', name: '헬멧+고글 세트', resort: '용평리조트', resortId: 'yongpyong', price: 15000, duration: '1일', equipment: ['헬멧', '고글'], image: '⛑️' },
     { id: '9', name: '스키복 상하세트', resort: '휘닉스평창', resortId: 'phoenix', price: 25000, duration: '1일', equipment: ['상의', '하의'], image: '🧥' },
     { id: '10', name: '보드 풀세트', resort: '엘리시안', resortId: 'elysian', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '11', name: '스키 풀세트', resort: '웰리힐리', resortId: 'wellihilli', price: 42000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '12', name: '보드 풀세트', resort: '웰리힐리', resortId: 'wellihilli', price: 38000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '13', name: '스키 풀세트', resort: '오투리조트', resortId: 'o2', price: 38000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '14', name: '보드 풀세트', resort: '오투리조트', resortId: 'o2', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '15', name: '스키 풀세트', resort: '알펜시아', resortId: 'alpensia', price: 48000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '16', name: '보드 풀세트', resort: '알펜시아', resortId: 'alpensia', price: 43000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '17', name: '스키 풀세트', resort: '곤지암', resortId: 'konjiam', price: 44000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '18', name: '보드 풀세트', resort: '곤지암', resortId: 'konjiam', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '19', name: '스키 풀세트', resort: '지산', resortId: 'jisan', price: 40000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '20', name: '보드 풀세트', resort: '지산', resortId: 'jisan', price: 36000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '21', name: '스키 풀세트', resort: '무주', resortId: 'muju', price: 43000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '22', name: '보드 풀세트', resort: '무주', resortId: 'muju', price: 39000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '23', name: '스키 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 41000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '24', name: '보드 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 37000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
   ];
 
   const filteredItems = selectedResort === 'all'
