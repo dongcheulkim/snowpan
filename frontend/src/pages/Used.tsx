@@ -1,56 +1,96 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Used = () => {
-  const usedProducts = [
-    {
-      id: '1',
-      name: 'Rossignol Soul 7 (2022)',
-      brand: 'Rossignol',
-      price: 450000,
-      originalPrice: 850000,
-      image: '🎿',
-      condition: '상',
-      usageCount: '5회'
-    },
-    {
-      id: '2',
-      name: 'Burton Custom (2021)',
-      brand: 'Burton',
-      price: 380000,
-      originalPrice: 720000,
-      image: '🏂',
-      condition: '중',
-      usageCount: '10회'
-    }
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCondition, setSelectedCondition] = useState('all');
+
+  const categories = [
+    { id: 'all', name: '전체', icon: '📦' },
+    { id: 'ski', name: '스키', icon: '🎿' },
+    { id: 'board', name: '보드', icon: '🏂' },
+    { id: 'ski-boots', name: '스키부츠', icon: '🥾' },
+    { id: 'board-boots', name: '보드부츠', icon: '👢' },
+    { id: 'helmet-goggle', name: '헬멧/고글', icon: '⛑️' },
+    { id: 'gloves', name: '장갑', icon: '🧤' },
+    { id: 'wear', name: '스키복', icon: '🧥' },
+    { id: 'etc', name: '기타', icon: '🎒' },
   ];
+
+  const conditions = [
+    { id: 'all', name: '전체' },
+    { id: '상', name: '상' },
+    { id: '중', name: '중' },
+    { id: '하', name: '하' },
+  ];
+
+  const usedProducts = [
+    { id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol', price: 450000, originalPrice: 850000, image: '🎿', condition: '상', usageCount: '5회', category: 'ski' },
+    { id: '2', name: 'Burton Custom (2021)', brand: 'Burton', price: 380000, originalPrice: 720000, image: '🏂', condition: '중', usageCount: '10회', category: 'board' },
+    { id: '3', name: 'Salomon S/Pro 100 (2023)', brand: 'Salomon', price: 280000, originalPrice: 520000, image: '🥾', condition: '상', usageCount: '3회', category: 'ski-boots' },
+    { id: '4', name: 'Burton Ruler BOA (2022)', brand: 'Burton', price: 190000, originalPrice: 380000, image: '👢', condition: '중', usageCount: '8회', category: 'board-boots' },
+    { id: '5', name: 'Smith Vantage 헬멧 + I/O MAG 고글', brand: 'Smith', price: 250000, originalPrice: 480000, image: '⛑️', condition: '상', usageCount: '5회', category: 'helmet-goggle' },
+    { id: '6', name: 'Hestra Fall Line 장갑', brand: 'Hestra', price: 85000, originalPrice: 180000, image: '🧤', condition: '중', usageCount: '10회', category: 'gloves' },
+    { id: '7', name: 'Descente 스키복 상하세트', brand: 'Descente', price: 320000, originalPrice: 650000, image: '🧥', condition: '상', usageCount: '3회', category: 'wear' },
+    { id: '8', name: 'Atomic Maverick 86 (2023)', brand: 'Atomic', price: 520000, originalPrice: 920000, image: '🎿', condition: '상', usageCount: '2회', category: 'ski' },
+  ];
+
+  const filteredProducts = usedProducts.filter(p => {
+    const catMatch = selectedCategory === 'all' || p.category === selectedCategory;
+    const condMatch = selectedCondition === 'all' || p.condition === selectedCondition;
+    return catMatch && condMatch;
+  });
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold gradient-text">중고 장비</h1>
-        <div className="flex items-center space-x-2">
-          <select className="px-3 py-1.5 glass rounded-lg text-xs text-gray-300 bg-transparent focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer">
-            <option className="bg-dark-800">전체</option>
-            <option className="bg-dark-800">스키</option>
-            <option className="bg-dark-800">보드</option>
-          </select>
-          <select className="px-3 py-1.5 glass rounded-lg text-xs text-gray-300 bg-transparent focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer">
-            <option className="bg-dark-800">상태: 전체</option>
-            <option className="bg-dark-800">상</option>
-            <option className="bg-dark-800">중</option>
-            <option className="bg-dark-800">하</option>
-          </select>
-          <Link
-            to="/used/register"
-            className="px-4 py-1.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-lg font-medium text-xs hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95 whitespace-nowrap"
-          >
-            + 장비 등록
-          </Link>
-        </div>
+        <Link
+          to="/used/register"
+          className="px-4 py-1.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-lg font-medium text-xs hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95 whitespace-nowrap"
+        >
+          + 장비 등록
+        </Link>
       </div>
 
+      {/* Category Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+              selectedCategory === cat.id
+                ? 'bg-gradient-to-r from-neon-green to-emerald-500 text-white shadow-lg shadow-neon-green/25'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+            }`}
+          >
+            <span>{cat.icon}</span>
+            <span>{cat.name}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Condition Filter */}
+      <div className="flex gap-2">
+        {conditions.map((cond) => (
+          <button
+            key={cond.id}
+            onClick={() => setSelectedCondition(cond.id)}
+            className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
+              selectedCondition === cond.id
+                ? 'bg-neon-blue/15 text-neon-blue border border-neon-blue/30'
+                : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300 border border-white/5'
+            }`}
+          >
+            상태: {cond.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Product Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {usedProducts.map((product) => (
+        {filteredProducts.map((product) => (
           <Link to={`/used/${product.id}`} key={product.id} className="glass rounded-xl overflow-hidden card-hover group block">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-gradient-to-br from-emerald-600/10 to-green-500/10">
               <div className="absolute inset-0 bg-gradient-to-br from-neon-green/5 to-emerald-500/5 group-hover:from-neon-green/10 group-hover:to-emerald-500/10 transition-all" />
@@ -81,6 +121,12 @@ const Used = () => {
           </Link>
         ))}
       </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-12 text-gray-500 glass rounded-xl text-sm">
+          해당 조건의 중고 장비가 없습니다.
+        </div>
+      )}
     </div>
   );
 };
