@@ -20,7 +20,6 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-1">
             {[
-              { to: '/new-equipment', label: '새 장비' },
               { to: '/used', label: '중고' },
               { to: '/rental', label: '렌탈' },
               { to: '/lesson', label: '레슨' },
