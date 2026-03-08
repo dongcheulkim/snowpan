@@ -44,7 +44,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-neon-blue/10 via-transparent to-neon-purple/10" />
         <div className="relative z-10">
           <h1 className="text-4xl font-black text-center mb-2 animate-slide-up">
-            <span className="gradient-text">⛷️ 스노우프라이스</span>
+            <span className="gradient-text">⛷️ 스노우판</span>
           </h1>
           <p className="text-center text-gray-400 mb-8 animate-fade-in text-sm">
             스키 & 보드 장비의 모든 것
