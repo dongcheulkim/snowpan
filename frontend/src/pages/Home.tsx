@@ -1,6 +1,36 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const [currentBanner, setCurrentBanner] = useState(0);
+
+  const banners = [
+    {
+      title: '시즌 오픈 특가',
+      desc: '중고 장비 최대 60% 할인',
+      gradient: 'from-neon-blue/30 to-neon-purple/30',
+      accent: 'text-neon-blue',
+    },
+    {
+      title: '렌탈 얼리버드',
+      desc: '1월 렌탈 예약 시 20% 할인',
+      gradient: 'from-neon-purple/30 to-neon-pink/30',
+      accent: 'text-neon-purple',
+    },
+    {
+      title: '그룹 레슨 할인',
+      desc: '4인 이상 그룹 레슨 30% OFF',
+      gradient: 'from-neon-orange/30 to-amber-500/30',
+      accent: 'text-neon-orange',
+    },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
   const categories = [
     {
       id: 'used',
