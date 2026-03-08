@@ -26,6 +26,13 @@ const Accommodation = () => {
     { id: 'high1', name: '하이원' },
     { id: 'vivaldi', name: '비발디' },
     { id: 'elysian', name: '엘리시안' },
+    { id: 'wellihilli', name: '웰리힐리' },
+    { id: 'o2', name: '오투' },
+    { id: 'alpensia', name: '알펜시아' },
+    { id: 'konjiam', name: '곤지암' },
+    { id: 'jisan', name: '지산' },
+    { id: 'muju', name: '무주' },
+    { id: 'oakvalley', name: '오크밸리' },
   ];
 
   const types = [
