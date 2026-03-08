@@ -49,7 +49,7 @@ const Accommodation = () => {
       rating: 4.8,
       reviewCount: 187,
       guests: '2인',
-      features: ['스키장 도보 3분', '스파', '셔틀버스'],
+      features: ['도보 3분', '스파', '셔틀'],
       image: '🏩',
     },
     {
@@ -79,7 +79,7 @@ const Accommodation = () => {
       rating: 4.3,
       reviewCount: 156,
       guests: '6인',
-      features: ['바베큐', '넓은거실', '스키장 5분'],
+      features: ['바베큐', '넓은거실', '5분거리'],
       image: '🏡',
     },
     {
@@ -94,7 +94,7 @@ const Accommodation = () => {
       rating: 4.1,
       reviewCount: 89,
       guests: '4인',
-      features: ['가성비', '온돌방', '스키장 10분'],
+      features: ['가성비', '온돌방', '10분거리'],
       image: '🏠',
     },
     {
@@ -121,19 +121,19 @@ const Accommodation = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold gradient-text">숙소</h1>
+    <div className="space-y-5 animate-fade-in">
+      <h1 className="text-2xl font-bold gradient-text">숙소</h1>
 
       {/* Filters */}
-      <div className="glass rounded-2xl p-6 space-y-6">
+      <div className="glass rounded-xl p-4 space-y-4">
         <div>
-          <h2 className="text-base font-bold mb-4 text-white">스키장 선택</h2>
-          <div className="flex flex-wrap gap-3">
+          <h2 className="text-sm font-bold mb-3 text-white">스키장 선택</h2>
+          <div className="flex flex-wrap gap-2">
             {resorts.map((resort) => (
               <button
                 key={resort.id}
                 onClick={() => setSelectedResort(resort.id)}
-                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 ${
+                className={`px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 ${
                   selectedResort === resort.id
                     ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
@@ -145,14 +145,14 @@ const Accommodation = () => {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/5">
-          <h2 className="text-base font-bold mb-4 text-white">숙소 유형</h2>
-          <div className="flex flex-wrap gap-3">
+        <div className="pt-3 border-t border-white/5">
+          <h2 className="text-sm font-bold mb-3 text-white">숙소 유형</h2>
+          <div className="flex flex-wrap gap-2">
             {types.map((type) => (
               <button
                 key={type.id}
                 onClick={() => setSelectedType(type.id)}
-                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 ${
+                className={`px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 ${
                   selectedType === type.id
                     ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
@@ -166,61 +166,51 @@ const Accommodation = () => {
       </div>
 
       {/* Accommodation List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <div key={item.id} className="glass rounded-2xl overflow-hidden card-hover group">
-            <div className="relative h-48 flex items-center justify-center text-7xl bg-gradient-to-br from-rose-600/10 to-pink-500/10">
+          <div key={item.id} className="glass rounded-xl overflow-hidden card-hover group">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-gradient-to-br from-rose-600/10 to-pink-500/10">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-pink-500/5 group-hover:from-rose-500/10 group-hover:to-pink-500/10 transition-all" />
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              <span className="absolute top-4 right-4 bg-rose-500/20 text-rose-300 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/30">
+              <span className="absolute top-2 right-2 bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-[10px] font-bold border border-rose-500/30">
                 {item.typeText}
               </span>
             </div>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-rose-400 bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-medium text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
                   {item.resort}
                 </span>
-                <span className="text-xs text-gray-500">{item.guests} 기준</span>
+                <span className="text-[10px] text-gray-500">{item.guests}</span>
               </div>
-              <h3 className="text-lg font-bold mb-2 text-white">{item.name}</h3>
+              <h3 className="text-sm font-bold text-white truncate mb-1.5">{item.name}</h3>
 
-              <div className="flex items-center mb-3">
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`text-xs ${i < Math.floor(item.rating) ? 'text-yellow-400' : 'text-gray-600'}`}>★</span>
-                  ))}
-                </div>
-                <span className="ml-2 text-xs text-gray-500">
-                  {item.rating} ({item.reviewCount})
-                </span>
+              <div className="flex items-center gap-1 mb-2">
+                <span className="text-yellow-400 text-[10px]">★</span>
+                <span className="text-[10px] text-gray-500">{item.rating} ({item.reviewCount})</span>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-1 mb-2">
                 {item.features.map((feature, idx) => (
-                  <span key={idx} className="text-xs bg-white/5 text-gray-400 px-2.5 py-1 rounded-lg border border-white/5">
+                  <span key={idx} className="text-[10px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded border border-white/5">
                     {feature}
                   </span>
                 ))}
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t border-white/5">
+              <div className="flex justify-between items-end pt-2 border-t border-white/5">
                 <div>
-                  <div className="text-xs text-gray-600 line-through mb-0.5">
-                    {item.originalPrice.toLocaleString()}원
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-rose-400">
-                      {item.price.toLocaleString()}원
-                    </span>
-                    <span className="text-xs text-neon-pink font-bold">
+                  <div className="text-[10px] text-gray-600 line-through">{item.originalPrice.toLocaleString()}원</div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-base font-bold text-rose-400">{item.price.toLocaleString()}원</span>
+                    <span className="text-[10px] text-neon-pink font-bold">
                       {Math.round((1 - item.price / item.originalPrice) * 100)}%
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">1박 기준</div>
+                  <div className="text-[10px] text-gray-500">1박</div>
                 </div>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-rose-500/25 transition-all active:scale-95">
-                  예약하기
+                <button className="px-3 py-1.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-lg font-medium text-[11px] hover:shadow-lg hover:shadow-rose-500/25 transition-all active:scale-95">
+                  예약
                 </button>
               </div>
             </div>
@@ -229,7 +219,7 @@ const Accommodation = () => {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-16 text-gray-500 glass rounded-2xl">
+        <div className="text-center py-12 text-gray-500 glass rounded-xl text-sm">
           해당 조건의 숙소 정보가 없습니다.
         </div>
       )}
