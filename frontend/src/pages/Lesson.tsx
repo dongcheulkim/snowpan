@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Lesson = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
@@ -9,53 +10,25 @@ const Lesson = () => {
     { id: 'yongpyong', name: '용평리조트' },
     { id: 'phoenix', name: '휘닉스평창' },
     { id: 'high1', name: '하이원' },
-    { id: 'vivaldi', name: '비발디파크' }
+    { id: 'vivaldi', name: '비발디파크' },
   ];
 
   const levels = [
     { id: 'all', name: '전체' },
     { id: 'beginner', name: '초급' },
     { id: 'intermediate', name: '중급' },
-    { id: 'advanced', name: '상급' }
+    { id: 'advanced', name: '상급' },
   ];
 
   const lessonItems = [
-    {
-      id: '1',
-      name: '스키 그룹레슨',
-      resort: '용평리조트',
-      resortId: 'yongpyong',
-      price: 80000,
-      duration: '2시간',
-      level: 'beginner',
-      levelText: '초급',
-      maxStudents: 8,
-      image: '⛷️'
-    },
-    {
-      id: '2',
-      name: '스키 개인레슨',
-      resort: '용평리조트',
-      resortId: 'yongpyong',
-      price: 150000,
-      duration: '2시간',
-      level: 'intermediate',
-      levelText: '중급',
-      maxStudents: 1,
-      image: '⛷️'
-    },
-    {
-      id: '3',
-      name: '보드 그룹레슨',
-      resort: '휘닉스평창',
-      resortId: 'phoenix',
-      price: 75000,
-      duration: '2시간',
-      level: 'beginner',
-      levelText: '초급',
-      maxStudents: 6,
-      image: '🏂'
-    }
+    { id: '1', name: '스키 그룹레슨', resort: '용평리조트', resortId: 'yongpyong', price: 80000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '⛷️' },
+    { id: '2', name: '스키 개인레슨', resort: '용평리조트', resortId: 'yongpyong', price: 150000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '⛷️' },
+    { id: '3', name: '보드 그룹레슨', resort: '휘닉스평창', resortId: 'phoenix', price: 75000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 6, image: '🏂' },
+    { id: '4', name: '보드 개인레슨', resort: '휘닉스평창', resortId: 'phoenix', price: 140000, duration: '2시간', level: 'intermediate', levelText: '중급', maxStudents: 1, image: '🏂' },
+    { id: '5', name: '스키 상급반', resort: '하이원', resortId: 'high1', price: 200000, duration: '3시간', level: 'advanced', levelText: '상급', maxStudents: 4, image: '⛷️' },
+    { id: '6', name: '보드 그룹레슨', resort: '하이원', resortId: 'high1', price: 70000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 8, image: '🏂' },
+    { id: '7', name: '스키 그룹레슨', resort: '비발디파크', resortId: 'vivaldi', price: 75000, duration: '2시간', level: 'beginner', levelText: '초급', maxStudents: 10, image: '⛷️' },
+    { id: '8', name: '보드 개인레슨', resort: '비발디파크', resortId: 'vivaldi', price: 130000, duration: '2시간', level: 'advanced', levelText: '상급', maxStudents: 1, image: '🏂' },
   ];
 
   const filteredItems = lessonItems.filter(item => {
@@ -112,7 +85,7 @@ const Lesson = () => {
       {/* Lesson Items */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <div key={item.id} className="glass rounded-xl overflow-hidden card-hover group">
+          <Link to={`/lesson/${item.id}`} key={item.id} className="glass rounded-xl overflow-hidden card-hover group block">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-gradient-to-br from-orange-600/10 to-amber-500/10">
               <div className="absolute inset-0 bg-gradient-to-br from-neon-orange/5 to-amber-500/5 group-hover:from-neon-orange/10 group-hover:to-amber-500/10 transition-all" />
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
@@ -141,7 +114,7 @@ const Lesson = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Accommodation = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
@@ -168,7 +169,7 @@ const Accommodation = () => {
       {/* Accommodation List */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <div key={item.id} className="glass rounded-xl overflow-hidden card-hover group">
+          <Link to={`/accommodation/${item.id}`} key={item.id} className="glass rounded-xl overflow-hidden card-hover group block">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-gradient-to-br from-rose-600/10 to-pink-500/10">
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-pink-500/5 group-hover:from-rose-500/10 group-hover:to-pink-500/10 transition-all" />
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
@@ -214,7 +215,7 @@ const Accommodation = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
