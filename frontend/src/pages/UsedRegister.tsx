@@ -10,7 +10,7 @@ const UsedRegister = () => {
     category: 'ski',
     size: '',
     year: '',
-    condition: '상',
+    condition: '1시즌 이하',
     usageCount: '',
     originalPrice: '',
     price: '',
@@ -166,9 +166,9 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="상" className="bg-dark-800">상 (거의 새것)</option>
-                <option value="중" className="bg-dark-800">중 (사용감 있음)</option>
-                <option value="하" className="bg-dark-800">하 (많이 사용)</option>
+                <option value="1시즌 이하" className="bg-dark-800">1시즌 이하</option>
+                <option value="2시즌 이하" className="bg-dark-800">2시즌 이하</option>
+                <option value="3시즌 이상" className="bg-dark-800">3시즌 이상</option>
               </select>
             </div>
 
