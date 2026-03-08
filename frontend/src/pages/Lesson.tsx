@@ -104,45 +104,38 @@ const Lesson = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="glass rounded-xl p-4 space-y-4">
-        <div>
-          <h2 className="text-sm font-bold mb-3 text-white">스키장 선택</h2>
-          <div className="flex flex-wrap gap-2">
-            {resorts.map((resort) => (
-              <button
-                key={resort.id}
-                onClick={() => setSelectedResort(resort.id)}
-                className={`px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 ${
-                  selectedResort === resort.id
-                    ? 'bg-gradient-to-r from-neon-orange to-orange-500 text-white shadow-lg shadow-neon-orange/25'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
-                }`}
-              >
-                {resort.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Resort Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {resorts.map((resort) => (
+          <button
+            key={resort.id}
+            onClick={() => setSelectedResort(resort.id)}
+            className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+              selectedResort === resort.id
+                ? 'bg-gradient-to-r from-neon-orange to-orange-500 text-white shadow-lg shadow-neon-orange/25'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+            }`}
+          >
+            {resort.name}
+          </button>
+        ))}
+      </div>
 
-        <div className="pt-3 border-t border-white/5">
-          <h2 className="text-sm font-bold mb-3 text-white">레벨 선택</h2>
-          <div className="flex flex-wrap gap-2">
-            {levels.map((level) => (
-              <button
-                key={level.id}
-                onClick={() => setSelectedLevel(level.id)}
-                className={`px-4 py-2 rounded-lg font-medium text-xs transition-all duration-300 ${
-                  selectedLevel === level.id
-                    ? 'bg-gradient-to-r from-neon-orange to-orange-500 text-white shadow-lg shadow-neon-orange/25'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
-                }`}
-              >
-                {level.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Level Filter */}
+      <div className="flex gap-2">
+        {levels.map((level) => (
+          <button
+            key={level.id}
+            onClick={() => setSelectedLevel(level.id)}
+            className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
+              selectedLevel === level.id
+                ? 'bg-neon-blue/15 text-neon-blue border border-neon-blue/30'
+                : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300 border border-white/5'
+            }`}
+          >
+            {level.name}
+          </button>
+        ))}
       </div>
 
       {/* Lesson Items */}
