@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Accommodation = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [currentBanner, setCurrentBanner] = useState(0);
+
+  const banners = [
+    { title: '용평리조트 공식', desc: '스키시즌 숙박 패키지 · 리프트권 포함 특가', gradient: 'from-rose-500/30 to-pink-500/30', accent: 'text-rose-400' },
+    { title: '휘닉스 블리스', desc: '얼리체크인 무료 · 스파 이용권 증정', gradient: 'from-neon-pink/30 to-rose-500/30', accent: 'text-neon-pink' },
+    { title: '하이원 그랜드호텔', desc: '주중 40% 할인 · 곤돌라 무료 이용', gradient: 'from-rose-500/30 to-orange-500/30', accent: 'text-rose-400' },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
   const resorts = [
     { id: 'all', name: '전체' },
@@ -124,6 +138,32 @@ const Accommodation = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <h1 className="text-2xl font-bold gradient-text">숙소</h1>
+
+      {/* Ad Banner */}
+      <div className="relative overflow-hidden rounded-2xl glass h-24">
+        {banners.map((banner, idx) => (
+          <div
+            key={idx}
+            className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${
+              idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'
+            }`}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
+            <div className="relative z-10 flex-1">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
+              </div>
+              <p className="text-sm text-gray-300">{banner.desc}</p>
+            </div>
+          </div>
+        ))}
+        <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
+          {banners.map((_, idx) => (
+            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-white w-4' : 'bg-white/30'}`} />
+          ))}
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="glass rounded-xl p-4 space-y-4">
