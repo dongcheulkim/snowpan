@@ -18,6 +18,7 @@ function App() {
 <Route path="used" element={<Used />} />
           <Route path="rental" element={<Rental />} />
           <Route path="lesson" element={<Lesson />} />
+          <Route path="accommodation" element={<Accommodation />} />
           <Route path="login" element={<Login />} />
           <Route path="admin-approval" element={<AdminApproval />} />
         </Route>
