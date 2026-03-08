@@ -73,7 +73,7 @@ const Home = () => {
 
       {/* Category Grid */}
       <div className="px-4 -mt-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {categories.map((cat, idx) => (
             <Link
               key={cat.id}
