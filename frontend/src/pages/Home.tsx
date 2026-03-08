@@ -91,7 +91,7 @@ const Home = () => {
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             🔥 <span className="gradient-text-warm">실시간 핫딜</span>
           </h2>
-          <Link to="/new-equipment" className="text-sm text-neon-blue hover:text-neon-blue/80 transition-colors">
+          <Link to="/used" className="text-sm text-neon-blue hover:text-neon-blue/80 transition-colors">
             전체보기 →
           </Link>
         </div>
