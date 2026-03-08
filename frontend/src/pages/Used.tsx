@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const Used = () => {
   const usedProducts = [
     {
@@ -26,7 +28,7 @@ const Used = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold gradient-text">중고 장비</h1>
-        <div className="flex space-x-3">
+        <div className="flex items-center space-x-3">
           <select className="px-4 py-2 glass rounded-lg text-sm text-gray-300 bg-transparent focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer">
             <option className="bg-dark-800">전체</option>
             <option className="bg-dark-800">스키</option>
@@ -38,12 +40,18 @@ const Used = () => {
             <option className="bg-dark-800">중</option>
             <option className="bg-dark-800">하</option>
           </select>
+          <Link
+            to="/used/register"
+            className="px-5 py-2.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95 whitespace-nowrap"
+          >
+            + 장비 등록
+          </Link>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {usedProducts.map((product) => (
-          <div key={product.id} className="glass rounded-2xl overflow-hidden card-hover group">
+          <Link to={`/used/${product.id}`} key={product.id} className="glass rounded-2xl overflow-hidden card-hover group block">
             <div className="relative h-48 flex items-center justify-center text-7xl bg-gradient-to-br from-emerald-600/10 to-green-500/10">
               <div className="absolute inset-0 bg-gradient-to-br from-neon-green/5 to-emerald-500/5 group-hover:from-neon-green/10 group-hover:to-emerald-500/10 transition-all" />
               <span className="relative group-hover:scale-110 transition-transform duration-300">{product.image}</span>
@@ -76,12 +84,9 @@ const Used = () => {
                     {Math.round((1 - product.price / product.originalPrice) * 100)}% 할인
                   </span>
                 </div>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95">
-                  구매하기
-                </button>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
