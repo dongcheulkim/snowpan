@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Rental = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
@@ -8,40 +9,21 @@ const Rental = () => {
     { id: 'yongpyong', name: '용평리조트' },
     { id: 'phoenix', name: '휘닉스평창' },
     { id: 'high1', name: '하이원' },
-    { id: 'vivaldi', name: '비발디파크' }
+    { id: 'vivaldi', name: '비발디파크' },
+    { id: 'elysian', name: '엘리시안' },
   ];
 
   const rentalItems = [
-    {
-      id: '1',
-      name: '스키 풀세트',
-      resort: '용평리조트',
-      resortId: 'yongpyong',
-      price: 45000,
-      duration: '1일',
-      equipment: ['스키', '부츠', '폴'],
-      image: '⛷️'
-    },
-    {
-      id: '2',
-      name: '보드 풀세트',
-      resort: '용평리조트',
-      resortId: 'yongpyong',
-      price: 40000,
-      duration: '1일',
-      equipment: ['보드', '부츠'],
-      image: '🏂'
-    },
-    {
-      id: '3',
-      name: '스키 풀세트',
-      resort: '휘닉스평창',
-      resortId: 'phoenix',
-      price: 42000,
-      duration: '1일',
-      equipment: ['스키', '부츠', '폴'],
-      image: '⛷️'
-    }
+    { id: '1', name: '스키 풀세트', resort: '용평리조트', resortId: 'yongpyong', price: 45000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '2', name: '보드 풀세트', resort: '용평리조트', resortId: 'yongpyong', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '3', name: '스키 풀세트', resort: '휘닉스평창', resortId: 'phoenix', price: 42000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '4', name: '보드 풀세트', resort: '휘닉스평창', resortId: 'phoenix', price: 38000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '5', name: '스키 풀세트', resort: '하이원', resortId: 'high1', price: 40000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '6', name: '보드 풀세트', resort: '하이원', resortId: 'high1', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '7', name: '스키 풀세트', resort: '비발디파크', resortId: 'vivaldi', price: 43000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '8', name: '헬멧+고글 세트', resort: '용평리조트', resortId: 'yongpyong', price: 15000, duration: '1일', equipment: ['헬멧', '고글'], image: '⛑️' },
+    { id: '9', name: '스키복 상하세트', resort: '휘닉스평창', resortId: 'phoenix', price: 25000, duration: '1일', equipment: ['상의', '하의'], image: '🧥' },
+    { id: '10', name: '보드 풀세트', resort: '엘리시안', resortId: 'elysian', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
   ];
 
   const filteredItems = selectedResort === 'all'
