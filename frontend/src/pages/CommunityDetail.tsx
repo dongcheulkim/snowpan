@@ -56,27 +56,27 @@ const CommunityDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to="/community" className="inline-flex items-center text-zinc-500 hover:text-white text-sm transition-colors">
+      <Link to="/community" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">
         ← 커뮤니티
       </Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-zinc-400 bg-zinc-800 border-zinc-700'}`}>
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
             {post.badge}
           </span>
-          <span className="text-[10px] text-zinc-600">{post.time}</span>
+          <span className="text-[10px] text-gray-400">{post.time}</span>
         </div>
 
-        <h1 className="text-xl font-bold text-white mb-4">{post.title}</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
-        <div className="flex items-center gap-3 mb-5 pb-5 border-b border-zinc-800">
-          <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-sm">👤</div>
-          <span className="text-sm font-medium text-white">{post.author}</span>
-          <span className="text-[11px] text-zinc-500">· 조회 {post.views}</span>
+        <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">👤</div>
+          <span className="text-sm font-medium text-gray-900">{post.author}</span>
+          <span className="text-[11px] text-gray-400">· 조회 {post.views}</span>
         </div>
 
-        <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{post.content}</p>
+        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{post.content}</p>
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-zinc-800">
           <button

@@ -62,17 +62,17 @@ const UsedRegister = () => {
 
       <div className="card rounded-2xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">중고 장비 등록</h1>
-          <p className="text-sm text-zinc-500">판매할 장비 정보를 입력해주세요</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">중고 장비 등록</h1>
+          <p className="text-sm text-gray-400">판매할 장비 정보를 입력해주세요</p>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           {/* 사진 업로드 영역 */}
           <div>
             <label className={labelClass}>사진</label>
-            <div className="bg-zinc-950 rounded-lg p-8 text-center border-2 border-dashed border-zinc-700 hover:border-accent/40 transition-all cursor-pointer">
-              <div className="text-sm text-zinc-400">클릭하여 사진을 업로드하세요</div>
-              <div className="text-xs text-zinc-600 mt-1">최대 5장 · JPG, PNG</div>
+            <div className="bg-gray-100 rounded-lg p-8 text-center border-2 border-dashed border-gray-300 hover:border-accent/50 transition-all cursor-pointer">
+              <div className="text-sm text-gray-500">클릭하여 사진을 업로드하세요</div>
+              <div className="text-xs text-gray-400 mt-1">최대 5장 · JPG, PNG</div>
             </div>
           </div>
 
@@ -116,14 +116,14 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="ski" className="bg-zinc-900">스키</option>
-                <option value="board" className="bg-zinc-900">보드</option>
-                <option value="boots" className="bg-zinc-900">부츠</option>
-                <option value="binding" className="bg-zinc-900">바인딩</option>
-                <option value="helmet" className="bg-zinc-900">헬멧</option>
-                <option value="goggles" className="bg-zinc-900">고글</option>
-                <option value="wear" className="bg-zinc-900">의류</option>
-                <option value="etc" className="bg-zinc-900">기타</option>
+                <option value="ski" className="bg-white">스키</option>
+                <option value="board" className="bg-white">보드</option>
+                <option value="boots" className="bg-white">부츠</option>
+                <option value="binding" className="bg-white">바인딩</option>
+                <option value="helmet" className="bg-white">헬멧</option>
+                <option value="goggles" className="bg-white">고글</option>
+                <option value="wear" className="bg-white">의류</option>
+                <option value="etc" className="bg-white">기타</option>
               </select>
             </div>
 
@@ -164,9 +164,9 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="1시즌 이하" className="bg-zinc-900">1시즌 이하</option>
-                <option value="2시즌 이하" className="bg-zinc-900">2시즌 이하</option>
-                <option value="3시즌 이상" className="bg-zinc-900">3시즌 이상</option>
+                <option value="1시즌 이하" className="bg-white">1시즌 이하</option>
+                <option value="2시즌 이하" className="bg-white">2시즌 이하</option>
+                <option value="3시즌 이상" className="bg-white">3시즌 이상</option>
               </select>
             </div>
 
@@ -244,9 +244,9 @@ const UsedRegister = () => {
 
           {/* Price Preview */}
           {form.price && form.originalPrice && (
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex items-center justify-between">
-              <span className="text-sm text-zinc-500">할인율</span>
-              <span className="text-lg font-bold text-white">
+            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+              <span className="text-sm text-gray-400">할인율</span>
+              <span className="text-lg font-bold text-gray-900">
                 {Math.round((1 - Number(form.price) / Number(form.originalPrice)) * 100)}% 할인
               </span>
             </div>

@@ -61,7 +61,7 @@ const MyPage = () => {
       {/* Profile */}
       <div className="card p-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-2xl">
+          <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl">
             👤
           </div>
           <div className="flex-1">
@@ -159,14 +159,14 @@ const MyPage = () => {
       {/* Badge Modal */}
       {showBadgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/80" onClick={() => setShowBadgeModal(false)} />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
           <div className="relative bg-zinc-900 rounded-xl p-6 w-full max-w-sm border border-zinc-700">
             <h3 className="text-lg font-bold text-white mb-2">자격증 인증</h3>
             <p className="text-xs text-zinc-500 mb-5">인증할 자격증을 선택하세요</p>
 
             <div className="space-y-2 mb-5">
               {allBadges.filter(b => !badges.includes(b.id)).map((badge) => (
-                <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/30' : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'}`}>
+                <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'}`}>
                   <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                   <div className="text-left">
                     <div className={`text-xs font-medium ${selectedBadge === badge.id ? 'text-white' : 'text-zinc-400'}`}>{badge.desc}</div>
@@ -181,7 +181,7 @@ const MyPage = () => {
             {selectedBadge && (
               <div className="bg-zinc-800 rounded-lg p-3 mb-5 border border-zinc-700">
                 <p className="text-[11px] text-zinc-500 mb-2">자격증 사진을 업로드해주세요</p>
-                <label className="block w-full py-3 border-2 border-dashed border-zinc-600 rounded-lg text-center text-xs text-zinc-500 cursor-pointer hover:border-accent/40 hover:text-accent-light transition-all">
+                <label className="block w-full py-3 border-2 border-dashed border-zinc-600 rounded-lg text-center text-xs text-zinc-500 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
                   사진 선택
                   <input type="file" accept="image/*" className="hidden" />
                 </label>

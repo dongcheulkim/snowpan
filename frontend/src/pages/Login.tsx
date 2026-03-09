@@ -31,11 +31,11 @@ const Login = () => {
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">아이디</label>
+            <label className="block text-sm font-medium text-gray-500 mb-2">아이디</label>
             <input type="text" placeholder="아이디를 입력하세요" value={userId} onChange={(e) => setUserId(e.target.value)} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">비밀번호</label>
+            <label className="block text-sm font-medium text-gray-500 mb-2">비밀번호</label>
             <input type="password" placeholder="비밀번호를 입력하세요" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} />
           </div>
 
@@ -49,7 +49,7 @@ const Login = () => {
         </form>
 
         <div className="mt-4 text-center">
-          <p className="text-[11px] text-zinc-600">테스트 계정: test / test</p>
+          <p className="text-[11px] text-gray-400">테스트 계정: test / test</p>
         </div>
       </div>
     </div>
