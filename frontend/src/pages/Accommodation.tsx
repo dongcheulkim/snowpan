@@ -33,6 +33,8 @@ const Accommodation = () => {
     { id: 'jisan', name: '지산' },
     { id: 'muju', name: '무주' },
     { id: 'oakvalley', name: '오크밸리' },
+    { id: 'bearstown', name: '베어스타운' },
+    { id: 'eden', name: '에덴밸리' },
   ];
 
   const types = [
@@ -175,6 +177,30 @@ const Accommodation = () => {
       type: 'condo', typeText: '콘도', price: 150000, originalPrice: 200000,
       rating: 4.4, reviewCount: 176, guests: '4인',
       features: ['골프장', '키친', '주차무료'], image: '🏔️',
+    },
+    {
+      id: '14', name: '베어스타운 리조트콘도', resortId: 'bearstown', resort: '베어스타운',
+      type: 'condo', typeText: '콘도', price: 140000, originalPrice: 190000,
+      rating: 4.2, reviewCount: 145, guests: '4인',
+      features: ['서울근교', '키친', '스키장 직결'], image: '🏨',
+    },
+    {
+      id: '15', name: '베어스타운 근처 펜션', resortId: 'bearstown', resort: '베어스타운',
+      type: 'pension', typeText: '펜션', price: 95000, originalPrice: 140000,
+      rating: 4.0, reviewCount: 87, guests: '6인',
+      features: ['바베큐', '넓은거실', '10분거리'], image: '🏡',
+    },
+    {
+      id: '16', name: '에덴밸리 리조트호텔', resortId: 'eden', resort: '에덴밸리',
+      type: 'hotel', typeText: '호텔', price: 190000, originalPrice: 260000,
+      rating: 4.5, reviewCount: 203, guests: '2인',
+      features: ['온천', '스키장 직결', '조식포함'], image: '🏩',
+    },
+    {
+      id: '17', name: '에덴밸리 근처 민박', resortId: 'eden', resort: '에덴밸리',
+      type: 'minbak', typeText: '민박', price: 70000, originalPrice: 100000,
+      rating: 3.9, reviewCount: 64, guests: '4인',
+      features: ['가성비', '온돌방', '15분거리'], image: '🏠',
     },
   ];
 
