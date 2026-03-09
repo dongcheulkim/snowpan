@@ -18,11 +18,11 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
-    { id: 'used', title: '중고', desc: '합리적 가격', link: '/used' },
-    { id: 'rental', title: '렌탈', desc: '스키장별', link: '/rental' },
-    { id: 'lesson', title: '레슨', desc: '강사 예약', link: '/lesson' },
-    { id: 'accommodation', title: '숙소', desc: '스키장 근처', link: '/accommodation' },
-    { id: 'community', title: '커뮤니티', desc: '소통 & 정보', link: '/community' },
+    { id: 'used', title: '중고', desc: '합리적 가격', link: '/used', color: 'text-mint' },
+    { id: 'rental', title: '렌탈', desc: '스키장별', link: '/rental', color: 'text-accent-light' },
+    { id: 'lesson', title: '레슨', desc: '강사 예약', link: '/lesson', color: 'text-gold' },
+    { id: 'accommodation', title: '숙소', desc: '스키장 근처', link: '/accommodation', color: 'text-coral' },
+    { id: 'community', title: '커뮤니티', desc: '소통 & 정보', link: '/community', color: 'text-purple-400' },
   ];
 
   const hotDeals = [
@@ -32,22 +32,22 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-24 bg-black">
+    <div className="min-h-screen pb-24 bg-[#09090b]">
       {/* Hero */}
       <div className="px-4 pt-10 pb-12">
         <h1 className="text-3xl font-black text-center text-white mb-2 animate-slide-up">
-          스노우판
+          <span className="text-accent-light">스노우</span>판
         </h1>
-        <p className="text-center text-gray-500 mb-8 animate-fade-in text-sm">
+        <p className="text-center text-zinc-500 mb-8 animate-fade-in text-sm">
           스키 & 보드 장비의 모든 것
         </p>
         <div className="relative max-w-xl mx-auto animate-slide-up">
           <input
             type="text"
             placeholder="스키, 보드, 스키장 검색"
-            className="w-full h-12 pl-4 pr-20 rounded-lg text-sm bg-[#111] border border-white/10 text-white placeholder-gray-600"
+            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500"
           />
-          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-white text-black rounded-md font-bold text-sm hover:bg-gray-200 transition-colors">
+          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
             검색
           </button>
         </div>
@@ -55,7 +55,7 @@ const Home = () => {
 
       {/* Ad Banner */}
       <div className="px-4 mb-6">
-        <div className="relative overflow-hidden rounded-lg card h-20">
+        <div className="relative overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 h-20">
           {banners.map((banner, idx) => (
             <div
               key={idx}
@@ -69,10 +69,10 @@ const Home = () => {
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[9px] font-bold bg-white/10 text-gray-500 px-1.5 py-0.5 rounded">{banner.tag}</span>
+                  <span className="text-[9px] font-bold bg-accent/20 text-accent-light px-1.5 py-0.5 rounded">{banner.tag}</span>
                   <h3 className="text-sm font-bold text-white">{banner.title}</h3>
                 </div>
-                <p className="text-xs text-gray-400">{banner.desc}</p>
+                <p className="text-xs text-zinc-400">{banner.desc}</p>
               </div>
             </div>
           ))}
@@ -82,7 +82,7 @@ const Home = () => {
                 key={idx}
                 onClick={() => setCurrentBanner(idx)}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  idx === currentBanner ? 'bg-white w-4' : 'bg-white/20'
+                  idx === currentBanner ? 'bg-accent-light w-4' : 'bg-zinc-600'
                 }`}
               />
             ))}
@@ -97,10 +97,10 @@ const Home = () => {
             <Link
               key={cat.id}
               to={cat.link}
-              className="card rounded-lg p-5 active:scale-[0.98] transition-all hover:bg-[#1a1a1a]"
+              className="card p-5 active:scale-[0.98] transition-all hover:border-zinc-600"
             >
-              <div className="text-lg font-bold text-white mb-1">{cat.title}</div>
-              <div className="text-xs text-gray-500">{cat.desc}</div>
+              <div className={`text-lg font-bold mb-1 ${cat.color}`}>{cat.title}</div>
+              <div className="text-xs text-zinc-500">{cat.desc}</div>
             </Link>
           ))}
         </div>
@@ -110,7 +110,7 @@ const Home = () => {
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-white">중고 핫딜</h2>
-          <Link to="/used" className="text-sm text-gray-500 hover:text-white transition-colors">
+          <Link to="/used" className="text-sm text-accent-light hover:text-accent transition-colors">
             전체보기 →
           </Link>
         </div>
@@ -119,16 +119,16 @@ const Home = () => {
             <Link
               key={deal.id}
               to={`/used/${deal.id}`}
-              className="w-full card rounded-lg p-4 flex items-center justify-between card-hover block"
+              className="w-full card p-4 flex items-center justify-between card-hover block"
             >
               <div>
                 <div className="font-bold text-white text-sm">{deal.name}</div>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-gray-600">조회 {deal.views}</span>
-                  <span className="text-[11px] text-gray-600">찜 {deal.likes}</span>
+                  <span className="text-[11px] text-zinc-500">조회 {deal.views}</span>
+                  <span className="text-[11px] text-zinc-500">찜 {deal.likes}</span>
                 </div>
               </div>
-              <div className="text-base font-black text-white">
+              <div className="text-base font-black text-mint">
                 {deal.price.toLocaleString()}원
               </div>
             </Link>
@@ -140,9 +140,13 @@ const Home = () => {
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-white mb-4">빠른 메뉴</h2>
         <div className="grid grid-cols-3 gap-3">
-          {['최저가', '인기순', '알림설정'].map((label) => (
-            <button key={label} className="card rounded-lg p-4 text-center card-hover">
-              <div className="text-xs font-medium text-gray-300">{label}</div>
+          {[
+            { label: '최저가', color: 'text-mint' },
+            { label: '인기순', color: 'text-accent-light' },
+            { label: '알림설정', color: 'text-gold' },
+          ].map((item) => (
+            <button key={item.label} className="card p-4 text-center card-hover">
+              <div className={`text-xs font-medium ${item.color}`}>{item.label}</div>
             </button>
           ))}
         </div>
@@ -156,7 +160,7 @@ const Home = () => {
             <Link
               key={resort}
               to="/rental"
-              className="flex-shrink-0 px-4 py-2 card rounded-lg text-sm text-gray-400 whitespace-nowrap hover:text-white hover:bg-[#1a1a1a] transition-all"
+              className="flex-shrink-0 px-4 py-2 card text-sm text-zinc-400 whitespace-nowrap hover:text-accent-light hover:border-accent/30 transition-all"
             >
               {resort}
             </Link>
@@ -181,17 +185,17 @@ const Home = () => {
               href={cam.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="card rounded-lg p-3.5 card-hover"
+              className="card p-3.5 card-hover"
             >
               <div className="text-sm font-medium text-white">{cam.name}</div>
-              <div className="text-xs text-gray-600 mt-0.5">실시간 보기 →</div>
+              <div className="text-xs text-accent-light mt-0.5">실시간 보기 →</div>
             </a>
           ))}
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', label: '홈', active: true },
           { to: '/used', label: '중고', active: false },
@@ -200,7 +204,7 @@ const Home = () => {
           { to: '/admin-approval', label: '관리', active: false },
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1">
-            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-gray-600 hover:text-gray-400'} transition-colors`}>
+            <span className={`text-xs font-medium ${item.active ? 'text-accent-light' : 'text-zinc-600 hover:text-zinc-400'} transition-colors`}>
               {item.label}
             </span>
           </Link>
