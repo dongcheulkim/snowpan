@@ -13,6 +13,7 @@ import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
 import Chat from './pages/Chat';
 import Community from './pages/Community';
+import MyPage from './pages/MyPage';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
 
