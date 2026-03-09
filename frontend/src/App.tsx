@@ -11,6 +11,7 @@ import Lesson from './pages/Lesson';
 import LessonDetail from './pages/LessonDetail';
 import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
+import Chat from './pages/Chat';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="used" element={<Used />} />
           <Route path="used/register" element={<UsedRegister />} />
           <Route path="used/:id" element={<UsedDetail />} />
+          <Route path="chat/:productId" element={<Chat />} />
           <Route path="rental" element={<Rental />} />
           <Route path="rental/:id" element={<RentalDetail />} />
           <Route path="lesson" element={<Lesson />} />
