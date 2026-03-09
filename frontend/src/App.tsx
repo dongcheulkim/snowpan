@@ -12,6 +12,7 @@ import LessonDetail from './pages/LessonDetail';
 import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
 import Chat from './pages/Chat';
+import Community from './pages/Community';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
 
