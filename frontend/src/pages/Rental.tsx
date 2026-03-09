@@ -120,15 +120,15 @@ const Rental = () => {
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5 truncate">
+                <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-800 truncate">
                   {item.resort}
                 </span>
-                <span className="text-[10px] text-gray-500">{item.duration}</span>
+                <span className="text-[10px] text-zinc-500">{item.duration}</span>
               </div>
               <h3 className="text-sm font-bold mb-2 text-white">{item.name}</h3>
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.equipment.map((eq, index) => (
-                  <span key={index} className="text-[10px] bg-white/5 text-gray-500 px-2 py-0.5 rounded border border-white/5">
+                  <span key={index} className="text-[10px] bg-zinc-800/50 text-zinc-500 px-2 py-0.5 rounded border border-zinc-800">
                     {eq}
                   </span>
                 ))}

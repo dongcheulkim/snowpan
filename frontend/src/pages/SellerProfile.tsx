@@ -44,14 +44,14 @@ const SellerProfile = () => {
         </div>
         <h1 className="text-xl font-bold text-white mb-1">{seller.name}</h1>
         <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-4">
-          <span className="text-gray-300">★</span> {seller.rating}
+          <span className="text-gold">★</span> {seller.rating}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="py-3 bg-[#0a0a0a] rounded-xl border border-white/5">
+          <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="text-base font-bold text-white">{seller.deals}건</div>
             <div className="text-[10px] text-gray-500">거래 완료</div>
           </div>
-          <div className="py-3 bg-[#0a0a0a] rounded-xl border border-white/5">
+          <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="text-base font-bold text-white">{seller.joinDate}</div>
             <div className="text-[10px] text-gray-500">가입일</div>
           </div>

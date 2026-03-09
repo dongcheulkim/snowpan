@@ -107,7 +107,7 @@ const RentalDetail = () => {
 
       {/* Info */}
       <div className="card rounded-2xl p-5">
-        <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
+        <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
           {item.resort}
         </span>
         <h1 className="text-2xl font-bold text-white mt-2 mb-1">{item.name}</h1>
@@ -119,7 +119,7 @@ const RentalDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">포함 장비</h3>
         <div className="flex flex-wrap gap-2">
           {item.equipment.map((eq, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-[#1a1a1a] text-gray-300 rounded-lg text-xs border border-white/10">
+            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
               {eq}
             </span>
           ))}

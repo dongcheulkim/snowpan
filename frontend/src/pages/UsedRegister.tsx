@@ -51,8 +51,8 @@ const UsedRegister = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all";
-  const labelClass = "block text-sm font-medium text-gray-400 mb-2";
+  const inputClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-accent/50 transition-all";
+  const labelClass = "block text-sm font-medium text-zinc-400 mb-2";
 
   return (
     <div className="max-w-2xl mx-auto">

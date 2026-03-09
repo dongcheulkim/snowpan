@@ -103,22 +103,22 @@ const LessonDetail = () => {
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
+          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
             {item.resort}
           </span>
-          <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
+          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
             {item.levelText}
           </span>
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">{item.name}</h1>
-        <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
+        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Price & Key Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-3xl font-black text-white">{item.price.toLocaleString()}원</span>
-          <span className="text-sm text-gray-400">{item.duration}</span>
+          <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
+          <span className="text-sm text-zinc-400">{item.duration}</span>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[

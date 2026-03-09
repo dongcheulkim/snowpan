@@ -141,8 +141,8 @@ const Lesson = () => {
       {/* Lesson Items */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/lesson/${item.id}`} key={item.id} className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden group block hover:border-[#333] transition-colors">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-[#0a0a0a]">
+          <Link to={`/lesson/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden group block hover:border-zinc-600 transition-colors">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-zinc-950">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
             </div>
             <div className="p-3">

@@ -84,12 +84,12 @@ const AccommodationDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
+      <Link to="/accommodation" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
         ← 숙소 목록
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-[#0a0a0a]">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
         <span className="relative">{item.image}</span>
         <span className="absolute top-4 right-4 bg-[#1a1a1a] text-gray-300 px-3 py-1 rounded-full text-xs font-bold border border-white/10">
           {item.typeText}

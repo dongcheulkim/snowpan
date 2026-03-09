@@ -221,8 +221,8 @@ const Accommodation = () => {
             onClick={() => setSelectedResort(resort.id)}
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
-                ? 'bg-white text-black'
-                : 'bg-[#111] text-gray-400 hover:bg-[#1a1a1a] hover:text-white border border-[#1f1f1f]'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
             }`}
           >
             {resort.name}
@@ -238,8 +238,8 @@ const Accommodation = () => {
             onClick={() => setSelectedType(type.id)}
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedType === type.id
-                ? 'bg-white text-black'
-                : 'bg-[#111] text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300 border border-[#1f1f1f]'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-gray-300 border border-zinc-800'
             }`}
           >
             {type.name}
