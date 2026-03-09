@@ -13,12 +13,12 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-black border-b border-white/10">
+    <nav className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-md border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-white tracking-tight">
+              <span className="text-xl font-bold text-accent-light tracking-tight">
                 스노우판
               </span>
             </Link>
@@ -36,8 +36,8 @@ const Navbar = () => {
                 to={to}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   isActive(to)
-                    ? 'bg-white text-black font-bold'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-accent text-white font-bold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {label}
@@ -46,14 +46,14 @@ const Navbar = () => {
             {user ? (
               <Link
                 to="/mypage"
-                className="ml-2 px-4 py-1.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors"
+                className="ml-2 px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
               >
                 내정보
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="ml-2 px-4 py-1.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors"
+                className="ml-2 px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
               >
                 로그인
               </Link>
