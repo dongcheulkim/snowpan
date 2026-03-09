@@ -231,10 +231,10 @@ const AdminApproval = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t border-zinc-800">
+                  <div className="flex gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => handleReject(item.id, activeTab)}
-                      className="flex-1 py-3 bg-zinc-800 text-zinc-400 rounded-lg font-bold text-sm hover:bg-zinc-700 hover:text-white border border-zinc-800 transition-all active:scale-95"
+                      className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-bold text-sm hover:bg-gray-200 hover:text-gray-900 border border-gray-200 transition-all active:scale-95"
                     >
                       거부
                     </button>
@@ -257,7 +257,7 @@ const AdminApproval = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', icon: '🏠', label: '홈', active: false },
           { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
