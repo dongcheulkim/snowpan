@@ -19,57 +19,37 @@ const Login = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all";
+  const inputClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none transition-all";
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
-      <div className="card rounded-lg p-8">
+      <div className="card p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white mb-2">로그인</h1>
-          <p className="text-sm text-gray-500">스노우판에 오신 것을 환영합니다</p>
+          <p className="text-sm text-zinc-500">스노우판에 오신 것을 환영합니다</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">아이디</label>
-            <input
-              type="text"
-              placeholder="아이디를 입력하세요"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              required
-              className={inputClass}
-            />
+            <label className="block text-sm font-medium text-zinc-400 mb-2">아이디</label>
+            <input type="text" placeholder="아이디를 입력하세요" value={userId} onChange={(e) => setUserId(e.target.value)} required className={inputClass} />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">비밀번호</label>
-            <input
-              type="password"
-              placeholder="비밀번호를 입력하세요"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className={inputClass}
-            />
+            <label className="block text-sm font-medium text-zinc-400 mb-2">비밀번호</label>
+            <input type="password" placeholder="비밀번호를 입력하세요" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} />
           </div>
 
           {error && (
-            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              {error}
-            </div>
+            <div className="text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
           )}
 
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors active:scale-[0.98] mt-2"
-          >
+          <button type="submit" className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2">
             로그인
           </button>
         </form>
 
         <div className="mt-4 text-center">
-          <p className="text-[11px] text-gray-600">테스트 계정: test / test</p>
+          <p className="text-[11px] text-zinc-600">테스트 계정: test / test</p>
         </div>
       </div>
     </div>
