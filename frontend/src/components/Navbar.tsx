@@ -1,25 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
+    setUser(stored ? JSON.parse(stored) : null);
   }, [location]);
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    navigate('/');
-  };
 
   return (
     <nav className="glass-strong sticky top-0 z-50 border-b border-white/5">
