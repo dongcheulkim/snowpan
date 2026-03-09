@@ -1,7 +1,8 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
 const UsedDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const allProducts: Record<string, {
     id: string; name: string; brand: string; price: number; originalPrice: number;
