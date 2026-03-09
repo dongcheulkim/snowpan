@@ -136,22 +136,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Resort Quick Select */}
-      <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">스키장</h2>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {['용평', '휘닉스', '하이원', '비발디', '엘리시안', '웰리힐리', '오투', '알펜시아', '곤지암', '지산', '무주', '오크밸리', '에덴밸리'].map((resort) => (
-            <Link
-              key={resort}
-              to="/rental"
-              className="flex-shrink-0 px-4 py-2 card text-sm text-gray-500 whitespace-nowrap hover:text-accent-light hover:border-accent/50 transition-all"
-            >
-              {resort}
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Webcam Quick Links */}
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">스키장 실시간 웹캠</h2>
