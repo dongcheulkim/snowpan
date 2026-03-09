@@ -47,7 +47,7 @@ const Home = () => {
             placeholder="스키, 보드, 스키장 검색"
             className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-white border border-gray-300 text-gray-900 placeholder-gray-400"
           />
-          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
+          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
             검색
           </button>
         </div>

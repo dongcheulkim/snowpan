@@ -66,7 +66,7 @@ const MyPage = () => {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-white">{user.name}</h2>
+              <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
               {badges.map((badgeId) => {
                 const badge = allBadges.find(b => b.id === badgeId);
                 if (!badge) return null;
@@ -88,7 +88,7 @@ const MyPage = () => {
             { label: '가입일', value: '2024.01' },
           ].map((stat) => (
             <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
-              <div className="text-base font-bold text-white">{stat.value}</div>
+              <div className="text-base font-bold text-gray-900">{stat.value}</div>
               <div className="text-[10px] text-gray-400">{stat.label}</div>
             </div>
           ))}

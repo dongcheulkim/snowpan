@@ -42,16 +42,16 @@ const SellerProfile = () => {
         <div className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-3xl mx-auto mb-4">
           👤
         </div>
-        <h1 className="text-xl font-bold text-white mb-1">{seller.name}</h1>
-        <div className="flex items-center justify-center gap-1 text-sm text-zinc-400 mb-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-1">{seller.name}</h1>
+        <div className="flex items-center justify-center gap-1 text-sm text-gray-500 mb-4">
           <span className="text-gold">★</span> {seller.rating}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
+          <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-white">{seller.deals}건</div>
             <div className="text-[10px] text-zinc-500">거래 완료</div>
           </div>
-          <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
+          <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-white">{seller.joinDate}</div>
             <div className="text-[10px] text-zinc-500">가입일</div>
           </div>

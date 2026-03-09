@@ -112,7 +112,7 @@ const Lesson = () => {
             onClick={() => setSelectedResort(resort.id)}
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
-                ? 'bg-accent text-gray-900'
+                ? 'bg-accent text-white'
                 : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
@@ -129,7 +129,7 @@ const Lesson = () => {
             onClick={() => setSelectedLevel(level.id)}
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedLevel === level.id
-                ? 'bg-accent text-gray-900'
+                ? 'bg-accent text-white'
                 : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
             }`}
           >
@@ -164,7 +164,7 @@ const Lesson = () => {
                   <div className="text-[10px] text-gray-400">{item.duration}</div>
                   <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
                 </div>
-                <button className="px-3 py-1.5 bg-accent text-gray-900 rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
+                <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
                   예약
                 </button>
               </div>

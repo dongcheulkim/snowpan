@@ -99,7 +99,7 @@ const Chat = () => {
             <div className="max-w-[75%]">
               <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                 msg.sender === 'me'
-                  ? 'bg-accent text-gray-900 rounded-br-md'
+                  ? 'bg-accent text-white rounded-br-md'
                   : 'bg-gray-100 text-gray-700 rounded-bl-md border border-gray-300'
               }`}>
                 {msg.text}
@@ -126,7 +126,7 @@ const Chat = () => {
         <button
           onClick={sendMessage}
           disabled={!input.trim()}
-          className="px-4 py-2.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-4 py-2.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           전송
         </button>
