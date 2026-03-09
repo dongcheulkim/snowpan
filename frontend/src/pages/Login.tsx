@@ -19,14 +19,14 @@ const Login = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none transition-all";
+  const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
       <div className="card p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">로그인</h1>
-          <p className="text-sm text-zinc-500">스노우판에 오신 것을 환영합니다</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
+          <p className="text-sm text-gray-400">스노우판에 오신 것을 환영합니다</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
@@ -43,7 +43,7 @@ const Login = () => {
             <div className="text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
           )}
 
-          <button type="submit" className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2">
+          <button type="submit" className="w-full py-3.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2">
             로그인
           </button>
         </form>

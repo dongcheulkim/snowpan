@@ -51,12 +51,12 @@ const UsedRegister = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-accent/50 transition-all";
-  const labelClass = "block text-sm font-medium text-zinc-400 mb-2";
+  const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
+  const labelClass = "block text-sm font-medium text-gray-500 mb-2";
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/used" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors mb-6">
+      <Link to="/used" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors mb-6">
         ← 중고 장비 목록
       </Link>
 

@@ -72,8 +72,8 @@ const AccommodationDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
-        <h2 className="text-xl font-bold text-white mb-2">숙소 정보를 찾을 수 없습니다</h2>
-        <Link to="/accommodation" className="text-zinc-500 hover:text-gray-900 text-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">숙소 정보를 찾을 수 없습니다</h2>
+        <Link to="/accommodation" className="text-gray-400 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -84,14 +84,14 @@ const AccommodationDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/accommodation" className="inline-flex items-center gap-2 text-zinc-500 hover:text-gray-900 text-sm transition-colors">
+      <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
         ← 숙소 목록
       </Link>
 
       {/* Hero */}
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         <span className="relative">{item.image}</span>
-        <span className="absolute top-4 right-4 bg-gray-100 text-zinc-300 px-3 py-1 rounded-full text-xs font-bold border border-zinc-700">
+        <span className="absolute top-4 right-4 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">
           {item.typeText}
         </span>
       </div>
@@ -99,37 +99,37 @@ const AccommodationDetail = () => {
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-zinc-400 bg-gray-100 px-2 py-0.5 rounded border border-zinc-700">
+          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
             {item.resort}
           </span>
-          <span className="flex items-center gap-1 text-xs text-zinc-400">
+          <span className="flex items-center gap-1 text-xs text-gray-500">
             <span className="text-gold">★</span> {item.rating} ({item.reviewCount})
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">{item.name}</h1>
-        <p className="text-xs text-zinc-500 mb-3">{item.address}</p>
-        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
+        <p className="text-xs text-gray-400 mb-3">{item.address}</p>
+        <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Price */}
       <div className="card rounded-2xl p-5">
-        <div className="text-sm text-zinc-600 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
+        <div className="text-sm text-gray-400 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
         <div className="flex items-center gap-3">
           <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
           <span className="text-sm text-coral font-bold bg-coral/10 px-2 py-1 rounded-lg border border-coral/20">{discount}% 할인</span>
         </div>
-        <div className="text-xs text-zinc-500 mt-1">1박 기준 · 세금 포함</div>
+        <div className="text-xs text-gray-400 mt-1">1박 기준 · 세금 포함</div>
       </div>
 
       {/* Rooms */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">객실 유형</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">객실 유형</h3>
         <div className="space-y-2">
           {item.rooms.map((room, idx) => (
-            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-gray-100 border border-zinc-800">
+            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-gray-100 border border-gray-200">
               <div>
-                <div className="text-sm text-white font-medium">{room.name}</div>
-                <div className="text-[10px] text-zinc-500">{room.guests} 기준</div>
+                <div className="text-sm text-gray-900 font-medium">{room.name}</div>
+                <div className="text-[10px] text-gray-400">{room.guests} 기준</div>
               </div>
               <span className="text-sm font-bold text-mint">{room.price.toLocaleString()}원</span>
             </div>
@@ -139,10 +139,10 @@ const AccommodationDetail = () => {
 
       {/* Features & Amenities */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">편의시설</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">편의시설</h3>
         <div className="flex flex-wrap gap-2">
           {item.amenities.map((a, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-gray-100 text-zinc-300 rounded-lg text-xs border border-zinc-700">
+            <span key={idx} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs border border-gray-300">
               {a}
             </span>
           ))}
@@ -151,23 +151,23 @@ const AccommodationDetail = () => {
 
       {/* Check-in Info */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">이용 안내</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">이용 안내</h3>
         <div className="space-y-2.5">
           {[
             { label: '체크인', value: item.checkIn },
             { label: '체크아웃', value: item.checkOut },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
-              <span className="text-xs text-zinc-500">{info.label}</span>
-              <span className="text-sm text-white">{info.value}</span>
+            <div key={info.label} className="flex justify-between items-center py-2 border-b border-gray-200">
+              <span className="text-xs text-gray-400">{info.label}</span>
+              <span className="text-sm text-gray-900">{info.value}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
         숙소 예약하기
       </button>
     </div>

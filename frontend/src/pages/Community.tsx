@@ -51,7 +51,7 @@ const Community = () => {
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedTab === tab.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
+                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {tab.name}
@@ -63,20 +63,20 @@ const Community = () => {
         {filteredPosts.map((post) => (
           <Link to={`/community/${post.id}`} key={post.id} className="card p-4 block card-hover">
             <div className="flex items-center gap-2 mb-2">
-              <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-zinc-400 bg-zinc-800 border-zinc-700'}`}>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
                 {post.badge}
               </span>
-              <span className="text-[10px] text-zinc-600">{post.time}</span>
+              <span className="text-[10px] text-gray-400">{post.time}</span>
             </div>
-            <h3 className="text-sm font-bold text-white mb-1">
+            <h3 className="text-sm font-bold text-gray-900 mb-1">
               {post.title}
             </h3>
-            <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-3">
+            <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">
               {post.preview}
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-zinc-500">{post.author}</span>
-              <div className="flex items-center gap-3 text-[11px] text-zinc-500">
+              <span className="text-[11px] text-gray-400">{post.author}</span>
+              <div className="flex items-center gap-3 text-[11px] text-gray-400">
                 <span>조회 {post.views}</span>
                 <span className="text-coral">♥ {post.likes}</span>
                 <span>댓글 {post.comments}</span>
@@ -87,7 +87,7 @@ const Community = () => {
       </div>
 
       {filteredPosts.length === 0 && (
-        <div className="text-center py-12 text-zinc-500 card text-sm">
+        <div className="text-center py-12 text-gray-400 card text-sm">
           해당 카테고리의 게시글이 없습니다.
         </div>
       )}

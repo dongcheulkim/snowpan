@@ -62,11 +62,11 @@ const UsedDetail = () => {
         <div className="space-y-5">
           <div>
             <div className="text-xs text-accent-light font-medium tracking-wider uppercase mb-1">{product.brand}</div>
-            <h1 className="text-2xl font-bold text-white mb-2">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
             <div className="flex items-center gap-3 text-xs">
-              <span className="text-zinc-500">{product.createdAt}</span>
-              <span className="text-zinc-600">·</span>
-              <span className="text-zinc-500">{product.location}</span>
+              <span className="text-gray-400">{product.createdAt}</span>
+              <span className="text-gray-400">·</span>
+              <span className="text-gray-400">{product.location}</span>
             </div>
           </div>
 
@@ -75,7 +75,7 @@ const UsedDetail = () => {
           </div>
 
           <div className="card p-5">
-            <h3 className="text-sm font-bold text-white mb-3">상품 정보</h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-3">상품 정보</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: '사이즈', value: product.size },
@@ -83,28 +83,28 @@ const UsedDetail = () => {
                 { label: '상태', value: product.condition },
                 { label: '거래방법', value: '직거래' },
               ].map((spec) => (
-                <div key={spec.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
-                  <span className="text-xs text-zinc-500">{spec.label}</span>
-                  <span className="text-sm text-white font-medium">{spec.value}</span>
+                <div key={spec.label} className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-400">{spec.label}</span>
+                  <span className="text-sm text-gray-900 font-medium">{spec.value}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="card p-5">
-            <h3 className="text-sm font-bold text-white mb-3">상품 설명</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line">{product.description}</p>
+            <h3 className="text-sm font-bold text-gray-900 mb-3">상품 설명</h3>
+            <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{product.description}</p>
           </div>
 
           <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">👤</div>
+              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-lg">👤</div>
               <div>
-                <div className="text-sm font-bold text-white">{product.seller}</div>
+                <div className="text-sm font-bold text-gray-900">{product.seller}</div>
                 <div className="text-xs text-gold">★ {product.sellerRating}</div>
               </div>
             </div>
-            <Link to={`/seller/${product.seller}`} className="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg text-sm border border-zinc-700 hover:bg-zinc-700 transition-colors">
+            <Link to={`/seller/${product.seller}`} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm border border-gray-300 hover:bg-gray-200 transition-colors">
               프로필 보기
             </Link>
           </div>

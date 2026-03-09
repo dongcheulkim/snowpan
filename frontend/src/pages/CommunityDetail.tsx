@@ -34,8 +34,8 @@ const CommunityDetail = () => {
   if (!post) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <h2 className="text-xl font-bold text-white mb-2">게시글을 찾을 수 없습니다</h2>
-        <Link to="/community" className="text-zinc-400 hover:text-white text-sm">← 커뮤니티로 돌아가기</Link>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">게시글을 찾을 수 없습니다</h2>
+        <Link to="/community" className="text-gray-500 hover:text-gray-900 text-sm">← 커뮤니티로 돌아가기</Link>
       </div>
     );
   }

@@ -86,8 +86,8 @@ const RentalDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
-        <h2 className="text-xl font-bold text-white mb-2">렌탈 정보를 찾을 수 없습니다</h2>
-        <Link to="/rental" className="text-zinc-500 hover:text-white text-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">렌탈 정보를 찾을 수 없습니다</h2>
+        <Link to="/rental" className="text-gray-400 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -96,30 +96,30 @@ const RentalDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/rental" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
+      <Link to="/rental" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
         ← 렌탈 목록
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         <span className="relative">{item.image}</span>
       </div>
 
       {/* Info */}
       <div className="card rounded-2xl p-5">
-        <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+        <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
           {item.resort}
         </span>
-        <h1 className="text-2xl font-bold text-white mt-2 mb-1">{item.name}</h1>
-        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mt-2 mb-1">{item.name}</h1>
+        <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Equipment */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">포함 장비</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">포함 장비</h3>
         <div className="flex flex-wrap gap-2">
           {item.equipment.map((eq, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
+            <span key={idx} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs border border-gray-300">
               {eq}
             </span>
           ))}
@@ -128,11 +128,11 @@ const RentalDetail = () => {
 
       {/* Options */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">이용 옵션</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">이용 옵션</h3>
         <div className="space-y-2">
           {item.options.map((opt, idx) => (
-            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
-              <span className="text-sm text-zinc-300">{opt.name}</span>
+            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-gray-100 border border-gray-200">
+              <span className="text-sm text-gray-600">{opt.name}</span>
               <span className="text-sm font-bold text-mint">{opt.price.toLocaleString()}원</span>
             </div>
           ))}
@@ -141,16 +141,16 @@ const RentalDetail = () => {
 
       {/* Details */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">이용 안내</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">이용 안내</h3>
         <div className="space-y-2.5">
           {[
             { label: '위치', value: item.location },
             { label: '운영시간', value: item.operatingHours },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
-              <span className="text-xs text-zinc-500">{info.label}</span>
-              <span className="text-sm text-white">{info.value}</span>
+            <div key={info.label} className="flex justify-between items-center py-2 border-b border-gray-200">
+              <span className="text-xs text-gray-400">{info.label}</span>
+              <span className="text-sm text-gray-900">{info.value}</span>
             </div>
           ))}
         </div>
