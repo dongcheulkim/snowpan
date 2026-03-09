@@ -44,7 +44,7 @@ const Used = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">중고 장비</h1>
+        <h1 className="text-2xl font-bold text-gray-900">중고 장비</h1>
         <Link
           to="/used/register"
           className="px-4 py-1.5 bg-mint text-black rounded-lg font-bold text-xs hover:bg-emerald-300 transition-colors whitespace-nowrap"
@@ -61,7 +61,7 @@ const Used = () => {
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedCategory === cat.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
+                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {cat.name}

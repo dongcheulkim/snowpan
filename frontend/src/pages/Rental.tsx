@@ -115,12 +115,12 @@ const Rental = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
           <Link to={`/rental/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-600 transition-all duration-300 group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-zinc-950">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800/50 px-2 py-0.5 rounded border border-zinc-800 truncate">
+                <span className="text-[10px] font-medium text-zinc-400 bg-gray-100 px-2 py-0.5 rounded border border-zinc-800 truncate">
                   {item.resort}
                 </span>
                 <span className="text-[10px] text-zinc-500">{item.duration}</span>
@@ -128,7 +128,7 @@ const Rental = () => {
               <h3 className="text-sm font-bold mb-2 text-white">{item.name}</h3>
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.equipment.map((eq, index) => (
-                  <span key={index} className="text-[10px] bg-zinc-800/50 text-zinc-500 px-2 py-0.5 rounded border border-zinc-800">
+                  <span key={index} className="text-[10px] bg-gray-100 text-zinc-500 px-2 py-0.5 rounded border border-zinc-800">
                     {eq}
                   </span>
                 ))}

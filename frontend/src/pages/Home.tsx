@@ -32,7 +32,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-24 bg-[#09090b]">
+    <div className="min-h-screen pb-24 bg-gray-50">
       {/* Hero */}
       <div className="px-4 pt-10 pb-12">
         <h1 className="text-3xl font-black text-center text-white mb-2 animate-slide-up">
@@ -45,7 +45,7 @@ const Home = () => {
           <input
             type="text"
             placeholder="스키, 보드, 스키장 검색"
-            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500"
+            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-white border border-zinc-700 text-white placeholder-zinc-500"
           />
           <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
             검색
@@ -55,7 +55,7 @@ const Home = () => {
 
       {/* Ad Banner */}
       <div className="px-4 mb-6">
-        <div className="relative overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 h-20">
+        <div className="relative overflow-hidden rounded-xl bg-white border border-zinc-800 h-20">
           {banners.map((banner, idx) => (
             <div
               key={idx}
@@ -69,7 +69,7 @@ const Home = () => {
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[9px] font-bold bg-accent/20 text-accent-light px-1.5 py-0.5 rounded">{banner.tag}</span>
+                  <span className="text-[9px] font-bold bg-accent/10 text-accent-light px-1.5 py-0.5 rounded">{banner.tag}</span>
                   <h3 className="text-sm font-bold text-white">{banner.title}</h3>
                 </div>
                 <p className="text-xs text-zinc-400">{banner.desc}</p>
@@ -160,7 +160,7 @@ const Home = () => {
             <Link
               key={resort}
               to="/rental"
-              className="flex-shrink-0 px-4 py-2 card text-sm text-zinc-400 whitespace-nowrap hover:text-accent-light hover:border-accent/30 transition-all"
+              className="flex-shrink-0 px-4 py-2 card text-sm text-zinc-400 whitespace-nowrap hover:text-accent-light hover:border-accent/50 transition-all"
             >
               {resort}
             </Link>
@@ -195,7 +195,7 @@ const Home = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', label: '홈', active: true },
           { to: '/used', label: '중고', active: false },
