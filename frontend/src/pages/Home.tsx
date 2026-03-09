@@ -74,9 +74,9 @@ const Home = () => {
   ];
 
   const hotDeals = [
-    { name: 'Rossignol 스키', price: 885000, off: '5%', icon: '🎿' },
-    { name: 'Burton 보드', price: 699000, off: '10%', icon: '🏂' },
-    { name: 'Atomic 스키', price: 845000, off: '3%', icon: '⛷️' },
+    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, originalPrice: 850000, icon: '🎿', views: 342, likes: 28 },
+    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, originalPrice: 920000, icon: '🎿', views: 287, likes: 35 },
+    { id: '2', name: 'Burton Custom (2021)', price: 380000, originalPrice: 720000, icon: '🏂', views: 256, likes: 22 },
   ];
 
   return (
