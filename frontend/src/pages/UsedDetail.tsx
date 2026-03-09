@@ -66,8 +66,6 @@ const UsedDetail = () => {
     );
   }
 
-  const discount = Math.round((1 - product.price / product.originalPrice) * 100);
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       {/* Back */}
