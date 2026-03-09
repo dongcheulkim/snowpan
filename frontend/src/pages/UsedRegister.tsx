@@ -51,28 +51,26 @@ const UsedRegister = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-dark-700/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-green/50 transition-all";
-  const labelClass = "block text-sm font-medium text-gray-300 mb-2";
+  const inputClass = "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all";
+  const labelClass = "block text-sm font-medium text-gray-400 mb-2";
 
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in">
-      <Link to="/used" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors mb-6">
+    <div className="max-w-2xl mx-auto">
+      <Link to="/used" className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-sm transition-colors mb-6">
         ← 중고 장비 목록
       </Link>
 
-      <div className="glass rounded-2xl p-8 neon-border">
+      <div className="card rounded-2xl p-8">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">📦</div>
           <h1 className="text-2xl font-bold text-white mb-2">중고 장비 등록</h1>
-          <p className="text-sm text-gray-400">판매할 장비 정보를 입력해주세요</p>
+          <p className="text-sm text-gray-500">판매할 장비 정보를 입력해주세요</p>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           {/* 사진 업로드 영역 */}
           <div>
             <label className={labelClass}>사진</label>
-            <div className="glass rounded-xl p-8 text-center border-2 border-dashed border-white/10 hover:border-neon-green/30 transition-all cursor-pointer">
-              <div className="text-4xl mb-2">📷</div>
+            <div className="bg-[#0a0a0a] rounded-lg p-8 text-center border-2 border-dashed border-white/10 hover:border-white/20 transition-all cursor-pointer">
               <div className="text-sm text-gray-400">클릭하여 사진을 업로드하세요</div>
               <div className="text-xs text-gray-600 mt-1">최대 5장 · JPG, PNG</div>
             </div>
@@ -118,14 +116,14 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="ski" className="bg-dark-800">스키</option>
-                <option value="board" className="bg-dark-800">보드</option>
-                <option value="boots" className="bg-dark-800">부츠</option>
-                <option value="binding" className="bg-dark-800">바인딩</option>
-                <option value="helmet" className="bg-dark-800">헬멧</option>
-                <option value="goggles" className="bg-dark-800">고글</option>
-                <option value="wear" className="bg-dark-800">의류</option>
-                <option value="etc" className="bg-dark-800">기타</option>
+                <option value="ski" className="bg-[#111]">스키</option>
+                <option value="board" className="bg-[#111]">보드</option>
+                <option value="boots" className="bg-[#111]">부츠</option>
+                <option value="binding" className="bg-[#111]">바인딩</option>
+                <option value="helmet" className="bg-[#111]">헬멧</option>
+                <option value="goggles" className="bg-[#111]">고글</option>
+                <option value="wear" className="bg-[#111]">의류</option>
+                <option value="etc" className="bg-[#111]">기타</option>
               </select>
             </div>
 
@@ -166,9 +164,9 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="1시즌 이하" className="bg-dark-800">1시즌 이하</option>
-                <option value="2시즌 이하" className="bg-dark-800">2시즌 이하</option>
-                <option value="3시즌 이상" className="bg-dark-800">3시즌 이상</option>
+                <option value="1시즌 이하" className="bg-[#111]">1시즌 이하</option>
+                <option value="2시즌 이하" className="bg-[#111]">2시즌 이하</option>
+                <option value="3시즌 이상" className="bg-[#111]">3시즌 이상</option>
               </select>
             </div>
 
@@ -246,9 +244,9 @@ const UsedRegister = () => {
 
           {/* Price Preview */}
           {form.price && form.originalPrice && (
-            <div className="glass rounded-xl p-4 flex items-center justify-between">
-              <span className="text-sm text-gray-400">할인율</span>
-              <span className="text-lg font-bold text-neon-pink">
+            <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-4 flex items-center justify-between">
+              <span className="text-sm text-gray-500">할인율</span>
+              <span className="text-lg font-bold text-white">
                 {Math.round((1 - Number(form.price) / Number(form.originalPrice)) * 100)}% 할인
               </span>
             </div>
@@ -257,11 +255,11 @@ const UsedRegister = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                 등록 중...
               </span>
             ) : (

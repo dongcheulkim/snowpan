@@ -7,9 +7,9 @@ const Accommodation = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
-    { title: '용평리조트 공식', desc: '스키시즌 숙박 패키지 · 리프트권 포함 특가', gradient: 'from-rose-500/30 to-pink-500/30', accent: 'text-rose-400' },
-    { title: '휘닉스 블리스', desc: '얼리체크인 무료 · 스파 이용권 증정', gradient: 'from-neon-pink/30 to-rose-500/30', accent: 'text-neon-pink' },
-    { title: '하이원 그랜드호텔', desc: '주중 40% 할인 · 곤돌라 무료 이용', gradient: 'from-rose-500/30 to-orange-500/30', accent: 'text-rose-400' },
+    { title: '용평리조트 공식', desc: '스키시즌 숙박 패키지 · 리프트권 포함 특가' },
+    { title: '휘닉스 블리스', desc: '얼리체크인 무료 · 스파 이용권 증정' },
+    { title: '하이원 그랜드호텔', desc: '주중 40% 할인 · 곤돌라 무료 이용' },
   ];
 
   useEffect(() => {
@@ -185,11 +185,11 @@ const Accommodation = () => {
   });
 
   return (
-    <div className="space-y-5 animate-fade-in">
-      <h1 className="text-2xl font-bold gradient-text">숙소</h1>
+    <div className="space-y-5">
+      <h1 className="text-2xl font-bold text-white">숙소</h1>
 
       {/* Ad Banner */}
-      <div className="relative overflow-hidden rounded-2xl glass h-24">
+      <div className="relative overflow-hidden rounded-2xl bg-[#111] border border-[#1f1f1f] h-24">
         {banners.map((banner, idx) => (
           <div
             key={idx}
@@ -197,13 +197,12 @@ const Accommodation = () => {
               idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'
             }`}
           >
-            <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
             <div className="relative z-10 flex-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
-                <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
+                <h3 className="text-base font-bold text-white">{banner.title}</h3>
               </div>
-              <p className="text-sm text-gray-300">{banner.desc}</p>
+              <p className="text-sm text-gray-400">{banner.desc}</p>
             </div>
           </div>
         ))}
@@ -222,8 +221,8 @@ const Accommodation = () => {
             onClick={() => setSelectedResort(resort.id)}
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
-                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+                ? 'bg-white text-black'
+                : 'bg-[#111] text-gray-400 hover:bg-[#1a1a1a] hover:text-white border border-[#1f1f1f]'
             }`}
           >
             {resort.name}
@@ -239,8 +238,8 @@ const Accommodation = () => {
             onClick={() => setSelectedType(type.id)}
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedType === type.id
-                ? 'bg-neon-blue/15 text-neon-blue border border-neon-blue/30'
-                : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300 border border-white/5'
+                ? 'bg-white text-black'
+                : 'bg-[#111] text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300 border border-[#1f1f1f]'
             }`}
           >
             {type.name}
@@ -251,17 +250,16 @@ const Accommodation = () => {
       {/* Accommodation List */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/accommodation/${item.id}`} key={item.id} className="glass rounded-xl overflow-hidden card-hover group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-gradient-to-br from-rose-600/10 to-pink-500/10">
-              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-pink-500/5 group-hover:from-rose-500/10 group-hover:to-pink-500/10 transition-all" />
+          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden hover:border-[#333] transition-all group block">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-[#0a0a0a]">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              <span className="absolute top-2 right-2 bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-[10px] font-bold border border-rose-500/30">
+              <span className="absolute top-2 right-2 bg-[#1a1a1a] text-gray-400 px-2 py-0.5 rounded text-[10px] font-bold border border-[#1f1f1f]">
                 {item.typeText}
               </span>
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-[#1f1f1f]">
                   {item.resort}
                 </span>
                 <span className="text-[10px] text-gray-500">{item.guests}</span>
@@ -269,13 +267,13 @@ const Accommodation = () => {
               <h3 className="text-sm font-bold text-white truncate mb-1.5">{item.name}</h3>
 
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-yellow-400 text-[10px]">★</span>
+                <span className="text-white text-[10px]">★</span>
                 <span className="text-[10px] text-gray-500">{item.rating} ({item.reviewCount})</span>
               </div>
 
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.features.map((feature, idx) => (
-                  <span key={idx} className="text-[10px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded border border-white/5">
+                  <span key={idx} className="text-[10px] bg-[#0a0a0a] text-gray-500 px-1.5 py-0.5 rounded border border-white/5">
                     {feature}
                   </span>
                 ))}
@@ -285,14 +283,14 @@ const Accommodation = () => {
                 <div>
                   <div className="text-[10px] text-gray-600 line-through">{item.originalPrice.toLocaleString()}원</div>
                   <div className="flex items-center gap-1">
-                    <span className="text-base font-bold text-rose-400">{item.price.toLocaleString()}원</span>
-                    <span className="text-[10px] text-neon-pink font-bold">
+                    <span className="text-base font-bold text-white">{item.price.toLocaleString()}원</span>
+                    <span className="text-[10px] text-gray-400 font-bold">
                       {Math.round((1 - item.price / item.originalPrice) * 100)}%
                     </span>
                   </div>
                   <div className="text-[10px] text-gray-500">1박</div>
                 </div>
-                <button className="px-3 py-1.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-lg font-medium text-[11px] hover:shadow-lg hover:shadow-rose-500/25 transition-all active:scale-95">
+                <button className="px-3 py-1.5 bg-white text-black rounded-lg font-medium text-[11px] hover:bg-gray-200 transition-all active:scale-95">
                   예약
                 </button>
               </div>
@@ -302,7 +300,7 @@ const Accommodation = () => {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-12 text-gray-500 glass rounded-xl text-sm">
+        <div className="text-center py-12 text-gray-500 bg-[#111] border border-[#1f1f1f] rounded-xl text-sm">
           해당 조건의 숙소 정보가 없습니다.
         </div>
       )}
