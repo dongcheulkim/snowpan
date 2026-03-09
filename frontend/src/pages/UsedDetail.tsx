@@ -8,7 +8,7 @@ const UsedDetail = () => {
     id: string; name: string; brand: string; price: number; originalPrice: number;
     image: string; condition: string; usageCount: string; category: string;
     size: string; year: string; description: string; location: string;
-    seller: string; sellerRating: number; createdAt: string; images: string[];
+    seller: string; sellerRating: number; sellerPhone: string; createdAt: string; images: string[];
   }> = {
     '1': {
       id: '1',
@@ -26,6 +26,7 @@ const UsedDetail = () => {
       location: '서울 강남구',
       seller: '스키매니아',
       sellerRating: 4.8,
+      sellerPhone: '010-1234-5678',
       createdAt: '2024-01-15',
       images: ['🎿', '⛷️', '🏔️'],
     },
@@ -45,6 +46,7 @@ const UsedDetail = () => {
       location: '경기 성남시',
       seller: '보더킹',
       sellerRating: 4.5,
+      sellerPhone: '010-9876-5432',
       createdAt: '2024-01-20',
       images: ['🏂', '🏔️', '⛷️'],
     },
