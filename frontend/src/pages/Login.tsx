@@ -19,20 +19,19 @@ const Login = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-dark-700/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-blue/50 transition-all";
+  const inputClass = "w-full px-4 py-3 bg-[#111] border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-white/30 transition-all";
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
-      <div className="glass rounded-2xl p-8 neon-border">
+      <div className="card rounded-lg p-8">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-3">⛷️</div>
           <h1 className="text-2xl font-bold text-white mb-2">로그인</h1>
-          <p className="text-sm text-gray-400">스노우판에 오신 것을 환영합니다</p>
+          <p className="text-sm text-gray-500">스노우판에 오신 것을 환영합니다</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">아이디</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">아이디</label>
             <input
               type="text"
               placeholder="아이디를 입력하세요"
@@ -44,7 +43,7 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">비밀번호</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">비밀번호</label>
             <input
               type="password"
               placeholder="비밀번호를 입력하세요"
@@ -63,7 +62,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-3.5 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-[0.98] mt-2"
+            className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors active:scale-[0.98] mt-2"
           >
             로그인
           </button>
