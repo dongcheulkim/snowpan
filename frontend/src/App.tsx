@@ -36,6 +36,7 @@ function App() {
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
           <Route path="community" element={<Community />} />
           <Route path="mypage" element={<MyPage />} />
+          <Route path="seller/:sellerId" element={<SellerProfile />} />
           <Route path="login" element={<Login />} />
           <Route path="admin-approval" element={<AdminApproval />} />
         </Route>
