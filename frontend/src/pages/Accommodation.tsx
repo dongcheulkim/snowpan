@@ -189,7 +189,7 @@ const Accommodation = () => {
       <h1 className="text-2xl font-bold text-white">숙소</h1>
 
       {/* Ad Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-[#111] border border-[#1f1f1f] h-24">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 h-24">
         {banners.map((banner, idx) => (
           <div
             key={idx}
