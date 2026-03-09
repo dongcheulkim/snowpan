@@ -250,7 +250,7 @@ const AdminApproval = () => {
             </div>
           )
         ) : (
-          <div className="text-center py-16 card rounded-2xl text-zinc-500 text-sm">
+          <div className="text-center py-16 card rounded-2xl text-gray-400 text-sm">
             승인 완료된 항목은 각 카테고리 페이지에서 확인하세요.
           </div>
         )}

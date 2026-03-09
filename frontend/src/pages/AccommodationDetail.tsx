@@ -167,7 +167,7 @@ const AccommodationDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
         숙소 예약하기
       </button>
     </div>
