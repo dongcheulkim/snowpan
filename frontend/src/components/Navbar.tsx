@@ -13,13 +13,12 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="glass-strong sticky top-0 z-50 border-b border-white/5">
+    <nav className="sticky top-0 z-50 bg-black border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-14">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <span className="text-2xl group-hover:animate-float">⛷️</span>
-              <span className="text-xl font-bold gradient-text tracking-tight">
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="text-xl font-bold text-white tracking-tight">
                 스노우판
               </span>
             </Link>
@@ -35,10 +34,10 @@ const Navbar = () => {
               <Link
                 key={to}
                 to={to}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   isActive(to)
-                    ? 'bg-neon-blue/15 text-neon-blue neon-border'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-white text-black font-bold'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 {label}
@@ -47,14 +46,14 @@ const Navbar = () => {
             {user ? (
               <Link
                 to="/mypage"
-                className="ml-3 px-5 py-2 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-lg font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all duration-300 active:scale-95"
+                className="ml-2 px-4 py-1.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors"
               >
                 내정보
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="ml-3 px-5 py-2 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-lg font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all duration-300 active:scale-95"
+                className="ml-2 px-4 py-1.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors"
               >
                 로그인
               </Link>
