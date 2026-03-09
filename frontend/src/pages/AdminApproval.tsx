@@ -116,25 +116,24 @@ const AdminApproval = () => {
   const currentItems = activeTab === 'rental' ? pendingRentals : pendingLessons;
 
   return (
-    <div className="min-h-screen pb-24 bg-dark-900 bg-mesh animate-fade-in">
+    <div className="min-h-screen pb-24 bg-black">
       {/* Header */}
-      <div className="relative overflow-hidden px-4 pt-8 pb-6">
-        <div className="absolute inset-0 bg-gradient-to-br from-neon-blue/10 via-transparent to-neon-purple/10" />
-        <div className="relative flex items-center justify-between mb-4">
-          <Link to="/" className="text-gray-400 hover:text-white text-2xl transition-colors">←</Link>
-          <h1 className="text-2xl font-black gradient-text">관리자 승인</h1>
+      <div className="px-4 pt-8 pb-6">
+        <div className="flex items-center justify-between mb-4">
+          <Link to="/" className="text-gray-500 hover:text-white text-2xl transition-colors">←</Link>
+          <h1 className="text-2xl font-black text-white">관리자 승인</h1>
           <div className="w-8"></div>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="glass-strong border-b border-white/5 sticky top-0 z-10">
+      <div className="bg-[#111] border-b border-[#1f1f1f] sticky top-0 z-10">
         <div className="flex">
           <button
             onClick={() => setActiveTab('rental')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'rental'
-                ? 'text-neon-blue border-b-2 border-neon-blue'
+                ? 'text-white border-b-2 border-white'
                 : 'text-gray-500 hover:text-gray-300'
             }`}
           >
@@ -144,7 +143,7 @@ const AdminApproval = () => {
             onClick={() => setActiveTab('lesson')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'lesson'
-                ? 'text-neon-blue border-b-2 border-neon-blue'
+                ? 'text-white border-b-2 border-white'
                 : 'text-gray-500 hover:text-gray-300'
             }`}
           >
@@ -158,20 +157,20 @@ const AdminApproval = () => {
         <div className="flex gap-3 mb-5">
           <button
             onClick={() => setStatusTab('pending')}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
               statusTab === 'pending'
-                ? 'bg-gradient-to-r from-neon-orange to-orange-500 text-white shadow-lg shadow-neon-orange/25'
-                : 'bg-white/5 text-gray-500 border border-white/5 hover:bg-white/10'
+                ? 'bg-white text-black'
+                : 'bg-[#1a1a1a] text-gray-500 border border-[#1f1f1f] hover:bg-[#222]'
             }`}
           >
             승인 대기
           </button>
           <button
             onClick={() => setStatusTab('approved')}
-            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
               statusTab === 'approved'
-                ? 'bg-gradient-to-r from-neon-green to-emerald-500 text-white shadow-lg shadow-neon-green/25'
-                : 'bg-white/5 text-gray-500 border border-white/5 hover:bg-white/10'
+                ? 'bg-white text-black'
+                : 'bg-[#1a1a1a] text-gray-500 border border-[#1f1f1f] hover:bg-[#222]'
             }`}
           >
             승인 완료
@@ -182,13 +181,13 @@ const AdminApproval = () => {
       {/* Items List */}
       <div className="px-4">
         {loading ? (
-          <div className="text-center py-16 glass rounded-2xl">
-            <div className="w-8 h-8 border-2 border-neon-blue/30 border-t-neon-blue rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-center py-16 card rounded-2xl">
+            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-3" />
             <span className="text-gray-500 text-sm">로딩 중...</span>
           </div>
         ) : statusTab === 'pending' ? (
           currentItems.length === 0 ? (
-            <div className="text-center py-16 glass rounded-2xl text-gray-500 text-sm">
+            <div className="text-center py-16 card rounded-2xl text-gray-500 text-sm">
               승인 대기 중인 항목이 없습니다.
             </div>
           ) : (
@@ -196,10 +195,10 @@ const AdminApproval = () => {
               {currentItems.map((item) => (
                 <div
                   key={item.id}
-                  className="glass rounded-2xl p-5 card-hover"
+                  className="card rounded-2xl p-5"
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-xl bg-dark-700 flex items-center justify-center text-3xl flex-shrink-0">
+                    <div className="w-14 h-14 rounded-lg bg-[#1a1a1a] flex items-center justify-center text-3xl flex-shrink-0">
                       {item.image}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -223,25 +222,25 @@ const AdminApproval = () => {
                       )}
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-black text-neon-blue">
+                      <div className="text-lg font-black text-white">
                         {(item.price / 10000).toFixed(0)}만원
                       </div>
-                      <div className="text-xs text-neon-orange font-bold mt-1">
+                      <div className="text-xs text-gray-400 font-bold mt-1">
                         승인 대기
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t border-white/5">
+                  <div className="flex gap-3 pt-4 border-t border-[#1f1f1f]">
                     <button
                       onClick={() => handleReject(item.id, activeTab)}
-                      className="flex-1 py-3 bg-white/5 text-gray-400 rounded-xl font-bold text-sm hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all active:scale-95"
+                      className="flex-1 py-3 bg-[#1a1a1a] text-gray-400 rounded-lg font-bold text-sm hover:bg-[#222] hover:text-white border border-[#1f1f1f] transition-all active:scale-95"
                     >
                       거부
                     </button>
                     <button
                       onClick={() => handleApprove(item.id, activeTab)}
-                      className="flex-1 py-3 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-95"
+                      className="flex-1 py-3 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-95"
                     >
                       승인
                     </button>
@@ -251,14 +250,14 @@ const AdminApproval = () => {
             </div>
           )
         ) : (
-          <div className="text-center py-16 glass rounded-2xl text-gray-500 text-sm">
+          <div className="text-center py-16 card rounded-2xl text-gray-500 text-sm">
             승인 완료된 항목은 각 카테고리 페이지에서 확인하세요.
           </div>
         )}
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/5 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#111] border-t border-[#1f1f1f] px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', icon: '🏠', label: '홈', active: false },
           { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
@@ -267,7 +266,7 @@ const AdminApproval = () => {
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
-            <span className={`text-xs font-medium ${item.active ? 'text-neon-blue' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
+            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
               {item.label}
             </span>
           </Link>
