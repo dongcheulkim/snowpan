@@ -49,11 +49,11 @@ const SellerProfile = () => {
         <div className="grid grid-cols-2 gap-3">
           <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="text-base font-bold text-white">{seller.deals}건</div>
-            <div className="text-[10px] text-gray-500">거래 완료</div>
+            <div className="text-[10px] text-zinc-500">거래 완료</div>
           </div>
           <div className="py-3 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="text-base font-bold text-white">{seller.joinDate}</div>
-            <div className="text-[10px] text-gray-500">가입일</div>
+            <div className="text-[10px] text-zinc-500">가입일</div>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ const SellerProfile = () => {
                 <div className="text-sm font-medium text-white">{item.name}</div>
                 <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
               </div>
-              <span className="text-gray-600 text-xs">→</span>
+              <span className="text-zinc-600 text-xs">→</span>
             </Link>
           ))}
         </div>

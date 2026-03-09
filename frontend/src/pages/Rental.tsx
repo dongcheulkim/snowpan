@@ -148,7 +148,7 @@ const Rental = () => {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-[#111] border border-[#1f1f1f] rounded-xl text-sm">
+        <div className="text-center py-12 text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-xl text-sm">
           해당 스키장의 렌탈 정보가 없습니다.
         </div>
       )}

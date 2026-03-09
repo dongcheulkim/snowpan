@@ -183,11 +183,11 @@ const AdminApproval = () => {
         {loading ? (
           <div className="text-center py-16 card rounded-2xl">
             <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-3" />
-            <span className="text-gray-500 text-sm">로딩 중...</span>
+            <span className="text-zinc-500 text-sm">로딩 중...</span>
           </div>
         ) : statusTab === 'pending' ? (
           currentItems.length === 0 ? (
-            <div className="text-center py-16 card rounded-2xl text-gray-500 text-sm">
+            <div className="text-center py-16 card rounded-2xl text-zinc-500 text-sm">
               승인 대기 중인 항목이 없습니다.
             </div>
           ) : (

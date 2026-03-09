@@ -72,7 +72,7 @@ const UsedRegister = () => {
             <label className={labelClass}>사진</label>
             <div className="bg-zinc-950 rounded-lg p-8 text-center border-2 border-dashed border-zinc-700 hover:border-accent/40 transition-all cursor-pointer">
               <div className="text-sm text-zinc-400">클릭하여 사진을 업로드하세요</div>
-              <div className="text-xs text-gray-600 mt-1">최대 5장 · JPG, PNG</div>
+              <div className="text-xs text-zinc-600 mt-1">최대 5장 · JPG, PNG</div>
             </div>
           </div>
 
@@ -116,14 +116,14 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="ski" className="bg-[#111]">스키</option>
-                <option value="board" className="bg-[#111]">보드</option>
-                <option value="boots" className="bg-[#111]">부츠</option>
-                <option value="binding" className="bg-[#111]">바인딩</option>
-                <option value="helmet" className="bg-[#111]">헬멧</option>
-                <option value="goggles" className="bg-[#111]">고글</option>
-                <option value="wear" className="bg-[#111]">의류</option>
-                <option value="etc" className="bg-[#111]">기타</option>
+                <option value="ski" className="bg-zinc-900">스키</option>
+                <option value="board" className="bg-zinc-900">보드</option>
+                <option value="boots" className="bg-zinc-900">부츠</option>
+                <option value="binding" className="bg-zinc-900">바인딩</option>
+                <option value="helmet" className="bg-zinc-900">헬멧</option>
+                <option value="goggles" className="bg-zinc-900">고글</option>
+                <option value="wear" className="bg-zinc-900">의류</option>
+                <option value="etc" className="bg-zinc-900">기타</option>
               </select>
             </div>
 
@@ -164,9 +164,9 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="1시즌 이하" className="bg-[#111]">1시즌 이하</option>
-                <option value="2시즌 이하" className="bg-[#111]">2시즌 이하</option>
-                <option value="3시즌 이상" className="bg-[#111]">3시즌 이상</option>
+                <option value="1시즌 이하" className="bg-zinc-900">1시즌 이하</option>
+                <option value="2시즌 이하" className="bg-zinc-900">2시즌 이하</option>
+                <option value="3시즌 이상" className="bg-zinc-900">3시즌 이상</option>
               </select>
             </div>
 
