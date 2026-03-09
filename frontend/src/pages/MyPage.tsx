@@ -89,12 +89,6 @@ const MyPage = () => {
             </div>
             <p className="text-sm text-gray-500">@{user.id}</p>
           </div>
-          <Link
-            to="/used/register"
-            className="px-3 py-1.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-lg font-medium text-xs hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95"
-          >
-            + 장비 등록
-          </Link>
         </div>
 
         {/* Stats */}
