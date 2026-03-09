@@ -132,7 +132,7 @@ const RentalDetail = () => {
         <div className="space-y-2">
           {item.options.map((opt, idx) => (
             <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
-              <span className="text-sm text-gray-300">{opt.name}</span>
+              <span className="text-sm text-zinc-300">{opt.name}</span>
               <span className="text-sm font-bold text-mint">{opt.price.toLocaleString()}원</span>
             </div>
           ))}

@@ -240,7 +240,7 @@ const AdminApproval = () => {
                     </button>
                     <button
                       onClick={() => handleApprove(item.id, activeTab)}
-                      className="flex-1 py-3 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-95"
+                      className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-95"
                     >
                       승인
                     </button>
@@ -250,7 +250,7 @@ const AdminApproval = () => {
             </div>
           )
         ) : (
-          <div className="text-center py-16 card rounded-2xl text-gray-500 text-sm">
+          <div className="text-center py-16 card rounded-2xl text-zinc-500 text-sm">
             승인 완료된 항목은 각 카테고리 페이지에서 확인하세요.
           </div>
         )}
