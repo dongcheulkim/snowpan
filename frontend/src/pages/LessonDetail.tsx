@@ -82,7 +82,7 @@ const LessonDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">레슨 정보를 찾을 수 없습니다</h2>
-        <Link to="/lesson" className="text-neon-orange hover:text-neon-orange/80 text-sm">
+        <Link to="/lesson" className="text-gray-400 hover:text-white text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -96,18 +96,17 @@ const LessonDetail = () => {
       </Link>
 
       {/* Hero */}
-      <div className="glass rounded-2xl h-48 flex items-center justify-center text-8xl bg-gradient-to-br from-orange-600/10 to-amber-500/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neon-orange/5 to-amber-500/5" />
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-[#0a0a0a]">
         <span className="relative">{item.image}</span>
       </div>
 
       {/* Info */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-neon-orange bg-neon-orange/10 px-2 py-0.5 rounded border border-neon-orange/20">
+          <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
             {item.resort}
           </span>
-          <span className="text-[10px] font-medium text-neon-blue bg-neon-blue/10 px-2 py-0.5 rounded border border-neon-blue/20">
+          <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
             {item.levelText}
           </span>
         </div>
@@ -116,9 +115,9 @@ const LessonDetail = () => {
       </div>
 
       {/* Price & Key Info */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-3xl font-black text-neon-orange">{item.price.toLocaleString()}원</span>
+          <span className="text-3xl font-black text-white">{item.price.toLocaleString()}원</span>
           <span className="text-sm text-gray-400">{item.duration}</span>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -137,11 +136,11 @@ const LessonDetail = () => {
       </div>
 
       {/* Includes */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <h3 className="text-sm font-bold text-white mb-3">포함 사항</h3>
         <div className="flex flex-wrap gap-2">
           {item.includes.map((inc, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-neon-orange/10 text-neon-orange rounded-lg text-xs border border-neon-orange/20">
+            <span key={idx} className="px-3 py-1.5 bg-[#1a1a1a] text-gray-300 rounded-lg text-xs border border-white/10">
               {inc}
             </span>
           ))}
@@ -149,7 +148,7 @@ const LessonDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-gradient-to-r from-neon-orange to-orange-500 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-orange/25 transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98]">
         레슨 예약하기
       </button>
     </div>
