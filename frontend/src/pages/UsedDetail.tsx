@@ -150,9 +150,9 @@ const UsedDetail = () => {
                 </div>
               </div>
             </div>
-            <button className="px-4 py-2 bg-white/5 text-gray-300 rounded-xl text-sm border border-white/10 hover:bg-white/10 transition-all">
+            <Link to={`/seller/${product.seller}`} className="px-4 py-2 bg-white/5 text-gray-300 rounded-xl text-sm border border-white/10 hover:bg-white/10 transition-all">
               프로필 보기
-            </button>
+            </Link>
           </div>
 
           {/* Action Button */}
