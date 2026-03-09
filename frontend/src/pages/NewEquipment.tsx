@@ -73,7 +73,7 @@ const NewEquipment = () => {
                 <span className="text-2xl font-bold text-accent">
                   {product.price.toLocaleString()}원
                 </span>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-95">
+                <button className="px-5 py-2.5 bg-gradient-to-r from-accent to-accent-light text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-accent/25 transition-all active:scale-95">
                   비교하기
                 </button>
               </div>
