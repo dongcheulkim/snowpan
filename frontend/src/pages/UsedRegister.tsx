@@ -70,8 +70,8 @@ const UsedRegister = () => {
           {/* 사진 업로드 영역 */}
           <div>
             <label className={labelClass}>사진</label>
-            <div className="bg-[#0a0a0a] rounded-lg p-8 text-center border-2 border-dashed border-white/10 hover:border-white/20 transition-all cursor-pointer">
-              <div className="text-sm text-gray-400">클릭하여 사진을 업로드하세요</div>
+            <div className="bg-zinc-950 rounded-lg p-8 text-center border-2 border-dashed border-zinc-700 hover:border-accent/40 transition-all cursor-pointer">
+              <div className="text-sm text-zinc-400">클릭하여 사진을 업로드하세요</div>
               <div className="text-xs text-gray-600 mt-1">최대 5장 · JPG, PNG</div>
             </div>
           </div>

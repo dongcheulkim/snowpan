@@ -102,13 +102,13 @@ const AccommodationDetail = () => {
           <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
             {item.resort}
           </span>
-          <span className="flex items-center gap-1 text-xs text-gray-400">
-            <span className="text-gray-300">★</span> {item.rating} ({item.reviewCount})
+          <span className="flex items-center gap-1 text-xs text-zinc-400">
+            <span className="text-gold">★</span> {item.rating} ({item.reviewCount})
           </span>
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">{item.name}</h1>
-        <p className="text-xs text-gray-500 mb-3">{item.address}</p>
-        <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
+        <p className="text-xs text-zinc-500 mb-3">{item.address}</p>
+        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Price */}

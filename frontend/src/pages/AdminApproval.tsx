@@ -133,8 +133,8 @@ const AdminApproval = () => {
             onClick={() => setActiveTab('rental')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'rental'
-                ? 'text-white border-b-2 border-white'
-                : 'text-gray-500 hover:text-gray-300'
+                ? 'text-accent-light border-b-2 border-accent'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
             렌탈 ({pendingRentals.length})
@@ -143,8 +143,8 @@ const AdminApproval = () => {
             onClick={() => setActiveTab('lesson')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'lesson'
-                ? 'text-white border-b-2 border-white'
-                : 'text-gray-500 hover:text-gray-300'
+                ? 'text-accent-light border-b-2 border-accent'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
             레슨 ({pendingLessons.length})
@@ -159,8 +159,8 @@ const AdminApproval = () => {
             onClick={() => setStatusTab('pending')}
             className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
               statusTab === 'pending'
-                ? 'bg-white text-black'
-                : 'bg-[#1a1a1a] text-gray-500 border border-[#1f1f1f] hover:bg-[#222]'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-800 text-zinc-500 border border-zinc-800 hover:bg-zinc-700'
             }`}
           >
             승인 대기
@@ -169,8 +169,8 @@ const AdminApproval = () => {
             onClick={() => setStatusTab('approved')}
             className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
               statusTab === 'approved'
-                ? 'bg-white text-black'
-                : 'bg-[#1a1a1a] text-gray-500 border border-[#1f1f1f] hover:bg-[#222]'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-800 text-zinc-500 border border-zinc-800 hover:bg-zinc-700'
             }`}
           >
             승인 완료

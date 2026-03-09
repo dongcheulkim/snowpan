@@ -140,7 +140,7 @@ const LessonDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">포함 사항</h3>
         <div className="flex flex-wrap gap-2">
           {item.includes.map((inc, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-[#1a1a1a] text-gray-300 rounded-lg text-xs border border-white/10">
+            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
               {inc}
             </span>
           ))}
@@ -148,7 +148,7 @@ const LessonDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
         레슨 예약하기
       </button>
     </div>

@@ -101,7 +101,7 @@ const RentalDetail = () => {
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-[#0a0a0a]">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
         <span className="relative">{item.image}</span>
       </div>
 
@@ -111,7 +111,7 @@ const RentalDetail = () => {
           {item.resort}
         </span>
         <h1 className="text-2xl font-bold text-white mt-2 mb-1">{item.name}</h1>
-        <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
+        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Equipment */}

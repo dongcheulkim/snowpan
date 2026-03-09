@@ -28,7 +28,7 @@ const SellerProfile = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">판매자를 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-gray-400 hover:text-white text-sm">
+        <Link to="/used" className="text-zinc-400 hover:text-white text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -43,7 +43,7 @@ const SellerProfile = () => {
           👤
         </div>
         <h1 className="text-xl font-bold text-white mb-1">{seller.name}</h1>
-        <div className="flex items-center justify-center gap-1 text-sm text-gray-400 mb-4">
+        <div className="flex items-center justify-center gap-1 text-sm text-zinc-400 mb-4">
           <span className="text-gold">★</span> {seller.rating}
         </div>
         <div className="grid grid-cols-2 gap-3">
