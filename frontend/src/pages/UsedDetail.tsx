@@ -161,12 +161,18 @@ const UsedDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <button className="flex-1 py-3.5 bg-white/5 text-gray-300 rounded-xl font-bold text-sm border border-white/10 hover:bg-white/10 transition-all active:scale-95">
-              채팅하기
+            <button
+              onClick={() => navigate(`/chat/${product.id}`, { state: { seller: product.seller, productName: product.name, productImage: product.image, productPrice: product.price } })}
+              className="flex-1 py-3.5 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-[0.98]"
+            >
+              💬 채팅하기
             </button>
-            <button className="flex-1 py-3.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-95">
-              구매하기
-            </button>
+            <a
+              href={`tel:${product.sellerPhone}`}
+              className="flex-1 py-3.5 bg-gradient-to-r from-neon-green to-emerald-500 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-green/25 transition-all active:scale-[0.98] text-center"
+            >
+              📞 전화하기
+            </a>
           </div>
         </div>
       </div>
