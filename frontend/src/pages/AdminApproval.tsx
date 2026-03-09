@@ -257,7 +257,7 @@ const AdminApproval = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#111] border-t border-[#1f1f1f] px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#09090b]/90 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', icon: '🏠', label: '홈', active: false },
           { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
@@ -266,7 +266,7 @@ const AdminApproval = () => {
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
-            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
+            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'} transition-colors`}>
               {item.label}
             </span>
           </Link>
