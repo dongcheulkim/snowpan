@@ -82,7 +82,7 @@ const Home = () => {
                 key={idx}
                 onClick={() => setCurrentBanner(idx)}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  idx === currentBanner ? 'bg-accent-light w-4' : 'bg-zinc-600'
+                  idx === currentBanner ? 'bg-accent-light w-4' : 'bg-gray-300'
                 }`}
               />
             ))}

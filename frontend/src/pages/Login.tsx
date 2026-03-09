@@ -43,7 +43,7 @@ const Login = () => {
             <div className="text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
           )}
 
-          <button type="submit" className="w-full py-3.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2">
+          <button type="submit" className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2">
             로그인
           </button>
         </form>

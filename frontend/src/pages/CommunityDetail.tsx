@@ -104,20 +104,20 @@ const CommunityDetail = () => {
                   <span className="text-xs font-bold text-gray-900">{comment.author}</span>
                   <span className="text-[10px] text-gray-400">{comment.time}</span>
                 </div>
-                <p className="text-sm text-zinc-400">{comment.text}</p>
+                <p className="text-sm text-gray-500">{comment.text}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex gap-2 mt-5 pt-4 border-t border-zinc-800">
+        <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }}
             placeholder="댓글을 입력하세요..."
-            className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none transition-all"
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
           />
           <button
             onClick={handleComment}

@@ -89,7 +89,7 @@ const Rental = () => {
         ))}
         <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
           {banners.map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-zinc-600'}`} />
+            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-300'}`} />
           ))}
         </div>
       </div>

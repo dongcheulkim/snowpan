@@ -27,8 +27,8 @@ const SellerProfile = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
-        <h2 className="text-xl font-bold text-white mb-2">판매자를 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-zinc-500 hover:text-white text-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">판매자를 찾을 수 없습니다</h2>
+        <Link to="/used" className="text-gray-400 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -39,7 +39,7 @@ const SellerProfile = () => {
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-3xl mx-auto mb-4">
+        <div className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-3xl mx-auto mb-4">
           👤
         </div>
         <h1 className="text-xl font-bold text-white mb-1">{seller.name}</h1>
