@@ -109,13 +109,7 @@ const Used = () => {
                   {product.usageCount}
                 </span>
               </div>
-              <div className="text-[10px] text-gray-600 line-through">{product.originalPrice.toLocaleString()}원</div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold text-neon-green">{product.price.toLocaleString()}원</span>
-                <span className="text-[10px] text-neon-pink font-bold">
-                  {Math.round((1 - product.price / product.originalPrice) * 100)}%
-                </span>
-              </div>
+              <span className="text-base font-bold text-neon-green">{product.price.toLocaleString()}원</span>
             </div>
           </Link>
         ))}
