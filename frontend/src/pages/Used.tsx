@@ -47,7 +47,7 @@ const Used = () => {
         <h1 className="text-2xl font-bold text-white">중고 장비</h1>
         <Link
           to="/used/register"
-          className="px-4 py-1.5 bg-white text-black rounded-lg font-bold text-xs hover:bg-gray-200 transition-colors whitespace-nowrap"
+          className="px-4 py-1.5 bg-mint text-black rounded-lg font-bold text-xs hover:bg-emerald-300 transition-colors whitespace-nowrap"
         >
           + 장비 등록
         </Link>
@@ -60,8 +60,8 @@ const Used = () => {
             onClick={() => setSelectedCategory(cat.id)}
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedCategory === cat.id
-                ? 'bg-white text-black'
-                : 'bg-[#111] text-gray-400 hover:bg-[#1a1a1a] hover:text-white border border-white/5'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
             }`}
           >
             {cat.name}
@@ -76,8 +76,8 @@ const Used = () => {
             onClick={() => setSelectedCondition(cond.id)}
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
               selectedCondition === cond.id
-                ? 'bg-white/10 text-white border border-white/20'
-                : 'bg-[#111] text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300 border border-white/5'
+                ? 'bg-zinc-700 text-white border border-zinc-600'
+                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 border border-zinc-800'
             }`}
           >
             상태: {cond.name}
@@ -87,26 +87,26 @@ const Used = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredProducts.map((product) => (
-          <Link to={`/used/${product.id}`} key={product.id} className="card rounded-lg overflow-hidden card-hover block">
-            <div className="h-28 flex items-center justify-center text-4xl bg-[#0a0a0a]">
+          <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
+            <div className="h-28 flex items-center justify-center text-4xl bg-zinc-950">
               {product.image}
             </div>
             <div className="p-3">
-              <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{product.brand}</div>
+              <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
               <h3 className="text-sm font-bold text-white truncate mb-2">{product.name}</h3>
               <div className="mb-2">
-                <span className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">
                   {product.condition}
                 </span>
               </div>
-              <span className="text-base font-bold text-white">{product.price.toLocaleString()}원</span>
+              <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
             </div>
           </Link>
         ))}
       </div>
 
       {filteredProducts.length === 0 && (
-        <div className="text-center py-12 text-gray-500 card rounded-lg text-sm">
+        <div className="text-center py-12 text-zinc-500 card text-sm">
           해당 조건의 중고 장비가 없습니다.
         </div>
       )}
