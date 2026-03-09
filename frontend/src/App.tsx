@@ -34,6 +34,7 @@ function App() {
           <Route path="accommodation" element={<Accommodation />} />
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
           <Route path="community" element={<Community />} />
+          <Route path="mypage" element={<MyPage />} />
           <Route path="login" element={<Login />} />
           <Route path="admin-approval" element={<AdminApproval />} />
         </Route>
