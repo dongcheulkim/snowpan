@@ -12,9 +12,9 @@ export default {
           light: '#3b82f6',
           dim: '#1d4ed8',
         },
-        mint: '#34d399',
-        coral: '#f87171',
-        gold: '#fbbf24',
+        mint: '#059669',
+        coral: '#ef4444',
+        gold: '#d97706',
       },
       animation: {
         'fade-in': 'fadeIn 0.4s ease-out',
