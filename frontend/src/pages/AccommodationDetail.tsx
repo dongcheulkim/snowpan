@@ -118,7 +118,7 @@ const AccommodationDetail = () => {
           <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
           <span className="text-sm text-coral font-bold bg-coral/10 px-2 py-1 rounded-lg border border-coral/20">{discount}% 할인</span>
         </div>
-        <div className="text-xs text-gray-500 mt-1">1박 기준 · 세금 포함</div>
+        <div className="text-xs text-zinc-500 mt-1">1박 기준 · 세금 포함</div>
       </div>
 
       {/* Rooms */}
@@ -126,7 +126,7 @@ const AccommodationDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">객실 유형</h3>
         <div className="space-y-2">
           {item.rooms.map((room, idx) => (
-            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-[#0a0a0a] border border-white/5">
+            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
               <div>
                 <div className="text-sm text-white font-medium">{room.name}</div>
                 <div className="text-[10px] text-gray-500">{room.guests} 기준</div>

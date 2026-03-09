@@ -283,8 +283,8 @@ const Accommodation = () => {
                 <div>
                   <div className="text-[10px] text-zinc-600 line-through">{item.originalPrice.toLocaleString()}원</div>
                   <div className="flex items-center gap-1">
-                    <span className="text-base font-bold text-white">{item.price.toLocaleString()}원</span>
-                    <span className="text-[10px] text-gray-400 font-bold">
+                    <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+                    <span className="text-[10px] text-coral font-bold">
                       {Math.round((1 - item.price / item.originalPrice) * 100)}%
                     </span>
                   </div>

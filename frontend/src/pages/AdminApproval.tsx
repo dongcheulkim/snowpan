@@ -208,7 +208,7 @@ const AdminApproval = () => {
                       <div className="text-xs text-zinc-500 mb-1">
                         {item.resort.name} · {item.resort.location}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-zinc-400">
                         등록자: {item.user.name} ({item.user.phone})
                       </div>
                       {activeTab === 'rental' ? (
