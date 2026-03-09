@@ -116,12 +116,10 @@ const UsedDetail = () => {
             <h3 className="text-sm font-bold text-white mb-3">상품 정보</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: '카테고리', value: product.category },
                 { label: '사이즈', value: product.size },
                 { label: '연식', value: product.year },
                 { label: '상태', value: product.condition },
-                { label: '사용횟수', value: product.usageCount },
-                { label: '거래지역', value: product.location },
+                { label: '거래방법', value: '직거래' },
               ].map((spec) => (
                 <div key={spec.label} className="flex justify-between items-center py-2 border-b border-white/5">
                   <span className="text-xs text-gray-500">{spec.label}</span>
@@ -129,6 +127,14 @@ const UsedDetail = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Description */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-sm font-bold text-white mb-3">상품 설명</h3>
+            <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
+              {product.description}
+            </p>
           </div>
 
           {/* Seller */}
@@ -157,14 +163,6 @@ const UsedDetail = () => {
             💬 채팅하기
           </button>
         </div>
-      </div>
-
-      {/* Description */}
-      <div className="glass rounded-2xl p-6">
-        <h3 className="text-base font-bold text-white mb-3">상품 설명</h3>
-        <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
-          {product.description}
-        </p>
       </div>
     </div>
   );
