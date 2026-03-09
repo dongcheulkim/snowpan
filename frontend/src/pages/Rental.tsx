@@ -102,8 +102,8 @@ const Rental = () => {
             onClick={() => setSelectedResort(resort.id)}
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
-                ? 'bg-white text-black'
-                : 'bg-[#111] text-gray-400 hover:bg-[#1a1a1a] hover:text-white border border-[#1f1f1f]'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
             }`}
           >
             {resort.name}
@@ -114,7 +114,7 @@ const Rental = () => {
       {/* Rental Items */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/rental/${item.id}`} key={item.id} className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden hover:border-[#333] transition-all duration-300 group block">
+          <Link to={`/rental/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-600 transition-all duration-300 group block">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-[#0a0a0a]">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
             </div>

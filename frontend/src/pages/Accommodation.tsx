@@ -199,10 +199,10 @@ const Accommodation = () => {
           >
             <div className="relative z-10 flex-1">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                <span className="text-[9px] font-bold bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">AD</span>
                 <h3 className="text-base font-bold text-white">{banner.title}</h3>
               </div>
-              <p className="text-sm text-gray-400">{banner.desc}</p>
+              <p className="text-sm text-zinc-400">{banner.desc}</p>
             </div>
           </div>
         ))}

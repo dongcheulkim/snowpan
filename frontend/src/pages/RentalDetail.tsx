@@ -87,7 +87,7 @@ const RentalDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">렌탈 정보를 찾을 수 없습니다</h2>
-        <Link to="/rental" className="text-gray-400 hover:text-white text-sm">
+        <Link to="/rental" className="text-zinc-500 hover:text-white text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -157,7 +157,7 @@ const RentalDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
         예약하기
       </button>
     </div>

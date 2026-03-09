@@ -93,13 +93,13 @@ const Lesson = () => {
                 <span className="text-[9px] font-bold bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">AD</span>
                 <h3 className="text-base font-bold text-white">{banner.title}</h3>
               </div>
-              <p className="text-sm text-gray-400">{banner.desc}</p>
+              <p className="text-sm text-zinc-400">{banner.desc}</p>
             </div>
           </div>
         ))}
         <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
           {banners.map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-white w-4' : 'bg-white/30'}`} />
+            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-zinc-600'}`} />
           ))}
         </div>
       </div>
