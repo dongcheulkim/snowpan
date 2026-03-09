@@ -66,14 +66,14 @@ const SellerProfile = () => {
             <Link
               key={item.id}
               to={`/used/${item.id}`}
-              className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-xl hover:bg-[#1a1a1a] transition-all border border-white/5"
+              className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-all border border-zinc-800"
             >
-              <div className="w-12 h-12 rounded-lg bg-[#1a1a1a] flex items-center justify-center text-2xl border border-white/5">
+              <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-2xl border border-zinc-700">
                 {item.image}
               </div>
               <div className="flex-1">
                 <div className="text-sm font-medium text-white">{item.name}</div>
-                <div className="text-sm font-bold text-white">{item.price.toLocaleString()}원</div>
+                <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
               </div>
               <span className="text-gray-600 text-xs">→</span>
             </Link>

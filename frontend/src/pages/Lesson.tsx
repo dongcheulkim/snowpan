@@ -147,15 +147,15 @@ const Lesson = () => {
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/5 truncate">
+                <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-800 truncate">
                   {item.resort}
                 </span>
-                <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/5">
+                <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-800">
                   {item.levelText}
                 </span>
               </div>
               <h3 className="text-sm font-bold mb-2 text-white">{item.name}</h3>
-              <div className="flex items-center gap-3 mb-2 text-[11px] text-gray-500">
+              <div className="flex items-center gap-3 mb-2 text-[11px] text-zinc-500">
                 <span>{item.duration}</span>
                 <span>{item.maxStudents === 1 ? '1:1' : `${item.maxStudents}명`}</span>
               </div>

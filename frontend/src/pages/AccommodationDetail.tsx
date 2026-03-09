@@ -91,7 +91,7 @@ const AccommodationDetail = () => {
       {/* Hero */}
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
         <span className="relative">{item.image}</span>
-        <span className="absolute top-4 right-4 bg-[#1a1a1a] text-gray-300 px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+        <span className="absolute top-4 right-4 bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-xs font-bold border border-zinc-700">
           {item.typeText}
         </span>
       </div>
@@ -99,7 +99,7 @@ const AccommodationDetail = () => {
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
+          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
             {item.resort}
           </span>
           <span className="flex items-center gap-1 text-xs text-gray-400">

@@ -250,8 +250,8 @@ const Accommodation = () => {
       {/* Accommodation List */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden hover:border-[#333] transition-all group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-[#0a0a0a]">
+          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-600 transition-all group block">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-zinc-950">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
               <span className="absolute top-2 right-2 bg-[#1a1a1a] text-gray-400 px-2 py-0.5 rounded text-[10px] font-bold border border-[#1f1f1f]">
                 {item.typeText}

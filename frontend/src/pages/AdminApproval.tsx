@@ -120,14 +120,14 @@ const AdminApproval = () => {
       {/* Header */}
       <div className="px-4 pt-8 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="text-gray-500 hover:text-white text-2xl transition-colors">←</Link>
+          <Link to="/" className="text-zinc-500 hover:text-white text-2xl transition-colors">←</Link>
           <h1 className="text-2xl font-black text-white">관리자 승인</h1>
           <div className="w-8"></div>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-[#111] border-b border-[#1f1f1f] sticky top-0 z-10">
+      <div className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-10">
         <div className="flex">
           <button
             onClick={() => setActiveTab('rental')}

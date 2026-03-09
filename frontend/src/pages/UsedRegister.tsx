@@ -56,14 +56,14 @@ const UsedRegister = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/used" className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-sm transition-colors mb-6">
+      <Link to="/used" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors mb-6">
         ← 중고 장비 목록
       </Link>
 
       <div className="card rounded-2xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white mb-2">중고 장비 등록</h1>
-          <p className="text-sm text-gray-500">판매할 장비 정보를 입력해주세요</p>
+          <p className="text-sm text-zinc-500">판매할 장비 정보를 입력해주세요</p>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>

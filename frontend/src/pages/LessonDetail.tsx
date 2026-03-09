@@ -127,8 +127,8 @@ const LessonDetail = () => {
             { label: '시간', value: item.schedule },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="py-2 border-b border-white/5">
-              <span className="text-[10px] text-gray-500 block">{info.label}</span>
+            <div key={info.label} className="py-2 border-b border-zinc-800">
+              <span className="text-[10px] text-zinc-500 block">{info.label}</span>
               <span className="text-sm text-white">{info.value}</span>
             </div>
           ))}

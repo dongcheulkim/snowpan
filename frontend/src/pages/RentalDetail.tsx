@@ -131,7 +131,7 @@ const RentalDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">이용 옵션</h3>
         <div className="space-y-2">
           {item.options.map((opt, idx) => (
-            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-[#0a0a0a] border border-white/5">
+            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
               <span className="text-sm text-gray-300">{opt.name}</span>
               <span className="text-sm font-bold text-mint">{opt.price.toLocaleString()}원</span>
             </div>
@@ -148,7 +148,7 @@ const RentalDetail = () => {
             { label: '운영시간', value: item.operatingHours },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="flex justify-between items-center py-2 border-b border-white/5">
+            <div key={info.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
               <span className="text-xs text-gray-500">{info.label}</span>
               <span className="text-sm text-white">{info.value}</span>
             </div>

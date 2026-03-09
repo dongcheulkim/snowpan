@@ -133,9 +133,9 @@ const Rental = () => {
                   </span>
                 ))}
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-white/5">
+              <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
                 <div>
-                  <div className="text-[10px] text-gray-500">1일</div>
+                  <div className="text-[10px] text-zinc-500">1일</div>
                   <span className="text-base font-bold text-white">{item.price.toLocaleString()}원</span>
                 </div>
                 <button className="px-3 py-1.5 bg-white text-black rounded-lg font-medium text-[11px] hover:bg-gray-200 transition-all active:scale-95">
