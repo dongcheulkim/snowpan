@@ -75,7 +75,7 @@ const SellerProfile = () => {
                 <div className="text-sm font-medium text-gray-900">{item.name}</div>
                 <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
               </div>
-              <span className="text-zinc-600 text-xs">→</span>
+              <span className="text-gray-400 text-xs">→</span>
             </Link>
           ))}
         </div>

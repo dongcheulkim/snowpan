@@ -116,25 +116,25 @@ const AdminApproval = () => {
   const currentItems = activeTab === 'rental' ? pendingRentals : pendingLessons;
 
   return (
-    <div className="min-h-screen pb-24 bg-black">
+    <div className="min-h-screen pb-24 bg-gray-50">
       {/* Header */}
       <div className="px-4 pt-8 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="text-zinc-500 hover:text-white text-2xl transition-colors">←</Link>
-          <h1 className="text-2xl font-black text-white">관리자 승인</h1>
+          <Link to="/" className="text-gray-400 hover:text-gray-900 text-2xl transition-colors">←</Link>
+          <h1 className="text-2xl font-black text-gray-900">관리자 승인</h1>
           <div className="w-8"></div>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="flex">
           <button
             onClick={() => setActiveTab('rental')}
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'rental'
                 ? 'text-accent-light border-b-2 border-accent'
-                : 'text-zinc-500 hover:text-zinc-300'
+                : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             렌탈 ({pendingRentals.length})
@@ -144,7 +144,7 @@ const AdminApproval = () => {
             className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
               activeTab === 'lesson'
                 ? 'text-accent-light border-b-2 border-accent'
-                : 'text-zinc-500 hover:text-zinc-300'
+                : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             레슨 ({pendingLessons.length})
