@@ -1,9 +1,25 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+  }, [location]);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/');
+  };
 
   return (
     <nav className="glass-strong sticky top-0 z-50 border-b border-white/5">
@@ -37,12 +53,29 @@ const Navbar = () => {
                 {label}
               </Link>
             ))}
-            <Link
-              to="/login"
-              className="ml-3 px-5 py-2 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-lg font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all duration-300 active:scale-95"
-            >
-              로그인
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-2 ml-3">
+                <Link
+                  to="/mypage"
+                  className="px-4 py-2 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-lg font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all duration-300 active:scale-95"
+                >
+                  내정보
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-2 bg-white/5 text-gray-400 rounded-lg font-medium text-xs border border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="ml-3 px-5 py-2 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-lg font-medium text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all duration-300 active:scale-95"
+              >
+                로그인
+              </Link>
+            )}
           </div>
         </div>
       </div>
