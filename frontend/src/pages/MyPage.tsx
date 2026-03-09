@@ -87,7 +87,7 @@ const MyPage = () => {
             { label: '평점', value: '4.8' },
             { label: '가입일', value: '2024.01' },
           ].map((stat) => (
-            <div key={stat.label} className="text-center py-2 bg-zinc-900 rounded-lg">
+            <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
               <div className="text-base font-bold text-white">{stat.value}</div>
               <div className="text-[10px] text-zinc-500">{stat.label}</div>
             </div>
@@ -112,7 +112,7 @@ const MyPage = () => {
               const badge = allBadges.find(b => b.id === badgeId);
               if (!badge) return null;
               return (
-                <div key={badge.id} className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+                <div key={badge.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
@@ -131,7 +131,7 @@ const MyPage = () => {
       {/* Menu */}
       <div className="card overflow-hidden">
         {menuItems.map((item, idx) => (
-          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-800 transition-all ${idx < menuItems.length - 1 ? 'border-b border-zinc-800' : ''}`}>
+          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-white">{item.label}</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-accent-light font-bold bg-accent/10 px-2 py-0.5 rounded-full">{item.count}</span>
@@ -144,7 +144,7 @@ const MyPage = () => {
       {/* Settings */}
       <div className="card overflow-hidden">
         {settings.map((item, idx) => (
-          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-800 transition-all ${idx < settings.length - 1 ? 'border-b border-zinc-800' : ''}`}>
+          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-zinc-400">{item.label}</span>
             <span className="text-zinc-600 text-xs">→</span>
           </button>
@@ -152,7 +152,7 @@ const MyPage = () => {
       </div>
 
       {/* Logout */}
-      <button onClick={handleLogout} className="w-full py-3.5 bg-zinc-900 text-zinc-400 rounded-xl font-medium text-sm border border-zinc-800 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
+      <button onClick={handleLogout} className="w-full py-3.5 bg-white text-zinc-400 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
         로그아웃
       </button>
 
@@ -160,13 +160,13 @@ const MyPage = () => {
       {showBadgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
-          <div className="relative bg-zinc-900 rounded-xl p-6 w-full max-w-sm border border-zinc-700">
+          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-white mb-2">자격증 인증</h3>
             <p className="text-xs text-zinc-500 mb-5">인증할 자격증을 선택하세요</p>
 
             <div className="space-y-2 mb-5">
               {allBadges.filter(b => !badges.includes(b.id)).map((badge) => (
-                <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'}`}>
+                <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-gray-100 border-gray-300 hover:border-gray-400'}`}>
                   <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                   <div className="text-left">
                     <div className={`text-xs font-medium ${selectedBadge === badge.id ? 'text-white' : 'text-zinc-400'}`}>{badge.desc}</div>
@@ -179,9 +179,9 @@ const MyPage = () => {
             </div>
 
             {selectedBadge && (
-              <div className="bg-zinc-800 rounded-lg p-3 mb-5 border border-zinc-700">
+              <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
                 <p className="text-[11px] text-zinc-500 mb-2">자격증 사진을 업로드해주세요</p>
-                <label className="block w-full py-3 border-2 border-dashed border-zinc-600 rounded-lg text-center text-xs text-zinc-500 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
+                <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-zinc-500 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
                   사진 선택
                   <input type="file" accept="image/*" className="hidden" />
                 </label>
@@ -189,7 +189,7 @@ const MyPage = () => {
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); }} className="flex-1 py-3 bg-zinc-800 text-zinc-400 rounded-lg font-medium text-sm border border-zinc-700 hover:bg-zinc-700 transition-colors">취소</button>
+              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); }} className="flex-1 py-3 bg-gray-100 text-zinc-400 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">취소</button>
               <button onClick={handleRequestBadge} disabled={!selectedBadge} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">인증 요청</button>
             </div>
           </div>

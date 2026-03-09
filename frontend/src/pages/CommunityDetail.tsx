@@ -78,31 +78,31 @@ const CommunityDetail = () => {
 
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{post.content}</p>
 
-        <div className="flex items-center gap-4 mt-6 pt-5 border-t border-zinc-800">
+        <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
           <button
             onClick={handleLike}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${
               liked
                 ? 'bg-coral/15 text-coral border border-coral/30'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700'
+                : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'
             }`}
           >
             ♥ {likeCount}
           </button>
-          <span className="text-sm text-zinc-500">댓글 {comments.length}</span>
+          <span className="text-sm text-gray-400">댓글 {comments.length}</span>
         </div>
       </div>
 
       <div className="card p-5">
-        <h3 className="text-sm font-bold text-white mb-4">댓글 {comments.length}</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-4">댓글 {comments.length}</h3>
         <div className="space-y-4">
           {comments.map((comment, idx) => (
             <div key={idx} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">👤</div>
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">👤</div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-white">{comment.author}</span>
-                  <span className="text-[10px] text-zinc-600">{comment.time}</span>
+                  <span className="text-xs font-bold text-gray-900">{comment.author}</span>
+                  <span className="text-[10px] text-gray-400">{comment.time}</span>
                 </div>
                 <p className="text-sm text-zinc-400">{comment.text}</p>
               </div>
