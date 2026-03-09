@@ -140,7 +140,7 @@ const Home = () => {
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">스키장</h2>
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['용평', '휘닉스', '하이원', '비발디', '엘리시안', '웰리힐리', '오투', '알펜시아', '곤지암', '지산', '무주', '오크밸리', '베어스타운', '에덴밸리'].map((resort) => (
+          {['용평', '휘닉스', '하이원', '비발디', '엘리시안', '웰리힐리', '오투', '알펜시아', '곤지암', '지산', '무주', '오크밸리', '에덴밸리'].map((resort) => (
             <Link
               key={resort}
               to="/rental"
@@ -169,7 +169,6 @@ const Home = () => {
             { name: '오투리조트', url: 'https://www.o2resort.com/ski/webcam.asp' },
             { name: '알펜시아', url: 'https://www.alpensia.com/ski/webcam.asp' },
             { name: '곤지암리조트', url: 'https://www.konjiamresort.co.kr/ski/webcam.asp' },
-            { name: '베어스타운', url: 'https://www.bearstown.com/ski/webcam.asp' },
             { name: '에덴밸리', url: 'https://www.edenvalley.co.kr/ski/webcam.asp' },
           ].map((cam) => (
             <a
