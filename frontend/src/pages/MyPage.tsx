@@ -161,7 +161,7 @@ const MyPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-white mb-2">자격증 인증</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">자격증 인증</h3>
             <p className="text-xs text-gray-400 mb-5">인증할 자격증을 선택하세요</p>
 
             <div className="space-y-2 mb-5">
@@ -169,7 +169,7 @@ const MyPage = () => {
                 <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-gray-100 border-gray-300 hover:border-gray-400'}`}>
                   <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                   <div className="text-left">
-                    <div className={`text-xs font-medium ${selectedBadge === badge.id ? 'text-white' : 'text-gray-500'}`}>{badge.desc}</div>
+                    <div className={`text-xs font-medium ${selectedBadge === badge.id ? 'text-gray-900' : 'text-gray-500'}`}>{badge.desc}</div>
                   </div>
                 </button>
               ))}

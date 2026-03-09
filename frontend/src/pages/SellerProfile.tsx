@@ -68,11 +68,11 @@ const SellerProfile = () => {
               to={`/used/${item.id}`}
               className="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
             >
-              <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-2xl border border-zinc-700">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-2xl border border-gray-300">
                 {item.image}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-white">{item.name}</div>
+                <div className="text-sm font-medium text-gray-900">{item.name}</div>
                 <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
               </div>
               <span className="text-zinc-600 text-xs">→</span>
