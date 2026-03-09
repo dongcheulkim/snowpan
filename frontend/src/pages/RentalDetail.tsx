@@ -96,7 +96,7 @@ const RentalDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/rental" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
+      <Link to="/rental" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
         ← 렌탈 목록
       </Link>
 
@@ -133,7 +133,7 @@ const RentalDetail = () => {
           {item.options.map((opt, idx) => (
             <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-[#0a0a0a] border border-white/5">
               <span className="text-sm text-gray-300">{opt.name}</span>
-              <span className="text-sm font-bold text-white">{opt.price.toLocaleString()}원</span>
+              <span className="text-sm font-bold text-mint">{opt.price.toLocaleString()}원</span>
             </div>
           ))}
         </div>

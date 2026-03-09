@@ -73,7 +73,7 @@ const AccommodationDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">숙소 정보를 찾을 수 없습니다</h2>
-        <Link to="/accommodation" className="text-gray-400 hover:text-white text-sm">
+        <Link to="/accommodation" className="text-zinc-500 hover:text-white text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>

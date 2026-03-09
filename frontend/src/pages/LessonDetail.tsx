@@ -91,12 +91,12 @@ const LessonDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
+      <Link to="/lesson" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
         ← 레슨 목록
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-[#0a0a0a]">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
         <span className="relative">{item.image}</span>
       </div>
 

@@ -39,7 +39,7 @@ const SellerProfile = () => {
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-3xl mx-auto mb-4">
+        <div className="w-20 h-20 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-3xl mx-auto mb-4">
           👤
         </div>
         <h1 className="text-xl font-bold text-white mb-1">{seller.name}</h1>
