@@ -73,7 +73,7 @@ const AccommodationDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">숙소 정보를 찾을 수 없습니다</h2>
-        <Link to="/accommodation" className="text-zinc-500 hover:text-white text-sm">
+        <Link to="/accommodation" className="text-zinc-500 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -84,14 +84,14 @@ const AccommodationDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/accommodation" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
+      <Link to="/accommodation" className="inline-flex items-center gap-2 text-zinc-500 hover:text-gray-900 text-sm transition-colors">
         ← 숙소 목록
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         <span className="relative">{item.image}</span>
-        <span className="absolute top-4 right-4 bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-xs font-bold border border-zinc-700">
+        <span className="absolute top-4 right-4 bg-gray-100 text-zinc-300 px-3 py-1 rounded-full text-xs font-bold border border-zinc-700">
           {item.typeText}
         </span>
       </div>
@@ -99,7 +99,7 @@ const AccommodationDetail = () => {
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+          <span className="text-[10px] font-medium text-zinc-400 bg-gray-100 px-2 py-0.5 rounded border border-zinc-700">
             {item.resort}
           </span>
           <span className="flex items-center gap-1 text-xs text-zinc-400">
@@ -126,7 +126,7 @@ const AccommodationDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">객실 유형</h3>
         <div className="space-y-2">
           {item.rooms.map((room, idx) => (
-            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
+            <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-gray-100 border border-zinc-800">
               <div>
                 <div className="text-sm text-white font-medium">{room.name}</div>
                 <div className="text-[10px] text-zinc-500">{room.guests} 기준</div>
@@ -142,7 +142,7 @@ const AccommodationDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">편의시설</h3>
         <div className="flex flex-wrap gap-2">
           {item.amenities.map((a, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
+            <span key={idx} className="px-3 py-1.5 bg-gray-100 text-zinc-300 rounded-lg text-xs border border-zinc-700">
               {a}
             </span>
           ))}

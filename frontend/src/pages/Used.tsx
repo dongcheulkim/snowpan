@@ -76,8 +76,8 @@ const Used = () => {
             onClick={() => setSelectedCondition(cond.id)}
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${
               selectedCondition === cond.id
-                ? 'bg-zinc-700 text-white border border-zinc-600'
-                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 border border-zinc-800'
+                ? 'bg-gray-200 text-gray-900 border border-gray-300'
+                : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
             }`}
           >
             상태: {cond.name}
@@ -88,14 +88,14 @@ const Used = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredProducts.map((product) => (
           <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
-            <div className="h-28 flex items-center justify-center text-4xl bg-zinc-950">
+            <div className="h-28 flex items-center justify-center text-4xl bg-gray-100">
               {product.image}
             </div>
             <div className="p-3">
               <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
-              <h3 className="text-sm font-bold text-white truncate mb-2">{product.name}</h3>
+              <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
               <div className="mb-2">
-                <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">
+                <span className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                   {product.condition}
                 </span>
               </div>
@@ -106,7 +106,7 @@ const Used = () => {
       </div>
 
       {filteredProducts.length === 0 && (
-        <div className="text-center py-12 text-zinc-500 card text-sm">
+        <div className="text-center py-12 text-gray-400 card text-sm">
           해당 조건의 중고 장비가 없습니다.
         </div>
       )}

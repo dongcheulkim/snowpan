@@ -37,7 +37,7 @@ const Community = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">커뮤니티</h1>
+        <h1 className="text-2xl font-bold text-gray-900">커뮤니티</h1>
         <button className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors whitespace-nowrap">
           + 글쓰기
         </button>

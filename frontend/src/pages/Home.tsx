@@ -35,19 +35,19 @@ const Home = () => {
     <div className="min-h-screen pb-24 bg-gray-50">
       {/* Hero */}
       <div className="px-4 pt-10 pb-12">
-        <h1 className="text-3xl font-black text-center text-white mb-2 animate-slide-up">
+        <h1 className="text-3xl font-black text-center text-gray-900 mb-2 animate-slide-up">
           <span className="text-accent-light">스노우</span>판
         </h1>
-        <p className="text-center text-zinc-500 mb-8 animate-fade-in text-sm">
+        <p className="text-center text-gray-400 mb-8 animate-fade-in text-sm">
           스키 & 보드 장비의 모든 것
         </p>
         <div className="relative max-w-xl mx-auto animate-slide-up">
           <input
             type="text"
             placeholder="스키, 보드, 스키장 검색"
-            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-white border border-zinc-700 text-white placeholder-zinc-500"
+            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-white border border-gray-300 text-gray-900 placeholder-gray-400"
           />
-          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
+          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
             검색
           </button>
         </div>
@@ -55,7 +55,7 @@ const Home = () => {
 
       {/* Ad Banner */}
       <div className="px-4 mb-6">
-        <div className="relative overflow-hidden rounded-xl bg-white border border-zinc-800 h-20">
+        <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 h-20">
           {banners.map((banner, idx) => (
             <div
               key={idx}
@@ -70,9 +70,9 @@ const Home = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-[9px] font-bold bg-accent/10 text-accent-light px-1.5 py-0.5 rounded">{banner.tag}</span>
-                  <h3 className="text-sm font-bold text-white">{banner.title}</h3>
+                  <h3 className="text-sm font-bold text-gray-900">{banner.title}</h3>
                 </div>
-                <p className="text-xs text-zinc-400">{banner.desc}</p>
+                <p className="text-xs text-gray-500">{banner.desc}</p>
               </div>
             </div>
           ))}
@@ -97,10 +97,10 @@ const Home = () => {
             <Link
               key={cat.id}
               to={cat.link}
-              className="card p-5 active:scale-[0.98] transition-all hover:border-zinc-600"
+              className="card p-5 active:scale-[0.98] transition-all hover:border-gray-400"
             >
               <div className={`text-lg font-bold mb-1 ${cat.color}`}>{cat.title}</div>
-              <div className="text-xs text-zinc-500">{cat.desc}</div>
+              <div className="text-xs text-gray-400">{cat.desc}</div>
             </Link>
           ))}
         </div>
@@ -109,7 +109,7 @@ const Home = () => {
       {/* 중고 핫딜 */}
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">중고 핫딜</h2>
+          <h2 className="text-lg font-bold text-gray-900">중고 핫딜</h2>
           <Link to="/used" className="text-sm text-accent-light hover:text-accent transition-colors">
             전체보기 →
           </Link>
@@ -122,10 +122,10 @@ const Home = () => {
               className="w-full card p-4 flex items-center justify-between card-hover block"
             >
               <div>
-                <div className="font-bold text-white text-sm">{deal.name}</div>
+                <div className="font-bold text-gray-900 text-sm">{deal.name}</div>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-zinc-500">조회 {deal.views}</span>
-                  <span className="text-[11px] text-zinc-500">찜 {deal.likes}</span>
+                  <span className="text-[11px] text-gray-400">조회 {deal.views}</span>
+                  <span className="text-[11px] text-gray-400">찜 {deal.likes}</span>
                 </div>
               </div>
               <div className="text-base font-black text-mint">
@@ -138,7 +138,7 @@ const Home = () => {
 
       {/* Quick Menu */}
       <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-white mb-4">빠른 메뉴</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">빠른 메뉴</h2>
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: '최저가', color: 'text-mint' },
@@ -154,13 +154,13 @@ const Home = () => {
 
       {/* Resort Quick Select */}
       <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-white mb-4">스키장</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">스키장</h2>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {['용평', '휘닉스', '하이원', '비발디', '엘리시안'].map((resort) => (
             <Link
               key={resort}
               to="/rental"
-              className="flex-shrink-0 px-4 py-2 card text-sm text-zinc-400 whitespace-nowrap hover:text-accent-light hover:border-accent/50 transition-all"
+              className="flex-shrink-0 px-4 py-2 card text-sm text-gray-500 whitespace-nowrap hover:text-accent-light hover:border-accent/50 transition-all"
             >
               {resort}
             </Link>
@@ -170,7 +170,7 @@ const Home = () => {
 
       {/* Webcam Quick Links */}
       <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-white mb-4">스키장 실시간 웹캠</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">스키장 실시간 웹캠</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
             { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/skiNboard/webcam.do' },
@@ -187,7 +187,7 @@ const Home = () => {
               rel="noopener noreferrer"
               className="card p-3.5 card-hover"
             >
-              <div className="text-sm font-medium text-white">{cam.name}</div>
+              <div className="text-sm font-medium text-gray-900">{cam.name}</div>
               <div className="text-xs text-accent-light mt-0.5">실시간 보기 →</div>
             </a>
           ))}
@@ -195,7 +195,7 @@ const Home = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-zinc-800 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around z-50">
         {[
           { to: '/', label: '홈', active: true },
           { to: '/used', label: '중고', active: false },
@@ -204,7 +204,7 @@ const Home = () => {
           { to: '/admin-approval', label: '관리', active: false },
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1">
-            <span className={`text-xs font-medium ${item.active ? 'text-accent-light' : 'text-zinc-600 hover:text-zinc-400'} transition-colors`}>
+            <span className={`text-xs font-medium ${item.active ? 'text-accent-light' : 'text-gray-400 hover:text-gray-500'} transition-colors`}>
               {item.label}
             </span>
           </Link>

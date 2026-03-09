@@ -67,10 +67,10 @@ const Rental = () => {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white">렌탈</h1>
+      <h1 className="text-2xl font-bold text-gray-900">렌탈</h1>
 
       {/* Ad Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 h-24">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
         {banners.map((banner, idx) => (
           <div
             key={idx}
@@ -80,10 +80,10 @@ const Rental = () => {
           >
             <div className="relative z-10 flex-1">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] font-bold bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">AD</span>
-                <h3 className="text-base font-bold text-white">{banner.title}</h3>
+                <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                <h3 className="text-base font-bold text-gray-900">{banner.title}</h3>
               </div>
-              <p className="text-sm text-zinc-400">{banner.desc}</p>
+              <p className="text-sm text-gray-500">{banner.desc}</p>
             </div>
           </div>
         ))}
@@ -103,7 +103,7 @@ const Rental = () => {
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
+                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {resort.name}
@@ -114,28 +114,28 @@ const Rental = () => {
       {/* Rental Items */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/rental/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-600 transition-all duration-300 group block">
+          <Link to={`/rental/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-zinc-400 bg-gray-100 px-2 py-0.5 rounded border border-zinc-800 truncate">
+                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
                   {item.resort}
                 </span>
-                <span className="text-[10px] text-zinc-500">{item.duration}</span>
+                <span className="text-[10px] text-gray-400">{item.duration}</span>
               </div>
-              <h3 className="text-sm font-bold mb-2 text-white">{item.name}</h3>
+              <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.equipment.map((eq, index) => (
-                  <span key={index} className="text-[10px] bg-gray-100 text-zinc-500 px-2 py-0.5 rounded border border-zinc-800">
+                  <span key={index} className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded border border-gray-200">
                     {eq}
                   </span>
                 ))}
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
+              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                 <div>
-                  <div className="text-[10px] text-zinc-500">1일</div>
+                  <div className="text-[10px] text-gray-400">1일</div>
                   <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
                 </div>
                 <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
@@ -148,7 +148,7 @@ const Rental = () => {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-12 text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-xl text-sm">
+        <div className="text-center py-12 text-gray-400 bg-white border border-gray-200 rounded-xl text-sm">
           해당 스키장의 렌탈 정보가 없습니다.
         </div>
       )}

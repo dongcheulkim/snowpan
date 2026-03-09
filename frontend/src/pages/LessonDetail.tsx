@@ -81,8 +81,8 @@ const LessonDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
-        <h2 className="text-xl font-bold text-white mb-2">레슨 정보를 찾을 수 없습니다</h2>
-        <Link to="/lesson" className="text-zinc-500 hover:text-white text-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">레슨 정보를 찾을 수 없습니다</h2>
+        <Link to="/lesson" className="text-gray-400 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -91,34 +91,34 @@ const LessonDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/lesson" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white text-sm transition-colors">
+      <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
         ← 레슨 목록
       </Link>
 
       {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-zinc-950">
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         <span className="relative">{item.image}</span>
       </div>
 
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
             {item.resort}
           </span>
-          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
             {item.levelText}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">{item.name}</h1>
-        <p className="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
+        <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
       </div>
 
       {/* Price & Key Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
-          <span className="text-sm text-zinc-400">{item.duration}</span>
+          <span className="text-sm text-gray-500">{item.duration}</span>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -127,9 +127,9 @@ const LessonDetail = () => {
             { label: '시간', value: item.schedule },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="py-2 border-b border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block">{info.label}</span>
-              <span className="text-sm text-white">{info.value}</span>
+            <div key={info.label} className="py-2 border-b border-gray-200">
+              <span className="text-[10px] text-gray-400 block">{info.label}</span>
+              <span className="text-sm text-gray-900">{info.value}</span>
             </div>
           ))}
         </div>
@@ -137,10 +137,10 @@ const LessonDetail = () => {
 
       {/* Includes */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">포함 사항</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">포함 사항</h3>
         <div className="flex flex-wrap gap-2">
           {item.includes.map((inc, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
+            <span key={idx} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs border border-gray-300">
               {inc}
             </span>
           ))}
@@ -148,7 +148,7 @@ const LessonDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-accent text-gray-900 rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">
         레슨 예약하기
       </button>
     </div>

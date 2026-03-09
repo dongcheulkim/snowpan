@@ -33,26 +33,26 @@ const UsedDetail = () => {
   if (!product) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <h2 className="text-xl font-bold text-white mb-2">상품을 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-zinc-400 hover:text-white text-sm">← 목록으로 돌아가기</Link>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">상품을 찾을 수 없습니다</h2>
+        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-zinc-500 hover:text-white text-sm transition-colors">
+      <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">
         ← 중고 장비 목록
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <div className="card h-80 flex items-center justify-center text-9xl bg-zinc-950">
+          <div className="card h-80 flex items-center justify-center text-9xl bg-gray-100">
             {product.image}
           </div>
           <div className="grid grid-cols-3 gap-3">
             {product.images.map((img, idx) => (
-              <div key={idx} className="card h-24 flex items-center justify-center text-4xl cursor-pointer hover:border-zinc-600 transition-colors">
+              <div key={idx} className="card h-24 flex items-center justify-center text-4xl cursor-pointer hover:border-gray-400 transition-colors">
                 {img}
               </div>
             ))}

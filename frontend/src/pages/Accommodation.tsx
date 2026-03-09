@@ -189,7 +189,7 @@ const Accommodation = () => {
       <h1 className="text-2xl font-bold text-white">숙소</h1>
 
       {/* Ad Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 h-24">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-zinc-800 h-24">
         {banners.map((banner, idx) => (
           <div
             key={idx}
@@ -199,7 +199,7 @@ const Accommodation = () => {
           >
             <div className="relative z-10 flex-1">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] font-bold bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">AD</span>
+                <span className="text-[9px] font-bold bg-gray-100 text-zinc-500 px-1.5 py-0.5 rounded">AD</span>
                 <h3 className="text-base font-bold text-white">{banner.title}</h3>
               </div>
               <p className="text-sm text-zinc-400">{banner.desc}</p>
@@ -222,7 +222,7 @@ const Accommodation = () => {
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
+                : 'bg-white text-zinc-400 hover:bg-gray-100 hover:text-gray-900 border border-zinc-800'
             }`}
           >
             {resort.name}
@@ -239,7 +239,7 @@ const Accommodation = () => {
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedType === type.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 border border-zinc-800'
+                : 'bg-white text-zinc-500 hover:bg-gray-100 hover:text-gray-600 border border-zinc-800'
             }`}
           >
             {type.name}
@@ -250,16 +250,16 @@ const Accommodation = () => {
       {/* Accommodation List */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
-          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-600 transition-all group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-zinc-950">
+          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-white border border-zinc-800 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100">
               <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              <span className="absolute top-2 right-2 bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-[10px] font-bold border border-zinc-800">
+              <span className="absolute top-2 right-2 bg-gray-100 text-zinc-400 px-2 py-0.5 rounded text-[10px] font-bold border border-zinc-800">
                 {item.typeText}
               </span>
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-800">
+                <span className="text-[10px] font-medium text-zinc-400 bg-gray-100 px-2 py-0.5 rounded border border-zinc-800">
                   {item.resort}
                 </span>
                 <span className="text-[10px] text-zinc-500">{item.guests}</span>
@@ -273,7 +273,7 @@ const Accommodation = () => {
 
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.features.map((feature, idx) => (
-                  <span key={idx} className="text-[10px] bg-zinc-950 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-800">
+                  <span key={idx} className="text-[10px] bg-gray-100 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-800">
                     {feature}
                   </span>
                 ))}
@@ -300,7 +300,7 @@ const Accommodation = () => {
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-12 text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-xl text-sm">
+        <div className="text-center py-12 text-zinc-500 bg-white border border-zinc-800 rounded-xl text-sm">
           해당 조건의 숙소 정보가 없습니다.
         </div>
       )}
