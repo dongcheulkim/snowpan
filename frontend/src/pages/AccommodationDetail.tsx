@@ -116,7 +116,7 @@ const AccommodationDetail = () => {
         <div className="text-sm text-zinc-600 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
         <div className="flex items-center gap-3">
           <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
-          <span className="text-sm text-gray-300 font-bold bg-[#1a1a1a] px-2 py-1 rounded-lg border border-white/10">{discount}% 할인</span>
+          <span className="text-sm text-coral font-bold bg-coral/10 px-2 py-1 rounded-lg border border-coral/20">{discount}% 할인</span>
         </div>
         <div className="text-xs text-gray-500 mt-1">1박 기준 · 세금 포함</div>
       </div>

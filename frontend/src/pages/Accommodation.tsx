@@ -273,15 +273,15 @@ const Accommodation = () => {
 
               <div className="flex flex-wrap gap-1 mb-2">
                 {item.features.map((feature, idx) => (
-                  <span key={idx} className="text-[10px] bg-[#0a0a0a] text-gray-500 px-1.5 py-0.5 rounded border border-white/5">
+                  <span key={idx} className="text-[10px] bg-zinc-950 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-800">
                     {feature}
                   </span>
                 ))}
               </div>
 
-              <div className="flex justify-between items-end pt-2 border-t border-white/5">
+              <div className="flex justify-between items-end pt-2 border-t border-zinc-800">
                 <div>
-                  <div className="text-[10px] text-gray-600 line-through">{item.originalPrice.toLocaleString()}원</div>
+                  <div className="text-[10px] text-zinc-600 line-through">{item.originalPrice.toLocaleString()}원</div>
                   <div className="flex items-center gap-1">
                     <span className="text-base font-bold text-white">{item.price.toLocaleString()}원</span>
                     <span className="text-[10px] text-gray-400 font-bold">

@@ -198,14 +198,14 @@ const AdminApproval = () => {
                   className="card rounded-2xl p-5"
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-lg bg-[#1a1a1a] flex items-center justify-center text-3xl flex-shrink-0">
+                    <div className="w-14 h-14 rounded-lg bg-zinc-800 flex items-center justify-center text-3xl flex-shrink-0">
                       {item.image}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-white mb-1">
                         {item.name}
                       </div>
-                      <div className="text-xs text-gray-500 mb-1">
+                      <div className="text-xs text-zinc-500 mb-1">
                         {item.resort.name} · {item.resort.location}
                       </div>
                       <div className="text-xs text-gray-400">

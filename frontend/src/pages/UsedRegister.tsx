@@ -244,8 +244,8 @@ const UsedRegister = () => {
 
           {/* Price Preview */}
           {form.price && form.originalPrice && (
-            <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-4 flex items-center justify-between">
-              <span className="text-sm text-gray-500">할인율</span>
+            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex items-center justify-between">
+              <span className="text-sm text-zinc-500">할인율</span>
               <span className="text-lg font-bold text-white">
                 {Math.round((1 - Number(form.price) / Number(form.originalPrice)) * 100)}% 할인
               </span>
