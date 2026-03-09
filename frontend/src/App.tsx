@@ -14,6 +14,7 @@ import AccommodationDetail from './pages/AccommodationDetail';
 import Chat from './pages/Chat';
 import Community from './pages/Community';
 import MyPage from './pages/MyPage';
+import SellerProfile from './pages/SellerProfile';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
 
