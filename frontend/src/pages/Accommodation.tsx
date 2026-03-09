@@ -239,7 +239,7 @@ const Accommodation = () => {
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedType === type.id
                 ? 'bg-accent text-white'
-                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-gray-300 border border-zinc-800'
+                : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 border border-zinc-800'
             }`}
           >
             {type.name}
