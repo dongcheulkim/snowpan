@@ -5,27 +5,9 @@ const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
-    {
-      title: '보드팩토리 강남점',
-      desc: '시즌 오픈 전 장비 튜닝 50% 할인 이벤트',
-      gradient: 'from-neon-blue/30 to-neon-purple/30',
-      accent: 'text-neon-blue',
-      tag: 'AD',
-    },
-    {
-      title: '스키프로샵 홍대점',
-      desc: '24/25 신상 부츠 피팅 무료 · 장비 풀세트 특가',
-      gradient: 'from-neon-purple/30 to-neon-pink/30',
-      accent: 'text-neon-purple',
-      tag: 'AD',
-    },
-    {
-      title: '라이더스클럽 판교점',
-      desc: '중고 장비 위탁판매 수수료 0% · 왁싱 서비스',
-      gradient: 'from-neon-orange/30 to-amber-500/30',
-      accent: 'text-neon-orange',
-      tag: 'AD',
-    },
+    { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인 이벤트', tag: 'AD' },
+    { title: '스키프로샵 홍대점', desc: '24/25 신상 부츠 피팅 무료 · 장비 풀세트 특가', tag: 'AD' },
+    { title: '라이더스클럽 판교점', desc: '중고 장비 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD' },
   ];
 
   useEffect(() => {
@@ -34,92 +16,50 @@ const Home = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [banners.length]);
+
   const categories = [
-    {
-      id: 'used',
-      icon: '♻️',
-      title: '중고',
-      desc: '합리적 가격',
-      link: '/used',
-      gradient: 'from-emerald-600/80 to-green-500/80',
-      glow: 'hover:shadow-emerald-500/20',
-    },
-    {
-      id: 'rental',
-      icon: '🏔️',
-      title: '렌탈',
-      desc: '스키장별',
-      link: '/rental',
-      gradient: 'from-purple-600/80 to-pink-500/80',
-      glow: 'hover:shadow-purple-500/20',
-    },
-    {
-      id: 'lesson',
-      icon: '👨‍🏫',
-      title: '레슨',
-      desc: '강사 예약',
-      link: '/lesson',
-      gradient: 'from-orange-600/80 to-amber-500/80',
-      glow: 'hover:shadow-orange-500/20',
-    },
-    {
-      id: 'accommodation',
-      icon: '🏨',
-      title: '숙소',
-      desc: '스키장 근처',
-      link: '/accommodation',
-      gradient: 'from-rose-600/80 to-pink-500/80',
-      glow: 'hover:shadow-rose-500/20',
-    },
-    {
-      id: 'community',
-      icon: '💬',
-      title: '커뮤니티',
-      desc: '소통 & 정보',
-      link: '/community',
-      gradient: 'from-sky-600/80 to-blue-500/80',
-      glow: 'hover:shadow-sky-500/20',
-    },
+    { id: 'used', title: '중고', desc: '합리적 가격', link: '/used' },
+    { id: 'rental', title: '렌탈', desc: '스키장별', link: '/rental' },
+    { id: 'lesson', title: '레슨', desc: '강사 예약', link: '/lesson' },
+    { id: 'accommodation', title: '숙소', desc: '스키장 근처', link: '/accommodation' },
+    { id: 'community', title: '커뮤니티', desc: '소통 & 정보', link: '/community' },
   ];
 
   const hotDeals = [
-    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, originalPrice: 850000, icon: '🎿', views: 342, likes: 28 },
-    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, originalPrice: 920000, icon: '🎿', views: 287, likes: 35 },
-    { id: '2', name: 'Burton Custom (2021)', price: 380000, originalPrice: 720000, icon: '🏂', views: 256, likes: 22 },
+    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, views: 342, likes: 28 },
+    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, views: 287, likes: 35 },
+    { id: '2', name: 'Burton Custom (2021)', price: 380000, views: 256, likes: 22 },
   ];
 
   return (
-    <div className="min-h-screen pb-24 bg-dark-900 bg-mesh">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden px-4 pt-10 pb-14">
-        <div className="absolute inset-0 bg-gradient-to-br from-neon-blue/10 via-transparent to-neon-purple/10" />
-        <div className="relative z-10">
-          <h1 className="text-4xl font-black text-center mb-2 animate-slide-up">
-            <span className="gradient-text">⛷️ 스노우판</span>
-          </h1>
-          <p className="text-center text-gray-400 mb-8 animate-fade-in text-sm">
-            스키 & 보드 장비의 모든 것
-          </p>
-          <div className="relative max-w-xl mx-auto animate-slide-up">
-            <input
-              type="text"
-              placeholder="스키, 보드, 스키장 검색"
-              className="w-full h-14 pl-5 pr-24 rounded-2xl text-base bg-dark-700/80 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-neon-blue/50 transition-all"
-            />
-            <button className="absolute right-2 top-2 bottom-2 px-6 bg-gradient-to-r from-neon-blue to-neon-purple text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all active:scale-95">
-              검색
-            </button>
-          </div>
+    <div className="min-h-screen pb-24 bg-black">
+      {/* Hero */}
+      <div className="px-4 pt-10 pb-12">
+        <h1 className="text-3xl font-black text-center text-white mb-2 animate-slide-up">
+          스노우판
+        </h1>
+        <p className="text-center text-gray-500 mb-8 animate-fade-in text-sm">
+          스키 & 보드 장비의 모든 것
+        </p>
+        <div className="relative max-w-xl mx-auto animate-slide-up">
+          <input
+            type="text"
+            placeholder="스키, 보드, 스키장 검색"
+            className="w-full h-12 pl-4 pr-20 rounded-lg text-sm bg-[#111] border border-white/10 text-white placeholder-gray-600"
+          />
+          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-white text-black rounded-md font-bold text-sm hover:bg-gray-200 transition-colors">
+            검색
+          </button>
         </div>
       </div>
 
-      {/* Ad Banner Slider */}
-      <div className="px-4 -mt-6 mb-4">
-        <div className="relative overflow-hidden rounded-2xl glass h-24">
+      {/* Ad Banner */}
+      <div className="px-4 mb-6">
+        <div className="relative overflow-hidden rounded-lg card h-20">
           {banners.map((banner, idx) => (
             <div
               key={idx}
-              className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${
+              className={`absolute inset-0 flex items-center px-5 transition-all duration-700 ease-in-out ${
                 idx === currentBanner
                   ? 'opacity-100 translate-x-0'
                   : idx < currentBanner
@@ -127,24 +67,22 @@ const Home = () => {
                   : 'opacity-0 translate-x-full'
               }`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`} />
-              <div className="relative z-10 flex-1">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-1.5 py-0.5 rounded">{banner.tag}</span>
-                  <h3 className={`text-base font-bold ${banner.accent}`}>{banner.title}</h3>
+                  <span className="text-[9px] font-bold bg-white/10 text-gray-500 px-1.5 py-0.5 rounded">{banner.tag}</span>
+                  <h3 className="text-sm font-bold text-white">{banner.title}</h3>
                 </div>
-                <p className="text-sm text-gray-300">{banner.desc}</p>
+                <p className="text-xs text-gray-400">{banner.desc}</p>
               </div>
             </div>
           ))}
-          {/* Dots */}
           <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
             {banners.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentBanner(idx)}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  idx === currentBanner ? 'bg-white w-4' : 'bg-white/30'
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  idx === currentBanner ? 'bg-white w-4' : 'bg-white/20'
                 }`}
               />
             ))}
@@ -155,21 +93,14 @@ const Home = () => {
       {/* Category Grid */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-3">
-          {categories.map((cat, idx) => (
+          {categories.map((cat) => (
             <Link
               key={cat.id}
               to={cat.link}
-              className={`glass rounded-2xl p-6 active:scale-95 transition-all duration-300 hover:shadow-2xl ${cat.glow} group card-hover`}
-              style={{ animationDelay: `${idx * 100}ms` }}
+              className="card rounded-lg p-5 active:scale-[0.98] transition-all hover:bg-[#1a1a1a]"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity`} />
-              <div className="relative">
-                <div className="text-5xl mb-3 group-hover:animate-float">{cat.icon}</div>
-                <div>
-                  <div className="text-xl font-bold mb-1 text-white">{cat.title}</div>
-                  <div className="text-sm text-gray-400">{cat.desc}</div>
-                </div>
-              </div>
+              <div className="text-lg font-bold text-white mb-1">{cat.title}</div>
+              <div className="text-xs text-gray-500">{cat.desc}</div>
             </Link>
           ))}
         </div>
@@ -178,36 +109,27 @@ const Home = () => {
       {/* 중고 핫딜 */}
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            🔥 <span className="gradient-text-warm">중고 핫딜</span>
-          </h2>
-          <Link to="/used" className="text-sm text-neon-blue hover:text-neon-blue/80 transition-colors">
+          <h2 className="text-lg font-bold text-white">중고 핫딜</h2>
+          <Link to="/used" className="text-sm text-gray-500 hover:text-white transition-colors">
             전체보기 →
           </Link>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {hotDeals.map((deal) => (
             <Link
               key={deal.id}
               to={`/used/${deal.id}`}
-              className="w-full glass rounded-2xl p-4 flex items-center justify-between card-hover group block"
+              className="w-full card rounded-lg p-4 flex items-center justify-between card-hover block"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-dark-700 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                  {deal.icon}
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-white text-sm">{deal.name}</div>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-[11px] text-gray-500">👀 {deal.views}</span>
-                    <span className="text-[11px] text-gray-500">❤️ {deal.likes}</span>
-                  </div>
+              <div>
+                <div className="font-bold text-white text-sm">{deal.name}</div>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-[11px] text-gray-600">조회 {deal.views}</span>
+                  <span className="text-[11px] text-gray-600">찜 {deal.likes}</span>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-lg font-black text-neon-green">
-                  {deal.price.toLocaleString()}원
-                </div>
+              <div className="text-base font-black text-white">
+                {deal.price.toLocaleString()}원
               </div>
             </Link>
           ))}
@@ -218,20 +140,9 @@ const Home = () => {
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-white mb-4">빠른 메뉴</h2>
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: '💰', label: '최저가', glow: 'from-yellow-500/20 to-amber-500/20' },
-            { icon: '⭐', label: '인기순', glow: 'from-blue-500/20 to-cyan-500/20' },
-            { icon: '🔔', label: '알림설정', glow: 'from-purple-500/20 to-pink-500/20' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className="glass rounded-2xl p-5 text-center card-hover group"
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.glow} rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity`} />
-              <div className="relative">
-                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{item.icon}</div>
-                <div className="text-xs font-medium text-gray-300">{item.label}</div>
-              </div>
+          {['최저가', '인기순', '알림설정'].map((label) => (
+            <button key={label} className="card rounded-lg p-4 text-center card-hover">
+              <div className="text-xs font-medium text-gray-300">{label}</div>
             </button>
           ))}
         </div>
@@ -240,67 +151,56 @@ const Home = () => {
       {/* Resort Quick Select */}
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-white mb-4">스키장</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2">
           {['용평', '휘닉스', '하이원', '비발디', '엘리시안'].map((resort) => (
             <Link
               key={resort}
               to="/rental"
-              className="flex-shrink-0 px-5 py-3 glass rounded-full font-medium text-sm text-gray-300 whitespace-nowrap hover:text-neon-blue hover:border-neon-blue/30 transition-all active:scale-95"
+              className="flex-shrink-0 px-4 py-2 card rounded-lg text-sm text-gray-400 whitespace-nowrap hover:text-white hover:bg-[#1a1a1a] transition-all"
             >
-              🏔️ {resort}
+              {resort}
             </Link>
           ))}
         </div>
       </div>
 
       {/* Webcam Quick Links */}
-      <div className="px-4 mt-6">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          📹 <span>스키장 실시간 웹캠</span>
-        </h2>
+      <div className="px-4 mt-8">
+        <h2 className="text-lg font-bold text-white mb-4">스키장 실시간 웹캠</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/skiNboard/webcam.do', gradient: 'from-blue-500/20 to-cyan-500/20' },
-            { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/pyeongchang/phoenix-cam', gradient: 'from-purple-500/20 to-pink-500/20' },
-            { name: '하이원리조트', url: 'https://www.high1.com/ski/webcam/liveView.do', gradient: 'from-emerald-500/20 to-green-500/20' },
-            { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.cctv.ds', gradient: 'from-orange-500/20 to-amber-500/20' },
-            { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/webcam.asp', gradient: 'from-rose-500/20 to-red-500/20' },
-            { name: '지산리조트', url: 'https://www.jisanresort.co.kr/ski/webcam.asp', gradient: 'from-indigo-500/20 to-blue-500/20' },
+            { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/skiNboard/webcam.do' },
+            { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/pyeongchang/phoenix-cam' },
+            { name: '하이원리조트', url: 'https://www.high1.com/ski/webcam/liveView.do' },
+            { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.cctv.ds' },
+            { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/webcam.asp' },
+            { name: '지산리조트', url: 'https://www.jisanresort.co.kr/ski/webcam.asp' },
           ].map((cam) => (
             <a
               key={cam.name}
               href={cam.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="glass rounded-2xl p-4 card-hover group relative overflow-hidden"
+              className="card rounded-lg p-3.5 card-hover"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${cam.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-              <div className="relative flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-dark-700 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                  📹
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">{cam.name}</div>
-                  <div className="text-xs text-gray-500 group-hover:text-neon-blue transition-colors">실시간 보기 →</div>
-                </div>
-              </div>
+              <div className="text-sm font-medium text-white">{cam.name}</div>
+              <div className="text-xs text-gray-600 mt-0.5">실시간 보기 →</div>
             </a>
           ))}
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/5 px-4 py-3 flex justify-around z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 px-4 py-3 flex justify-around z-50">
         {[
-          { to: '/', icon: '🏠', label: '홈', active: true },
-          { to: '/used', icon: '♻️', label: '중고', active: false },
-          { to: '/rental', icon: '🏔️', label: '렌탈', active: false },
-          { to: '/accommodation', icon: '🏨', label: '숙소', active: false },
-          { to: '/admin-approval', icon: '⚙️', label: '관리', active: false },
+          { to: '/', label: '홈', active: true },
+          { to: '/used', label: '중고', active: false },
+          { to: '/rental', label: '렌탈', active: false },
+          { to: '/accommodation', label: '숙소', active: false },
+          { to: '/admin-approval', label: '관리', active: false },
         ].map((item) => (
-          <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
-            <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
-            <span className={`text-xs font-medium ${item.active ? 'text-neon-blue' : 'text-gray-500 group-hover:text-gray-300'} transition-colors`}>
+          <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1">
+            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-gray-600 hover:text-gray-400'} transition-colors`}>
               {item.label}
             </span>
           </Link>
