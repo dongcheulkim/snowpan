@@ -71,6 +71,15 @@ const Home = () => {
       gradient: 'from-rose-600/80 to-pink-500/80',
       glow: 'hover:shadow-rose-500/20',
     },
+    {
+      id: 'community',
+      icon: '💬',
+      title: '커뮤니티',
+      desc: '소통 & 정보',
+      link: '/community',
+      gradient: 'from-sky-600/80 to-blue-500/80',
+      glow: 'hover:shadow-sky-500/20',
+    },
   ];
 
   const hotDeals = [
