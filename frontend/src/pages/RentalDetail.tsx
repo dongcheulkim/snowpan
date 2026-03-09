@@ -87,7 +87,7 @@ const RentalDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="text-6xl mb-4">😢</div>
         <h2 className="text-xl font-bold text-white mb-2">렌탈 정보를 찾을 수 없습니다</h2>
-        <Link to="/rental" className="text-neon-purple hover:text-neon-purple/80 text-sm">
+        <Link to="/rental" className="text-gray-400 hover:text-white text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -101,14 +101,13 @@ const RentalDetail = () => {
       </Link>
 
       {/* Hero */}
-      <div className="glass rounded-2xl h-48 flex items-center justify-center text-8xl bg-gradient-to-br from-purple-600/10 to-pink-500/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/5 to-neon-pink/5" />
+      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-[#0a0a0a]">
         <span className="relative">{item.image}</span>
       </div>
 
       {/* Info */}
-      <div className="glass rounded-2xl p-5">
-        <span className="text-[10px] font-medium text-neon-purple bg-neon-purple/10 px-2 py-0.5 rounded border border-neon-purple/20">
+      <div className="card rounded-2xl p-5">
+        <span className="text-[10px] font-medium text-gray-400 bg-[#1a1a1a] px-2 py-0.5 rounded border border-white/10">
           {item.resort}
         </span>
         <h1 className="text-2xl font-bold text-white mt-2 mb-1">{item.name}</h1>
@@ -116,11 +115,11 @@ const RentalDetail = () => {
       </div>
 
       {/* Equipment */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <h3 className="text-sm font-bold text-white mb-3">포함 장비</h3>
         <div className="flex flex-wrap gap-2">
           {item.equipment.map((eq, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-neon-purple/10 text-neon-purple rounded-lg text-xs border border-neon-purple/20">
+            <span key={idx} className="px-3 py-1.5 bg-[#1a1a1a] text-gray-300 rounded-lg text-xs border border-white/10">
               {eq}
             </span>
           ))}
@@ -128,20 +127,20 @@ const RentalDetail = () => {
       </div>
 
       {/* Options */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <h3 className="text-sm font-bold text-white mb-3">이용 옵션</h3>
         <div className="space-y-2">
           {item.options.map((opt, idx) => (
-            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-white/5 border border-white/5">
+            <div key={idx} className="flex justify-between items-center py-2.5 px-3 rounded-xl bg-[#0a0a0a] border border-white/5">
               <span className="text-sm text-gray-300">{opt.name}</span>
-              <span className="text-sm font-bold text-neon-purple">{opt.price.toLocaleString()}원</span>
+              <span className="text-sm font-bold text-white">{opt.price.toLocaleString()}원</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Details */}
-      <div className="glass rounded-2xl p-5">
+      <div className="card rounded-2xl p-5">
         <h3 className="text-sm font-bold text-white mb-3">이용 안내</h3>
         <div className="space-y-2.5">
           {[
@@ -158,7 +157,7 @@ const RentalDetail = () => {
       </div>
 
       {/* Action */}
-      <button className="w-full py-3.5 bg-gradient-to-r from-neon-purple to-neon-pink text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-neon-purple/25 transition-all active:scale-[0.98]">
+      <button className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98]">
         예약하기
       </button>
     </div>
