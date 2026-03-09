@@ -24,25 +24,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-1">
-            {[
-              { to: '/used', label: '중고' },
-              { to: '/rental', label: '렌탈' },
-              { to: '/lesson', label: '레슨' },
-              { to: '/accommodation', label: '숙소' },
-            ].map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  isActive(to)
-                    ? 'bg-accent text-white font-bold'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
+          <div className="flex items-center">
             {user ? (
               <Link
                 to="/mypage"
