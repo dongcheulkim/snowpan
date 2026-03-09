@@ -48,25 +48,25 @@ const SellerProfile = () => {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="py-3 bg-white rounded-xl border border-gray-200">
-            <div className="text-base font-bold text-white">{seller.deals}건</div>
-            <div className="text-[10px] text-zinc-500">거래 완료</div>
+            <div className="text-base font-bold text-gray-900">{seller.deals}건</div>
+            <div className="text-[10px] text-gray-400">거래 완료</div>
           </div>
           <div className="py-3 bg-white rounded-xl border border-gray-200">
-            <div className="text-base font-bold text-white">{seller.joinDate}</div>
-            <div className="text-[10px] text-zinc-500">가입일</div>
+            <div className="text-base font-bold text-gray-900">{seller.joinDate}</div>
+            <div className="text-[10px] text-gray-400">가입일</div>
           </div>
         </div>
       </div>
 
       {/* 판매 중인 상품 */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-3">판매 중인 상품</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">판매 중인 상품</h3>
         <div className="space-y-3">
           {seller.items.map((item) => (
             <Link
               key={item.id}
               to={`/used/${item.id}`}
-              className="flex items-center gap-3 p-3 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-all border border-zinc-800"
+              className="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
             >
               <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-2xl border border-zinc-700">
                 {item.image}

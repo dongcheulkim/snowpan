@@ -98,7 +98,7 @@ const MyPage = () => {
       {/* Badges */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-white">자격증 뱃지</h3>
+          <h3 className="text-sm font-bold text-gray-900">자격증 뱃지</h3>
           <button onClick={() => setShowBadgeModal(true)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
             + 인증하기
           </button>
@@ -116,7 +116,7 @@ const MyPage = () => {
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
-                      <div className="text-xs font-medium text-white">{badge.desc}</div>
+                      <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
                       <div className="text-[10px] text-mint">인증 완료</div>
                     </div>
                   </div>
@@ -132,7 +132,7 @@ const MyPage = () => {
       <div className="card overflow-hidden">
         {menuItems.map((item, idx) => (
           <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
-            <span className="text-sm font-medium text-white">{item.label}</span>
+            <span className="text-sm font-medium text-gray-900">{item.label}</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-accent-light font-bold bg-accent/10 px-2 py-0.5 rounded-full">{item.count}</span>
               <span className="text-gray-400 text-xs">→</span>
