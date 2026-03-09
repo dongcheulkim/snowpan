@@ -234,7 +234,7 @@ const AdminApproval = () => {
                   <div className="flex gap-3 pt-4 border-t border-zinc-800">
                     <button
                       onClick={() => handleReject(item.id, activeTab)}
-                      className="flex-1 py-3 bg-[#1a1a1a] text-gray-400 rounded-lg font-bold text-sm hover:bg-[#222] hover:text-white border border-[#1f1f1f] transition-all active:scale-95"
+                      className="flex-1 py-3 bg-zinc-800 text-zinc-400 rounded-lg font-bold text-sm hover:bg-zinc-700 hover:text-white border border-zinc-800 transition-all active:scale-95"
                     >
                       거부
                     </button>

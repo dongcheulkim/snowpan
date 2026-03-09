@@ -158,8 +158,8 @@ const AccommodationDetail = () => {
             { label: '체크아웃', value: item.checkOut },
             { label: '연락처', value: item.contact },
           ].map((info) => (
-            <div key={info.label} className="flex justify-between items-center py-2 border-b border-white/5">
-              <span className="text-xs text-gray-500">{info.label}</span>
+            <div key={info.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
+              <span className="text-xs text-zinc-500">{info.label}</span>
               <span className="text-sm text-white">{info.value}</span>
             </div>
           ))}
