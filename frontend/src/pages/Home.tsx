@@ -136,22 +136,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Quick Menu */}
-      <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">빠른 메뉴</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: '최저가', color: 'text-mint' },
-            { label: '인기순', color: 'text-accent-light' },
-            { label: '알림설정', color: 'text-gold' },
-          ].map((item) => (
-            <button key={item.label} className="card p-4 text-center card-hover">
-              <div className={`text-xs font-medium ${item.color}`}>{item.label}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Resort Quick Select */}
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">스키장</h2>
