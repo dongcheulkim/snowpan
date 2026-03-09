@@ -129,9 +129,9 @@ const AccommodationDetail = () => {
             <div key={idx} className="flex justify-between items-center py-3 px-3 rounded-xl bg-zinc-950 border border-zinc-800">
               <div>
                 <div className="text-sm text-white font-medium">{room.name}</div>
-                <div className="text-[10px] text-gray-500">{room.guests} 기준</div>
+                <div className="text-[10px] text-zinc-500">{room.guests} 기준</div>
               </div>
-              <span className="text-sm font-bold text-white">{room.price.toLocaleString()}원</span>
+              <span className="text-sm font-bold text-mint">{room.price.toLocaleString()}원</span>
             </div>
           ))}
         </div>
@@ -142,7 +142,7 @@ const AccommodationDetail = () => {
         <h3 className="text-sm font-bold text-white mb-3">편의시설</h3>
         <div className="flex flex-wrap gap-2">
           {item.amenities.map((a, idx) => (
-            <span key={idx} className="px-3 py-1.5 bg-[#1a1a1a] text-gray-300 rounded-lg text-xs border border-white/10">
+            <span key={idx} className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700">
               {a}
             </span>
           ))}

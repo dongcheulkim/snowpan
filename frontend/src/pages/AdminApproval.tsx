@@ -212,11 +212,11 @@ const AdminApproval = () => {
                         등록자: {item.user.name} ({item.user.phone})
                       </div>
                       {activeTab === 'rental' ? (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-zinc-500 mt-1">
                           {item.duration} · {item.equipment}
                         </div>
                       ) : (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-zinc-500 mt-1">
                           {item.duration} · {item.level} · 최대 {item.maxStudents}명
                         </div>
                       )}
@@ -225,13 +225,13 @@ const AdminApproval = () => {
                       <div className="text-lg font-black text-white">
                         {(item.price / 10000).toFixed(0)}만원
                       </div>
-                      <div className="text-xs text-gray-400 font-bold mt-1">
+                      <div className="text-xs text-gold font-bold mt-1">
                         승인 대기
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t border-[#1f1f1f]">
+                  <div className="flex gap-3 pt-4 border-t border-zinc-800">
                     <button
                       onClick={() => handleReject(item.id, activeTab)}
                       className="flex-1 py-3 bg-[#1a1a1a] text-gray-400 rounded-lg font-bold text-sm hover:bg-[#222] hover:text-white border border-[#1f1f1f] transition-all active:scale-95"

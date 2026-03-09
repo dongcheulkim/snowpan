@@ -288,9 +288,9 @@ const Accommodation = () => {
                       {Math.round((1 - item.price / item.originalPrice) * 100)}%
                     </span>
                   </div>
-                  <div className="text-[10px] text-gray-500">1박</div>
+                  <div className="text-[10px] text-zinc-500">1박</div>
                 </div>
-                <button className="px-3 py-1.5 bg-white text-black rounded-lg font-medium text-[11px] hover:bg-gray-200 transition-all active:scale-95">
+                <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
                   예약
                 </button>
               </div>
