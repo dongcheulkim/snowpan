@@ -106,17 +106,9 @@ const UsedDetail = () => {
 
           {/* Price */}
           <div className="glass rounded-2xl p-5">
-            <div className="text-sm text-gray-600 line-through mb-1">
-              {product.originalPrice.toLocaleString()}원
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-black text-neon-green">
-                {product.price.toLocaleString()}원
-              </span>
-              <span className="text-sm text-neon-pink font-bold bg-neon-pink/10 px-2 py-1 rounded-lg">
-                {discount}% 할인
-              </span>
-            </div>
+            <span className="text-3xl font-black text-neon-green">
+              {product.price.toLocaleString()}원
+            </span>
           </div>
 
           {/* Specs */}
