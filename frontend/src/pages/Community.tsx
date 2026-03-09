@@ -13,6 +13,14 @@ const Community = () => {
     { id: 'carpool', name: '카풀/동행' },
   ];
 
+  const badgeColor: Record<string, string> = {
+    '자유': 'text-accent-light bg-accent/10 border-accent/20',
+    '장비리뷰': 'text-mint bg-mint/10 border-mint/20',
+    '스키장후기': 'text-gold bg-gold/10 border-gold/20',
+    '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+    '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
+  };
+
   const posts = [
     { id: '1', tab: 'free', badge: '자유', title: '올시즌 첫 출격 다녀왔습니다!', preview: '용평 레인보우 슬로프 컨디션 최고였어요. 설질 좋고 사람도 적당하고...', author: '스키매니아', time: '2시간 전', likes: 24, comments: 8, views: 156 },
     { id: '2', tab: 'review', badge: '장비리뷰', title: 'Rossignol Soul 7 HD 2시즌 사용 후기', preview: '올라운드 스키로 정말 추천합니다. 카빙도 잘 되고 비정지에서도 안정적...', author: '장비덕후', time: '3시간 전', likes: 42, comments: 15, views: 312 },
@@ -30,7 +38,7 @@ const Community = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">커뮤니티</h1>
-        <button className="px-4 py-1.5 bg-white text-black rounded-lg font-bold text-xs hover:bg-gray-200 transition-colors whitespace-nowrap">
+        <button className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors whitespace-nowrap">
           + 글쓰기
         </button>
       </div>
@@ -42,8 +50,8 @@ const Community = () => {
             onClick={() => setSelectedTab(tab.id)}
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedTab === tab.id
-                ? 'bg-white text-black'
-                : 'bg-[#111] text-gray-400 hover:bg-[#1a1a1a] hover:text-white border border-white/5'
+                ? 'bg-accent text-white'
+                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800'
             }`}
           >
             {tab.name}
@@ -53,24 +61,24 @@ const Community = () => {
 
       <div className="space-y-2">
         {filteredPosts.map((post) => (
-          <Link to={`/community/${post.id}`} key={post.id} className="card rounded-lg p-4 block card-hover">
+          <Link to={`/community/${post.id}`} key={post.id} className="card p-4 block card-hover">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/5">
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-zinc-400 bg-zinc-800 border-zinc-700'}`}>
                 {post.badge}
               </span>
-              <span className="text-[10px] text-gray-600">{post.time}</span>
+              <span className="text-[10px] text-zinc-600">{post.time}</span>
             </div>
-            <h3 className="text-sm font-bold text-white mb-1 hover:text-gray-300 transition-colors">
+            <h3 className="text-sm font-bold text-white mb-1">
               {post.title}
             </h3>
-            <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
+            <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-3">
               {post.preview}
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-gray-500">{post.author}</span>
-              <div className="flex items-center gap-3 text-[11px] text-gray-600">
+              <span className="text-[11px] text-zinc-500">{post.author}</span>
+              <div className="flex items-center gap-3 text-[11px] text-zinc-500">
                 <span>조회 {post.views}</span>
-                <span>좋아요 {post.likes}</span>
+                <span className="text-coral">♥ {post.likes}</span>
                 <span>댓글 {post.comments}</span>
               </div>
             </div>
@@ -79,7 +87,7 @@ const Community = () => {
       </div>
 
       {filteredPosts.length === 0 && (
-        <div className="text-center py-12 text-gray-500 card rounded-lg text-sm">
+        <div className="text-center py-12 text-zinc-500 card text-sm">
           해당 카테고리의 게시글이 없습니다.
         </div>
       )}
