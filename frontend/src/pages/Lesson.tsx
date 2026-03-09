@@ -33,6 +33,8 @@ const Lesson = () => {
     { id: 'jisan', name: '지산' },
     { id: 'muju', name: '무주' },
     { id: 'oakvalley', name: '오크밸리' },
+    { id: 'bearstown', name: '베어스타운' },
+    { id: 'eden', name: '에덴밸리' },
   ];
 
   const levels = [
@@ -67,6 +69,10 @@ const Lesson = () => {
     { id: '21', name: '스키 데몬반', resort: '무주', resortId: 'muju', price: 240000, duration: '3시간', level: 'demo', levelText: '데몬', maxStudents: 2, image: '⛷️' },
     { id: '22', name: '스키 그룹레슨', resort: '오크밸리', resortId: 'oakvalley', price: 72000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
     { id: '23', name: '보드 개인레슨', resort: '오크밸리', resortId: 'oakvalley', price: 135000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
+    { id: '24', name: '스키 그룹레슨', resort: '베어스타운', resortId: 'bearstown', price: 75000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
+    { id: '25', name: '보드 개인레슨', resort: '베어스타운', resortId: 'bearstown', price: 140000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
+    { id: '26', name: '스키 그룹레슨', resort: '에덴밸리', resortId: 'eden', price: 78000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
+    { id: '27', name: '보드 개인레슨', resort: '에덴밸리', resortId: 'eden', price: 145000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
   ];
 
   const filteredItems = lessonItems.filter(item => {

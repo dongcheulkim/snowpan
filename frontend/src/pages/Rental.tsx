@@ -32,6 +32,8 @@ const Rental = () => {
     { id: 'jisan', name: '지산' },
     { id: 'muju', name: '무주' },
     { id: 'oakvalley', name: '오크밸리' },
+    { id: 'bearstown', name: '베어스타운' },
+    { id: 'eden', name: '에덴밸리' },
   ];
 
   const rentalItems = [
@@ -59,6 +61,10 @@ const Rental = () => {
     { id: '22', name: '보드 풀세트', resort: '무주', resortId: 'muju', price: 39000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
     { id: '23', name: '스키 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 41000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
     { id: '24', name: '보드 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 37000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '25', name: '스키 풀세트', resort: '베어스타운', resortId: 'bearstown', price: 42000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '26', name: '보드 풀세트', resort: '베어스타운', resortId: 'bearstown', price: 38000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
+    { id: '27', name: '스키 풀세트', resort: '에덴밸리', resortId: 'eden', price: 44000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
+    { id: '28', name: '보드 풀세트', resort: '에덴밸리', resortId: 'eden', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
   ];
 
   const filteredItems = selectedResort === 'all'

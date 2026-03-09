@@ -140,7 +140,7 @@ const Home = () => {
       <div className="px-4 mt-8">
         <h2 className="text-lg font-bold text-gray-900 mb-4">스키장</h2>
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['용평', '휘닉스', '하이원', '비발디', '엘리시안'].map((resort) => (
+          {['용평', '휘닉스', '하이원', '비발디', '엘리시안', '웰리힐리', '오투', '알펜시아', '곤지암', '지산', '무주', '오크밸리', '베어스타운', '에덴밸리'].map((resort) => (
             <Link
               key={resort}
               to="/rental"
@@ -163,6 +163,14 @@ const Home = () => {
             { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.cctv.ds' },
             { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/webcam.asp' },
             { name: '지산리조트', url: 'https://www.jisanresort.co.kr/ski/webcam.asp' },
+            { name: '무주덕유산', url: 'https://www.mdysresort.com/ski/webcam.do' },
+            { name: '오크밸리', url: 'https://www.oakvalley.co.kr/ski/webcam.asp' },
+            { name: '웰리힐리파크', url: 'https://www.wellihillipark.com/ski/webcam' },
+            { name: '오투리조트', url: 'https://www.o2resort.com/ski/webcam.asp' },
+            { name: '알펜시아', url: 'https://www.alpensia.com/ski/webcam.asp' },
+            { name: '곤지암리조트', url: 'https://www.konjiamresort.co.kr/ski/webcam.asp' },
+            { name: '베어스타운', url: 'https://www.bearstown.com/ski/webcam.asp' },
+            { name: '에덴밸리', url: 'https://www.edenvalley.co.kr/ski/webcam.asp' },
           ].map((cam) => (
             <a
               key={cam.name}
