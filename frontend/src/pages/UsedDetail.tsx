@@ -34,25 +34,25 @@ const UsedDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <h2 className="text-xl font-bold text-white mb-2">상품을 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-gray-400 hover:text-white text-sm">← 목록으로 돌아가기</Link>
+        <Link to="/used" className="text-zinc-400 hover:text-white text-sm">← 목록으로 돌아가기</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-gray-500 hover:text-white text-sm transition-colors">
+      <Link to="/used" className="inline-flex items-center text-zinc-500 hover:text-white text-sm transition-colors">
         ← 중고 장비 목록
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <div className="card rounded-lg h-80 flex items-center justify-center text-9xl bg-[#0a0a0a]">
+          <div className="card h-80 flex items-center justify-center text-9xl bg-zinc-950">
             {product.image}
           </div>
           <div className="grid grid-cols-3 gap-3">
             {product.images.map((img, idx) => (
-              <div key={idx} className="card rounded-lg h-24 flex items-center justify-center text-4xl cursor-pointer hover:bg-[#1a1a1a] transition-colors">
+              <div key={idx} className="card h-24 flex items-center justify-center text-4xl cursor-pointer hover:border-zinc-600 transition-colors">
                 {img}
               </div>
             ))}
@@ -61,20 +61,20 @@ const UsedDetail = () => {
 
         <div className="space-y-5">
           <div>
-            <div className="text-xs text-gray-500 font-medium tracking-wider uppercase mb-1">{product.brand}</div>
+            <div className="text-xs text-accent-light font-medium tracking-wider uppercase mb-1">{product.brand}</div>
             <h1 className="text-2xl font-bold text-white mb-2">{product.name}</h1>
             <div className="flex items-center gap-3 text-xs">
-              <span className="text-gray-500">{product.createdAt}</span>
-              <span className="text-gray-600">·</span>
-              <span className="text-gray-500">{product.location}</span>
+              <span className="text-zinc-500">{product.createdAt}</span>
+              <span className="text-zinc-600">·</span>
+              <span className="text-zinc-500">{product.location}</span>
             </div>
           </div>
 
-          <div className="card rounded-lg p-5">
-            <span className="text-3xl font-black text-white">{product.price.toLocaleString()}원</span>
+          <div className="card p-5">
+            <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
           </div>
 
-          <div className="card rounded-lg p-5">
+          <div className="card p-5">
             <h3 className="text-sm font-bold text-white mb-3">상품 정보</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -83,35 +83,35 @@ const UsedDetail = () => {
                 { label: '상태', value: product.condition },
                 { label: '거래방법', value: '직거래' },
               ].map((spec) => (
-                <div key={spec.label} className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-xs text-gray-500">{spec.label}</span>
+                <div key={spec.label} className="flex justify-between items-center py-2 border-b border-zinc-800">
+                  <span className="text-xs text-zinc-500">{spec.label}</span>
                   <span className="text-sm text-white font-medium">{spec.value}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="card rounded-lg p-5">
+          <div className="card p-5">
             <h3 className="text-sm font-bold text-white mb-3">상품 설명</h3>
-            <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">{product.description}</p>
+            <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line">{product.description}</p>
           </div>
 
-          <div className="card rounded-lg p-5 flex items-center justify-between">
+          <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-lg">👤</div>
+              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">👤</div>
               <div>
                 <div className="text-sm font-bold text-white">{product.seller}</div>
-                <div className="text-xs text-gray-500">★ {product.sellerRating}</div>
+                <div className="text-xs text-gold">★ {product.sellerRating}</div>
               </div>
             </div>
-            <Link to={`/seller/${product.seller}`} className="px-4 py-2 bg-[#1a1a1a] text-gray-300 rounded-lg text-sm border border-white/10 hover:bg-[#222] transition-colors">
+            <Link to={`/seller/${product.seller}`} className="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-lg text-sm border border-zinc-700 hover:bg-zinc-700 transition-colors">
               프로필 보기
             </Link>
           </div>
 
           <button
             onClick={() => navigate(`/chat/${product.id}`, { state: { seller: product.seller, productName: product.name, productImage: product.image, productPrice: product.price } })}
-            className="w-full py-3.5 bg-white text-black rounded-lg font-bold text-sm hover:bg-gray-200 transition-colors active:scale-[0.98]"
+            className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
           >
             채팅하기
           </button>
