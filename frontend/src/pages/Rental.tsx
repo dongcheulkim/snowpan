@@ -32,7 +32,6 @@ const Rental = () => {
     { id: 'jisan', name: '지산' },
     { id: 'muju', name: '무주' },
     { id: 'oakvalley', name: '오크밸리' },
-    { id: 'bearstown', name: '베어스타운' },
     { id: 'eden', name: '에덴밸리' },
   ];
 
