@@ -205,24 +205,24 @@ const AdminApproval = () => {
                       <div className="font-bold text-gray-900 mb-1">
                         {item.name}
                       </div>
-                      <div className="text-xs text-zinc-500 mb-1">
+                      <div className="text-xs text-gray-400 mb-1">
                         {item.resort.name} · {item.resort.location}
                       </div>
-                      <div className="text-xs text-zinc-400">
+                      <div className="text-xs text-gray-500">
                         등록자: {item.user.name} ({item.user.phone})
                       </div>
                       {activeTab === 'rental' ? (
-                        <div className="text-xs text-zinc-500 mt-1">
+                        <div className="text-xs text-gray-400 mt-1">
                           {item.duration} · {item.equipment}
                         </div>
                       ) : (
-                        <div className="text-xs text-zinc-500 mt-1">
+                        <div className="text-xs text-gray-400 mt-1">
                           {item.duration} · {item.level} · 최대 {item.maxStudents}명
                         </div>
                       )}
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-black text-white">
+                      <div className="text-lg font-black text-gray-900">
                         {(item.price / 10000).toFixed(0)}만원
                       </div>
                       <div className="text-xs text-gold font-bold mt-1">
