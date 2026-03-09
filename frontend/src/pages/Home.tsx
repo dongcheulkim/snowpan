@@ -166,38 +166,45 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Hot Deals */}
+      {/* 중고 핫딜 */}
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            🔥 <span className="gradient-text-warm">실시간 핫딜</span>
+            🔥 <span className="gradient-text-warm">중고 핫딜</span>
           </h2>
           <Link to="/used" className="text-sm text-neon-blue hover:text-neon-blue/80 transition-colors">
             전체보기 →
           </Link>
         </div>
         <div className="space-y-3">
-          {hotDeals.map((deal, idx) => (
-            <button
-              key={idx}
-              className="w-full glass rounded-2xl p-4 flex items-center justify-between card-hover group"
+          {hotDeals.map((deal) => (
+            <Link
+              key={deal.id}
+              to={`/used/${deal.id}`}
+              className="w-full glass rounded-2xl p-4 flex items-center justify-between card-hover group block"
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-dark-700 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                   {deal.icon}
                 </div>
                 <div className="text-left">
-                  <div className="font-bold text-white">{deal.name}</div>
-                  <div className="text-xs text-gray-500">3개 쇼핑몰 비교</div>
+                  <div className="font-bold text-white text-sm">{deal.name}</div>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[11px] text-gray-500">👀 {deal.views}</span>
+                    <span className="text-[11px] text-gray-500">❤️ {deal.likes}</span>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-neon-pink font-bold mb-1">{deal.off} 할인</div>
-                <div className="text-lg font-black text-neon-blue">
-                  {(deal.price / 10000).toFixed(0)}만원
+                <div className="text-[10px] text-gray-600 line-through">{deal.originalPrice.toLocaleString()}원</div>
+                <div className="text-lg font-black text-neon-green">
+                  {deal.price.toLocaleString()}원
+                </div>
+                <div className="text-[10px] text-neon-pink font-bold">
+                  {Math.round((1 - deal.price / deal.originalPrice) * 100)}% OFF
                 </div>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
