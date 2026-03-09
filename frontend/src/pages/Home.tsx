@@ -196,12 +196,8 @@ const Home = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-gray-600 line-through">{deal.originalPrice.toLocaleString()}원</div>
                 <div className="text-lg font-black text-neon-green">
                   {deal.price.toLocaleString()}원
-                </div>
-                <div className="text-[10px] text-neon-pink font-bold">
-                  {Math.round((1 - deal.price / deal.originalPrice) * 100)}% OFF
                 </div>
               </div>
             </Link>
