@@ -266,7 +266,7 @@ const AdminApproval = () => {
         ].map((item) => (
           <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
-            <span className={`text-xs font-medium ${item.active ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'} transition-colors`}>
+            <span className={`text-xs font-medium ${item.active ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'} transition-colors`}>
               {item.label}
             </span>
           </Link>

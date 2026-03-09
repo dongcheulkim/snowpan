@@ -34,17 +34,17 @@ const NewEquipment = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold gradient-text">새 장비</h1>
         <div className="flex space-x-3">
-          <select className="px-4 py-2 glass rounded-lg text-sm text-gray-300 bg-transparent focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer">
-            <option className="bg-dark-800">전체</option>
-            <option className="bg-dark-800">스키</option>
-            <option className="bg-dark-800">보드</option>
-            <option className="bg-dark-800">부츠</option>
-            <option className="bg-dark-800">바인딩</option>
+          <select className="px-4 py-2 glass rounded-lg text-sm text-gray-500 bg-transparent focus:outline-none focus:border-accent/50 transition-all cursor-pointer">
+            <option className="bg-white">전체</option>
+            <option className="bg-white">스키</option>
+            <option className="bg-white">보드</option>
+            <option className="bg-white">부츠</option>
+            <option className="bg-white">바인딩</option>
           </select>
-          <select className="px-4 py-2 glass rounded-lg text-sm text-gray-300 bg-transparent focus:outline-none focus:border-neon-blue/50 transition-all cursor-pointer">
-            <option className="bg-dark-800">가격순</option>
-            <option className="bg-dark-800">평점순</option>
-            <option className="bg-dark-800">리뷰순</option>
+          <select className="px-4 py-2 glass rounded-lg text-sm text-gray-500 bg-transparent focus:outline-none focus:border-accent/50 transition-all cursor-pointer">
+            <option className="bg-white">가격순</option>
+            <option className="bg-white">평점순</option>
+            <option className="bg-white">리뷰순</option>
           </select>
         </div>
       </div>
