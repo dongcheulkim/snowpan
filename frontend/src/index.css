@@ -10,48 +10,37 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #FFFFFF;
-  color: #2D3436;
+  color: #191F28;
 }
 
-/* Card surface */
+/* Card */
 .card {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #F2F4F6;
+  border-radius: 12px;
 }
 
 .card-hover {
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 .card-hover:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  transform: translateY(-1px);
+  background: #F8FAFB;
 }
 
-/* Custom scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #DFE6E9;
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #B2BEC3;
+  width: 0;
+  height: 0;
 }
 
 /* Input focus */
 input:focus, select:focus {
   outline: none;
-  border-color: #FF0066 !important;
-  box-shadow: 0 0 0 3px rgba(255, 0, 102, 0.12);
+  border-color: #38BDF8 !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
 }
 
-/* Hide scrollbar for horizontal scroll */
+/* No scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
