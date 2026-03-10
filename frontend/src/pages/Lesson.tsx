@@ -72,7 +72,10 @@ const Lesson = () => {
     { id: '27', name: '보드 개인레슨', resort: '에덴밸리', resortId: 'eden', price: 145000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
   ];
 
-  const filteredItems = lessonItems.filter(item => {
+  const approvedLessons = JSON.parse(localStorage.getItem('pendingItems') || '[]')
+    .filter((i: { type: string; status: string }) => i.type === 'lesson' && i.status === 'approved');
+  const allItems = [...approvedLessons, ...lessonItems];
+  const filteredItems = allItems.filter(item => {
     const resortMatch = selectedResort === 'all' || item.resortId === selectedResort;
     const levelMatch = selectedLevel === 'all' || item.level === selectedLevel;
     return resortMatch && levelMatch;
@@ -80,7 +83,10 @@ const Lesson = () => {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">레슨</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">레슨</h1>
+        <Link to="/lesson/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors">+ 등록</Link>
+      </div>
 
       {/* Ad Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">

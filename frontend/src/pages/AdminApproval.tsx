@@ -1,277 +1,133 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-interface PendingItem {
-  id: string;
-  name: string;
-  price: number;
-  duration?: string;
-  equipment?: string;
-  level?: string;
-  maxStudents?: number;
-  image: string;
-  resort: {
-    name: string;
-    location: string;
-  };
-  user: {
-    name: string;
-    phone: string;
-    email: string;
-  };
-  createdAt: string;
-}
-
 const AdminApproval = () => {
-  const [activeTab, setActiveTab] = useState<'rental' | 'lesson'>('rental');
+  const [activeTab, setActiveTab] = useState<'rental' | 'lesson' | 'accommodation'>('rental');
   const [statusTab, setStatusTab] = useState<'pending' | 'approved'>('pending');
-  const [pendingRentals, setPendingRentals] = useState<PendingItem[]>([]);
-  const [pendingLessons, setPendingLessons] = useState<PendingItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setRefresh] = useState(0);
 
-  const fetchPendingItems = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token');
+  const allItems = JSON.parse(localStorage.getItem('pendingItems') || '[]');
+  const pendingItems = allItems.filter((i: { type: string; status: string }) => i.type === activeTab && i.status === 'pending');
+  const approvedItems = allItems.filter((i: { type: string; status: string }) => i.type === activeTab && i.status === 'approved');
 
-      const [rentalsRes, lessonsRes] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/rentals/pending', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('http://localhost:3000/api/admin/lessons/pending', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      if (rentalsRes.ok) {
-        const rentals = await rentalsRes.json();
-        setPendingRentals(rentals);
-      }
-
-      if (lessonsRes.ok) {
-        const lessons = await lessonsRes.json();
-        setPendingLessons(lessons);
-      }
-    } catch (error) {
-      console.error('Failed to fetch pending items:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleApprove = (id: string) => {
+    const items = JSON.parse(localStorage.getItem('pendingItems') || '[]');
+    const updated = items.map((i: { id: string }) => i.id === id ? { ...i, status: 'approved' } : i);
+    localStorage.setItem('pendingItems', JSON.stringify(updated));
+    setRefresh(v => v + 1);
+    alert('승인되었습니다!');
   };
 
-  useEffect(() => {
-    fetchPendingItems();
-  }, []);
-
-  const handleApprove = async (id: string, type: 'rental' | 'lesson') => {
-    try {
-      const token = localStorage.getItem('token');
-      const endpoint = type === 'rental'
-        ? `http://localhost:3000/api/admin/rentals/${id}/approve`
-        : `http://localhost:3000/api/admin/lessons/${id}/approve`;
-
-      const res = await fetch(endpoint, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        alert('승인되었습니다!');
-        fetchPendingItems();
-      } else {
-        alert('승인 실패');
-      }
-    } catch (error) {
-      console.error('Approve error:', error);
-      alert('승인 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleReject = async (id: string, type: 'rental' | 'lesson') => {
+  const handleReject = (id: string) => {
     if (!confirm('정말 거부하시겠습니까?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const endpoint = type === 'rental'
-        ? `http://localhost:3000/api/admin/rentals/${id}/reject`
-        : `http://localhost:3000/api/admin/lessons/${id}/reject`;
-
-      const res = await fetch(endpoint, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        alert('거부되었습니다.');
-        fetchPendingItems();
-      } else {
-        alert('거부 실패');
-      }
-    } catch (error) {
-      console.error('Reject error:', error);
-      alert('거부 중 오류가 발생했습니다.');
-    }
+    const items = JSON.parse(localStorage.getItem('pendingItems') || '[]');
+    const updated = items.filter((i: { id: string }) => i.id !== id);
+    localStorage.setItem('pendingItems', JSON.stringify(updated));
+    setRefresh(v => v + 1);
+    alert('거부되었습니다.');
   };
 
-  const currentItems = activeTab === 'rental' ? pendingRentals : pendingLessons;
+  const tabs = [
+    { id: 'rental' as const, name: '렌탈' },
+    { id: 'lesson' as const, name: '레슨' },
+    { id: 'accommodation' as const, name: '숙소' },
+  ];
+
+  const displayItems = statusTab === 'pending' ? pendingItems : approvedItems;
 
   return (
-    <div className="min-h-screen pb-24 bg-gray-50">
-      {/* Header */}
-      <div className="px-4 pt-8 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="text-gray-400 hover:text-gray-900 text-2xl transition-colors">←</Link>
-          <h1 className="text-2xl font-black text-gray-900">관리자 승인</h1>
-          <div className="w-8"></div>
-        </div>
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">관리자 승인</h1>
+        <Link to="/" className="text-sm text-gray-400">홈으로</Link>
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="flex">
+      <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
+        {tabs.map(tab => (
           <button
-            onClick={() => setActiveTab('rental')}
-            className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
-              activeTab === 'rental'
-                ? 'text-accent-light border-b-2 border-accent'
-                : 'text-gray-400 hover:text-gray-600'
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'
             }`}
           >
-            렌탈 ({pendingRentals.length})
+            {tab.name} ({allItems.filter((i: { type: string; status: string }) => i.type === tab.id && i.status === 'pending').length})
           </button>
-          <button
-            onClick={() => setActiveTab('lesson')}
-            className={`flex-1 py-4 text-center font-bold text-sm transition-all ${
-              activeTab === 'lesson'
-                ? 'text-accent-light border-b-2 border-accent'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            레슨 ({pendingLessons.length})
-          </button>
-        </div>
+        ))}
       </div>
 
       {/* Status Tabs */}
-      <div className="px-4 pt-5">
-        <div className="flex gap-3 mb-5">
-          <button
-            onClick={() => setStatusTab('pending')}
-            className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
-              statusTab === 'pending'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-            }`}
-          >
-            승인 대기
-          </button>
-          <button
-            onClick={() => setStatusTab('approved')}
-            className={`px-5 py-2.5 rounded-lg font-bold text-sm transition-all ${
-              statusTab === 'approved'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-400 border border-gray-200 hover:bg-gray-200'
-            }`}
-          >
-            승인 완료
-          </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setStatusTab('pending')}
+          className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+            statusTab === 'pending' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400 border border-gray-100'
+          }`}
+        >
+          승인 대기 ({pendingItems.length})
+        </button>
+        <button
+          onClick={() => setStatusTab('approved')}
+          className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+            statusTab === 'approved' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400 border border-gray-100'
+          }`}
+        >
+          승인 완료 ({approvedItems.length})
+        </button>
+      </div>
+
+      {/* Items */}
+      {displayItems.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">
+          {statusTab === 'pending' ? '승인 대기 중인 항목이 없습니다.' : '승인 완료된 항목이 없습니다.'}
         </div>
-      </div>
-
-      {/* Items List */}
-      <div className="px-4">
-        {loading ? (
-          <div className="text-center py-16 card rounded-2xl">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-3" />
-            <span className="text-gray-400 text-sm">로딩 중...</span>
-          </div>
-        ) : statusTab === 'pending' ? (
-          currentItems.length === 0 ? (
-            <div className="text-center py-16 card rounded-2xl text-gray-400 text-sm">
-              승인 대기 중인 항목이 없습니다.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {currentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="card rounded-2xl p-5"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-3xl flex-shrink-0">
-                      {item.image}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 mb-1">
-                        {item.name}
-                      </div>
-                      <div className="text-xs text-gray-400 mb-1">
-                        {item.resort.name} · {item.resort.location}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        등록자: {item.user.name} ({item.user.phone})
-                      </div>
-                      {activeTab === 'rental' ? (
-                        <div className="text-xs text-gray-400 mt-1">
-                          {item.duration} · {item.equipment}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-gray-400 mt-1">
-                          {item.duration} · {item.level} · 최대 {item.maxStudents}명
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-black text-gray-900">
-                        {(item.price / 10000).toFixed(0)}만원
-                      </div>
-                      <div className="text-xs text-gold font-bold mt-1">
-                        승인 대기
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => handleReject(item.id, activeTab)}
-                      className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-bold text-sm hover:bg-gray-200 hover:text-gray-900 border border-gray-200 transition-all active:scale-95"
-                    >
-                      거부
-                    </button>
-                    <button
-                      onClick={() => handleApprove(item.id, activeTab)}
-                      className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-95"
-                    >
-                      승인
-                    </button>
-                  </div>
+      ) : (
+        <div className="space-y-3">
+          {displayItems.map((item: { id: string; name: string; resort: string; price: number; type: string; image: string; duration?: string; equipment?: string[]; level?: string; maxStudents?: number; typeName?: string }) => (
+            <div key={item.id} className="card p-4">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl flex-shrink-0">
+                  {item.image}
                 </div>
-              ))}
-            </div>
-          )
-        ) : (
-          <div className="text-center py-16 card rounded-2xl text-gray-400 text-sm">
-            승인 완료된 항목은 각 카테고리 페이지에서 확인하세요.
-          </div>
-        )}
-      </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-gray-900">{item.name}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{item.resort}</div>
+                  {item.type === 'rental' && item.equipment && (
+                    <div className="text-xs text-gray-400 mt-0.5">{item.duration} · {item.equipment.join(', ')}</div>
+                  )}
+                  {item.type === 'lesson' && (
+                    <div className="text-xs text-gray-400 mt-0.5">{item.duration} · {item.level} · 최대 {item.maxStudents}명</div>
+                  )}
+                  {item.type === 'accommodation' && (
+                    <div className="text-xs text-gray-400 mt-0.5">{item.typeName}</div>
+                  )}
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-base font-black text-gray-900">{item.price.toLocaleString()}원</div>
+                </div>
+              </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around z-50">
-        {[
-          { to: '/', icon: '🏠', label: '홈', active: false },
-          { to: '/new-equipment', icon: '🎿', label: '장비', active: false },
-          { to: '/rental', icon: '🏔️', label: '렌탈', active: false },
-          { to: '/admin-approval', icon: '⚙️', label: '관리', active: true },
-        ].map((item) => (
-          <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1 group">
-            <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
-            <span className={`text-xs font-medium ${item.active ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'} transition-colors`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </div>
+              {statusTab === 'pending' && (
+                <div className="flex gap-2 pt-3 border-t border-gray-50">
+                  <button
+                    onClick={() => handleReject(item.id)}
+                    className="flex-1 py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors"
+                  >
+                    거부
+                  </button>
+                  <button
+                    onClick={() => handleApprove(item.id)}
+                    className="flex-1 py-2.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors"
+                  >
+                    승인
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

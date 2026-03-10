@@ -64,13 +64,19 @@ const Rental = () => {
     { id: '28', name: '보드 풀세트', resort: '에덴밸리', resortId: 'eden', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
   ];
 
+  const approvedRentals = JSON.parse(localStorage.getItem('pendingItems') || '[]')
+    .filter((i: { type: string; status: string }) => i.type === 'rental' && i.status === 'approved');
+  const allItems = [...approvedRentals, ...rentalItems];
   const filteredItems = selectedResort === 'all'
-    ? rentalItems
-    : rentalItems.filter(item => item.resortId === selectedResort);
+    ? allItems
+    : allItems.filter(item => item.resortId === selectedResort);
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">렌탈</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">렌탈</h1>
+        <Link to="/rental/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors">+ 등록</Link>
+      </div>
 
       {/* Ad Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">

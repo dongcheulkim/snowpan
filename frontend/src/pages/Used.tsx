@@ -24,7 +24,7 @@ const Used = () => {
     { id: '3시즌 이상', name: '3시즌 이상' },
   ];
 
-  const usedProducts = [
+  const defaultProducts = [
     { id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol', price: 450000, image: '🎿', condition: '1시즌 이하', category: 'ski' },
     { id: '2', name: 'Burton Custom (2021)', brand: 'Burton', price: 380000, image: '🏂', condition: '2시즌 이하', category: 'board' },
     { id: '3', name: 'Salomon S/Pro 100 (2023)', brand: 'Salomon', price: 280000, image: '🥾', condition: '1시즌 이하', category: 'ski-boots' },
@@ -34,6 +34,8 @@ const Used = () => {
     { id: '7', name: 'Descente 스키복 상하세트', brand: 'Descente', price: 320000, image: '🧥', condition: '1시즌 이하', category: 'wear' },
     { id: '8', name: 'Atomic Maverick 86 (2023)', brand: 'Atomic', price: 520000, image: '🎿', condition: '1시즌 이하', category: 'ski' },
   ];
+  const userProducts = JSON.parse(localStorage.getItem('usedProducts') || '[]');
+  const usedProducts = [...userProducts, ...defaultProducts];
 
   const filteredProducts = usedProducts.filter(p => {
     const catMatch = selectedCategory === 'all' || p.category === selectedCategory;

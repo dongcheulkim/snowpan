@@ -7,10 +7,13 @@ import UsedDetail from './pages/UsedDetail';
 import UsedRegister from './pages/UsedRegister';
 import Rental from './pages/Rental';
 import RentalDetail from './pages/RentalDetail';
+import RentalRegister from './pages/RentalRegister';
 import Lesson from './pages/Lesson';
 import LessonDetail from './pages/LessonDetail';
+import LessonRegister from './pages/LessonRegister';
 import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
+import AccommodationRegister from './pages/AccommodationRegister';
 import Chat from './pages/Chat';
 import Community from './pages/Community';
 import CommunityWrite from './pages/CommunityWrite';
@@ -31,10 +34,13 @@ function App() {
           <Route path="used/:id" element={<UsedDetail />} />
           <Route path="chat/:productId" element={<Chat />} />
           <Route path="rental" element={<Rental />} />
+          <Route path="rental/register" element={<RentalRegister />} />
           <Route path="rental/:id" element={<RentalDetail />} />
           <Route path="lesson" element={<Lesson />} />
+          <Route path="lesson/register" element={<LessonRegister />} />
           <Route path="lesson/:id" element={<LessonDetail />} />
           <Route path="accommodation" element={<Accommodation />} />
+          <Route path="accommodation/register" element={<AccommodationRegister />} />
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
           <Route path="community" element={<Community />} />
           <Route path="community/write" element={<CommunityWrite />} />

@@ -26,29 +26,21 @@ const UsedRegister = () => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/used', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (res.ok) {
-        alert('장비가 등록되었습니다!');
-        navigate('/used');
-      } else {
-        const data = await res.json();
-        alert(data.error || '등록에 실패했습니다.');
-      }
-    } catch {
-      alert('등록 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    const existing = JSON.parse(localStorage.getItem('usedProducts') || '[]');
+    const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
+    const newItem = {
+      id: `used_${Date.now()}`,
+      name: `${form.brand} ${form.name}`,
+      brand: form.brand,
+      price: Number(form.price),
+      image: imageMap[form.category] || '📦',
+      condition: form.condition,
+      category: form.category,
+    };
+    localStorage.setItem('usedProducts', JSON.stringify([newItem, ...existing]));
+    alert('장비가 등록되었습니다!');
+    setLoading(false);
+    navigate('/used');
   };
 
   const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
