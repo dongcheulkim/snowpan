@@ -15,12 +15,33 @@ const CommunityWrite = () => {
     { id: 'carpool', name: '카풀/동행' },
   ];
 
+  const badgeMap: Record<string, string> = {
+    free: '자유',
+    review: '장비리뷰',
+    resort: '스키장후기',
+    tip: '초보팁',
+    carpool: '카풀/동행',
+  };
+
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
-    alert('게시글이 등록되었습니다.');
+    const existing = JSON.parse(localStorage.getItem('communityPosts') || '[]');
+    const newPost = {
+      id: `user_${Date.now()}`,
+      tab: category,
+      badge: badgeMap[category],
+      title: title.trim(),
+      preview: content.trim(),
+      author: '나',
+      time: '방금 전',
+      likes: 0,
+      comments: 0,
+      views: 0,
+    };
+    localStorage.setItem('communityPosts', JSON.stringify([newPost, ...existing]));
     navigate('/community');
   };
 

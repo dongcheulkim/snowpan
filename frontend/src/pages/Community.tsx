@@ -22,7 +22,7 @@ const Community = () => {
     '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
   };
 
-  const posts = [
+  const defaultPosts = [
     { id: '1', tab: 'free', badge: '자유', title: '올시즌 첫 출격 다녀왔습니다!', preview: '용평 레인보우 슬로프 컨디션 최고였어요. 설질 좋고 사람도 적당하고...', author: '스키매니아', time: '2시간 전', likes: 24, comments: 8, views: 156 },
     { id: '2', tab: 'review', badge: '장비리뷰', title: 'Rossignol Soul 7 HD 2시즌 사용 후기', preview: '올라운드 스키로 정말 추천합니다. 카빙도 잘 되고 비정지에서도 안정적...', author: '장비덕후', time: '3시간 전', likes: 42, comments: 15, views: 312 },
     { id: '3', tab: 'resort', badge: '스키장후기', title: '휘닉스 평창 주말 솔직 후기', preview: '리프트 대기 15분 정도, 슬로프 상태는 괜찮았는데 식당이 너무 비싸요...', author: '보더킹', time: '5시간 전', likes: 18, comments: 12, views: 203 },
@@ -32,6 +32,9 @@ const Community = () => {
     { id: '7', tab: 'review', badge: '장비리뷰', title: 'Burton Step On 바인딩 솔직 후기', preview: '편하긴 진짜 편한데... 단점도 있습니다. 3시즌 사용 후 느낀 점들...', author: '보드라이프', time: '12시간 전', likes: 56, comments: 19, views: 423 },
     { id: '8', tab: 'resort', badge: '스키장후기', title: '비발디파크 야간 스키 후기', preview: '야간 조명 밝고 좋았어요. 평일이라 사람도 별로 없고 연습하기 딱...', author: '야간러버', time: '14시간 전', likes: 22, comments: 6, views: 178 },
   ];
+
+  const userPosts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
+  const posts = [...userPosts, ...defaultPosts];
 
   const filteredPosts = posts
     .filter(p => selectedTab === 'all' || p.tab === selectedTab)
