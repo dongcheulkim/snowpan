@@ -13,6 +13,7 @@ import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
 import Chat from './pages/Chat';
 import Community from './pages/Community';
+import CommunityWrite from './pages/CommunityWrite';
 import CommunityDetail from './pages/CommunityDetail';
 import MyPage from './pages/MyPage';
 import SellerProfile from './pages/SellerProfile';
@@ -36,6 +37,7 @@ function App() {
           <Route path="accommodation" element={<Accommodation />} />
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
           <Route path="community" element={<Community />} />
+          <Route path="community/write" element={<CommunityWrite />} />
           <Route path="community/:id" element={<CommunityDetail />} />
           <Route path="mypage" element={<MyPage />} />
           <Route path="seller/:sellerId" element={<SellerProfile />} />

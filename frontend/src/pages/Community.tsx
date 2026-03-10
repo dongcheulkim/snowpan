@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Community = () => {
   const [selectedTab, setSelectedTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const tabs = [
     { id: 'all', name: '전체' },
@@ -32,15 +33,35 @@ const Community = () => {
     { id: '8', tab: 'resort', badge: '스키장후기', title: '비발디파크 야간 스키 후기', preview: '야간 조명 밝고 좋았어요. 평일이라 사람도 별로 없고 연습하기 딱...', author: '야간러버', time: '14시간 전', likes: 22, comments: 6, views: 178 },
   ];
 
-  const filteredPosts = selectedTab === 'all' ? posts : posts.filter(p => p.tab === selectedTab);
+  const filteredPosts = posts
+    .filter(p => selectedTab === 'all' || p.tab === selectedTab)
+    .filter(p => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return p.title.toLowerCase().includes(q) || p.preview.toLowerCase().includes(q);
+    });
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">커뮤니티</h1>
-        <button className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors whitespace-nowrap">
+        <Link to="/community/write" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors whitespace-nowrap">
           + 글쓰기
-        </button>
+        </Link>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="제목이나 내용으로 검색"
+          className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400"
+        />
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
