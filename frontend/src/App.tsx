@@ -22,6 +22,15 @@ import MyPage from './pages/MyPage';
 import SellerProfile from './pages/SellerProfile';
 import Login from './pages/Login';
 import AdminApproval from './pages/AdminApproval';
+import MySales from './pages/MySales';
+import MyPurchases from './pages/MyPurchases';
+import MyWishlist from './pages/MyWishlist';
+import MyChatList from './pages/MyChatList';
+import MyPosts from './pages/MyPosts';
+import NotificationSettings from './pages/NotificationSettings';
+import ChangePassword from './pages/ChangePassword';
+import Terms from './pages/Terms';
+import Support from './pages/Support';
 
 function App() {
   return (
@@ -49,6 +58,15 @@ function App() {
           <Route path="seller/:sellerId" element={<SellerProfile />} />
           <Route path="login" element={<Login />} />
           <Route path="admin-approval" element={<AdminApproval />} />
+          <Route path="mypage/sales" element={<MySales />} />
+          <Route path="mypage/purchases" element={<MyPurchases />} />
+          <Route path="mypage/wishlist" element={<MyWishlist />} />
+          <Route path="mypage/chats" element={<MyChatList />} />
+          <Route path="mypage/posts" element={<MyPosts />} />
+          <Route path="mypage/notifications" element={<NotificationSettings />} />
+          <Route path="mypage/password" element={<ChangePassword />} />
+          <Route path="mypage/terms" element={<Terms />} />
+          <Route path="mypage/support" element={<Support />} />
         </Route>
       </Routes>
     </BrowserRouter>

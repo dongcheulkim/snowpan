@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const MyPage = () => {
   const navigate = useNavigate();
@@ -41,19 +41,25 @@ const MyPage = () => {
 
   if (!user) return null;
 
+  const userProducts = JSON.parse(localStorage.getItem('usedProducts') || '[]');
+  const pendingItems = JSON.parse(localStorage.getItem('pendingItems') || '[]');
+  const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+  const myChats = JSON.parse(localStorage.getItem('myChats') || '[]');
+  const myPosts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
+
   const menuItems = [
-    { label: '판매 내역', count: 3 },
-    { label: '구매 내역', count: 1 },
-    { label: '찜 목록', count: 5 },
-    { label: '채팅 목록', count: 2 },
-    { label: '내 게시글', count: 4 },
+    { label: '판매 내역', count: userProducts.length + pendingItems.length, link: '/mypage/sales' },
+    { label: '구매 내역', count: JSON.parse(localStorage.getItem('myPurchases') || '[]').length, link: '/mypage/purchases' },
+    { label: '찜 목록', count: wishlist.length, link: '/mypage/wishlist' },
+    { label: '채팅 목록', count: myChats.length, link: '/mypage/chats' },
+    { label: '내 게시글', count: myPosts.length, link: '/mypage/posts' },
   ];
 
   const settings = [
-    { label: '알림 설정' },
-    { label: '비밀번호 변경' },
-    { label: '이용약관' },
-    { label: '고객센터' },
+    { label: '알림 설정', link: '/mypage/notifications' },
+    { label: '비밀번호 변경', link: '/mypage/password' },
+    { label: '이용약관', link: '/mypage/terms' },
+    { label: '고객센터', link: '/mypage/support' },
   ];
 
   return (
@@ -131,23 +137,23 @@ const MyPage = () => {
       {/* Menu */}
       <div className="card overflow-hidden">
         {menuItems.map((item, idx) => (
-          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
+          <Link key={item.label} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-900">{item.label}</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-accent-light font-bold bg-accent/10 px-2 py-0.5 rounded-full">{item.count}</span>
+              <span className="text-xs text-primary font-bold bg-primary-50 px-2 py-0.5 rounded-full">{item.count}</span>
               <span className="text-gray-400 text-xs">→</span>
             </div>
-          </button>
+          </Link>
         ))}
       </div>
 
       {/* Settings */}
       <div className="card overflow-hidden">
         {settings.map((item, idx) => (
-          <button key={item.label} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
+          <Link key={item.label} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-500">{item.label}</span>
             <span className="text-gray-400 text-xs">→</span>
-          </button>
+          </Link>
         ))}
       </div>
 
