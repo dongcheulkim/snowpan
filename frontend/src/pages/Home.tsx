@@ -3,11 +3,26 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
-
+  const [currentWebcam, setCurrentWebcam] = useState(0);
   const banners = [
-    { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인 이벤트', tag: 'AD' },
-    { title: '스키프로샵 홍대점', desc: '24/25 신상 부츠 피팅 무료 · 장비 풀세트 특가', tag: 'AD' },
-    { title: '라이더스클럽 판교점', desc: '중고 장비 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD' },
+    {
+      title: '시즌 장비 튜닝 50% 할인',
+      desc: '보드팩토리 강남점 · 지금 바로 예약하세요',
+      gradient: 'from-primary to-pink-400',
+      tag: '이벤트',
+    },
+    {
+      title: '24/25 신상 부츠 피팅 무료',
+      desc: '스키프로샵 홍대점 · 장비 풀세트 특가',
+      gradient: 'from-violet-500 to-purple-400',
+      tag: '신상',
+    },
+    {
+      title: '중고 위탁판매 수수료 0%',
+      desc: '라이더스클럽 판교점 · 왁싱 서비스 포함',
+      gradient: 'from-blue-500 to-cyan-400',
+      tag: '특가',
+    },
   ];
 
   useEffect(() => {
@@ -18,48 +33,68 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
-    { id: 'used', title: '중고', desc: '합리적 가격', link: '/used', color: 'text-mint' },
-    { id: 'rental', title: '렌탈', desc: '스키장별', link: '/rental', color: 'text-accent-light' },
-    { id: 'lesson', title: '레슨', desc: '강사 예약', link: '/lesson', color: 'text-gold' },
-    { id: 'accommodation', title: '숙소', desc: '스키장 근처', link: '/accommodation', color: 'text-coral' },
-    { id: 'community', title: '커뮤니티', desc: '소통 & 정보', link: '/community', color: 'text-purple-400' },
+    { id: 'used', title: '중고거래', icon: '🏷️', link: '/used', bg: 'bg-orange-50', color: 'text-orange-500' },
+    { id: 'rental', title: '렌탈', icon: '⛷️', link: '/rental', bg: 'bg-blue-50', color: 'text-blue-500' },
+    { id: 'lesson', title: '레슨', icon: '🎿', link: '/lesson', bg: 'bg-green-50', color: 'text-green-500' },
+    { id: 'accommodation', title: '숙소', icon: '🏨', link: '/accommodation', bg: 'bg-purple-50', color: 'text-purple-500' },
+    { id: 'community', title: '커뮤니티', icon: '💬', link: '/community', bg: 'bg-pink-50', color: 'text-pink-500' },
   ];
 
   const hotDeals = [
-    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, views: 342, likes: 28 },
-    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, views: 287, likes: 35 },
-    { id: '2', name: 'Burton Custom (2021)', price: 380000, views: 256, likes: 22 },
+    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, originalPrice: 680000, views: 342, likes: 28, tag: '인기' },
+    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, originalPrice: 850000, views: 287, likes: 35, tag: 'HOT' },
+    { id: '2', name: 'Burton Custom (2021)', price: 380000, originalPrice: 620000, views: 256, likes: 22, tag: '급처' },
   ];
 
+  const webcams = [
+    { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/guide/realTimeNews/ypResortWebcam.do', region: '강원' },
+    { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/page/pyeongchang/guide/operation/sketchMovie', region: '강원' },
+    { name: '하이원리조트', url: 'https://www.high1.com/ski/slopeView.do?key=748&mode=p', region: '강원' },
+    { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.04_02_04.ds/dmparse.dm', region: '강원' },
+    { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/ski_slope03.asp', region: '강원' },
+    { name: '지산리조트', url: 'https://www.jisanresort.co.kr/w/ski/slopes/webcam_init.asp', region: '경기' },
+    { name: '무주덕유산', url: 'https://www.mdysresort.com/guide/webcam.asp', region: '전북' },
+    { name: '오크밸리', url: 'https://oakvalley.co.kr/ski/introduction/realtime', region: '강원' },
+    { name: '웰리힐리파크', url: 'https://www.wellihillipark.com/home/customer/webcam', region: '강원' },
+    { name: '오투리조트', url: 'https://www.o2resort.com/GDE/webcam.jsp', region: '강원' },
+    { name: '알펜시아', url: 'https://www.alpensia.com/guide/web-cam.do', region: '강원' },
+    { name: '곤지암리조트', url: 'https://www.konjiamresort.co.kr/ski/liveCam.dev', region: '경기' },
+    { name: '에덴밸리', url: 'https://www.edenvalley.co.kr/CS/cam_pop1.asp', region: '경남' },
+  ];
+
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(webcams.length / itemsPerPage);
+  const pagedWebcams = webcams.slice(currentWebcam * itemsPerPage, (currentWebcam + 1) * itemsPerPage);
+
   return (
-    <div className="min-h-screen pb-24 bg-gray-50">
-      {/* Hero */}
-      <div className="px-4 pt-10 pb-12">
-        <h1 className="text-3xl font-black text-center text-gray-900 mb-2 animate-slide-up">
-          <span className="text-accent-light">스노우</span>판
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary to-primary-light px-5 pt-12 pb-8">
+        <h1 className="text-2xl font-black text-white mb-1 animate-slide-up">
+          스노우판
         </h1>
-        <p className="text-center text-gray-400 mb-8 animate-fade-in text-sm">
+        <p className="text-white/70 text-sm mb-5 animate-fade-in">
           스키 & 보드 장비의 모든 것
         </p>
-        <div className="relative max-w-xl mx-auto animate-slide-up">
+        <div className="relative animate-slide-up">
           <input
             type="text"
             placeholder="스키, 보드, 스키장 검색"
-            className="w-full h-12 pl-4 pr-20 rounded-xl text-sm bg-white border border-gray-300 text-gray-900 placeholder-gray-400"
+            className="w-full h-12 pl-12 pr-4 rounded-2xl text-sm bg-white/95 border-none text-gray-800 placeholder-gray-400 shadow-lg"
           />
-          <button className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors">
-            검색
-          </button>
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
       </div>
 
-      {/* Ad Banner */}
-      <div className="px-4 mb-6">
-        <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 h-20">
+      {/* Banner Carousel */}
+      <div className="px-4 -mt-3">
+        <div className="relative overflow-hidden rounded-2xl h-24 shadow-md">
           {banners.map((banner, idx) => (
             <div
               key={idx}
-              className={`absolute inset-0 flex items-center px-5 transition-all duration-700 ease-in-out ${
+              className={`absolute inset-0 bg-gradient-to-r ${banner.gradient} flex items-center px-5 transition-all duration-700 ease-in-out ${
                 idx === currentBanner
                   ? 'opacity-100 translate-x-0'
                   : idx < currentBanner
@@ -68,123 +103,149 @@ const Home = () => {
               }`}
             >
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[9px] font-bold bg-accent/10 text-accent-light px-1.5 py-0.5 rounded">{banner.tag}</span>
-                  <h3 className="text-sm font-bold text-gray-900">{banner.title}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold bg-white/25 text-white px-2 py-0.5 rounded-full">{banner.tag}</span>
                 </div>
-                <p className="text-xs text-gray-500">{banner.desc}</p>
+                <h3 className="text-base font-bold text-white">{banner.title}</h3>
+                <p className="text-xs text-white/80 mt-0.5">{banner.desc}</p>
               </div>
             </div>
           ))}
-          <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentBanner(idx)}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  idx === currentBanner ? 'bg-accent-light w-4' : 'bg-gray-300'
-                }`}
-              />
-            ))}
+          <div className="absolute bottom-2.5 right-4 bg-black/30 text-white text-[10px] px-2.5 py-0.5 rounded-full z-10">
+            {currentBanner + 1} / {banners.length}
           </div>
         </div>
       </div>
 
-      {/* Category Grid */}
-      <div className="px-4">
-        <div className="grid grid-cols-2 gap-3">
+      {/* Category Icons */}
+      <div className="px-4 mt-6">
+        <div className="flex justify-between">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               to={cat.link}
-              className="card p-5 active:scale-[0.98] transition-all hover:border-gray-400"
+              className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
             >
-              <div className={`text-lg font-bold mb-1 ${cat.color}`}>{cat.title}</div>
-              <div className="text-xs text-gray-400">{cat.desc}</div>
+              <div className={`w-14 h-14 ${cat.bg} rounded-2xl flex items-center justify-center text-2xl shadow-sm`}>
+                {cat.icon}
+              </div>
+              <span className="text-xs font-medium text-gray-700">{cat.title}</span>
             </Link>
           ))}
         </div>
       </div>
 
-      {/* 중고 핫딜 */}
-      <div className="px-4 mt-8">
+      {/* Divider */}
+      <div className="h-2 bg-gray-50 mt-6" />
+
+      {/* Hot Deals */}
+      <div className="px-4 mt-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">중고 핫딜</h2>
-          <Link to="/used" className="text-sm text-accent-light hover:text-accent transition-colors">
-            전체보기 →
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900">지금 뜨는 핫딜</h2>
+            <span className="text-[10px] font-bold bg-primary-50 text-primary px-2 py-0.5 rounded-full">BEST</span>
+          </div>
+          <Link to="/used" className="text-sm text-gray-400 hover:text-primary transition-colors">
+            더보기
           </Link>
         </div>
-        <div className="space-y-2">
-          {hotDeals.map((deal) => (
-            <Link
-              key={deal.id}
-              to={`/used/${deal.id}`}
-              className="w-full card p-4 flex items-center justify-between card-hover block"
-            >
-              <div>
-                <div className="font-bold text-gray-900 text-sm">{deal.name}</div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-gray-400">조회 {deal.views}</span>
-                  <span className="text-[11px] text-gray-400">찜 {deal.likes}</span>
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+          {hotDeals.map((deal) => {
+            const discount = Math.round((1 - deal.price / deal.originalPrice) * 100);
+            return (
+              <Link
+                key={deal.id}
+                to={`/used/${deal.id}`}
+                className="min-w-[160px] card p-4 card-hover flex-shrink-0"
+              >
+                <div className="flex items-center gap-1.5 mb-3">
+                  <span className="text-[10px] font-bold bg-primary text-white px-2 py-0.5 rounded-full">{deal.tag}</span>
                 </div>
-              </div>
-              <div className="text-base font-black text-mint">
-                {deal.price.toLocaleString()}원
-              </div>
-            </Link>
-          ))}
+                <div className="font-medium text-gray-900 text-sm leading-tight mb-2 line-clamp-2">{deal.name}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-black text-primary">{discount}%</span>
+                  <span className="text-base font-bold text-gray-900">{deal.price.toLocaleString()}원</span>
+                </div>
+                <div className="text-xs text-gray-300 line-through mt-0.5">{deal.originalPrice.toLocaleString()}원</div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[11px] text-gray-400">조회 {deal.views}</span>
+                  <span className="text-[11px] text-gray-400">♥ {deal.likes}</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
-      {/* Webcam Quick Links */}
-      <div className="px-4 mt-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">스키장 실시간 웹캠</h2>
+      {/* Divider */}
+      <div className="h-2 bg-gray-50 mt-5" />
+
+      {/* Webcam Slide */}
+      <div className="px-4 mt-5 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-gray-900">실시간 웹캠</h2>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentWebcam((prev) => Math.max(0, prev - 1))}
+              disabled={currentWebcam === 0}
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm transition-colors ${
+                currentWebcam === 0
+                  ? 'bg-gray-50 text-gray-300'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300'
+              }`}
+            >
+              ‹
+            </button>
+            <span className="text-xs text-gray-400 min-w-[32px] text-center">{currentWebcam + 1}/{totalPages}</span>
+            <button
+              onClick={() => setCurrentWebcam((prev) => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentWebcam === totalPages - 1}
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-sm transition-colors ${
+                currentWebcam === totalPages - 1
+                  ? 'bg-gray-50 text-gray-300'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 active:bg-gray-300'
+              }`}
+            >
+              ›
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
-          {[
-            { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/skiNboard/webcam.do' },
-            { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/pyeongchang/phoenix-cam' },
-            { name: '하이원리조트', url: 'https://www.high1.com/ski/webcam/liveView.do' },
-            { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.cctv.ds' },
-            { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/webcam.asp' },
-            { name: '지산리조트', url: 'https://www.jisanresort.co.kr/ski/webcam.asp' },
-            { name: '무주덕유산', url: 'https://www.mdysresort.com/ski/webcam.do' },
-            { name: '오크밸리', url: 'https://www.oakvalley.co.kr/ski/webcam.asp' },
-            { name: '웰리힐리파크', url: 'https://www.wellihillipark.com/ski/webcam' },
-            { name: '오투리조트', url: 'https://www.o2resort.com/ski/webcam.asp' },
-            { name: '알펜시아', url: 'https://www.alpensia.com/ski/webcam.asp' },
-            { name: '곤지암리조트', url: 'https://www.konjiamresort.co.kr/ski/webcam.asp' },
-            { name: '에덴밸리', url: 'https://www.edenvalley.co.kr/ski/webcam.asp' },
-          ].map((cam) => (
+          {pagedWebcams.map((cam) => (
             <a
               key={cam.name}
               href={cam.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="card p-3.5 card-hover"
+              className="card p-4 card-hover group"
             >
-              <div className="text-sm font-medium text-gray-900">{cam.name}</div>
-              <div className="text-xs text-accent-light mt-0.5">실시간 보기 →</div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors">{cam.name}</span>
+                <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{cam.region}</span>
+              </div>
+              <div className="text-xs text-primary mt-1 font-medium">실시간 보기 →</div>
             </a>
+          ))}
+        </div>
+        <div className="flex justify-center gap-1.5 mt-4">
+          {Array.from({ length: totalPages }).map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentWebcam(idx)}
+              className={`h-2 rounded-full transition-all ${
+                idx === currentWebcam ? 'bg-primary w-5' : 'bg-gray-200 w-2'
+              }`}
+            />
           ))}
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around z-50">
-        {[
-          { to: '/', label: '홈', active: true },
-          { to: '/used', label: '중고', active: false },
-          { to: '/rental', label: '렌탈', active: false },
-          { to: '/accommodation', label: '숙소', active: false },
-          { to: '/admin-approval', label: '관리', active: false },
-        ].map((item) => (
-          <Link key={item.to} to={item.to} className="flex flex-col items-center gap-1">
-            <span className={`text-xs font-medium ${item.active ? 'text-accent-light' : 'text-gray-400 hover:text-gray-500'} transition-colors`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 };
