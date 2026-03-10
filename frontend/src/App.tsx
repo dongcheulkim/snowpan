@@ -31,6 +31,7 @@ import NotificationSettings from './pages/NotificationSettings';
 import ChangePassword from './pages/ChangePassword';
 import Terms from './pages/Terms';
 import Support from './pages/Support';
+import NewEquipment from './pages/NewEquipment';
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
           <Route path="mypage/password" element={<ChangePassword />} />
           <Route path="mypage/terms" element={<Terms />} />
           <Route path="mypage/support" element={<Support />} />
+          <Route path="new-equipment" element={<NewEquipment />} />
         </Route>
       </Routes>
     </BrowserRouter>
