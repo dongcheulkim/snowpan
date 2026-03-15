@@ -28,7 +28,7 @@ const LessonDetail = () => {
     '3': {
       id: '3', name: '보드 그룹레슨', resort: '휘닉스평창', price: 75000, duration: '2시간',
       level: 'lv1', levelText: 'LV1', maxStudents: 6, image: '🏂',
-      instructor: '이강사 (KASA 레벨2)',
+      instructor: '이강사 (KSIA 레벨2)',
       description: '보드 입문자를 위한 그룹레슨입니다. 사이드슬립부터 기본 턴까지 단계별로 지도합니다.',
       schedule: '09:30 / 11:30 / 14:00', includes: ['레슨비', '리프트 이용', '보험'],
       contact: '033-330-6000',
@@ -36,7 +36,7 @@ const LessonDetail = () => {
     '4': {
       id: '4', name: '보드 개인레슨', resort: '휘닉스평창', price: 140000, duration: '2시간',
       level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂',
-      instructor: '최강사 (KASA 레벨3)',
+      instructor: '최강사 (KSIA 레벨3)',
       description: '1:1 보드 개인레슨. 카빙턴, 그라운드트릭 등 중급 테크닉을 체계적으로 배웁니다.',
       schedule: '예약 시 협의', includes: ['레슨비', '리프트 이용', '보험', '영상 촬영'],
       contact: '033-330-6000',
@@ -52,7 +52,7 @@ const LessonDetail = () => {
     '6': {
       id: '6', name: '보드 그룹레슨', resort: '하이원', price: 70000, duration: '2시간',
       level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '🏂',
-      instructor: '한강사 (KASA 레벨2)',
+      instructor: '한강사 (KSIA 레벨2)',
       description: '하이원 초급 슬로프에서 진행하는 보드 그룹레슨. 안전하고 넓은 슬로프에서 편하게 배웁니다.',
       schedule: '09:00 / 11:00 / 14:00', includes: ['레슨비', '보험'],
       contact: '033-590-7000',
