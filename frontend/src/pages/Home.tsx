@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [currentWebcam, setCurrentWebcam] = useState(0);
-  const [votes, setVotes] = useState<Record<string, string | null>>({});
+  const [votes] = useState<Record<string, string | null>>(() => {
+    return JSON.parse(localStorage.getItem('pollVotes') || '{}');
+  });
 
   const banners = [
     { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD' },
@@ -39,7 +41,7 @@ const Home = () => {
     { id: 'c3', title: '용평 주말 카풀 구합니다 (3/22)', category: '카풀/동행', author: '라이더킴', comments: 8, likes: 5 },
   ];
 
-  const hotTopics = [
+  const defaultHotTopics = [
     {
       id: 'ht1',
       title: '올 시즌 최고의 스키장은?',
@@ -77,12 +79,14 @@ const Home = () => {
     },
   ];
 
-  const handleVote = (topicId: string, optionLabel: string) => {
-    setVotes((prev) => {
-      if (prev[topicId]) return prev;
-      return { ...prev, [topicId]: optionLabel };
-    });
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userPolls = JSON.parse(localStorage.getItem('userPolls') || '[]').map((p: any) => ({
+    ...p,
+    type: 'poll' as const,
+    options: p.options.map((o: { label: string; pct?: number }) => ({ label: o.label, pct: o.pct || 0 })),
+  }));
+
+  const hotTopics = [...userPolls, ...defaultHotTopics];
 
   const webcams = [
     { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/guide/realTimeNews/ypResortWebcam.do', region: '강원' },
@@ -239,11 +243,11 @@ const Home = () => {
               <h2 className="text-[15px] font-bold text-gray-900">핫한 주제</h2>
               <span className="text-[10px] font-semibold text-white bg-red-500 px-1.5 py-0.5 rounded-full">HOT</span>
             </div>
-            <Link to="/community" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
+            <Link to="/poll/create" className="text-xs font-bold text-white bg-primary px-3 py-1.5 rounded-lg active:bg-primary-dark">+ 투표 만들기</Link>
           </div>
           <div className="space-y-3">
             {hotTopics.map((topic) => (
-              <div key={topic.id} className="bg-gray-50 rounded-xl p-3.5">
+              <Link key={topic.id} to={topic.type === 'poll' ? `/poll/${topic.id}` : `/community/${topic.id}`} className="block bg-gray-50 rounded-xl p-3.5 active:bg-gray-100 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   {topic.type === 'poll' ? (
                     <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">투표</span>
@@ -256,41 +260,39 @@ const Home = () => {
                 {topic.type === 'poll' && topic.options && (
                   <div className="space-y-1.5 mb-2.5">
                     {topic.options.map((opt) => {
-                      const voted = votes[topic.id];
-                      const isSelected = voted === opt.label;
+                      const myVote = votes[topic.id];
+                      const isSelected = myVote === opt.label;
                       return (
-                        <button
+                        <div
                           key={opt.label}
-                          onClick={() => handleVote(topic.id, opt.label)}
-                          className={`w-full relative h-8 rounded-lg overflow-hidden text-left transition-all ${
-                            voted ? 'cursor-default' : 'active:scale-[0.98]'
-                          }`}
+                          className="w-full relative h-8 rounded-lg overflow-hidden"
                         >
-                          <div
-                            className={`absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ${
-                              isSelected ? 'bg-primary/30' : voted ? 'bg-gray-200' : 'bg-gray-200'
-                            }`}
-                            style={{ width: voted ? `${opt.pct}%` : '0%' }}
-                          />
-                          <div className="relative flex items-center justify-between px-3 h-full">
-                            <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-700'}`}>
-                              {opt.label}
-                            </span>
-                            {voted && (
-                              <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-400'}`}>
-                                {opt.pct}%
-                              </span>
-                            )}
-                          </div>
-                          {!voted && (
+                          {myVote ? (
+                            <>
+                              <div
+                                className={`absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ${
+                                  isSelected ? 'bg-primary/30' : 'bg-gray-200'
+                                }`}
+                                style={{ width: `${opt.pct}%` }}
+                              />
+                              <div className="relative flex items-center justify-between px-3 h-full">
+                                <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-700'}`}>
+                                  {opt.label}
+                                </span>
+                                <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-400'}`}>
+                                  {opt.pct}%
+                                </span>
+                              </div>
+                            </>
+                          ) : (
                             <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center px-3">
                               <span className="text-xs text-gray-700">{opt.label}</span>
                             </div>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
-                    {votes[topic.id] && (
+                    {topic.totalVotes > 0 && (
                       <p className="text-[10px] text-gray-400 text-right">{topic.totalVotes}명 참여</p>
                     )}
                   </div>
@@ -314,7 +316,7 @@ const Home = () => {
                     ♡ {topic.likes}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -32,6 +32,8 @@ import ChangePassword from './pages/ChangePassword';
 import Terms from './pages/Terms';
 import Support from './pages/Support';
 import NewEquipment from './pages/NewEquipment';
+import PollCreate from './pages/PollCreate';
+import PollDetail from './pages/PollDetail';
 
 function App() {
   return (
@@ -69,6 +71,8 @@ function App() {
           <Route path="mypage/terms" element={<Terms />} />
           <Route path="mypage/support" element={<Support />} />
           <Route path="new-equipment" element={<NewEquipment />} />
+          <Route path="poll/create" element={<PollCreate />} />
+          <Route path="poll/:id" element={<PollDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
