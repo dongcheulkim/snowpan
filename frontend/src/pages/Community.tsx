@@ -10,13 +10,13 @@ const Community = () => {
   const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
 
   const tabs = [
-    { id: 'all', name: '전체' },
-    { id: 'free', name: '자유게시판' },
-    { id: 'review', name: '장비리뷰' },
-    { id: 'resort', name: '스키장후기' },
-    { id: 'tip', name: '초보팁' },
-    { id: 'carpool', name: '카풀/동행' },
-    { id: 'poll', name: '투표' },
+    { id: 'all', name: '전체', icon: '📋' },
+    { id: 'free', name: '자유', icon: '💬' },
+    { id: 'review', name: '장비리뷰', icon: '🎿' },
+    { id: 'resort', name: '스키장', icon: '⛰️' },
+    { id: 'tip', name: '초보팁', icon: '💡' },
+    { id: 'carpool', name: '카풀', icon: '🚗' },
+    { id: 'poll', name: '투표', icon: '🗳️' },
   ];
 
   const badgeColor: Record<string, string> = {
@@ -106,18 +106,19 @@ const Community = () => {
       </div>
 
       {/* Category Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="grid grid-cols-4 gap-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setSelectedTab(tab.id)}
-            className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
+            className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-medium transition-all ${
               selectedTab === tab.id
-                ? 'bg-accent text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                ? 'bg-accent text-white shadow-sm'
+                : 'bg-white text-gray-500 border border-gray-200 active:bg-gray-50'
             }`}
           >
-            {tab.name}
+            <span className="text-base">{tab.icon}</span>
+            <span>{tab.name}</span>
           </button>
         ))}
       </div>
