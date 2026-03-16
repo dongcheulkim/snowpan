@@ -10,7 +10,6 @@ const UsedRegister = () => {
     category: 'ski',
     size: '',
     year: '',
-    condition: '1시즌 이하',
     usageCount: '',
     originalPrice: '',
     price: '',
@@ -34,7 +33,6 @@ const UsedRegister = () => {
       brand: form.brand,
       price: Number(form.price),
       image: imageMap[form.category] || '📦',
-      condition: form.condition,
       category: form.category,
     };
     localStorage.setItem('usedProducts', JSON.stringify([newItem, ...existing]));
@@ -146,34 +144,17 @@ const UsedRegister = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* 상태 */}
-            <div>
-              <label className={labelClass}>상태</label>
-              <select
-                name="condition"
-                value={form.condition}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="1시즌 이하" className="bg-white">1시즌 이하</option>
-                <option value="2시즌 이하" className="bg-white">2시즌 이하</option>
-                <option value="3시즌 이상" className="bg-white">3시즌 이상</option>
-              </select>
-            </div>
-
-            {/* 사용횟수 */}
-            <div>
-              <label className={labelClass}>사용 횟수</label>
-              <input
-                type="text"
-                name="usageCount"
-                value={form.usageCount}
-                onChange={handleChange}
-                placeholder="예: 5회"
-                className={inputClass}
-              />
-            </div>
+          {/* 사용횟수 */}
+          <div>
+            <label className={labelClass}>사용 횟수</label>
+            <input
+              type="text"
+              name="usageCount"
+              value={form.usageCount}
+              onChange={handleChange}
+              placeholder="예: 5회"
+              className={inputClass}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

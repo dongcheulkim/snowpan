@@ -6,13 +6,13 @@ const UsedDetail = () => {
 
   const allProducts: Record<string, {
     id: string; name: string; brand: string; price: number;
-    image: string; condition: string;
+    image: string;
     size: string; year: string; description: string; location: string;
     seller: string; sellerRating: number; createdAt: string; images: string[];
   }> = {
     '1': {
       id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol',
-      price: 450000, image: '🎿', condition: '1시즌 이하',
+      price: 450000, image: '🎿',
       size: '172cm', year: '2022',
       description: '22시즌 구매 후 5회 사용했습니다. 엣지 상태 양호하고 탑시트에 미세한 스크래치 외에는 거의 새것 수준입니다. 바인딩 별도. 직거래 선호합니다.',
       location: '서울 강남구', seller: '스키매니아', sellerRating: 4.8,
@@ -20,7 +20,7 @@ const UsedDetail = () => {
     },
     '2': {
       id: '2', name: 'Burton Custom (2021)', brand: 'Burton',
-      price: 380000, image: '🏂', condition: '2시즌 이하',
+      price: 380000, image: '🏂',
       size: '156cm', year: '2021',
       description: '21시즌 모델이며 약 10회 정도 사용했습니다. 전체적으로 양호하나 솔 부분에 사용감이 있습니다. 왁싱 최근에 했고 바인딩 포함 가격입니다.',
       location: '경기 성남시', seller: '보더킹', sellerRating: 4.5,
@@ -80,7 +80,6 @@ const UsedDetail = () => {
               {[
                 { label: '사이즈', value: product.size },
                 { label: '연식', value: product.year },
-                { label: '상태', value: product.condition },
                 { label: '거래방법', value: '직거래' },
               ].map((spec) => (
                 <div key={spec.label} className="flex justify-between items-center py-2 border-b border-gray-200">
