@@ -13,11 +13,11 @@ const CommunityWrite = () => {
   const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
 
   const categories = [
-    { id: 'free', name: '자유', icon: '💬' },
-    { id: 'review', name: '장비리뷰', icon: '🎿' },
-    { id: 'resort', name: '스키장', icon: '⛰️' },
-    { id: 'tip', name: '초보팁', icon: '💡' },
-    { id: 'carpool', name: '카풀', icon: '🚗' },
+    { id: 'free', name: '자유' },
+    { id: 'review', name: '장비리뷰' },
+    { id: 'resort', name: '스키장' },
+    { id: 'tip', name: '초보팁' },
+    { id: 'carpool', name: '카풀' },
   ];
 
   const badgeMap: Record<string, string> = {
@@ -73,19 +73,18 @@ const CommunityWrite = () => {
       {/* Category */}
       <div>
         <label className="text-sm font-semibold text-gray-700 block mb-2">카테고리</label>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-medium transition-all ${
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${
                 category === cat.id
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white text-gray-500 border border-gray-200 active:bg-gray-50'
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-500 active:bg-gray-200'
               }`}
             >
-              <span className="text-base">{cat.icon}</span>
-              <span>{cat.name}</span>
+              {cat.name}
             </button>
           ))}
         </div>
