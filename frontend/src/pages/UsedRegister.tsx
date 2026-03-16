@@ -41,7 +41,7 @@ const UsedRegister = () => {
     navigate('/used');
   };
 
-  const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
+  const inputClass = "w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
   const labelClass = "block text-sm font-medium text-gray-500 mb-2";
 
   return (
