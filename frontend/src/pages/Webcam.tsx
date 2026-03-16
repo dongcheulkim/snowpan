@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 
 const Webcam = () => {
   const [selectedRegion, setSelectedRegion] = useState('all');
+  const [selectedResort, setSelectedResort] = useState('all');
+  const [showResorts, setShowResorts] = useState(false);
 
   const webcams = [
     { id: 'yongpyong', name: '용평리조트', region: '강원', slopes: 28, elevation: '1,458m', cams: 20, hasStream: true },
@@ -23,7 +25,8 @@ const Webcam = () => {
   const regions = ['all', '강원', '경기', '전북', '경남'];
   const regionLabels: Record<string, string> = { all: '전체', '강원': '강원', '경기': '경기', '전북': '전북', '경남': '경남' };
 
-  const filtered = selectedRegion === 'all' ? webcams : webcams.filter((c) => c.region === selectedRegion);
+  const regionFiltered = selectedRegion === 'all' ? webcams : webcams.filter((c) => c.region === selectedRegion);
+  const filtered = selectedResort === 'all' ? regionFiltered : regionFiltered.filter((c) => c.id === selectedResort);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -44,7 +47,7 @@ const Webcam = () => {
         {regions.map((r) => (
           <button
             key={r}
-            onClick={() => setSelectedRegion(r)}
+            onClick={() => { setSelectedRegion(r); setSelectedResort('all'); }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               selectedRegion === r
                 ? 'bg-accent text-white'
@@ -55,6 +58,48 @@ const Webcam = () => {
           </button>
         ))}
       </div>
+
+      {/* Resort filter toggle */}
+      <button
+        onClick={() => setShowResorts(!showResorts)}
+        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
+      >
+        <span>리조트 선택</span>
+        {selectedResort !== 'all' && (
+          <span className="text-primary font-bold">· {regionFiltered.find((c) => c.id === selectedResort)?.name}</span>
+        )}
+        <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showResorts ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {showResorts && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => { setSelectedResort('all'); setShowResorts(false); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              selectedResort === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            전체
+          </button>
+          {regionFiltered.map((cam) => (
+            <button
+              key={cam.id}
+              onClick={() => { setSelectedResort(cam.id); setShowResorts(false); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                selectedResort === cam.id
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {cam.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Resort list */}
       <div className="grid grid-cols-1 gap-3">

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [currentWebcam, setCurrentWebcam] = useState(0);
+
 
   const banners = [
     { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr' },
@@ -53,26 +53,6 @@ const Home = () => {
   }));
 
   const hotTopics = [...userPolls, ...defaultHotTopics].sort((a, b) => b.likes - a.likes).slice(0, 5);
-
-  const webcams = [
-    { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/guide/realTimeNews/ypResortWebcam.do', region: '강원' },
-    { name: '휘닉스평창', url: 'https://phoenixhnr.co.kr/page/pyeongchang/guide/operation/sketchMovie', region: '강원' },
-    { name: '하이원리조트', url: 'https://www.high1.com/ski/slopeView.do?key=748&mode=p', region: '강원' },
-    { name: '비발디파크', url: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.04_02_04.ds/dmparse.dm', region: '강원' },
-    { name: '엘리시안강촌', url: 'https://www.elysian.co.kr/gangchon/ski/ski_slope03.asp', region: '강원' },
-    { name: '지산리조트', url: 'https://www.jisanresort.co.kr/w/ski/slopes/webcam_init.asp', region: '경기' },
-    { name: '무주덕유산', url: 'https://www.mdysresort.com/guide/webcam.asp', region: '전북' },
-    { name: '오크밸리', url: 'https://oakvalley.co.kr/ski/introduction/realtime', region: '강원' },
-    { name: '웰리힐리파크', url: 'https://www.wellihillipark.com/home/customer/webcam', region: '강원' },
-    { name: '오투리조트', url: 'https://www.o2resort.com/GDE/webcam.jsp', region: '강원' },
-    { name: '알펜시아', url: 'https://www.alpensia.com/guide/web-cam.do', region: '강원' },
-    { name: '곤지암리조트', url: 'https://www.konjiamresort.co.kr/ski/liveCam.dev', region: '경기' },
-    { name: '에덴밸리', url: 'https://www.edenvalley.co.kr/CS/cam_pop1.asp', region: '경남' },
-  ];
-
-  const itemsPerPage = 4;
-  const totalPages = Math.ceil(webcams.length / itemsPerPage);
-  const pagedWebcams = webcams.slice(currentWebcam * itemsPerPage, (currentWebcam + 1) * itemsPerPage);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -222,66 +202,32 @@ const Home = () => {
       </div>
 
       {/* Webcam */}
-      <div className="px-4 pt-5 pb-8">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-[15px] font-bold text-gray-900">실시간 웹캠</h2>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to="/webcam" className="text-xs text-primary-dark font-medium">전체보기 &gt;</Link>
-            <button
-              onClick={() => setCurrentWebcam((prev) => Math.max(0, prev - 1))}
-              disabled={currentWebcam === 0}
-              className={`w-7 h-7 flex items-center justify-center rounded-full text-xs ${
-                currentWebcam === 0 ? 'text-gray-200' : 'text-gray-500 active:bg-gray-100'
-              }`}
-            >
-              ‹
-            </button>
-            <span className="text-[11px] text-gray-400 min-w-[28px] text-center">{currentWebcam + 1}/{totalPages}</span>
-            <button
-              onClick={() => setCurrentWebcam((prev) => Math.min(totalPages - 1, prev + 1))}
-              disabled={currentWebcam === totalPages - 1}
-              className={`w-7 h-7 flex items-center justify-center rounded-full text-xs ${
-                currentWebcam === totalPages - 1 ? 'text-gray-200' : 'text-gray-500 active:bg-gray-100'
-              }`}
-            >
-              ›
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2.5">
-          {pagedWebcams.map((cam) => (
-            <a
-              key={cam.name}
-              href={cam.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-50 rounded-xl p-3.5 active:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-800">{cam.name}</span>
-                <span className="text-[10px] text-gray-400">{cam.region}</span>
+      <div className="px-4 pt-1 pb-8">
+        <Link
+          to="/webcam"
+          className="block bg-white border-2 border-gray-300 rounded-2xl p-5 shadow-md active:scale-[0.98] transition-transform"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center text-xl">
+                📹
               </div>
-              <div className="text-xs text-primary-dark mt-1 font-medium">보기 →</div>
-            </a>
-          ))}
-        </div>
-        <div className="flex justify-center gap-1 mt-3">
-          {Array.from({ length: totalPages }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentWebcam(idx)}
-              className={`h-1.5 rounded-full transition-all ${
-                idx === currentWebcam ? 'bg-primary w-4' : 'bg-gray-200 w-1.5'
-              }`}
-            />
-          ))}
-        </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[15px] font-bold text-gray-900">실시간 웹캠</span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">전국 스키장 실시간 웹캠 보기</p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
       </div>
     </div>
   );
