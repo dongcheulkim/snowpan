@@ -6,11 +6,11 @@ const UsedRegister = () => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    brand: '',
+    brand: 'Rossignol',
     category: 'ski',
     size: '',
     year: '',
-    usageCount: '',
+    condition: '새상품',
     originalPrice: '',
     price: '',
     location: '',
@@ -70,15 +70,35 @@ const UsedRegister = () => {
             {/* 브랜드 */}
             <div>
               <label className={labelClass}>브랜드</label>
-              <input
-                type="text"
+              <select
                 name="brand"
                 value={form.brand}
                 onChange={handleChange}
-                placeholder="예: Rossignol"
                 required
                 className={inputClass}
-              />
+              >
+                <option value="Rossignol">Rossignol</option>
+                <option value="Atomic">Atomic</option>
+                <option value="Salomon">Salomon</option>
+                <option value="Head">Head</option>
+                <option value="Volkl">Volkl</option>
+                <option value="K2">K2</option>
+                <option value="Nordica">Nordica</option>
+                <option value="Fischer">Fischer</option>
+                <option value="Burton">Burton</option>
+                <option value="Ride">Ride</option>
+                <option value="Jones">Jones</option>
+                <option value="Lib Tech">Lib Tech</option>
+                <option value="GNU">GNU</option>
+                <option value="Capita">Capita</option>
+                <option value="Smith">Smith</option>
+                <option value="Oakley">Oakley</option>
+                <option value="Giro">Giro</option>
+                <option value="POC">POC</option>
+                <option value="Descente">Descente</option>
+                <option value="Hestra">Hestra</option>
+                <option value="기타">기타</option>
+              </select>
             </div>
 
             {/* 상품명 */}
@@ -89,7 +109,7 @@ const UsedRegister = () => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="예: Soul 7 (2022)"
+                placeholder="예: Soul 7"
                 required
                 className={inputClass}
               />
@@ -144,17 +164,20 @@ const UsedRegister = () => {
             </div>
           </div>
 
-          {/* 사용횟수 */}
+          {/* 상태 */}
           <div>
-            <label className={labelClass}>사용 횟수</label>
-            <input
-              type="text"
-              name="usageCount"
-              value={form.usageCount}
+            <label className={labelClass}>상태</label>
+            <select
+              name="condition"
+              value={form.condition}
               onChange={handleChange}
-              placeholder="예: 5회"
               className={inputClass}
-            />
+            >
+              <option value="새상품">새상품</option>
+              <option value="거의 새 거">거의 새 거</option>
+              <option value="사용감 적음">사용감 적음</option>
+              <option value="사용감 많음">사용감 많음</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
