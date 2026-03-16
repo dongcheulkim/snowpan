@@ -10,7 +10,6 @@ const UsedRegister = () => {
     size: '',
     year: '',
     condition: '새상품',
-    originalPrice: '',
     price: '',
     location: '',
     description: '',
@@ -143,34 +142,18 @@ const UsedRegister = () => {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* 원래 가격 */}
-            <div>
-              <label className={labelClass}>구매 당시 가격 (원)</label>
-              <input
-                type="number"
-                name="originalPrice"
-                value={form.originalPrice}
-                onChange={handleChange}
-                placeholder="850000"
-                required
-                className={inputClass}
-              />
-            </div>
-
-            {/* 판매 가격 */}
-            <div>
-              <label className={labelClass}>판매 가격 (원)</label>
-              <input
-                type="number"
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-                placeholder="450000"
-                required
-                className={inputClass}
-              />
-            </div>
+          {/* 판매 가격 */}
+          <div>
+            <label className={labelClass}>판매 가격 (원)</label>
+            <input
+              type="number"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              placeholder="450000"
+              required
+              className={inputClass}
+            />
           </div>
 
           {/* 거래 지역 */}
@@ -201,15 +184,6 @@ const UsedRegister = () => {
             />
           </div>
 
-          {/* Price Preview */}
-          {form.price && form.originalPrice && (
-            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-              <span className="text-sm text-gray-400">할인율</span>
-              <span className="text-lg font-bold text-gray-900">
-                {Math.round((1 - Number(form.price) / Number(form.originalPrice)) * 100)}% 할인
-              </span>
-            </div>
-          )}
 
           <button
             type="submit"
