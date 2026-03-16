@@ -6,7 +6,6 @@ const UsedRegister = () => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    brand: 'Rossignol',
     category: 'ski',
     size: '',
     year: '',
@@ -29,8 +28,8 @@ const UsedRegister = () => {
     const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
     const newItem = {
       id: `used_${Date.now()}`,
-      name: `${form.brand} ${form.name}`,
-      brand: form.brand,
+      name: form.name,
+      brand: '',
       price: Number(form.price),
       image: imageMap[form.category] || '📦',
       category: form.category,
@@ -66,54 +65,18 @@ const UsedRegister = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* 브랜드 */}
-            <div>
-              <label className={labelClass}>브랜드</label>
-              <select
-                name="brand"
-                value={form.brand}
-                onChange={handleChange}
-                required
-                className={inputClass}
-              >
-                <option value="Rossignol">Rossignol</option>
-                <option value="Atomic">Atomic</option>
-                <option value="Salomon">Salomon</option>
-                <option value="Head">Head</option>
-                <option value="Volkl">Volkl</option>
-                <option value="K2">K2</option>
-                <option value="Nordica">Nordica</option>
-                <option value="Fischer">Fischer</option>
-                <option value="Burton">Burton</option>
-                <option value="Ride">Ride</option>
-                <option value="Jones">Jones</option>
-                <option value="Lib Tech">Lib Tech</option>
-                <option value="GNU">GNU</option>
-                <option value="Capita">Capita</option>
-                <option value="Smith">Smith</option>
-                <option value="Oakley">Oakley</option>
-                <option value="Giro">Giro</option>
-                <option value="POC">POC</option>
-                <option value="Descente">Descente</option>
-                <option value="Hestra">Hestra</option>
-                <option value="기타">기타</option>
-              </select>
-            </div>
-
-            {/* 상품명 */}
-            <div>
-              <label className={labelClass}>상품명</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="예: Soul 7"
-                required
-                className={inputClass}
-              />
-            </div>
+          {/* 상품명 */}
+          <div>
+            <label className={labelClass}>상품명</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="예: Rossignol Soul 7 (2022)"
+              required
+              className={inputClass}
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
