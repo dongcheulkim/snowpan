@@ -231,7 +231,8 @@ const Home = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <Link to="/webcam" className="text-xs text-primary-dark font-medium">전체보기 &gt;</Link>
             <button
               onClick={() => setCurrentWebcam((prev) => Math.max(0, prev - 1))}
               disabled={currentWebcam === 0}
