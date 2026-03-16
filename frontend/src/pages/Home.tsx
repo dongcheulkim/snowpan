@@ -4,9 +4,6 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [currentWebcam, setCurrentWebcam] = useState(0);
-  const [votes] = useState<Record<string, string | null>>(() => {
-    return JSON.parse(localStorage.getItem('pollVotes') || '{}');
-  });
 
   const banners = [
     { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD' },
@@ -245,76 +242,29 @@ const Home = () => {
             </div>
             <Link to="/poll/create" className="text-xs font-bold text-white bg-primary px-3 py-1.5 rounded-lg active:bg-primary-dark">+ 투표 만들기</Link>
           </div>
-          <div className="space-y-3">
-            {hotTopics.map((topic) => (
-              <Link key={topic.id} to={topic.type === 'poll' ? `/poll/${topic.id}` : `/community/${topic.id}`} className="block bg-gray-50 rounded-xl p-3.5 active:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-2 mb-2">
+          <div className="space-y-0">
+            {hotTopics.map((topic, idx) => (
+              <Link
+                key={topic.id}
+                to={topic.type === 'poll' ? `/poll/${topic.id}` : `/community/${topic.id}`}
+                className={`flex items-center justify-between py-3 ${idx !== hotTopics.length - 1 ? 'border-b border-gray-100' : ''}`}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   {topic.type === 'poll' ? (
-                    <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">투표</span>
+                    <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0">투표</span>
                   ) : (
-                    <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">인기</span>
+                    <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded flex-shrink-0">인기</span>
                   )}
-                  <span className="text-sm font-medium text-gray-900 flex-1 truncate">{topic.title}</span>
+                  <span className="text-sm font-medium text-gray-900 truncate">{topic.title}</span>
                 </div>
-
-                {topic.type === 'poll' && topic.options && (
-                  <div className="space-y-1.5 mb-2.5">
-                    {topic.options.map((opt) => {
-                      const myVote = votes[topic.id];
-                      const isSelected = myVote === opt.label;
-                      return (
-                        <div
-                          key={opt.label}
-                          className="w-full relative h-8 rounded-lg overflow-hidden"
-                        >
-                          {myVote ? (
-                            <>
-                              <div
-                                className={`absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ${
-                                  isSelected ? 'bg-primary/30' : 'bg-gray-200'
-                                }`}
-                                style={{ width: `${opt.pct}%` }}
-                              />
-                              <div className="relative flex items-center justify-between px-3 h-full">
-                                <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-700'}`}>
-                                  {opt.label}
-                                </span>
-                                <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-400'}`}>
-                                  {opt.pct}%
-                                </span>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center px-3">
-                              <span className="text-xs text-gray-700">{opt.label}</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {topic.totalVotes > 0 && (
-                      <p className="text-[10px] text-gray-400 text-right">{topic.totalVotes}명 참여</p>
-                    )}
-                  </div>
-                )}
-
-                {topic.type === 'hot' && (
-                  <div className="text-[11px] text-gray-400 mb-2">
-                    {topic.author} · 댓글 {topic.comments}개
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 text-[11px] text-gray-400">
-                  <span className="flex items-center gap-0.5">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    {topic.views.toLocaleString()}
-                  </span>
-                  <span className="flex items-center gap-0.5">
-                    ♡ {topic.likes}
-                  </span>
+                <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 flex-shrink-0">
+                  <span>♡ {topic.likes}</span>
+                  {topic.type === 'poll' && topic.totalVotes > 0 && (
+                    <span>{topic.totalVotes}명</span>
+                  )}
+                  {topic.type === 'hot' && (
+                    <span>💬 {topic.comments}</span>
+                  )}
                 </div>
               </Link>
             ))}
