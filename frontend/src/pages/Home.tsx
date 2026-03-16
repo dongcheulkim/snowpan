@@ -32,24 +32,6 @@ const Home = () => {
     { id: '2', name: 'Burton Custom (2021)', price: 380000, location: '서울 마포구', time: '1일 전', likes: 22 },
   ];
 
-  const rentalItems = [
-    { id: 'r1', name: '풀세트 렌탈 (스키+부츠+폴)', resort: '용평리조트', price: 35000, duration: '1일', rating: 4.8 },
-    { id: 'r2', name: '보드+부츠 세트', resort: '휘닉스평창', price: 30000, duration: '1일', rating: 4.6 },
-    { id: 'r3', name: '스키복 상하의 세트', resort: '비발디파크', price: 20000, duration: '1일', rating: 4.5 },
-  ];
-
-  const lessonItems = [
-    { id: 'l1', name: '스키 기초반 (LV1)', instructor: '김프로', resort: '용평리조트', price: 80000, level: 'LV1' },
-    { id: 'l2', name: '보드 중급반 (LV2)', instructor: '이코치', resort: '휘닉스평창', price: 100000, level: 'LV2' },
-    { id: 'l3', name: '카빙 마스터 (LV3)', instructor: '박강사', resort: '하이원리조트', price: 120000, level: 'LV3' },
-  ];
-
-  const accommodationItems = [
-    { id: 'a1', name: '용평 스키텔', resort: '용평리조트', price: 89000, type: '호텔', rating: 4.7 },
-    { id: 'a2', name: '평창 숲속펜션', resort: '휘닉스평창', price: 65000, type: '펜션', rating: 4.9 },
-    { id: 'a3', name: '하이원 콘도 4인실', resort: '하이원리조트', price: 120000, type: '콘도', rating: 4.5 },
-  ];
-
   const communityPosts = [
     { id: 'c1', title: '올 시즌 첫 스키 후기!', category: '스키장후기', author: '스키매니아', comments: 12, likes: 34 },
     { id: 'c2', title: '초보 보더 장비 추천 부탁드려요', category: '초보팁', author: '뉴보더', comments: 23, likes: 18 },
@@ -171,83 +153,6 @@ const Home = () => {
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
                   <span className="text-[11px]">{deal.likes}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Rental */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">⛷️ 렌탈</h2>
-            <Link to="/rental" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
-          </div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {rentalItems.map((item) => (
-              <Link
-                key={item.id}
-                to={`/rental/${item.id}`}
-                className="flex-shrink-0 w-44 border border-gray-100 rounded-xl p-3.5"
-              >
-                <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
-                <div className="text-[11px] text-gray-400 mt-1">{item.resort} · {item.duration}</div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-sm font-bold text-gray-900">{item.price.toLocaleString()}원</span>
-                  <span className="text-[11px] text-primary-dark">★ {item.rating}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Lesson */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">🎿 레슨</h2>
-            <Link to="/lesson" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
-          </div>
-          <div className="space-y-0">
-            {lessonItems.map((item, idx) => (
-              <Link
-                key={item.id}
-                to={`/lesson/${item.id}`}
-                className={`flex items-center justify-between py-3 ${idx !== lessonItems.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-primary-dark bg-primary-50 px-1.5 py-0.5 rounded">{item.level}</span>
-                    <span className="text-sm font-medium text-gray-900 truncate">{item.name}</span>
-                  </div>
-                  <div className="text-[11px] text-gray-400 mt-1">{item.instructor} · {item.resort}</div>
-                </div>
-                <span className="text-sm font-bold text-gray-900 ml-3">{item.price.toLocaleString()}원</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Accommodation */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">🏨 숙소</h2>
-            <Link to="/accommodation" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
-          </div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {accommodationItems.map((item) => (
-              <Link
-                key={item.id}
-                to={`/accommodation/${item.id}`}
-                className="flex-shrink-0 w-44 border border-gray-100 rounded-xl p-3.5"
-              >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-semibold text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">{item.type}</span>
-                </div>
-                <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
-                <div className="text-[11px] text-gray-400 mt-0.5">{item.resort}</div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-sm font-bold text-gray-900">{item.price.toLocaleString()}원</span>
-                  <span className="text-[11px] text-primary-dark">★ {item.rating}</span>
                 </div>
               </Link>
             ))}
