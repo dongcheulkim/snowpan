@@ -107,18 +107,8 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="px-4 pt-12 pb-4 bg-white">
-        <div className="mb-5">
-          <h1 className="text-xl font-bold text-gray-900">
-            스노우판
-          </h1>
-        </div>
-
-      </div>
-
       {/* Banner */}
-      <div className="px-4 mb-5 bg-white">
+      <div className="px-4 pt-12 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-xl bg-primary-50 h-[72px]">
           {banners.map((banner, idx) => (
             <div
