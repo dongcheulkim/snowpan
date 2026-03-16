@@ -81,14 +81,9 @@ const Community = () => {
           <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
           <h1 className="text-xl font-bold text-gray-900">{sportLabel} 커뮤니티</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <Link to="/poll/create" className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs active:bg-orange-600 transition-colors whitespace-nowrap">
-            + 투표
-          </Link>
-          <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
-            + 글쓰기
-          </Link>
-        </div>
+        <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
+          + 글쓰기
+        </Link>
       </div>
 
       {/* Search */}

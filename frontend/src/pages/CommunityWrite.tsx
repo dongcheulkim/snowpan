@@ -9,8 +9,10 @@ const CommunityWrite = () => {
   const [content, setContent] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
 
   const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
+  const isPoll = category === 'poll';
 
   const categories = [
     { id: 'free', name: '자유' },
@@ -18,6 +20,7 @@ const CommunityWrite = () => {
     { id: 'resort', name: '스키장' },
     { id: 'tip', name: '초보팁' },
     { id: 'carpool', name: '카풀' },
+    { id: 'poll', name: '투표' },
   ];
 
   const badgeMap: Record<string, string> = {
@@ -26,32 +29,79 @@ const CommunityWrite = () => {
     resort: '스키장후기',
     tip: '초보팁',
     carpool: '카풀/동행',
+    poll: '투표',
+  };
+
+  const addOption = () => {
+    if (pollOptions.length >= 6) return;
+    setPollOptions([...pollOptions, '']);
+  };
+
+  const removeOption = (idx: number) => {
+    if (pollOptions.length <= 2) return;
+    setPollOptions(pollOptions.filter((_, i) => i !== idx));
+  };
+
+  const updateOption = (idx: number, value: string) => {
+    const updated = [...pollOptions];
+    updated[idx] = value;
+    setPollOptions(updated);
   };
 
   const handleSubmit = () => {
-    if (!title.trim() || !content.trim()) {
-      alert('제목과 내용을 입력해주세요.');
+    if (!title.trim()) {
+      alert('제목을 입력해주세요.');
       return;
+    }
+    if (!isPoll && !content.trim()) {
+      alert('내용을 입력해주세요.');
+      return;
+    }
+    if (isPoll) {
+      const validOptions = pollOptions.map((o) => o.trim()).filter((o) => o.length > 0);
+      if (validOptions.length < 2) {
+        alert('선택지를 최소 2개 입력해주세요.');
+        return;
+      }
     }
     if (!agreed) {
       alert('커뮤니티 이용규칙에 동의해주세요.');
       return;
     }
-    const existing = JSON.parse(localStorage.getItem('communityPosts') || '[]');
-    const newPost = {
-      id: `user_${Date.now()}`,
-      tab: category,
-      badge: badgeMap[category],
-      sport: sport,
-      title: title.trim(),
-      preview: content.trim(),
-      author: '나',
-      time: '방금 전',
-      likes: 0,
-      comments: 0,
-      views: 0,
-    };
-    localStorage.setItem('communityPosts', JSON.stringify([newPost, ...existing]));
+
+    if (isPoll) {
+      const validOptions = pollOptions.map((o) => o.trim()).filter((o) => o.length > 0);
+      const existing = JSON.parse(localStorage.getItem('userPolls') || '[]');
+      const newPoll = {
+        id: `poll_${Date.now()}`,
+        title: title.trim(),
+        type: 'poll',
+        sport: sport,
+        options: validOptions.map((label) => ({ label, votes: 0, pct: 0 })),
+        totalVotes: 0,
+        views: 0,
+        likes: 0,
+        author: '나',
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem('userPolls', JSON.stringify([newPoll, ...existing]));
+    } else {
+      const existing = JSON.parse(localStorage.getItem('communityPosts') || '[]');
+      const newPost = {
+        id: `user_${Date.now()}`,
+        tab: category,
+        badge: badgeMap[category],
+        sport: sport,
+        title: title.trim(),
+        preview: content.trim(),
+        author: '나',
+        time: '방금 전',
+        likes: 0,
+        comments: 0,
+        views: 0,
+      };
+      localStorage.setItem('communityPosts', JSON.stringify([newPost, ...existing]));
+    }
     navigate(`/community/${sport}`);
   };
 
@@ -92,27 +142,73 @@ const CommunityWrite = () => {
 
       {/* Title */}
       <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">제목</label>
+        <label className="text-sm font-semibold text-gray-700 block mb-2">
+          {isPoll ? '투표 제목' : '제목'}
+        </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목을 입력하세요"
+          placeholder={isPoll ? '예: 올 시즌 최고의 스키장은?' : '제목을 입력하세요'}
           className="w-full h-11 px-3.5 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400"
+          maxLength={50}
         />
       </div>
 
-      {/* Content */}
-      <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">내용</label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="내용을 입력하세요"
-          rows={12}
-          className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-        />
-      </div>
+      {/* Poll Options (only when poll category) */}
+      {isPoll && (
+        <div>
+          <label className="text-sm font-semibold text-gray-700 block mb-2">선택지</label>
+          <div className="space-y-2">
+            {pollOptions.map((opt, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-xs font-bold text-primary w-5 text-center">{idx + 1}</span>
+                <input
+                  type="text"
+                  value={opt}
+                  onChange={(e) => updateOption(idx, e.target.value)}
+                  placeholder={`선택지 ${idx + 1}`}
+                  className="flex-1 h-10 px-3.5 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-primary"
+                  maxLength={30}
+                />
+                {pollOptions.length > 2 && (
+                  <button
+                    onClick={() => removeOption(idx)}
+                    className="w-8 h-8 flex items-center justify-center text-gray-300 active:text-red-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {pollOptions.length < 6 && (
+            <button
+              onClick={addOption}
+              className="mt-2 w-full py-2 border-2 border-dashed border-gray-200 rounded-lg text-xs text-gray-400 font-medium active:bg-gray-50"
+            >
+              + 선택지 추가
+            </button>
+          )}
+          <p className="text-[11px] text-gray-400 mt-1">최소 2개, 최대 6개</p>
+        </div>
+      )}
+
+      {/* Content (only when NOT poll) */}
+      {!isPoll && (
+        <div>
+          <label className="text-sm font-semibold text-gray-700 block mb-2">내용</label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="내용을 입력하세요"
+            rows={12}
+            className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+          />
+        </div>
+      )}
 
       {/* Community Rules Agreement */}
       <div className="card p-4 space-y-3">
@@ -158,7 +254,7 @@ const CommunityWrite = () => {
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}
       >
-        등록하기
+        {isPoll ? '투표 올리기' : '등록하기'}
       </button>
     </div>
   );
