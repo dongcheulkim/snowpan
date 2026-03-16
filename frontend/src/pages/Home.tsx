@@ -6,9 +6,9 @@ const Home = () => {
   const [currentWebcam, setCurrentWebcam] = useState(0);
 
   const banners = [
-    { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD' },
-    { title: '스키프로샵 홍대점', desc: '24/25 신상 부츠 피팅 무료 · 풀세트 특가', tag: 'AD' },
-    { title: '라이더스클럽 판교점', desc: '중고 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD' },
+    { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr' },
+    { title: '스키프로샵 홍대점', desc: '24/25 신상 부츠 피팅 무료 · 풀세트 특가', tag: 'AD', url: 'https://www.skiproshop.co.kr' },
+    { title: '라이더스클럽 판교점', desc: '중고 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD', url: 'https://www.ridersclub.co.kr' },
   ];
 
   useEffect(() => {
@@ -80,9 +80,12 @@ const Home = () => {
       <div className="px-4 pt-2 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
           {banners.map((banner, idx) => (
-            <div
+            <a
               key={idx}
-              className={`absolute inset-0 flex items-center px-5 transition-all duration-500 ${
+              href={banner.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
                 idx === currentBanner
                   ? 'opacity-100 translate-x-0'
                   : idx < currentBanner
@@ -97,7 +100,7 @@ const Home = () => {
                 </div>
                 <p className="text-sm text-gray-500">{banner.desc}</p>
               </div>
-            </div>
+            </a>
           ))}
           <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
             {currentBanner + 1}/{banners.length}
