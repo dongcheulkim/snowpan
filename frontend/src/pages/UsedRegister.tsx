@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 const UsedRegister = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [form, setForm] = useState({
     name: '',
     category: 'ski',
@@ -22,6 +24,10 @@ const UsedRegister = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreed) {
+      alert('중고거래 주의사항에 동의해주세요.');
+      return;
+    }
     setLoading(true);
 
     const existing = JSON.parse(localStorage.getItem('usedProducts') || '[]');
@@ -209,10 +215,50 @@ const UsedRegister = () => {
           </div>
 
 
+          {/* 중고거래 주의사항 */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => setShowRules(!showRules)}
+              className="flex items-center justify-between w-full"
+            >
+              <span className="text-sm font-bold text-gray-700">중고거래 주의사항</span>
+              <span className="text-gray-400 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
+            </button>
+            {showRules && (
+              <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed space-y-2">
+                <p className="font-semibold text-gray-700">아래 사항을 반드시 확인해주세요.</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li><span className="font-medium text-gray-600">허위 매물 금지</span> — 실제 보유하지 않은 장비, 허위 사진·가격 등록 시 즉시 삭제 및 이용 제한</li>
+                  <li><span className="font-medium text-gray-600">정확한 상태 기재</span> — 스크래치, 수리 이력, 사용 횟수 등 상품 상태를 정확히 기재해야 합니다</li>
+                  <li><span className="font-medium text-gray-600">직거래 안전 거래</span> — 공공장소에서 거래하고, 현금 선송금 요구에 주의하세요</li>
+                  <li><span className="font-medium text-gray-600">택배 거래 시</span> — 안전결제(에스크로) 이용을 권장하며, 분쟁 발생 시 증빙자료를 보관하세요</li>
+                  <li><span className="font-medium text-gray-600">사기 피해 주의</span> — 시세보다 지나치게 저렴한 매물, 급매를 빙자한 선입금 요구에 주의하세요</li>
+                  <li><span className="font-medium text-gray-600">개인정보 보호</span> — 게시글에 연락처, 계좌번호 등 개인정보를 직접 노출하지 마세요</li>
+                  <li><span className="font-medium text-gray-600">플랫폼 책임 범위</span> — 스노우판은 통신판매중개자로서 거래 당사자가 아니며, 거래에 대한 책임은 판매자·구매자에게 있습니다</li>
+                </ul>
+                <p className="text-[11px] text-gray-400 pt-1">전자상거래법 제20조에 의거, 통신판매중개자는 거래 당사자가 아님을 고지합니다.</p>
+              </div>
+            )}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary accent-sky-500"
+              />
+              <span className="text-xs text-gray-600">위 중고거래 주의사항을 확인했으며 동의합니다.</span>
+            </label>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] mt-2 ${
+              agreed
+                ? 'bg-accent text-white hover:bg-accent-light'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
