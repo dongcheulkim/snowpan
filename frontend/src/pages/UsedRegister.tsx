@@ -6,6 +6,7 @@ const UsedRegister = () => {
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: '',
     category: 'ski',
@@ -37,7 +38,8 @@ const UsedRegister = () => {
       name: form.name,
       brand: '',
       price: Number(form.price),
-      image: imageMap[form.category] || '📦',
+      image: images.length > 0 ? images[0] : (imageMap[form.category] || '📦'),
+      images: images,
       category: form.category,
     };
     localStorage.setItem('usedProducts', JSON.stringify([newItem, ...existing]));
@@ -65,10 +67,52 @@ const UsedRegister = () => {
           {/* 사진 업로드 영역 */}
           <div>
             <label className={labelClass}>사진</label>
-            <div className="bg-gray-100 rounded-lg p-8 text-center border-2 border-dashed border-gray-300 hover:border-accent/50 transition-all cursor-pointer">
+            <input
+              type="file"
+              accept="image/jpeg,image/png"
+              multiple
+              id="photo-upload"
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files || []);
+                const remaining = 5 - images.length;
+                if (remaining <= 0) { alert('사진은 최대 5장까지 가능합니다.'); return; }
+                const toProcess = files.slice(0, remaining);
+                toProcess.forEach((file) => {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    setImages((prev) => {
+                      if (prev.length >= 5) return prev;
+                      return [...prev, ev.target?.result as string];
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                });
+                e.target.value = '';
+              }}
+            />
+            {images.length > 0 && (
+              <div className="flex gap-2 mb-2 flex-wrap">
+                {images.map((src, idx) => (
+                  <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-300 group">
+                    <img src={src} alt={`미리보기 ${idx + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setImages(images.filter((_, i) => i !== idx))}
+                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >×</button>
+                    {idx === 0 && <div className="absolute bottom-0 left-0 right-0 bg-accent text-white text-[9px] text-center py-0.5">대표</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <label
+              htmlFor="photo-upload"
+              className="bg-gray-100 rounded-lg p-8 text-center border-2 border-dashed border-gray-300 hover:border-accent/50 transition-all cursor-pointer block"
+            >
               <div className="text-sm text-gray-500">클릭하여 사진을 업로드하세요</div>
-              <div className="text-xs text-gray-400 mt-1">최대 5장 · JPG, PNG</div>
-            </div>
+              <div className="text-xs text-gray-400 mt-1">{images.length}/5장 · JPG, PNG</div>
+            </label>
           </div>
 
           {/* 상품명 */}
