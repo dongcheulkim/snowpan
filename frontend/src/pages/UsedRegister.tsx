@@ -11,6 +11,7 @@ const UsedRegister = () => {
     year: '',
     condition: '새상품',
     price: '',
+    tradeMethod: '직거래',
     location: '',
     description: '',
   });
@@ -156,19 +157,42 @@ const UsedRegister = () => {
             />
           </div>
 
-          {/* 거래 지역 */}
+          {/* 거래 방법 */}
           <div>
-            <label className={labelClass}>거래 지역</label>
-            <input
-              type="text"
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              placeholder="예: 서울 강남구"
-              required
-              className={inputClass}
-            />
+            <label className={labelClass}>거래 방법</label>
+            <div className="flex gap-2">
+              {['직거래', '택배', '직거래+택배'].map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setForm({ ...form, tradeMethod: method })}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    form.tradeMethod === method
+                      ? 'bg-accent text-white'
+                      : 'bg-white text-gray-500 border border-gray-300 active:bg-gray-50'
+                  }`}
+                >
+                  {method}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* 거래 지역 (직거래 시) */}
+          {form.tradeMethod !== '택배' && (
+            <div>
+              <label className={labelClass}>거래 지역</label>
+              <input
+                type="text"
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+                placeholder="예: 서울 강남구"
+                required
+                className={inputClass}
+              />
+            </div>
+          )}
 
           {/* 상세 설명 */}
           <div>
