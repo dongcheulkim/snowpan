@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [currentWebcam, setCurrentWebcam] = useState(0);
+  const [votes, setVotes] = useState<Record<string, string | null>>({});
 
   const banners = [
     { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD' },
@@ -37,6 +38,51 @@ const Home = () => {
     { id: 'c2', title: '초보 보더 장비 추천 부탁드려요', category: '초보팁', author: '뉴보더', comments: 23, likes: 18 },
     { id: 'c3', title: '용평 주말 카풀 구합니다 (3/22)', category: '카풀/동행', author: '라이더킴', comments: 8, likes: 5 },
   ];
+
+  const hotTopics = [
+    {
+      id: 'ht1',
+      title: '올 시즌 최고의 스키장은?',
+      views: 1842,
+      likes: 256,
+      type: 'poll' as const,
+      options: [
+        { label: '용평리조트', pct: 38 },
+        { label: '휘닉스평창', pct: 28 },
+        { label: '하이원리조트', pct: 22 },
+        { label: '비발디파크', pct: 12 },
+      ],
+      totalVotes: 427,
+    },
+    {
+      id: 'ht2',
+      title: '초보자 첫 장비, 중고 vs 새제품?',
+      views: 1253,
+      likes: 189,
+      type: 'poll' as const,
+      options: [
+        { label: '중고로 시작', pct: 62 },
+        { label: '새 제품 구매', pct: 38 },
+      ],
+      totalVotes: 314,
+    },
+    {
+      id: 'ht3',
+      title: '보드 바인딩 각도 세팅 공유해요',
+      views: 967,
+      likes: 134,
+      type: 'hot' as const,
+      comments: 47,
+      author: '프로라이더',
+    },
+  ];
+
+  const handleVote = (topicId: string, optionLabel: string) => {
+    setVotes((prev) => {
+      if (prev[topicId]) return prev;
+      return { ...prev, [topicId]: optionLabel };
+    });
+  };
 
   const webcams = [
     { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/guide/realTimeNews/ypResortWebcam.do', region: '강원' },
@@ -182,6 +228,93 @@ const Home = () => {
                   <span>💬 {post.comments}</span>
                 </div>
               </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Hot Topics */}
+        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-[15px] font-bold text-gray-900">핫한 주제</h2>
+              <span className="text-[10px] font-semibold text-white bg-red-500 px-1.5 py-0.5 rounded-full">HOT</span>
+            </div>
+            <Link to="/community" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
+          </div>
+          <div className="space-y-3">
+            {hotTopics.map((topic) => (
+              <div key={topic.id} className="bg-gray-50 rounded-xl p-3.5">
+                <div className="flex items-center gap-2 mb-2">
+                  {topic.type === 'poll' ? (
+                    <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">투표</span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">인기</span>
+                  )}
+                  <span className="text-sm font-medium text-gray-900 flex-1 truncate">{topic.title}</span>
+                </div>
+
+                {topic.type === 'poll' && topic.options && (
+                  <div className="space-y-1.5 mb-2.5">
+                    {topic.options.map((opt) => {
+                      const voted = votes[topic.id];
+                      const isSelected = voted === opt.label;
+                      return (
+                        <button
+                          key={opt.label}
+                          onClick={() => handleVote(topic.id, opt.label)}
+                          className={`w-full relative h-8 rounded-lg overflow-hidden text-left transition-all ${
+                            voted ? 'cursor-default' : 'active:scale-[0.98]'
+                          }`}
+                        >
+                          <div
+                            className={`absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ${
+                              isSelected ? 'bg-primary/30' : voted ? 'bg-gray-200' : 'bg-gray-200'
+                            }`}
+                            style={{ width: voted ? `${opt.pct}%` : '0%' }}
+                          />
+                          <div className="relative flex items-center justify-between px-3 h-full">
+                            <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-700'}`}>
+                              {opt.label}
+                            </span>
+                            {voted && (
+                              <span className={`text-xs ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-400'}`}>
+                                {opt.pct}%
+                              </span>
+                            )}
+                          </div>
+                          {!voted && (
+                            <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center px-3">
+                              <span className="text-xs text-gray-700">{opt.label}</span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {votes[topic.id] && (
+                      <p className="text-[10px] text-gray-400 text-right">{topic.totalVotes}명 참여</p>
+                    )}
+                  </div>
+                )}
+
+                {topic.type === 'hot' && (
+                  <div className="text-[11px] text-gray-400 mb-2">
+                    {topic.author} · 댓글 {topic.comments}개
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                  <span className="flex items-center gap-0.5">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {topic.views.toLocaleString()}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    ♡ {topic.likes}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
