@@ -39,51 +39,20 @@ const Home = () => {
   ];
 
   const defaultHotTopics = [
-    {
-      id: 'ht1',
-      title: '올 시즌 최고의 스키장은?',
-      views: 1842,
-      likes: 256,
-      type: 'poll' as const,
-      options: [
-        { label: '용평리조트', pct: 38 },
-        { label: '휘닉스평창', pct: 28 },
-        { label: '하이원리조트', pct: 22 },
-        { label: '비발디파크', pct: 12 },
-      ],
-      totalVotes: 427,
-    },
-    {
-      id: 'ht2',
-      title: '초보자 첫 장비, 중고 vs 새제품?',
-      views: 1253,
-      likes: 189,
-      type: 'poll' as const,
-      options: [
-        { label: '중고로 시작', pct: 62 },
-        { label: '새 제품 구매', pct: 38 },
-      ],
-      totalVotes: 314,
-    },
-    {
-      id: 'ht3',
-      title: '보드 바인딩 각도 세팅 공유해요',
-      views: 967,
-      likes: 134,
-      type: 'hot' as const,
-      comments: 47,
-      author: '프로라이더',
-    },
+    { id: 'ht1', title: '올 시즌 최고의 스키장은?', likes: 256, totalVotes: 427 },
+    { id: 'ht2', title: '초보자 첫 장비, 중고 vs 새제품?', likes: 189, totalVotes: 314 },
+    { id: 'ht3', title: '보드 바인딩 각도 세팅 공유해요', likes: 134, totalVotes: 0 },
   ];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userPolls = JSON.parse(localStorage.getItem('userPolls') || '[]').map((p: any) => ({
-    ...p,
-    type: 'poll' as const,
-    options: p.options.map((o: { label: string; pct?: number }) => ({ label: o.label, pct: o.pct || 0 })),
+    id: p.id,
+    title: p.title,
+    likes: p.likes || 0,
+    totalVotes: p.totalVotes || 0,
   }));
 
-  const hotTopics = [...userPolls, ...defaultHotTopics];
+  const hotTopics = [...userPolls, ...defaultHotTopics].sort((a, b) => b.likes - a.likes).slice(0, 5);
 
   const webcams = [
     { name: '용평리조트', url: 'https://www.yongpyong.co.kr/kor/guide/realTimeNews/ypResortWebcam.do', region: '강원' },
@@ -223,30 +192,23 @@ const Home = () => {
               <h2 className="text-[15px] font-bold text-gray-900">핫한 주제</h2>
               <span className="text-[10px] font-semibold text-white bg-red-500 px-1.5 py-0.5 rounded-full">HOT</span>
             </div>
-            <Link to="/poll/create" className="text-xs font-bold text-white bg-primary px-3 py-1.5 rounded-lg active:bg-primary-dark">+ 투표 만들기</Link>
+            <Link to="/community" className="text-xs text-gray-400">더보기 ›</Link>
           </div>
           <div className="space-y-0">
             {hotTopics.map((topic, idx) => (
               <Link
                 key={topic.id}
-                to={topic.type === 'poll' ? `/poll/${topic.id}` : `/community/${topic.id}`}
+                to={`/poll/${topic.id}`}
                 className={`flex items-center justify-between py-3 ${idx !== hotTopics.length - 1 ? 'border-b border-gray-100' : ''}`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {topic.type === 'poll' ? (
-                    <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0">투표</span>
-                  ) : (
-                    <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded flex-shrink-0">인기</span>
-                  )}
+                  <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0">투표</span>
                   <span className="text-sm font-medium text-gray-900 truncate">{topic.title}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 flex-shrink-0">
                   <span>♡ {topic.likes}</span>
-                  {topic.type === 'poll' && topic.totalVotes > 0 && (
+                  {topic.totalVotes > 0 && (
                     <span>{topic.totalVotes}명</span>
-                  )}
-                  {topic.type === 'hot' && (
-                    <span>💬 {topic.comments}</span>
                   )}
                 </div>
               </Link>

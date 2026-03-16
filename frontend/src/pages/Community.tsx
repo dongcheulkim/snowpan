@@ -16,6 +16,7 @@ const Community = () => {
     { id: 'resort', name: '스키장후기' },
     { id: 'tip', name: '초보팁' },
     { id: 'carpool', name: '카풀/동행' },
+    { id: 'poll', name: '투표' },
   ];
 
   const badgeColor: Record<string, string> = {
@@ -24,6 +25,7 @@ const Community = () => {
     '스키장후기': 'text-gold bg-gold/10 border-gold/20',
     '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
     '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
+    '투표': 'text-orange-500 bg-orange-50 border-orange-200',
   };
 
   const defaultPosts = [
@@ -38,7 +40,30 @@ const Community = () => {
   ];
 
   const userPosts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
-  const posts = [...userPosts, ...defaultPosts];
+
+  // Load polls as posts
+  const defaultPolls = [
+    { id: 'ht1', tab: 'poll', badge: '투표', sport: 'ski', title: '올 시즌 최고의 스키장은?', preview: '용평리조트 vs 휘닉스평창 vs 하이원리조트 vs 비발디파크', author: '스노우판', time: '1일 전', likes: 256, comments: 0, views: 1842 },
+    { id: 'ht2', tab: 'poll', badge: '투표', sport: 'ski', title: '초보자 첫 장비, 중고 vs 새제품?', preview: '중고로 시작 vs 새 제품 구매', author: '스노우판', time: '2일 전', likes: 189, comments: 0, views: 1253 },
+    { id: 'ht3', tab: 'poll', badge: '투표', sport: 'board', title: '보드 바인딩 각도 세팅 공유해요', preview: '여러분의 바인딩 각도 세팅은?', author: '프로라이더', time: '3일 전', likes: 134, comments: 47, views: 967 },
+  ];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userPolls = JSON.parse(localStorage.getItem('userPolls') || '[]').map((p: any) => ({
+    id: p.id,
+    tab: 'poll',
+    badge: '투표',
+    sport: p.sport || sport || 'ski',
+    title: p.title,
+    preview: p.options?.map((o: { label: string }) => o.label).join(' vs ') || '',
+    author: p.author || '나',
+    time: '방금 전',
+    likes: p.likes || 0,
+    comments: 0,
+    views: p.views || 0,
+  }));
+
+  const posts = [...userPolls, ...userPosts, ...defaultPolls, ...defaultPosts];
 
   const filteredPosts = posts
     .filter(p => p.sport === sport)
@@ -56,9 +81,14 @@ const Community = () => {
           <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
           <h1 className="text-xl font-bold text-gray-900">{sportLabel} 커뮤니티</h1>
         </div>
-        <Link to={`/community/${sport}/write`} className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
-          + 글쓰기
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/poll/create" className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs active:bg-orange-600 transition-colors whitespace-nowrap">
+            + 투표
+          </Link>
+          <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
+            + 글쓰기
+          </Link>
+        </div>
       </div>
 
       {/* Search */}
@@ -94,7 +124,7 @@ const Community = () => {
 
       <div className="space-y-2">
         {filteredPosts.map((post) => (
-          <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
+          <Link to={post.tab === 'poll' ? `/poll/${post.id}` : `/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
             <div className="flex items-center gap-2 mb-2">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
                 {post.badge}

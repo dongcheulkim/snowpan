@@ -49,7 +49,7 @@ const PollCreate = () => {
     };
 
     localStorage.setItem('userPolls', JSON.stringify([newPoll, ...existing]));
-    navigate('/');
+    navigate(-1);
   };
 
   return (
