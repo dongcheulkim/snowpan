@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
-  const [sport, setSport] = useState('ski');
+  const { sport } = useParams<{ sport: string }>();
   const [category, setCategory] = useState('free');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+
+  const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
 
   const categories = [
     { id: 'free', name: '자유게시판' },
@@ -44,42 +46,22 @@ const CommunityWrite = () => {
       views: 0,
     };
     localStorage.setItem('communityPosts', JSON.stringify([newPost, ...existing]));
-    navigate('/community');
+    navigate(`/community/${sport}`);
   };
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">글쓰기</h1>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">←</button>
+          <h1 className="text-xl font-bold text-gray-900">{sportLabel} 글쓰기</h1>
+        </div>
         <button
           onClick={() => navigate(-1)}
           className="text-sm text-gray-400"
         >
           취소
         </button>
-      </div>
-
-      {/* Sport */}
-      <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">종목</label>
-        <div className="flex bg-gray-100 rounded-xl p-1">
-          <button
-            onClick={() => setSport('ski')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-              sport === 'ski' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'
-            }`}
-          >
-            ⛷️ 스키
-          </button>
-          <button
-            onClick={() => setSport('board')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-              sport === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'
-            }`}
-          >
-            🏂 보드
-          </button>
-        </div>
       </div>
 
       {/* Category */}

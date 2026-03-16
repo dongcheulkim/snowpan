@@ -216,7 +216,7 @@ const Home = () => {
             {communityPosts.map((post, idx) => (
               <Link
                 key={post.id}
-                to={`/community/${post.id}`}
+                to={`/community/post/${post.id}`}
                 className={`block py-2.5 ${idx !== communityPosts.length - 1 ? 'border-b border-gray-100' : ''}`}
               >
                 <div className="flex items-center gap-2">

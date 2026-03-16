@@ -15,6 +15,7 @@ import Accommodation from './pages/Accommodation';
 import AccommodationDetail from './pages/AccommodationDetail';
 import AccommodationRegister from './pages/AccommodationRegister';
 import Chat from './pages/Chat';
+import CommunitySelect from './pages/CommunitySelect';
 import Community from './pages/Community';
 import CommunityWrite from './pages/CommunityWrite';
 import CommunityDetail from './pages/CommunityDetail';
@@ -54,9 +55,10 @@ function App() {
           <Route path="accommodation" element={<Accommodation />} />
           <Route path="accommodation/register" element={<AccommodationRegister />} />
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
-          <Route path="community" element={<Community />} />
-          <Route path="community/write" element={<CommunityWrite />} />
-          <Route path="community/:id" element={<CommunityDetail />} />
+          <Route path="community" element={<CommunitySelect />} />
+          <Route path="community/post/:id" element={<CommunityDetail />} />
+          <Route path="community/:sport/write" element={<CommunityWrite />} />
+          <Route path="community/:sport" element={<Community />} />
           <Route path="mypage" element={<MyPage />} />
           <Route path="seller/:sellerId" element={<SellerProfile />} />
           <Route path="login" element={<Login />} />

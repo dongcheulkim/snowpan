@@ -1,16 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 
 const Community = () => {
-  const [selectedSport, setSelectedSport] = useState('all');
+  const { sport } = useParams<{ sport: string }>();
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const sports = [
-    { id: 'all', name: '전체' },
-    { id: 'ski', name: '스키' },
-    { id: 'board', name: '보드' },
-  ];
+  const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
 
   const tabs = [
     { id: 'all', name: '전체' },
@@ -44,7 +41,7 @@ const Community = () => {
   const posts = [...userPosts, ...defaultPosts];
 
   const filteredPosts = posts
-    .filter(p => selectedSport === 'all' || p.sport === selectedSport)
+    .filter(p => p.sport === sport)
     .filter(p => selectedTab === 'all' || p.tab === selectedTab)
     .filter(p => {
       if (!searchQuery.trim()) return true;
@@ -54,9 +51,12 @@ const Community = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">커뮤니티</h1>
-        <Link to="/community/write" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors whitespace-nowrap">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
+          <h1 className="text-xl font-bold text-gray-900">{sportLabel} 커뮤니티</h1>
+        </div>
+        <Link to={`/community/${sport}/write`} className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
           + 글쓰기
         </Link>
       </div>
@@ -73,23 +73,6 @@ const Community = () => {
           placeholder="제목이나 내용으로 검색"
           className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400"
         />
-      </div>
-
-      {/* Sport Toggle */}
-      <div className="flex bg-gray-100 rounded-xl p-1">
-        {sports.map((sport) => (
-          <button
-            key={sport.id}
-            onClick={() => setSelectedSport(sport.id)}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-              selectedSport === sport.id
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-400'
-            }`}
-          >
-            {sport.id === 'ski' && '⛷️ '}{sport.id === 'board' && '🏂 '}{sport.name}
-          </button>
-        ))}
       </div>
 
       {/* Category Tabs */}
@@ -111,11 +94,8 @@ const Community = () => {
 
       <div className="space-y-2">
         {filteredPosts.map((post) => (
-          <Link to={`/community/${post.id}`} key={post.id} className="card p-4 block card-hover">
+          <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                {post.sport === 'ski' ? '⛷️' : '🏂'}
-              </span>
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[post.badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
                 {post.badge}
               </span>
