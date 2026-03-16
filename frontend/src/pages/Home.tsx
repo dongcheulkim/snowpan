@@ -108,7 +108,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Banner */}
-      <div className="px-4 pt-12 pb-5 bg-white">
+      <div className="px-4 pt-2 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-xl bg-primary-50 h-[72px]">
           {banners.map((banner, idx) => (
             <div
