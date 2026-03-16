@@ -5,19 +5,19 @@ const Webcam = () => {
   const [selectedRegion, setSelectedRegion] = useState('all');
 
   const webcams = [
-    { id: 'yongpyong', name: '용평리조트', region: '강원', slopes: 28, elevation: '1,458m' },
-    { id: 'phoenix', name: '휘닉스평창', region: '강원', slopes: 21, elevation: '1,050m' },
-    { id: 'high1', name: '하이원리조트', region: '강원', slopes: 18, elevation: '1,340m' },
-    { id: 'vivaldi', name: '비발디파크', region: '강원', slopes: 13, elevation: '531m' },
-    { id: 'elysian', name: '엘리시안강촌', region: '강원', slopes: 10, elevation: '580m' },
-    { id: 'jisan', name: '지산리조트', region: '경기', slopes: 7, elevation: '267m' },
-    { id: 'muju', name: '무주덕유산', region: '전북', slopes: 28, elevation: '1,520m' },
-    { id: 'oak', name: '오크밸리', region: '강원', slopes: 9, elevation: '730m' },
-    { id: 'wellihilli', name: '웰리힐리파크', region: '강원', slopes: 20, elevation: '1,069m' },
-    { id: 'o2', name: '오투리조트', region: '강원', slopes: 12, elevation: '1,130m' },
-    { id: 'alpensia', name: '알펜시아', region: '강원', slopes: 6, elevation: '700m' },
-    { id: 'konjiam', name: '곤지암리조트', region: '경기', slopes: 9, elevation: '420m' },
-    { id: 'eden', name: '에덴밸리', region: '경남', slopes: 12, elevation: '1,070m' },
+    { id: 'yongpyong', name: '용평리조트', region: '강원', slopes: 28, elevation: '1,458m', cams: 20, hasStream: true },
+    { id: 'wellihilli', name: '웰리힐리파크', region: '강원', slopes: 20, elevation: '1,069m', cams: 6, hasStream: true },
+    { id: 'konjiam', name: '곤지암리조트', region: '경기', slopes: 9, elevation: '420m', cams: 5, hasStream: true },
+    { id: 'phoenix', name: '휘닉스평창', region: '강원', slopes: 21, elevation: '1,050m', cams: 0, hasStream: false },
+    { id: 'high1', name: '하이원리조트', region: '강원', slopes: 18, elevation: '1,340m', cams: 0, hasStream: false },
+    { id: 'vivaldi', name: '비발디파크', region: '강원', slopes: 13, elevation: '531m', cams: 0, hasStream: false },
+    { id: 'elysian', name: '엘리시안강촌', region: '강원', slopes: 10, elevation: '580m', cams: 0, hasStream: false },
+    { id: 'jisan', name: '지산리조트', region: '경기', slopes: 7, elevation: '267m', cams: 0, hasStream: false },
+    { id: 'muju', name: '무주덕유산', region: '전북', slopes: 28, elevation: '1,520m', cams: 0, hasStream: false },
+    { id: 'oak', name: '오크밸리', region: '강원', slopes: 9, elevation: '730m', cams: 0, hasStream: false },
+    { id: 'o2', name: '오투리조트', region: '강원', slopes: 12, elevation: '1,130m', cams: 0, hasStream: false },
+    { id: 'alpensia', name: '알펜시아', region: '강원', slopes: 6, elevation: '700m', cams: 0, hasStream: false },
+    { id: 'eden', name: '에덴밸리', region: '경남', slopes: 12, elevation: '1,070m', cams: 0, hasStream: false },
   ];
 
   const regions = ['all', '강원', '경기', '전북', '경남'];
@@ -73,6 +73,9 @@ const Webcam = () => {
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
                   <span className="text-[10px] text-gray-400">{cam.slopes}면 · {cam.elevation}</span>
+                  {cam.hasStream && (
+                    <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-medium">{cam.cams}캠</span>
+                  )}
                 </div>
               </div>
             </div>
