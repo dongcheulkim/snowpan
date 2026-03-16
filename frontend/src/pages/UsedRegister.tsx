@@ -11,7 +11,7 @@ const UsedRegister = () => {
     year: '',
     condition: '새상품',
     price: '',
-    tradeMethod: '직거래',
+    tradeMethod: '둘 다 가능',
     location: '',
     description: '',
   });
@@ -161,7 +161,7 @@ const UsedRegister = () => {
           <div>
             <label className={labelClass}>거래 방법</label>
             <div className="flex gap-2">
-              {['직거래', '택배', '직거래+택배'].map((method) => (
+              {['직거래', '택배', '둘 다 가능'].map((method) => (
                 <button
                   key={method}
                   type="button"
