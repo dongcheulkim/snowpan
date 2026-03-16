@@ -36,6 +36,7 @@ import NewEquipment from './pages/NewEquipment';
 import PollCreate from './pages/PollCreate';
 import PollDetail from './pages/PollDetail';
 import Webcam from './pages/Webcam';
+import WebcamDetail from './pages/WebcamDetail';
 
 function App() {
   return (
@@ -77,6 +78,7 @@ function App() {
           <Route path="poll/create" element={<PollCreate />} />
           <Route path="poll/:id" element={<PollDetail />} />
           <Route path="webcam" element={<Webcam />} />
+          <Route path="webcam/:id" element={<WebcamDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
