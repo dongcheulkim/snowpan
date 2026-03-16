@@ -78,11 +78,11 @@ const Home = () => {
     <div className="min-h-screen bg-gray-100">
       {/* Banner */}
       <div className="px-4 pt-2 pb-5 bg-white">
-        <div className="relative overflow-hidden rounded-xl bg-primary-50 h-[72px]">
+        <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
           {banners.map((banner, idx) => (
             <div
               key={idx}
-              className={`absolute inset-0 flex items-center px-4 transition-all duration-500 ${
+              className={`absolute inset-0 flex items-center px-5 transition-all duration-500 ${
                 idx === currentBanner
                   ? 'opacity-100 translate-x-0'
                   : idx < currentBanner
@@ -91,11 +91,11 @@ const Home = () => {
               }`}
             >
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-semibold text-primary-dark bg-primary-100 px-1.5 py-0.5 rounded">{banner.tag}</span>
-                  <span className="text-sm font-semibold text-gray-800">{banner.title}</span>
+                  <span className="text-[15px] font-bold text-gray-800">{banner.title}</span>
                 </div>
-                <p className="text-xs text-gray-500">{banner.desc}</p>
+                <p className="text-sm text-gray-500">{banner.desc}</p>
               </div>
             </div>
           ))}
