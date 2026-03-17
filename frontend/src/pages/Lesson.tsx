@@ -1,10 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+
+interface LessonItem {
+  id: string;
+  name: string;
+  price: number;
+  duration: string;
+  level: string;
+  maxStudents: number;
+  image: string;
+  resort?: { id: string; name: string };
+}
 
 const Lesson = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
 
   const banners = [
     { title: '스키아카데미 용평', desc: '전 국가대표 출신 강사진 · 초급반 특가' },
@@ -44,40 +57,15 @@ const Lesson = () => {
     { id: 'demo', name: '데몬' },
   ];
 
-  const lessonItems = [
-    { id: '1', name: '스키 그룹레슨', resort: '용평리조트', resortId: 'yongpyong', price: 80000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '2', name: '스키 개인레슨', resort: '용평리조트', resortId: 'yongpyong', price: 150000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '⛷️' },
-    { id: '3', name: '보드 그룹레슨', resort: '휘닉스평창', resortId: 'phoenix', price: 75000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 6, image: '🏂' },
-    { id: '4', name: '보드 개인레슨', resort: '휘닉스평창', resortId: 'phoenix', price: 140000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
-    { id: '5', name: '스키 LV3반', resort: '하이원', resortId: 'high1', price: 200000, duration: '3시간', level: 'lv3', levelText: 'LV3', maxStudents: 4, image: '⛷️' },
-    { id: '6', name: '보드 그룹레슨', resort: '하이원', resortId: 'high1', price: 70000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '🏂' },
-    { id: '7', name: '스키 그룹레슨', resort: '비발디파크', resortId: 'vivaldi', price: 75000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 10, image: '⛷️' },
-    { id: '8', name: '보드 개인레슨', resort: '비발디파크', resortId: 'vivaldi', price: 130000, duration: '2시간', level: 'lv3', levelText: 'LV3', maxStudents: 1, image: '🏂' },
-    { id: '9', name: '스키 그룹레슨', resort: '엘리시안', resortId: 'elysian', price: 70000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '10', name: '보드 그룹레슨', resort: '웰리힐리', resortId: 'wellihilli', price: 75000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '🏂' },
-    { id: '11', name: '스키 개인레슨', resort: '웰리힐리', resortId: 'wellihilli', price: 140000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '⛷️' },
-    { id: '12', name: '스키 그룹레슨', resort: '오투리조트', resortId: 'o2', price: 65000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 6, image: '⛷️' },
-    { id: '13', name: '보드 개인레슨', resort: '오투리조트', resortId: 'o2', price: 130000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
-    { id: '14', name: '스키 그룹레슨', resort: '알펜시아', resortId: 'alpensia', price: 85000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 6, image: '⛷️' },
-    { id: '15', name: '스키 데몬반', resort: '알펜시아', resortId: 'alpensia', price: 250000, duration: '3시간', level: 'demo', levelText: '데몬', maxStudents: 4, image: '⛷️' },
-    { id: '16', name: '스키 그룹레슨', resort: '곤지암', resortId: 'konjiam', price: 78000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '17', name: '보드 개인레슨', resort: '곤지암', resortId: 'konjiam', price: 145000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
-    { id: '18', name: '스키 그룹레슨', resort: '지산', resortId: 'jisan', price: 70000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 10, image: '⛷️' },
-    { id: '19', name: '보드 그룹레슨', resort: '지산', resortId: 'jisan', price: 68000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '🏂' },
-    { id: '20', name: '스키 그룹레슨', resort: '무주', resortId: 'muju', price: 80000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '21', name: '스키 데몬반', resort: '무주', resortId: 'muju', price: 240000, duration: '3시간', level: 'demo', levelText: '데몬', maxStudents: 2, image: '⛷️' },
-    { id: '22', name: '스키 그룹레슨', resort: '오크밸리', resortId: 'oakvalley', price: 72000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '23', name: '보드 개인레슨', resort: '오크밸리', resortId: 'oakvalley', price: 135000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
-    { id: '26', name: '스키 그룹레슨', resort: '에덴밸리', resortId: 'eden', price: 78000, duration: '2시간', level: 'lv1', levelText: 'LV1', maxStudents: 8, image: '⛷️' },
-    { id: '27', name: '보드 개인레슨', resort: '에덴밸리', resortId: 'eden', price: 145000, duration: '2시간', level: 'lv2', levelText: 'LV2', maxStudents: 1, image: '🏂' },
-  ];
+  useEffect(() => {
+    api<LessonItem[]>('/lessons').then(setLessonItems).catch(() => {});
+  }, []);
 
-  const approvedLessons = JSON.parse(localStorage.getItem('pendingItems') || '[]')
-    .filter((i: { type: string; status: string }) => i.type === 'lesson' && i.status === 'approved');
-  const allItems = [...approvedLessons, ...lessonItems];
-  const filteredItems = allItems.filter(item => {
-    const resortMatch = selectedResort === 'all' || item.resortId === selectedResort;
-    const levelMatch = selectedLevel === 'all' || item.level === selectedLevel;
+  const levelMap: Record<string, string> = { beginner: 'lv1', intermediate: 'lv2', advanced: 'lv3' };
+  const filteredItems = lessonItems.filter(item => {
+    const resortMatch = selectedResort === 'all' || item.resort?.id === selectedResort;
+    const mappedLevel = levelMap[item.level] || item.level;
+    const levelMatch = selectedLevel === 'all' || mappedLevel === selectedLevel;
     return resortMatch && levelMatch;
   });
 
@@ -157,10 +145,10 @@ const Lesson = () => {
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
-                  {item.resort}
+                  {item.resort?.name || ''}
                 </span>
                 <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                  {item.levelText}
+                  {item.level === 'beginner' ? 'LV1' : item.level === 'intermediate' ? 'LV2' : item.level === 'advanced' ? 'LV3' : item.level}
                 </span>
               </div>
               <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>

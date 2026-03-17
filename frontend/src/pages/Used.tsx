@@ -1,37 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  category: string;
+}
 
 const Used = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'all', name: '전체' },
     { id: 'ski', name: '스키' },
     { id: 'board', name: '보드' },
-    { id: 'ski-boots', name: '스키부츠' },
-    { id: 'board-boots', name: '보드부츠' },
-    { id: 'helmet-goggle', name: '헬멧/고글' },
-    { id: 'gloves', name: '장갑' },
-    { id: 'wear', name: '스키복' },
+    { id: 'boots', name: '부츠' },
+    { id: 'binding', name: '바인딩' },
+    { id: 'helmet', name: '헬멧' },
+    { id: 'goggles', name: '고글' },
+    { id: 'wear', name: '의류' },
     { id: 'etc', name: '기타' },
   ];
 
-  const defaultProducts = [
-    { id: '1', name: 'Rossignol Soul 7 (2022)', brand: 'Rossignol', price: 450000, image: '🎿', category: 'ski' },
-    { id: '2', name: 'Burton Custom (2021)', brand: 'Burton', price: 380000, image: '🏂', category: 'board' },
-    { id: '3', name: 'Salomon S/Pro 100 (2023)', brand: 'Salomon', price: 280000, image: '🥾', category: 'ski-boots' },
-    { id: '4', name: 'Burton Ruler BOA (2022)', brand: 'Burton', price: 190000, image: '👢', category: 'board-boots' },
-    { id: '5', name: 'Smith Vantage 헬멧 + I/O MAG 고글', brand: 'Smith', price: 250000, image: '⛑️', category: 'helmet-goggle' },
-    { id: '6', name: 'Hestra Fall Line 장갑', brand: 'Hestra', price: 85000, image: '🧤', category: 'gloves' },
-    { id: '7', name: 'Descente 스키복 상하세트', brand: 'Descente', price: 320000, image: '🧥', category: 'wear' },
-    { id: '8', name: 'Atomic Maverick 86 (2023)', brand: 'Atomic', price: 520000, image: '🎿', category: 'ski' },
-  ];
-  const userProducts = JSON.parse(localStorage.getItem('usedProducts') || '[]');
-  const usedProducts = [...userProducts, ...defaultProducts];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await api<Product[]>('/products?category=used');
+        setProducts(data);
+      } catch {
+        // fallback to empty
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
-  const filteredProducts = usedProducts.filter(p => {
-    return selectedCategory === 'all' || p.category === selectedCategory;
-  });
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(p => p.brand === selectedCategory);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -61,22 +75,26 @@ const Used = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {filteredProducts.map((product) => (
-          <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
-            <div className="h-28 flex items-center justify-center text-4xl bg-gray-100">
-              {product.image}
-            </div>
-            <div className="p-3">
-              <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
-              <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
-              <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {filteredProducts.map((product) => (
+            <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
+              <div className="h-28 flex items-center justify-center text-4xl bg-gray-100">
+                {product.image}
+              </div>
+              <div className="p-3">
+                <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
+                <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
+                <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
-      {filteredProducts.length === 0 && (
+      {!loading && filteredProducts.length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
           해당 조건의 중고 장비가 없습니다.
         </div>

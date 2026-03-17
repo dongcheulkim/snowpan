@@ -164,3 +164,79 @@ export const rejectLesson = async (req: any, res: Response): Promise<void> => {
     res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
   }
 };
+
+// ===== 숙소 =====
+export const getPendingAccommodations = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const items = await prisma.accommodation.findMany({
+      where: { approved: false },
+      include: { resort: true, user: { select: { name: true, phone: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (error) {
+    console.error('Get pending accommodations error:', error);
+    res.status(500).json({ error: '조회 중 오류가 발생했습니다.' });
+  }
+};
+
+export const approveAccommodation = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const item = await prisma.accommodation.update({ where: { id: req.params.id }, data: { approved: true } });
+    res.json({ ...item, message: '숙소가 승인되었습니다.' });
+  } catch (error) {
+    console.error('Approve accommodation error:', error);
+    res.status(500).json({ error: '승인 중 오류가 발생했습니다.' });
+  }
+};
+
+export const rejectAccommodation = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    await prisma.accommodation.delete({ where: { id: req.params.id } });
+    res.json({ message: '숙소가 거부되었습니다.' });
+  } catch (error) {
+    console.error('Reject accommodation error:', error);
+    res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
+  }
+};
+
+// ===== 자격증 뱃지 =====
+export const getPendingBadges = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const items = await prisma.badgeRequest.findMany({
+      where: { status: 'pending' },
+      include: { user: { select: { id: true, name: true, phone: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (error) {
+    console.error('Get pending badges error:', error);
+    res.status(500).json({ error: '조회 중 오류가 발생했습니다.' });
+  }
+};
+
+export const approveBadge = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const item = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'approved' } });
+    res.json({ ...item, message: '자격증이 승인되었습니다.' });
+  } catch (error) {
+    console.error('Approve badge error:', error);
+    res.status(500).json({ error: '승인 중 오류가 발생했습니다.' });
+  }
+};
+
+export const rejectBadge = async (req: any, res: Response): Promise<void> => {
+  try {
+    if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'rejected' } });
+    res.json({ message: '자격증이 거부되었습니다.' });
+  } catch (error) {
+    console.error('Reject badge error:', error);
+    res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
+  }
+};

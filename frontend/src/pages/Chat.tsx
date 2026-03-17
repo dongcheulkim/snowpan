@@ -1,58 +1,77 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
+import { io, Socket } from 'socket.io-client';
+import { api, getUser, getToken } from '../api';
 
 interface Message {
-  id: number;
-  text: string;
-  sender: 'me' | 'other';
-  time: string;
+  id: string;
+  content: string;
+  senderId: string;
+  sender: { id: string; name: string };
+  createdAt: string;
 }
+
+let socket: Socket | null = null;
 
 const Chat = () => {
   const { productId } = useParams();
   const location = useLocation();
-  const { seller, productName, productImage, productPrice } = (location.state as {
-    seller: string; productName: string; productImage: string; productPrice: number;
-  }) || { seller: '판매자', productName: '상품', productImage: '📦', productPrice: 0 };
+  const { seller, sellerId, productName, productImage, productPrice } = (location.state as {
+    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number;
+  }) || { seller: '판매자', sellerId: '', productName: '상품', productImage: '📦', productPrice: 0 };
 
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: `안녕하세요! ${productName} 관련해서 문의드립니다.`, sender: 'me', time: getNow() },
-  ]);
+  const user = getUser();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [connected, setConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  function getNow() {
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  }
+  // Create/get room and connect socket
+  useEffect(() => {
+    if (!user || !sellerId) return;
+
+    const token = getToken();
+    if (!token) return;
+
+    // Create or get chat room
+    api<{ id: string }>('/chat/rooms', {
+      method: 'POST',
+      body: { targetUserId: sellerId, productId },
+    }).then(room => {
+      setRoomId(room.id);
+
+      // Load existing messages
+      api<Message[]>(`/chat/rooms/${room.id}/messages`).then(setMessages);
+
+      // Connect socket
+      socket = io('http://localhost:3000', { auth: { token } });
+      socket.on('connect', () => {
+        setConnected(true);
+        socket?.emit('join_room', room.id);
+      });
+      socket.on('new_message', (msg: Message) => {
+        setMessages(prev => [...prev, msg]);
+      });
+      socket.on('disconnect', () => setConnected(false));
+    });
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        socket = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const sendMessage = () => {
-    if (!input.trim()) return;
-    const newMsg: Message = { id: Date.now(), text: input.trim(), sender: 'me', time: getNow() };
-    setMessages(prev => [...prev, newMsg]);
+    if (!input.trim() || !roomId || !socket) return;
+    socket.emit('send_message', { roomId, content: input.trim() });
     setInput('');
-
-    setTimeout(() => {
-      const replies = [
-        '네, 안녕하세요!',
-        '상품 상태 좋습니다. 직거래 가능해요.',
-        '네고는 조금 가능합니다.',
-        '직거래 장소는 협의 가능해요.',
-        '사진 더 필요하시면 보내드릴게요.',
-        '감사합니다! 연락주세요.',
-      ];
-      const autoReply: Message = {
-        id: Date.now() + 1,
-        text: replies[Math.floor(Math.random() * replies.length)],
-        sender: 'other',
-        time: getNow(),
-      };
-      setMessages(prev => [...prev, autoReply]);
-    }, 1000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -61,6 +80,20 @@ const Chat = () => {
       sendMessage();
     }
   };
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  if (!user) {
+    return (
+      <div className="text-center py-20 animate-fade-in">
+        <p className="text-gray-400 mb-4">로그인이 필요합니다.</p>
+        <Link to="/login" className="text-primary-dark hover:underline text-sm">로그인하기</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] max-w-2xl mx-auto animate-fade-in">
@@ -71,9 +104,9 @@ const Chat = () => {
           <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-sm">👤</div>
           <div className="flex-1">
             <div className="text-sm font-bold text-gray-900">{seller}</div>
-            <div className="text-[10px] text-gray-400">보통 1시간 이내 응답</div>
+            <div className="text-[10px] text-gray-400">{connected ? '온라인' : '연결 중...'}</div>
           </div>
-          <div className="w-2 h-2 rounded-full bg-mint" />
+          <div className={`w-2 h-2 rounded-full ${connected ? 'bg-mint' : 'bg-gray-300'}`} />
         </div>
       </div>
 
@@ -94,22 +127,26 @@ const Chat = () => {
         <div className="text-center text-[10px] text-gray-400 py-2">
           거래는 당사자 간 직접 진행됩니다. 안전거래를 이용해주세요.
         </div>
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-            <div className="max-w-[75%]">
-              <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                msg.sender === 'me'
-                  ? 'bg-accent text-white rounded-br-md'
-                  : 'bg-gray-100 text-gray-700 rounded-bl-md border border-gray-300'
-              }`}>
-                {msg.text}
-              </div>
-              <div className={`text-[10px] text-gray-400 mt-1 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>
-                {msg.time}
+        {messages.map((msg) => {
+          const isMe = msg.senderId === user.id;
+          return (
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div className="max-w-[75%]">
+                {!isMe && <div className="text-[10px] text-gray-400 mb-1">{msg.sender.name}</div>}
+                <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  isMe
+                    ? 'bg-accent text-white rounded-br-md'
+                    : 'bg-gray-100 text-gray-700 rounded-bl-md border border-gray-300'
+                }`}>
+                  {msg.content}
+                </div>
+                <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+                  {formatTime(msg.createdAt)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
@@ -125,7 +162,7 @@ const Chat = () => {
         />
         <button
           onClick={sendMessage}
-          disabled={!input.trim()}
+          disabled={!input.trim() || !connected}
           className="px-4 py-2.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           전송

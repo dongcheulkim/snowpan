@@ -1,33 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api, getUser } from '../api';
+
+interface Resort {
+  id: string;
+  name: string;
+}
 
 const RentalRegister = () => {
   const navigate = useNavigate();
+  const [resorts, setResorts] = useState<Resort[]>([]);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    resortId: 'yongpyong',
-    resort: '용평리조트',
+    resortId: '',
     price: '',
     duration: '1일',
     equipment: [] as string[],
     description: '',
   });
 
-  const resorts = [
-    { id: 'yongpyong', name: '용평리조트' },
-    { id: 'phoenix', name: '휘닉스평창' },
-    { id: 'high1', name: '하이원' },
-    { id: 'vivaldi', name: '비발디파크' },
-    { id: 'elysian', name: '엘리시안' },
-    { id: 'wellihilli', name: '웰리힐리' },
-    { id: 'o2', name: '오투리조트' },
-    { id: 'alpensia', name: '알펜시아' },
-    { id: 'konjiam', name: '곤지암' },
-    { id: 'jisan', name: '지산' },
-    { id: 'muju', name: '무주' },
-    { id: 'oakvalley', name: '오크밸리' },
-    { id: 'eden', name: '에덴밸리' },
-  ];
+  useEffect(() => {
+    api<Resort[]>('/resorts').then(data => {
+      setResorts(data);
+      if (data.length > 0) setForm(f => ({ ...f, resortId: data[0].id }));
+    }).catch(() => {});
+  }, []);
 
   const equipmentOptions = ['스키', '보드', '부츠', '폴', '헬멧', '고글', '스키복 상의', '스키복 하의'];
 
@@ -40,29 +38,34 @@ const RentalRegister = () => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const user = getUser();
+    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
     if (!form.name.trim() || !form.price || form.equipment.length === 0) {
       alert('상품명, 가격, 장비를 입력해주세요.');
       return;
     }
-    const existing = JSON.parse(localStorage.getItem('pendingItems') || '[]');
-    const newItem = {
-      id: `rental_${Date.now()}`,
-      type: 'rental',
-      status: 'pending',
-      name: form.name.trim(),
-      resortId: form.resortId,
-      resort: form.resort,
-      price: Number(form.price),
-      duration: form.duration,
-      equipment: form.equipment,
-      description: form.description.trim(),
-      image: form.equipment.includes('보드') ? '🏂' : '⛷️',
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem('pendingItems', JSON.stringify([newItem, ...existing]));
-    alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
-    navigate('/rental');
+
+    setLoading(true);
+    try {
+      await api('/rentals', {
+        method: 'POST',
+        body: {
+          name: form.name.trim(),
+          resortId: form.resortId,
+          price: Number(form.price),
+          duration: form.duration,
+          equipment: form.equipment.join(', '),
+          image: form.equipment.includes('보드') ? '🏂' : '⛷️',
+        },
+      });
+      alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
+      navigate('/rental');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = "w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400";
@@ -83,7 +86,7 @@ const RentalRegister = () => {
 
       <div>
         <label className={labelClass}>스키장</label>
-        <select value={form.resortId} onChange={e => { const r = resorts.find(r => r.id === e.target.value); setForm({...form, resortId: e.target.value, resort: r?.name || ''}); }} className={inputClass}>
+        <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
           {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
@@ -119,8 +122,8 @@ const RentalRegister = () => {
         <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="장비 상태, 브랜드 등 상세 정보" rows={4} className={`${inputClass} resize-none`} />
       </div>
 
-      <button onClick={handleSubmit} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors">
-        등록 신청하기
+      <button onClick={handleSubmit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+        {loading ? '등록 중...' : '등록 신청하기'}
       </button>
     </div>
   );

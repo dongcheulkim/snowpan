@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+
+interface RentalItem {
+  id: string;
+  name: string;
+  price: number;
+  duration: string;
+  equipment: string;
+  image: string;
+  resort?: { id: string; name: string };
+}
 
 const Rental = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
 
   const banners = [
     { title: '스노우렌탈 용평점', desc: '시즌 장기렌탈 40% 할인 · 최신 장비' },
@@ -35,41 +47,13 @@ const Rental = () => {
     { id: 'eden', name: '에덴밸리' },
   ];
 
-  const rentalItems = [
-    { id: '1', name: '스키 풀세트', resort: '용평리조트', resortId: 'yongpyong', price: 45000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '2', name: '보드 풀세트', resort: '용평리조트', resortId: 'yongpyong', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '3', name: '스키 풀세트', resort: '휘닉스평창', resortId: 'phoenix', price: 42000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '4', name: '보드 풀세트', resort: '휘닉스평창', resortId: 'phoenix', price: 38000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '5', name: '스키 풀세트', resort: '하이원', resortId: 'high1', price: 40000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '6', name: '보드 풀세트', resort: '하이원', resortId: 'high1', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '7', name: '스키 풀세트', resort: '비발디파크', resortId: 'vivaldi', price: 43000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '8', name: '헬멧+고글 세트', resort: '용평리조트', resortId: 'yongpyong', price: 15000, duration: '1일', equipment: ['헬멧', '고글'], image: '⛑️' },
-    { id: '9', name: '스키복 상하세트', resort: '휘닉스평창', resortId: 'phoenix', price: 25000, duration: '1일', equipment: ['상의', '하의'], image: '🧥' },
-    { id: '10', name: '보드 풀세트', resort: '엘리시안', resortId: 'elysian', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '11', name: '스키 풀세트', resort: '웰리힐리', resortId: 'wellihilli', price: 42000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '12', name: '보드 풀세트', resort: '웰리힐리', resortId: 'wellihilli', price: 38000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '13', name: '스키 풀세트', resort: '오투리조트', resortId: 'o2', price: 38000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '14', name: '보드 풀세트', resort: '오투리조트', resortId: 'o2', price: 35000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '15', name: '스키 풀세트', resort: '알펜시아', resortId: 'alpensia', price: 48000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '16', name: '보드 풀세트', resort: '알펜시아', resortId: 'alpensia', price: 43000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '17', name: '스키 풀세트', resort: '곤지암', resortId: 'konjiam', price: 44000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '18', name: '보드 풀세트', resort: '곤지암', resortId: 'konjiam', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '19', name: '스키 풀세트', resort: '지산', resortId: 'jisan', price: 40000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '20', name: '보드 풀세트', resort: '지산', resortId: 'jisan', price: 36000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '21', name: '스키 풀세트', resort: '무주', resortId: 'muju', price: 43000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '22', name: '보드 풀세트', resort: '무주', resortId: 'muju', price: 39000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '23', name: '스키 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 41000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '24', name: '보드 풀세트', resort: '오크밸리', resortId: 'oakvalley', price: 37000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-    { id: '27', name: '스키 풀세트', resort: '에덴밸리', resortId: 'eden', price: 44000, duration: '1일', equipment: ['스키', '부츠', '폴'], image: '⛷️' },
-    { id: '28', name: '보드 풀세트', resort: '에덴밸리', resortId: 'eden', price: 40000, duration: '1일', equipment: ['보드', '부츠'], image: '🏂' },
-  ];
+  useEffect(() => {
+    api<RentalItem[]>('/rentals').then(setRentalItems).catch(() => {});
+  }, []);
 
-  const approvedRentals = JSON.parse(localStorage.getItem('pendingItems') || '[]')
-    .filter((i: { type: string; status: string }) => i.type === 'rental' && i.status === 'approved');
-  const allItems = [...approvedRentals, ...rentalItems];
   const filteredItems = selectedResort === 'all'
-    ? allItems
-    : allItems.filter(item => item.resortId === selectedResort);
+    ? rentalItems
+    : rentalItems.filter(item => item.resort?.id === selectedResort);
 
   return (
     <div className="space-y-5">
@@ -130,21 +114,19 @@ const Rental = () => {
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
-                  {item.resort}
+                  {item.resort?.name || ''}
                 </span>
                 <span className="text-[10px] text-gray-400">{item.duration}</span>
               </div>
               <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
               <div className="flex flex-wrap gap-1 mb-2">
-                {item.equipment.map((eq, index) => (
-                  <span key={index} className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded border border-gray-200">
-                    {eq}
-                  </span>
-                ))}
+                <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded border border-gray-200">
+                  {item.equipment}
+                </span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                 <div>
-                  <div className="text-[10px] text-gray-400">1일</div>
+                  <div className="text-[10px] text-gray-400">{item.duration}</div>
                   <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
                 </div>
                 <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">

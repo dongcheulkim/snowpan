@@ -29,7 +29,7 @@ export const authMiddleware = (
       process.env.JWT_SECRET || 'secret'
     ) as JwtPayload;
 
-    req.user = decoded;
+    (req as any).user = { id: decoded.userId, email: decoded.email, role: decoded.role };
     next();
   } catch (error) {
     res.status(401).json({ error: '유효하지 않은 토큰입니다.' });

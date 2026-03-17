@@ -1,9 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  createdAt: string;
+}
 
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [currentVideo, setCurrentVideo] = useState(0);
+  const [hotDeals, setHotDeals] = useState<Product[]>([]);
 
+  const youtubeVideos = [
+    // 헬스키
+    { id: 'HELLSKI_1', channel: '헬스키', title: '영상 제목 1', videoId: 'VIDEO_ID_1' },
+    { id: 'HELLSKI_2', channel: '헬스키', title: '영상 제목 2', videoId: 'VIDEO_ID_2' },
+    { id: 'HELLSKI_3', channel: '헬스키', title: '영상 제목 3', videoId: 'VIDEO_ID_3' },
+    // 최신스키
+    { id: 'LATEST_1', channel: '최신스키', title: '영상 제목 1', videoId: 'VIDEO_ID_4' },
+    { id: 'LATEST_2', channel: '최신스키', title: '영상 제목 2', videoId: 'VIDEO_ID_5' },
+    { id: 'LATEST_3', channel: '최신스키', title: '영상 제목 3', videoId: 'VIDEO_ID_6' },
+  ];
 
   const banners = [
     { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr' },
@@ -24,35 +45,14 @@ const Home = () => {
     { id: 'lesson', title: '레슨', icon: '🎿', link: '/lesson' },
     { id: 'accommodation', title: '숙소', icon: '🏨', link: '/accommodation' },
     { id: 'community', title: '커뮤니티', icon: '💬', link: '/community' },
+    { id: 'webcam', title: '실시간웹캠', icon: '📹', link: '/webcam' },
   ];
 
-  const hotDeals = [
-    { id: '1', name: 'Rossignol Soul 7 (2022)', price: 450000, location: '서울 강남구', time: '3시간 전', likes: 28 },
-    { id: '8', name: 'Atomic Maverick 86 (2023)', price: 520000, location: '경기 성남시', time: '5시간 전', likes: 35 },
-    { id: '2', name: 'Burton Custom (2021)', price: 380000, location: '서울 마포구', time: '1일 전', likes: 22 },
-  ];
-
-  const communityPosts = [
-    { id: 'c1', title: '올 시즌 첫 스키 후기!', category: '스키장후기', author: '스키매니아', comments: 12, likes: 34 },
-    { id: 'c2', title: '초보 보더 장비 추천 부탁드려요', category: '초보팁', author: '뉴보더', comments: 23, likes: 18 },
-    { id: 'c3', title: '용평 주말 카풀 구합니다 (3/22)', category: '카풀/동행', author: '라이더킴', comments: 8, likes: 5 },
-  ];
-
-  const defaultHotTopics = [
-    { id: 'ht1', title: '올 시즌 최고의 스키장은?', likes: 256, totalVotes: 427 },
-    { id: 'ht2', title: '초보자 첫 장비, 중고 vs 새제품?', likes: 189, totalVotes: 314 },
-    { id: 'ht3', title: '보드 바인딩 각도 세팅 공유해요', likes: 134, totalVotes: 0 },
-  ];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userPolls = JSON.parse(localStorage.getItem('userPolls') || '[]').map((p: any) => ({
-    id: p.id,
-    title: p.title,
-    likes: p.likes || 0,
-    totalVotes: p.totalVotes || 0,
-  }));
-
-  const hotTopics = [...userPolls, ...defaultHotTopics].sort((a, b) => b.likes - a.likes).slice(0, 5);
+  useEffect(() => {
+    api<Product[]>('/products?category=used').then(products => {
+      setHotDeals(products.slice(0, 3));
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -90,7 +90,7 @@ const Home = () => {
 
       {/* Categories */}
       <div className="px-4 pb-5 bg-white">
-        <div className="flex justify-between">
+        <div className="grid grid-cols-5 gap-y-3">
           {categories.map((cat) => (
             <Link
               key={cat.id}
@@ -115,30 +115,31 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">🏷️ 중고 인기매물</h2>
             <Link to="/used" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
-          <div className="space-y-0">
-            {hotDeals.map((deal, idx) => (
-              <Link
-                key={deal.id}
-                to={`/used/${deal.id}`}
-                className={`flex items-center py-3 ${idx !== hotDeals.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl">
-                  ⛷️
-                </div>
-                <div className="ml-3 flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">{deal.name}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{deal.location} · {deal.time}</div>
-                  <div className="text-[14px] font-bold text-gray-900 mt-1">{deal.price.toLocaleString()}원</div>
-                </div>
-                <div className="flex items-center gap-0.5 text-gray-300 self-end pb-1 ml-2">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                  <span className="text-[11px]">{deal.likes}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {hotDeals.length > 0 ? (
+            <div className="space-y-0">
+              {hotDeals.map((deal, idx) => (
+                <Link
+                  key={deal.id}
+                  to={`/used/${deal.id}`}
+                  className={`flex items-center py-3 ${idx !== hotDeals.length - 1 ? 'border-b border-gray-100' : ''}`}
+                >
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl overflow-hidden">
+                    {deal.image.startsWith('/') || deal.image.startsWith('http') ? (
+                      <img src={deal.image.startsWith('/') ? `http://localhost:3000${deal.image}` : deal.image} alt={deal.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{deal.image}</span>
+                    )}
+                  </div>
+                  <div className="ml-3 flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">{deal.name}</div>
+                    <div className="text-[14px] font-bold text-gray-900 mt-1">{deal.price.toLocaleString()}원</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-4">아직 등록된 매물이 없습니다.</p>
+          )}
         </div>
 
         {/* Community */}
@@ -147,25 +148,7 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">💬 커뮤니티</h2>
             <Link to="/community" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
-          <div className="space-y-0">
-            {communityPosts.map((post, idx) => (
-              <Link
-                key={post.id}
-                to={`/community/post/${post.id}`}
-                className={`block py-2.5 ${idx !== communityPosts.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-primary-dark bg-primary-50 px-1.5 py-0.5 rounded">{post.category}</span>
-                  <span className="text-sm font-medium text-gray-900 truncate">{post.title}</span>
-                </div>
-                <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
-                  <span>{post.author}</span>
-                  <span>♡ {post.likes}</span>
-                  <span>💬 {post.comments}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
         </div>
 
         {/* Hot Topics */}
@@ -177,58 +160,68 @@ const Home = () => {
             </div>
             <Link to="/community" className="text-xs text-gray-400">더보기 ›</Link>
           </div>
-          <div className="space-y-0">
-            {hotTopics.map((topic, idx) => (
-              <Link
-                key={topic.id}
-                to={`/poll/${topic.id}`}
-                className={`flex items-center justify-between py-3 ${idx !== hotTopics.length - 1 ? 'border-b border-gray-100' : ''}`}
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded flex-shrink-0">투표</span>
-                  <span className="text-sm font-medium text-gray-900 truncate">{topic.title}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 flex-shrink-0">
-                  <span>♡ {topic.likes}</span>
-                  {topic.totalVotes > 0 && (
-                    <span>{topic.totalVotes}명</span>
-                  )}
-                </div>
-              </Link>
-            ))}
+          <p className="text-sm text-gray-400 text-center py-4">아직 등록된 주제가 없습니다.</p>
+        </div>
+
+        {/* YouTube Videos */}
+        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">🎬 유튜버의 핫한 영상!</h2>
+            <div className="flex gap-1">
+              {youtubeVideos.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentVideo(idx)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentVideo ? 'bg-red-500 w-4' : 'bg-gray-300'}`}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-xl">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentVideo * 100}%)` }}
+            >
+              {youtubeVideos.map((video) => (
+                <a
+                  key={video.id}
+                  href={`https://www.youtube.com/watch?v=${video.videoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex-shrink-0"
+                >
+                  <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden">
+                    <img
+                      src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
+                      alt={video.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[10px] font-bold text-red-400 bg-red-500/20 px-1.5 py-0.5 rounded">YouTube</span>
+                        <span className="text-[11px] font-bold text-white">{video.channel}</span>
+                      </div>
+                      <p className="text-xs text-white/80 truncate">{video.title}</p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-center gap-3 mt-2.5">
+            <button onClick={() => setCurrentVideo(Math.max(0, currentVideo - 1))} disabled={currentVideo === 0} className="text-xs text-gray-400 disabled:opacity-30">← 이전</button>
+            <span className="text-[10px] text-gray-400">{currentVideo + 1} / {youtubeVideos.length}</span>
+            <button onClick={() => setCurrentVideo(Math.min(youtubeVideos.length - 1, currentVideo + 1))} disabled={currentVideo === youtubeVideos.length - 1} className="text-xs text-gray-400 disabled:opacity-30">다음 →</button>
           </div>
         </div>
 
       </div>
 
-      {/* Webcam */}
-      <div className="px-4 pt-1 pb-8">
-        <Link
-          to="/webcam"
-          className="block bg-white border-2 border-gray-300 rounded-2xl p-5 shadow-md active:scale-[0.98] transition-transform"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center text-xl">
-                📹
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[15px] font-bold text-gray-900">실시간 웹캠</span>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">전국 스키장 실시간 웹캠 보기</p>
-              </div>
-            </div>
-            <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </Link>
-      </div>
     </div>
   );
 };

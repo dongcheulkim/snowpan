@@ -257,8 +257,8 @@ const Terms = () => {
 
       {/* 시행일 */}
       <div className="card p-5 text-center">
-        <p className="text-xs text-gray-400">본 약관은 2025년 1월 1일부터 시행됩니다.</p>
-        <p className="text-[10px] text-gray-300 mt-1">최종 수정일: 2025년 1월 1일</p>
+        <p className="text-xs text-gray-400">본 약관은 2026년 1월 1일부터 시행됩니다.</p>
+        <p className="text-[10px] text-gray-300 mt-1">최종 수정일: 2026년 1월 1일</p>
       </div>
     </div>
   );

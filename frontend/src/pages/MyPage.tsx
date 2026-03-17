@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{ id: string; name: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; role?: string } | null>(null);
   const [badges, setBadges] = useState<string[]>([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState('');
@@ -42,18 +42,12 @@ const MyPage = () => {
 
   if (!user) return null;
 
-  const userProducts = JSON.parse(localStorage.getItem('usedProducts') || '[]');
-  const pendingItems = JSON.parse(localStorage.getItem('pendingItems') || '[]');
-  const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-  const myChats = JSON.parse(localStorage.getItem('myChats') || '[]');
-  const myPosts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
-
   const menuItems = [
-    { label: '판매 내역', count: userProducts.length + pendingItems.length, link: '/mypage/sales' },
-    { label: '구매 내역', count: JSON.parse(localStorage.getItem('myPurchases') || '[]').length, link: '/mypage/purchases' },
-    { label: '찜 목록', count: wishlist.length, link: '/mypage/wishlist' },
-    { label: '채팅 목록', count: myChats.length, link: '/mypage/chats' },
-    { label: '내 게시글', count: myPosts.length, link: '/mypage/posts' },
+    { label: '판매 내역', link: '/mypage/sales' },
+    { label: '구매 내역', link: '/mypage/purchases' },
+    { label: '찜 목록', link: '/mypage/wishlist' },
+    { label: '채팅 목록', link: '/chat/rooms' },
+    { label: '내 게시글', link: '/mypage/posts' },
   ];
 
   const settings = [
@@ -140,13 +134,20 @@ const MyPage = () => {
         {menuItems.map((item, idx) => (
           <Link key={item.label} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-900">{item.label}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-primary font-bold bg-primary-50 px-2 py-0.5 rounded-full">{item.count}</span>
-              <span className="text-gray-400 text-xs">→</span>
-            </div>
+            <span className="text-gray-400 text-xs">→</span>
           </Link>
         ))}
       </div>
+
+      {/* Admin */}
+      {user.role === 'admin' && (
+        <div className="card overflow-hidden">
+          <Link to="/admin-approval" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+            <span className="text-sm font-medium text-coral">관리자 승인 관리</span>
+            <span className="text-coral text-xs">→</span>
+          </Link>
+        </div>
+      )}
 
       {/* Settings */}
       <div className="card overflow-hidden">

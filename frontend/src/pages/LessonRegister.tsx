@@ -1,61 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api, getUser } from '../api';
+
+interface Resort {
+  id: string;
+  name: string;
+}
 
 const LessonRegister = () => {
   const navigate = useNavigate();
+  const [resorts, setResorts] = useState<Resort[]>([]);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    resortId: 'yongpyong',
-    resort: '용평리조트',
+    resortId: '',
     price: '',
     duration: '2시간',
-    level: 'LV1',
+    level: 'beginner',
     maxStudents: '4',
     type: 'ski',
     description: '',
   });
 
-  const resorts = [
-    { id: 'yongpyong', name: '용평리조트' },
-    { id: 'phoenix', name: '휘닉스평창' },
-    { id: 'high1', name: '하이원' },
-    { id: 'vivaldi', name: '비발디파크' },
-    { id: 'elysian', name: '엘리시안' },
-    { id: 'wellihilli', name: '웰리힐리' },
-    { id: 'o2', name: '오투리조트' },
-    { id: 'alpensia', name: '알펜시아' },
-    { id: 'konjiam', name: '곤지암' },
-    { id: 'jisan', name: '지산' },
-    { id: 'muju', name: '무주' },
-    { id: 'oakvalley', name: '오크밸리' },
-    { id: 'eden', name: '에덴밸리' },
-  ];
+  useEffect(() => {
+    api<Resort[]>('/resorts').then(data => {
+      setResorts(data);
+      if (data.length > 0) setForm(f => ({ ...f, resortId: data[0].id }));
+    }).catch(() => {});
+  }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const user = getUser();
+    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
     if (!form.name.trim() || !form.price) {
       alert('레슨명과 가격을 입력해주세요.');
       return;
     }
-    const existing = JSON.parse(localStorage.getItem('pendingItems') || '[]');
-    const newItem = {
-      id: `lesson_${Date.now()}`,
-      type: 'lesson',
-      status: 'pending',
-      name: form.name.trim(),
-      resortId: form.resortId,
-      resort: form.resort,
-      price: Number(form.price),
-      duration: form.duration,
-      level: form.level,
-      maxStudents: Number(form.maxStudents),
-      lessonType: form.type,
-      description: form.description.trim(),
-      image: form.type === 'board' ? '🏂' : '⛷️',
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem('pendingItems', JSON.stringify([newItem, ...existing]));
-    alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
-    navigate('/lesson');
+
+    setLoading(true);
+    try {
+      await api('/lessons', {
+        method: 'POST',
+        body: {
+          name: form.name.trim(),
+          resortId: form.resortId,
+          price: Number(form.price),
+          duration: form.duration,
+          level: form.level,
+          maxStudents: Number(form.maxStudents),
+          image: form.type === 'board' ? '🏂' : '⛷️',
+        },
+      });
+      alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
+      navigate('/lesson');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = "w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400";
@@ -76,7 +78,7 @@ const LessonRegister = () => {
 
       <div>
         <label className={labelClass}>스키장</label>
-        <select value={form.resortId} onChange={e => { const r = resorts.find(r => r.id === e.target.value); setForm({...form, resortId: e.target.value, resort: r?.name || ''}); }} className={inputClass}>
+        <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
           {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
@@ -92,10 +94,9 @@ const LessonRegister = () => {
         <div>
           <label className={labelClass}>난이도</label>
           <select value={form.level} onChange={e => setForm({...form, level: e.target.value})} className={inputClass}>
-            <option value="LV1">LV1 (초급)</option>
-            <option value="LV2">LV2 (중급)</option>
-            <option value="LV3">LV3 (상급)</option>
-            <option value="데몬">데몬</option>
+            <option value="beginner">LV1 (초급)</option>
+            <option value="intermediate">LV2 (중급)</option>
+            <option value="advanced">LV3 (상급)</option>
           </select>
         </div>
       </div>
@@ -126,8 +127,8 @@ const LessonRegister = () => {
         <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="강사 경력, 레슨 내용 등" rows={4} className={`${inputClass} resize-none`} />
       </div>
 
-      <button onClick={handleSubmit} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors">
-        등록 신청하기
+      <button onClick={handleSubmit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+        {loading ? '등록 중...' : '등록 신청하기'}
       </button>
     </div>
   );

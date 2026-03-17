@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { api, getUser, uploadImages } from '../api';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
@@ -7,6 +8,7 @@ const UsedRegister = () => {
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     name: '',
     category: 'ski',
@@ -29,23 +31,45 @@ const UsedRegister = () => {
       alert('중고거래 주의사항에 동의해주세요.');
       return;
     }
+
+    const user = getUser();
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
     setLoading(true);
 
-    const existing = JSON.parse(localStorage.getItem('usedProducts') || '[]');
     const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
-    const newItem = {
-      id: `used_${Date.now()}`,
-      name: form.name,
-      brand: '',
-      price: Number(form.price),
-      image: images.length > 0 ? images[0] : (imageMap[form.category] || '📦'),
-      images: images,
-      category: form.category,
-    };
-    localStorage.setItem('usedProducts', JSON.stringify([newItem, ...existing]));
-    alert('장비가 등록되었습니다!');
-    setLoading(false);
-    navigate('/used');
+    const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
+
+    try {
+      let imageUrl = imageMap[form.category] || '📦';
+      if (imageFiles.length > 0) {
+        const urls = await uploadImages(imageFiles);
+        if (urls.length > 0) imageUrl = urls[0];
+      }
+
+      await api('/products/used', {
+        method: 'POST',
+        body: {
+          name: form.name,
+          brand: form.category,
+          price: form.price,
+          image: imageUrl,
+          description: form.description,
+          condition: conditionMap[form.condition] || '중',
+          usageCount: form.year ? `${form.year}년식` : undefined,
+        },
+      });
+      alert('장비가 등록되었습니다!');
+      navigate('/used');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = "w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
@@ -85,6 +109,7 @@ const UsedRegister = () => {
                       if (prev.length >= 5) return prev;
                       return [...prev, ev.target?.result as string];
                     });
+                    setImageFiles((prev) => [...prev, file]);
                   };
                   reader.readAsDataURL(file);
                 });
@@ -98,7 +123,7 @@ const UsedRegister = () => {
                     <img src={src} alt={`미리보기 ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={() => setImages(images.filter((_, i) => i !== idx))}
+                      onClick={() => { setImages(images.filter((_, i) => i !== idx)); setImageFiles(imageFiles.filter((_, i) => i !== idx)); }}
                       className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >×</button>
                     {idx === 0 && <div className="absolute bottom-0 left-0 right-0 bg-accent text-white text-[9px] text-center py-0.5">대표</div>}
@@ -117,13 +142,13 @@ const UsedRegister = () => {
 
           {/* 상품명 */}
           <div>
-            <label className={labelClass}>상품명</label>
+            <label className={labelClass}>상품명 <span className="text-gray-400 text-xs font-normal">(한글로 써주시는게 좋아요!)</span></label>
             <input
               type="text"
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="예: Rossignol Soul 7 (2022)"
+              placeholder="예: 로시뇰 소울 7 (2022)"
               required
               className={inputClass}
             />
@@ -228,10 +253,10 @@ const UsedRegister = () => {
             </div>
           </div>
 
-          {/* 거래 지역 (직거래 시) */}
+          {/* 직거래 지역 (직거래 시) */}
           {form.tradeMethod !== '택배' && (
             <div>
-              <label className={labelClass}>거래 지역</label>
+              <label className={labelClass}>직거래 지역</label>
               <input
                 type="text"
                 name="location"

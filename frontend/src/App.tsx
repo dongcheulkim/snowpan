@@ -22,6 +22,7 @@ import CommunityDetail from './pages/CommunityDetail';
 import MyPage from './pages/MyPage';
 import SellerProfile from './pages/SellerProfile';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import AdminApproval from './pages/AdminApproval';
 import MySales from './pages/MySales';
 import MyPurchases from './pages/MyPurchases';
@@ -35,6 +36,7 @@ import Support from './pages/Support';
 import NewEquipment from './pages/NewEquipment';
 import PollCreate from './pages/PollCreate';
 import PollDetail from './pages/PollDetail';
+import Notifications from './pages/Notifications';
 import Webcam from './pages/Webcam';
 import WebcamDetail from './pages/WebcamDetail';
 
@@ -47,6 +49,8 @@ function App() {
           <Route path="used" element={<Used />} />
           <Route path="used/register" element={<UsedRegister />} />
           <Route path="used/:id" element={<UsedDetail />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="chat/rooms" element={<MyChatList />} />
           <Route path="chat/:productId" element={<Chat />} />
           <Route path="rental" element={<Rental />} />
           <Route path="rental/register" element={<RentalRegister />} />
@@ -64,6 +68,7 @@ function App() {
           <Route path="mypage" element={<MyPage />} />
           <Route path="seller/:sellerId" element={<SellerProfile />} />
           <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
           <Route path="admin-approval" element={<AdminApproval />} />
           <Route path="mypage/sales" element={<MySales />} />
           <Route path="mypage/purchases" element={<MyPurchases />} />
