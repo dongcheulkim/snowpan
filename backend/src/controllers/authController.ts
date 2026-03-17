@@ -44,6 +44,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         phone: user.phone,
         phoneVerified: user.phoneVerified,
+        role: user.role,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -88,11 +90,51 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         phone: user.phone,
         phoneVerified: user.phoneVerified,
         role: user.role,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: '로그인 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내 뱃지 요청 목록 조회
+export const getMyBadges = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const badges = await prisma.badgeRequest.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(badges);
+  } catch (error) {
+    console.error('Get my badges error:', error);
+    res.status(500).json({ error: '뱃지 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 뱃지 인증 요청
+export const requestBadge = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { badgeType, image } = req.body;
+
+    const existing = await prisma.badgeRequest.findFirst({
+      where: { userId, badgeType, status: { in: ['pending', 'approved'] } },
+    });
+    if (existing) {
+      res.status(400).json({ error: '이미 요청한 자격증입니다.' });
+      return;
+    }
+
+    const badge = await prisma.badgeRequest.create({
+      data: { userId, badgeType, image: image || null },
+    });
+    res.status(201).json(badge);
+  } catch (error) {
+    console.error('Request badge error:', error);
+    res.status(500).json({ error: '뱃지 요청 중 오류가 발생했습니다.' });
   }
 };
 

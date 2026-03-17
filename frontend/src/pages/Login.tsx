@@ -15,7 +15,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string } }>('/auth/login', {
+      const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string; createdAt: string } }>('/auth/login', {
         method: 'POST',
         body: { email, password },
       });

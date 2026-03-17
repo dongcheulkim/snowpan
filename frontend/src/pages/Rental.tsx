@@ -12,10 +12,16 @@ interface RentalItem {
   resort?: { id: string; name: string };
 }
 
+interface Resort {
+  id: string;
+  name: string;
+}
+
 const Rental = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
+  const [resorts, setResorts] = useState<Resort[]>([]);
 
   const banners = [
     { title: '스노우렌탈 용평점', desc: '시즌 장기렌탈 40% 할인 · 최신 장비' },
@@ -30,24 +36,8 @@ const Rental = () => {
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  const resorts = [
-    { id: 'all', name: '전체' },
-    { id: 'yongpyong', name: '용평리조트' },
-    { id: 'phoenix', name: '휘닉스평창' },
-    { id: 'high1', name: '하이원' },
-    { id: 'vivaldi', name: '비발디파크' },
-    { id: 'elysian', name: '엘리시안' },
-    { id: 'wellihilli', name: '웰리힐리' },
-    { id: 'o2', name: '오투리조트' },
-    { id: 'alpensia', name: '알펜시아' },
-    { id: 'konjiam', name: '곤지암' },
-    { id: 'jisan', name: '지산' },
-    { id: 'muju', name: '무주' },
-    { id: 'oakvalley', name: '오크밸리' },
-    { id: 'eden', name: '에덴밸리' },
-  ];
-
   useEffect(() => {
+    api<Resort[]>('/resorts').then(setResorts).catch(() => {});
     api<RentalItem[]>('/rentals').then(setRentalItems).catch(() => {});
   }, []);
 
@@ -89,7 +79,7 @@ const Rental = () => {
 
       {/* Resort Filter */}
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {resorts.map((resort) => (
+        {[{ id: 'all', name: '전체' }, ...resorts].map((resort) => (
           <button
             key={resort.id}
             onClick={() => setSelectedResort(resort.id)}
@@ -108,8 +98,12 @@ const Rental = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredItems.map((item) => (
           <Link to={`/rental/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100">
-              <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
+            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+              {item.image.startsWith('/') || item.image.startsWith('http') ? (
+                <img src={item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              ) : (
+                <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
+              )}
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between mb-1.5">

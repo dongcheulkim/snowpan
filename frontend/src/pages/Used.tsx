@@ -81,8 +81,12 @@ const Used = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {filteredProducts.map((product) => (
             <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
-              <div className="h-28 flex items-center justify-center text-4xl bg-gray-100">
-                {product.image}
+              <div className="h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                {product.image.startsWith('/') || product.image.startsWith('http') ? (
+                  <img src={product.image.startsWith('/') ? `http://localhost:3000${product.image}` : product.image} alt={product.name} className="w-full h-full object-cover" />
+                ) : (
+                  product.image
+                )}
               </div>
               <div className="p-3">
                 <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>

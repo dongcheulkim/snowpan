@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { api, getUser, uploadImages, logout } from '../api';
+
+interface BadgeRequest {
+  id: string;
+  badgeType: string;
+  status: string;
+  image?: string;
+}
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{ id: string; name: string; role?: string } | null>(null);
-  const [badges, setBadges] = useState<string[]>([]);
+  const [user, setUser] = useState<{ id: string; name: string; email: string; role?: string; createdAt?: string } | null>(null);
+  const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState('');
+  const [badgeImage, setBadgeImage] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) { setUser(JSON.parse(stored)); } else { navigate('/login'); }
-    const storedBadges = localStorage.getItem('badges');
-    if (storedBadges) { setBadges(JSON.parse(storedBadges)); }
+    const stored = getUser();
+    if (stored) { setUser(stored); } else { navigate('/login'); return; }
+
+    // 뱃지 요청 목록 조회
+    api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
   }, [navigate]);
 
-  const handleLogout = () => { localStorage.removeItem('user'); navigate('/'); };
+  const handleLogout = () => { logout(); navigate('/'); };
 
   const allBadges = [
     { id: 'lv2', label: 'LV2', desc: 'KSIA 레벨2 자격증', color: 'bg-accent text-white' },
@@ -25,36 +36,51 @@ const MyPage = () => {
     { id: 'pro', label: '프로', desc: '프로 선수 / 강사 인증', color: 'bg-coral text-white' },
   ];
 
-  const handleRequestBadge = () => {
-    if (!selectedBadge) return;
-    const newBadges = [...badges, selectedBadge];
-    setBadges(newBadges);
-    localStorage.setItem('badges', JSON.stringify(newBadges));
-    setShowBadgeModal(false);
-    setSelectedBadge('');
-  };
+  const approvedBadges = badges.filter(b => b.status === 'approved');
+  const pendingBadges = badges.filter(b => b.status === 'pending');
 
-  const handleRemoveBadge = (badgeId: string) => {
-    const newBadges = badges.filter(b => b !== badgeId);
-    setBadges(newBadges);
-    localStorage.setItem('badges', JSON.stringify(newBadges));
+  const handleRequestBadge = async () => {
+    if (!selectedBadge) return;
+    setSubmitting(true);
+    try {
+      let imageUrl = '';
+      if (badgeImage) {
+        const urls = await uploadImages([badgeImage]);
+        imageUrl = urls[0];
+      }
+      await api('/auth/badge-request', {
+        method: 'POST',
+        body: { badgeType: selectedBadge, image: imageUrl },
+      });
+      // 다시 조회
+      const updated = await api<BadgeRequest[]>('/auth/my-badges');
+      setBadges(updated);
+      setShowBadgeModal(false);
+      setSelectedBadge('');
+      setBadgeImage(null);
+      alert('인증 요청이 완료되었습니다. 관리자 승인을 기다려주세요.');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '요청에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!user) return null;
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
   const menuItems = [
-    { label: '판매 내역', link: '/mypage/sales' },
-    { label: '구매 내역', link: '/mypage/purchases' },
-    { label: '찜 목록', link: '/mypage/wishlist' },
     { label: '채팅 목록', link: '/chat/rooms' },
-    { label: '내 게시글', link: '/mypage/posts' },
+    { label: '알림', link: '/notifications' },
   ];
 
   const settings = [
-    { label: '알림 설정', link: '/mypage/notifications' },
-    { label: '비밀번호 변경', link: '/mypage/password' },
-    { label: '이용약관', link: '/mypage/terms' },
-    { label: '고객센터', link: '/mypage/support' },
+    { label: '이용약관', link: '/terms' },
   ];
 
   return (
@@ -68,25 +94,24 @@ const MyPage = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
-              {badges.map((badgeId) => {
-                const badge = allBadges.find(b => b.id === badgeId);
+              {approvedBadges.map((b) => {
+                const badge = allBadges.find(ab => ab.id === b.badgeType);
                 if (!badge) return null;
                 return (
-                  <span key={badge.id} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
+                  <span key={b.id} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
                     {badge.label}
                   </span>
                 );
               })}
             </div>
-            <p className="text-sm text-gray-400">@{user.id}</p>
+            <p className="text-sm text-gray-400">{user.email}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-5">
+        <div className="grid grid-cols-2 gap-3 mt-5">
           {[
-            { label: '거래', value: '4건' },
-            { label: '평점', value: '4.8' },
-            { label: '가입일', value: '2024.01' },
+            { label: '가입일', value: formatDate(user.createdAt) },
+            { label: '뱃지', value: `${approvedBadges.length}개` },
           ].map((stat) => (
             <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
               <div className="text-base font-bold text-gray-900">{stat.value}</div>
@@ -105,15 +130,15 @@ const MyPage = () => {
           </button>
         </div>
 
-        {badges.length === 0 ? (
+        {approvedBadges.length === 0 && pendingBadges.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-4">아직 인증된 뱃지가 없습니다. 자격증을 인증해보세요!</p>
         ) : (
           <div className="space-y-2">
-            {badges.map((badgeId) => {
-              const badge = allBadges.find(b => b.id === badgeId);
+            {approvedBadges.map((b) => {
+              const badge = allBadges.find(ab => ab.id === b.badgeType);
               if (!badge) return null;
               return (
-                <div key={badge.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
@@ -121,7 +146,21 @@ const MyPage = () => {
                       <div className="text-[10px] text-mint">인증 완료</div>
                     </div>
                   </div>
-                  <button onClick={() => handleRemoveBadge(badge.id)} className="text-[10px] text-gray-400 hover:text-coral transition-colors px-2 py-1">삭제</button>
+                </div>
+              );
+            })}
+            {pendingBadges.map((b) => {
+              const badge = allBadges.find(ab => ab.id === b.badgeType);
+              if (!badge) return null;
+              return (
+                <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
+                    <div>
+                      <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
+                      <div className="text-[10px] text-yellow-500">승인 대기 중</div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -173,7 +212,7 @@ const MyPage = () => {
             <p className="text-xs text-gray-400 mb-5">인증할 자격증을 선택하세요</p>
 
             <div className="space-y-2 mb-5">
-              {allBadges.filter(b => !badges.includes(b.id)).map((badge) => (
+              {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).map((badge) => (
                 <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-gray-100 border-gray-300 hover:border-gray-400'}`}>
                   <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                   <div className="text-left">
@@ -181,8 +220,8 @@ const MyPage = () => {
                   </div>
                 </button>
               ))}
-              {allBadges.filter(b => !badges.includes(b.id)).length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-4">모든 뱃지를 이미 인증했습니다!</p>
+              {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-4">모든 뱃지를 이미 신청했습니다!</p>
               )}
             </div>
 
@@ -190,15 +229,17 @@ const MyPage = () => {
               <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
                 <p className="text-[11px] text-gray-400 mb-2">자격증 사진을 업로드해주세요</p>
                 <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
-                  사진 선택
-                  <input type="file" accept="image/*" className="hidden" />
+                  {badgeImage ? badgeImage.name : '사진 선택'}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
                 </label>
               </div>
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">취소</button>
-              <button onClick={handleRequestBadge} disabled={!selectedBadge} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">인증 요청</button>
+              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">취소</button>
+              <button onClick={handleRequestBadge} disabled={!selectedBadge || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
+                {submitting ? '요청 중...' : '인증 요청'}
+              </button>
             </div>
           </div>
         </div>

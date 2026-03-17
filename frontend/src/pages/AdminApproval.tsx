@@ -31,7 +31,7 @@ const badgeLabels: Record<string, { label: string; color: string }> = {
 };
 
 const accomTypeLabels: Record<string, string> = {
-  hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박',
+  hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방',
 };
 
 const AdminApproval = () => {
@@ -145,7 +145,7 @@ const AdminApproval = () => {
               <div className="text-xs text-gray-400 mt-0.5">{item.duration} · {item.level} · 최대 {item.maxStudents}명</div>
             )}
             {activeTab === 'accommodation' && (
-              <div className="text-xs text-gray-400 mt-0.5">{accomTypeLabels[item.type || ''] || item.type} · {item.guests}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{(item.type || '').split(',').map(t => accomTypeLabels[t] || t).join(', ')} · {item.guests}</div>
             )}
             {item.user && <div className="text-xs text-gray-300 mt-0.5">등록자: {item.user.name}</div>}
           </div>

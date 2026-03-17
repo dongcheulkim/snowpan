@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
+import { createNotification } from './notificationController';
 
 // 승인 대기 중인 렌탈 목록 조회 (관리자만)
 export const getPendingRentals = async (req: any, res: Response): Promise<void> => {
@@ -85,6 +86,7 @@ export const approveRental = async (req: any, res: Response): Promise<void> => {
       },
     });
 
+    await createNotification(rental.userId, 'approve', '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental');
     res.json({ ...rental, message: '렌탈이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve rental error:', error);
@@ -116,6 +118,7 @@ export const approveLesson = async (req: any, res: Response): Promise<void> => {
       },
     });
 
+    await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson');
     res.json({ ...lesson, message: '레슨이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve lesson error:', error);
@@ -133,10 +136,12 @@ export const rejectRental = async (req: any, res: Response): Promise<void> => {
 
     const { id } = req.params;
 
-    await prisma.rental.delete({
-      where: { id },
-    });
+    const rental = await prisma.rental.findUnique({ where: { id } });
+    const rentalUserId = rental?.userId;
+    const rentalName = rental?.name;
+    await prisma.rental.delete({ where: { id } });
 
+    if (rentalUserId) await createNotification(rentalUserId, 'reject', '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`);
     res.json({ message: '렌탈이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject rental error:', error);
@@ -154,10 +159,12 @@ export const rejectLesson = async (req: any, res: Response): Promise<void> => {
 
     const { id } = req.params;
 
-    await prisma.lesson.delete({
-      where: { id },
-    });
+    const lesson = await prisma.lesson.findUnique({ where: { id } });
+    const lessonUserId = lesson?.userId;
+    const lessonName = lesson?.name;
+    await prisma.lesson.delete({ where: { id } });
 
+    if (lessonUserId) await createNotification(lessonUserId, 'reject', '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`);
     res.json({ message: '레슨이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject lesson error:', error);
@@ -185,6 +192,7 @@ export const approveAccommodation = async (req: any, res: Response): Promise<voi
   try {
     if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.accommodation.update({ where: { id: req.params.id }, data: { approved: true } });
+    await createNotification(item.userId, 'approve', '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation');
     res.json({ ...item, message: '숙소가 승인되었습니다.' });
   } catch (error) {
     console.error('Approve accommodation error:', error);
@@ -195,7 +203,11 @@ export const approveAccommodation = async (req: any, res: Response): Promise<voi
 export const rejectAccommodation = async (req: any, res: Response): Promise<void> => {
   try {
     if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const accom = await prisma.accommodation.findUnique({ where: { id: req.params.id } });
+    const accomUserId = accom?.userId;
+    const accomName = accom?.name;
     await prisma.accommodation.delete({ where: { id: req.params.id } });
+    if (accomUserId) await createNotification(accomUserId, 'reject', '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`);
     res.json({ message: '숙소가 거부되었습니다.' });
   } catch (error) {
     console.error('Reject accommodation error:', error);
@@ -223,6 +235,7 @@ export const approveBadge = async (req: any, res: Response): Promise<void> => {
   try {
     if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'approved' } });
+    await createNotification(item.userId, 'badge', '자격증 승인', `자격증 인증이 승인되었습니다.`, '/mypage');
     res.json({ ...item, message: '자격증이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve badge error:', error);
@@ -233,7 +246,8 @@ export const approveBadge = async (req: any, res: Response): Promise<void> => {
 export const rejectBadge = async (req: any, res: Response): Promise<void> => {
   try {
     if (req.user.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
-    await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'rejected' } });
+    const badge = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'rejected' } });
+    await createNotification(badge.userId, 'badge', '자격증 거부', `자격증 인증이 거부되었습니다.`);
     res.json({ message: '자격증이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject badge error:', error);

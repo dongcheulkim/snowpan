@@ -26,6 +26,7 @@ model User {
   chatRoomsAsUser1 ChatRoom[] @relation("user1")
   chatRoomsAsUser2 ChatRoom[] @relation("user2")
   messages         Message[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -160,6 +161,20 @@ model Message {
   createdAt DateTime @default(now())
 
   @@map("messages")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      String   // 'chat' | 'approve' | 'reject' | 'system' | 'badge'
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
 
 model PhoneVerification {

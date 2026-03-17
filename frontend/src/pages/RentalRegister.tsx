@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, uploadImages } from '../api';
 
 interface Resort {
   id: string;
@@ -11,6 +11,7 @@ const RentalRegister = () => {
   const navigate = useNavigate();
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [loading, setLoading] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     name: '',
     resortId: '',
@@ -48,6 +49,11 @@ const RentalRegister = () => {
 
     setLoading(true);
     try {
+      let image = form.equipment.includes('보드') ? '🏂' : '⛷️';
+      if (imageFiles.length > 0) {
+        const urls = await uploadImages(imageFiles);
+        image = urls[0];
+      }
       await api('/rentals', {
         method: 'POST',
         body: {
@@ -56,7 +62,7 @@ const RentalRegister = () => {
           price: Number(form.price),
           duration: form.duration,
           equipment: form.equipment.join(', '),
-          image: form.equipment.includes('보드') ? '🏂' : '⛷️',
+          image,
         },
       });
       alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
@@ -115,6 +121,14 @@ const RentalRegister = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>사진</label>
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
+          {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
+          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
+        </label>
       </div>
 
       <div>
