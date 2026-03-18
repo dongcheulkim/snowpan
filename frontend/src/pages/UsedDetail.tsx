@@ -163,8 +163,8 @@ const UsedDetail = () => {
           {/* Chat Button */}
           {!isMyProduct && (
             <button
-              onClick={() => navigate(`/chat/${product.id}`, {
-                state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price }
+              onClick={() => navigate(`/chat/new`, {
+                state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}` }
               })}
               className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
             >

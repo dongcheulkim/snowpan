@@ -54,7 +54,7 @@ function App() {
           <Route path="used/:id" element={<UsedDetail />} />
           <Route path="notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
           <Route path="chat/rooms" element={<RequireAuth><MyChatList /></RequireAuth>} />
-          <Route path="chat/:productId" element={<RequireAuth><Chat /></RequireAuth>} />
+          <Route path="chat/:chatId" element={<RequireAuth><Chat /></RequireAuth>} />
           <Route path="rental" element={<Rental />} />
           <Route path="rental/register" element={<RequireAuth><RentalRegister /></RequireAuth>} />
           <Route path="rental/:id" element={<RentalDetail />} />

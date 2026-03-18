@@ -143,8 +143,8 @@ const AccommodationDetail = () => {
       )}
       {user && item.userId && item.userId !== user.id && (
         <button
-          onClick={() => navigate(`/chat/${item.id}`, {
-            state: { seller: item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, productType: 'accommodation' }
+          onClick={() => navigate(`/chat/new`, {
+            state: { seller: item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/accommodation/${item.id}` }
           })}
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
         >채팅하기</button>

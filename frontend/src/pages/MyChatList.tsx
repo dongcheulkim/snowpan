@@ -4,7 +4,6 @@ import { api, getUser } from '../api';
 
 interface ChatRoom {
   id: string;
-  productId: string | null;
   user1: { id: string; name: string };
   user2: { id: string; name: string };
   messages: { content: string; createdAt: string }[];
@@ -61,8 +60,8 @@ const MyChatList = () => {
             const lastMsg = room.messages[0];
             return (
               <Link
-                to={`/chat/${room.productId || 'direct'}`}
-                state={{ seller: other.name, sellerId: other.id, productName: '채팅', productImage: '💬', productPrice: 0 }}
+                to={`/chat/${room.id}`}
+                state={{ seller: other.name, sellerId: other.id, productName: '', productImage: '💬', productPrice: 0 }}
                 key={room.id}
                 className="card p-4 flex items-center gap-3 block"
               >

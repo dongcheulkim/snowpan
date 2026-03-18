@@ -13,12 +13,12 @@ interface Message {
 }
 
 const Chat = () => {
-  const { productId } = useParams();
+  const { chatId } = useParams();
   const location = useLocation();
-  const { seller, sellerId, productName, productImage, productPrice, productType } = (location.state as {
-    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; productType?: string;
-  }) || { seller: '판매자', sellerId: '', productName: '상품', productImage: '📦', productPrice: 0, productType: 'used' };
-  const backPath = `/${productType || 'used'}/${productId}`;
+  const { seller, sellerId, productName, productImage, productPrice, productType, backTo } = (location.state as {
+    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; productType?: string; backTo?: string;
+  }) || { seller: '판매자', sellerId: '', productName: '', productImage: '💬', productPrice: 0, productType: 'used' };
+  const backPath = backTo || '/chat/rooms';
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -31,32 +31,39 @@ const Chat = () => {
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!user || !sellerId) return;
+  const connectToRoom = (id: string) => {
+    const token = getToken();
+    if (!token) return;
+    setRoomId(id);
+    api<Message[]>(`/chat/rooms/${id}/messages`).then(setMessages);
 
+    const socket = io(SERVER_URL, { auth: { token } });
+    socketRef.current = socket;
+    socket.on('connect', () => {
+      setConnected(true);
+      socket.emit('join_room', id);
+    });
+    socket.on('new_message', (msg: Message) => {
+      setMessages(prev => [...prev, msg]);
+    });
+    socket.on('disconnect', () => setConnected(false));
+  };
+
+  useEffect(() => {
+    if (!user) return;
     const token = getToken();
     if (!token) return;
 
-    api<{ id: string }>('/chat/rooms', {
-      method: 'POST',
-      body: { targetUserId: sellerId, productId },
-    }).then(room => {
-      setRoomId(room.id);
-
-      api<Message[]>(`/chat/rooms/${room.id}/messages`).then(setMessages);
-
-      const socket = io(SERVER_URL, { auth: { token } });
-      socketRef.current = socket;
-
-      socket.on('connect', () => {
-        setConnected(true);
-        socket.emit('join_room', room.id);
-      });
-      socket.on('new_message', (msg: Message) => {
-        setMessages(prev => [...prev, msg]);
-      });
-      socket.on('disconnect', () => setConnected(false));
-    });
+    if (sellerId) {
+      // 상품에서 채팅하기로 진입 → 방 생성/조회
+      api<{ id: string }>('/chat/rooms', {
+        method: 'POST',
+        body: { targetUserId: sellerId, productName: productName || undefined },
+      }).then(room => connectToRoom(room.id));
+    } else if (chatId) {
+      // 채팅 목록에서 진입 → roomId로 바로 연결
+      connectToRoom(chatId);
+    }
 
     return () => {
       if (socketRef.current) {

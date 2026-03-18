@@ -27,18 +27,35 @@ router.get('/rooms', async (req: any, res: Response) => {
 router.post('/rooms', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const { targetUserId, productId } = req.body;
+    const { targetUserId, productName } = req.body;
 
     const [u1, u2] = [userId, targetUserId].sort();
 
-    let room = await prisma.chatRoom.findFirst({
-      where: { user1Id: u1, user2Id: u2, productId: productId || null },
+    let room = await prisma.chatRoom.findUnique({
+      where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
     });
 
+    const isNew = !room;
     if (!room) {
       room = await prisma.chatRoom.create({
-        data: { user1Id: u1, user2Id: u2, productId: productId || null },
+        data: { user1Id: u1, user2Id: u2 },
       });
+    }
+
+    // 상품명이 있으면 안내 메시지 자동 전송 (시스템 메시지)
+    if (productName) {
+      const lastMsg = await prisma.message.findFirst({
+        where: { roomId: room.id },
+        orderBy: { createdAt: 'desc' },
+      });
+      // 마지막 메시지가 같은 상품 안내가 아닐 때만 전송
+      const notice = `📦 "${productName}" 상품에 대한 문의입니다.`;
+      if (!lastMsg || lastMsg.content !== notice) {
+        await prisma.message.create({
+          data: { roomId: room.id, senderId: userId, content: notice },
+        });
+        await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
+      }
     }
 
     res.json(room);

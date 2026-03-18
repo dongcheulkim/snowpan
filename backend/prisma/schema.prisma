@@ -162,12 +162,11 @@ model ChatRoom {
   user1     User      @relation("user1", fields: [user1Id], references: [id])
   user2Id   String
   user2     User      @relation("user2", fields: [user2Id], references: [id])
-  productId String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
 
-  @@unique([user1Id, user2Id, productId])
+  @@unique([user1Id, user2Id])
   @@map("chat_rooms")
 }
 
