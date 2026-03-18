@@ -1,5 +1,11 @@
-import { useSyncExternalStore } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { api } from '../api';
+
+interface ChatRoomBasic {
+  id: string;
+  unreadCount: number;
+}
 
 function useLocalStorageUser() {
   return useSyncExternalStore(
@@ -14,6 +20,21 @@ const Navbar = () => {
   // re-parse on location change to pick up login/logout
   void location.pathname;
   const user: { id: string; name: string } | null = raw ? JSON.parse(raw) : null;
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setHasUnread(false); return; }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    api<ChatRoomBasic[]>('/chat/rooms')
+      .then(rooms => {
+        const total = rooms.reduce((sum, r) => sum + (r.unreadCount || 0), 0);
+        setTimeout(() => setHasUnread(total > 0), 0);
+      })
+      .catch(() => { /* ignore */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -38,6 +59,9 @@ const Navbar = () => {
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
+                  {hasUnread && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-coral rounded-full border-2 border-white" />
+                  )}
                 </Link>
                 <Link
                   to="/notifications"

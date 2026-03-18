@@ -54,6 +54,16 @@ const MySales = () => {
     }
   };
 
+  const handleBump = async (id: string) => {
+    try {
+      await api(`/products/${id}/bump`, { method: 'PUT' });
+      alert('끌어올리기 완료! 목록 상단에 노출됩니다.');
+      loadProducts();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '끌어올리기 실패');
+    }
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
@@ -86,6 +96,10 @@ const MySales = () => {
                   <span className={`text-[10px] font-bold px-2 py-1 rounded border ${st.color}`}>{st.text}</span>
                 </div>
                 <div className="flex gap-1.5 mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => handleBump(item.id)}
+                    className="flex-1 py-2 bg-mint/10 text-emerald-600 rounded-lg text-[11px] font-medium border border-mint/30 hover:bg-mint/20 transition-colors"
+                  >끌어올리기</button>
                   <button
                     onClick={() => handleStatusChange(item.id, st.next)}
                     className="flex-1 py-2 bg-gray-50 text-gray-600 rounded-lg text-[11px] font-medium border border-gray-200 hover:bg-gray-100 transition-colors"

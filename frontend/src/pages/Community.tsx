@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl as toImageUrl } from '../api';
 import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
 
@@ -10,6 +10,7 @@ interface Post {
   content: string;
   category: string;
   sport: string;
+  images?: string | null;
   likes: number;
   views: number;
   commentCount: number;
@@ -117,26 +118,38 @@ const Community = () => {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : (
         <div className="space-y-2">
-          {posts.map((post) => (
+          {posts.map((post) => {
+            const firstImage = post.images ? post.images.split(',')[0]?.trim() : null;
+            return (
             <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
-                  {badgeMap[post.category] || post.category}
-                </span>
-                <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
-              </div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">{post.title}</h3>
-              <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-400 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
-                <div className="flex items-center gap-3 text-[11px] text-gray-400">
-                  <span>조회 {post.views}</span>
-                  <span className="text-coral">♥ {post.likes}</span>
-                  <span>댓글 {post.commentCount}</span>
+              <div className="flex gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
+                      {badgeMap[post.category] || post.category}
+                    </span>
+                    <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.title}</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-400 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
+                    <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                      <span>조회 {post.views}</span>
+                      <span className="text-coral">♥ {post.likes}</span>
+                      <span>댓글 {post.commentCount}</span>
+                    </div>
+                  </div>
                 </div>
+                {firstImage && (
+                  <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                    <img src={toImageUrl(firstImage)} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 

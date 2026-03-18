@@ -110,10 +110,10 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { title, content, category, sport } = req.body;
+    const { title, content, category, sport, images } = req.body;
 
     const post = await prisma.post.create({
-      data: { title, content, category, sport, userId },
+      data: { title, content, category, sport, userId, images: images || null },
       include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 

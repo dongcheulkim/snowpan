@@ -3,7 +3,7 @@ import prisma from '../config/database';
 
 const router = Router();
 
-// 내 채팅방 목록
+// 내 채팅방 목록 (with unread count)
 router.get('/rooms', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
@@ -16,7 +16,24 @@ router.get('/rooms', async (req: any, res: Response) => {
       },
       orderBy: { updatedAt: 'desc' },
     });
-    res.json(rooms);
+
+    // Compute unread count per room
+    const roomsWithUnread = await Promise.all(
+      rooms.map(async (room) => {
+        const isUser1 = room.user1Id === userId;
+        const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
+        const unreadCount = await prisma.message.count({
+          where: {
+            roomId: room.id,
+            senderId: { not: userId },
+            ...(lastReadAt ? { createdAt: { gt: lastReadAt } } : {}),
+          },
+        });
+        return { ...room, unreadCount };
+      })
+    );
+
+    res.json(roomsWithUnread);
   } catch (error) {
     console.error('Get chat rooms error:', error);
     res.status(500).json({ error: '채팅방 조회 실패' });
@@ -35,7 +52,6 @@ router.post('/rooms', async (req: any, res: Response) => {
       where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
     });
 
-    const isNew = !room;
     if (!room) {
       room = await prisma.chatRoom.create({
         data: { user1Id: u1, user2Id: u2 },
@@ -97,6 +113,27 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: '메시지 조회 실패' });
+  }
+});
+
+// 채팅방 읽음 처리
+router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { roomId } = req.params;
+    const room = await prisma.chatRoom.findUnique({ where: { id: roomId } });
+    if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
+
+    const now = new Date();
+    if (room.user1Id === userId) {
+      await prisma.chatRoom.update({ where: { id: roomId }, data: { user1LastReadAt: now } });
+    } else if (room.user2Id === userId) {
+      await prisma.chatRoom.update({ where: { id: roomId }, data: { user2LastReadAt: now } });
+    }
+    res.json({ message: '읽음 처리 완료' });
+  } catch (error) {
+    console.error('Mark as read error:', error);
+    res.status(500).json({ error: '읽음 처리 실패' });
   }
 });
 

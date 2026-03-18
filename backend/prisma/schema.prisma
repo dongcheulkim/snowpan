@@ -35,6 +35,9 @@ model User {
   comments         Comment[]
   postLikes        PostLike[]
   wishlists        Wishlist[]
+  reviewsGiven     Review[]   @relation("reviewBuyer")
+  reviewsReceived  Review[]   @relation("reviewSeller")
+  reports          Report[]
 
   @@map("users")
 }
@@ -69,6 +72,7 @@ model Product {
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
   status      String   @default("selling") // 'selling' | 'reserved' | 'sold'
+  bumpedAt    DateTime @default(now())
   userId      String?  // null for admin-crawled items, set for user-submitted
   user        User?    @relation(fields: [userId], references: [id])
   wishlists   Wishlist[]
@@ -81,6 +85,7 @@ model Product {
   @@index([userId])
   @@index([createdAt])
   @@index([status])
+  @@index([bumpedAt])
   @@map("products")
 }
 
@@ -161,14 +166,16 @@ model BadgeRequest {
 }
 
 model ChatRoom {
-  id        String    @id @default(uuid())
-  user1Id   String
-  user1     User      @relation("user1", fields: [user1Id], references: [id])
-  user2Id   String
-  user2     User      @relation("user2", fields: [user2Id], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  messages  Message[]
+  id              String    @id @default(uuid())
+  user1Id         String
+  user1           User      @relation("user1", fields: [user1Id], references: [id])
+  user2Id         String
+  user2           User      @relation("user2", fields: [user2Id], references: [id])
+  user1LastReadAt DateTime?
+  user2LastReadAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  messages        Message[]
 
   @@unique([user1Id, user2Id])
   @@map("chat_rooms")
@@ -178,6 +185,7 @@ model Message {
   id        String   @id @default(uuid())
   content   String
   imageUrl  String?  // 이미지/동영상 URL (Cloudinary)
+  type      String   @default("text") // 'text' | 'price_offer'
   roomId    String
   room      ChatRoom @relation(fields: [roomId], references: [id])
   senderId  String
@@ -195,6 +203,7 @@ model Post {
   content   String
   category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'poll'
   sport     String    // 'ski' | 'board'
+  images    String?   // 콤마 구분 이미지 URLs
   likes     Int       @default(0)
   views     Int       @default(0)
   userId    String
@@ -270,4 +279,36 @@ model PhoneVerification {
   createdAt DateTime @default(now())
 
   @@map("phone_verifications")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1-5
+  content   String
+  sellerId  String
+  seller    User     @relation("reviewSeller", fields: [sellerId], references: [id])
+  buyerId   String
+  buyer     User     @relation("reviewBuyer", fields: [buyerId], references: [id])
+  productId String?
+  createdAt DateTime @default(now())
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("reviews")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  type        String   // 'product' | 'post' | 'user'
+  targetId    String
+  reason      String
+  description String?
+  reporterId  String
+  reporter    User     @relation(fields: [reporterId], references: [id])
+  status      String   @default("pending") // 'pending' | 'resolved'
+  createdAt   DateTime @default(now())
+
+  @@index([reporterId])
+  @@index([type, targetId])
+  @@map("reports")
 }

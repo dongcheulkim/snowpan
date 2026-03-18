@@ -32,6 +32,15 @@ const subcategoryLabels: Record<string, string> = {
   helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
 };
 
+const reportReasons = [
+  '허위 매물',
+  '사기 의심',
+  '욕설/비방',
+  '부적절한 상품',
+  '개인정보 노출',
+  '기타',
+];
+
 const UsedDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -41,12 +50,29 @@ const UsedDetail = () => {
   const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const user = getUser();
 
   useEffect(() => {
     if (!id) return;
     api<Product>(`/products/${id}`)
-      .then(p => { setProduct(p); setWishlisted(p.wishlisted); })
+      .then(p => {
+        setProduct(p);
+        setWishlisted(p.wishlisted);
+
+        // Save to recently viewed (localStorage)
+        try {
+          const key = 'recentlyViewedProducts';
+          const stored = JSON.parse(localStorage.getItem(key) || '[]') as { id: string; name: string; price: number; image: string; viewedAt: string }[];
+          const filtered = stored.filter(item => item.id !== p.id);
+          const entry = { id: p.id, name: p.name, price: p.price, image: p.image, viewedAt: new Date().toISOString() };
+          const updated = [entry, ...filtered].slice(0, 20);
+          localStorage.setItem(key, JSON.stringify(updated));
+        } catch { /* ignore */ }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
@@ -58,6 +84,40 @@ const UsedDetail = () => {
 
   const conditionLabels: Record<string, string> = { '상': '새상품/거의 새 거', '중': '사용감 적음', '하': '사용감 많음' };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = product?.name || '스노우판 상품';
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch { /* ignore - user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('링크가 클립보드에 복사되었습니다.');
+      } catch { /* ignore */ }
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason || !id) return;
+    setReportSubmitting(true);
+    try {
+      await api('/reports', {
+        method: 'POST',
+        body: { type: 'product', targetId: id, reason: reportReason, description: reportDesc || undefined },
+      });
+      alert('신고가 접수되었습니다.');
+      setShowReportModal(false);
+      setReportReason('');
+      setReportDesc('');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">로딩 중...</div>;
   }
@@ -66,7 +126,7 @@ const UsedDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <h2 className="text-xl font-bold text-gray-900 mb-2">상품을 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
+        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">&larr; 목록으로 돌아가기</Link>
       </div>
     );
   }
@@ -84,7 +144,7 @@ const UsedDetail = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">
-        ← 중고 장비 목록
+        &larr; 중고 장비 목록
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -122,7 +182,7 @@ const UsedDetail = () => {
             <div className="text-xs text-gray-400">{formatDate(product.createdAt)}</div>
           </div>
 
-          {/* Price + Status + Wishlist */}
+          {/* Price + Status + Wishlist + Share + Report */}
           <div className="card p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -133,18 +193,43 @@ const UsedDetail = () => {
                   </span>
                 )}
               </div>
-              <button
-                onClick={async () => {
-                  if (!user) { alert('로그인이 필요합니다.'); return; }
-                  try {
-                    const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
-                    setWishlisted(res.wishlisted);
-                  } catch { /* ignore */ }
-                }}
-                className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
-              >
-                {wishlisted ? '♥' : '♡'}
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Share button */}
+                <button
+                  onClick={handleShare}
+                  className="text-gray-400 hover:text-accent transition-colors p-1"
+                  title="공유하기"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                </button>
+                {/* Report button */}
+                {user && !isMyProduct && (
+                  <button
+                    onClick={() => setShowReportModal(true)}
+                    className="text-gray-400 hover:text-coral transition-colors p-1"
+                    title="신고하기"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                    </svg>
+                  </button>
+                )}
+                {/* Wishlist button */}
+                <button
+                  onClick={async () => {
+                    if (!user) { alert('로그인이 필요합니다.'); return; }
+                    try {
+                      const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
+                      setWishlisted(res.wishlisted);
+                    } catch { /* ignore */ }
+                  }}
+                  className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
+                >
+                  {wishlisted ? '♥' : '♡'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -233,11 +318,42 @@ const UsedDetail = () => {
           <img src={allImages[selectedImage]} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
           {allImages.length > 1 && (
             <>
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.max(0, prev - 1)); }}>‹</button>
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.min(allImages.length - 1, prev + 1)); }}>›</button>
+              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.max(0, prev - 1)); }}>&lsaquo;</button>
+              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.min(allImages.length - 1, prev + 1)); }}>&rsaquo;</button>
             </>
           )}
           <div className="absolute bottom-4 text-white text-sm">{selectedImage + 1} / {allImages.length}</div>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
+          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">상품 신고</h3>
+            <p className="text-xs text-gray-400 mb-4">신고 사유를 선택해주세요</p>
+            <div className="space-y-2 mb-4">
+              {reportReasons.map((reason) => (
+                <button key={reason} onClick={() => setReportReason(reason)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${reportReason === reason ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={reportDesc}
+              onChange={e => setReportDesc(e.target.value)}
+              placeholder="추가 설명 (선택)"
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">취소</button>
+              <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
+                {reportSubmitting ? '처리 중...' : '신고하기'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

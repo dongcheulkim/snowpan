@@ -17,6 +17,8 @@ import notificationRoutes from './routes/notificationRoutes';
 import adminRoutes from './routes/adminRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
+import reviewRoutes from './routes/reviewRoutes';
+import reportRoutes from './routes/reportRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 
 dotenv.config();
@@ -47,6 +49,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Socket.IO auth middleware
 io.use((socket, next) => {
@@ -69,10 +73,10 @@ io.on('connection', (socket) => {
     socket.join(`room:${roomId}`);
   });
 
-  socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string }) => {
+  socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string; type?: string }) => {
     try {
       const message = await prisma.message.create({
-        data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null },
+        data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null, type: data.type || 'text' },
         include: { sender: { select: { id: true, name: true, profileImage: true } } },
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });

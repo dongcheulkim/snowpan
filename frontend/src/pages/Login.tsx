@@ -101,6 +101,45 @@ const Login = () => {
           </button>
         </form>
 
+        {/* Social Login */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3 bg-white text-gray-400">간편 로그인</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => {
+                alert('카카오 로그인은 API 키 설정 후 사용 가능합니다.\n관리자에게 KAKAO_CLIENT_ID 설정을 요청하세요.');
+              }}
+              className="flex-1 py-3 rounded-lg font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#FEE500', color: '#000000' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-5.088 0-9.2 3.272-9.2 7.313 0 2.604 1.716 4.9 4.318 6.195-.19.71-.69 2.577-.79 2.975-.124.496.18.49.38.355.157-.105 2.5-1.7 3.533-2.392.572.083 1.158.126 1.759.126 5.088 0 9.2-3.272 9.2-7.313S17.088 3 12 3z"/>
+              </svg>
+              카카오 로그인
+            </button>
+            <button
+              onClick={() => {
+                alert('네이버 로그인은 API 키 설정 후 사용 가능합니다.\n관리자에게 NAVER_CLIENT_ID 설정을 요청하세요.');
+              }}
+              className="flex-1 py-3 rounded-lg font-bold text-sm text-white transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#03C75A' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z" transform="scale(0.75) translate(4,4)"/>
+              </svg>
+              네이버 로그인
+            </button>
+          </div>
+        </div>
+
         <div className="mt-4 text-center">
           <Link to="/register" className="text-xs text-primary-dark hover:underline">계정이 없으신가요? 회원가입</Link>
         </div>

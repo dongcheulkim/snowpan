@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import UserBadges from '../components/UserBadges';
 
 interface Comment {
@@ -17,6 +17,7 @@ interface PostData {
   content: string;
   category: string;
   sport: string;
+  images?: string | null;
   likes: number;
   views: number;
   user: { id: string; name: string; profileImage?: string; badges?: string[] };
@@ -36,6 +37,15 @@ const badgeColor: Record<string, string> = {
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
 };
 
+const reportReasons = [
+  '스팸/광고',
+  '욕설/비방',
+  '허위 정보',
+  '음란/불법 콘텐츠',
+  '개인정보 노출',
+  '기타',
+];
+
 const CommunityDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -44,6 +54,10 @@ const CommunityDetail = () => {
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -84,6 +98,40 @@ const CommunityDetail = () => {
     }
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = post?.title || '스노우판 게시글';
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch { /* ignore - user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('링크가 클립보드에 복사되었습니다.');
+      } catch { /* ignore */ }
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reportReason || !id) return;
+    setReportSubmitting(true);
+    try {
+      await api('/reports', {
+        method: 'POST',
+        body: { type: 'post', targetId: id, reason: reportReason, description: reportDesc || undefined },
+      });
+      alert('신고가 접수되었습니다.');
+      setShowReportModal(false);
+      setReportReason('');
+      setReportDesc('');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
     const now = new Date();
@@ -102,21 +150,37 @@ const CommunityDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <h2 className="text-xl font-bold text-gray-900 mb-2">게시글을 찾을 수 없습니다</h2>
-        <Link to="/community" className="text-gray-500 hover:text-gray-900 text-sm">← 커뮤니티로 돌아가기</Link>
+        <Link to="/community" className="text-gray-500 hover:text-gray-900 text-sm">&larr; 커뮤니티로 돌아가기</Link>
       </div>
     );
   }
 
   const badge = badgeMap[post.category] || post.category;
+  const postImages = post.images ? post.images.split(',').filter(s => s.trim()).map(u => imageUrl(u.trim())) : [];
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">← 커뮤니티</Link>
+      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; 커뮤니티</Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
           <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>{badge}</span>
           <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
+          <div className="flex-1" />
+          {/* Share button */}
+          <button onClick={handleShare} className="p-1.5 text-gray-400 hover:text-accent transition-colors" title="공유하기">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+          {/* Report button */}
+          {user && user.id !== post.userId && (
+            <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-400 hover:text-coral transition-colors" title="신고하기">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+              </svg>
+            </button>
+          )}
         </div>
 
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
@@ -131,6 +195,15 @@ const CommunityDetail = () => {
         </div>
 
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{post.content}</p>
+
+        {/* Post Images */}
+        {postImages.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {postImages.map((img, idx) => (
+              <img key={idx} src={img} alt="" className="w-full rounded-lg border border-gray-200" />
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'}`}>
@@ -175,6 +248,37 @@ const CommunityDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
+          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">게시글 신고</h3>
+            <p className="text-xs text-gray-400 mb-4">신고 사유를 선택해주세요</p>
+            <div className="space-y-2 mb-4">
+              {reportReasons.map((reason) => (
+                <button key={reason} onClick={() => setReportReason(reason)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${reportReason === reason ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={reportDesc}
+              onChange={e => setReportDesc(e.target.value)}
+              placeholder="추가 설명 (선택)"
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">취소</button>
+              <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
+                {reportSubmitting ? '처리 중...' : '신고하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -26,7 +26,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { bumpedAt: 'desc' },
         ...(take && { take }),
         ...(skip && { skip }),
         include: {
@@ -204,6 +204,26 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
   } catch (error) {
     console.error('Toggle wishlist error:', error);
     res.status(500).json({ error: '찜 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 끌어올리기
+export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (product.userId !== userId) { res.status(403).json({ error: '본인의 상품만 끌어올릴 수 있습니다.' }); return; }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: { bumpedAt: new Date() },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Bump product error:', error);
+    res.status(500).json({ error: '끌어올리기 중 오류가 발생했습니다.' });
   }
 };
 

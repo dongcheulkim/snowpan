@@ -42,6 +42,7 @@ import PollDetail from './pages/PollDetail';
 import Notifications from './pages/Notifications';
 import Webcam from './pages/Webcam';
 import WebcamDetail from './pages/WebcamDetail';
+import RecentlyViewed from './pages/RecentlyViewed';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
           <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
           <Route path="mypage/purchases" element={<RequireAuth><MyPurchases /></RequireAuth>} />
           <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
+          <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />
           <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
           <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
           <Route path="mypage/notifications" element={<RequireAuth><NotificationSettings /></RequireAuth>} />

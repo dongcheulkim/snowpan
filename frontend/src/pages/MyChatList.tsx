@@ -7,6 +7,7 @@ interface ChatRoom {
   user1: { id: string; name: string };
   user2: { id: string; name: string };
   messages: { content: string; createdAt: string }[];
+  unreadCount: number;
   updatedAt: string;
 }
 
@@ -46,7 +47,7 @@ const MyChatList = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/" className="text-gray-400 text-lg">←</Link>
+        <Link to="/" className="text-gray-400 text-lg">&larr;</Link>
         <h1 className="text-xl font-bold text-gray-900">채팅</h1>
       </div>
 
@@ -62,13 +63,22 @@ const MyChatList = () => {
             return (
               <Link
                 to={`/chat/${room.id}`}
-                state={{ seller: other.name, sellerId: other.id, productName: '', productImage: '💬', productPrice: 0 }}
+                state={{ seller: other.name, sellerId: other.id, productName: '', productImage: '', productPrice: 0 }}
                 key={room.id}
                 className="card p-4 flex items-center gap-3 block"
               >
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl border border-gray-200">👤</div>
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl border border-gray-200">
+                  👤
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-gray-900 truncate">{other.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-bold text-gray-900 truncate">{other.name}</div>
+                    {room.unreadCount > 0 && (
+                      <span className="bg-coral text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                        {room.unreadCount > 99 ? '99+' : room.unreadCount}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-400 mt-0.5 truncate">
                     {lastMsg ? lastMsg.content : '대화를 시작해보세요'}
                   </div>

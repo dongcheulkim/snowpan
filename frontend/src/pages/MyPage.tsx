@@ -107,6 +107,7 @@ const MyPage = () => {
     { label: '프로필 수정', link: '/mypage/edit' },
     { label: '판매 물품', link: '/mypage/sales' },
     { label: '찜 목록', link: '/mypage/wishlist' },
+    { label: '최근 본 상품', link: '/mypage/recent' },
     { label: '채팅 목록', link: '/chat/rooms' },
     { label: '알림', link: '/notifications' },
   ];

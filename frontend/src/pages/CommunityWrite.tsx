@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, uploadImages } from '../api';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
@@ -11,6 +11,9 @@ const CommunityWrite = () => {
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
 
@@ -22,6 +25,23 @@ const CommunityWrite = () => {
     { id: 'carpool', name: '카풀' },
   ];
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newFiles = [...imageFiles, ...files].slice(0, 5);
+    setImageFiles(newFiles);
+    const previews = newFiles.map(f => URL.createObjectURL(f));
+    setImagePreviews(previews);
+    e.target.value = '';
+  };
+
+  const removeImage = (idx: number) => {
+    const newFiles = imageFiles.filter((_, i) => i !== idx);
+    setImageFiles(newFiles);
+    URL.revokeObjectURL(imagePreviews[idx]);
+    setImagePreviews(newFiles.map(f => URL.createObjectURL(f)));
+  };
+
   const handleSubmit = async () => {
     const user = getUser();
     if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
@@ -31,9 +51,15 @@ const CommunityWrite = () => {
 
     setSubmitting(true);
     try {
+      let images: string | undefined;
+      if (imageFiles.length > 0) {
+        const urls = await uploadImages(imageFiles);
+        images = urls.join(',');
+      }
+
       await api('/community', {
         method: 'POST',
-        body: { title: title.trim(), content: content.trim(), category, sport },
+        body: { title: title.trim(), content: content.trim(), category, sport, images },
       });
       navigate(`/community/${sport}`);
     } catch (err) {
@@ -47,7 +73,7 @@ const CommunityWrite = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">←</button>
+          <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">&larr;</button>
           <h1 className="text-xl font-bold text-gray-900">{sportLabel} 글쓰기</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-400">취소</button>
@@ -74,10 +100,40 @@ const CommunityWrite = () => {
         <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="내용을 입력하세요" rows={12} className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none" />
       </div>
 
+      {/* Image Upload */}
+      <div>
+        <label className="text-sm font-semibold text-gray-700 block mb-2">사진 (최대 5장)</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="hidden"
+          onChange={handleImageSelect}
+        />
+        <div className="flex gap-2 flex-wrap">
+          {imagePreviews.map((preview, idx) => (
+            <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+              <img src={preview} alt="" className="w-full h-full object-cover" />
+              <button onClick={() => removeImage(idx)} className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full text-[10px] flex items-center justify-center">✕</button>
+            </div>
+          ))}
+          {imageFiles.length < 5 && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-accent/50 hover:text-accent-light transition-all"
+            >
+              <span className="text-xl">+</span>
+              <span className="text-[10px]">{imageFiles.length}/5</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="card p-4 space-y-3">
         <button onClick={() => setShowRules(!showRules)} className="flex items-center justify-between w-full">
           <span className="text-sm font-bold text-gray-700">커뮤니티 이용규칙</span>
-          <span className="text-gray-400 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
+          <span className="text-gray-400 text-xs">{showRules ? '접기' : '펼치기'}</span>
         </button>
         {showRules && (
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed space-y-2">
