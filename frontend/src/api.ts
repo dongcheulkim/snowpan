@@ -40,6 +40,7 @@ export function getToken() {
 export function logout() {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
+  localStorage.removeItem('autoLogin');
 }
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
