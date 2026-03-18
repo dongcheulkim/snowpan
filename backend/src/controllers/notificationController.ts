@@ -46,6 +46,29 @@ export const markAllAsRead = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+export const deleteNotification = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    await prisma.notification.deleteMany({ where: { id, userId } });
+    res.json({ message: '알림이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ error: '알림 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
+export const deleteAllNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    await prisma.notification.deleteMany({ where: { userId } });
+    res.json({ message: '모든 알림이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('Delete all notifications error:', error);
+    res.status(500).json({ error: '알림 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
 // 알림 생성 헬퍼 (다른 컨트롤러에서 호출)
 export const createNotification = async (userId: string, type: string, title: string, message: string, link?: string) => {
   try {
