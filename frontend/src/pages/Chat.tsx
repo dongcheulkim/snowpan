@@ -12,13 +12,18 @@ interface Message {
   createdAt: string;
 }
 
+interface ChatRoomInfo {
+  id: string;
+  user1: { id: string; name: string };
+  user2: { id: string; name: string };
+}
+
 const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
-  const { seller, sellerId, productName, productImage, productPrice, backTo } = (location.state as {
-    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; backTo?: string;
-  }) || { seller: '판매자', sellerId: '', productName: '', productImage: '💬', productPrice: 0 };
-  const backPath = backTo || '/chat/rooms';
+  const state = location.state as {
+    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string;
+  } | null;
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -27,9 +32,13 @@ const Chat = () => {
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fullImage, setFullImage] = useState<string | null>(null);
+  const [otherName, setOtherName] = useState(state?.seller || '판매자');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const hasProductInfo = !!(state?.productName && state?.productPrice);
+  const backPath = state?.backTo || '/chat/rooms';
 
   const connectToRoom = (id: string) => {
     const token = getToken();
@@ -54,15 +63,19 @@ const Chat = () => {
     const token = getToken();
     if (!token) return;
 
-    if (sellerId) {
+    if (state?.sellerId) {
       // 상품에서 채팅하기로 진입 → 방 생성/조회
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
-        body: { targetUserId: sellerId, productName: productName || undefined },
+        body: { targetUserId: state.sellerId, productName: state.productName || undefined },
       }).then(room => connectToRoom(room.id));
     } else if (chatId) {
-      // 채팅 목록에서 진입 → roomId로 바로 연결
+      // 채팅 목록에서 진입 → roomId로 바로 연결 + 상대방 정보 조회
       connectToRoom(chatId);
+      api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
+        const other = room.user1.id === user.id ? room.user2 : room.user1;
+        setOtherName(other.name);
+      }).catch(() => {});
     }
 
     return () => {
@@ -134,30 +147,34 @@ const Chat = () => {
           <Link to={backPath} className="text-gray-400 hover:text-gray-900 transition-colors text-sm">←</Link>
           <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-sm">👤</div>
           <div className="flex-1">
-            <div className="text-sm font-bold text-gray-900">{seller}</div>
+            <div className="text-sm font-bold text-gray-900">{otherName}</div>
             <div className="text-[10px] text-gray-400">{connected ? '온라인' : '연결 중...'}</div>
           </div>
           <div className={`w-2 h-2 rounded-full ${connected ? 'bg-mint' : 'bg-gray-300'}`} />
         </div>
       </div>
 
-      {/* Product Info */}
-      <div className="card p-3 mb-3 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl overflow-hidden">
-          {productImage.startsWith('http') || productImage.startsWith('/') ? (
-            <img src={productImage.startsWith('/') ? `${SERVER_URL}${productImage}` : productImage} alt="" className="w-full h-full object-cover" />
-          ) : (
-            productImage
+      {/* Product Info - 상품에서 진입했을 때만 표시 */}
+      {hasProductInfo && (
+        <div className="card p-3 mb-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl overflow-hidden">
+            {state!.productImage!.startsWith('http') || state!.productImage!.startsWith('/') ? (
+              <img src={state!.productImage!.startsWith('/') ? `${SERVER_URL}${state!.productImage}` : state!.productImage} alt="" className="w-full h-full object-cover" />
+            ) : (
+              state!.productImage
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-bold text-gray-900 truncate">{state!.productName}</div>
+            <div className="text-sm font-bold text-mint">{state!.productPrice!.toLocaleString()}원</div>
+          </div>
+          {state!.backTo && (
+            <Link to={state!.backTo} className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[11px] border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0">
+              상품보기
+            </Link>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-xs font-bold text-gray-900 truncate">{productName}</div>
-          <div className="text-sm font-bold text-mint">{productPrice.toLocaleString()}원</div>
-        </div>
-        <Link to={backPath} className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[11px] border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0">
-          상품보기
-        </Link>
-      </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 pb-3 px-1">
