@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      borderColor: {
+        DEFAULT: '#BAE6FD',
+      },
       colors: {
         primary: {
           DEFAULT: '#38BDF8',

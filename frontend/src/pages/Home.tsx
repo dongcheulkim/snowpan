@@ -76,7 +76,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-sky-50">
       {/* Banner */}
       <div className="px-4 pt-2 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
@@ -118,10 +118,10 @@ const Home = () => {
               to={cat.link}
               className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
             >
-              <div className="w-14 h-14 bg-gray-200 border-2 border-gray-400 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+              <div className="w-14 h-14 bg-white border-2 border-sky-300 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
                 {cat.icon}
               </div>
-              <span className="text-xs font-semibold text-gray-700">{cat.title}</span>
+              <span className="text-xs font-semibold text-gray-900">{cat.title}</span>
             </Link>
           ))}
         </div>
@@ -131,7 +131,7 @@ const Home = () => {
       <div className="px-4 py-4 space-y-4">
 
         {/* Hot Deals */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
+        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">🏷️ 중고 인기매물</h2>
             <Link to="/used" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
@@ -164,7 +164,7 @@ const Home = () => {
         </div>
 
         {/* Community */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
+        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">💬 커뮤니티</h2>
             <Link to={`/community/${communityTab}`} className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
@@ -198,7 +198,7 @@ const Home = () => {
         </div>
 
         {/* YouTube Videos */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
+        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">🎬 유튜버의 핫한 영상!</h2>
             <div className="flex gap-1">
