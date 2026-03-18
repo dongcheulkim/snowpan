@@ -67,7 +67,7 @@ const CommunityDetail = () => {
       const result = await api<{ likes: number; liked: boolean }>(`/community/${id}/like`, { method: 'PUT' });
       setLikeCount(result.likes);
       setLiked(result.liked);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleComment = async () => {

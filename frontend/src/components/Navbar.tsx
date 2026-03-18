@@ -1,14 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+
+function useLocalStorageUser() {
+  return useSyncExternalStore(
+    (cb) => { window.addEventListener('storage', cb); return () => window.removeEventListener('storage', cb); },
+    () => localStorage.getItem('user'),
+  );
+}
 
 const Navbar = () => {
   const location = useLocation();
-  const [user, setUser] = useState<{ id: string; name: string } | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-    setUser(stored ? JSON.parse(stored) : null);
-  }, [location]);
+  const raw = useLocalStorageUser();
+  // re-parse on location change to pick up login/logout
+  void location.pathname;
+  const user: { id: string; name: string } | null = raw ? JSON.parse(raw) : null;
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">

@@ -57,6 +57,7 @@ const UsedEdit = () => {
       })
       .catch(() => navigate('/mypage/sales'))
       .finally(() => setFetching(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

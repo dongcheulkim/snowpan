@@ -21,6 +21,7 @@ const MyChatList = () => {
       .then(setRooms)
       .catch(() => {})
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatTime = (dateStr: string) => {

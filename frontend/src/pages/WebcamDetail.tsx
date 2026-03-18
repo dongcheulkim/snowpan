@@ -141,7 +141,8 @@ const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }
     const video = videoRef.current;
     if (!video) return;
 
-    setError(false);
+    // Reset error in a scheduled callback to avoid sync setState in effect
+    const resetTimer = setTimeout(() => setError(false), 0);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
@@ -159,16 +160,18 @@ const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }
       });
 
       return () => {
+        clearTimeout(resetTimer);
         hls.destroy();
         hlsRef.current = null;
       };
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari native HLS
       video.src = src;
       if (autoPlay) video.play().catch(() => {});
-      return () => { video.src = ''; };
+      return () => { clearTimeout(resetTimer); video.src = ''; };
     } else {
-      setError(true);
+      clearTimeout(resetTimer);
+      const errorTimer = setTimeout(() => setError(true), 0);
+      return () => clearTimeout(errorTimer);
     }
   }, [src, autoPlay]);
 

@@ -33,6 +33,7 @@ const MySales = () => {
       .then(setPosts)
       .catch(() => setPosts([]))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatDate = (dateStr: string) => {

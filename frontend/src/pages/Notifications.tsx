@@ -31,20 +31,21 @@ const Notifications = () => {
       .then(setNotifications)
       .catch(() => {})
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleMarkAllRead = async () => {
     try {
       await api('/notifications/read-all', { method: 'PUT' });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleClick = async (id: string) => {
     try {
       await api(`/notifications/${id}/read`, { method: 'PUT' });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const formatTime = (dateStr: string) => {

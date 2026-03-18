@@ -17,15 +17,15 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
-    api<any>('/auth/profile').then(data => {
+    api<{ nickname?: string; displayName?: string; profileImage?: string }>('/auth/profile').then(data => {
       setForm({
         nickname: data.nickname || '',
-        displayName: data.displayName || 'name',
+        displayName: (data.displayName as 'name' | 'nickname') || 'name',
         profileImage: data.profileImage || '',
       });
       if (data.profileImage) setProfilePreview(data.profileImage);
     }).catch(() => {});
-  }, []);
+  }, [navigate, user]);
 
   const handleProfileImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,7 +48,7 @@ const EditProfile = () => {
         const urls = await uploadImages([profileFile]);
         profileImage = urls[0];
       }
-      const updated = await api<any>('/auth/profile', {
+      const updated = await api<Record<string, unknown>>('/auth/profile', {
         method: 'PUT',
         body: { nickname: form.nickname.trim(), displayName: form.displayName, profileImage },
       });

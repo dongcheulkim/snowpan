@@ -26,7 +26,7 @@ const MyPage = () => {
     setUser(stored);
 
     // 서버에서 최신 프로필 가져오기
-    api<any>('/auth/profile').then(data => {
+    api<Record<string, unknown>>('/auth/profile').then(data => {
       const updated = { ...stored, ...data };
       setUser(updated);
       localStorage.setItem('user', JSON.stringify(updated));
@@ -44,7 +44,7 @@ const MyPage = () => {
     setUploadingPhoto(true);
     try {
       const urls = await uploadImages([file]);
-      const updated = await api<any>('/auth/profile', {
+      const updated = await api<Record<string, unknown>>('/auth/profile', {
         method: 'PUT',
         body: { profileImage: urls[0] },
       });

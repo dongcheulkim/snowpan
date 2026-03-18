@@ -73,8 +73,8 @@ const AccommodationRegister = () => {
       });
       alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
       navigate('/accommodation');
-    } catch (e: any) {
-      alert(e.message || '등록에 실패했습니다. 로그인이 필요합니다.');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : '등록에 실패했습니다. 로그인이 필요합니다.');
     } finally {
       setSubmitting(false);
     }

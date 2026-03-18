@@ -76,23 +76,26 @@ const PollDetail = () => {
     const allPolls = [...defaultPolls, ...userPolls];
     const found = allPolls.find((p) => p.id === id);
     if (found) {
-      setPoll({ ...found, views: found.views + 1 });
+      const updated = { ...found, views: found.views + 1 };
+      // Schedule state update to avoid sync setState in effect
+      setTimeout(() => setPoll(updated), 0);
     }
 
     // Load vote status
     const pollVotes = JSON.parse(localStorage.getItem('pollVotes') || '{}');
     if (id && pollVotes[id]) {
-      setVoted(pollVotes[id]);
+      setTimeout(() => setVoted(pollVotes[id]), 0);
     }
 
     // Load comments
     const allComments: Comment[] = JSON.parse(localStorage.getItem('pollComments') || '[]');
-    setComments(allComments.filter((c) => c.pollId === id));
+    const filtered = allComments.filter((c) => c.pollId === id);
+    setTimeout(() => setComments(filtered), 0);
 
     // Load like status
     const pollLikes = JSON.parse(localStorage.getItem('pollLikes') || '{}');
     if (id && pollLikes[id]) {
-      setLiked(true);
+      setTimeout(() => setLiked(true), 0);
     }
   }, [id]);
 
@@ -162,8 +165,9 @@ const PollDetail = () => {
     setNewComment('');
   };
 
+  const [now] = useState(() => Date.now());
   const formatTime = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
+    const diff = now - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return '방금 전';
     if (mins < 60) return `${mins}분 전`;
