@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { api, getUser, imageUrl } from '../api';
 
 interface LessonData {
   id: string;
+  userId?: string;
   name: string;
   price: number;
   duration: string;
@@ -18,8 +19,11 @@ const levelLabels: Record<string, string> = { beginner: 'LV1', intermediate: 'LV
 
 const LessonDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [item, setItem] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
+  const user = getUser();
+
 
   useEffect(() => {
     if (!id) return;
@@ -98,6 +102,9 @@ const LessonDetail = () => {
         </div>
       )}
 
+      {user && item.userId === user.id && (
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/lessons/${item.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate('/lesson'); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">삭제</button>
+      )}
       <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">레슨 예약하기</button>
     </div>
   );

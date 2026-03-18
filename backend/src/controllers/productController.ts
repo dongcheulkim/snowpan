@@ -120,3 +120,48 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });
   }
 };
+
+export const updateProduct = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (product.userId !== userId && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+
+    const { name, brand, price, image, images, description, condition, usageCount } = req.body;
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        ...(name && { name }),
+        ...(brand && { brand }),
+        ...(price && { price: parseInt(price) }),
+        ...(image && { image }),
+        ...(images !== undefined && { images }),
+        ...(description !== undefined && { description }),
+        ...(condition && { condition }),
+        ...(usageCount !== undefined && { usageCount }),
+      },
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Update product error:', error);
+    res.status(500).json({ error: '상품 수정 중 오류가 발생했습니다.' });
+  }
+};
+
+export const deleteProduct = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (product.userId !== userId && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+
+    await prisma.product.delete({ where: { id } });
+    res.json({ message: '상품이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('Delete product error:', error);
+    res.status(500).json({ error: '상품 삭제 중 오류가 발생했습니다.' });
+  }
+};

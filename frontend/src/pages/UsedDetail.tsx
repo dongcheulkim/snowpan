@@ -162,6 +162,25 @@ const UsedDetail = () => {
               채팅하기
             </button>
           )}
+
+          {/* Edit/Delete */}
+          {isMyProduct && (
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  if (!confirm('정말 삭제하시겠습니까?')) return;
+                  try {
+                    await api(`/products/${product.id}`, { method: 'DELETE' });
+                    alert('삭제되었습니다.');
+                    navigate('/used');
+                  } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
+                }}
+                className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
+              >
+                삭제
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

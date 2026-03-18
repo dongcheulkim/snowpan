@@ -1,12 +1,14 @@
 import { Router } from 'express';
-import { getProducts, getProductById, createUsedProduct, createNewProduct } from '../controllers/productController';
+import { getProducts, getProductById, createUsedProduct, createNewProduct, updateProduct, deleteProduct } from '../controllers/productController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
 router.get('/', getProducts);
 router.get('/:id', getProductById);
-router.post('/used', authenticateToken, createUsedProduct); // 중고 장비 등록
-router.post('/new', authenticateToken, createNewProduct); // 새 장비 등록 (관리자만)
+router.post('/used', authenticateToken, createUsedProduct);
+router.post('/new', authenticateToken, createNewProduct);
+router.put('/:id', authenticateToken, updateProduct);
+router.delete('/:id', authenticateToken, deleteProduct);
 
 export default router;

@@ -90,3 +90,31 @@ export const getRentalById = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });
   }
 };
+
+export const updateRental = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const item = await prisma.rental.findUnique({ where: { id } });
+    if (!item) { res.status(404).json({ error: '렌탈을 찾을 수 없습니다.' }); return; }
+    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+
+    const { name, price, duration, equipment, image } = req.body;
+    const updated = await prisma.rental.update({
+      where: { id },
+      data: { ...(name && { name }), ...(price && { price: parseInt(price) }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
+    });
+    res.json(updated);
+  } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
+};
+
+export const deleteRental = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const item = await prisma.rental.findUnique({ where: { id } });
+    if (!item) { res.status(404).json({ error: '렌탈을 찾을 수 없습니다.' }); return; }
+    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+
+    await prisma.rental.delete({ where: { id } });
+    res.json({ message: '렌탈이 삭제되었습니다.' });
+  } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
+};

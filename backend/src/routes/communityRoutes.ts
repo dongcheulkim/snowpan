@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getPosts, getPostById, createPost, likePost, createComment } from '../controllers/communityController';
+import { getPosts, getPostById, createPost, likePost, createComment, updatePost, deletePost } from '../controllers/communityController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -7,6 +7,8 @@ const router = Router();
 router.get('/', getPosts);
 router.get('/:id', getPostById);
 router.post('/', authenticateToken, createPost);
+router.put('/:id', authenticateToken, updatePost);
+router.delete('/:id', authenticateToken, deletePost);
 router.put('/:id/like', likePost);
 router.post('/:id/comments', authenticateToken, createComment);
 

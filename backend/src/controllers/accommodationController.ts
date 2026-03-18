@@ -98,3 +98,31 @@ export const createAccommodation = async (req: any, res: Response): Promise<void
     res.status(500).json({ error: '숙소 등록 중 오류가 발생했습니다.' });
   }
 };
+
+export const updateAccommodation = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const item = await prisma.accommodation.findUnique({ where: { id } });
+    if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
+    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+
+    const { name, type, price, originalPrice, guests, features, image } = req.body;
+    const updated = await prisma.accommodation.update({
+      where: { id },
+      data: { ...(name && { name }), ...(type && { type }), ...(price && { price: parseInt(price) }), ...(originalPrice && { originalPrice: parseInt(originalPrice) }), ...(guests && { guests }), ...(features && { features }), ...(image && { image }) },
+    });
+    res.json(updated);
+  } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
+};
+
+export const deleteAccommodation = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const item = await prisma.accommodation.findUnique({ where: { id } });
+    if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
+    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+
+    await prisma.accommodation.delete({ where: { id } });
+    res.json({ message: '숙소가 삭제되었습니다.' });
+  } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
+};

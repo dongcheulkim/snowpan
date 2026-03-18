@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
+import { createNotification } from './notificationController';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -100,9 +101,49 @@ export const createComment = async (req: any, res: Response): Promise<void> => {
       include: { user: { select: { id: true, name: true } } },
     });
 
+    // 글 작성자에게 알림 (본인 댓글은 제외)
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (post && post.userId !== userId) {
+      await createNotification(
+        post.userId,
+        'chat',
+        '새 댓글',
+        `'${post.title}' 글에 댓글이 달렸습니다: "${content.slice(0, 30)}"`,
+        `/community/post/${postId}`
+      );
+    }
+
     res.status(201).json(comment);
   } catch (error) {
     console.error('Create comment error:', error);
     res.status(500).json({ error: '댓글 등록 중 오류가 발생했습니다.' });
   }
+};
+
+export const updatePost = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
+    if (post.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+
+    const { title, content, category } = req.body;
+    const updated = await prisma.post.update({
+      where: { id },
+      data: { ...(title && { title }), ...(content && { content }), ...(category && { category }) },
+    });
+    res.json(updated);
+  } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
+};
+
+export const deletePost = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
+    if (post.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+
+    await prisma.post.delete({ where: { id } });
+    res.json({ message: '게시글이 삭제되었습니다.' });
+  } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
 };

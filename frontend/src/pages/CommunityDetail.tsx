@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 
 interface Comment {
@@ -11,6 +11,7 @@ interface Comment {
 
 interface PostData {
   id: string;
+  userId?: string;
   title: string;
   content: string;
   category: string;
@@ -36,6 +37,7 @@ const badgeColor: Record<string, string> = {
 
 const CommunityDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
@@ -129,6 +131,10 @@ const CommunityDetail = () => {
           <span className="text-sm text-gray-400">댓글 {post.comments.length}</span>
         </div>
       </div>
+
+      {user && post.userId === user.id && (
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate(`/community/${post.sport}`); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">삭제</button>
+      )}
 
       <div className="card p-5">
         <h3 className="text-sm font-bold text-gray-900 mb-4">댓글 {post.comments.length}</h3>
