@@ -68,11 +68,15 @@ const Home = () => {
   ];
 
   useEffect(() => {
-    api<Product[]>('/products?category=used').then(products => {
-      setHotDeals(products.slice(0, 3));
-    }).catch(() => {});
-    api<CommunityPost[]>('/community?sport=ski').then(posts => setSkiPosts(posts.slice(0, 3))).catch(() => {});
-    api<CommunityPost[]>('/community?sport=board').then(posts => setBoardPosts(posts.slice(0, 3))).catch(() => {});
+    Promise.all([
+      api<Product[]>('/products?category=used&limit=3').catch(() => [] as Product[]),
+      api<CommunityPost[]>('/community?sport=ski&limit=3').catch(() => [] as CommunityPost[]),
+      api<CommunityPost[]>('/community?sport=board&limit=3').catch(() => [] as CommunityPost[]),
+    ]).then(([products, ski, board]) => {
+      setHotDeals(products);
+      setSkiPosts(ski);
+      setBoardPosts(board);
+    });
   }, []);
 
   return (

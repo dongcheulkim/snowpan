@@ -6,6 +6,7 @@ interface Product {
   id: string;
   name: string;
   brand: string;
+  subcategory: string | null;
   price: number;
   image: string;
   images: string | null;
@@ -17,6 +18,11 @@ interface Product {
   user: { id: string; name: string } | null;
   createdAt: string;
 }
+
+const subcategoryLabels: Record<string, string> = {
+  ski: '스키', board: '보드', boots: '부츠', binding: '바인딩',
+  helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
+};
 
 const UsedDetail = () => {
   const { id } = useParams();
@@ -99,7 +105,10 @@ const UsedDetail = () => {
         <div className="space-y-5">
           {/* Title */}
           <div>
-            <div className="text-xs text-accent-light font-medium tracking-wider uppercase mb-1">{product.brand}</div>
+            <div className="text-xs text-accent-light font-medium tracking-wider mb-1">
+              {product.subcategory && <span className="bg-accent/10 text-accent px-1.5 py-0.5 rounded mr-1.5">{subcategoryLabels[product.subcategory] || product.subcategory}</span>}
+              {product.brand && <span className="uppercase">{product.brand}</span>}
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
             <div className="text-xs text-gray-400">{formatDate(product.createdAt)}</div>
           </div>

@@ -5,14 +5,19 @@ import { createNotification } from './notificationController';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport, category, userId } = req.query;
+    const { sport, category, userId, limit, offset } = req.query;
     const where: Record<string, unknown> = {};
     if (sport) where.sport = sport as string;
     if (category && category !== 'all') where.category = category as string;
     if (userId) where.userId = userId as string;
 
+    const take = limit ? parseInt(limit as string, 10) : undefined;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
+
     const posts = await prisma.post.findMany({
       where,
+      ...(take && { take }),
+      ...(skip && { skip }),
       include: {
         user: { select: { id: true, name: true } },
         _count: { select: { comments: true } },

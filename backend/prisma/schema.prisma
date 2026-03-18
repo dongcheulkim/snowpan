@@ -56,6 +56,7 @@ model Product {
   id          String   @id @default(uuid())
   name        String
   brand       String
+  subcategory String?  // 'ski' | 'board' | 'boots' | 'binding' | 'helmet' | 'goggles' | 'wear' | 'etc'
   price       Int
   image       String
   images      String?  // 콤마 구분 여러 이미지 URL
@@ -71,6 +72,8 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   @@index([category])
+  @@index([category, subcategory])
+  @@index([category, createdAt])
   @@index([userId])
   @@index([createdAt])
   @@map("products")

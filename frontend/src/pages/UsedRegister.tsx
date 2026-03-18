@@ -11,7 +11,8 @@ const UsedRegister = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [form, setForm] = useState({
     name: '',
-    category: 'ski',
+    subcategory: 'ski',
+    brand: '',
     size: '',
     year: '',
     condition: '새상품',
@@ -45,12 +46,12 @@ const UsedRegister = () => {
     const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
 
     try {
-      let imageUrl = imageMap[form.category] || '📦';
+      let imgUrl = imageMap[form.subcategory] || '📦';
       let allImageUrls = '';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         if (urls.length > 0) {
-          imageUrl = urls[0];
+          imgUrl = urls[0];
           allImageUrls = urls.join(',');
         }
       }
@@ -59,9 +60,10 @@ const UsedRegister = () => {
         method: 'POST',
         body: {
           name: form.name,
-          brand: form.category,
+          brand: form.brand,
+          subcategory: form.subcategory,
           price: form.price,
-          image: imageUrl,
+          image: imgUrl,
           images: allImageUrls || undefined,
           description: form.description,
           condition: conditionMap[form.condition] || '중',
@@ -159,13 +161,13 @@ const UsedRegister = () => {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* 카테고리 */}
             <div>
               <label className={labelClass}>카테고리</label>
               <select
-                name="category"
-                value={form.category}
+                name="subcategory"
+                value={form.subcategory}
                 onChange={handleChange}
                 className={inputClass}
               >
@@ -180,6 +182,21 @@ const UsedRegister = () => {
               </select>
             </div>
 
+            {/* 브랜드 */}
+            <div>
+              <label className={labelClass}>브랜드</label>
+              <input
+                type="text"
+                name="brand"
+                value={form.brand}
+                onChange={handleChange}
+                placeholder="예: Rossignol"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             {/* 사이즈 */}
             <div>
               <label className={labelClass}>사이즈</label>

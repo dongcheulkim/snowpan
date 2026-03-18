@@ -4,15 +4,21 @@ import prisma from '../config/database';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, userId } = req.query;
+    const { category, subcategory, userId, limit, offset } = req.query;
 
     const where: Record<string, unknown> = {};
     if (category) where.category = category as string;
+    if (subcategory) where.subcategory = subcategory as string;
     if (userId) where.userId = userId as string;
+
+    const take = limit ? parseInt(limit as string, 10) : undefined;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
 
     const products = await prisma.product.findMany({
       where: Object.keys(where).length > 0 ? where : undefined,
       orderBy: { createdAt: 'desc' },
+      ...(take && { take }),
+      ...(skip && { skip }),
       include: {
         user: {
           select: {
@@ -34,12 +40,13 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id; // auth middleware에서 설정
-    const { name, brand, price, image, images, description, condition, usageCount } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
 
     const product = await prisma.product.create({
       data: {
         name,
-        brand,
+        brand: brand || '',
+        subcategory: subcategory || null,
         price: parseInt(price),
         image,
         images: images || null,
@@ -134,12 +141,13 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, price, image, images, description, condition, usageCount } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
     const updated = await prisma.product.update({
       where: { id },
       data: {
         ...(name && { name }),
-        ...(brand && { brand }),
+        ...(brand !== undefined && { brand }),
+        ...(subcategory !== undefined && { subcategory }),
         ...(price && { price: parseInt(price) }),
         ...(image && { image }),
         ...(images !== undefined && { images }),

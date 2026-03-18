@@ -6,6 +6,7 @@ interface Product {
   id: string;
   name: string;
   brand: string;
+  subcategory: string | null;
   price: number;
   image: string;
   category: string;
@@ -30,22 +31,19 @@ const Used = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const data = await api<Product[]>('/products?category=used');
+        const subcategoryParam = selectedCategory !== 'all' ? `&subcategory=${selectedCategory}` : '';
+        const data = await api<Product[]>(`/products?category=used${subcategoryParam}`);
         setProducts(data);
       } catch {
-        // fallback to empty
         setProducts([]);
       } finally {
         setLoading(false);
       }
     };
     fetchProducts();
-  }, []);
-
-  const filteredProducts = selectedCategory === 'all'
-    ? products
-    : products.filter(p => p.brand === selectedCategory);
+  }, [selectedCategory]);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -79,7 +77,7 @@ const Used = () => {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
               <div className="h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {product.image.startsWith('/') || product.image.startsWith('http') ? (
@@ -98,7 +96,7 @@ const Used = () => {
         </div>
       )}
 
-      {!loading && filteredProducts.length === 0 && (
+      {!loading && products.length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
           해당 조건의 중고 장비가 없습니다.
         </div>

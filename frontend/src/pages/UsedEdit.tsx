@@ -6,6 +6,7 @@ interface Product {
   id: string;
   name: string;
   brand: string;
+  subcategory: string | null;
   price: number;
   image: string;
   images: string | null;
@@ -28,7 +29,8 @@ const UsedEdit = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: '',
-    brand: 'ski',
+    subcategory: 'ski',
+    brand: '',
     price: '',
     condition: '사용감 적음',
     usageCount: '',
@@ -41,7 +43,8 @@ const UsedEdit = () => {
       .then(p => {
         setForm({
           name: p.name,
-          brand: p.brand,
+          subcategory: p.subcategory || 'ski',
+          brand: p.brand || '',
           price: String(p.price),
           condition: codeToCondition[p.condition || '중'] || '사용감 적음',
           usageCount: p.usageCount?.replace('년식', '') || '',
@@ -77,6 +80,7 @@ const UsedEdit = () => {
         method: 'PUT',
         body: {
           name: form.name,
+          subcategory: form.subcategory,
           brand: form.brand,
           price: form.price,
           image: imageUrl,
@@ -188,7 +192,7 @@ const UsedEdit = () => {
             {/* 카테고리 */}
             <div>
               <label className={labelClass}>카테고리</label>
-              <select name="brand" value={form.brand} onChange={handleChange} className={inputClass}>
+              <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
                 <option value="ski">스키</option>
                 <option value="board">보드</option>
                 <option value="boots">부츠</option>
@@ -200,11 +204,17 @@ const UsedEdit = () => {
               </select>
             </div>
 
-            {/* 연식 */}
+            {/* 브랜드 */}
             <div>
-              <label className={labelClass}>연식</label>
-              <input type="text" name="usageCount" value={form.usageCount} onChange={handleChange} placeholder="예: 2022" className={inputClass} />
+              <label className={labelClass}>브랜드</label>
+              <input type="text" name="brand" value={form.brand} onChange={handleChange} placeholder="예: Rossignol" className={inputClass} />
             </div>
+          </div>
+
+          {/* 연식 */}
+          <div>
+            <label className={labelClass}>연식</label>
+            <input type="text" name="usageCount" value={form.usageCount} onChange={handleChange} placeholder="예: 2022" className={inputClass} />
           </div>
 
           {/* 상태 */}
