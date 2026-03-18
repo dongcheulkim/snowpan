@@ -6,6 +6,8 @@ import {
   verifyPhone,
   getMyBadges,
   requestBadge,
+  updateProfile,
+  getProfile,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -15,6 +17,8 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/phone/send', sendPhoneVerification);
 router.post('/phone/verify', verifyPhone);
+router.get('/profile', authenticateToken, getProfile);
+router.put('/profile', authenticateToken, updateProfile);
 router.get('/my-badges', authenticateToken, getMyBadges);
 router.post('/badge-request', authenticateToken, requestBadge);
 

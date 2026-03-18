@@ -42,8 +42,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         email: user.email,
         name: user.name,
+        nickname: user.nickname,
+        displayName: user.displayName,
         phone: user.phone,
         phoneVerified: user.phoneVerified,
+        profileImage: user.profileImage,
         role: user.role,
         createdAt: user.createdAt,
       },
@@ -87,8 +90,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         id: user.id,
         email: user.email,
         name: user.name,
+        nickname: user.nickname,
+        displayName: user.displayName,
         phone: user.phone,
         phoneVerified: user.phoneVerified,
+        profileImage: user.profileImage,
         role: user.role,
         createdAt: user.createdAt,
       },
@@ -135,6 +141,64 @@ export const requestBadge = async (req: any, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Request badge error:', error);
     res.status(500).json({ error: '뱃지 요청 중 오류가 발생했습니다.' });
+  }
+};
+
+// 프로필 수정
+export const updateProfile = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { nickname, displayName, profileImage } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(nickname !== undefined && { nickname }),
+        ...(displayName !== undefined && { displayName }),
+        ...(profileImage !== undefined && { profileImage }),
+      },
+    });
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      nickname: user.nickname,
+      displayName: user.displayName,
+      phone: user.phone,
+      phoneVerified: user.phoneVerified,
+      profileImage: user.profileImage,
+      role: user.role,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: '프로필 수정 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내 정보 조회
+export const getProfile = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      nickname: user.nickname,
+      displayName: user.displayName,
+      phone: user.phone,
+      phoneVerified: user.phoneVerified,
+      profileImage: user.profileImage,
+      role: user.role,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: '프로필 조회 중 오류가 발생했습니다.' });
   }
 };
 

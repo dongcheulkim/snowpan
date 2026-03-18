@@ -8,6 +8,7 @@ interface Product {
   brand: string;
   price: number;
   image: string;
+  images: string | null;
   category: string;
   description: string | null;
   condition: string | null;
@@ -22,6 +23,8 @@ const UsedDetail = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [showFullImage, setShowFullImage] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -52,8 +55,11 @@ const UsedDetail = () => {
     );
   }
 
-  const isImage = product.image.startsWith('/') || product.image.startsWith('http');
-  const imgSrc = imageUrl(product.image);
+  const allImages = product.images
+    ? product.images.split(',').filter(Boolean).map(u => imageUrl(u))
+    : product.image.startsWith('http') || product.image.startsWith('/') ? [imageUrl(product.image)] : [];
+  const isImage = allImages.length > 0;
+  const currentImage = allImages[selectedImage] || imageUrl(product.image);
   const sellerName = product.user?.name || '판매자';
   const sellerId = product.user?.id || '';
   const isMyProduct = user && product.userId === user.id;
@@ -66,11 +72,22 @@ const UsedDetail = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
-        <div className="card h-80 flex items-center justify-center bg-gray-100 overflow-hidden">
-          {isImage ? (
-            <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-9xl">{product.image}</span>
+        <div>
+          <div className="card h-80 flex items-center justify-center bg-gray-100 overflow-hidden cursor-pointer" onClick={() => isImage && setShowFullImage(true)}>
+            {isImage ? (
+              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-9xl">{product.image}</span>
+            )}
+          </div>
+          {allImages.length > 1 && (
+            <div className="flex gap-2 mt-2 overflow-x-auto">
+              {allImages.map((img, idx) => (
+                <button key={idx} onClick={() => setSelectedImage(idx)} className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 ${selectedImage === idx ? 'border-accent' : 'border-gray-200'}`}>
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -142,6 +159,21 @@ const UsedDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Full Image Viewer */}
+      {showFullImage && allImages.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setShowFullImage(false)}>
+          <button className="absolute top-4 right-4 text-white text-2xl z-10" onClick={() => setShowFullImage(false)}>✕</button>
+          <img src={allImages[selectedImage]} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
+          {allImages.length > 1 && (
+            <>
+              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.max(0, prev - 1)); }}>‹</button>
+              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.min(allImages.length - 1, prev + 1)); }}>›</button>
+            </>
+          )}
+          <div className="absolute bottom-4 text-white text-sm">{selectedImage + 1} / {allImages.length}</div>
+        </div>
+      )}
     </div>
   );
 };

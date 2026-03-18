@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
+import RequireAuth from './components/RequireAuth';
 import Home from './pages/Home';
 
 import Used from './pages/Used';
@@ -24,6 +25,7 @@ import SellerProfile from './pages/SellerProfile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminApproval from './pages/AdminApproval';
+import EditProfile from './pages/EditProfile';
 import MySales from './pages/MySales';
 import MyPurchases from './pages/MyPurchases';
 import MyWishlist from './pages/MyWishlist';
@@ -47,29 +49,30 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="used" element={<Used />} />
-          <Route path="used/register" element={<UsedRegister />} />
+          <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
           <Route path="used/:id" element={<UsedDetail />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="chat/rooms" element={<MyChatList />} />
-          <Route path="chat/:productId" element={<Chat />} />
+          <Route path="notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
+          <Route path="chat/rooms" element={<RequireAuth><MyChatList /></RequireAuth>} />
+          <Route path="chat/:productId" element={<RequireAuth><Chat /></RequireAuth>} />
           <Route path="rental" element={<Rental />} />
-          <Route path="rental/register" element={<RentalRegister />} />
+          <Route path="rental/register" element={<RequireAuth><RentalRegister /></RequireAuth>} />
           <Route path="rental/:id" element={<RentalDetail />} />
           <Route path="lesson" element={<Lesson />} />
-          <Route path="lesson/register" element={<LessonRegister />} />
+          <Route path="lesson/register" element={<RequireAuth><LessonRegister /></RequireAuth>} />
           <Route path="lesson/:id" element={<LessonDetail />} />
           <Route path="accommodation" element={<Accommodation />} />
-          <Route path="accommodation/register" element={<AccommodationRegister />} />
+          <Route path="accommodation/register" element={<RequireAuth><AccommodationRegister /></RequireAuth>} />
           <Route path="accommodation/:id" element={<AccommodationDetail />} />
           <Route path="community" element={<CommunitySelect />} />
           <Route path="community/post/:id" element={<CommunityDetail />} />
-          <Route path="community/:sport/write" element={<CommunityWrite />} />
+          <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
           <Route path="community/:sport" element={<Community />} />
-          <Route path="mypage" element={<MyPage />} />
+          <Route path="mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
           <Route path="seller/:sellerId" element={<SellerProfile />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="admin-approval" element={<AdminApproval />} />
+          <Route path="admin-approval" element={<RequireAuth><AdminApproval /></RequireAuth>} />
+          <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />
           <Route path="mypage/sales" element={<MySales />} />
           <Route path="mypage/purchases" element={<MyPurchases />} />
           <Route path="mypage/wishlist" element={<MyWishlist />} />

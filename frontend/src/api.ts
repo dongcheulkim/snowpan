@@ -61,6 +61,5 @@ export async function uploadImages(files: File[]): Promise<string[]> {
   const res = await fetch(`${API_BASE}/upload`, { method: 'POST', headers, body: formData });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || '업로드 실패');
-  const baseUrl = API_BASE.replace('/api', '');
-  return (data.urls as string[]).map(u => `${baseUrl}${u}`);
+  return data.urls as string[];
 }

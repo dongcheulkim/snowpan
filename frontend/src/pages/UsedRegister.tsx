@@ -46,9 +46,13 @@ const UsedRegister = () => {
 
     try {
       let imageUrl = imageMap[form.category] || '📦';
+      let allImageUrls = '';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
-        if (urls.length > 0) imageUrl = urls[0];
+        if (urls.length > 0) {
+          imageUrl = urls[0];
+          allImageUrls = urls.join(',');
+        }
       }
 
       await api('/products/used', {
@@ -58,6 +62,7 @@ const UsedRegister = () => {
           brand: form.category,
           price: form.price,
           image: imageUrl,
+          images: allImageUrls || undefined,
           description: form.description,
           condition: conditionMap[form.condition] || '중',
           usageCount: form.year ? `${form.year}년식` : undefined,

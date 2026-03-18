@@ -58,6 +58,7 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
+    { id: 'new', title: '새장비', icon: '🆕', link: '/new-equipment' },
     { id: 'used', title: '중고거래', icon: '🏷️', link: '/used' },
     { id: 'rental', title: '렌탈', icon: '⛷️', link: '/rental' },
     { id: 'lesson', title: '레슨', icon: '🎿', link: '/lesson' },

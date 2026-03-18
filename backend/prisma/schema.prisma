@@ -13,8 +13,11 @@ model User {
   email         String   @unique
   password      String
   name          String
+  nickname      String?
+  displayName   String   @default("name") // 'name' | 'nickname'
   phone         String   @unique
   phoneVerified Boolean  @default(false)
+  profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -55,6 +58,7 @@ model Product {
   brand       String
   price       Int
   image       String
+  images      String?  // 콤마 구분 여러 이미지 URL
   category    String   // 'new' | 'used'
   description String?
   rating      Float?

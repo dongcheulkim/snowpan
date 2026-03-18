@@ -29,7 +29,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 export const createUsedProduct = async (req: any, res: Response): Promise<void> => {
   try {
     const userId = req.user.id; // auth middleware에서 설정
-    const { name, brand, price, image, description, condition, usageCount } = req.body;
+    const { name, brand, price, image, images, description, condition, usageCount } = req.body;
 
     const product = await prisma.product.create({
       data: {
@@ -37,6 +37,7 @@ export const createUsedProduct = async (req: any, res: Response): Promise<void> 
         brand,
         price: parseInt(price),
         image,
+        images: images || null,
         category: 'used',
         description,
         condition,
