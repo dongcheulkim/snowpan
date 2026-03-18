@@ -14,9 +14,10 @@ interface Message {
 const Chat = () => {
   const { productId } = useParams();
   const location = useLocation();
-  const { seller, sellerId, productName, productImage, productPrice } = (location.state as {
-    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number;
-  }) || { seller: '판매자', sellerId: '', productName: '상품', productImage: '📦', productPrice: 0 };
+  const { seller, sellerId, productName, productImage, productPrice, productType } = (location.state as {
+    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; productType?: string;
+  }) || { seller: '판매자', sellerId: '', productName: '상품', productImage: '📦', productPrice: 0, productType: 'used' };
+  const backPath = `/${productType || 'used'}/${productId}`;
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,7 +98,7 @@ const Chat = () => {
       {/* Header */}
       <div className="card p-4 mb-3">
         <div className="flex items-center gap-3">
-          <Link to={`/used/${productId}`} className="text-gray-400 hover:text-gray-900 transition-colors text-sm">←</Link>
+          <Link to={backPath} className="text-gray-400 hover:text-gray-900 transition-colors text-sm">←</Link>
           <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-sm">👤</div>
           <div className="flex-1">
             <div className="text-sm font-bold text-gray-900">{seller}</div>
@@ -114,7 +115,7 @@ const Chat = () => {
           <div className="text-xs font-bold text-gray-900 truncate">{productName}</div>
           <div className="text-sm font-bold text-mint">{productPrice.toLocaleString()}원</div>
         </div>
-        <Link to={`/used/${productId}`} className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[11px] border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0">
+        <Link to={backPath} className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[11px] border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0">
           상품보기
         </Link>
       </div>

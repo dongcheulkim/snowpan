@@ -11,7 +11,7 @@ interface RentalData {
   equipment: string;
   image: string;
   resort?: { id: string; name: string; location: string };
-  user?: { name: string; phone: string };
+  user?: { id?: string; name: string; phone: string };
 }
 
 const RentalDetail = () => {
@@ -100,7 +100,17 @@ const RentalDetail = () => {
       {user && item.userId === user.id && (
         <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/rentals/${item.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate('/rental'); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">삭제</button>
       )}
-      <button className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]">예약하기</button>
+      {user && item.userId && item.userId !== user.id && (
+        <button
+          onClick={() => navigate(`/chat/${item.id}`, {
+            state: { seller: item.user?.name || '판매자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, productType: 'rental' }
+          })}
+          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+        >채팅하기</button>
+      )}
+      {!user && (
+        <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
+      )}
     </div>
   );
 };
