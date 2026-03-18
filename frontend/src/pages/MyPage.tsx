@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, uploadImages, logout, getToken } from '../api';
+import { api, getUser, uploadImages, logout } from '../api';
 
 interface BadgeRequest {
   id: string;
@@ -13,6 +13,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; name: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
+  const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState('');
@@ -119,8 +120,8 @@ const MyPage = () => {
       {/* Profile */}
       <div className="card p-6">
         <div className="flex items-center gap-4">
-          <label className="relative cursor-pointer group flex-shrink-0">
-            <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden group-hover:border-accent transition-colors">
+          <div className="relative flex-shrink-0 cursor-pointer" onClick={() => profileInputRef.current?.click()}>
+            <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden hover:border-accent transition-colors">
               {uploadingPhoto ? (
                 <span className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
               ) : user.profileImage ? (
@@ -129,11 +130,11 @@ const MyPage = () => {
                 '👤'
               )}
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center text-[10px] border-2 border-white pointer-events-none">
               📷
             </div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfilePhoto} />
-          </label>
+            <input ref={profileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfilePhoto} />
+          </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
