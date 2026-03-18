@@ -9,7 +9,7 @@ router.get('/:id', getPostById);
 router.post('/', authenticateToken, createPost);
 router.put('/:id', authenticateToken, updatePost);
 router.delete('/:id', authenticateToken, deletePost);
-router.put('/:id/like', likePost);
+router.put('/:id/like', authenticateToken, likePost);
 router.post('/:id/comments', authenticateToken, createComment);
 
 export default router;

@@ -47,21 +47,25 @@ const CommunityDetail = () => {
 
   useEffect(() => {
     if (!id) return;
-    api<PostData>(`/community/${id}`)
+    api<PostData & { liked?: boolean }>(`/community/${id}`)
       .then(data => {
         setPost(data);
         setLikeCount(data.likes);
+        if (data.liked) setLiked(true);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleLike = async () => {
-    if (!id) return;
+    if (!id || !user) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
     try {
-      const result = await api<{ likes: number }>(`/community/${id}/like`, { method: 'PUT' });
+      const result = await api<{ likes: number; liked: boolean }>(`/community/${id}/like`, { method: 'PUT' });
       setLikeCount(result.likes);
-      setLiked(true);
+      setLiked(result.liked);
     } catch {}
   };
 

@@ -40,6 +40,17 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
 
+    // 토큰에서 userId 추출 (선택적)
+    let currentUserId: string | null = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'secret') as { userId: string };
+        currentUserId = decoded.userId;
+      } catch {}
+    }
+
     // 조회수 증가
     await prisma.post.update({ where: { id }, data: { views: { increment: 1 } } });
 
@@ -59,7 +70,15 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    res.json(post);
+    let liked = false;
+    if (currentUserId) {
+      const existing = await prisma.postLike.findUnique({
+        where: { postId_userId: { postId: id, userId: currentUserId } },
+      });
+      liked = !!existing;
+    }
+
+    res.json({ ...post, liked });
   } catch (error) {
     console.error('Get post error:', error);
     res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });
@@ -83,14 +102,30 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
-export const likePost = async (req: Request, res: Response): Promise<void> => {
+export const likePost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const post = await prisma.post.update({
-      where: { id },
-      data: { likes: { increment: 1 } },
+    const userId = req.user!.id;
+
+    const existing = await prisma.postLike.findUnique({
+      where: { postId_userId: { postId: id, userId } },
     });
-    res.json({ likes: post.likes });
+
+    if (existing) {
+      await prisma.postLike.delete({ where: { id: existing.id } });
+      const post = await prisma.post.update({
+        where: { id },
+        data: { likes: { decrement: 1 } },
+      });
+      res.json({ likes: post.likes, liked: false });
+    } else {
+      await prisma.postLike.create({ data: { postId: id, userId } });
+      const post = await prisma.post.update({
+        where: { id },
+        data: { likes: { increment: 1 } },
+      });
+      res.json({ likes: post.likes, liked: true });
+    }
   } catch (error) {
     console.error('Like post error:', error);
     res.status(500).json({ error: '좋아요 처리 중 오류가 발생했습니다.' });

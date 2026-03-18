@@ -33,6 +33,7 @@ model User {
   notifications    Notification[]
   posts            Post[]
   comments         Comment[]
+  postLikes        PostLike[]
 
   @@map("users")
 }
@@ -196,6 +197,7 @@ model Post {
   userId    String
   user      User      @relation(fields: [userId], references: [id])
   comments  Comment[]
+  postLikes PostLike[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -204,6 +206,17 @@ model Post {
   @@index([userId])
   @@index([createdAt])
   @@map("posts")
+}
+
+model PostLike {
+  id     String @id @default(uuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+  @@map("post_likes")
 }
 
 model Comment {
