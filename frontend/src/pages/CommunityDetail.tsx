@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
+import UserBadges from '../components/UserBadges';
 
 interface Comment {
   id: string;
   content: string;
-  user: { id: string; name: string; profileImage?: string };
+  user: { id: string; name: string; profileImage?: string; badges?: string[] };
   createdAt: string;
 }
 
@@ -18,7 +19,7 @@ interface PostData {
   sport: string;
   likes: number;
   views: number;
-  user: { id: string; name: string; profileImage?: string };
+  user: { id: string; name: string; profileImage?: string; badges?: string[] };
   comments: Comment[];
   createdAt: string;
 }
@@ -125,6 +126,7 @@ const CommunityDetail = () => {
             {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
           </div>
           <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
+          <UserBadges badges={post.user.badges} />
           <span className="text-[11px] text-gray-400">· 조회 {post.views}</span>
         </div>
 
@@ -153,6 +155,7 @@ const CommunityDetail = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>
+                  <UserBadges badges={comment.user.badges} />
                   <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
                 </div>
                 <p className="text-sm text-gray-500">{comment.content}</p>

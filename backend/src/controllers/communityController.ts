@@ -19,7 +19,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       ...(take && { take }),
       ...(skip && { skip }),
       include: {
-        user: { select: { id: true, name: true, profileImage: true } },
+        user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
         _count: { select: { comments: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -27,6 +27,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
 
     res.json(posts.map(p => ({
       ...p,
+      user: { ...p.user, badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
       commentCount: p._count.comments,
       _count: undefined,
     })));
@@ -57,9 +58,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, profileImage: true } },
+        user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
         comments: {
-          include: { user: { select: { id: true, name: true, profileImage: true } } },
+          include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -78,7 +79,16 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       liked = !!existing;
     }
 
-    res.json({ ...post, liked });
+    const postWithBadges = {
+      ...post,
+      user: { ...post.user, badges: post.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+      comments: post.comments.map((c: any) => ({
+        ...c,
+        user: { ...c.user, badges: c.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+      })),
+      liked,
+    };
+    res.json(postWithBadges);
   } catch (error) {
     console.error('Get post error:', error);
     res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });
@@ -92,7 +102,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
 
     const post = await prisma.post.create({
       data: { title, content, category, sport, userId },
-      include: { user: { select: { id: true, name: true, profileImage: true } } },
+      include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     res.status(201).json(post);
@@ -140,7 +150,7 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
 
     const comment = await prisma.comment.create({
       data: { content, postId, userId },
-      include: { user: { select: { id: true, name: true, profileImage: true } } },
+      include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     // 글 작성자에게 알림 (본인 댓글은 제외)

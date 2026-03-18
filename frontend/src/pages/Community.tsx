@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import UserBadges from '../components/UserBadges';
 
 interface Post {
   id: string;
@@ -11,7 +12,7 @@ interface Post {
   likes: number;
   views: number;
   commentCount: number;
-  user: { id: string; name: string };
+  user: { id: string; name: string; badges?: string[] };
   createdAt: string;
 }
 
@@ -116,7 +117,7 @@ const Community = () => {
               <h3 className="text-sm font-bold text-gray-900 mb-1">{post.title}</h3>
               <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-400">{post.user.name}</span>
+                <span className="text-[11px] text-gray-400 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
                 <div className="flex items-center gap-3 text-[11px] text-gray-400">
                   <span>조회 {post.views}</span>
                   <span className="text-coral">♥ {post.likes}</span>
