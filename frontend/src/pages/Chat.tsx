@@ -15,9 +15,9 @@ interface Message {
 const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
-  const { seller, sellerId, productName, productImage, productPrice, productType, backTo } = (location.state as {
-    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; productType?: string; backTo?: string;
-  }) || { seller: '판매자', sellerId: '', productName: '', productImage: '💬', productPrice: 0, productType: 'used' };
+  const { seller, sellerId, productName, productImage, productPrice, backTo } = (location.state as {
+    seller: string; sellerId: string; productName: string; productImage: string; productPrice: number; backTo?: string;
+  }) || { seller: '판매자', sellerId: '', productName: '', productImage: '💬', productPrice: 0 };
   const backPath = backTo || '/chat/rooms';
 
   const user = getUser();
