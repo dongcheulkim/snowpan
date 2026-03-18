@@ -87,36 +87,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// 중복 채팅방 병합 (기존 productId별로 분리된 방들을 합침)
-async function mergeDuplicateChatRooms() {
-  try {
-    const rooms = await prisma.chatRoom.findMany({
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const seen = new Map<string, string>(); // "u1:u2" → keepRoomId
-    for (const room of rooms) {
-      const key = `${room.user1Id}:${room.user2Id}`;
-      if (!seen.has(key)) {
-        seen.set(key, room.id);
-      } else {
-        const keepId = seen.get(key)!;
-        // 메시지를 기존 방으로 이동
-        await prisma.message.updateMany({
-          where: { roomId: room.id },
-          data: { roomId: keepId },
-        });
-        // 중복 방 삭제
-        await prisma.chatRoom.delete({ where: { id: room.id } });
-        console.log(`🔄 채팅방 병합: ${room.id} → ${keepId}`);
-      }
-    }
-  } catch (err) {
-    console.error('채팅방 병합 오류:', err);
-  }
-}
-
-httpServer.listen(PORT, async () => {
+httpServer.listen(PORT, () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);
-  await mergeDuplicateChatRooms();
 });
