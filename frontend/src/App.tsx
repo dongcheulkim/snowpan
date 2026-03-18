@@ -73,17 +73,17 @@ function App() {
           <Route path="register" element={<Register />} />
           <Route path="admin-approval" element={<RequireAuth><AdminApproval /></RequireAuth>} />
           <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />
-          <Route path="mypage/sales" element={<MySales />} />
-          <Route path="mypage/purchases" element={<MyPurchases />} />
-          <Route path="mypage/wishlist" element={<MyWishlist />} />
-          <Route path="mypage/chats" element={<MyChatList />} />
-          <Route path="mypage/posts" element={<MyPosts />} />
-          <Route path="mypage/notifications" element={<NotificationSettings />} />
-          <Route path="mypage/password" element={<ChangePassword />} />
-          <Route path="mypage/terms" element={<Terms />} />
-          <Route path="mypage/support" element={<Support />} />
-          <Route path="new-equipment" element={<NewEquipment />} />
-          <Route path="poll/create" element={<PollCreate />} />
+          <Route path="mypage/sales" element={<RequireAuth><MySales /></RequireAuth>} />
+          <Route path="mypage/purchases" element={<RequireAuth><MyPurchases /></RequireAuth>} />
+          <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
+          <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
+          <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
+          <Route path="mypage/notifications" element={<RequireAuth><NotificationSettings /></RequireAuth>} />
+          <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
+          <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />
+          <Route path="mypage/support" element={<RequireAuth><Support /></RequireAuth>} />
+          <Route path="new-equipment" element={<RequireAuth><NewEquipment /></RequireAuth>} />
+          <Route path="poll/create" element={<RequireAuth><PollCreate /></RequireAuth>} />
           <Route path="poll/:id" element={<PollDetail />} />
           <Route path="webcam" element={<Webcam />} />
           <Route path="webcam/:id" element={<WebcamDetail />} />

@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport, category } = req.query;
-    const where: any = {};
+    const { sport, category, userId } = req.query;
+    const where: Record<string, unknown> = {};
     if (sport) where.sport = sport as string;
     if (category && category !== 'all') where.category = category as string;
+    if (userId) where.userId = userId as string;
 
     const posts = await prisma.post.findMany({
       where,
@@ -59,9 +61,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-export const createPost = async (req: any, res: Response): Promise<void> => {
+export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { title, content, category, sport } = req.body;
 
     const post = await prisma.post.create({
@@ -90,9 +92,9 @@ export const likePost = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const createComment = async (req: any, res: Response): Promise<void> => {
+export const createComment = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { id: postId } = req.params;
     const { content } = req.body;
 
@@ -120,12 +122,12 @@ export const createComment = async (req: any, res: Response): Promise<void> => {
   }
 };
 
-export const updatePost = async (req: any, res: Response): Promise<void> => {
+export const updatePost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
-    if (post.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { title, content, category } = req.body;
     const updated = await prisma.post.update({
@@ -136,12 +138,12 @@ export const updatePost = async (req: any, res: Response): Promise<void> => {
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };
 
-export const deletePost = async (req: any, res: Response): Promise<void> => {
+export const deletePost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const post = await prisma.post.findUnique({ where: { id } });
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
-    if (post.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+    if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.post.delete({ where: { id } });
     res.json({ message: '게시글이 삭제되었습니다.' });

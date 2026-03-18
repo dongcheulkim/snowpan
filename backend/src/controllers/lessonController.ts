@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
@@ -31,9 +32,9 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
 };
 
 // 레슨 등록 (로그인 필요, 관리자 승인 대기)
-export const createLesson = async (req: any, res: Response): Promise<void> => {
+export const createLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { name, price, duration, level, maxStudents, image, resortId } = req.body;
 
     const lesson = await prisma.lesson.create({
@@ -93,12 +94,12 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const updateLesson = async (req: any, res: Response): Promise<void> => {
+export const updateLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const item = await prisma.lesson.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '레슨을 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, price, duration, level, maxStudents, image } = req.body;
     const updated = await prisma.lesson.update({
@@ -109,12 +110,12 @@ export const updateLesson = async (req: any, res: Response): Promise<void> => {
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };
 
-export const deleteLesson = async (req: any, res: Response): Promise<void> => {
+export const deleteLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const item = await prisma.lesson.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '레슨을 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.lesson.delete({ where: { id } });
     res.json({ message: '레슨이 삭제되었습니다.' });

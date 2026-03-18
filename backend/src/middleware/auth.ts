@@ -7,8 +7,14 @@ interface JwtPayload {
   role: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export interface AuthRequest extends Request {
-  user?: JwtPayload;
+  user?: AuthUser;
 }
 
 export const authMiddleware = (
@@ -29,7 +35,7 @@ export const authMiddleware = (
       process.env.JWT_SECRET || 'secret'
     ) as JwtPayload;
 
-    (req as any).user = { id: decoded.userId, email: decoded.email, role: decoded.role };
+    req.user = { id: decoded.userId, email: decoded.email, role: decoded.role };
     next();
   } catch (error) {
     res.status(401).json({ error: '유효하지 않은 토큰입니다.' });

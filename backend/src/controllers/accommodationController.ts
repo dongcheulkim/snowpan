@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 export const getAccommodations = async (req: Request, res: Response): Promise<void> => {
@@ -60,9 +61,9 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
   }
 };
 
-export const createAccommodation = async (req: any, res: Response): Promise<void> => {
+export const createAccommodation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { name, type, price, originalPrice, guests, features, image, resortId } = req.body;
 
     const accommodation = await prisma.accommodation.create({
@@ -99,12 +100,12 @@ export const createAccommodation = async (req: any, res: Response): Promise<void
   }
 };
 
-export const updateAccommodation = async (req: any, res: Response): Promise<void> => {
+export const updateAccommodation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const item = await prisma.accommodation.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, type, price, originalPrice, guests, features, image } = req.body;
     const updated = await prisma.accommodation.update({
@@ -115,12 +116,12 @@ export const updateAccommodation = async (req: any, res: Response): Promise<void
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };
 
-export const deleteAccommodation = async (req: any, res: Response): Promise<void> => {
+export const deleteAccommodation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const item = await prisma.accommodation.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user.id && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.accommodation.delete({ where: { id } });
     res.json({ message: '숙소가 삭제되었습니다.' });

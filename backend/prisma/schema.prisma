@@ -70,6 +70,9 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([category])
+  @@index([userId])
+  @@index([createdAt])
   @@map("products")
 }
 
@@ -88,6 +91,8 @@ model Rental {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  @@index([resortId])
+  @@index([userId])
   @@map("rentals")
 }
 
@@ -107,6 +112,8 @@ model Lesson {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  @@index([resortId])
+  @@index([userId])
   @@map("lessons")
 }
 
@@ -127,6 +134,8 @@ model Accommodation {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  @@index([resortId])
+  @@index([userId])
   @@map("accommodations")
 }
 
@@ -167,6 +176,8 @@ model Message {
   sender    User     @relation(fields: [senderId], references: [id])
   createdAt DateTime @default(now())
 
+  @@index([roomId])
+  @@index([senderId])
   @@map("messages")
 }
 
@@ -184,6 +195,10 @@ model Post {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([sport])
+  @@index([category])
+  @@index([userId])
+  @@index([createdAt])
   @@map("posts")
 }
 

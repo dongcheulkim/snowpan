@@ -11,8 +11,6 @@ interface Message {
   createdAt: string;
 }
 
-let socket: Socket | null = null;
-
 const Chat = () => {
   const { productId } = useParams();
   const location = useLocation();
@@ -26,29 +24,28 @@ const Chat = () => {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
-  // Create/get room and connect socket
   useEffect(() => {
     if (!user || !sellerId) return;
 
     const token = getToken();
     if (!token) return;
 
-    // Create or get chat room
     api<{ id: string }>('/chat/rooms', {
       method: 'POST',
       body: { targetUserId: sellerId, productId },
     }).then(room => {
       setRoomId(room.id);
 
-      // Load existing messages
       api<Message[]>(`/chat/rooms/${room.id}/messages`).then(setMessages);
 
-      // Connect socket
-      socket = io(SERVER_URL, { auth: { token } });
+      const socket = io(SERVER_URL, { auth: { token } });
+      socketRef.current = socket;
+
       socket.on('connect', () => {
         setConnected(true);
-        socket?.emit('join_room', room.id);
+        socket.emit('join_room', room.id);
       });
       socket.on('new_message', (msg: Message) => {
         setMessages(prev => [...prev, msg]);
@@ -57,9 +54,9 @@ const Chat = () => {
     });
 
     return () => {
-      if (socket) {
-        socket.disconnect();
-        socket = null;
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
   }, []);
@@ -69,8 +66,8 @@ const Chat = () => {
   }, [messages]);
 
   const sendMessage = () => {
-    if (!input.trim() || !roomId || !socket) return;
-    socket.emit('send_message', { roomId, content: input.trim() });
+    if (!input.trim() || !roomId || !socketRef.current) return;
+    socketRef.current.emit('send_message', { roomId, content: input.trim() });
     setInput('');
   };
 

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
@@ -106,9 +107,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 // 내 뱃지 요청 목록 조회
-export const getMyBadges = async (req: any, res: Response): Promise<void> => {
+export const getMyBadges = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const badges = await prisma.badgeRequest.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -121,9 +122,9 @@ export const getMyBadges = async (req: any, res: Response): Promise<void> => {
 };
 
 // 뱃지 인증 요청
-export const requestBadge = async (req: any, res: Response): Promise<void> => {
+export const requestBadge = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { badgeType, image } = req.body;
 
     const existing = await prisma.badgeRequest.findFirst({
@@ -145,9 +146,9 @@ export const requestBadge = async (req: any, res: Response): Promise<void> => {
 };
 
 // 프로필 수정
-export const updateProfile = async (req: any, res: Response): Promise<void> => {
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const { nickname, displayName, profileImage } = req.body;
 
     const user = await prisma.user.update({
@@ -178,9 +179,9 @@ export const updateProfile = async (req: any, res: Response): Promise<void> => {
 };
 
 // 내 정보 조회
-export const getProfile = async (req: any, res: Response): Promise<void> => {
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
 

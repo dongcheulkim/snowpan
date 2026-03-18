@@ -1,12 +1,17 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category } = req.query;
+    const { category, userId } = req.query;
+
+    const where: Record<string, unknown> = {};
+    if (category) where.category = category as string;
+    if (userId) where.userId = userId as string;
 
     const products = await prisma.product.findMany({
-      where: category ? { category: category as string } : undefined,
+      where: Object.keys(where).length > 0 ? where : undefined,
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
@@ -26,9 +31,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 };
 
 // 중고 장비 등록 (로그인 필요)
-export const createUsedProduct = async (req: any, res: Response): Promise<void> => {
+export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user.id; // auth middleware에서 설정
+    const userId = req.user!.id; // auth middleware에서 설정
     const { name, brand, price, image, images, description, condition, usageCount } = req.body;
 
     const product = await prisma.product.create({
@@ -62,10 +67,10 @@ export const createUsedProduct = async (req: any, res: Response): Promise<void> 
 };
 
 // 새 장비 등록 (관리자만)
-export const createNewProduct = async (req: any, res: Response): Promise<void> => {
+export const createNewProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // 관리자 권한 확인
-    if (req.user.role !== 'admin') {
+    if (req.user!.role !== 'admin') {
       res.status(403).json({ error: '관리자만 새 장비를 등록할 수 있습니다.' });
       return;
     }
@@ -121,13 +126,13 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const updateProduct = async (req: any, res: Response): Promise<void> => {
+export const updateProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
-    if (product.userId !== userId && req.user.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, brand, price, image, images, description, condition, usageCount } = req.body;
     const updated = await prisma.product.update({
@@ -150,13 +155,13 @@ export const updateProduct = async (req: any, res: Response): Promise<void> => {
   }
 };
 
-export const deleteProduct = async (req: any, res: Response): Promise<void> => {
+export const deleteProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
-    if (product.userId !== userId && req.user.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+    if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.product.delete({ where: { id } });
     res.json({ message: '상품이 삭제되었습니다.' });
