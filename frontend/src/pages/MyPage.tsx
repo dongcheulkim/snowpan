@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, uploadImages, logout } from '../api';
+import { api, getUser, uploadImages, logout, getToken } from '../api';
 
 interface BadgeRequest {
   id: string;
@@ -13,6 +13,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; name: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState('');
   const [badgeImage, setBadgeImage] = useState<File | null>(null);
@@ -35,6 +36,25 @@ const MyPage = () => {
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
+
+  const handleProfilePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const urls = await uploadImages([file]);
+      const updated = await api<any>('/auth/profile', {
+        method: 'PUT',
+        body: { profileImage: urls[0] },
+      });
+      localStorage.setItem('user', JSON.stringify(updated));
+      setUser(prev => prev ? { ...prev, profileImage: urls[0] } : prev);
+    } catch {
+      alert('사진 업로드에 실패했습니다.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const allBadges = [
     { id: 'lv2', label: 'LV2', desc: 'KSIA 레벨2 자격증', color: 'bg-accent text-white' },
@@ -99,13 +119,21 @@ const MyPage = () => {
       {/* Profile */}
       <div className="card p-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden">
-            {user.profileImage ? (
-              <img src={user.profileImage} alt="프로필" className="w-full h-full object-cover" />
-            ) : (
-              '👤'
-            )}
-          </div>
+          <label className="relative cursor-pointer group flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden group-hover:border-accent transition-colors">
+              {uploadingPhoto ? (
+                <span className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+              ) : user.profileImage ? (
+                <img src={user.profileImage} alt="프로필" className="w-full h-full object-cover" />
+              ) : (
+                '👤'
+              )}
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center text-[10px] border-2 border-white">
+              📷
+            </div>
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfilePhoto} />
+          </label>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
