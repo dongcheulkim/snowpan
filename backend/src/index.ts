@@ -73,7 +73,7 @@ io.on('connection', (socket) => {
     try {
       const message = await prisma.message.create({
         data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null },
-        include: { sender: { select: { id: true, name: true } } },
+        include: { sender: { select: { id: true, name: true, profileImage: true } } },
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
       io.to(`room:${data.roomId}`).emit('new_message', message);

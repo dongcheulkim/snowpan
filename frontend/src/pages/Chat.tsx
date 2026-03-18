@@ -8,7 +8,7 @@ interface Message {
   content: string;
   imageUrl: string | null;
   senderId: string;
-  sender: { id: string; name: string };
+  sender: { id: string; name: string; profileImage?: string };
   createdAt: string;
 }
 

@@ -10,8 +10,8 @@ router.get('/rooms', async (req: any, res: Response) => {
     const rooms = await prisma.chatRoom.findMany({
       where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
       include: {
-        user1: { select: { id: true, name: true } },
-        user2: { select: { id: true, name: true } },
+        user1: { select: { id: true, name: true, profileImage: true } },
+        user2: { select: { id: true, name: true, profileImage: true } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
       orderBy: { updatedAt: 'desc' },
@@ -72,8 +72,8 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
     const room = await prisma.chatRoom.findUnique({
       where: { id: roomId },
       include: {
-        user1: { select: { id: true, name: true } },
-        user2: { select: { id: true, name: true } },
+        user1: { select: { id: true, name: true, profileImage: true } },
+        user2: { select: { id: true, name: true, profileImage: true } },
       },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
@@ -90,7 +90,7 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
     const { roomId } = req.params;
     const messages = await prisma.message.findMany({
       where: { roomId },
-      include: { sender: { select: { id: true, name: true } } },
+      include: { sender: { select: { id: true, name: true, profileImage: true } } },
       orderBy: { createdAt: 'asc' },
     });
     res.json(messages);

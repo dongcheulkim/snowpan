@@ -5,7 +5,7 @@ import { api, getUser } from '../api';
 interface Comment {
   id: string;
   content: string;
-  user: { id: string; name: string };
+  user: { id: string; name: string; profileImage?: string };
   createdAt: string;
 }
 
@@ -18,7 +18,7 @@ interface PostData {
   sport: string;
   likes: number;
   views: number;
-  user: { id: string; name: string };
+  user: { id: string; name: string; profileImage?: string };
   comments: Comment[];
   createdAt: string;
 }
@@ -121,7 +121,9 @@ const CommunityDetail = () => {
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">👤</div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm overflow-hidden">
+            {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
+          </div>
           <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
           <span className="text-[11px] text-gray-400">· 조회 {post.views}</span>
         </div>
@@ -145,7 +147,9 @@ const CommunityDetail = () => {
         <div className="space-y-4">
           {post.comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">👤</div>
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5 overflow-hidden">
+                {comment.user.profileImage ? <img src={comment.user.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>

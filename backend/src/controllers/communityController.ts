@@ -19,7 +19,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       ...(take && { take }),
       ...(skip && { skip }),
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, profileImage: true } },
         _count: { select: { comments: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -57,9 +57,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, profileImage: true } },
         comments: {
-          include: { user: { select: { id: true, name: true } } },
+          include: { user: { select: { id: true, name: true, profileImage: true } } },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -92,7 +92,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
 
     const post = await prisma.post.create({
       data: { title, content, category, sport, userId },
-      include: { user: { select: { id: true, name: true } } },
+      include: { user: { select: { id: true, name: true, profileImage: true } } },
     });
 
     res.status(201).json(post);
@@ -140,7 +140,7 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
 
     const comment = await prisma.comment.create({
       data: { content, postId, userId },
-      include: { user: { select: { id: true, name: true } } },
+      include: { user: { select: { id: true, name: true, profileImage: true } } },
     });
 
     // 글 작성자에게 알림 (본인 댓글은 제외)
