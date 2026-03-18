@@ -5,32 +5,44 @@ import { createNotification } from './notificationController';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport, category, userId, limit, offset } = req.query;
-    const where: Record<string, unknown> = {};
+    const { sport, category, userId, search, limit, offset } = req.query;
+    const where: any = {};
     if (sport) where.sport = sport as string;
     if (category && category !== 'all') where.category = category as string;
     if (userId) where.userId = userId as string;
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { content: { contains: search as string, mode: 'insensitive' } },
+      ];
+    }
 
     const take = limit ? parseInt(limit as string, 10) : undefined;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
 
-    const posts = await prisma.post.findMany({
-      where,
-      ...(take && { take }),
-      ...(skip && { skip }),
-      include: {
-        user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
-        _count: { select: { comments: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [posts, totalCount] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        ...(take && { take }),
+        ...(skip && { skip }),
+        include: {
+          user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+          _count: { select: { comments: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.post.count({ where }),
+    ]);
 
-    res.json(posts.map(p => ({
-      ...p,
-      user: { ...p.user, badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
-      commentCount: p._count.comments,
-      _count: undefined,
-    })));
+    res.json({
+      posts: posts.map(p => ({
+        ...p,
+        user: { ...p.user, badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
+        commentCount: p._count.comments,
+        _count: undefined,
+      })),
+      totalCount,
+    });
   } catch (error) {
     console.error('Get posts error:', error);
     res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });

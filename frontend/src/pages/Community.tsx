@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import UserBadges from '../components/UserBadges';
+import Pagination from '../components/Pagination';
 
 interface Post {
   id: string;
@@ -29,12 +30,17 @@ const badgeColor: Record<string, string> = {
   '투표': 'text-orange-500 bg-orange-50 border-orange-200',
 };
 
+const PAGE_SIZE = 20;
+
 const Community = () => {
   const { sport } = useParams<{ sport: string }>();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
@@ -49,21 +55,26 @@ const Community = () => {
   ];
 
   useEffect(() => {
-    const params = new URLSearchParams();
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => { setTimeout(() => setPage(1), 0); }, [sport, selectedTab, debouncedSearch]);
+
+  useEffect(() => {
+    setTimeout(() => setLoading(true), 0);
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
     if (selectedTab !== 'all') params.set('category', selectedTab);
+    if (debouncedSearch) params.set('search', debouncedSearch);
 
-    api<Post[]>(`/community?${params.toString()}`)
-      .then(setPosts)
-      .catch(() => {})
+    api<{ posts: Post[]; totalCount: number }>(`/community?${params}`)
+      .then(data => { setPosts(data.posts); setTotalCount(data.totalCount); })
+      .catch(() => { setPosts([]); setTotalCount(0); })
       .finally(() => setLoading(false));
-  }, [sport, selectedTab]);
+  }, [sport, selectedTab, debouncedSearch, page]);
 
-  const filteredPosts = posts.filter(p => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q);
-  });
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -106,7 +117,7 @@ const Community = () => {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : (
         <div className="space-y-2">
-          {filteredPosts.map((post) => (
+          {posts.map((post) => (
             <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex items-center gap-2 mb-2">
                 <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
@@ -129,11 +140,13 @@ const Community = () => {
         </div>
       )}
 
-      {!loading && filteredPosts.length === 0 && (
+      {!loading && posts.length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
-          {searchQuery ? '검색 결과가 없습니다.' : '아직 게시글이 없습니다. 첫 글을 작성해보세요!'}
+          {debouncedSearch ? '검색 결과가 없습니다.' : '아직 게시글이 없습니다. 첫 글을 작성해보세요!'}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };

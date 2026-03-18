@@ -1,7 +1,34 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api, imageUrl } from '../api';
+
+interface WishProduct {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  status: string;
+}
+
+const statusText: Record<string, string> = { selling: '판매중', reserved: '예약중', sold: '판매완료' };
 
 const MyWishlist = () => {
-  const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+  const [products, setProducts] = useState<WishProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api<WishProduct[]>('/products/wishlist')
+      .then(setProducts)
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleRemove = async (productId: string) => {
+    try {
+      await api(`/products/${productId}/wishlist`, { method: 'POST' });
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch { /* ignore */ }
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -10,18 +37,32 @@ const MyWishlist = () => {
         <h1 className="text-xl font-bold text-gray-900">찜 목록</h1>
       </div>
 
-      {wishlist.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
+      ) : products.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">찜한 상품이 없습니다.</div>
       ) : (
         <div className="space-y-2">
-          {wishlist.map((item: { id: string; name: string; price: number; image?: string }) => (
-            <Link to={`/used/${item.id}`} key={item.id} className="card p-4 flex items-center gap-3 block">
-              <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl">{item.image || '📦'}</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
-              </div>
-              <div className="text-sm font-bold text-gray-900">{item.price?.toLocaleString()}원</div>
-            </Link>
+          {products.map((item) => (
+            <div key={item.id} className="card p-4 flex items-center gap-3">
+              <Link to={`/used/${item.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl overflow-hidden flex-shrink-0">
+                  {item.image.startsWith('http') || item.image.startsWith('/') ? (
+                    <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
+                  ) : '📦'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</span>
+                    {item.status !== 'selling' && (
+                      <span className="text-[10px] text-gray-400">{statusText[item.status]}</span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+              <button onClick={() => handleRemove(item.id)} className="text-xl text-coral flex-shrink-0 active:scale-125 transition-transform">♥</button>
+            </div>
           ))}
         </div>
       )}

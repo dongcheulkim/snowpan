@@ -1,35 +1,42 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
+import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, subcategory, userId, limit, offset } = req.query;
+    const { category, subcategory, userId, status, search, limit, offset } = req.query;
 
-    const where: Record<string, unknown> = {};
+    const where: any = {};
     if (category) where.category = category as string;
     if (subcategory) where.subcategory = subcategory as string;
     if (userId) where.userId = userId as string;
+    if (status) where.status = status as string;
+    if (search) {
+      where.OR = [
+        { name: { contains: search as string, mode: 'insensitive' } },
+        { brand: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } },
+      ];
+    }
 
     const take = limit ? parseInt(limit as string, 10) : undefined;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
 
-    const products = await prisma.product.findMany({
-      where: Object.keys(where).length > 0 ? where : undefined,
-      orderBy: { createdAt: 'desc' },
-      ...(take && { take }),
-      ...(skip && { skip }),
-      include: {
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        ...(take && { take }),
+        ...(skip && { skip }),
+        include: {
+          user: { select: { name: true, phone: true } },
         },
-      },
-    });
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    res.json(products);
+    res.json({ products, totalCount });
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });
@@ -39,7 +46,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 // 중고 장비 등록 (로그인 필요)
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user!.id; // auth middleware에서 설정
+    const userId = req.user!.id;
     const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
 
     const product = await prisma.product.create({
@@ -56,14 +63,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         usageCount,
         userId,
       },
-      include: {
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
-        },
-      },
+      include: { user: { select: { name: true, phone: true } } },
     });
 
     res.status(201).json(product);
@@ -76,7 +76,6 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
 // 새 장비 등록 (관리자만)
 export const createNewProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // 관리자 권한 확인
     if (req.user!.role !== 'admin') {
       res.status(403).json({ error: '관리자만 새 장비를 등록할 수 있습니다.' });
       return;
@@ -86,12 +85,7 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
 
     const product = await prisma.product.create({
       data: {
-        name,
-        brand,
-        price: parseInt(price),
-        image,
-        category: 'new',
-        description,
+        name, brand, price: parseInt(price), image, category: 'new', description,
         rating: rating ? parseFloat(rating) : undefined,
         reviewCount: reviewCount ? parseInt(reviewCount) : undefined,
       },
@@ -108,17 +102,19 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   try {
     const { id } = req.params;
 
+    // 토큰에서 userId 추출 (선택적 - 찜 여부 확인)
+    let currentUserId: string | null = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'secret') as { userId: string };
+        currentUserId = decoded.userId;
+      } catch { /* ignore */ }
+    }
+
     const product = await prisma.product.findUnique({
       where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-      },
+      include: { user: { select: { id: true, name: true, phone: true } } },
     });
 
     if (!product) {
@@ -126,7 +122,15 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    res.json(product);
+    let wishlisted = false;
+    if (currentUserId) {
+      const existing = await prisma.wishlist.findUnique({
+        where: { userId_productId: { userId: currentUserId, productId: id } },
+      });
+      wishlisted = !!existing;
+    }
+
+    res.json({ ...product, wishlisted });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });
@@ -141,7 +145,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status } = req.body;
     const updated = await prisma.product.update({
       where: { id },
       data: {
@@ -154,6 +158,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(description !== undefined && { description }),
         ...(condition && { condition }),
         ...(usageCount !== undefined && { usageCount }),
+        ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
       },
     });
     res.json(updated);
@@ -176,5 +181,48 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ error: '상품 삭제 중 오류가 발생했습니다.' });
+  }
+};
+
+// 찜 토글
+export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const existing = await prisma.wishlist.findUnique({
+      where: { userId_productId: { userId, productId: id } },
+    });
+
+    if (existing) {
+      await prisma.wishlist.delete({ where: { id: existing.id } });
+      res.json({ wishlisted: false });
+    } else {
+      await prisma.wishlist.create({ data: { userId, productId: id } });
+      res.json({ wishlisted: true });
+    }
+  } catch (error) {
+    console.error('Toggle wishlist error:', error);
+    res.status(500).json({ error: '찜 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+// 내 찜 목록
+export const getMyWishlist = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const wishlists = await prisma.wishlist.findMany({
+      where: { userId },
+      include: {
+        product: {
+          select: { id: true, name: true, price: true, image: true, status: true, createdAt: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(wishlists.map(w => w.product));
+  } catch (error) {
+    console.error('Get wishlist error:', error);
+    res.status(500).json({ error: '찜 목록 조회 중 오류가 발생했습니다.' });
   }
 };

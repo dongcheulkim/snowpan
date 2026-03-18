@@ -34,6 +34,7 @@ model User {
   posts            Post[]
   comments         Comment[]
   postLikes        PostLike[]
+  wishlists        Wishlist[]
 
   @@map("users")
 }
@@ -67,8 +68,10 @@ model Product {
   reviewCount Int?
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
+  status      String   @default("selling") // 'selling' | 'reserved' | 'sold'
   userId      String?  // null for admin-crawled items, set for user-submitted
   user        User?    @relation(fields: [userId], references: [id])
+  wishlists   Wishlist[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -77,6 +80,7 @@ model Product {
   @@index([category, createdAt])
   @@index([userId])
   @@index([createdAt])
+  @@index([status])
   @@map("products")
 }
 
@@ -216,6 +220,19 @@ model PostLike {
 
   @@unique([postId, userId])
   @@map("post_likes")
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlists")
 }
 
 model Comment {

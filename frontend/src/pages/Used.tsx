@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import Pagination from '../components/Pagination';
 
 interface Product {
   id: string;
@@ -10,11 +11,24 @@ interface Product {
   price: number;
   image: string;
   category: string;
+  status: string;
 }
+
+const statusLabel: Record<string, { text: string; color: string }> = {
+  selling: { text: '판매중', color: 'bg-mint/20 text-emerald-700' },
+  reserved: { text: '예약중', color: 'bg-yellow-100 text-yellow-700' },
+  sold: { text: '판매완료', color: 'bg-gray-200 text-gray-500' },
+};
+
+const PAGE_SIZE = 12;
 
 const Used = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   const categories = [
@@ -29,21 +43,36 @@ const Used = () => {
     { id: 'etc', name: '기타' },
   ];
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page on filter change
+  useEffect(() => { setPage(1); }, [selectedCategory, debouncedSearch]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const subcategoryParam = selectedCategory !== 'all' ? `&subcategory=${selectedCategory}` : '';
-        const data = await api<Product[]>(`/products?category=used${subcategoryParam}`);
-        setProducts(data);
+        const params = new URLSearchParams({ category: 'used', limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
+        if (selectedCategory !== 'all') params.set('subcategory', selectedCategory);
+        if (debouncedSearch) params.set('search', debouncedSearch);
+        const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
+        setProducts(data.products);
+        setTotalCount(data.totalCount);
       } catch {
         setProducts([]);
+        setTotalCount(0);
       } finally {
         setLoading(false);
       }
     };
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, debouncedSearch, page]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -57,6 +86,16 @@ const Used = () => {
         </Link>
       </div>
 
+      {/* Search */}
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="상품명, 브랜드 검색..."
+        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
+      />
+
+      {/* Categories */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {categories.map((cat) => (
           <button
@@ -77,22 +116,28 @@ const Used = () => {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {products.map((product) => (
-            <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
-              <div className="h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-                {product.image.startsWith('/') || product.image.startsWith('http') ? (
-                  <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span style="font-size:2rem">📷</span>'; }} />
-                ) : (
-                  product.image
-                )}
-              </div>
-              <div className="p-3">
-                <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
-                <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
-                <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
-              </div>
-            </Link>
-          ))}
+          {products.map((product) => {
+            const st = statusLabel[product.status] || statusLabel.selling;
+            return (
+              <Link to={`/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
+                <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                  {product.image.startsWith('/') || product.image.startsWith('http') ? (
+                    <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span style="font-size:2rem">📷</span>'; }} />
+                  ) : (
+                    product.image
+                  )}
+                  {product.status !== 'selling' && (
+                    <span className={`absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <div className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</div>
+                  <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
+                  <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 
@@ -101,6 +146,8 @@ const Used = () => {
           해당 조건의 중고 장비가 없습니다.
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };

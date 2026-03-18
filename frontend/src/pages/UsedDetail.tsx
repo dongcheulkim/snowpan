@@ -14,10 +14,18 @@ interface Product {
   description: string | null;
   condition: string | null;
   usageCount: string | null;
+  status: string;
+  wishlisted: boolean;
   userId: string | null;
   user: { id: string; name: string } | null;
   createdAt: string;
 }
+
+const statusLabel: Record<string, { text: string; color: string }> = {
+  selling: { text: '판매중', color: 'bg-mint/20 text-emerald-700' },
+  reserved: { text: '예약중', color: 'bg-yellow-100 text-yellow-700' },
+  sold: { text: '판매완료', color: 'bg-gray-200 text-gray-500' },
+};
 
 const subcategoryLabels: Record<string, string> = {
   ski: '스키', board: '보드', boots: '부츠', binding: '바인딩',
@@ -32,12 +40,13 @@ const UsedDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
   const user = getUser();
 
   useEffect(() => {
     if (!id) return;
     api<Product>(`/products/${id}`)
-      .then(setProduct)
+      .then(p => { setProduct(p); setWishlisted(p.wishlisted); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
@@ -113,9 +122,30 @@ const UsedDetail = () => {
             <div className="text-xs text-gray-400">{formatDate(product.createdAt)}</div>
           </div>
 
-          {/* Price */}
+          {/* Price + Status + Wishlist */}
           <div className="card p-5">
-            <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
+                {product.status !== 'selling' && (
+                  <span className={`text-xs font-bold px-2 py-1 rounded ${(statusLabel[product.status] || statusLabel.selling).color}`}>
+                    {(statusLabel[product.status] || statusLabel.selling).text}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={async () => {
+                  if (!user) { alert('로그인이 필요합니다.'); return; }
+                  try {
+                    const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
+                    setWishlisted(res.wishlisted);
+                  } catch { /* ignore */ }
+                }}
+                className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
+              >
+                {wishlisted ? '♥' : '♡'}
+              </button>
+            </div>
           </div>
 
           {/* Info */}
@@ -161,7 +191,7 @@ const UsedDetail = () => {
           </div>
 
           {/* Chat Button */}
-          {!isMyProduct && (
+          {!isMyProduct && product.status !== 'sold' && (
             <button
               onClick={() => navigate(`/chat/new`, {
                 state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}` }
@@ -170,6 +200,9 @@ const UsedDetail = () => {
             >
               채팅하기
             </button>
+          )}
+          {product.status === 'sold' && !isMyProduct && (
+            <div className="w-full py-3.5 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm text-center">판매 완료된 상품입니다</div>
           )}
 
           {/* Edit/Delete */}

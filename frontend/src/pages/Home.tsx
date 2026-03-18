@@ -68,13 +68,13 @@ const Home = () => {
 
   useEffect(() => {
     Promise.all([
-      api<Product[]>('/products?category=used&limit=3').catch(() => [] as Product[]),
-      api<CommunityPost[]>('/community?sport=ski&limit=3').catch(() => [] as CommunityPost[]),
-      api<CommunityPost[]>('/community?sport=board&limit=3').catch(() => [] as CommunityPost[]),
-    ]).then(([products, ski, board]) => {
-      setHotDeals(products);
-      setSkiPosts(ski);
-      setBoardPosts(board);
+      api<{ products: Product[]; totalCount: number }>('/products?category=used&limit=3').catch(() => ({ products: [], totalCount: 0 })),
+      api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=ski&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
+      api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=board&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
+    ]).then(([prodRes, skiRes, boardRes]) => {
+      setHotDeals(prodRes.products);
+      setSkiPosts(skiRes.posts);
+      setBoardPosts(boardRes.posts);
     });
   }, []);
 
