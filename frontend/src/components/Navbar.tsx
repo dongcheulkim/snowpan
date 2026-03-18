@@ -1,10 +1,19 @@
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
+import { io, Socket } from 'socket.io-client';
+import { t, onLangChange } from '../i18n';
+
+const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
 interface ChatRoomBasic {
   id: string;
   unreadCount: number;
+}
+
+interface NotificationBasic {
+  id: string;
+  read: boolean;
 }
 
 function useLocalStorageUser() {
@@ -14,13 +23,36 @@ function useLocalStorageUser() {
   );
 }
 
+function useI18nRerender() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setTick((p) => p + 1), 0));
+  }, []);
+}
+
 const Navbar = () => {
   const location = useLocation();
   const raw = useLocalStorageUser();
+  useI18nRerender();
   // re-parse on location change to pick up login/logout
   void location.pathname;
   const user: { id: string; name: string } | null = raw ? JSON.parse(raw) : null;
   const [hasUnread, setHasUnread] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
+
+  // Fetch unread notification count
+  const fetchNotifCount = useCallback(() => {
+    if (!user) { setTimeout(() => setUnreadNotifCount(0), 0); return; }
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    api<NotificationBasic[]>('/notifications')
+      .then(notifs => {
+        const count = notifs.filter(n => !n.read).length;
+        setTimeout(() => setUnreadNotifCount(count), 0);
+      })
+      .catch(() => { /* ignore */ });
+  }, [user]);
 
   useEffect(() => {
     if (!user) { setHasUnread(false); return; }
@@ -33,8 +65,29 @@ const Navbar = () => {
         setTimeout(() => setHasUnread(total > 0), 0);
       })
       .catch(() => { /* ignore */ });
+
+    fetchNotifCount();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  // Socket.IO for real-time notifications
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!user || !token) return;
+
+    const socket = io(SERVER_URL, { auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('new_notification', () => {
+      setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
@@ -43,7 +96,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <span className="text-xl font-bold text-accent-light tracking-tight">
-                스노우판
+                {t('nav.title')}
               </span>
             </Link>
           </div>
@@ -66,17 +119,22 @@ const Navbar = () => {
                 <Link
                   to="/notifications"
                   className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
-                  title="알림"
+                  title={t('nav.notifications')}
                 >
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
+                  {unreadNotifCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white px-1">
+                      {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/mypage"
                   className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
                 >
-                  내정보
+                  {t('nav.mypage')}
                 </Link>
               </>
             ) : (
@@ -84,7 +142,7 @@ const Navbar = () => {
                 to="/login"
                 className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
               >
-                로그인
+                {t('nav.login')}
               </Link>
             )}
           </div>

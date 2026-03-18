@@ -60,3 +60,40 @@ input:focus, select:focus, textarea:focus {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Dark Mode */
+.dark body,
+html.dark body {
+  background: #111827;
+  color: #F9FAFB;
+}
+
+.dark .card {
+  background: #1F2937;
+  border-color: #374151;
+}
+
+.dark .card-hover:hover {
+  background: #374151;
+  border-color: #4B5563;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background: #1F2937;
+  border-color: #374151;
+  color: #F9FAFB;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #38BDF8 !important;
+}
+
+@layer base {
+  .dark * {
+    border-color: #374151;
+  }
+}

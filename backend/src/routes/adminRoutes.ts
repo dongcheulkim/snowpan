@@ -12,6 +12,16 @@ import {
   rejectLesson,
   rejectAccommodation,
   rejectBadge,
+  getReports,
+  resolveReport,
+  getStats,
+  getUsers,
+  banUser,
+  setProductPremium,
+  getBannersAdmin,
+  createBanner,
+  updateBanner,
+  deleteBanner,
 } from '../controllers/adminController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -37,5 +47,25 @@ router.delete('/rentals/:id/reject', rejectRental);
 router.delete('/lessons/:id/reject', rejectLesson);
 router.delete('/accommodations/:id/reject', rejectAccommodation);
 router.delete('/badges/:id/reject', rejectBadge);
+
+// 신고 관리
+router.get('/reports', getReports);
+router.put('/reports/:id', resolveReport);
+
+// 통계
+router.get('/stats', getStats);
+
+// 유저 관리
+router.get('/users', getUsers);
+router.put('/users/:id/ban', banUser);
+
+// 프리미엄 관리
+router.put('/products/:id/premium', setProductPremium);
+
+// 배너 관리 (관리자)
+router.get('/banners', getBannersAdmin);
+router.post('/banners', createBanner);
+router.put('/banners/:id', updateBanner);
+router.delete('/banners/:id', deleteBanner);
 
 export default router;

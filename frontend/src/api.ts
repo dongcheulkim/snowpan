@@ -51,9 +51,62 @@ export function imageUrl(src: string): string {
   return src;
 }
 
+function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    // Skip compression for videos
+    if (file.type.startsWith('video/')) {
+      resolve(file);
+      return;
+    }
+    // Skip if smaller than 1MB
+    if (file.size <= 1024 * 1024) {
+      resolve(file);
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(file); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          const compressed = new File([blob], file.name, { type: outputType, lastModified: Date.now() });
+          resolve(compressed);
+        },
+        outputType,
+        quality
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('이미지 압축 실패'));
+    };
+    img.src = url;
+  });
+}
+
 export async function uploadImages(files: File[]): Promise<string[]> {
+  // Compress images before uploading (max 1200px width, 0.8 quality for JPEG)
+  const compressed = await Promise.all(
+    files.map((f) => compressImage(f, 1200, 0.8))
+  );
+
   const formData = new FormData();
-  files.forEach(f => formData.append('images', f));
+  compressed.forEach(f => formData.append('images', f));
 
   const token = getToken();
   const headers: Record<string, string> = {};

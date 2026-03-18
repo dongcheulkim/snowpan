@@ -43,6 +43,8 @@ import Notifications from './pages/Notifications';
 import Webcam from './pages/Webcam';
 import WebcamDetail from './pages/WebcamDetail';
 import RecentlyViewed from './pages/RecentlyViewed';
+import ForgotPassword from './pages/ForgotPassword';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -91,6 +93,8 @@ function App() {
           <Route path="poll/:id" element={<PollDetail />} />
           <Route path="webcam" element={<Webcam />} />
           <Route path="webcam/:id" element={<WebcamDetail />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
         </Route>
       </Routes>
     </BrowserRouter>

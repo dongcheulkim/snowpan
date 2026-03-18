@@ -19,6 +19,7 @@ model User {
   phoneVerified Boolean  @default(false)
   profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
+  fcmToken      String?  // Firebase Cloud Messaging token
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -72,6 +73,8 @@ model Product {
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
   status      String   @default("selling") // 'selling' | 'reserved' | 'sold'
+  isPremium    Boolean  @default(false)
+  premiumUntil DateTime?
   bumpedAt    DateTime @default(now())
   userId      String?  // null for admin-crawled items, set for user-submitted
   user        User?    @relation(fields: [userId], references: [id])
@@ -311,4 +314,18 @@ model Report {
   @@index([reporterId])
   @@index([type, targetId])
   @@map("reports")
+}
+
+model Banner {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  tag         String
+  url         String
+  image       String?
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("banners")
 }

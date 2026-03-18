@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface Product {
   id: string;
@@ -8,6 +9,15 @@ interface Product {
   price: number;
   image: string;
   createdAt: string;
+}
+
+interface BannerData {
+  id: string;
+  title: string;
+  description: string;
+  tag: string;
+  url: string;
+  image: string | null;
 }
 
 interface CommunityPost {
@@ -32,6 +42,12 @@ const Home = () => {
   const [communityTab, setCommunityTab] = useState<'ski' | 'board'>('ski');
   const [skiPosts, setSkiPosts] = useState<CommunityPost[]>([]);
   const [boardPosts, setBoardPosts] = useState<CommunityPost[]>([]);
+  const [, setLangTick] = useState(0);
+
+  // Re-render on language change
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick((p) => p + 1), 0));
+  }, []);
 
   const youtubeVideos = [
     // 헬스키
@@ -44,13 +60,24 @@ const Home = () => {
     { id: 'LATEST_3', channel: '최신스키', title: '영상 제목 3', videoId: 'VIDEO_ID_6' },
   ];
 
-  const banners = [
-    { title: '보드팩토리 강남점', desc: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr' },
-    { title: '스키프로샵 홍대점', desc: '24/25 신상 부츠 피팅 무료 · 풀세트 특가', tag: 'AD', url: 'https://www.skiproshop.co.kr' },
-    { title: '라이더스클럽 판교점', desc: '중고 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD', url: 'https://www.ridersclub.co.kr' },
+  // Fallback banners if API returns nothing
+  const fallbackBanners: BannerData[] = [
+    { id: 'f1', title: '보드팩토리 강남점', description: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr', image: null },
+    { id: 'f2', title: '스키프로샵 홍대점', description: '24/25 신상 부츠 피팅 무료 · 풀세트 특가', tag: 'AD', url: 'https://www.skiproshop.co.kr', image: null },
+    { id: 'f3', title: '라이더스클럽 판교점', description: '중고 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD', url: 'https://www.ridersclub.co.kr', image: null },
   ];
+  const [banners, setBanners] = useState<BannerData[]>(fallbackBanners);
 
   useEffect(() => {
+    api<BannerData[]>('/banners')
+      .then((data) => {
+        if (data.length > 0) setBanners(data);
+      })
+      .catch(() => { /* ignore - use fallback */ });
+  }, []);
+
+  useEffect(() => {
+    if (banners.length === 0) return;
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
     }, 4000);
@@ -58,12 +85,12 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
-    { id: 'used', title: '중고거래', icon: '🏷️', link: '/used' },
-    { id: 'rental', title: '렌탈', icon: '⛷️', link: '/rental' },
-    { id: 'lesson', title: '레슨', icon: '🎿', link: '/lesson' },
-    { id: 'accommodation', title: '숙소', icon: '🏨', link: '/accommodation' },
-    { id: 'community', title: '커뮤니티', icon: '💬', link: '/community' },
-    { id: 'webcam', title: '실시간웹캠', icon: '📹', link: '/webcam' },
+    { id: 'used', title: t('cat.used'), icon: '🏷️', link: '/used' },
+    { id: 'rental', title: t('cat.rental'), icon: '⛷️', link: '/rental' },
+    { id: 'lesson', title: t('cat.lesson'), icon: '🎿', link: '/lesson' },
+    { id: 'accommodation', title: t('cat.accommodation'), icon: '🏨', link: '/accommodation' },
+    { id: 'community', title: t('cat.community'), icon: '💬', link: '/community' },
+    { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
   ];
 
   useEffect(() => {
@@ -85,7 +112,7 @@ const Home = () => {
         <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
           {banners.map((banner, idx) => (
             <a
-              key={idx}
+              key={banner.id}
               href={banner.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -97,12 +124,15 @@ const Home = () => {
                   : 'opacity-0 translate-x-full'
               }`}
             >
-              <div className="flex-1">
+              {banner.image && (
+                <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover" />
+              )}
+              <div className="flex-1 relative z-10">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-semibold text-primary-dark bg-primary-100 px-1.5 py-0.5 rounded">{banner.tag}</span>
                   <span className="text-[15px] font-bold text-gray-800">{banner.title}</span>
                 </div>
-                <p className="text-sm text-gray-500">{banner.desc}</p>
+                <p className="text-sm text-gray-500">{banner.description}</p>
               </div>
             </a>
           ))}

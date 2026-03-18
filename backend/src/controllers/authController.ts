@@ -282,6 +282,73 @@ export const verifyPhone = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// FCM 토큰 저장
+export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { fcmToken } = req.body as { fcmToken: string };
+    await prisma.user.update({ where: { id: userId }, data: { fcmToken } });
+    res.json({ message: 'FCM 토큰이 저장되었습니다.' });
+  } catch (error) {
+    console.error('Save FCM token error:', error);
+    res.status(500).json({ error: 'FCM 토큰 저장 중 오류가 발생했습니다.' });
+  }
+};
+
+// 비밀번호 재설정 요청 (이메일로 인증코드 전송)
+export const resetPasswordRequest = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(404).json({ error: '해당 이메일로 가입된 계정이 없습니다.' });
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    // PhoneVerification 테이블을 재사용하여 이메일 인증코드 저장 (phone 필드에 email 저장)
+    await prisma.phoneVerification.create({
+      data: { phone: email, code, expiresAt },
+    });
+
+    console.log(`비밀번호 재설정 인증번호 [${email}]: ${code}`);
+    res.json({ message: '인증번호가 이메일로 발송되었습니다.' });
+  } catch (error) {
+    console.error('Reset password request error:', error);
+    res.status(500).json({ error: '인증번호 발송 중 오류가 발생했습니다.' });
+  }
+};
+
+// 비밀번호 재설정 (인증코드 확인 후 비밀번호 변경)
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    const verification = await prisma.phoneVerification.findFirst({
+      where: { phone: email, code, verified: false, expiresAt: { gte: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!verification) {
+      res.status(400).json({ error: '인증번호가 올바르지 않거나 만료되었습니다.' });
+      return;
+    }
+
+    await prisma.phoneVerification.update({ where: { id: verification.id }, data: { verified: true } });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { email }, data: { password: hashedPassword } });
+
+    res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: '비밀번호 변경 중 오류가 발생했습니다.' });
+  }
+};
+
 // 공개 판매자 프로필
 export const getSellerProfile = async (req: Request, res: Response): Promise<void> => {
   try {

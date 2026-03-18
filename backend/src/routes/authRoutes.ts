@@ -9,6 +9,9 @@ import {
   updateProfile,
   getProfile,
   getSellerProfile,
+  saveFcmToken,
+  resetPasswordRequest,
+  resetPassword,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -23,6 +26,9 @@ router.put('/profile', authenticateToken, updateProfile);
 router.get('/my-badges', authenticateToken, getMyBadges);
 router.post('/badge-request', authenticateToken, requestBadge);
 router.get('/seller/:id', getSellerProfile);
+router.post('/fcm-token', authenticateToken, saveFcmToken);
+router.post('/reset-password-request', resetPasswordRequest);
+router.post('/reset-password', resetPassword);
 
 // 카카오 소셜 로그인 (스텁)
 router.get('/kakao', (_req: Request, res: Response) => {

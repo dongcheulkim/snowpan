@@ -12,6 +12,7 @@ interface Product {
   image: string;
   category: string;
   status: string;
+  isPremium?: boolean;
 }
 
 const statusLabel: Record<string, { text: string; color: string }> = {
@@ -125,6 +126,9 @@ const Used = () => {
                     <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span style="font-size:2rem">📷</span>'; }} />
                   ) : (
                     product.image
+                  )}
+                  {product.isPremium && (
+                    <span className="absolute top-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/90 text-white shadow-sm">PREMIUM</span>
                   )}
                   {product.status !== 'selling' && (
                     <span className={`absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>

@@ -20,6 +20,7 @@ import chatRoutes from './routes/chatRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
+import { createNotification } from './controllers/notificationController';
 
 dotenv.config();
 
@@ -47,6 +48,10 @@ app.use('/api/accommodations', accommodationRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+
+// 공개 배너 API (인증 불필요)
+import { getPublicBanners } from './controllers/adminController';
+app.get('/api/banners', getPublicBanners);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', reviewRoutes);
@@ -81,6 +86,17 @@ io.on('connection', (socket) => {
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
       io.to(`room:${data.roomId}`).emit('new_message', message);
+
+      // Find the recipient and send real-time notification
+      const chatRoom = await prisma.chatRoom.findUnique({ where: { id: data.roomId } });
+      if (chatRoom) {
+        const recipientId = chatRoom.user1Id === userId ? chatRoom.user2Id : chatRoom.user1Id;
+        const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+        const senderName = sender?.name || '알 수 없음';
+        const preview = data.content.length > 30 ? data.content.slice(0, 30) + '...' : data.content;
+        await createNotification(recipientId, 'chat', `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
+        io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: `${senderName}님의 메시지`, message: preview });
+      }
     } catch (err) {
       console.error('Send message error:', err);
     }

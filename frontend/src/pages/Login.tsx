@@ -140,8 +140,9 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="mt-4 text-center">
-          <Link to="/register" className="text-xs text-primary-dark hover:underline">계정이 없으신가요? 회원가입</Link>
+        <div className="mt-4 text-center space-y-2">
+          <Link to="/forgot-password" className="text-xs text-gray-400 hover:underline block">비밀번호를 잊으셨나요?</Link>
+          <Link to="/register" className="text-xs text-primary-dark hover:underline block">계정이 없으신가요? 회원가입</Link>
         </div>
       </div>
     </div>

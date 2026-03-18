@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages, logout } from '../api';
+import { getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
   id: string;
@@ -19,6 +20,8 @@ const MyPage = () => {
   const [selectedBadge, setSelectedBadge] = useState('');
   const [badgeImage, setBadgeImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
 
   useEffect(() => {
     const stored = getUser();
@@ -111,6 +114,24 @@ const MyPage = () => {
     { label: '채팅 목록', link: '/chat/rooms' },
     { label: '알림', link: '/notifications' },
   ];
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  const toggleLang = () => {
+    const next = lang === 'ko' ? 'en' : 'ko';
+    setLangState(next);
+    setLang(next);
+  };
 
   const settings = [
     { label: '이용약관', link: '/mypage/terms' },
@@ -227,12 +248,38 @@ const MyPage = () => {
       {/* Admin */}
       {user.role === 'admin' && (
         <div className="card overflow-hidden">
-          <Link to="/admin-approval" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+          <Link to="/admin-approval" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
             <span className="text-sm font-medium text-coral">관리자 승인 관리</span>
+            <span className="text-coral text-xs">→</span>
+          </Link>
+          <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+            <span className="text-sm font-medium text-coral">관리자 대시보드</span>
             <span className="text-coral text-xs">→</span>
           </Link>
         </div>
       )}
+
+      {/* Dark Mode & Language */}
+      <div className="card overflow-hidden">
+        <div className="w-full flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <span className="text-sm font-medium text-gray-900">다크 모드</span>
+          <button
+            onClick={toggleDarkMode}
+            className={`w-12 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-accent' : 'bg-gray-300'}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
+          </button>
+        </div>
+        <div className="w-full flex items-center justify-between px-5 py-4">
+          <span className="text-sm font-medium text-gray-900">언어 / Language</span>
+          <button
+            onClick={toggleLang}
+            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs hover:bg-gray-200 transition-colors"
+          >
+            {lang === 'ko' ? 'English' : '한국어'}
+          </button>
+        </div>
+      </div>
 
       {/* Settings */}
       <div className="card overflow-hidden">
