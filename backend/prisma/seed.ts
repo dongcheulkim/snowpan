@@ -7,12 +7,12 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // 관리자 계정 생성
-  const adminExists = await prisma.user.findUnique({ where: { email: 'admin@snowprice.com' } });
+  const adminExists = await prisma.user.findUnique({ where: { email: 'admin@snowpan.com' } });
   if (!adminExists) {
-    const adminPassword = await bcrypt.hash('admin123!', 10);
+    const adminPassword = await bcrypt.hash('rlaehdcjf12!', 10);
     await prisma.user.create({
       data: {
-        email: 'admin@snowprice.com',
+        email: 'admin@snowpan.com',
         password: adminPassword,
         name: '관리자',
         phone: '01012345678',

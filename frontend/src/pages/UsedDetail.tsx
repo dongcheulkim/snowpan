@@ -25,6 +25,7 @@ const UsedDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showFullImage, setShowFullImage] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -61,7 +62,6 @@ const UsedDetail = () => {
     : isUrl(product.image) ? [imageUrl(product.image)] : [];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[selectedImage] || '';
-  const [imgError, setImgError] = useState(false);
   const sellerName = product.user?.name || '판매자';
   const sellerId = product.user?.id || '';
   const isMyProduct = user && product.userId === user.id;
