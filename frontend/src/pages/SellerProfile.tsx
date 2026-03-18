@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
+import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 
 interface SellerData {
@@ -38,6 +39,11 @@ const SellerProfile = () => {
   const [reviewContent, setReviewContent] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const user = getUser();
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     if (!sellerId) return;
@@ -106,20 +112,20 @@ const SellerProfile = () => {
     </div>
   );
 
-  if (loading) return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">로딩 중...</div>;
+  if (loading) return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
 
   if (!seller) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">판매자를 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-gray-400 hover:text-gray-900 text-sm">&larr; 목록으로 돌아가기</Link>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('sellerProfile.notFound')}</h2>
+        <Link to="/used" className="text-gray-400 hover:text-gray-900 text-sm">&larr; {t('sellerProfile.backToList')}</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; 뒤로</Link>
+      <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; {t('sellerProfile.back')}</Link>
 
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
@@ -142,15 +148,15 @@ const SellerProfile = () => {
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gray-900">{seller.products.length}개</div>
-            <div className="text-[10px] text-gray-400">판매 물품</div>
+            <div className="text-[10px] text-gray-400">{t('sellerProfile.sales')}</div>
           </div>
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
-            <div className="text-[10px] text-gray-400">평균 별점</div>
+            <div className="text-[10px] text-gray-400">{t('sellerProfile.avgRating')}</div>
           </div>
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gray-900">{formatDate(seller.createdAt)}</div>
-            <div className="text-[10px] text-gray-400">가입일</div>
+            <div className="text-[10px] text-gray-400">{t('sellerProfile.joinDate')}</div>
           </div>
         </div>
       </div>
@@ -158,10 +164,10 @@ const SellerProfile = () => {
       {/* Reviews */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-gray-900">거래 후기 ({reviewCount})</h3>
+          <h3 className="text-sm font-bold text-gray-900">{t('sellerProfile.reviews')} ({reviewCount})</h3>
           {user && user.id !== sellerId && (
             <button onClick={() => setShowReviewForm(!showReviewForm)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
-              후기 작성
+              {t('sellerProfile.writeReview')}
             </button>
           )}
         </div>
@@ -169,27 +175,27 @@ const SellerProfile = () => {
         {showReviewForm && (
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
             <div className="mb-3">
-              <label className="text-xs font-medium text-gray-600 block mb-1">별점</label>
+              <label className="text-xs font-medium text-gray-600 block mb-1">{t('sellerProfile.rating')}</label>
               {renderStars(reviewRating, true, setReviewRating)}
             </div>
             <textarea
               value={reviewContent}
               onChange={e => setReviewContent(e.target.value)}
-              placeholder="거래 후기를 남겨주세요"
+              placeholder={t('sellerProfile.reviewPlaceholder')}
               rows={3}
               className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-3"
             />
             <div className="flex gap-2">
-              <button onClick={() => { setShowReviewForm(false); setReviewContent(''); }} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg text-xs font-medium border border-gray-200">취소</button>
+              <button onClick={() => { setShowReviewForm(false); setReviewContent(''); }} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg text-xs font-medium border border-gray-200">{t('btn.cancel')}</button>
               <button onClick={handleSubmitReview} disabled={!reviewContent.trim() || reviewSubmitting} className="flex-1 py-2 bg-accent text-white rounded-lg text-xs font-bold disabled:opacity-30">
-                {reviewSubmitting ? '등록 중...' : '등록'}
+                {reviewSubmitting ? t('sellerProfile.submitting') : t('communityDetail.submit')}
               </button>
             </div>
           </div>
         )}
 
         {reviews.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">아직 거래 후기가 없습니다.</p>
+          <p className="text-sm text-gray-400 text-center py-6">{t('sellerProfile.noReviews')}</p>
         ) : (
           <div className="space-y-3">
             {reviews.map((review) => (
@@ -215,9 +221,9 @@ const SellerProfile = () => {
 
       {/* 판매 중인 상품 */}
       <div className="card rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">판매 중인 상품 ({seller.products.length})</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">{t('sellerProfile.productsForSale')} ({seller.products.length})</h3>
         {seller.products.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">등록된 상품이 없습니다.</p>
+          <p className="text-sm text-gray-400 text-center py-6">{t('sellerProfile.noProducts')}</p>
         ) : (
           <div className="space-y-3">
             {seller.products.map((item) => (

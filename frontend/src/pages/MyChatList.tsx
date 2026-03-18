@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface ChatRoom {
   id: string;
@@ -15,6 +16,11 @@ const MyChatList = () => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const user = getUser();
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -38,8 +44,8 @@ const MyChatList = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">로그인이 필요합니다.</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">로그인하기</Link>
+        <p className="text-gray-400 mb-4">{t('chat.loginRequired')}</p>
+        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }
@@ -48,13 +54,13 @@ const MyChatList = () => {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/" className="text-gray-400 text-lg">&larr;</Link>
-        <h1 className="text-xl font-bold text-gray-900">채팅</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t('myChatList.title')}</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-16 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : rooms.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">채팅 내역이 없습니다.</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('myChatList.empty')}</div>
       ) : (
         <div className="space-y-2">
           {rooms.map((room) => {
@@ -80,7 +86,7 @@ const MyChatList = () => {
                     )}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 truncate">
-                    {lastMsg ? lastMsg.content : '대화를 시작해보세요'}
+                    {lastMsg ? lastMsg.content : t('myChatList.startChat')}
                   </div>
                 </div>
                 <div className="text-[11px] text-gray-300 flex-shrink-0">

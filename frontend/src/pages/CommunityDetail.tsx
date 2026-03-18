@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 
 interface Comment {
@@ -59,6 +60,11 @@ const CommunityDetail = () => {
   const [reportDesc, setReportDesc] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const user = getUser();
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -143,14 +149,14 @@ const CommunityDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">로딩 중...</div>;
+    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
   }
 
   if (!post) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">게시글을 찾을 수 없습니다</h2>
-        <Link to="/community" className="text-gray-500 hover:text-gray-900 text-sm">&larr; 커뮤니티로 돌아가기</Link>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('communityDetail.notFound')}</h2>
+        <Link to="/community" className="text-gray-500 hover:text-gray-900 text-sm">&larr; {t('communityDetail.backToCommunity')}</Link>
       </div>
     );
   }
@@ -160,7 +166,7 @@ const CommunityDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; 커뮤니티</Link>
+      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -168,14 +174,14 @@ const CommunityDetail = () => {
           <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
           <div className="flex-1" />
           {/* Share button */}
-          <button onClick={handleShare} className="p-1.5 text-gray-400 hover:text-accent transition-colors" title="공유하기">
+          <button onClick={handleShare} className="p-1.5 text-gray-400 hover:text-accent transition-colors" title={t('usedDetail.share')}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
           {/* Report button */}
           {user && user.id !== post.userId && (
-            <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-400 hover:text-coral transition-colors" title="신고하기">
+            <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-400 hover:text-coral transition-colors" title={t('usedDetail.report')}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
               </svg>
@@ -209,16 +215,16 @@ const CommunityDetail = () => {
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'}`}>
             ♥ {likeCount}
           </button>
-          <span className="text-sm text-gray-400">댓글 {post.comments.length}</span>
+          <span className="text-sm text-gray-400">{t('communityDetail.comments')} {post.comments.length}</span>
         </div>
       </div>
 
       {user && post.userId === user.id && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate(`/community/${post.sport}`); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">삭제</button>
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate(`/community/${post.sport}`); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{t('btn.delete')}</button>
       )}
 
       <div className="card p-5">
-        <h3 className="text-sm font-bold text-gray-900 mb-4">댓글 {post.comments.length}</h3>
+        <h3 className="text-sm font-bold text-gray-900 mb-4">{t('communityDetail.comments')} {post.comments.length}</h3>
         <div className="space-y-4">
           {post.comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
@@ -239,12 +245,12 @@ const CommunityDetail = () => {
 
         {user ? (
           <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
-            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder="댓글을 입력하세요..." className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
-            <button onClick={handleComment} disabled={!newComment.trim()} className="px-4 py-2.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">등록</button>
+            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={t('communityDetail.commentPlaceholder')} className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
+            <button onClick={handleComment} disabled={!newComment.trim()} className="px-4 py-2.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
           </div>
         ) : (
           <div className="mt-5 pt-4 border-t border-gray-200 text-center">
-            <Link to="/login" className="text-xs text-primary-dark hover:underline">로그인 후 댓글을 작성할 수 있습니다</Link>
+            <Link to="/login" className="text-xs text-primary-dark hover:underline">{t('communityDetail.loginToComment')}</Link>
           </div>
         )}
       </div>
@@ -254,8 +260,8 @@ const CommunityDetail = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">게시글 신고</h3>
-            <p className="text-xs text-gray-400 mb-4">신고 사유를 선택해주세요</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('communityDetail.reportPost')}</h3>
+            <p className="text-xs text-gray-400 mb-4">{t('communityDetail.selectReason')}</p>
             <div className="space-y-2 mb-4">
               {reportReasons.map((reason) => (
                 <button key={reason} onClick={() => setReportReason(reason)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${reportReason === reason ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
@@ -271,9 +277,9 @@ const CommunityDetail = () => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">취소</button>
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
               <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
-                {reportSubmitting ? '처리 중...' : '신고하기'}
+                {reportSubmitting ? t('communityDetail.processing') : t('usedDetail.report')}
               </button>
             </div>
           </div>

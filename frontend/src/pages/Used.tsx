@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
 
 interface Product {
@@ -15,12 +16,6 @@ interface Product {
   isPremium?: boolean;
 }
 
-const statusLabel: Record<string, { text: string; color: string }> = {
-  selling: { text: '판매중', color: 'bg-mint/20 text-emerald-700' },
-  reserved: { text: '예약중', color: 'bg-yellow-100 text-yellow-700' },
-  sold: { text: '판매완료', color: 'bg-gray-200 text-gray-500' },
-};
-
 const PAGE_SIZE = 12;
 
 const Used = () => {
@@ -31,17 +26,28 @@ const Used = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
+
+  const statusLabel: Record<string, { text: string; color: string }> = {
+    selling: { text: t('used.status.selling'), color: 'bg-mint/20 text-emerald-700' },
+    reserved: { text: t('used.status.reserved'), color: 'bg-yellow-100 text-yellow-700' },
+    sold: { text: t('used.status.sold'), color: 'bg-gray-200 text-gray-500' },
+  };
 
   const categories = [
-    { id: 'all', name: '전체' },
-    { id: 'ski', name: '스키' },
-    { id: 'board', name: '보드' },
-    { id: 'boots', name: '부츠' },
-    { id: 'binding', name: '바인딩' },
-    { id: 'helmet', name: '헬멧' },
-    { id: 'goggles', name: '고글' },
-    { id: 'wear', name: '의류' },
-    { id: 'etc', name: '기타' },
+    { id: 'all', name: t('used.cat.all') },
+    { id: 'ski', name: t('used.cat.ski') },
+    { id: 'board', name: t('used.cat.board') },
+    { id: 'boots', name: t('used.cat.boots') },
+    { id: 'binding', name: t('used.cat.binding') },
+    { id: 'helmet', name: t('used.cat.helmet') },
+    { id: 'goggles', name: t('used.cat.goggles') },
+    { id: 'wear', name: t('used.cat.wear') },
+    { id: 'etc', name: t('used.cat.etc') },
   ];
 
   // Debounce search
@@ -78,12 +84,12 @@ const Used = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">중고 장비</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('used.title')}</h1>
         <Link
           to="/used/register"
           className="px-4 py-1.5 bg-mint text-black rounded-lg font-bold text-xs hover:bg-emerald-300 transition-colors whitespace-nowrap"
         >
-          + 장비 등록
+          {t('used.register')}
         </Link>
       </div>
 
@@ -92,7 +98,7 @@ const Used = () => {
         type="text"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="상품명, 브랜드 검색..."
+        placeholder={t('used.search')}
         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
       />
 
@@ -114,7 +120,7 @@ const Used = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-12 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {products.map((product) => {
@@ -147,7 +153,7 @@ const Used = () => {
 
       {!loading && products.length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
-          해당 조건의 중고 장비가 없습니다.
+          {t('used.noItems')}
         </div>
       )}
 

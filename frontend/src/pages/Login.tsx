@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../api';
+import { t, onLangChange } from '../i18n';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +11,11 @@ const Login = () => {
   const [autoLogin, setAutoLogin] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('savedEmail');
@@ -63,28 +69,28 @@ const Login = () => {
     <div className="max-w-md mx-auto animate-fade-in">
       <div className="card p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">로그인</h1>
-          <p className="text-sm text-gray-400">스노우판에 오신 것을 환영합니다</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('login.title')}</h1>
+          <p className="text-sm text-gray-400">{t('login.welcome')}</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">이메일</label>
-            <input type="email" placeholder="이메일을 입력하세요" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
+            <label className="block text-sm font-medium text-gray-500 mb-2">{t('login.email')}</label>
+            <input type="email" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">비밀번호</label>
-            <input type="password" placeholder="비밀번호를 입력하세요" value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} />
+            <label className="block text-sm font-medium text-gray-500 mb-2">{t('login.password')}</label>
+            <input type="password" placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} required className={inputClass} />
           </div>
 
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={saveEmail} onChange={e => setSaveEmail(e.target.checked)} className="w-4 h-4 rounded border-gray-300 accent-sky-500" />
-              <span className="text-xs text-gray-500">아이디 저장</span>
+              <span className="text-xs text-gray-500">{t('login.saveEmail')}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={autoLogin} onChange={e => setAutoLogin(e.target.checked)} className="w-4 h-4 rounded border-gray-300 accent-sky-500" />
-              <span className="text-xs text-gray-500">자동 로그인</span>
+              <span className="text-xs text-gray-500">{t('login.autoLogin')}</span>
             </label>
           </div>
 
@@ -97,7 +103,7 @@ const Login = () => {
             disabled={loading}
             className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2 disabled:opacity-50"
           >
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? t('login.loggingIn') : t('login.submit')}
           </button>
         </form>
 
@@ -108,7 +114,7 @@ const Login = () => {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-white text-gray-400">간편 로그인</span>
+              <span className="px-3 bg-white text-gray-400">{t('login.socialLogin')}</span>
             </div>
           </div>
 
@@ -123,7 +129,7 @@ const Login = () => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3c-5.088 0-9.2 3.272-9.2 7.313 0 2.604 1.716 4.9 4.318 6.195-.19.71-.69 2.577-.79 2.975-.124.496.18.49.38.355.157-.105 2.5-1.7 3.533-2.392.572.083 1.158.126 1.759.126 5.088 0 9.2-3.272 9.2-7.313S17.088 3 12 3z"/>
               </svg>
-              카카오 로그인
+              {t('login.kakao')}
             </button>
             <button
               onClick={() => {
@@ -135,14 +141,14 @@ const Login = () => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z" transform="scale(0.75) translate(4,4)"/>
               </svg>
-              네이버 로그인
+              {t('login.naver')}
             </button>
           </div>
         </div>
 
         <div className="mt-4 text-center space-y-2">
-          <Link to="/forgot-password" className="text-xs text-gray-400 hover:underline block">비밀번호를 잊으셨나요?</Link>
-          <Link to="/register" className="text-xs text-primary-dark hover:underline block">계정이 없으신가요? 회원가입</Link>
+          <Link to="/forgot-password" className="text-xs text-gray-400 hover:underline block">{t('login.forgotPassword')}</Link>
+          <Link to="/register" className="text-xs text-primary-dark hover:underline block">{t('login.noAccount')}</Link>
         </div>
       </div>
     </div>

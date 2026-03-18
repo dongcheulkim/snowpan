@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface WishProduct {
   id: string;
@@ -10,11 +11,20 @@ interface WishProduct {
   status: string;
 }
 
-const statusText: Record<string, string> = { selling: '판매중', reserved: '예약중', sold: '판매완료' };
-
 const MyWishlist = () => {
   const [products, setProducts] = useState<WishProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
+
+  const statusText: Record<string, string> = {
+    selling: t('used.status.selling'),
+    reserved: t('used.status.reserved'),
+    sold: t('used.status.sold'),
+  };
 
   useEffect(() => {
     api<WishProduct[]>('/products/wishlist')
@@ -34,13 +44,13 @@ const MyWishlist = () => {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
-        <h1 className="text-xl font-bold text-gray-900">찜 목록</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t('myWishlist.title')}</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
+        <div className="text-center py-16 text-gray-400 text-sm">{t('myWishlist.loading')}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">찜한 상품이 없습니다.</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('myWishlist.empty')}</div>
       ) : (
         <div className="space-y-2">
           {products.map((item) => (

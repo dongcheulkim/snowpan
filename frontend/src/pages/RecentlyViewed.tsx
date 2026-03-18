@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface RecentProduct {
   id: string;
@@ -12,6 +13,11 @@ interface RecentProduct {
 
 const RecentlyViewed = () => {
   const [products, setProducts] = useState<RecentProduct[]>([]);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     try {
@@ -42,18 +48,18 @@ const RecentlyViewed = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/mypage" className="text-gray-400 text-lg">&larr;</Link>
-          <h1 className="text-xl font-bold text-gray-900">최근 본 상품</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('recentlyViewed.title')}</h1>
         </div>
         {products.length > 0 && (
           <button onClick={clearHistory} className="text-xs text-gray-400 hover:text-coral transition-colors">
-            전체 삭제
+            {t('recentlyViewed.deleteAll')}
           </button>
         )}
       </div>
 
       {products.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">
-          최근 본 상품이 없습니다.
+          {t('recentlyViewed.empty')}
         </div>
       ) : (
         <div className="space-y-2">

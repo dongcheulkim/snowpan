@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api, imageUrl as toImageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
 
@@ -43,16 +44,21 @@ const Community = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [, setLangTick] = useState(0);
 
-  const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
+
+  const sportLabel = sport === 'ski' ? '⛷️ ' + t('used.cat.ski') : '🏂 ' + t('used.cat.board');
 
   const tabs = [
-    { id: 'all', name: '전체' },
-    { id: 'free', name: '자유' },
-    { id: 'review', name: '장비리뷰' },
-    { id: 'resort', name: '스키장' },
-    { id: 'tip', name: '초보팁' },
-    { id: 'carpool', name: '카풀' },
+    { id: 'all', name: t('community.all') },
+    { id: 'free', name: t('community.free') },
+    { id: 'review', name: t('community.review') },
+    { id: 'resort', name: t('community.resort') },
+    { id: 'tip', name: t('community.tip') },
+    { id: 'carpool', name: t('community.carpool') },
   ];
 
   useEffect(() => {
@@ -92,10 +98,10 @@ const Community = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
-          <h1 className="text-xl font-bold text-gray-900">{sportLabel} 커뮤니티</h1>
+          <h1 className="text-xl font-bold text-gray-900">{sportLabel} {t('community.title')}</h1>
         </div>
         <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
-          + 글쓰기
+          + {t('community.write')}
         </Link>
       </div>
 
@@ -103,7 +109,7 @@ const Community = () => {
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="제목이나 내용으로 검색" className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400" />
+        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('community.searchPlaceholder')} className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400" />
       </div>
 
       <div className="flex gap-1.5 flex-wrap">
@@ -115,7 +121,7 @@ const Community = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-12 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : (
         <div className="space-y-2">
           {posts.map((post) => {
@@ -137,7 +143,7 @@ const Community = () => {
                     <div className="flex items-center gap-3 text-[11px] text-gray-400">
                       <span>조회 {post.views}</span>
                       <span className="text-coral">♥ {post.likes}</span>
-                      <span>댓글 {post.commentCount}</span>
+                      <span>{t('communityDetail.comments')} {post.commentCount}</span>
                     </div>
                   </div>
                 </div>
@@ -155,7 +161,7 @@ const Community = () => {
 
       {!loading && posts.length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
-          {debouncedSearch ? '검색 결과가 없습니다.' : '아직 게시글이 없습니다. 첫 글을 작성해보세요!'}
+          {debouncedSearch ? t('community.noResults') : t('community.noPosts')}
         </div>
       )}
 

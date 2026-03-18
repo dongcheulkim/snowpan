@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface Product {
   id: string;
@@ -12,17 +13,22 @@ interface Product {
   createdAt: string;
 }
 
-const statusConfig: Record<string, { text: string; color: string; next: string; nextText: string }> = {
-  selling: { text: '판매중', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', next: 'reserved', nextText: '예약중으로' },
-  reserved: { text: '예약중', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', next: 'sold', nextText: '판매완료로' },
-  sold: { text: '판매완료', color: 'text-gray-500 bg-gray-100 border-gray-300', next: 'selling', nextText: '판매중으로' },
-};
-
 const MySales = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = getUser();
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
+
+  const statusConfig: Record<string, { text: string; color: string; next: string; nextText: string }> = {
+    selling: { text: t('used.status.selling'), color: 'text-emerald-600 bg-emerald-50 border-emerald-200', next: 'reserved', nextText: t('mySales.toReserved') },
+    reserved: { text: t('used.status.reserved'), color: 'text-yellow-600 bg-yellow-50 border-yellow-200', next: 'sold', nextText: t('mySales.toSold') },
+    sold: { text: t('used.status.sold'), color: 'text-gray-500 bg-gray-100 border-gray-300', next: 'selling', nextText: t('mySales.toSelling') },
+  };
 
   const loadProducts = () => {
     if (!user) return;
@@ -57,7 +63,7 @@ const MySales = () => {
   const handleBump = async (id: string) => {
     try {
       await api(`/products/${id}/bump`, { method: 'PUT' });
-      alert('끌어올리기 완료! 목록 상단에 노출됩니다.');
+      alert(t('mySales.bumpSuccess'));
       loadProducts();
     } catch (err) {
       alert(err instanceof Error ? err.message : '끌어올리기 실패');
@@ -68,13 +74,13 @@ const MySales = () => {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
-        <h1 className="text-xl font-bold text-gray-900">판매 물품</h1>
+        <h1 className="text-xl font-bold text-gray-900">{t('mySales.title')}</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
+        <div className="text-center py-16 text-gray-400 text-sm">{t('mySales.loading')}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">등록한 판매 물품이 없습니다.</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('mySales.empty')}</div>
       ) : (
         <div className="space-y-2">
           {products.map((item) => {
@@ -99,7 +105,7 @@ const MySales = () => {
                   <button
                     onClick={() => handleBump(item.id)}
                     className="flex-1 py-2 bg-mint/10 text-emerald-600 rounded-lg text-[11px] font-medium border border-mint/30 hover:bg-mint/20 transition-colors"
-                  >끌어올리기</button>
+                  >{t('mySales.bump')}</button>
                   <button
                     onClick={() => handleStatusChange(item.id, st.next)}
                     className="flex-1 py-2 bg-gray-50 text-gray-600 rounded-lg text-[11px] font-medium border border-gray-200 hover:bg-gray-100 transition-colors"
@@ -107,11 +113,11 @@ const MySales = () => {
                   <button
                     onClick={() => navigate(`/used/${item.id}/edit`)}
                     className="flex-1 py-2 bg-sky-50 text-sky-500 rounded-lg text-[11px] font-medium border border-sky-200 hover:bg-sky-100 transition-colors"
-                  >수정</button>
+                  >{t('mySales.edit')}</button>
                   <button
                     onClick={() => handleDelete(item.id)}
                     className="flex-1 py-2 bg-gray-50 text-red-400 rounded-lg text-[11px] font-medium border border-gray-200 hover:bg-red-50 transition-colors"
-                  >삭제</button>
+                  >{t('mySales.delete')}</button>
                 </div>
               </div>
             );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface Notification {
   id: string;
@@ -16,6 +17,11 @@ const Notifications = () => {
   const user = getUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   const typeIcons: Record<string, string> = {
     chat: '💬',
@@ -58,7 +64,7 @@ const Notifications = () => {
   };
 
   const handleDeleteAll = async () => {
-    if (!confirm('모든 알림을 삭제하시겠습니까?')) return;
+    if (!confirm(t('notifications.confirmDeleteAll'))) return;
     try {
       await api('/notifications/all', { method: 'DELETE' });
       setNotifications([]);
@@ -80,8 +86,8 @@ const Notifications = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">로그인이 필요합니다.</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">로그인하기</Link>
+        <p className="text-gray-400 mb-4">{t('notifications.loginRequired')}</p>
+        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }
@@ -91,7 +97,7 @@ const Notifications = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-gray-400 text-lg">←</Link>
-          <h1 className="text-xl font-bold text-gray-900">알림</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
             <span className="text-xs font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">{unreadCount}</span>
           )}
@@ -99,23 +105,23 @@ const Notifications = () => {
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button onClick={handleMarkAllRead} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-              모두 읽음
+              {t('notifications.markAllRead')}
             </button>
           )}
           {notifications.length > 0 && (
             <button onClick={handleDeleteAll} className="text-xs text-red-400 hover:text-red-500 transition-colors">
-              전체 삭제
+              {t('notifications.deleteAll')}
             </button>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-16 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <div className="text-4xl mb-3">🔔</div>
-          <p className="text-sm text-gray-400">아직 알림이 없습니다.</p>
+          <p className="text-sm text-gray-400">{t('notifications.empty')}</p>
         </div>
       ) : (
         <div className="card overflow-hidden">

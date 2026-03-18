@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages, logout } from '../api';
-import { getLang, setLang } from '../i18n';
+import { t, onLangChange, getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
   id: string;
@@ -22,6 +22,11 @@ const MyPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   useEffect(() => {
     const stored = getUser();
@@ -107,12 +112,12 @@ const MyPage = () => {
   };
 
   const menuItems = [
-    { label: '프로필 수정', link: '/mypage/edit' },
-    { label: '판매 물품', link: '/mypage/sales' },
-    { label: '찜 목록', link: '/mypage/wishlist' },
-    { label: '최근 본 상품', link: '/mypage/recent' },
-    { label: '채팅 목록', link: '/chat/rooms' },
-    { label: '알림', link: '/notifications' },
+    { label: t('mypage.editProfile'), link: '/mypage/edit' },
+    { label: t('mypage.mySales'), link: '/mypage/sales' },
+    { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
+    { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
+    { label: t('mypage.chatList'), link: '/chat/rooms' },
+    { label: t('mypage.notifications'), link: '/notifications' },
   ];
 
   const toggleDarkMode = () => {
@@ -134,8 +139,8 @@ const MyPage = () => {
   };
 
   const settings = [
-    { label: '이용약관', link: '/mypage/terms' },
-    { label: '고객센터', link: '/mypage/support' },
+    { label: t('mypage.terms'), link: '/mypage/terms' },
+    { label: t('mypage.support'), link: '/mypage/support' },
   ];
 
   return (
@@ -148,7 +153,7 @@ const MyPage = () => {
               {uploadingPhoto ? (
                 <span className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
               ) : user.profileImage ? (
-                <img src={user.profileImage} alt="프로필" className="w-full h-full object-cover" />
+                <img src={user.profileImage} alt="" className="w-full h-full object-cover" />
               ) : (
                 '👤'
               )}
@@ -177,8 +182,8 @@ const MyPage = () => {
 
         <div className="grid grid-cols-2 gap-3 mt-5">
           {[
-            { label: '가입일', value: formatDate(user.createdAt) },
-            { label: '뱃지', value: `${approvedBadges.length}개` },
+            { label: t('mypage.joinDate'), value: formatDate(user.createdAt) },
+            { label: t('mypage.badges'), value: `${approvedBadges.length}개` },
           ].map((stat) => (
             <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
               <div className="text-base font-bold text-gray-900">{stat.value}</div>
@@ -191,14 +196,14 @@ const MyPage = () => {
       {/* Badges */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-900">자격증 뱃지</h3>
+          <h3 className="text-sm font-bold text-gray-900">{t('mypage.certBadge')}</h3>
           <button onClick={() => setShowBadgeModal(true)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
-            + 인증하기
+            + {t('mypage.verify')}
           </button>
         </div>
 
         {approvedBadges.length === 0 && pendingBadges.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">아직 인증된 뱃지가 없습니다. 자격증을 인증해보세요!</p>
+          <p className="text-xs text-gray-400 text-center py-4">{t('mypage.noBadges')}</p>
         ) : (
           <div className="space-y-2">
             {approvedBadges.map((b) => {
@@ -210,7 +215,7 @@ const MyPage = () => {
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
                       <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
-                      <div className="text-[10px] text-mint">인증 완료</div>
+                      <div className="text-[10px] text-mint">{t('mypage.verified')}</div>
                     </div>
                   </div>
                 </div>
@@ -225,7 +230,7 @@ const MyPage = () => {
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
                       <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
-                      <div className="text-[10px] text-yellow-500">승인 대기 중</div>
+                      <div className="text-[10px] text-yellow-500">{t('mypage.pendingApproval')}</div>
                     </div>
                   </div>
                 </div>
@@ -238,7 +243,7 @@ const MyPage = () => {
       {/* Menu */}
       <div className="card overflow-hidden">
         {menuItems.map((item, idx) => (
-          <Link key={item.label} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
+          <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-900">{item.label}</span>
             <span className="text-gray-400 text-xs">→</span>
           </Link>
@@ -249,11 +254,11 @@ const MyPage = () => {
       {user.role === 'admin' && (
         <div className="card overflow-hidden">
           <Link to="/admin-approval" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
-            <span className="text-sm font-medium text-coral">관리자 승인 관리</span>
+            <span className="text-sm font-medium text-coral">{t('mypage.adminApproval')}</span>
             <span className="text-coral text-xs">→</span>
           </Link>
           <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
-            <span className="text-sm font-medium text-coral">관리자 대시보드</span>
+            <span className="text-sm font-medium text-coral">{t('mypage.adminDashboard')}</span>
             <span className="text-coral text-xs">→</span>
           </Link>
         </div>
@@ -262,7 +267,7 @@ const MyPage = () => {
       {/* Dark Mode & Language */}
       <div className="card overflow-hidden">
         <div className="w-full flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <span className="text-sm font-medium text-gray-900">다크 모드</span>
+          <span className="text-sm font-medium text-gray-900">{t('mypage.darkMode')}</span>
           <button
             onClick={toggleDarkMode}
             className={`w-12 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-accent' : 'bg-gray-300'}`}
@@ -271,7 +276,7 @@ const MyPage = () => {
           </button>
         </div>
         <div className="w-full flex items-center justify-between px-5 py-4">
-          <span className="text-sm font-medium text-gray-900">언어 / Language</span>
+          <span className="text-sm font-medium text-gray-900">{t('mypage.langLabel')}</span>
           <button
             onClick={toggleLang}
             className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs hover:bg-gray-200 transition-colors"
@@ -284,7 +289,7 @@ const MyPage = () => {
       {/* Settings */}
       <div className="card overflow-hidden">
         {settings.map((item, idx) => (
-          <Link key={item.label} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
+          <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-500">{item.label}</span>
             <span className="text-gray-400 text-xs">→</span>
           </Link>
@@ -293,7 +298,7 @@ const MyPage = () => {
 
       {/* Logout */}
       <button onClick={handleLogout} className="w-full py-3.5 bg-white text-gray-500 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
-        로그아웃
+        {t('mypage.logout')}
       </button>
 
       {/* Badge Modal */}
@@ -301,8 +306,8 @@ const MyPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">자격증 인증</h3>
-            <p className="text-xs text-gray-400 mb-5">인증할 자격증을 선택하세요</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('mypage.certVerification')}</h3>
+            <p className="text-xs text-gray-400 mb-5">{t('mypage.selectCert')}</p>
 
             <div className="space-y-2 mb-5">
               {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).map((badge) => (
@@ -314,24 +319,24 @@ const MyPage = () => {
                 </button>
               ))}
               {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-4">모든 뱃지를 이미 신청했습니다!</p>
+                <p className="text-xs text-gray-400 text-center py-4">{t('mypage.allBadgesApplied')}</p>
               )}
             </div>
 
             {selectedBadge && (
               <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
-                <p className="text-[11px] text-gray-400 mb-2">자격증 사진을 업로드해주세요</p>
+                <p className="text-[11px] text-gray-400 mb-2">{t('mypage.uploadCertPhoto')}</p>
                 <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
-                  {badgeImage ? badgeImage.name : '사진 선택'}
+                  {badgeImage ? badgeImage.name : t('mypage.selectPhoto')}
                   <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
                 </label>
               </div>
             )}
 
             <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">취소</button>
+              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
               <button onClick={handleRequestBadge} disabled={!selectedBadge || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
-                {submitting ? '요청 중...' : '인증 요청'}
+                {submitting ? t('mypage.requesting') : t('mypage.verifyRequest')}
               </button>
             </div>
           </div>

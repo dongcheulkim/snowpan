@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface Message {
   id: string;
@@ -39,6 +40,11 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
 
   const hasProductInfo = !!(state?.productName && state?.productPrice);
   const backPath = state?.backTo || '/chat/rooms';
@@ -125,7 +131,7 @@ const Chat = () => {
         const isVideo = url.includes('/video/');
         socketRef.current.emit('send_message', {
           roomId,
-          content: isVideo ? '동영상을 보냈습니다.' : '사진을 보냈습니다.',
+          content: isVideo ? t('chat.sentVideo') : t('chat.sentPhoto'),
           imageUrl: url,
         });
       }
@@ -151,8 +157,8 @@ const Chat = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">로그인이 필요합니다.</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">로그인하기</Link>
+        <p className="text-gray-400 mb-4">{t('chat.loginRequired')}</p>
+        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }
@@ -166,7 +172,7 @@ const Chat = () => {
           <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-sm">👤</div>
           <div className="flex-1">
             <div className="text-sm font-bold text-gray-900">{otherName}</div>
-            <div className="text-[10px] text-gray-400">{connected ? '온라인' : '연결 중...'}</div>
+            <div className="text-[10px] text-gray-400">{connected ? t('chat.online') : t('chat.connecting')}</div>
           </div>
           <div className={`w-2 h-2 rounded-full ${connected ? 'bg-mint' : 'bg-gray-300'}`} />
         </div>
@@ -188,7 +194,7 @@ const Chat = () => {
           </div>
           {state!.backTo && (
             <Link to={state!.backTo} className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[11px] border border-gray-300 hover:bg-gray-200 transition-colors flex-shrink-0">
-              상품보기
+              {t('chat.viewProduct')}
             </Link>
           )}
         </div>
@@ -197,7 +203,7 @@ const Chat = () => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 pb-3 px-1">
         <div className="text-center text-[10px] text-gray-400 py-2">
-          거래는 당사자 간 직접 진행됩니다. 안전거래를 이용해주세요.
+          {t('chat.safetyNotice')}
         </div>
         {messages.map((msg) => {
           const isMe = msg.senderId === user.id;
@@ -210,7 +216,7 @@ const Chat = () => {
                 <div className="max-w-[75%]">
                   {!isMe && <div className="text-[10px] text-gray-400 mb-1">{msg.sender.name}</div>}
                   <div className={`rounded-2xl border-2 p-4 ${isMe ? 'border-accent bg-accent/5' : 'border-mint bg-mint/5'}`}>
-                    <div className="text-[10px] font-medium text-gray-400 mb-1">가격 제안</div>
+                    <div className="text-[10px] font-medium text-gray-400 mb-1">{t('chat.priceOffer')}</div>
                     <div className={`text-lg font-black ${isMe ? 'text-accent' : 'text-mint'}`}>
                       {isNaN(priceVal) ? msg.content : `${priceVal.toLocaleString()}원`}
                     </div>
@@ -284,7 +290,7 @@ const Chat = () => {
           onClick={() => setShowPriceModal(true)}
           disabled={!connected}
           className="p-2.5 bg-mint/10 text-mint rounded-lg border border-mint/30 hover:bg-mint/20 transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0 text-xs font-bold"
-          title="가격 제안"
+          title={t('chat.priceOffer')}
         >
           ₩
         </button>
@@ -293,7 +299,7 @@ const Chat = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="메시지를 입력하세요..."
+          placeholder={t('chat.inputPlaceholder')}
           className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
         />
         <button
@@ -301,7 +307,7 @@ const Chat = () => {
           disabled={!input.trim() || !connected}
           className="px-4 py-2.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          전송
+          {t('chat.send')}
         </button>
       </div>
 
@@ -318,8 +324,8 @@ const Chat = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowPriceModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">가격 제안</h3>
-            <p className="text-xs text-gray-400 mb-4">제안할 가격을 입력하세요</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('chat.priceOffer')}</h3>
+            <p className="text-xs text-gray-400 mb-4">{t('chat.enterPrice')}</p>
             <div className="relative mb-5">
               <input
                 type="number"
@@ -331,8 +337,8 @@ const Chat = () => {
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => { setShowPriceModal(false); setPriceInput(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">취소</button>
-              <button onClick={sendPriceOffer} disabled={!priceInput || parseInt(priceInput) <= 0} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">제안하기</button>
+              <button onClick={() => { setShowPriceModal(false); setPriceInput(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
+              <button onClick={sendPriceOffer} disabled={!priceInput || parseInt(priceInput) <= 0} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">{t('chat.offer')}</button>
             </div>
           </div>
         </div>

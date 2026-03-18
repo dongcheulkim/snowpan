@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
+import { t, onLangChange } from '../i18n';
 
 interface Product {
   id: string;
@@ -20,17 +21,6 @@ interface Product {
   user: { id: string; name: string } | null;
   createdAt: string;
 }
-
-const statusLabel: Record<string, { text: string; color: string }> = {
-  selling: { text: '판매중', color: 'bg-mint/20 text-emerald-700' },
-  reserved: { text: '예약중', color: 'bg-yellow-100 text-yellow-700' },
-  sold: { text: '판매완료', color: 'bg-gray-200 text-gray-500' },
-};
-
-const subcategoryLabels: Record<string, string> = {
-  ski: '스키', board: '보드', boots: '부츠', binding: '바인딩',
-  helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
-};
 
 const reportReasons = [
   '허위 매물',
@@ -55,6 +45,22 @@ const UsedDetail = () => {
   const [reportDesc, setReportDesc] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const user = getUser();
+  const [, setLangTick] = useState(0);
+
+  useEffect(() => {
+    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
+  }, []);
+
+  const statusLabel: Record<string, { text: string; color: string }> = {
+    selling: { text: t('used.status.selling'), color: 'bg-mint/20 text-emerald-700' },
+    reserved: { text: t('used.status.reserved'), color: 'bg-yellow-100 text-yellow-700' },
+    sold: { text: t('used.status.sold'), color: 'bg-gray-200 text-gray-500' },
+  };
+
+  const subcategoryLabels: Record<string, string> = {
+    ski: t('used.cat.ski'), board: t('used.cat.board'), boots: t('used.cat.boots'), binding: t('used.cat.binding'),
+    helmet: t('used.cat.helmet'), goggles: t('used.cat.goggles'), wear: t('used.cat.wear'), etc: t('used.cat.etc'),
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -119,14 +125,14 @@ const UsedDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">로딩 중...</div>;
+    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
   }
 
   if (!product) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">상품을 찾을 수 없습니다</h2>
-        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">&larr; 목록으로 돌아가기</Link>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('usedDetail.notFound')}</h2>
+        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">&larr; {t('usedDetail.backToList')}</Link>
       </div>
     );
   }
@@ -144,7 +150,7 @@ const UsedDetail = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">
-        &larr; 중고 장비 목록
+        &larr; {t('usedDetail.backToUsed')}
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -156,7 +162,7 @@ const UsedDetail = () => {
             ) : (
               <div className="text-center">
                 <span className="text-6xl">📷</span>
-                <p className="text-xs text-gray-400 mt-2">이미지를 불러올 수 없습니다</p>
+                <p className="text-xs text-gray-400 mt-2">{t('usedDetail.noImage')}</p>
               </div>
             )}
           </div>
@@ -198,7 +204,7 @@ const UsedDetail = () => {
                 <button
                   onClick={handleShare}
                   className="text-gray-400 hover:text-accent transition-colors p-1"
-                  title="공유하기"
+                  title={t('usedDetail.share')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -209,7 +215,7 @@ const UsedDetail = () => {
                   <button
                     onClick={() => setShowReportModal(true)}
                     className="text-gray-400 hover:text-coral transition-colors p-1"
-                    title="신고하기"
+                    title={t('usedDetail.report')}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
@@ -235,17 +241,17 @@ const UsedDetail = () => {
 
           {/* Info */}
           <div className="card p-5">
-            <h3 className="text-sm font-bold text-gray-900 mb-3">상품 정보</h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-3">{t('usedDetail.productInfo')}</h3>
             <div className="space-y-2">
               {product.condition && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                  <span className="text-xs text-gray-400">상태</span>
+                  <span className="text-xs text-gray-400">{t('usedDetail.condition')}</span>
                   <span className="text-sm text-gray-900 font-medium">{conditionLabels[product.condition] || product.condition}</span>
                 </div>
               )}
               {product.usageCount && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                  <span className="text-xs text-gray-400">연식</span>
+                  <span className="text-xs text-gray-400">{t('usedDetail.year')}</span>
                   <span className="text-sm text-gray-900 font-medium">{product.usageCount}</span>
                 </div>
               )}
@@ -255,7 +261,7 @@ const UsedDetail = () => {
           {/* Description */}
           {product.description && (
             <div className="card p-5">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">상품 설명</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-3">{t('usedDetail.description')}</h3>
               <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{product.description}</p>
             </div>
           )}
@@ -270,7 +276,7 @@ const UsedDetail = () => {
             </div>
             {sellerId && (
               <Link to={`/seller/${sellerId}`} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm border border-gray-300 hover:bg-gray-200 transition-colors">
-                프로필 보기
+                {t('usedDetail.viewProfile')}
               </Link>
             )}
           </div>
@@ -283,11 +289,11 @@ const UsedDetail = () => {
               })}
               className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
             >
-              채팅하기
+              {t('usedDetail.startChat')}
             </button>
           )}
           {product.status === 'sold' && !isMyProduct && (
-            <div className="w-full py-3.5 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm text-center">판매 완료된 상품입니다</div>
+            <div className="w-full py-3.5 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm text-center">{t('usedDetail.soldItem')}</div>
           )}
 
           {/* Edit/Delete */}
@@ -304,7 +310,7 @@ const UsedDetail = () => {
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
               >
-                삭제
+                {t('usedDetail.delete')}
               </button>
             </div>
           )}
@@ -348,9 +354,9 @@ const UsedDetail = () => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">취소</button>
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
               <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
-                {reportSubmitting ? '처리 중...' : '신고하기'}
+                {reportSubmitting ? '처리 중...' : t('usedDetail.report')}
               </button>
             </div>
           </div>
