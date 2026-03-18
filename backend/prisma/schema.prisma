@@ -72,10 +72,10 @@ model Product {
   reviewCount Int?
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
-  status      String   @default("selling") // 'selling' | 'reserved' | 'sold'
-  isPremium    Boolean  @default(false)
+  status      String?  @default("selling") // 'selling' | 'reserved' | 'sold'
+  isPremium   Boolean? @default(false)
   premiumUntil DateTime?
-  bumpedAt    DateTime @default(now())
+  bumpedAt    DateTime? @default(now())
   userId      String?  // null for admin-crawled items, set for user-submitted
   user        User?    @relation(fields: [userId], references: [id])
   wishlists   Wishlist[]
