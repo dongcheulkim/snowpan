@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 interface PendingItem {
   id: string;
@@ -114,7 +114,7 @@ const AdminApproval = () => {
               {item.user && <div className="text-xs text-gray-400">신청자: {item.user.name}</div>}
               {item.image && (
                 <div className="mt-2">
-                  <img src={item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image} alt="자격증" className="w-32 h-24 object-cover rounded-lg border border-gray-200" />
+                  <img src={imageUrl(item.image)} alt="자격증" className="w-32 h-24 object-cover rounded-lg border border-gray-200" />
                 </div>
               )}
             </div>
@@ -132,7 +132,7 @@ const AdminApproval = () => {
         <div className="flex items-start gap-3 mb-3">
           <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl flex-shrink-0">
             {item.image && (item.image.startsWith('/') || item.image.startsWith('http'))
-              ? <img src={item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image} alt="" className="w-full h-full object-cover rounded-xl" />
+              ? <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover rounded-xl" />
               : item.image || '📦'}
           </div>
           <div className="flex-1 min-w-0">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 interface Product {
   id: string;
@@ -10,10 +10,28 @@ interface Product {
   createdAt: string;
 }
 
+interface CommunityPost {
+  id: string;
+  title: string;
+  category: string;
+  likes: number;
+  views: number;
+  commentCount: number;
+  user: { name: string };
+  createdAt: string;
+}
+
+const badgeMap: Record<string, string> = {
+  free: '자유', review: '장비리뷰', resort: '스키장', tip: '초보팁', carpool: '카풀',
+};
+
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [currentVideo, setCurrentVideo] = useState(0);
   const [hotDeals, setHotDeals] = useState<Product[]>([]);
+  const [communityTab, setCommunityTab] = useState<'ski' | 'board'>('ski');
+  const [skiPosts, setSkiPosts] = useState<CommunityPost[]>([]);
+  const [boardPosts, setBoardPosts] = useState<CommunityPost[]>([]);
 
   const youtubeVideos = [
     // 헬스키
@@ -52,6 +70,8 @@ const Home = () => {
     api<Product[]>('/products?category=used').then(products => {
       setHotDeals(products.slice(0, 3));
     }).catch(() => {});
+    api<CommunityPost[]>('/community?sport=ski').then(posts => setSkiPosts(posts.slice(0, 3))).catch(() => {});
+    api<CommunityPost[]>('/community?sport=board').then(posts => setBoardPosts(posts.slice(0, 3))).catch(() => {});
   }, []);
 
   return (
@@ -125,7 +145,7 @@ const Home = () => {
                 >
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl overflow-hidden">
                     {deal.image.startsWith('/') || deal.image.startsWith('http') ? (
-                      <img src={deal.image.startsWith('/') ? `http://localhost:3000${deal.image}` : deal.image} alt={deal.name} className="w-full h-full object-cover" />
+                      <img src={imageUrl(deal.image)} alt={deal.name} className="w-full h-full object-cover" />
                     ) : (
                       <span>{deal.image}</span>
                     )}
@@ -146,21 +166,34 @@ const Home = () => {
         <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">💬 커뮤니티</h2>
-            <Link to="/community" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
+            <Link to={`/community/${communityTab}`} className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
-          <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
-        </div>
-
-        {/* Hot Topics */}
-        <div className="bg-white border-2 border-gray-300 rounded-2xl p-4 shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-[15px] font-bold text-gray-900">핫한 주제</h2>
-              <span className="text-[10px] font-semibold text-white bg-red-500 px-1.5 py-0.5 rounded-full">HOT</span>
+          <div className="flex gap-1 mb-3">
+            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${communityTab === 'ski' ? 'bg-accent text-white' : 'bg-gray-100 text-gray-500'}`}>
+              ⛷️ 스키
+            </button>
+            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${communityTab === 'board' ? 'bg-accent text-white' : 'bg-gray-100 text-gray-500'}`}>
+              🏂 보드
+            </button>
+          </div>
+          {(communityTab === 'ski' ? skiPosts : boardPosts).length > 0 ? (
+            <div className="space-y-0">
+              {(communityTab === 'ski' ? skiPosts : boardPosts).map((post, idx, arr) => (
+                <Link key={post.id} to={`/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
+                    <span className="text-sm text-gray-900 truncate">{post.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                    <span className="text-coral">♥{post.likes}</span>
+                    <span>💬{post.commentCount}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <Link to="/community" className="text-xs text-gray-400">더보기 ›</Link>
-          </div>
-          <p className="text-sm text-gray-400 text-center py-4">아직 등록된 주제가 없습니다.</p>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
+          )}
         </div>
 
         {/* YouTube Videos */}

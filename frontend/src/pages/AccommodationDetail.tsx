@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
 
@@ -65,7 +65,7 @@ const AccommodationDetail = () => {
       {/* Hero */}
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         {item.image.startsWith('/') || item.image.startsWith('http') ? (
-          <img src={item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
         ) : (
           <span className="relative">{item.image}</span>
         )}

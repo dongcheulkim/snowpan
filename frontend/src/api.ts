@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 interface ApiOptions {
   method?: string;
@@ -42,6 +42,14 @@ export function logout() {
   localStorage.removeItem('token');
 }
 
+export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+
+export function imageUrl(src: string): string {
+  if (!src || src.startsWith('http')) return src;
+  if (src.startsWith('/')) return `${SERVER_URL}${src}`;
+  return src;
+}
+
 export async function uploadImages(files: File[]): Promise<string[]> {
   const formData = new FormData();
   files.forEach(f => formData.append('images', f));
@@ -53,5 +61,6 @@ export async function uploadImages(files: File[]): Promise<string[]> {
   const res = await fetch(`${API_BASE}/upload`, { method: 'POST', headers, body: formData });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || '업로드 실패');
-  return (data.urls as string[]).map(u => `http://localhost:3000${u}`);
+  const baseUrl = API_BASE.replace('/api', '');
+  return (data.urls as string[]).map(u => `${baseUrl}${u}`);
 }

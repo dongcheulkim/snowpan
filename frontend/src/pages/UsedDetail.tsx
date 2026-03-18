@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 
 interface Product {
   id: string;
@@ -53,7 +53,7 @@ const UsedDetail = () => {
   }
 
   const isImage = product.image.startsWith('/') || product.image.startsWith('http');
-  const imgSrc = product.image.startsWith('/') ? `http://localhost:3000${product.image}` : product.image;
+  const imgSrc = imageUrl(product.image);
   const sellerName = product.user?.name || '판매자';
   const sellerId = product.user?.id || '';
   const isMyProduct = user && product.userId === user.id;

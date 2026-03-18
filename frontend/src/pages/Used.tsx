@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 interface Product {
   id: string;
@@ -83,7 +83,7 @@ const Used = () => {
             <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
               <div className="h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {product.image.startsWith('/') || product.image.startsWith('http') ? (
-                  <img src={product.image.startsWith('/') ? `http://localhost:3000${product.image}` : product.image} alt={product.name} className="w-full h-full object-cover" />
+                  <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   product.image
                 )}

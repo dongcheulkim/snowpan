@@ -80,7 +80,8 @@ const MyPage = () => {
   ];
 
   const settings = [
-    { label: '이용약관', link: '/terms' },
+    { label: '이용약관', link: '/mypage/terms' },
+    { label: '고객센터', link: '/mypage/support' },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 interface LessonData {
   id: string;
@@ -44,7 +44,7 @@ const LessonDetail = () => {
   }
 
   const isImage = item.image.startsWith('/') || item.image.startsWith('http');
-  const imgSrc = item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image;
+  const imgSrc = imageUrl(item.image);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">

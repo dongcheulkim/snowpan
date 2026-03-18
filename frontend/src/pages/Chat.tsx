@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { api, getUser, getToken } from '../api';
+import { api, getUser, getToken, SERVER_URL } from '../api';
 
 interface Message {
   id: string;
@@ -45,7 +45,7 @@ const Chat = () => {
       api<Message[]>(`/chat/rooms/${room.id}/messages`).then(setMessages);
 
       // Connect socket
-      socket = io('http://localhost:3000', { auth: { token } });
+      socket = io(SERVER_URL, { auth: { token } });
       socket.on('connect', () => {
         setConnected(true);
         socket?.emit('join_room', room.id);

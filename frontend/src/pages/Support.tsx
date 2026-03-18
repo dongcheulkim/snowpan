@@ -24,8 +24,8 @@ const Support = () => {
         <h2 className="text-sm font-bold text-gray-900 mb-3">문의하기</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-gray-500">이메일</span>
-            <span className="text-sm font-medium text-gray-900">support@snowpan.kr</span>
+            <span className="text-sm text-gray-500">카카오톡</span>
+            <span className="text-sm font-medium text-gray-900">@snowpan</span>
           </div>
           <div className="flex items-center justify-between py-2">
             <span className="text-sm text-gray-500">운영시간</span>

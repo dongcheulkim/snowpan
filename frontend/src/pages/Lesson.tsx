@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 
 interface LessonItem {
   id: string;
@@ -134,7 +134,7 @@ const Lesson = () => {
           <Link to={`/lesson/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors">
             <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
               {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                <img src={item.image.startsWith('/') ? `http://localhost:3000${item.image}` : item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
               ) : (
                 <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
               )}
