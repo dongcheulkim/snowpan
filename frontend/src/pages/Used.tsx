@@ -83,7 +83,7 @@ const Used = () => {
             <Link to={`/used/${product.id}`} key={product.id} className="card overflow-hidden card-hover block">
               <div className="h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {product.image.startsWith('/') || product.image.startsWith('http') ? (
-                  <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" />
+                  <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span style="font-size:2rem">📷</span>'; }} />
                 ) : (
                   product.image
                 )}

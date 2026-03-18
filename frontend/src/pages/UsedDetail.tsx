@@ -55,11 +55,13 @@ const UsedDetail = () => {
     );
   }
 
+  const isUrl = (s: string) => s.startsWith('http') || s.startsWith('/');
   const allImages = product.images
-    ? product.images.split(',').filter(Boolean).map(u => imageUrl(u))
-    : product.image.startsWith('http') || product.image.startsWith('/') ? [imageUrl(product.image)] : [];
-  const isImage = allImages.length > 0;
-  const currentImage = allImages[selectedImage] || imageUrl(product.image);
+    ? product.images.split(',').filter(s => s && isUrl(s)).map(u => imageUrl(u))
+    : isUrl(product.image) ? [imageUrl(product.image)] : [];
+  const hasImages = allImages.length > 0;
+  const currentImage = allImages[selectedImage] || '';
+  const [imgError, setImgError] = useState(false);
   const sellerName = product.user?.name || '판매자';
   const sellerId = product.user?.id || '';
   const isMyProduct = user && product.userId === user.id;
@@ -73,11 +75,14 @@ const UsedDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
         <div>
-          <div className="card h-80 flex items-center justify-center bg-gray-100 overflow-hidden cursor-pointer" onClick={() => isImage && setShowFullImage(true)}>
-            {isImage ? (
-              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" />
+          <div className="card h-80 flex items-center justify-center bg-gray-100 overflow-hidden cursor-pointer" onClick={() => hasImages && !imgError && setShowFullImage(true)}>
+            {hasImages && !imgError ? (
+              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
             ) : (
-              <span className="text-9xl">{product.image}</span>
+              <div className="text-center">
+                <span className="text-6xl">📷</span>
+                <p className="text-xs text-gray-400 mt-2">이미지를 불러올 수 없습니다</p>
+              </div>
             )}
           </div>
           {allImages.length > 1 && (
