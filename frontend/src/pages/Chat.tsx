@@ -110,7 +110,13 @@ const Chat = () => {
 
       {/* Product Info */}
       <div className="card p-3 mb-3 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl">{productImage}</div>
+        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl overflow-hidden">
+          {productImage.startsWith('http') || productImage.startsWith('/') ? (
+            <img src={productImage.startsWith('/') ? `${SERVER_URL}${productImage}` : productImage} alt="" className="w-full h-full object-cover" />
+          ) : (
+            productImage
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="text-xs font-bold text-gray-900 truncate">{productName}</div>
           <div className="text-sm font-bold text-mint">{productPrice.toLocaleString()}원</div>
