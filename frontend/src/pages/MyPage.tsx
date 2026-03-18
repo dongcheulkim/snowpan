@@ -11,7 +11,7 @@ interface BadgeRequest {
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{ id: string; name: string; email: string; role?: string; createdAt?: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState('');
@@ -20,7 +20,15 @@ const MyPage = () => {
 
   useEffect(() => {
     const stored = getUser();
-    if (stored) { setUser(stored); } else { navigate('/login'); return; }
+    if (!stored) { navigate('/login'); return; }
+    setUser(stored);
+
+    // 서버에서 최신 프로필 가져오기
+    api<any>('/auth/profile').then(data => {
+      const updated = { ...stored, ...data };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+    }).catch(() => {});
 
     // 뱃지 요청 목록 조회
     api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
@@ -91,8 +99,12 @@ const MyPage = () => {
       {/* Profile */}
       <div className="card p-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl">
-            👤
+          <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden">
+            {user.profileImage ? (
+              <img src={user.profileImage} alt="프로필" className="w-full h-full object-cover" />
+            ) : (
+              '👤'
+            )}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
