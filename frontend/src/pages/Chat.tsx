@@ -158,7 +158,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-2xl mx-auto animate-fade-in">
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-2xl mx-auto animate-fade-in overflow-x-hidden">
       {/* Header */}
       <div className="card p-4 mb-3">
         <div className="flex items-center gap-3">
@@ -229,12 +229,12 @@ const Chat = () => {
                 {!isMe && <div className="text-[10px] text-gray-400 mb-1">{msg.sender.name}</div>}
                 {msg.imageUrl && (
                   msg.imageUrl.includes('/video/') ? (
-                    <video src={msg.imageUrl} controls className="rounded-2xl max-w-full mb-1" style={{ maxHeight: 240 }} />
+                    <video src={msg.imageUrl} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 240 }} />
                   ) : (
                     <img
                       src={msg.imageUrl}
                       alt=""
-                      className="rounded-2xl max-w-full cursor-pointer mb-1"
+                      className="rounded-2xl max-w-full w-full cursor-pointer mb-1"
                       style={{ maxHeight: 240 }}
                       onClick={() => setFullImage(msg.imageUrl)}
                     />
