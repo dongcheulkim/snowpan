@@ -10,11 +10,11 @@ cloudinary.config({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('JPG, PNG, WebP 파일만 업로드 가능합니다.'));
+    else cb(new Error('JPG, PNG, WebP, MP4, MOV, WebM 파일만 업로드 가능합니다.'));
   },
 });
 
@@ -30,9 +30,17 @@ router.post('/', upload.array('images', 5), async (req: Request, res: Response) 
   try {
     const urls: string[] = [];
     for (const file of files) {
+      const isVideo = file.mimetype.startsWith('video/');
+      const uploadOptions: Record<string, unknown> = {
+        folder: 'snowpan',
+        resource_type: isVideo ? 'video' : 'image',
+      };
+      if (!isVideo) {
+        uploadOptions.transformation = [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }];
+      }
       const result = await new Promise<any>((resolve, reject) => {
         cloudinary.uploader.upload_stream(
-          { folder: 'snowpan', transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }] },
+          uploadOptions,
           (err, result) => (err ? reject(err) : resolve(result))
         ).end(file.buffer);
       });

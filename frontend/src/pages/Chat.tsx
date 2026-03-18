@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { api, getUser, getToken, SERVER_URL } from '../api';
+import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
 
 interface Message {
   id: string;
   content: string;
+  imageUrl: string | null;
   senderId: string;
   sender: { id: string; name: string };
   createdAt: string;
@@ -24,8 +25,11 @@ const Chat = () => {
   const [input, setInput] = useState('');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [fullImage, setFullImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user || !sellerId) return;
@@ -70,6 +74,28 @@ const Chat = () => {
     if (!input.trim() || !roomId || !socketRef.current) return;
     socketRef.current.emit('send_message', { roomId, content: input.trim() });
     setInput('');
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !roomId || !socketRef.current) return;
+    e.target.value = '';
+    setUploading(true);
+    try {
+      const urls = await uploadImages(files);
+      for (const url of urls) {
+        const isVideo = url.includes('/video/');
+        socketRef.current.emit('send_message', {
+          roomId,
+          content: isVideo ? '동영상을 보냈습니다.' : '사진을 보냈습니다.',
+          imageUrl: url,
+        });
+      }
+    } catch {
+      alert('파일 업로드에 실패했습니다.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -137,13 +163,28 @@ const Chat = () => {
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[75%]">
                 {!isMe && <div className="text-[10px] text-gray-400 mb-1">{msg.sender.name}</div>}
-                <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                  isMe
-                    ? 'bg-accent text-white rounded-br-md'
-                    : 'bg-gray-100 text-gray-700 rounded-bl-md border border-gray-300'
-                }`}>
-                  {msg.content}
-                </div>
+                {msg.imageUrl && (
+                  msg.imageUrl.includes('/video/') ? (
+                    <video src={msg.imageUrl} controls className="rounded-2xl max-w-full mb-1" style={{ maxHeight: 240 }} />
+                  ) : (
+                    <img
+                      src={msg.imageUrl}
+                      alt=""
+                      className="rounded-2xl max-w-full cursor-pointer mb-1"
+                      style={{ maxHeight: 240 }}
+                      onClick={() => setFullImage(msg.imageUrl)}
+                    />
+                  )
+                )}
+                {(!msg.imageUrl || msg.content !== '사진을 보냈습니다.' && msg.content !== '동영상을 보냈습니다.') && (
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    isMe
+                      ? 'bg-accent text-white rounded-br-md'
+                      : 'bg-gray-100 text-gray-700 rounded-bl-md border border-gray-300'
+                  }`}>
+                    {msg.content}
+                  </div>
+                )}
                 <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
                   {formatTime(msg.createdAt)}
                 </div>
@@ -156,6 +197,25 @@ const Chat = () => {
 
       {/* Input */}
       <div className="card p-3 flex items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
+          multiple
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={!connected || uploading}
+          className="p-2.5 bg-gray-100 text-gray-500 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
+        >
+          {uploading ? (
+            <span className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin block" />
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          )}
+        </button>
         <input
           type="text"
           value={input}
@@ -172,6 +232,14 @@ const Chat = () => {
           전송
         </button>
       </div>
+
+      {/* Full Image Viewer */}
+      {fullImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setFullImage(null)}>
+          <button className="absolute top-4 right-4 text-white text-2xl" onClick={() => setFullImage(null)}>✕</button>
+          <img src={fullImage} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 };

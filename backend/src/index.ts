@@ -69,10 +69,10 @@ io.on('connection', (socket) => {
     socket.join(`room:${roomId}`);
   });
 
-  socket.on('send_message', async (data: { roomId: string; content: string }) => {
+  socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string }) => {
     try {
       const message = await prisma.message.create({
-        data: { roomId: data.roomId, senderId: userId, content: data.content },
+        data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null },
         include: { sender: { select: { id: true, name: true } } },
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
