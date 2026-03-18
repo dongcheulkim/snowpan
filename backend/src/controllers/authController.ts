@@ -281,3 +281,44 @@ export const verifyPhone = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ error: '인증 확인 중 오류가 발생했습니다.' });
   }
 };
+
+// 공개 판매자 프로필
+export const getSellerProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        nickname: true,
+        displayName: true,
+        profileImage: true,
+        createdAt: true,
+        badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } },
+      },
+    });
+
+    if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+
+    const products = await prisma.product.findMany({
+      where: { userId: id, category: 'used' },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, name: true, price: true, image: true, createdAt: true },
+    });
+
+    const displayName = user.displayName === 'nickname' && user.nickname ? user.nickname : user.name;
+
+    res.json({
+      id: user.id,
+      name: displayName,
+      profileImage: user.profileImage,
+      badges: user.badgeRequests.map(b => b.badgeType),
+      createdAt: user.createdAt,
+      products,
+    });
+  } catch (error) {
+    console.error('Get seller profile error:', error);
+    res.status(500).json({ error: '판매자 프로필 조회 중 오류가 발생했습니다.' });
+  }
+};
