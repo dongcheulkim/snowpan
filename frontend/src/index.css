@@ -62,38 +62,72 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Dark Mode */
-.dark body,
-html.dark body {
+html.dark {
   background: #111827;
-  color: #F9FAFB;
+  color-scheme: dark;
 }
 
-.dark .card {
-  background: #1F2937;
-  border-color: #374151;
+html.dark body {
+  background: #111827 !important;
+  color: #F9FAFB !important;
 }
 
-.dark .card-hover:hover {
-  background: #374151;
-  border-color: #4B5563;
+html.dark .card {
+  background: #1F2937 !important;
+  border-color: #374151 !important;
 }
 
-.dark input,
-.dark select,
-.dark textarea {
-  background: #1F2937;
-  border-color: #374151;
-  color: #F9FAFB;
+html.dark .card-hover:hover {
+  background: #374151 !important;
+  border-color: #4B5563 !important;
 }
 
-.dark input:focus,
-.dark select:focus,
-.dark textarea:focus {
+html.dark h1, html.dark h2, html.dark h3,
+html.dark p, html.dark span, html.dark div,
+html.dark a, html.dark button, html.dark label {
+  color: inherit;
+}
+
+html.dark .text-gray-900 { color: #F9FAFB !important; }
+html.dark .text-gray-800 { color: #F3F4F6 !important; }
+html.dark .text-gray-700 { color: #E5E7EB !important; }
+html.dark .text-gray-600 { color: #D1D5DB !important; }
+html.dark .text-gray-500 { color: #9CA3AF !important; }
+html.dark .text-gray-400 { color: #9CA3AF !important; }
+html.dark .bg-white { background-color: #1F2937 !important; }
+html.dark .bg-gray-50 { background-color: #1F2937 !important; }
+html.dark .bg-gray-100 { background-color: #374151 !important; }
+html.dark .bg-gray-200 { background-color: #4B5563 !important; }
+html.dark .bg-sky-50 { background-color: #111827 !important; }
+html.dark .border-gray-200 { border-color: #374151 !important; }
+html.dark .border-gray-300 { border-color: #4B5563 !important; }
+
+html.dark nav {
+  background: rgba(17, 24, 39, 0.95) !important;
+  border-color: #374151 !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background: #1F2937 !important;
+  border-color: #374151 !important;
+  color: #F9FAFB !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
   border-color: #38BDF8 !important;
 }
 
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #6B7280 !important;
+}
+
 @layer base {
-  .dark * {
+  html.dark * {
     border-color: #374151;
   }
 }
