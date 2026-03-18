@@ -76,6 +76,7 @@ const MyPage = () => {
 
   const menuItems = [
     { label: '프로필 수정', link: '/mypage/edit' },
+    { label: '판매 물품', link: '/mypage/sales' },
     { label: '채팅 목록', link: '/chat/rooms' },
     { label: '알림', link: '/notifications' },
   ];

@@ -27,6 +27,7 @@ import Register from './pages/Register';
 import AdminApproval from './pages/AdminApproval';
 import EditProfile from './pages/EditProfile';
 import MySales from './pages/MySales';
+import UsedEdit from './pages/UsedEdit';
 import MyPurchases from './pages/MyPurchases';
 import MyWishlist from './pages/MyWishlist';
 import MyChatList from './pages/MyChatList';
@@ -74,6 +75,7 @@ function App() {
           <Route path="admin-approval" element={<RequireAuth><AdminApproval /></RequireAuth>} />
           <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />
           <Route path="mypage/sales" element={<RequireAuth><MySales /></RequireAuth>} />
+          <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
           <Route path="mypage/purchases" element={<RequireAuth><MyPurchases /></RequireAuth>} />
           <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
           <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
