@@ -77,6 +77,7 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
       where: { id },
       include: {
         resort: true,
+        user: { select: { name: true, phone: true } },
       },
     });
 

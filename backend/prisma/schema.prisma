@@ -27,6 +27,8 @@ model User {
   chatRoomsAsUser2 ChatRoom[] @relation("user2")
   messages         Message[]
   notifications    Notification[]
+  posts            Post[]
+  comments         Comment[]
 
   @@map("users")
 }
@@ -161,6 +163,35 @@ model Message {
   createdAt DateTime @default(now())
 
   @@map("messages")
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'poll'
+  sport     String    // 'ski' | 'board'
+  likes     Int       @default(0)
+  views     Int       @default(0)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("comments")
 }
 
 model Notification {
