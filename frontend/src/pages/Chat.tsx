@@ -24,7 +24,7 @@ const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
   const state = location.state as {
-    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string;
+    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string;
   } | null;
 
   const user = getUser();
@@ -82,7 +82,7 @@ const Chat = () => {
       // 상품에서 채팅하기로 진입 -> 방 생성/조회
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
-        body: { targetUserId: state.sellerId, productName: state.productName || undefined },
+        body: { targetUserId: state.sellerId, productName: state.productName || undefined, productPath: state.productPath || undefined },
       }).then(room => connectToRoom(room.id));
     } else if (chatId) {
       // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
@@ -106,10 +106,15 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const sendMessage = () => {
     if (!input.trim() || !roomId || !socketRef.current) return;
     socketRef.current.emit('send_message', { roomId, content: input.trim() });
     setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const sendPriceOffer = () => {
@@ -208,6 +213,39 @@ const Chat = () => {
         {messages.map((msg) => {
           const isMe = msg.senderId === user.id;
           const isPriceOffer = msg.type === 'price_offer';
+          const isProductInquiry = msg.type === 'product_inquiry';
+
+          if (isProductInquiry) {
+            let parsed: { productName?: string; productPath?: string } = {};
+            try { parsed = JSON.parse(msg.content); } catch { parsed = { productName: msg.content }; }
+            const inner = (
+              <div className={`rounded-2xl border-2 p-3.5 ${isMe ? 'border-accent/40 bg-accent/5' : 'border-gray-300 bg-white'}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-base">📦</span>
+                  <span className="text-[10px] font-semibold text-gray-400">상품 문의</span>
+                </div>
+                <p className="text-sm font-bold text-gray-900 leading-snug">
+                  "{parsed.productName}" 상품에 대한 문의입니다.
+                </p>
+                {parsed.productPath && (
+                  <p className="text-[10px] text-accent mt-1.5">탭하여 상품 보기 →</p>
+                )}
+              </div>
+            );
+            return (
+              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className="max-w-[75%]">
+                  {!isMe && <div className="text-[10px] text-gray-400 mb-1">{msg.sender.name}</div>}
+                  {parsed.productPath ? (
+                    <Link to={parsed.productPath} className="block active:opacity-70 transition-opacity">{inner}</Link>
+                  ) : inner}
+                  <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+                    {formatTime(msg.createdAt)}
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           if (isPriceOffer) {
             const priceVal = parseInt(msg.content);
@@ -294,13 +332,19 @@ const Chat = () => {
         >
           ₩
         </button>
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          rows={1}
+          onChange={(e) => {
+            setInput(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+          }}
           onKeyDown={handleKeyDown}
           placeholder={t('chat.inputPlaceholder')}
-          className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
+          className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none overflow-y-auto leading-relaxed"
+          style={{ maxHeight: 120 }}
         />
         <button
           onClick={sendMessage}
@@ -328,9 +372,10 @@ const Chat = () => {
             <p className="text-xs text-gray-400 mb-4">{t('chat.enterPrice')}</p>
             <div className="relative mb-5">
               <input
-                type="number"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={priceInput ? Number(priceInput).toLocaleString() : ''}
+                onChange={(e) => setPriceInput(e.target.value.replace(/[^0-9]/g, ''))}
                 placeholder="0"
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 text-lg font-bold placeholder-gray-300 focus:outline-none pr-8"
               />

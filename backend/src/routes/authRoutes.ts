@@ -12,6 +12,8 @@ import {
   saveFcmToken,
   resetPasswordRequest,
   resetPassword,
+  createAdRequest,
+  getMyAdRequests,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -29,6 +31,8 @@ router.get('/seller/:id', getSellerProfile);
 router.post('/fcm-token', authenticateToken, saveFcmToken);
 router.post('/reset-password-request', resetPasswordRequest);
 router.post('/reset-password', resetPassword);
+router.post('/ad-request', authenticateToken, createAdRequest);
+router.get('/my-ad-requests', authenticateToken, getMyAdRequests);
 
 // 카카오 소셜 로그인 (스텁)
 router.get('/kakao', (_req: Request, res: Response) => {

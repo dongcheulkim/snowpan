@@ -8,14 +8,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name, phone } = req.body;
 
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { phone }],
-      },
-    });
+    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingEmail) {
+      res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
+      return;
+    }
 
-    if (existingUser) {
-      res.status(400).json({ error: '이미 존재하는 이메일 또는 전화번호입니다.' });
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) {
+      res.status(400).json({ error: '이미 가입된 전화번호입니다. 같은 전화번호로는 하나의 계정만 만들 수 있습니다.' });
       return;
     }
 
@@ -149,13 +150,12 @@ export const requestBadge = async (req: AuthRequest, res: Response): Promise<voi
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { nickname, displayName, profileImage } = req.body;
+    const { nickname, profileImage } = req.body;
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(nickname !== undefined && { nickname }),
-        ...(displayName !== undefined && { displayName }),
         ...(profileImage !== undefined && { profileImage }),
       },
     });
@@ -387,5 +387,40 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
   } catch (error) {
     console.error('Get seller profile error:', error);
     res.status(500).json({ error: '판매자 프로필 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+
+// ===== 광고 신청 (유저) =====
+export const createAdRequest = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { type, category, title, description, url, image, message } = req.body as {
+      type: string; category?: string; title: string; description: string;
+      url: string; image?: string; message?: string;
+    };
+    if (!type || !title || !description || !url) {
+      res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    const item = await prisma.adRequest.create({
+      data: { type, category: category || null, title, description, url, image: image || null, message: message || null, userId: req.user!.id },
+    });
+    res.status(201).json(item);
+  } catch (error) {
+    console.error('Create ad request error:', error);
+    res.status(500).json({ error: '광고 신청 중 오류가 발생했습니다.' });
+  }
+};
+
+export const getMyAdRequests = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const items = await prisma.adRequest.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (error) {
+    console.error('Get my ad requests error:', error);
+    res.status(500).json({ error: '광고 신청 목록 조회 중 오류가 발생했습니다.' });
   }
 };

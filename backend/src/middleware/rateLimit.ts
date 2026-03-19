@@ -46,16 +46,16 @@ function createRateLimiter(maxRequests: number, windowMs: number = 60_000) {
   };
 }
 
-// Default: 100 requests per minute per IP
-export const generalLimiter = createRateLimiter(100, 60_000);
+// Default: 500 requests per minute per IP
+export const generalLimiter = createRateLimiter(500, 60_000);
 
-// Stricter for auth routes: 20 per minute
-export const authLimiter = createRateLimiter(20, 60_000);
+// Auth routes: 50 per minute
+export const authLimiter = createRateLimiter(50, 60_000);
 
-// Stricter for write operations (POST/PUT/DELETE): 30 per minute
+// Write operations (POST/PUT/DELETE): 200 per minute
 export const writeLimiter = (req: Request, res: Response, next: NextFunction): void => {
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-    return createRateLimiter(30, 60_000)(req, res, next);
+    return createRateLimiter(200, 60_000)(req, res, next);
   }
   next();
 };

@@ -83,11 +83,6 @@ const SellerProfile = () => {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
-  };
-
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
     const now = new Date();
@@ -153,10 +148,6 @@ const SellerProfile = () => {
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
             <div className="text-[10px] text-gray-400">{t('sellerProfile.avgRating')}</div>
-          </div>
-          <div className="py-3 bg-white rounded-xl border border-gray-200">
-            <div className="text-base font-bold text-gray-900">{formatDate(seller.createdAt)}</div>
-            <div className="text-[10px] text-gray-400">{t('sellerProfile.joinDate')}</div>
           </div>
         </div>
       </div>

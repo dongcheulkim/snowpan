@@ -244,11 +244,12 @@ const UsedRegister = () => {
           <div>
             <label className={labelClass}>판매 가격 (원)</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               name="price"
-              value={form.price}
-              onChange={handleChange}
-              placeholder="450000"
+              value={form.price ? Number(form.price).toLocaleString() : ''}
+              onChange={e => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
+              placeholder="450,000"
               required
               className={inputClass}
             />

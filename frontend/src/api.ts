@@ -13,7 +13,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   } else {
-    const stored = localStorage.getItem('token');
+    const stored = sessionStorage.getItem('token');
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
@@ -29,18 +29,18 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
 }
 
 export function getUser() {
-  const raw = localStorage.getItem('user');
+  const raw = sessionStorage.getItem('user');
   return raw ? JSON.parse(raw) : null;
 }
 
 export function getToken() {
-  return localStorage.getItem('token');
+  return sessionStorage.getItem('token');
 }
 
 export function logout() {
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-  localStorage.removeItem('autoLogin');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('autoLogin');
 }
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');

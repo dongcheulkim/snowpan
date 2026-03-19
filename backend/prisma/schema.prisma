@@ -39,6 +39,7 @@ model User {
   reviewsGiven     Review[]   @relation("reviewBuyer")
   reviewsReceived  Review[]   @relation("reviewSeller")
   reports          Report[]
+  adRequests       AdRequest[]
 
   @@map("users")
 }
@@ -328,4 +329,25 @@ model Banner {
   createdAt   DateTime @default(now())
 
   @@map("banners")
+}
+
+model AdRequest {
+  id          String   @id @default(uuid())
+  type        String   // 'main_banner' | 'category'
+  category    String?  // 'used' | 'rental' | 'lesson' | 'accommodation' | null
+  title       String
+  description String
+  url         String
+  image       String?
+  message     String?  // 광고주 추가 메모
+  status      String   @default("pending") // 'pending' | 'approved' | 'rejected'
+  adminNote   String?  // 거부 사유 등
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("ad_requests")
 }

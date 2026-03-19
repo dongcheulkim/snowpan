@@ -23,7 +23,7 @@ const Login = () => {
       setEmail(savedEmail);
       setSaveEmail(true);
     }
-    const auto = localStorage.getItem('autoLogin');
+    const auto = sessionStorage.getItem('autoLogin');
     if (auto === 'true') {
       setAutoLogin(true);
     }
@@ -40,8 +40,8 @@ const Login = () => {
         body: { email, password },
       });
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
 
       if (saveEmail) {
         localStorage.setItem('savedEmail', email);
@@ -50,9 +50,9 @@ const Login = () => {
       }
 
       if (autoLogin) {
-        localStorage.setItem('autoLogin', 'true');
+        sessionStorage.setItem('autoLogin', 'true');
       } else {
-        localStorage.removeItem('autoLogin');
+        sessionStorage.removeItem('autoLogin');
       }
 
       navigate('/');

@@ -19,7 +19,7 @@ interface NotificationBasic {
 function useLocalStorageUser() {
   return useSyncExternalStore(
     (cb) => { window.addEventListener('storage', cb); return () => window.removeEventListener('storage', cb); },
-    () => localStorage.getItem('user'),
+    () => sessionStorage.getItem('user'),
   );
 }
 
@@ -45,7 +45,7 @@ const Navbar = () => {
   // Fetch unread notification count
   const fetchNotifCount = useCallback(() => {
     if (!user) { setTimeout(() => setUnreadNotifCount(0), 0); return; }
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) return;
     api<NotificationBasic[]>('/notifications')
       .then(notifs => {
@@ -57,7 +57,7 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!user) { setHasUnread(false); return; }
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) return;
 
     // Cache unread count for 30 seconds to avoid fetching on every route change
@@ -78,7 +78,7 @@ const Navbar = () => {
 
   // Socket.IO for real-time notifications
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!user || !token) return;
 
     const socket = io(SERVER_URL, { auth: { token } });

@@ -4,6 +4,9 @@ import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
 
+const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
+  user.nickname || user.name;
+
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { sport, category, userId, search, limit, offset } = req.query;
@@ -36,7 +39,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
         take,
         ...(skip && { skip }),
         include: {
-          user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+          user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
           _count: { select: { comments: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -47,7 +50,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     const result = {
       posts: posts.map(p => ({
         ...p,
-        user: { ...p.user, badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
+        user: { ...p.user, name: resolveDisplayName(p.user), badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
         commentCount: p._count.comments,
         _count: undefined,
       })),
@@ -82,9 +85,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+        user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
         comments: {
-          include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+          include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -105,10 +108,10 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 
     const postWithBadges = {
       ...post,
-      user: { ...post.user, badges: post.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+      user: { ...post.user, name: resolveDisplayName(post.user), badges: post.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
       comments: post.comments.map((c: any) => ({
         ...c,
-        user: { ...c.user, badges: c.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+        user: { ...c.user, name: resolveDisplayName(c.user), badges: c.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
       })),
       liked,
     };
@@ -126,7 +129,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
 
     const post = await prisma.post.create({
       data: { title, content, category, sport, userId, images: images || null },
-      include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+      include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     res.status(201).json(post);
@@ -174,7 +177,7 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
 
     const comment = await prisma.comment.create({
       data: { content, postId, userId },
-      include: { user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+      include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     // 글 작성자에게 알림 (본인 댓글은 제외)

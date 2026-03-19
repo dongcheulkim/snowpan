@@ -22,6 +22,9 @@ import {
   createBanner,
   updateBanner,
   deleteBanner,
+  getAdRequests,
+  approveAdRequest,
+  rejectAdRequest,
 } from '../controllers/adminController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -67,5 +70,10 @@ router.get('/banners', getBannersAdmin);
 router.post('/banners', createBanner);
 router.put('/banners/:id', updateBanner);
 router.delete('/banners/:id', deleteBanner);
+
+// 광고 신청 관리
+router.get('/ad-requests', getAdRequests);
+router.put('/ad-requests/:id/approve', approveAdRequest);
+router.put('/ad-requests/:id/reject', rejectAdRequest);
 
 export default router;

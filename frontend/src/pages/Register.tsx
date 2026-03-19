@@ -5,6 +5,7 @@ import { api } from '../api';
 const Register = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', phone: '' });
+  const [agree, setAgree] = useState({ all: false, terms: false, privacy: false, marketing: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -12,9 +13,24 @@ const Register = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleAgreeAll = (checked: boolean) => {
+    setAgree({ all: checked, terms: checked, privacy: checked, marketing: checked });
+  };
+
+  const handleAgreeItem = (key: 'terms' | 'privacy' | 'marketing', checked: boolean) => {
+    const next = { ...agree, [key]: checked };
+    next.all = next.terms && next.privacy && next.marketing;
+    setAgree(next);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!agree.terms || !agree.privacy) {
+      setError('필수 약관에 동의해주세요.');
+      return;
+    }
 
     if (form.password !== form.passwordConfirm) {
       setError('비밀번호가 일치하지 않습니다.');
@@ -33,8 +49,8 @@ const Register = () => {
         body: { email: form.email, password: form.password, name: form.name, phone: form.phone },
       });
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
@@ -73,6 +89,59 @@ const Register = () => {
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">비밀번호 확인</label>
             <input type="password" name="passwordConfirm" placeholder="비밀번호를 다시 입력하세요" value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
+          </div>
+
+          {/* 약관 동의 */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            {/* 전체 동의 */}
+            <label className="flex items-center gap-3 px-4 py-3.5 bg-gray-50 cursor-pointer border-b border-gray-200">
+              <input
+                type="checkbox"
+                checked={agree.all}
+                onChange={(e) => handleAgreeAll(e.target.checked)}
+                className="w-4 h-4 accent-sky-500 cursor-pointer"
+              />
+              <span className="text-sm font-bold text-gray-900">전체 동의</span>
+            </label>
+
+            {/* 이용약관 */}
+            <label className="flex items-center justify-between px-4 py-3 cursor-pointer border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={agree.terms}
+                  onChange={(e) => handleAgreeItem('terms', e.target.checked)}
+                  className="w-4 h-4 accent-sky-500 cursor-pointer"
+                />
+                <span className="text-xs text-gray-700">[필수] 이용약관 동의</span>
+              </div>
+              <Link to="/mypage/terms" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
+            </label>
+
+            {/* 개인정보처리방침 */}
+            <label className="flex items-center justify-between px-4 py-3 cursor-pointer border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={agree.privacy}
+                  onChange={(e) => handleAgreeItem('privacy', e.target.checked)}
+                  className="w-4 h-4 accent-sky-500 cursor-pointer"
+                />
+                <span className="text-xs text-gray-700">[필수] 개인정보처리방침 동의</span>
+              </div>
+              <Link to="/mypage/terms" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
+            </label>
+
+            {/* 마케팅 수신 */}
+            <label className="flex items-center gap-3 px-4 py-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agree.marketing}
+                onChange={(e) => handleAgreeItem('marketing', e.target.checked)}
+                className="w-4 h-4 accent-sky-500 cursor-pointer"
+              />
+              <span className="text-xs text-gray-500">[선택] 마케팅 수신 동의 (이벤트·혜택 알림)</span>
+            </label>
           </div>
 
           {error && (

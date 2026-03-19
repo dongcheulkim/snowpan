@@ -100,7 +100,7 @@ const RentalRegister = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>가격 (원/1일)</label>
-          <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="45000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="45,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>기간</label>

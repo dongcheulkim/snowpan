@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 
-type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium';
+type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adRequests';
 
 interface ReportItem {
   id: string;
@@ -51,6 +51,20 @@ interface ProductItem {
   premiumUntil: string | null;
 }
 
+interface AdRequestItem {
+  id: string;
+  type: string;
+  category: string | null;
+  title: string;
+  description: string;
+  url: string;
+  message: string | null;
+  status: string;
+  adminNote: string | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string; phone: string };
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const user = getUser();
@@ -60,6 +74,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
+  const [adRequests, setAdRequests] = useState<AdRequestItem[]>([]);
+  const [adRejectNote, setAdRejectNote] = useState<{ id: string; note: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Banner form state
@@ -91,6 +107,9 @@ const AdminDashboard = () => {
       } else if (tab === 'premium') {
         const data = await api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50');
         setProducts(data.products);
+      } else if (tab === 'adRequests') {
+        const data = await api<AdRequestItem[]>('/admin/ad-requests');
+        setAdRequests(data);
       }
     } catch {
       /* ignore */
@@ -161,12 +180,32 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleAdApprove = async (id: string) => {
+    try {
+      await api(`/admin/ad-requests/${id}/approve`, { method: 'PUT' });
+      setAdRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'approved', adminNote: null } : r)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '처리 실패');
+    }
+  };
+
+  const handleAdReject = async (id: string, note: string) => {
+    try {
+      await api(`/admin/ad-requests/${id}/reject`, { method: 'PUT', body: { adminNote: note } });
+      setAdRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rejected', adminNote: note } : r)));
+      setAdRejectNote(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '처리 실패');
+    }
+  };
+
   const tabs: Array<{ id: TabId; label: string }> = [
     { id: 'reports', label: '신고관리' },
     { id: 'stats', label: '통계' },
     { id: 'users', label: '유저관리' },
     { id: 'banners', label: '배너관리' },
     { id: 'premium', label: '프리미엄' },
+    { id: 'adRequests', label: '광고신청' },
   ];
 
   const inputClass = "w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
@@ -347,6 +386,69 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+          {/* Ad Requests Tab */}
+          {tab === 'adRequests' && (
+            <div className="space-y-3">
+              {adRequests.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 신청이 없습니다.</div>
+              ) : (
+                adRequests.map((r) => (
+                  <div key={r.id} className="card p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          r.status === 'approved' ? 'bg-mint/20 text-emerald-700' :
+                          r.status === 'rejected' ? 'bg-coral/20 text-coral' :
+                          'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {r.status === 'approved' ? '승인' : r.status === 'rejected' ? '거부' : '대기중'}
+                        </span>
+                        <span className="text-[10px] text-gray-400">{r.type === 'main_banner' ? '메인 배너' : `카테고리: ${r.category}`}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-300">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-sm font-bold text-gray-900 mb-0.5">{r.title}</p>
+                    <p className="text-xs text-gray-500 mb-1">{r.description}</p>
+                    <p className="text-[11px] text-accent truncate mb-1">{r.url}</p>
+                    {r.message && <p className="text-[10px] text-gray-400 bg-gray-50 rounded p-2 mb-1">메모: {r.message}</p>}
+                    {r.adminNote && <p className="text-[10px] text-coral">거부 사유: {r.adminNote}</p>}
+                    <p className="text-[10px] text-gray-400 mt-1">신청자: {r.user.name} ({r.user.email}) · {r.user.phone}</p>
+                    {r.status === 'pending' && (
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => handleAdApprove(r.id)} className="flex-1 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors">
+                          승인
+                        </button>
+                        <button onClick={() => setAdRejectNote({ id: r.id, note: '' })} className="flex-1 py-2 bg-coral/10 text-coral rounded-lg font-bold text-xs hover:bg-coral/20 transition-colors">
+                          거부
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+
+              {/* 거부 사유 입력 팝업 */}
+              {adRejectNote && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                  <div className="absolute inset-0 bg-black/40" onClick={() => setAdRejectNote(null)} />
+                  <div className="relative bg-white rounded-xl p-5 w-full max-w-sm">
+                    <h4 className="text-sm font-bold text-gray-900 mb-3">거부 사유 입력</h4>
+                    <textarea
+                      value={adRejectNote.note}
+                      onChange={(e) => setAdRejectNote({ ...adRejectNote, note: e.target.value })}
+                      placeholder="거부 사유를 입력하세요 (선택)"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none mb-3"
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={() => setAdRejectNote(null)} className="flex-1 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs">취소</button>
+                      <button onClick={() => handleAdReject(adRejectNote.id, adRejectNote.note)} className="flex-1 py-2.5 bg-coral text-white rounded-lg font-bold text-xs">거부 확정</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>

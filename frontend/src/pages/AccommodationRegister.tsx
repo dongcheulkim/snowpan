@@ -118,7 +118,7 @@ const AccommodationRegister = () => {
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>특가 1박 가격 (원)</label>
-          <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="150000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="150,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>정가 (원)</label>

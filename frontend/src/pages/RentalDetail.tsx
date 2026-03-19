@@ -103,7 +103,7 @@ const RentalDetail = () => {
       {user && item.userId && item.userId !== user.id && (
         <button
           onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.name || '판매자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/rental/${item.id}` }
+            state: { seller: item.user?.name || '판매자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
           })}
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
         >채팅하기</button>

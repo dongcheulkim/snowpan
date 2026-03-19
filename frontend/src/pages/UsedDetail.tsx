@@ -105,6 +105,16 @@ const UsedDetail = () => {
     }
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!id || !product) return;
+    try {
+      await api(`/products/${id}`, { method: 'PUT', body: { status: newStatus } });
+      setProduct({ ...product, status: newStatus });
+    } catch {
+      alert('상태 변경에 실패했습니다.');
+    }
+  };
+
   const handleReport = async () => {
     if (!reportReason || !id) return;
     setReportSubmitting(true);
@@ -193,7 +203,17 @@ const UsedDetail = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
-                {product.status !== 'selling' && (
+                {isMyProduct ? (
+                  <select
+                    value={product.status}
+                    onChange={e => handleStatusChange(e.target.value)}
+                    className={`text-xs font-bold px-2 py-1 rounded border-0 cursor-pointer outline-none ${(statusLabel[product.status] || statusLabel.selling).color}`}
+                  >
+                    <option value="selling">판매중</option>
+                    <option value="reserved">예약중</option>
+                    <option value="sold">판매완료</option>
+                  </select>
+                ) : product.status !== 'selling' && (
                   <span className={`text-xs font-bold px-2 py-1 rounded ${(statusLabel[product.status] || statusLabel.selling).color}`}>
                     {(statusLabel[product.status] || statusLabel.selling).text}
                   </span>
@@ -285,7 +305,7 @@ const UsedDetail = () => {
           {!isMyProduct && product.status !== 'sold' && (
             <button
               onClick={() => navigate(`/chat/new`, {
-                state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}` }
+                state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}`, productPath: `/used/${product.id}` }
               })}
               className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
             >

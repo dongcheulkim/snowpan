@@ -436,3 +436,43 @@ export const rejectBadge = async (req: AuthRequest, res: Response): Promise<void
     res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
   }
 };
+
+// ===== 광고 신청 관리 (Admin) =====
+export const getAdRequests = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const items = await prisma.adRequest.findMany({
+      include: { user: { select: { id: true, name: true, email: true, phone: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(items);
+  } catch (error) {
+    console.error('Get ad requests error:', error);
+    res.status(500).json({ error: '광고 신청 목록 조회 중 오류가 발생했습니다.' });
+  }
+};
+
+export const approveAdRequest = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const item = await prisma.adRequest.update({ where: { id: req.params.id }, data: { status: 'approved', adminNote: null } });
+    await createNotification(item.userId, 'approve', '광고 신청 승인', `'${item.title}' 광고 신청이 승인되었습니다.`, '/mypage');
+    res.json({ ...item, message: '광고 신청이 승인되었습니다.' });
+  } catch (error) {
+    console.error('Approve ad request error:', error);
+    res.status(500).json({ error: '승인 중 오류가 발생했습니다.' });
+  }
+};
+
+export const rejectAdRequest = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { adminNote } = req.body as { adminNote?: string };
+    const item = await prisma.adRequest.update({ where: { id: req.params.id }, data: { status: 'rejected', adminNote: adminNote || null } });
+    await createNotification(item.userId, 'reject', '광고 신청 거부', `'${item.title}' 광고 신청이 거부되었습니다.`);
+    res.json({ ...item, message: '광고 신청이 거부되었습니다.' });
+  } catch (error) {
+    console.error('Reject ad request error:', error);
+    res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
+  }
+};

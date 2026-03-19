@@ -110,7 +110,7 @@ const LessonRegister = () => {
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>가격 (원)</label>
-          <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} placeholder="80000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="80,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>시간</label>

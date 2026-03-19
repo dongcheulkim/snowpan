@@ -8,6 +8,7 @@ interface Product {
   name: string;
   price: number;
   image: string;
+  status: string;
   createdAt: string;
 }
 
@@ -186,7 +187,11 @@ const Home = () => {
                   </div>
                   <div className="ml-3 flex-1 min-w-0">
                     <div className="text-sm font-medium text-gray-900 truncate">{deal.name}</div>
-                    <div className="text-[14px] font-bold text-gray-900 mt-1">{deal.price.toLocaleString()}원</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[14px] font-bold text-gray-900">{deal.price.toLocaleString()}원</span>
+                      {deal.status === 'reserved' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">예약중</span>}
+                      {deal.status === 'sold' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-200 text-gray-500">판매완료</span>}
+                    </div>
                   </div>
                 </Link>
               ))}
