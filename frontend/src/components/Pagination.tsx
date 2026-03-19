@@ -1,10 +1,12 @@
+import { memo } from 'react';
+
 interface Props {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-const Pagination = ({ page, totalPages, onPageChange }: Props) => {
+const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
   if (totalPages <= 1) return null;
 
   const pages: number[] = [];
@@ -43,6 +45,8 @@ const Pagination = ({ page, totalPages, onPageChange }: Props) => {
       </button>
     </div>
   );
-};
+});
+
+Pagination.displayName = 'Pagination';
 
 export default Pagination;

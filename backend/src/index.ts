@@ -33,7 +33,22 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
+  maxAge: '7d',
+  immutable: true,
+}));
+
+// Cache headers for banner API (5 minutes)
+app.use('/api/banners', (req, res, next) => {
+  if (req.method === 'GET') res.set('Cache-Control', 'public, max-age=300');
+  next();
+});
+
+// Cache headers for product listings (30 seconds)
+app.use('/api/products', (req, res, next) => {
+  if (req.method === 'GET') res.set('Cache-Control', 'public, max-age=30');
+  next();
+});
 
 app.get('/', (req, res) => {
   res.json({ message: '스노우프라이스 API 서버입니다.' });

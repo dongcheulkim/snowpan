@@ -149,7 +149,7 @@ const Community = () => {
                 </div>
                 {firstImage && (
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
-                    <img src={toImageUrl(firstImage)} alt="" className="w-full h-full object-cover" />
+                    <img src={toImageUrl(firstImage)} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 )}
               </div>

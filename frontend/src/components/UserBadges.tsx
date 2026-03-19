@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 const badgeConfig: Record<string, { label: string; color: string }> = {
   lv2: { label: 'LV2', color: 'bg-sky-400 text-white' },
   lv3: { label: 'LV3', color: 'bg-purple-500 text-white' },
@@ -6,7 +8,7 @@ const badgeConfig: Record<string, { label: string; color: string }> = {
   pro: { label: '프로', color: 'bg-rose-500 text-white' },
 };
 
-const UserBadges = ({ badges }: { badges?: string[] }) => {
+const UserBadges = memo(({ badges }: { badges?: string[] }) => {
   if (!badges || badges.length === 0) return null;
   return (
     <>
@@ -21,6 +23,8 @@ const UserBadges = ({ badges }: { badges?: string[] }) => {
       })}
     </>
   );
-};
+});
+
+UserBadges.displayName = 'UserBadges';
 
 export default UserBadges;

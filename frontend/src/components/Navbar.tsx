@@ -40,6 +40,7 @@ const Navbar = () => {
   const [hasUnread, setHasUnread] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
+  const lastFetchRef = useRef<number>(0);
 
   // Fetch unread notification count
   const fetchNotifCount = useCallback(() => {
@@ -58,6 +59,11 @@ const Navbar = () => {
     if (!user) { setHasUnread(false); return; }
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    // Cache unread count for 30 seconds to avoid fetching on every route change
+    const now = Date.now();
+    if (now - lastFetchRef.current < 30000) return;
+    lastFetchRef.current = now;
 
     api<ChatRoomBasic[]>('/chat/rooms')
       .then(rooms => {

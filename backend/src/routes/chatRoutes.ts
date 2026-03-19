@@ -13,25 +13,79 @@ router.get('/rooms', async (req: any, res: Response) => {
         user1: { select: { id: true, name: true, profileImage: true } },
         user2: { select: { id: true, name: true, profileImage: true } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        _count: { select: { messages: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });
 
-    // Compute unread count per room
-    const roomsWithUnread = await Promise.all(
-      rooms.map(async (room) => {
-        const isUser1 = room.user1Id === userId;
-        const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
-        const unreadCount = await prisma.message.count({
+    // Batch unread count: single grouped query instead of N individual queries
+    const roomIds = rooms.map(r => r.id);
+    const unreadCounts: Record<string, number> = {};
+
+    if (roomIds.length > 0) {
+      // Build conditions per room based on lastReadAt
+      const countResults = await Promise.all(
+        // Use groupBy to count unread messages for all rooms at once
+        // Since each room has a different lastReadAt, we batch into a single grouped query
+        [prisma.message.groupBy({
+          by: ['roomId'],
           where: {
-            roomId: room.id,
+            roomId: { in: roomIds },
             senderId: { not: userId },
-            ...(lastReadAt ? { createdAt: { gt: lastReadAt } } : {}),
           },
-        });
-        return { ...room, unreadCount };
-      })
-    );
+          _count: { id: true },
+        })]
+      );
+
+      const totalPerRoom: Record<string, number> = {};
+      for (const row of countResults[0]) {
+        totalPerRoom[row.roomId] = row._count.id;
+      }
+
+      // Now count messages before lastReadAt to subtract
+      const roomsWithLastRead = rooms
+        .map(room => {
+          const isUser1 = room.user1Id === userId;
+          const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
+          return { roomId: room.id, lastReadAt };
+        })
+        .filter(r => r.lastReadAt != null);
+
+      if (roomsWithLastRead.length > 0) {
+        const readCountResults = await Promise.all(
+          roomsWithLastRead.map(r =>
+            prisma.message.count({
+              where: {
+                roomId: r.roomId,
+                senderId: { not: userId },
+                createdAt: { lte: r.lastReadAt! },
+              },
+            }).then(count => ({ roomId: r.roomId, count }))
+          )
+        );
+
+        for (const { roomId, count } of readCountResults) {
+          unreadCounts[roomId] = Math.max(0, (totalPerRoom[roomId] || 0) - count);
+        }
+      }
+
+      // For rooms without lastReadAt, all messages from other user are unread
+      for (const room of rooms) {
+        if (!(room.id in unreadCounts)) {
+          const isUser1 = room.user1Id === userId;
+          const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
+          if (!lastReadAt) {
+            unreadCounts[room.id] = totalPerRoom[room.id] || 0;
+          }
+        }
+      }
+    }
+
+    const roomsWithUnread = rooms.map(room => ({
+      ...room,
+      _count: undefined,
+      unreadCount: unreadCounts[room.id] || 0,
+    }));
 
     res.json(roomsWithUnread);
   } catch (error) {

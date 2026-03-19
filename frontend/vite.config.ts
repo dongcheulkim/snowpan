@@ -26,6 +26,22 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            urlPattern: /^https?:\/\/.*\/api\/banners.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'banner-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 300 },
+            },
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/api\/products.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'product-cache',
+              expiration: { maxEntries: 50, maxAgeSeconds: 30 },
+            },
+          },
+          {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
@@ -33,8 +49,27 @@ export default defineConfig({
               expiration: { maxEntries: 100, maxAgeSeconds: 300 },
             },
           },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            },
+          },
         ],
       },
     }),
   ],
+  build: {
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          socket: ['socket.io-client'],
+        },
+      },
+    },
+  },
 })
