@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import jwt from 'jsonwebtoken';
+import { createGzip } from 'zlib';
 import prisma from './config/database';
 import authRoutes from './routes/authRoutes';
 import productRoutes from './routes/productRoutes';
@@ -21,15 +22,82 @@ import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
+import { generalLimiter, authLimiter, writeLimiter } from './middleware/rateLimit';
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+
+// === Socket.IO with optimized settings for scale ===
 const io = new Server(httpServer, {
   cors: { origin: '*' },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  maxHttpBufferSize: 1e6, // 1MB max message size
+  connectTimeout: 45000,
+  transports: ['websocket', 'polling'],
 });
+
 const PORT = process.env.PORT || 3000;
+
+// === Security Headers Middleware ===
+app.use((_req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('X-XSS-Protection', '1; mode=block');
+  res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+// === Gzip Compression Middleware (Node.js built-in zlib) ===
+app.use((req, res, next) => {
+  const acceptEncoding = req.headers['accept-encoding'] || '';
+  if (!acceptEncoding.includes('gzip')) {
+    next();
+    return;
+  }
+
+  // Skip for small responses, streaming, or already-compressed content types
+  const originalJson = res.json.bind(res);
+
+  res.json = function (body: unknown) {
+    const json = JSON.stringify(body);
+    if (json.length < 1024) {
+      return originalJson(body);
+    }
+    res.set('Content-Encoding', 'gzip');
+    res.set('Content-Type', 'application/json; charset=utf-8');
+    res.removeHeader('Content-Length');
+    const gzip = createGzip();
+    gzip.pipe(res as unknown as NodeJS.WritableStream);
+    gzip.end(json);
+    return res;
+  };
+
+  next();
+});
+
+// === Request Logger Middleware ===
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (process.env.NODE_ENV === 'production') {
+      // In production, only log slow requests (>1000ms)
+      if (duration > 1000) {
+        console.warn(`[SLOW] ${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+      }
+    } else {
+      console.log(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+    }
+  });
+  next();
+});
+
+// === Rate Limiting ===
+app.use(generalLimiter);
+app.use(writeLimiter);
 
 app.use(cors());
 app.use(express.json());
@@ -54,7 +122,8 @@ app.get('/', (req, res) => {
   res.json({ message: '스노우프라이스 API 서버입니다.' });
 });
 
-app.use('/api/auth', authRoutes);
+// Auth routes with stricter rate limit
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/lessons', lessonRoutes);
@@ -121,6 +190,58 @@ io.on('connection', (socket) => {
     socket.leave(`room:${roomId}`);
   });
 });
+
+// === Global Error Handler ===
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+});
+
+// === Unhandled Promise Rejections & Uncaught Exceptions ===
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error('Unhandled Promise Rejection:', reason);
+});
+
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+  // Allow existing requests to finish, then exit
+  gracefulShutdown('uncaughtException');
+});
+
+// === Graceful Shutdown ===
+let isShuttingDown = false;
+
+function gracefulShutdown(signal: string) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+
+  // Stop accepting new connections
+  httpServer.close(async () => {
+    console.log('HTTP server closed.');
+    try {
+      // Close all Socket.IO connections
+      io.close();
+      console.log('Socket.IO connections closed.');
+
+      // Disconnect Prisma client
+      await prisma.$disconnect();
+      console.log('Prisma client disconnected.');
+    } catch (err) {
+      console.error('Error during shutdown:', err);
+    }
+    process.exit(0);
+  });
+
+  // Force shutdown after 30 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout.');
+    process.exit(1);
+  }, 30_000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 httpServer.listen(PORT, () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);

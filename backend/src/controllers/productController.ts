@@ -2,10 +2,19 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
+import { cacheGet, cacheSet } from '../utils/cache';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { category, subcategory, userId, status, search, limit, offset } = req.query;
+
+    // Cache key based on query params
+    const cacheKey = `products:${JSON.stringify({ category, subcategory, userId, status, search, limit, offset })}`;
+    const cached = cacheGet<{ products: unknown[]; totalCount: number }>(cacheKey);
+    if (cached) {
+      res.json(cached);
+      return;
+    }
 
     const where: any = {};
     if (category) where.category = category as string;
@@ -20,14 +29,14 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       ];
     }
 
-    const take = limit ? parseInt(limit as string, 10) : undefined;
+    const take = limit ? parseInt(limit as string, 10) : 50;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
 
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
         where,
         orderBy: [{ isPremium: { sort: 'desc', nulls: 'last' } }, { bumpedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
-        ...(take && { take }),
+        take,
         ...(skip && { skip }),
         select: {
           id: true,
@@ -46,7 +55,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       prisma.product.count({ where }),
     ]);
 
-    res.json({ products, totalCount });
+    const result = { products, totalCount };
+    cacheSet(cacheKey, result, 10); // Cache for 10 seconds
+    res.json(result);
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });

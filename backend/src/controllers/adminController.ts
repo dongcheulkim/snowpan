@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
+import { cacheGet, cacheSet } from '../utils/cache';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -164,10 +165,18 @@ export const deleteBanner = async (req: AuthRequest, res: Response): Promise<voi
 // ===== 공개 배너 API =====
 export const getPublicBanners = async (_req: Request, res: Response): Promise<void> => {
   try {
+    const cacheKey = 'banners:public';
+    const cached = cacheGet<unknown[]>(cacheKey);
+    if (cached) {
+      res.json(cached);
+      return;
+    }
+
     const banners = await prisma.banner.findMany({
       where: { active: true },
       orderBy: { order: 'asc' },
     });
+    cacheSet(cacheKey, banners, 300); // Cache for 5 minutes
     res.json(banners);
   } catch (error) {
     console.error('Get public banners error:', error);

@@ -16,6 +16,7 @@ router.get('/rooms', async (req: any, res: Response) => {
         _count: { select: { messages: true } },
       },
       orderBy: { updatedAt: 'desc' },
+      take: 50,
     });
 
     // Batch unread count: single grouped query instead of N individual queries

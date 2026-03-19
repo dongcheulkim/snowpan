@@ -2,10 +2,20 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
+import { cacheGet, cacheSet } from '../utils/cache';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { sport, category, userId, search, limit, offset } = req.query;
+
+    // Cache key based on query params
+    const cacheKey = `posts:${JSON.stringify({ sport, category, userId, search, limit, offset })}`;
+    const cached = cacheGet<{ posts: unknown[]; totalCount: number }>(cacheKey);
+    if (cached) {
+      res.json(cached);
+      return;
+    }
+
     const where: any = {};
     if (sport) where.sport = sport as string;
     if (category && category !== 'all') where.category = category as string;
@@ -17,13 +27,13 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       ];
     }
 
-    const take = limit ? parseInt(limit as string, 10) : undefined;
+    const take = limit ? parseInt(limit as string, 10) : 50;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
 
     const [posts, totalCount] = await Promise.all([
       prisma.post.findMany({
         where,
-        ...(take && { take }),
+        take,
         ...(skip && { skip }),
         include: {
           user: { select: { id: true, name: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
@@ -34,7 +44,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       prisma.post.count({ where }),
     ]);
 
-    res.json({
+    const result = {
       posts: posts.map(p => ({
         ...p,
         user: { ...p.user, badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
@@ -42,7 +52,9 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
         _count: undefined,
       })),
       totalCount,
-    });
+    };
+    cacheSet(cacheKey, result, 10); // Cache for 10 seconds
+    res.json(result);
   } catch (error) {
     console.error('Get posts error:', error);
     res.status(500).json({ error: '게시글 조회 중 오류가 발생했습니다.' });
