@@ -86,9 +86,15 @@ const Home = () => {
     { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
   ];
 
-  // 인기중고매물 독립 로딩 (경량 API로 빠르게)
+  // 인기중고매물 독립 로딩 (경량 API, 실패 시 기존 API 폴백)
   useEffect(() => {
-    api<Product[]>('/home/hot-deals').then(setHotDeals).catch(() => {});
+    api<Product[]>('/home/hot-deals')
+      .then(setHotDeals)
+      .catch(() => {
+        api<{ products: Product[] }>('/products?category=used&limit=3')
+          .then(res => setHotDeals(res.products))
+          .catch(() => {});
+      });
   }, []);
 
   // 커뮤니티 게시글 로딩

@@ -253,7 +253,13 @@ function gracefulShutdown(signal: string) {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);
   startAdBookingScheduler();
+
+  // 샘플 배너 정리 (이미지 없는 기존 샘플 배너 삭제)
+  try {
+    const deleted = await prisma.banner.deleteMany({ where: { image: null } });
+    if (deleted.count > 0) console.log(`🧹 샘플 배너 ${deleted.count}개 삭제됨`);
+  } catch {}
 });
