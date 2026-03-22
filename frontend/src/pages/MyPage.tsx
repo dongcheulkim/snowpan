@@ -84,12 +84,9 @@ const MyPage = () => {
   };
 
   const allBadges = [
-    { id: 'lv2', label: 'LV2', desc: 'KSIA 레벨2 자격증', color: 'bg-accent text-white' },
-    { id: 'lv3', label: 'LV3', desc: 'KSIA 레벨3 자격증', color: 'bg-purple-500 text-white' },
+    { id: 'level', label: '레벨', desc: 'KSIA 레벨 자격증 (관리자가 레벨 확인)', color: 'bg-accent text-white' },
     { id: 'demo', label: '데몬', desc: '데몬스트레이터 자격증', color: 'bg-gold text-black' },
-    { id: 'teaching1', label: '티칭1', desc: 'SBAK 티칭1 자격증', color: 'bg-blue-400 text-white' },
-    { id: 'teaching2', label: '티칭2', desc: 'SBAK 티칭2 자격증', color: 'bg-blue-500 text-white' },
-    { id: 'teaching3', label: '티칭3', desc: 'SBAK 티칭3 자격증', color: 'bg-blue-700 text-white' },
+    { id: 'teaching', label: '티칭', desc: 'SBAK 티칭 자격증 (관리자가 레벨 확인)', color: 'bg-blue-500 text-white' },
     { id: 'pro', label: '프로', desc: '프로 선수 / 강사 인증', color: 'bg-coral text-white' },
   ];
 

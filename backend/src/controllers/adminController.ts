@@ -416,7 +416,10 @@ export const getPendingBadges = async (req: AuthRequest, res: Response): Promise
 export const approveBadge = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
-    const item = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'approved' } });
+    const { badgeType } = req.body || {};
+    const data: any = { status: 'approved' };
+    if (badgeType) data.badgeType = badgeType;
+    const item = await prisma.badgeRequest.update({ where: { id: req.params.id }, data });
     await createNotification(item.userId, 'badge', '자격증 승인', `자격증 인증이 승인되었습니다.`, '/mypage');
     res.json({ ...item, message: '자격증이 승인되었습니다.' });
   } catch (error) {

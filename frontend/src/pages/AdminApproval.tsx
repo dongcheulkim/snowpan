@@ -26,6 +26,7 @@ interface PendingItem {
 type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge';
 
 const badgeLabels: Record<string, { label: string; color: string }> = {
+  lv1: { label: 'LV1', color: 'bg-green-500 text-white' },
   lv2: { label: 'LV2', color: 'bg-accent text-white' },
   lv3: { label: 'LV3', color: 'bg-purple-500 text-white' },
   demo: { label: '데몬', color: 'bg-yellow-500 text-black' },
@@ -34,6 +35,18 @@ const badgeLabels: Record<string, { label: string; color: string }> = {
   teaching3: { label: '티칭3', color: 'bg-blue-700 text-white' },
   pro: { label: '프로', color: 'bg-red-500 text-white' },
 };
+
+// 레벨/티칭 계열 뱃지 옵션 (관리자가 선택 가능)
+const levelOptions = [
+  { value: 'lv1', label: 'LV1', color: 'bg-green-500 text-white' },
+  { value: 'lv2', label: 'LV2', color: 'bg-accent text-white' },
+  { value: 'lv3', label: 'LV3', color: 'bg-purple-500 text-white' },
+];
+const teachingOptions = [
+  { value: 'teaching1', label: '티칭1', color: 'bg-blue-400 text-white' },
+  { value: 'teaching2', label: '티칭2', color: 'bg-blue-500 text-white' },
+  { value: 'teaching3', label: '티칭3', color: 'bg-blue-700 text-white' },
+];
 
 const accomTypeLabels: Record<string, string> = {
   hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방',
@@ -69,10 +82,13 @@ const AdminApproval = () => {
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
+  const [badgeOverrides, setBadgeOverrides] = useState<Record<string, string>>({});
+
   const handleApprove = async (tab: TabId, id: string) => {
     const path = tab === 'badge' ? 'badges' : `${tab}s`;
     try {
-      await api(`/admin/${path}/${id}/approve`, { method: 'PUT' });
+      const body = tab === 'badge' && badgeOverrides[id] ? { badgeType: badgeOverrides[id] } : undefined;
+      await api(`/admin/${path}/${id}/approve`, { method: 'PUT', body });
       alert('승인되었습니다!');
       fetchPending();
     } catch (err) {
@@ -107,23 +123,50 @@ const AdminApproval = () => {
 
   const renderItem = (item: PendingItem) => {
     if (activeTab === 'badge') {
-      const badge = badgeLabels[item.badgeType || ''];
+      const requestedType = item.badgeType || '';
+      const isLevelType = requestedType.startsWith('lv') || requestedType === 'level';
+      const isTeachingType = requestedType.startsWith('teaching') || requestedType === 'teaching';
+      const hasOptions = isLevelType || isTeachingType;
+      const options = isLevelType ? levelOptions : isTeachingType ? teachingOptions : [];
+      const selectedType = badgeOverrides[item.id] || requestedType;
+      const badge = badgeLabels[selectedType] || badgeLabels[requestedType];
       return (
         <div key={item.id} className="card p-4">
           <div className="flex items-start gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 {badge && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>}
-                <span className="font-bold text-sm text-gray-900">{badge?.label || item.badgeType} 자격증 인증 요청</span>
+                <span className="font-bold text-sm text-gray-900">자격증 인증 요청</span>
               </div>
               {item.user && <div className="text-xs text-gray-400">신청자: {item.user.name}</div>}
               {item.image && (
-                <div className="mt-2">
-                  <img src={imageUrl(item.image)} alt="자격증" className="w-32 h-24 object-cover rounded-lg border border-gray-200" />
-                </div>
+                <a href={imageUrl(item.image)} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                  <img src={imageUrl(item.image)} alt="자격증" className="w-full max-w-xs object-contain rounded-lg border border-gray-200 hover:border-primary transition-colors" />
+                </a>
               )}
             </div>
           </div>
+          {/* 레벨/티칭 선택 */}
+          {hasOptions && (
+            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+              <div className="text-[10px] font-bold text-gray-500 mb-2">📋 레벨 선택</div>
+              <div className="flex gap-1.5 flex-wrap">
+                {options.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setBadgeOverrides(prev => ({ ...prev, [item.id]: opt.value }))}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      selectedType === opt.value
+                        ? `${opt.color} ring-2 ring-offset-1 ring-primary`
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-2 pt-3 border-t border-gray-50">
             <button onClick={() => handleReject('badge', item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
             <button onClick={() => handleApprove('badge', item.id)} className="flex-1 py-2.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors">승인</button>

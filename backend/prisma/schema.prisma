@@ -164,7 +164,7 @@ model Accommodation {
 
 model BadgeRequest {
   id        String   @id @default(uuid())
-  badgeType String   // 'lv2' | 'lv3' | 'demo' | 'teaching1' | 'teaching2' | 'teaching3' | 'pro'
+  badgeType String   // 'level' | 'lv1' | 'lv2' | 'lv3' | 'demo' | 'teaching' | 'teaching1' | 'teaching2' | 'teaching3' | 'pro'
   image     String?  // 자격증 사진 URL
   status    String   @default("pending") // 'pending' | 'approved' | 'rejected'
   userId    String

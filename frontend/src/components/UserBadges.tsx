@@ -1,6 +1,7 @@
 import { memo } from 'react';
 
 const badgeConfig: Record<string, { label: string; color: string }> = {
+  lv1: { label: 'LV1', color: 'bg-green-500 text-white' },
   lv2: { label: 'LV2', color: 'bg-sky-400 text-white' },
   lv3: { label: 'LV3', color: 'bg-purple-500 text-white' },
   demo: { label: '데몬', color: 'bg-yellow-400 text-black' },
