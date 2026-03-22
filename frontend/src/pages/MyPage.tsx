@@ -30,7 +30,7 @@ const MyPage = () => {
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState('');
+
   const [badgeImage, setBadgeImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -83,36 +83,25 @@ const MyPage = () => {
     }
   };
 
-  const allBadges = [
-    { id: 'level', label: '레벨', desc: 'KSIA 레벨 자격증 (관리자가 레벨 확인)', color: 'bg-accent text-white' },
-    { id: 'demo', label: '데몬', desc: '데몬스트레이터 자격증', color: 'bg-gold text-black' },
-    { id: 'teaching', label: '티칭', desc: 'SBAK 티칭 자격증 (관리자가 레벨 확인)', color: 'bg-blue-500 text-white' },
-    { id: 'pro', label: '프로', desc: '프로 선수 / 강사 인증', color: 'bg-coral text-white' },
-  ];
-
   const approvedBadges = badges.filter(b => b.status === 'approved');
   const pendingBadges = badges.filter(b => b.status === 'pending');
 
   const handleRequestBadge = async () => {
-    if (!selectedBadge) return;
+    if (!badgeImage) return;
     setSubmitting(true);
     try {
       let imageUrl = '';
-      if (badgeImage) {
-        const urls = await uploadImages([badgeImage]);
-        imageUrl = urls[0];
-      }
+      const urls = await uploadImages([badgeImage]);
+      imageUrl = urls[0];
       await api('/auth/badge-request', {
         method: 'POST',
-        body: { badgeType: selectedBadge, image: imageUrl },
+        body: { badgeType: 'cert', image: imageUrl },
       });
-      // 다시 조회
       const updated = await api<BadgeRequest[]>('/auth/my-badges');
       setBadges(updated);
       setShowBadgeModal(false);
-      setSelectedBadge('');
       setBadgeImage(null);
-      alert('인증 요청이 완료되었습니다. 관리자 승인을 기다려주세요.');
+      alert('인증 요청이 완료되었습니다. 관리자가 확인 후 적절한 뱃지를 부여합니다.');
     } catch (err) {
       alert(err instanceof Error ? err.message : '요청에 실패했습니다.');
     } finally {
@@ -376,35 +365,19 @@ const MyPage = () => {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('mypage.certVerification')}</h3>
-            <p className="text-xs text-gray-400 mb-5">{t('mypage.selectCert')}</p>
+            <p className="text-xs text-gray-400 mb-5">자격증 사진을 첨부하면 관리자가 확인 후 적절한 뱃지를 부여합니다.</p>
 
-            <div className="space-y-2 mb-5">
-              {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).map((badge) => (
-                <button key={badge.id} onClick={() => setSelectedBadge(badge.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedBadge === badge.id ? 'bg-accent/10 border-accent/20' : 'bg-gray-100 border-gray-300 hover:border-gray-400'}`}>
-                  <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
-                  <div className="text-left">
-                    <div className={`text-xs font-medium ${selectedBadge === badge.id ? 'text-gray-900' : 'text-gray-500'}`}>{badge.desc}</div>
-                  </div>
-                </button>
-              ))}
-              {allBadges.filter(b => !badges.some(ub => ub.badgeType === b.id)).length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-4">{t('mypage.allBadgesApplied')}</p>
-              )}
+            <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
+              <p className="text-[11px] text-gray-400 mb-2">{t('mypage.uploadCertPhoto')}</p>
+              <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
+                {badgeImage ? badgeImage.name : t('mypage.selectPhoto')}
+                <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
+              </label>
             </div>
 
-            {selectedBadge && (
-              <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
-                <p className="text-[11px] text-gray-400 mb-2">{t('mypage.uploadCertPhoto')}</p>
-                <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
-                  {badgeImage ? badgeImage.name : t('mypage.selectPhoto')}
-                  <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
-                </label>
-              </div>
-            )}
-
             <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setSelectedBadge(''); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
-              <button onClick={handleRequestBadge} disabled={!selectedBadge || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
+              <button onClick={() => { setShowBadgeModal(false); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
+              <button onClick={handleRequestBadge} disabled={!badgeImage || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
                 {submitting ? t('mypage.requesting') : t('mypage.verifyRequest')}
               </button>
             </div>

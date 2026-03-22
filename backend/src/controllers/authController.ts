@@ -128,11 +128,12 @@ export const requestBadge = async (req: AuthRequest, res: Response): Promise<voi
     const userId = req.user!.id;
     const { badgeType, image } = req.body;
 
+    // 이미 대기 중인 요청이 있으면 중복 방지
     const existing = await prisma.badgeRequest.findFirst({
-      where: { userId, badgeType, status: { in: ['pending', 'approved'] } },
+      where: { userId, status: 'pending' },
     });
     if (existing) {
-      res.status(400).json({ error: '이미 요청한 자격증입니다.' });
+      res.status(400).json({ error: '이미 대기 중인 요청이 있습니다.' });
       return;
     }
 
