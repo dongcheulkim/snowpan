@@ -61,20 +61,12 @@ const Home = () => {
     { id: 'LATEST_3', channel: '최신스키', title: '영상 제목 3', videoId: 'VIDEO_ID_6' },
   ];
 
-  // Fallback banners if API returns nothing
-  const fallbackBanners: BannerData[] = [
-    { id: 'f1', title: '보드팩토리 강남점', description: '시즌 오픈 전 장비 튜닝 50% 할인', tag: 'AD', url: 'https://www.boardfactory.co.kr', image: null },
-    { id: 'f2', title: '스키프로샵 홍대점', description: '24/25 신상 부츠 피팅 무료 · 풀세트 특가', tag: 'AD', url: 'https://www.skiproshop.co.kr', image: null },
-    { id: 'f3', title: '라이더스클럽 판교점', description: '중고 위탁판매 수수료 0% · 왁싱 서비스', tag: 'AD', url: 'https://www.ridersclub.co.kr', image: null },
-  ];
-  const [banners, setBanners] = useState<BannerData[]>(fallbackBanners);
+  const [banners, setBanners] = useState<BannerData[]>([]);
 
   useEffect(() => {
     api<BannerData[]>('/banners')
-      .then((data) => {
-        if (data.length > 0) setBanners(data);
-      })
-      .catch(() => { /* ignore - use fallback */ });
+      .then((data) => setBanners(data))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -115,35 +107,45 @@ const Home = () => {
       {/* Banner */}
       <div className="px-4 pt-2 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
-          {banners.map((banner, idx) => (
-            <a
-              key={banner.id}
-              href={banner.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
-                idx === currentBanner
-                  ? 'opacity-100 translate-x-0'
-                  : idx < currentBanner
-                  ? 'opacity-0 -translate-x-full'
-                  : 'opacity-0 translate-x-full'
-              }`}
-            >
-              {banner.image && (
-                <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover" />
-              )}
-              <div className="flex-1 relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-semibold text-primary-dark bg-primary-100 px-1.5 py-0.5 rounded">{banner.tag}</span>
-                  <span className="text-[15px] font-bold text-gray-800">{banner.title}</span>
-                </div>
-                <p className="text-sm text-gray-500">{banner.description}</p>
+          {banners.length > 0 ? (
+            <>
+              {banners.map((banner, idx) => (
+                <a
+                  key={banner.id}
+                  href={banner.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
+                    idx === currentBanner
+                      ? 'opacity-100 translate-x-0'
+                      : idx < currentBanner
+                      ? 'opacity-0 -translate-x-full'
+                      : 'opacity-0 translate-x-full'
+                  }`}
+                >
+                  {banner.image && (
+                    <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  <div className="flex-1 relative z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-semibold text-primary-dark bg-primary-100 px-1.5 py-0.5 rounded">{banner.tag}</span>
+                      <span className="text-[15px] font-bold text-gray-800">{banner.title}</span>
+                    </div>
+                    <p className="text-sm text-gray-500">{banner.description}</p>
+                  </div>
+                </a>
+              ))}
+              <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
+                {currentBanner + 1}/{banners.length}
               </div>
-            </a>
-          ))}
-          <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
-            {currentBanner + 1}/{banners.length}
-          </div>
+            </>
+          ) : (
+            <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+              <span className="text-2xl">📢</span>
+              <span className="text-sm font-bold text-primary-dark">광고를 신청해보세요!</span>
+              <span className="text-[11px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
+            </Link>
+          )}
         </div>
       </div>
 
