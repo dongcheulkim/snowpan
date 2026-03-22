@@ -40,6 +40,7 @@ model User {
   reviewsReceived  Review[]   @relation("reviewSeller")
   reports          Report[]
   adRequests       AdRequest[]
+  adBookings       AdBooking[]
 
   @@map("users")
 }
@@ -94,19 +95,20 @@ model Product {
 }
 
 model Rental {
-  id         String    @id @default(uuid())
-  name       String
-  price      Int
-  duration   String
-  equipment  String
-  image      String
-  resortId   String
-  resort     SkiResort @relation(fields: [resortId], references: [id])
-  userId     String
-  user       User      @relation(fields: [userId], references: [id])
-  approved   Boolean   @default(false) // 관리자 승인 필요
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  name                  String
+  price                 Int
+  duration              String
+  equipment             String
+  image                 String
+  businessLicense       String?   // 사업자등록증 이미지 URL
+  resortId              String
+  resort                SkiResort @relation(fields: [resortId], references: [id])
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  approved              Boolean   @default(false) // 관리자 승인 필요
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
@@ -114,20 +116,22 @@ model Rental {
 }
 
 model Lesson {
-  id          String    @id @default(uuid())
-  name        String
-  price       Int
-  duration    String
-  level       String    // 'beginner' | 'intermediate' | 'advanced'
-  maxStudents Int
-  image       String
-  resortId    String
-  resort      SkiResort @relation(fields: [resortId], references: [id])
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  approved    Boolean   @default(false) // 관리자 승인 필요
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  name                  String
+  price                 Int
+  duration              String
+  level                 String    // 'beginner' | 'intermediate' | 'advanced'
+  maxStudents           Int
+  image                 String
+  instructorCert        String?   // 강사 자격증 이미지 URL
+  businessLicense       String?   // 사업자등록증 이미지 URL
+  resortId              String
+  resort                SkiResort @relation(fields: [resortId], references: [id])
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  approved              Boolean   @default(false) // 관리자 승인 필요
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
@@ -135,21 +139,23 @@ model Lesson {
 }
 
 model Accommodation {
-  id            String    @id @default(uuid())
-  name          String
-  type          String    // 'hotel' | 'pension' | 'condo' | 'minbak'
-  price         Int
-  originalPrice Int?
-  guests        String    // '2인', '4인', '6인'
-  features      String    // 콤마 구분
-  image         String
-  resortId      String
-  resort        SkiResort @relation(fields: [resortId], references: [id])
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
-  approved      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  name                  String
+  type                  String    // 'hotel' | 'pension' | 'condo' | 'minbak'
+  price                 Int
+  originalPrice         Int?
+  guests                String    // '2인', '4인', '6인'
+  features              String    // 콤마 구분
+  image                 String
+  businessLicense       String?   // 사업자등록증 이미지 URL (필수)
+  accommodationPermit   String?   // 숙박업 신고증 이미지 URL
+  resortId              String
+  resort                SkiResort @relation(fields: [resortId], references: [id])
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  approved              Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
@@ -158,7 +164,7 @@ model Accommodation {
 
 model BadgeRequest {
   id        String   @id @default(uuid())
-  badgeType String   // 'lv2' | 'lv3' | 'demo' | 'teaching' | 'pro'
+  badgeType String   // 'lv2' | 'lv3' | 'demo' | 'teaching1' | 'teaching2' | 'teaching3' | 'pro'
   image     String?  // 자격증 사진 URL
   status    String   @default("pending") // 'pending' | 'approved' | 'rejected'
   userId    String
@@ -329,6 +335,79 @@ model Banner {
   createdAt   DateTime @default(now())
 
   @@map("banners")
+}
+
+model AdSlotPricing {
+  id            String   @id @default(uuid())
+  slotType      String   // 'main_banner' | 'category' | 'premium'
+  category      String   @default("none") // 'none' | 'used' | 'rental' | 'lesson' | 'accommodation'
+  pricePerDay   Int      // 1일 가격 (원)
+  maxConcurrent Int      @default(1) // 동시 광고 가능 수
+  description   String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bookings AdBooking[]
+
+  @@unique([slotType, category])
+  @@map("ad_slot_pricings")
+}
+
+model AdBooking {
+  id          String   @id @default(uuid())
+  slotType    String   // 'main_banner' | 'category' | 'premium'
+  category    String   @default("none") // 'none' | 'used' | 'rental' | 'lesson' | 'accommodation'
+  title       String
+  description String
+  url         String
+  image       String?
+  startDate   DateTime
+  endDate     DateTime
+  totalDays   Int
+  totalPrice  Int
+  status      String   @default("pending_payment")
+  // 'pending_payment' | 'paid' | 'active' | 'completed' | 'cancelled' | 'refunded'
+  adminNote   String?
+
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  pricingId String
+  pricing   AdSlotPricing @relation(fields: [pricingId], references: [id])
+  payment   AdPayment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([slotType, startDate, endDate])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("ad_bookings")
+}
+
+model AdPayment {
+  id           String    @id @default(uuid())
+  bookingId    String    @unique
+  booking      AdBooking @relation(fields: [bookingId], references: [id])
+  paymentId    String    @unique // PortOne payment ID
+  merchantUid  String    @unique // 주문번호
+  payMethod    String    // 'card' | 'tosspay' | 'kakaopay' | 'naverpay'
+  amount       Int
+  status       String    @default("paid") // 'paid' | 'cancelled' | 'refunded'
+  paidAt       DateTime
+  receiptUrl   String?
+  pgProvider   String?
+  pgTid        String?
+  cancelledAt  DateTime?
+  cancelReason String?
+  refundAmount Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ad_payments")
 }
 
 model AdRequest {

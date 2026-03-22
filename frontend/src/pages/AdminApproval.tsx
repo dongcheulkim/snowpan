@@ -16,6 +16,9 @@ interface PendingItem {
   features?: string;
   badgeType?: string;
   status?: string;
+  businessLicense?: string;
+  instructorCert?: string;
+  accommodationPermit?: string;
   resort?: { name: string };
   user?: { id: string; name: string };
 }
@@ -26,7 +29,9 @@ const badgeLabels: Record<string, { label: string; color: string }> = {
   lv2: { label: 'LV2', color: 'bg-accent text-white' },
   lv3: { label: 'LV3', color: 'bg-purple-500 text-white' },
   demo: { label: '데몬', color: 'bg-yellow-500 text-black' },
-  teaching: { label: '티칭', color: 'bg-blue-500 text-white' },
+  teaching1: { label: '티칭1', color: 'bg-blue-400 text-white' },
+  teaching2: { label: '티칭2', color: 'bg-blue-500 text-white' },
+  teaching3: { label: '티칭3', color: 'bg-blue-700 text-white' },
   pro: { label: '프로', color: 'bg-red-500 text-white' },
 };
 
@@ -153,6 +158,38 @@ const AdminApproval = () => {
             <div className="text-base font-black text-gray-900">{item.price?.toLocaleString()}원</div>
           </div>
         </div>
+
+        {/* 인증서류 */}
+        {(item.businessLicense || item.instructorCert || item.accommodationPermit) && (
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+            <div className="text-[10px] font-bold text-gray-500 mb-2">📋 인증서류</div>
+            <div className="flex gap-2 flex-wrap">
+              {item.instructorCert && (
+                <a href={imageUrl(item.instructorCert)} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="text-[10px] text-gray-400 mb-0.5">강사 자격증</div>
+                  <img src={imageUrl(item.instructorCert)} alt="자격증" className="w-24 h-18 object-cover rounded-lg border border-gray-200 hover:border-primary transition-colors" />
+                </a>
+              )}
+              {item.businessLicense && (
+                <a href={imageUrl(item.businessLicense)} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="text-[10px] text-gray-400 mb-0.5">사업자등록증</div>
+                  <img src={imageUrl(item.businessLicense)} alt="사업자등록증" className="w-24 h-18 object-cover rounded-lg border border-gray-200 hover:border-primary transition-colors" />
+                </a>
+              )}
+              {item.accommodationPermit && (
+                <a href={imageUrl(item.accommodationPermit)} target="_blank" rel="noopener noreferrer" className="block">
+                  <div className="text-[10px] text-gray-400 mb-0.5">숙박업 신고증</div>
+                  <img src={imageUrl(item.accommodationPermit)} alt="숙박업 신고증" className="w-24 h-18 object-cover rounded-lg border border-gray-200 hover:border-primary transition-colors" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        {!item.businessLicense && !item.instructorCert && (
+          <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
+            <p className="text-[10px] text-yellow-600 font-medium">⚠️ 인증서류가 첨부되지 않았습니다</p>
+          </div>
+        )}
 
         <div className="flex gap-2 pt-3 border-t border-gray-50">
           <button onClick={() => handleReject(activeTab, item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-500 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>

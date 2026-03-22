@@ -5,6 +5,9 @@ const badgeConfig: Record<string, { label: string; color: string }> = {
   lv3: { label: 'LV3', color: 'bg-purple-500 text-white' },
   demo: { label: '데몬', color: 'bg-yellow-400 text-black' },
   teaching: { label: '티칭', color: 'bg-blue-500 text-white' },
+  teaching1: { label: '티칭1', color: 'bg-blue-400 text-white' },
+  teaching2: { label: '티칭2', color: 'bg-blue-500 text-white' },
+  teaching3: { label: '티칭3', color: 'bg-blue-700 text-white' },
   pro: { label: '프로', color: 'bg-rose-500 text-white' },
 };
 

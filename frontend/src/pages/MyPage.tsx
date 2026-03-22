@@ -10,15 +10,16 @@ interface BadgeRequest {
   image?: string;
 }
 
-interface AdRequest {
+interface AdBooking {
   id: string;
-  type: string;
+  slotType: string;
   category: string | null;
   title: string;
-  description: string;
-  url: string;
   status: string;
-  adminNote: string | null;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  totalPrice: number;
   createdAt: string;
 }
 
@@ -36,11 +37,8 @@ const MyPage = () => {
   const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
   const [, setLangTick] = useState(0);
 
-  // 광고 신청 상태
-  const [adRequests, setAdRequests] = useState<AdRequest[]>([]);
-  const [showAdModal, setShowAdModal] = useState(false);
-  const [adForm, setAdForm] = useState({ type: 'main_banner', category: '', title: '', description: '', url: '', message: '' });
-  const [adSubmitting, setAdSubmitting] = useState(false);
+  // 광고 예약 상태
+  const [adBookings, setAdBookings] = useState<AdBooking[]>([]);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -60,41 +58,11 @@ const MyPage = () => {
 
     // 뱃지 요청 목록 조회
     api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
-    // 광고 신청 목록 조회
-    api<AdRequest[]>('/auth/my-ad-requests').then(setAdRequests).catch(() => {});
+    // 광고 예약 목록 조회
+    api<AdBooking[]>('/ad-booking/my-bookings').then(setAdBookings).catch(() => {});
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
-
-  const handleAdSubmit = async () => {
-    if (!adForm.title || !adForm.description || !adForm.url) {
-      alert('제목, 설명, URL은 필수입니다.');
-      return;
-    }
-    setAdSubmitting(true);
-    try {
-      await api('/auth/ad-request', {
-        method: 'POST',
-        body: {
-          type: adForm.type,
-          category: adForm.type === 'category' ? adForm.category : undefined,
-          title: adForm.title,
-          description: adForm.description,
-          url: adForm.url,
-          message: adForm.message || undefined,
-        },
-      });
-      const updated = await api<AdRequest[]>('/auth/my-ad-requests');
-      setAdRequests(updated);
-      setShowAdModal(false);
-      setAdForm({ type: 'main_banner', category: '', title: '', description: '', url: '', message: '' });
-      alert('광고 신청이 완료되었습니다. 관리자 검토 후 승인됩니다.');
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '신청에 실패했습니다.');
-    } finally {
-      setAdSubmitting(false);
-    }
-  };
 
   const handleProfilePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -119,7 +87,9 @@ const MyPage = () => {
     { id: 'lv2', label: 'LV2', desc: 'KSIA 레벨2 자격증', color: 'bg-accent text-white' },
     { id: 'lv3', label: 'LV3', desc: 'KSIA 레벨3 자격증', color: 'bg-purple-500 text-white' },
     { id: 'demo', label: '데몬', desc: '데몬스트레이터 자격증', color: 'bg-gold text-black' },
-    { id: 'teaching', label: '티칭', desc: 'SBAK 티칭 자격증', color: 'bg-blue-500 text-white' },
+    { id: 'teaching1', label: '티칭1', desc: 'SBAK 티칭1 자격증', color: 'bg-blue-400 text-white' },
+    { id: 'teaching2', label: '티칭2', desc: 'SBAK 티칭2 자격증', color: 'bg-blue-500 text-white' },
+    { id: 'teaching3', label: '티칭3', desc: 'SBAK 티칭3 자격증', color: 'bg-blue-700 text-white' },
     { id: 'pro', label: '프로', desc: '프로 선수 / 강사 인증', color: 'bg-coral text-white' },
   ];
 
@@ -290,36 +260,54 @@ const MyPage = () => {
         )}
       </div>
 
-      {/* 광고 신청 */}
+      {/* 광고 예약 */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-gray-900">📢 광고 신청</h3>
-          <button onClick={() => setShowAdModal(true)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
-            + 신청하기
-          </button>
+          <Link to="/ad-booking" className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
+            + 광고 신청하기
+          </Link>
         </div>
-        {adRequests.length === 0 ? (
+        {adBookings.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-4">신청한 광고가 없습니다.</p>
         ) : (
           <div className="space-y-2">
-            {adRequests.map((ad) => (
-              <div key={ad.id} className="flex items-start justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      ad.status === 'approved' ? 'bg-mint/20 text-emerald-700' :
-                      ad.status === 'rejected' ? 'bg-coral/20 text-coral' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {ad.status === 'approved' ? '승인' : ad.status === 'rejected' ? '거부' : '검토중'}
-                    </span>
-                    <span className="text-[10px] text-gray-400">{ad.type === 'main_banner' ? '메인 배너' : `카테고리 (${ad.category})`}</span>
+            {adBookings.map((ad) => {
+              const slotLabel = ad.slotType === 'main_banner' ? '메인 배너' : ad.slotType === 'premium' ? '프리미엄' : `카테고리`;
+              const statusLabel: Record<string, string> = {
+                pending_payment: '결제 대기',
+                paid: '결제 완료',
+                active: '노출중',
+                completed: '종료',
+                cancelled: '취소됨',
+                refunded: '환불됨',
+              };
+              const statusColor: Record<string, string> = {
+                pending_payment: 'bg-yellow-100 text-yellow-700',
+                paid: 'bg-blue-100 text-blue-700',
+                active: 'bg-mint/20 text-emerald-700',
+                completed: 'bg-gray-100 text-gray-500',
+                cancelled: 'bg-coral/20 text-coral',
+                refunded: 'bg-coral/20 text-coral',
+              };
+              const startD = new Date(ad.startDate);
+              const endD = new Date(ad.endDate);
+              const dateRange = `${startD.getMonth() + 1}.${startD.getDate()} ~ ${endD.getMonth() + 1}.${endD.getDate()}`;
+              return (
+                <div key={ad.id} className="flex items-start justify-between p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-500'}`}>
+                        {statusLabel[ad.status] || ad.status}
+                      </span>
+                      <span className="text-[10px] text-gray-400">{slotLabel}</span>
+                    </div>
+                    <p className="text-xs font-medium text-gray-900 truncate">{ad.title}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                   </div>
-                  <p className="text-xs font-medium text-gray-900 truncate">{ad.title}</p>
-                  {ad.adminNote && <p className="text-[10px] text-coral mt-0.5">{ad.adminNote}</p>}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -384,71 +372,6 @@ const MyPage = () => {
       <button onClick={handleLogout} className="w-full py-3.5 bg-white text-gray-500 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
         {t('mypage.logout')}
       </button>
-
-      {/* 광고 신청 Modal */}
-      {showAdModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center px-0">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAdModal(false)} />
-          <div className="relative bg-white rounded-t-2xl p-6 w-full max-w-lg border-t border-gray-200 max-h-[85vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">광고 신청</h3>
-            <p className="text-xs text-gray-400 mb-5">신청 후 관리자 검토를 거쳐 승인됩니다.</p>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1 block">광고 위치</label>
-                <div className="flex gap-2">
-                  <button onClick={() => setAdForm({ ...adForm, type: 'main_banner', category: '' })} className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${adForm.type === 'main_banner' ? 'bg-accent/10 border-accent text-accent' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-                    메인 배너
-                  </button>
-                  <button onClick={() => setAdForm({ ...adForm, type: 'category' })} className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${adForm.type === 'category' ? 'bg-accent/10 border-accent text-accent' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-                    카테고리
-                  </button>
-                </div>
-              </div>
-
-              {adForm.type === 'category' && (
-                <div>
-                  <label className="text-xs font-semibold text-gray-600 mb-1 block">카테고리 선택</label>
-                  <select value={adForm.category} onChange={(e) => setAdForm({ ...adForm, category: e.target.value })} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none">
-                    <option value="">선택하세요</option>
-                    <option value="used">중고장터</option>
-                    <option value="rental">렌탈</option>
-                    <option value="lesson">레슨</option>
-                    <option value="accommodation">숙소</option>
-                  </select>
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1 block">광고 제목 *</label>
-                <input value={adForm.title} onChange={(e) => setAdForm({ ...adForm, title: e.target.value })} placeholder="예: 보드팩토리 강남점" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none" />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1 block">광고 설명 *</label>
-                <input value={adForm.description} onChange={(e) => setAdForm({ ...adForm, description: e.target.value })} placeholder="예: 시즌 오픈 전 장비 튜닝 50% 할인" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none" />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1 block">연결 URL *</label>
-                <input value={adForm.url} onChange={(e) => setAdForm({ ...adForm, url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none" />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1 block">추가 메모 (선택)</label>
-                <textarea value={adForm.message} onChange={(e) => setAdForm({ ...adForm, message: e.target.value })} placeholder="광고 기간, 예산, 요청사항 등" rows={3} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none" />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <button onClick={() => { setShowAdModal(false); setAdForm({ type: 'main_banner', category: '', title: '', description: '', url: '', message: '' }); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-200">취소</button>
-              <button onClick={handleAdSubmit} disabled={adSubmitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors disabled:opacity-30">
-                {adSubmitting ? '신청 중...' : '신청하기'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Badge Modal */}
       {showBadgeModal && (
