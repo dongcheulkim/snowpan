@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
-import { cacheGet, cacheSet } from '../utils/cache';
+import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -459,6 +459,22 @@ export const approveAdRequest = async (req: AuthRequest, res: Response): Promise
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.adRequest.update({ where: { id: req.params.id }, data: { status: 'approved', adminNote: null } });
+
+    // 승인된 광고를 배너에 자동 추가
+    const maxOrder = await prisma.banner.aggregate({ _max: { order: true } });
+    await prisma.banner.create({
+      data: {
+        title: item.title,
+        description: item.description,
+        tag: 'AD',
+        url: item.url,
+        image: item.image,
+        order: (maxOrder._max.order || 0) + 1,
+        active: true,
+      },
+    });
+    cacheDel('banners:public'); // 배너 캐시 초기화
+
     await createNotification(item.userId, 'approve', '광고 신청 승인', `'${item.title}' 광고 신청이 승인되었습니다.`, '/mypage');
     res.json({ ...item, message: '광고 신청이 승인되었습니다.' });
   } catch (error) {
