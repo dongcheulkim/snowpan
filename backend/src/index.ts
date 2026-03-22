@@ -20,9 +20,11 @@ import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
+import adBookingRoutes from './routes/adBookingRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { generalLimiter, authLimiter, writeLimiter } from './middleware/rateLimit';
+import { startAdBookingScheduler } from './utils/adBookingScheduler';
 
 dotenv.config();
 
@@ -136,10 +138,18 @@ app.use('/api/admin', adminRoutes);
 // 공개 배너 API (인증 불필요)
 import { getPublicBanners } from './controllers/adminController';
 app.get('/api/banners', getPublicBanners);
+
+// 홈 인기중고매물 경량 API
+import { getHotDeals } from './controllers/productController';
+app.get('/api/home/hot-deals', (req, res, next) => {
+  res.set('Cache-Control', 'public, max-age=60');
+  next();
+}, getHotDeals);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/ad-booking', adBookingRoutes);
 
 // Socket.IO auth middleware
 io.use((socket, next) => {
@@ -245,4 +255,5 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 httpServer.listen(PORT, () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);
+  startAdBookingScheduler();
 });

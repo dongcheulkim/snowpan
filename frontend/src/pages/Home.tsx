@@ -94,13 +94,17 @@ const Home = () => {
     { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
   ];
 
+  // 인기중고매물 독립 로딩 (경량 API로 빠르게)
+  useEffect(() => {
+    api<Product[]>('/home/hot-deals').then(setHotDeals).catch(() => {});
+  }, []);
+
+  // 커뮤니티 게시글 로딩
   useEffect(() => {
     Promise.all([
-      api<{ products: Product[]; totalCount: number }>('/products?category=used&limit=3').catch(() => ({ products: [], totalCount: 0 })),
       api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=ski&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
       api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=board&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
-    ]).then(([prodRes, skiRes, boardRes]) => {
-      setHotDeals(prodRes.products);
+    ]).then(([skiRes, boardRes]) => {
       setSkiPosts(skiRes.posts);
       setBoardPosts(boardRes.posts);
     });

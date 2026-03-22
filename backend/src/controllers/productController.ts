@@ -64,6 +64,38 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// 홈 인기중고매물 (경량 API - count 쿼리 없음, 캐시 60초)
+export const getHotDeals = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const cacheKey = 'home:hotdeals';
+    const cached = cacheGet<unknown[]>(cacheKey);
+    if (cached) {
+      res.json(cached);
+      return;
+    }
+
+    const products = await prisma.product.findMany({
+      where: { category: 'used' },
+      orderBy: [{ isPremium: { sort: 'desc', nulls: 'last' } }, { bumpedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+      take: 3,
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        image: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    cacheSet(cacheKey, products, 60);
+    res.json(products);
+  } catch (error) {
+    console.error('Get hot deals error:', error);
+    res.status(500).json({ error: '인기매물 조회 중 오류가 발생했습니다.' });
+  }
+};
+
 // 중고 장비 등록 (로그인 필요)
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
