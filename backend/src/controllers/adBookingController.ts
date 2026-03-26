@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-// PortOne 사용 안 함 (계좌이체 방식)
 import { createBannerFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
 

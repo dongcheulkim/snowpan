@@ -224,7 +224,7 @@ export const sendPhoneVerification = async (
       },
     });
 
-    console.log(`인증번호 [${phone}]: ${code}`);
+    if (process.env.NODE_ENV !== 'production') console.log(`인증번호 [${phone}]: ${code}`);
 
     res.json({
       message: '인증번호가 발송되었습니다.',
@@ -315,7 +315,7 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
       data: { phone: email, code, expiresAt },
     });
 
-    console.log(`비밀번호 재설정 인증번호 [${email}]: ${code}`);
+    if (process.env.NODE_ENV !== 'production') console.log(`비밀번호 재설정 인증번호 [${email}]: ${code}`);
     res.json({ message: '인증번호가 이메일로 발송되었습니다.' });
   } catch (error) {
     console.error('Reset password request error:', error);

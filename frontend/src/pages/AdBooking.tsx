@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import BookingCalendar from '../components/BookingCalendar';
-// PortOne은 결제 시점에 동적 import
 
 interface SlotPricing {
   id: string;

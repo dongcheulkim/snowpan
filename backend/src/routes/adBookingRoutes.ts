@@ -4,7 +4,7 @@ import {
   getSlotPricings,
   getAvailability,
   createBooking,
-  verifyPayment,
+
   getMyBookings,
   cancelBooking,
   getActiveAds,
@@ -26,7 +26,7 @@ router.get('/active', getActiveAds);
 
 // 사용자 API (인증 필요)
 router.post('/create', authenticateToken, createBooking);
-router.post('/verify-payment', authenticateToken, verifyPayment);
+
 router.get('/my-bookings', authenticateToken, getMyBookings);
 router.post('/:id/cancel', authenticateToken, cancelBooking);
 
