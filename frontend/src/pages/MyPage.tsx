@@ -23,6 +23,18 @@ interface AdBooking {
   createdAt: string;
 }
 
+const badgeDisplay: Record<string, { label: string; desc: string; color: string }> = {
+  lv1: { label: 'LV1', desc: 'KSIA 레벨1', color: 'bg-green-500 text-white' },
+  lv2: { label: 'LV2', desc: 'KSIA 레벨2', color: 'bg-accent text-white' },
+  lv3: { label: 'LV3', desc: 'KSIA 레벨3', color: 'bg-purple-500 text-white' },
+  demo: { label: '데몬', desc: '데몬스트레이터', color: 'bg-gold text-black' },
+  teaching1: { label: '티칭1', desc: 'SBAK 티칭1', color: 'bg-blue-400 text-white' },
+  teaching2: { label: '티칭2', desc: 'SBAK 티칭2', color: 'bg-blue-500 text-white' },
+  teaching3: { label: '티칭3', desc: 'SBAK 티칭3', color: 'bg-blue-700 text-white' },
+  pro: { label: '프로', desc: '프로 선수 / 강사', color: 'bg-coral text-white' },
+  cert: { label: '심사중', desc: '자격증 심사 중', color: 'bg-gray-400 text-white' },
+};
+
 const MyPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
@@ -173,7 +185,7 @@ const MyPage = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900">{user.nickname || user.name}</h2>
               {approvedBadges.map((b) => {
-                const badge = allBadges.find(ab => ab.id === b.badgeType);
+                const badge = badgeDisplay[b.badgeType];
                 if (!badge) return null;
                 return (
                   <span key={b.id} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
@@ -213,7 +225,7 @@ const MyPage = () => {
         ) : (
           <div className="space-y-2">
             {approvedBadges.map((b) => {
-              const badge = allBadges.find(ab => ab.id === b.badgeType);
+              const badge = badgeDisplay[b.badgeType];
               if (!badge) return null;
               return (
                 <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
@@ -228,7 +240,7 @@ const MyPage = () => {
               );
             })}
             {pendingBadges.map((b) => {
-              const badge = allBadges.find(ab => ab.id === b.badgeType);
+              const badge = badgeDisplay[b.badgeType];
               if (!badge) return null;
               return (
                 <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 opacity-60">
