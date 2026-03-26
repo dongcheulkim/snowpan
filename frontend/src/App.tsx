@@ -46,6 +46,7 @@ const WebcamDetail = lazy(() => import('./pages/WebcamDetail'));
 const RecentlyViewed = lazy(() => import('./pages/RecentlyViewed'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdBooking = lazy(() => import('./pages/AdBooking'));
 
 function App() {
   return (
@@ -96,6 +97,7 @@ function App() {
             <Route path="webcam" element={<Webcam />} />
             <Route path="webcam/:id" element={<WebcamDetail />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="ad-booking" element={<AdBooking />} />
             <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
           </Route>
         </Routes>
