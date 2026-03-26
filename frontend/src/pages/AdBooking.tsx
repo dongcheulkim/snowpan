@@ -205,6 +205,7 @@ export default function AdBooking() {
       const portonePayMethod = payMethod === 'TRANSFER' ? 'TRANSFER' : payMethod === 'EASY_PAY_KAKAO' ? 'EASY_PAY' : payMethod;
       const easyPayProvider = payMethod === 'EASY_PAY_KAKAO' ? 'KAKAOPAY' : payMethod === 'EASY_PAY' ? 'TOSSPAY' : undefined;
 
+      // @ts-ignore
       const PortOne = await import('@portone/browser-sdk/v2');
       const response = await PortOne.requestPayment({
         storeId,
