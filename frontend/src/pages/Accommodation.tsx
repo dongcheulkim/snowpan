@@ -28,13 +28,16 @@ const Accommodation = () => {
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
   const [resorts, setResorts] = useState<Resort[]>([]);
 
-  const banners = [
-    { title: '용평리조트 공식', desc: '스키시즌 숙박 패키지 · 리프트권 포함 특가' },
-    { title: '휘닉스 블리스', desc: '얼리체크인 무료 · 스파 이용권 증정' },
-    { title: '하이원 그랜드호텔', desc: '주중 40% 할인 · 곤돌라 무료 이용' },
-  ];
+  const [banners, setBanners] = useState<{ title: string; desc: string }[]>([]);
 
   useEffect(() => {
+    api<any[]>('/ad-booking/active?slotType=category&category=accommodation')
+      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description }))))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (banners.length === 0) return;
     const timer = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
     }, 4000);
@@ -73,27 +76,32 @@ const Accommodation = () => {
 
       {/* Ad Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
-        {banners.map((banner, idx) => (
-          <div
-            key={idx}
-            className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${
-              idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'
-            }`}
-          >
-            <div className="relative z-10 flex-1">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
-                <h3 className="text-base font-bold text-gray-900">{banner.title}</h3>
+        {banners.length > 0 ? (
+          <>
+            {banners.map((banner, idx) => (
+              <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                    <h3 className="text-base font-bold text-gray-900">{banner.title}</h3>
+                  </div>
+                  <p className="text-sm text-gray-500">{banner.desc}</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-500">{banner.desc}</p>
+            ))}
+            <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
+              {banners.map((_, idx) => (
+                <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-300'}`} />
+              ))}
             </div>
-          </div>
-        ))}
-        <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
-          {banners.map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-300'}`} />
-          ))}
-        </div>
+          </>
+        ) : (
+          <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+            <span className="text-lg">📢</span>
+            <span className="text-xs font-bold text-primary-dark">광고를 신청해보세요!</span>
+            <span className="text-[10px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
+          </Link>
+        )}
       </div>
 
       {/* Resort Filter */}
