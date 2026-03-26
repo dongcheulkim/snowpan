@@ -245,7 +245,7 @@ const UsedDetail = () => {
                 {/* Wishlist button */}
                 <button
                   onClick={async () => {
-                    if (!user) { alert('로그인이 필요합니다.'); return; }
+                    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
                     try {
                       const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
                       setWishlisted(res.wishlisted);

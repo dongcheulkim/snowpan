@@ -81,6 +81,7 @@ const CommunityDetail = () => {
   const handleLike = async () => {
     if (!id || !user) {
       alert('로그인이 필요합니다.');
+      navigate('/login');
       return;
     }
     try {
