@@ -97,7 +97,7 @@ function App() {
             <Route path="webcam" element={<Webcam />} />
             <Route path="webcam/:id" element={<WebcamDetail />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="ad-booking" element={<AdBooking />} />
+            <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
           </Route>
         </Routes>
