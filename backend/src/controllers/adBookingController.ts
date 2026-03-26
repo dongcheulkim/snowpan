@@ -364,6 +364,7 @@ export const getActiveAds = async (req: Request, res: Response): Promise<void> =
 // 관리자: 모든 광고 예약 조회
 export const adminGetBookings = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (_req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const bookings = await prisma.adBooking.findMany({
       include: {
         user: { select: { id: true, name: true, email: true, phone: true } },
@@ -381,6 +382,7 @@ export const adminGetBookings = async (_req: AuthRequest, res: Response): Promis
 // 관리자: 매출 요약
 export const adminGetRevenue = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (_req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const payments = await prisma.adPayment.findMany({
       where: { status: 'paid' },
       select: { amount: true, paidAt: true, refundAmount: true },
@@ -403,6 +405,7 @@ export const adminGetRevenue = async (_req: AuthRequest, res: Response): Promise
 // 관리자: 슬롯 가격 목록 (비활성 포함)
 export const adminGetPricings = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (_req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const pricings = await prisma.adSlotPricing.findMany({
       orderBy: [{ slotType: 'asc' }, { category: 'asc' }],
     });
@@ -415,6 +418,7 @@ export const adminGetPricings = async (_req: AuthRequest, res: Response): Promis
 // 관리자: 슬롯 가격 생성/수정
 export const adminUpsertPricing = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { slotType, category, pricePerDay, maxConcurrent, description, active } = req.body;
 
     if (!slotType || !pricePerDay) {
@@ -452,6 +456,7 @@ export const adminUpsertPricing = async (req: AuthRequest, res: Response): Promi
 // 관리자: 슬롯 가격 수정
 export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
     const { pricePerDay, maxConcurrent, description, active } = req.body;
 
@@ -474,6 +479,7 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
 // 관리자: 입금 확인 → 바로 active + 배너 생성
 export const adminApproveBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
 
     const booking = await prisma.adBooking.findUnique({ where: { id } });
@@ -516,6 +522,7 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
 // 관리자: 예약 강제 취소/환불
 export const adminCancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
     const { reason } = req.body;
 

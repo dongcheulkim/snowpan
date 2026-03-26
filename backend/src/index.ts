@@ -145,7 +145,7 @@ app.get('/api/home/hot-deals', (req, res, next) => {
   res.set('Cache-Control', 'public, max-age=60');
   next();
 }, getHotDeals);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', authenticate, uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reports', reportRoutes);

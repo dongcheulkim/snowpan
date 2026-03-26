@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
 
 const ChangePassword = () => {
   const [form, setForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.current || !form.newPw || !form.confirm) {
       alert('모든 필드를 입력해주세요.');
       return;
@@ -17,8 +19,19 @@ const ChangePassword = () => {
       alert('비밀번호는 6자 이상이어야 합니다.');
       return;
     }
-    alert('비밀번호가 변경되었습니다.');
-    setForm({ current: '', newPw: '', confirm: '' });
+    setSubmitting(true);
+    try {
+      await api('/auth/change-password', {
+        method: 'PUT',
+        body: { currentPassword: form.current, newPassword: form.newPw },
+      });
+      alert('비밀번호가 변경되었습니다.');
+      setForm({ current: '', newPw: '', confirm: '' });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const inputClass = "w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400";
@@ -45,8 +58,8 @@ const ChangePassword = () => {
         </div>
       </div>
 
-      <button onClick={handleSubmit} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors">
-        변경하기
+      <button onClick={handleSubmit} disabled={submitting} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+        {submitting ? '변경 중...' : '변경하기'}
       </button>
     </div>
   );

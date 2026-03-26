@@ -7,6 +7,7 @@ import {
   getMyBadges,
   requestBadge,
   updateProfile,
+  changePassword,
   getProfile,
   getSellerProfile,
   saveFcmToken,
@@ -25,6 +26,7 @@ router.post('/phone/send', sendPhoneVerification);
 router.post('/phone/verify', verifyPhone);
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile', authenticateToken, updateProfile);
+router.put('/change-password', authenticateToken, changePassword);
 router.get('/my-badges', authenticateToken, getMyBadges);
 router.post('/badge-request', authenticateToken, requestBadge);
 router.get('/seller/:id', getSellerProfile);

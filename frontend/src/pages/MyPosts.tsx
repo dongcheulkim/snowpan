@@ -29,8 +29,8 @@ const MySales = () => {
 
   useEffect(() => {
     if (!user) return;
-    api<Post[]>(`/community?userId=${user.id}`)
-      .then(setPosts)
+    api<{ posts: Post[]; totalCount: number }>(`/community?userId=${user.id}`)
+      .then(data => setPosts(data.posts))
       .catch(() => setPosts([]))
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps

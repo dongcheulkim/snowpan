@@ -147,6 +147,37 @@ export const requestBadge = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
+// 비밀번호 변경
+export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: '현재 비밀번호와 새 비밀번호를 입력해주세요.' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+
+    const bcrypt = await import('bcryptjs');
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      res.status(400).json({ error: '현재 비밀번호가 일치하지 않습니다.' });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+
+    res.json({ message: '비밀번호가 변경되었습니다.' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: '비밀번호 변경 중 오류가 발생했습니다.' });
+  }
+};
+
 // 프로필 수정
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
