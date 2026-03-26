@@ -61,7 +61,7 @@ function calcDays(start: string, end: string): number {
 
 export default function AdBooking() {
   const navigate = useNavigate();
-  const user = getUser();
+  getUser(); // auth check
   const [step, setStep] = useState(1);
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function AdBooking() {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   // Step 4: 결제
-  const [payMethod, setPayMethod] = useState<string>('CARD');
+  const payMethod = 'TRANSFER';
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
 
