@@ -117,10 +117,21 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // 오래된 pending_payment 정리 (30분 초과)
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+    await prisma.adBooking.updateMany({
+      where: { status: 'pending_payment', createdAt: { lt: thirtyMinAgo } },
+      data: { status: 'cancelled' },
+    });
+
+    // 같은 사용자의 기존 pending_payment 예약 취소
+    await prisma.adBooking.updateMany({
+      where: { userId, status: 'pending_payment' },
+      data: { status: 'cancelled' },
+    });
+
     // 트랜잭션으로 동시 예약 방지
     const booking = await prisma.$transaction(async (tx) => {
-      // 선택 기간 내 예약 수 확인
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
 
       // 기간 내 각 날짜에 대해 최대 동시 예약 수 체크
       const existingBookings = await tx.adBooking.findMany({
