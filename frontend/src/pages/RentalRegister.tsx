@@ -12,6 +12,7 @@ const RentalRegister = () => {
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     name: '',
     resortId: '',
@@ -54,6 +55,11 @@ const RentalRegister = () => {
         const urls = await uploadImages(imageFiles);
         image = urls[0];
       }
+      let businessLicense = '';
+      if (bizLicenseFile) {
+        const licUrls = await uploadImages([bizLicenseFile]);
+        businessLicense = licUrls[0];
+      }
       await api('/rentals', {
         method: 'POST',
         body: {
@@ -63,6 +69,7 @@ const RentalRegister = () => {
           duration: form.duration,
           equipment: form.equipment.join(', '),
           image,
+          businessLicense: businessLicense || undefined,
         },
       });
       alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
@@ -129,6 +136,15 @@ const RentalRegister = () => {
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
           <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
         </label>
+      </div>
+
+      <div>
+        <label className={labelClass}>사업자등록증 <span className="text-gray-400 font-normal">(선택)</span></label>
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
+          {bizLicenseFile ? `📄 ${bizLicenseFile.name}` : '사업자등록증 사진을 업로드하세요'}
+          <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
+        </label>
+        <p className="text-[10px] text-gray-400 mt-1">사업 목적 렌탈 시 사업자등록증을 첨부하면 승인이 빨라집니다.</p>
       </div>
 
       <div>

@@ -11,6 +11,8 @@ const AccommodationRegister = () => {
   const navigate = useNavigate();
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
+  const [permitFile, setPermitFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -51,12 +53,22 @@ const AccommodationRegister = () => {
       alert('숙소명, 가격, 숙소 유형을 입력해주세요.');
       return;
     }
+    if (!bizLicenseFile) {
+      alert('숙소 등록 시 사업자등록증은 필수입니다.');
+      return;
+    }
     setSubmitting(true);
     try {
       let image = '🏨';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         image = urls[0];
+      }
+      const bizUrls = await uploadImages([bizLicenseFile]);
+      let accommodationPermit = '';
+      if (permitFile) {
+        const permitUrls = await uploadImages([permitFile]);
+        accommodationPermit = permitUrls[0];
       }
       await api('/accommodations', {
         method: 'POST',
@@ -68,6 +80,8 @@ const AccommodationRegister = () => {
           guests: `${form.maxGuests}인`,
           features: form.features.join(','),
           image,
+          businessLicense: bizUrls[0],
+          accommodationPermit: accommodationPermit || undefined,
           resortId: form.resortId,
         },
       });
@@ -147,6 +161,23 @@ const AccommodationRegister = () => {
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
           <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
         </label>
+      </div>
+
+      <div>
+        <label className={labelClass}>사업자등록증 <span className="text-coral text-xs">*필수</span></label>
+        <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${bizLicenseFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-400 hover:border-primary/50'}`}>
+          {bizLicenseFile ? `📄 ${bizLicenseFile.name}` : '사업자등록증 사진 업로드'}
+          <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
+        </label>
+      </div>
+
+      <div>
+        <label className={labelClass}>숙박업 신고증 <span className="text-gray-400 font-normal">(선택)</span></label>
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
+          {permitFile ? `📄 ${permitFile.name}` : '숙박업 신고증 사진 업로드'}
+          <input type="file" accept="image/*" className="hidden" onChange={e => setPermitFile(e.target.files?.[0] || null)} />
+        </label>
+        <p className="text-[10px] text-gray-400 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
       </div>
 
       <button onClick={handleSubmit} disabled={submitting} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">

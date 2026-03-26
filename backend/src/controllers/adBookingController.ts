@@ -226,7 +226,6 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 // 결제 검증 (미사용 - 계좌이체 방식으로 변경)
 export const verifyPayment = async (_req: AuthRequest, res: Response): Promise<void> => {
   res.status(400).json({ error: '계좌이체 방식으로 변경되었습니다. 관리자 입금 확인을 기다려주세요.' });
-  }
 };
 
 // 내 광고 예약 목록 조회
