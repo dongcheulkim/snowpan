@@ -169,8 +169,8 @@ export default function AdBooking() {
         imageUrl = urls[0];
       }
 
-      // 2. 예약 생성 (입금 대기 상태)
-      await api('/ad-booking/create', {
+      // 2. 예약 생성
+      await api<{ bookingId: string; totalPrice: number }>('/ad-booking/create', {
         method: 'POST',
         body: {
           slotType: selectedSlot,
@@ -185,7 +185,17 @@ export default function AdBooking() {
         },
       });
 
-      alert('광고 신청이 완료되었습니다!\n아래 계좌로 입금 후 관리자 승인을 기다려주세요.');
+      // 시작일이 오늘이면 바로 노출됨
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(startDate!);
+      const isImmediate = start <= today;
+
+      if (isImmediate) {
+        alert('광고가 바로 노출되었습니다!\n아래 계좌로 입금해주세요.');
+      } else {
+        alert('광고 신청이 완료되었습니다!\n아래 계좌로 입금 후 관리자 승인을 기다려주세요.');
+      }
       navigate('/mypage');
     } catch (err: any) {
       setError(err.message || '광고 신청 중 오류가 발생했습니다.');

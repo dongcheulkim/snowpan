@@ -169,6 +169,11 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       const totalPrice = basePrice - discountAmount;
       const merchantUid = `snowpan_ad_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
+      // 시작일이 오늘 이하면 바로 active, 아니면 pending_payment
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const isReady = start <= now;
+
       return tx.adBooking.create({
         data: {
           slotType,
@@ -181,16 +186,16 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           endDate: end,
           totalDays,
           totalPrice,
-          status: 'pending_payment',
+          status: isReady ? 'active' : 'pending_payment',
           userId,
           pricingId: pricing.id,
           payment: {
             create: {
-              paymentId: merchantUid, // 임시, 결제 후 업데이트
+              paymentId: merchantUid,
               merchantUid,
-              payMethod: 'pending',
+              payMethod: 'transfer',
               amount: totalPrice,
-              status: 'pending',
+              status: isReady ? 'paid' : 'pending',
               paidAt: new Date(),
             },
           },
@@ -198,14 +203,13 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
-    // payment의 merchantUid 반환
-    const payment = await prisma.adPayment.findUnique({
-      where: { bookingId: booking.id },
-    });
+    // 바로 active면 배너 즉시 생성
+    if (booking.status === 'active') {
+      await createBannerFromBooking(booking);
+    }
 
     res.status(201).json({
       bookingId: booking.id,
-      merchantUid: payment!.merchantUid,
       totalPrice: booking.totalPrice,
       totalDays: booking.totalDays,
     });
