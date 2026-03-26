@@ -169,13 +169,8 @@ export default function AdBooking() {
         imageUrl = urls[0];
       }
 
-      // 2. 예약 생성
-      const booking = await api<{
-        bookingId: string;
-        merchantUid: string;
-        totalPrice: number;
-        totalDays: number;
-      }>('/ad-booking/create', {
+      // 2. 예약 생성 (입금 대기 상태)
+      await api('/ad-booking/create', {
         method: 'POST',
         body: {
           slotType: selectedSlot,
@@ -186,68 +181,14 @@ export default function AdBooking() {
           image: imageUrl,
           startDate,
           endDate,
-          payMethod,
+          payMethod: 'TRANSFER',
         },
       });
 
-      // 3. PortOne 결제 요청
-      const storeId = import.meta.env.VITE_PORTONE_STORE_ID;
-      const channelKey = import.meta.env.VITE_PORTONE_CHANNEL_KEY;
-
-      if (!storeId || !channelKey) {
-        // PortOne 키가 없으면 테스트 모드로 바로 성공 처리
-        alert('PortOne 설정이 필요합니다. 환경변수를 확인해주세요.');
-        setPaying(false);
-        return;
-      }
-
-      // 결제 수단 매핑
-      const portonePayMethod = payMethod === 'TRANSFER' ? 'TRANSFER' : payMethod === 'EASY_PAY_KAKAO' ? 'EASY_PAY' : payMethod;
-      const easyPayProvider = payMethod === 'EASY_PAY_KAKAO' ? 'KAKAOPAY' : payMethod === 'EASY_PAY' ? 'TOSSPAY' : undefined;
-
-      // PortOne SDK를 CDN에서 동적 로드
-      if (!(window as any).PortOne) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://cdn.portone.io/v2/browser-sdk.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('PortOne SDK 로드 실패'));
-          document.head.appendChild(script);
-        });
-      }
-      const PortOne = (window as any).PortOne;
-      const response = await PortOne.requestPayment({
-        storeId,
-        channelKey,
-        paymentId: booking.merchantUid,
-        orderName: `스노판 광고 - ${title}`,
-        totalAmount: totalPrice,
-        currency: 'CURRENCY_KRW',
-        payMethod: portonePayMethod as any,
-        ...(easyPayProvider && { easyPay: { easyPayProvider } }),
-        customer: {
-          fullName: user?.name || '',
-          phoneNumber: user?.phone || '',
-        },
-      });
-
-      if (response && !response.code) {
-        // 4. 결제 검증
-        await api('/ad-booking/verify-payment', {
-          method: 'POST',
-          body: {
-            bookingId: booking.bookingId,
-            paymentId: response.paymentId,
-          },
-        });
-
-        alert('광고 결제가 완료되었습니다!');
-        navigate('/mypage');
-      } else {
-        setError(response?.message || '결제가 취소되었습니다.');
-      }
+      alert('광고 신청이 완료되었습니다!\n아래 계좌로 입금 후 관리자 승인을 기다려주세요.');
+      navigate('/mypage');
     } catch (err: any) {
-      setError(err.message || '결제 처리 중 오류가 발생했습니다.');
+      setError(err.message || '광고 신청 중 오류가 발생했습니다.');
     } finally {
       setPaying(false);
     }
@@ -527,43 +468,10 @@ export default function AdBooking() {
         </div>
       )}
 
-      {/* Step 4: 결제 확인 */}
+      {/* Step 4: 입금 안내 */}
       {step === 4 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold mb-2">결제 확인</h2>
-
-          {/* 결제 수단 선택 */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">결제 수단</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'CARD', label: '카드결제', icon: '💳', desc: '' },
-                { id: 'EASY_PAY', label: '토스페이', icon: '📱', desc: '' },
-                { id: 'EASY_PAY_KAKAO', label: '카카오페이', icon: '💛', desc: '' },
-                { id: 'TRANSFER', label: '계좌이체', icon: '🏦', desc: '5% 할인' },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setPayMethod(m.id)}
-                  className={`p-3 rounded-xl border-2 text-left transition-all ${
-                    payMethod === m.id
-                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{m.icon}</span>
-                    <div>
-                      <div className="text-sm font-bold text-gray-800 dark:text-gray-200">{m.label}</div>
-                      {m.desc && (
-                        <div className="text-[10px] font-bold text-red-500">{m.desc}</div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-lg font-bold mb-2">입금 안내</h2>
 
           {/* 주문 요약 */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 space-y-3">
@@ -595,41 +503,38 @@ export default function AdBooking() {
               </div>
             )}
 
-            <div className="pt-3 border-t border-gray-100 dark:border-gray-700 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">상품 금액</span>
-                <span className="font-medium">{formatPrice(originalPrice)}원</span>
-              </div>
-              {isTransfer && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-red-500 font-medium">계좌이체 할인 (5%)</span>
-                  <span className="text-red-500 font-bold">-{formatPrice(discountAmount)}원</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                <span className="text-lg font-bold">총 결제 금액</span>
-                <div className="text-right">
-                  {isTransfer && (
-                    <span className="text-sm text-gray-400 line-through mr-2">{formatPrice(originalPrice)}원</span>
-                  )}
-                  <span className="text-2xl font-bold text-sky-600">{formatPrice(totalPrice)}원</span>
-                </div>
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold">총 금액</span>
+                <span className="text-2xl font-bold text-sky-600">{formatPrice(totalPrice)}원</span>
               </div>
             </div>
           </div>
 
-          {/* 계좌이체 할인 안내 */}
-          {!isTransfer && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 flex items-start gap-2">
-              <span className="text-lg">💡</span>
-              <div>
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">계좌이체로 결제하면 5% 할인!</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                  {formatPrice(originalPrice)}원 → {formatPrice(originalPrice - Math.round(originalPrice * 0.05))}원 ({formatPrice(Math.round(originalPrice * 0.05))}원 할인)
-                </p>
+          {/* 입금 계좌 안내 */}
+          <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">🏦</span>
+              <span className="text-sm font-bold text-sky-800 dark:text-sky-300">입금 계좌 안내</span>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">은행</span>
+                <span className="font-bold">카카오뱅크</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">계좌번호</span>
+                <span className="font-bold">3333-30-5765007</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">예금주</span>
+                <span className="font-bold">김동철</span>
               </div>
             </div>
-          )}
+            <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-2">
+              입금 시 광고 제목을 입금자명에 적어주세요. 관리자 확인 후 바로 광고가 노출됩니다.
+            </p>
+          </div>
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm">
@@ -645,15 +550,15 @@ export default function AdBooking() {
             {paying ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                결제 처리 중...
+                처리 중...
               </>
             ) : (
-              `${formatPrice(totalPrice)}원 결제하기`
+              '입금 완료 · 광고 신청하기'
             )}
           </button>
 
           <p className="text-xs text-gray-400 text-center">
-            결제 완료 후 광고 시작일부터 자동으로 노출됩니다.
+            입금 확인 후 관리자가 승인하면 광고가 바로 노출됩니다.
           </p>
         </div>
       )}

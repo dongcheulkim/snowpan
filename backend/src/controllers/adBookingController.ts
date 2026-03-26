@@ -533,6 +533,48 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
   }
 };
 
+// 관리자: 입금 확인 → 바로 active + 배너 생성
+export const adminApproveBooking = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const booking = await prisma.adBooking.findUnique({ where: { id } });
+    if (!booking) {
+      res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+      return;
+    }
+
+    if (booking.status !== 'pending_payment') {
+      res.status(400).json({ error: '입금 대기 상태가 아닙니다.' });
+      return;
+    }
+
+    // paid → active로 바로 전환 + 배너 생성
+    await prisma.adBooking.update({ where: { id }, data: { status: 'active' } });
+    await prisma.adPayment.update({
+      where: { bookingId: id },
+      data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
+    });
+
+    await createBannerFromBooking(booking);
+
+    await prisma.notification.create({
+      data: {
+        type: 'system',
+        title: '광고 입금 확인',
+        message: `"${booking.title}" 광고 입금이 확인되었습니다. 바로 노출됩니다!`,
+        link: '/mypage',
+        userId: booking.userId,
+      },
+    });
+
+    res.json({ success: true, message: '입금 확인 완료, 광고 노출 시작' });
+  } catch (error) {
+    console.error('관리자 입금 확인 오류:', error);
+    res.status(500).json({ error: '입금 확인 실패' });
+  }
+};
+
 // 관리자: 예약 강제 취소/환불
 export const adminCancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

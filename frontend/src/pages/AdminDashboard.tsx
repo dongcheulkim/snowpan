@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 
-type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adRequests';
+type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
 interface ReportItem {
   id: string;
@@ -51,18 +51,37 @@ interface ProductItem {
   premiumUntil: string | null;
 }
 
-interface AdRequestItem {
+interface AdBookingItem {
   id: string;
-  type: string;
+  slotType: string;
   category: string | null;
   title: string;
   description: string;
   url: string;
-  message: string | null;
   status: string;
-  adminNote: string | null;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  totalPrice: number;
   createdAt: string;
   user: { id: string; name: string; email: string; phone: string };
+  payment: { paymentId: string; payMethod: string; amount: number; status: string; paidAt: string } | null;
+}
+
+interface AdPricingItem {
+  id: string;
+  slotType: string;
+  category: string | null;
+  pricePerDay: number;
+  maxConcurrent: number;
+  description: string | null;
+  active: boolean;
+}
+
+interface RevenueData {
+  totalRevenue: number;
+  monthlyRevenue: number;
+  totalPayments: number;
 }
 
 const AdminDashboard = () => {
@@ -74,8 +93,9 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
-  const [adRequests, setAdRequests] = useState<AdRequestItem[]>([]);
-  const [adRejectNote, setAdRejectNote] = useState<{ id: string; note: string } | null>(null);
+  const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
+  const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
+  const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Banner form state
@@ -107,9 +127,16 @@ const AdminDashboard = () => {
       } else if (tab === 'premium') {
         const data = await api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50');
         setProducts(data.products);
-      } else if (tab === 'adRequests') {
-        const data = await api<AdRequestItem[]>('/admin/ad-requests');
-        setAdRequests(data);
+      } else if (tab === 'adBookings') {
+        const [bookings, revenue] = await Promise.all([
+          api<AdBookingItem[]>('/ad-booking/admin/bookings'),
+          api<RevenueData>('/ad-booking/admin/revenue'),
+        ]);
+        setAdBookings(bookings);
+        setAdRevenue(revenue);
+      } else if (tab === 'adPricing') {
+        const data = await api<AdPricingItem[]>('/ad-booking/admin/pricings');
+        setAdPricings(data);
       }
     } catch {
       /* ignore */
@@ -180,22 +207,33 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAdApprove = async (id: string) => {
+  const handleAdBookingApprove = async (id: string) => {
+    if (!confirm('입금 확인하고 광고를 바로 노출하시겠습니까?')) return;
     try {
-      await api(`/admin/ad-requests/${id}/approve`, { method: 'PUT' });
-      setAdRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'approved', adminNote: null } : r)));
+      await api(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST' });
+      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'active' } : b)));
+      alert('입금 확인 완료! 광고가 노출됩니다.');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '처리 실패');
+      alert(err instanceof Error ? err.message : '승인 실패');
     }
   };
 
-  const handleAdReject = async (id: string, note: string) => {
+  const handleAdBookingCancel = async (id: string) => {
+    if (!confirm('이 광고 예약을 취소하고 환불하시겠습니까?')) return;
     try {
-      await api(`/admin/ad-requests/${id}/reject`, { method: 'PUT', body: { adminNote: note } });
-      setAdRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rejected', adminNote: note } : r)));
-      setAdRejectNote(null);
+      await api(`/ad-booking/admin/bookings/${id}/cancel`, { method: 'POST', body: { reason: '관리자 취소' } });
+      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'refunded' } : b)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '처리 실패');
+      alert(err instanceof Error ? err.message : '취소 실패');
+    }
+  };
+
+  const handlePricingUpdate = async (pricing: AdPricingItem, field: string, value: number | boolean) => {
+    try {
+      await api(`/ad-booking/admin/pricings/${pricing.id}`, { method: 'PUT', body: { [field]: value } });
+      setAdPricings((prev) => prev.map((p) => (p.id === pricing.id ? { ...p, [field]: value } : p)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '수정 실패');
     }
   };
 
@@ -205,7 +243,8 @@ const AdminDashboard = () => {
     { id: 'users', label: '유저관리' },
     { id: 'banners', label: '배너관리' },
     { id: 'premium', label: '프리미엄' },
-    { id: 'adRequests', label: '광고신청' },
+    { id: 'adBookings', label: '광고예약' },
+    { id: 'adPricing', label: '광고가격' },
   ];
 
   const inputClass = "w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
@@ -388,66 +427,143 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
-          {/* Ad Requests Tab */}
-          {tab === 'adRequests' && (
+          {/* Ad Bookings Tab */}
+          {tab === 'adBookings' && (
             <div className="space-y-3">
-              {adRequests.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 신청이 없습니다.</div>
-              ) : (
-                adRequests.map((r) => (
-                  <div key={r.id} className="card p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                          r.status === 'approved' ? 'bg-mint/20 text-emerald-700' :
-                          r.status === 'rejected' ? 'bg-coral/20 text-coral' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {r.status === 'approved' ? '승인' : r.status === 'rejected' ? '거부' : '대기중'}
-                        </span>
-                        <span className="text-[10px] text-gray-400">{r.type === 'main_banner' ? '메인 배너' : `카테고리: ${r.category}`}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-300">{new Date(r.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-sm font-bold text-gray-900 mb-0.5">{r.title}</p>
-                    <p className="text-xs text-gray-500 mb-1">{r.description}</p>
-                    <p className="text-[11px] text-accent truncate mb-1">{r.url}</p>
-                    {r.message && <p className="text-[10px] text-gray-400 bg-gray-50 rounded p-2 mb-1">메모: {r.message}</p>}
-                    {r.adminNote && <p className="text-[10px] text-coral">거부 사유: {r.adminNote}</p>}
-                    <p className="text-[10px] text-gray-400 mt-1">신청자: {r.user.name} ({r.user.email}) · {r.user.phone}</p>
-                    {r.status === 'pending' && (
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={() => handleAdApprove(r.id)} className="flex-1 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors">
-                          승인
-                        </button>
-                        <button onClick={() => setAdRejectNote({ id: r.id, note: '' })} className="flex-1 py-2 bg-coral/10 text-coral rounded-lg font-bold text-xs hover:bg-coral/20 transition-colors">
-                          거부
-                        </button>
-                      </div>
-                    )}
+              {/* 매출 요약 */}
+              {adRevenue && (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="card p-3 text-center">
+                    <div className="text-lg font-bold text-gray-900">{adRevenue.totalRevenue.toLocaleString()}원</div>
+                    <div className="text-[10px] text-gray-400">총 매출</div>
                   </div>
-                ))
-              )}
-
-              {/* 거부 사유 입력 팝업 */}
-              {adRejectNote && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-                  <div className="absolute inset-0 bg-black/40" onClick={() => setAdRejectNote(null)} />
-                  <div className="relative bg-white rounded-xl p-5 w-full max-w-sm">
-                    <h4 className="text-sm font-bold text-gray-900 mb-3">거부 사유 입력</h4>
-                    <textarea
-                      value={adRejectNote.note}
-                      onChange={(e) => setAdRejectNote({ ...adRejectNote, note: e.target.value })}
-                      placeholder="거부 사유를 입력하세요 (선택)"
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none mb-3"
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={() => setAdRejectNote(null)} className="flex-1 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs">취소</button>
-                      <button onClick={() => handleAdReject(adRejectNote.id, adRejectNote.note)} className="flex-1 py-2.5 bg-coral text-white rounded-lg font-bold text-xs">거부 확정</button>
-                    </div>
+                  <div className="card p-3 text-center">
+                    <div className="text-lg font-bold text-accent">{adRevenue.monthlyRevenue.toLocaleString()}원</div>
+                    <div className="text-[10px] text-gray-400">이번 달</div>
+                  </div>
+                  <div className="card p-3 text-center">
+                    <div className="text-lg font-bold text-gray-900">{adRevenue.totalPayments}</div>
+                    <div className="text-[10px] text-gray-400">결제 건수</div>
                   </div>
                 </div>
+              )}
+
+              {adBookings.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 예약이 없습니다.</div>
+              ) : (
+                adBookings.map((b) => {
+                  const slotLabel = b.slotType === 'main_banner' ? '메인 배너' : b.slotType === 'premium' ? '프리미엄' : `카테고리: ${b.category}`;
+                  const statusMap: Record<string, { label: string; color: string }> = {
+                    pending_payment: { label: '결제 대기', color: 'bg-yellow-100 text-yellow-700' },
+                    paid: { label: '결제 완료', color: 'bg-blue-100 text-blue-700' },
+                    active: { label: '노출중', color: 'bg-mint/20 text-emerald-700' },
+                    completed: { label: '종료', color: 'bg-gray-100 text-gray-500' },
+                    cancelled: { label: '취소', color: 'bg-coral/20 text-coral' },
+                    refunded: { label: '환불', color: 'bg-coral/20 text-coral' },
+                  };
+                  const s = statusMap[b.status] || { label: b.status, color: 'bg-gray-100 text-gray-500' };
+                  const startD = new Date(b.startDate);
+                  const endD = new Date(b.endDate);
+                  return (
+                    <div key={b.id} className="card p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.color}`}>{s.label}</span>
+                          <span className="text-[10px] text-gray-400">{slotLabel}</span>
+                        </div>
+                        <span className="text-[10px] text-gray-300">{new Date(b.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-900 mb-0.5">{b.title}</p>
+                      <p className="text-xs text-gray-500 mb-1">
+                        {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일)
+                      </p>
+                      <p className="text-xs font-bold text-accent mb-1">{b.totalPrice.toLocaleString()}원</p>
+                      <p className="text-[10px] text-gray-400">
+                        {b.user.name} ({b.user.email}) · {b.user.phone}
+                      </p>
+                      {b.payment && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          결제: {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        {b.status === 'pending_payment' && (
+                          <button
+                            onClick={() => handleAdBookingApprove(b.id)}
+                            className="px-3 py-1.5 bg-mint/20 text-emerald-700 rounded-lg font-bold text-[11px] hover:bg-mint/30 transition-colors"
+                          >
+                            입금 확인
+                          </button>
+                        )}
+                        {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
+                          <button
+                            onClick={() => handleAdBookingCancel(b.id)}
+                            className="px-3 py-1.5 bg-coral/10 text-coral rounded-lg font-bold text-[11px] hover:bg-coral/20 transition-colors"
+                          >
+                            취소
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* Ad Pricing Tab */}
+          {tab === 'adPricing' && (
+            <div className="space-y-3">
+              {adPricings.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 가격 설정이 없습니다.</div>
+              ) : (
+                adPricings.map((p) => {
+                  const slotLabel = p.slotType === 'main_banner' ? '메인 배너' : p.slotType === 'premium' ? '프리미엄' : `카테고리: ${p.category}`;
+                  return (
+                    <div key={p.id} className="card p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>
+                            {p.active ? '활성' : '비활성'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handlePricingUpdate(p, 'active', !p.active)}
+                          className="text-[10px] text-gray-400 hover:text-gray-600"
+                        >
+                          {p.active ? '비활성화' : '활성화'}
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-1">1일 가격 (원)</label>
+                          <input
+                            type="number"
+                            defaultValue={p.pricePerDay}
+                            onBlur={(e) => {
+                              const v = parseInt(e.target.value);
+                              if (v > 0 && v !== p.pricePerDay) handlePricingUpdate(p, 'pricePerDay', v);
+                            }}
+                            className={inputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-1">동시 광고 수</label>
+                          <input
+                            type="number"
+                            defaultValue={p.maxConcurrent}
+                            onBlur={(e) => {
+                              const v = parseInt(e.target.value);
+                              if (v > 0 && v !== p.maxConcurrent) handlePricingUpdate(p, 'maxConcurrent', v);
+                            }}
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}

@@ -14,6 +14,7 @@ import {
   adminUpsertPricing,
   adminUpdatePricing,
   adminCancelBooking,
+  adminApproveBooking,
 } from '../controllers/adBookingController';
 
 const router = Router();
@@ -35,6 +36,7 @@ router.get('/admin/revenue', authenticateToken, adminGetRevenue);
 router.get('/admin/pricings', authenticateToken, adminGetPricings);
 router.post('/admin/pricings', authenticateToken, adminUpsertPricing);
 router.put('/admin/pricings/:id', authenticateToken, adminUpdatePricing);
+router.post('/admin/bookings/:id/approve', authenticateToken, adminApproveBooking);
 router.post('/admin/bookings/:id/cancel', authenticateToken, adminCancelBooking);
 
 export default router;
