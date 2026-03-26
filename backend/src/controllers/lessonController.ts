@@ -35,7 +35,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
 export const createLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, level, maxStudents, image, resortId } = req.body;
+    const { name, price, duration, level, maxStudents, image, resortId, instructorCert, businessLicense } = req.body;
 
     const lesson = await prisma.lesson.create({
       data: {
@@ -45,6 +45,8 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         level,
         maxStudents: parseInt(maxStudents),
         image,
+        instructorCert: instructorCert || null,
+        businessLicense: businessLicense || null,
         resortId,
         userId,
         approved: false, // 관리자 승인 대기

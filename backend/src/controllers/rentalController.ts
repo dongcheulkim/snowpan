@@ -34,7 +34,7 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
 export const createRental = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, equipment, image, resortId } = req.body;
+    const { name, price, duration, equipment, image, resortId, businessLicense } = req.body;
 
     const rental = await prisma.rental.create({
       data: {
@@ -43,6 +43,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         duration,
         equipment,
         image,
+        businessLicense: businessLicense || null,
         resortId,
         userId,
         approved: false, // 관리자 승인 대기

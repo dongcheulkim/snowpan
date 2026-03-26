@@ -64,7 +64,12 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
 export const createAccommodation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, type, price, originalPrice, guests, features, image, resortId } = req.body;
+    const { name, type, price, originalPrice, guests, features, image, resortId, businessLicense, accommodationPermit } = req.body;
+
+    if (!businessLicense) {
+      res.status(400).json({ error: '숙소 등록 시 사업자등록증은 필수입니다.' });
+      return;
+    }
 
     const accommodation = await prisma.accommodation.create({
       data: {
@@ -75,6 +80,8 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         guests,
         features,
         image,
+        businessLicense,
+        accommodationPermit: accommodationPermit || null,
         resortId,
         userId,
         approved: false,
