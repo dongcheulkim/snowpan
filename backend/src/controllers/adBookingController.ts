@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { getPayment, cancelPayment } from '../utils/portone';
+// PortOne 사용 안 함 (계좌이체 방식)
 import { createBannerFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
 
@@ -208,84 +208,9 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// 결제 검증 (PortOne 결제 후 프론트에서 호출)
-export const verifyPayment = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user!.id;
-    const { bookingId, paymentId } = req.body;
-
-    if (!bookingId || !paymentId) {
-      res.status(400).json({ error: 'bookingId, paymentId가 필요합니다.' });
-      return;
-    }
-
-    const booking = await prisma.adBooking.findFirst({
-      where: { id: bookingId, userId, status: 'pending_payment' },
-      include: { payment: true },
-    });
-
-    if (!booking) {
-      res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
-      return;
-    }
-
-    // PortOne 결제 검증
-    const portonePayment = await getPayment(paymentId);
-
-    if (portonePayment.status !== 'PAID') {
-      res.status(400).json({ error: '결제가 완료되지 않았습니다.' });
-      return;
-    }
-
-    if (portonePayment.amount.total !== booking.totalPrice) {
-      res.status(400).json({ error: '결제 금액이 일치하지 않습니다.' });
-      return;
-    }
-
-    // startDate가 이미 도달했으면 바로 active, 아니면 paid
-    const now = new Date();
-    const isReady = booking.startDate <= now;
-    const newStatus = isReady ? 'active' : 'paid';
-
-    // 결제 정보 업데이트
-    await prisma.$transaction([
-      prisma.adPayment.update({
-        where: { bookingId },
-        data: {
-          paymentId,
-          payMethod: portonePayment.method?.type || 'card',
-          amount: portonePayment.amount.total,
-          status: 'paid',
-          paidAt: portonePayment.paidAt ? new Date(portonePayment.paidAt) : new Date(),
-          receiptUrl: portonePayment.receiptUrl || 'none',
-          pgProvider: portonePayment.channel?.pgProvider || 'none',
-          pgTid: portonePayment.pgTxId || 'none',
-        },
-      }),
-      prisma.adBooking.update({
-        where: { id: bookingId },
-        data: { status: newStatus },
-      }),
-      prisma.notification.create({
-        data: {
-          type: 'system',
-          title: '광고 결제 완료',
-          message: `"${booking.title}" 광고 결제가 완료되었습니다.${isReady ? ' 바로 노출됩니다!' : ''}`,
-          link: '/mypage',
-          userId,
-        },
-      }),
-    ]);
-
-    // 바로 active면 배너 즉시 생성
-    if (isReady) {
-      await createBannerFromBooking(booking);
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('결제 검증 오류:', error);
-    res.status(500).json({ error: '결제 검증 실패' });
+// 결제 검증 (미사용 - 계좌이체 방식으로 변경)
+export const verifyPayment = async (_req: AuthRequest, res: Response): Promise<void> => {
+  res.status(400).json({ error: '계좌이체 방식으로 변경되었습니다. 관리자 입금 확인을 기다려주세요.' });
   }
 };
 
@@ -355,7 +280,7 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         return;
       }
 
-      await cancelPayment(booking.payment.paymentId, '사용자 취소 요청', refundAmount);
+
 
       await prisma.$transaction([
         prisma.adBooking.update({
@@ -592,7 +517,6 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
     }
 
     if (booking.payment && booking.payment.status === 'paid') {
-      await cancelPayment(booking.payment.paymentId, reason || '관리자 취소', booking.totalPrice);
       await prisma.adPayment.update({
         where: { bookingId: id },
         data: {
