@@ -211,8 +211,8 @@ const MyPage = () => {
         </div>
       </div>
 
-      {/* Badges */}
-      <div className="card p-5">
+      {/* Badges - 관리자에겐 숨김 */}
+      {user.role !== 'admin' && <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-gray-900">{t('mypage.certBadge')}</h3>
           <button onClick={() => setShowBadgeModal(true)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
@@ -256,10 +256,10 @@ const MyPage = () => {
             })}
           </div>
         )}
-      </div>
+      </div>}
 
-      {/* 광고 예약 */}
-      <div className="card p-5">
+      {/* 광고 예약 - 관리자에겐 숨김 */}
+      {user.role !== 'admin' && <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-gray-900">📢 광고 신청</h3>
           <Link to="/ad-booking" className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
@@ -308,7 +308,7 @@ const MyPage = () => {
             })}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Menu */}
       <div className="card overflow-hidden">
