@@ -205,8 +205,17 @@ export default function AdBooking() {
       const portonePayMethod = payMethod === 'TRANSFER' ? 'TRANSFER' : payMethod === 'EASY_PAY_KAKAO' ? 'EASY_PAY' : payMethod;
       const easyPayProvider = payMethod === 'EASY_PAY_KAKAO' ? 'KAKAOPAY' : payMethod === 'EASY_PAY' ? 'TOSSPAY' : undefined;
 
-      // @ts-ignore
-      const PortOne = await import('@portone/browser-sdk/v2');
+      // PortOne SDK를 CDN에서 동적 로드
+      if (!(window as any).PortOne) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.portone.io/v2/browser-sdk.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('PortOne SDK 로드 실패'));
+          document.head.appendChild(script);
+        });
+      }
+      const PortOne = (window as any).PortOne;
       const response = await PortOne.requestPayment({
         storeId,
         channelKey,
