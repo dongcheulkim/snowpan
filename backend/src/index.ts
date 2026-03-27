@@ -135,6 +135,9 @@ app.use('/api/community', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Health check
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+
 // 공개 배너 API (인증 불필요)
 import { getPublicBanners } from './controllers/adminController';
 app.get('/api/banners', getPublicBanners);
@@ -262,4 +265,12 @@ httpServer.listen(PORT, async () => {
     const deleted = await prisma.banner.deleteMany({ where: { image: null } });
     if (deleted.count > 0) console.log(`🧹 샘플 배너 ${deleted.count}개 삭제됨`);
   } catch {}
+
+  // Keep-alive: 5분마다 자기 자신에게 핑 (Render 슬립 방지)
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+  if (RENDER_URL) {
+    setInterval(() => {
+      fetch(`${RENDER_URL}/api/health`).catch(() => {});
+    }, 5 * 60 * 1000);
+  }
 });

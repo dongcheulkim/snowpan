@@ -444,7 +444,7 @@ export default function AdBooking() {
             <div className="mt-1">
               {imagePreview ? (
                 <div className="relative">
-                  <img src={imagePreview} alt="preview" className="w-full h-48 object-cover rounded-xl" />
+                  <img src={imagePreview} alt="preview" className="w-full max-h-64 object-contain rounded-xl bg-gray-100" />
                   <button
                     onClick={() => {
                       setImageFile(null);
@@ -508,7 +508,7 @@ export default function AdBooking() {
             {imagePreview && (
               <div>
                 <span className="text-gray-500 text-sm">광고 이미지</span>
-                <img src={imagePreview} alt="ad" className="w-full h-32 object-cover rounded-lg mt-1" />
+                <img src={imagePreview} alt="ad" className="w-full max-h-48 object-contain rounded-lg mt-1 bg-gray-100" />
               </div>
             )}
 
