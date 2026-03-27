@@ -175,6 +175,7 @@ export const getPublicBanners = async (_req: Request, res: Response): Promise<vo
     const banners = await prisma.banner.findMany({
       where: { active: true },
       orderBy: { order: 'asc' },
+      take: 5,
     });
     cacheSet(cacheKey, banners, 300); // Cache for 5 minutes
     res.json(banners);
