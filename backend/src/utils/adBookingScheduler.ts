@@ -50,9 +50,9 @@ export async function createBannerFromBooking(booking: { id: string; title: stri
       data: {
         title: booking.title,
         description: booking.description,
-        tag: 'AD',
+        tag: `ad:${booking.id}`,
         url: booking.url,
-        image: booking.image === 'none' ? null : booking.image,
+        image: booking.image || null,
         order: (maxOrder._max.order || 0) + 1,
         active: true,
       },
@@ -66,11 +66,8 @@ export async function createBannerFromBooking(booking: { id: string; title: stri
 // 광고 종료 → 배너 삭제
 async function removeBannerFromBooking(bookingId: string) {
   try {
-    const booking = await prisma.adBooking.findUnique({ where: { id: bookingId } });
-    if (!booking) return;
-    // title + url 매칭으로 배너 삭제
     await prisma.banner.deleteMany({
-      where: { title: booking.title, url: booking.url },
+      where: { tag: `ad:${bookingId}` },
     });
     cacheDel('banners:public');
   } catch (error) {

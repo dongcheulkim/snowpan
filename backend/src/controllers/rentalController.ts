@@ -39,7 +39,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
     const rental = await prisma.rental.create({
       data: {
         name,
-        price: parseInt(price),
+        price: Number(price) || 0,
         duration,
         equipment,
         image,
@@ -103,7 +103,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     const { name, price, duration, equipment, image } = req.body;
     const updated = await prisma.rental.update({
       where: { id },
-      data: { ...(name && { name }), ...(price && { price: parseInt(price) }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
+      data: { ...(name && { name }), ...(price && !isNaN(Number(price)) && { price: Number(price) }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
     });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }

@@ -30,9 +30,15 @@ export const authMiddleware = (
       return;
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET 환경변수가 설정되지 않았습니다.');
+      res.status(500).json({ error: '서버 설정 오류' });
+      return;
+    }
+
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'secret'
+      process.env.JWT_SECRET
     ) as JwtPayload;
 
     req.user = { id: decoded.userId, email: decoded.email, role: decoded.role };

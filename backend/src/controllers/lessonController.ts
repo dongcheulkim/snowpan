@@ -40,10 +40,10 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
     const lesson = await prisma.lesson.create({
       data: {
         name,
-        price: parseInt(price),
+        price: Number(price) || 0,
         duration,
         level,
-        maxStudents: parseInt(maxStudents),
+        maxStudents: Number(maxStudents) || 1,
         image,
         instructorCert: instructorCert || null,
         businessLicense: businessLicense || null,
@@ -106,7 +106,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     const { name, price, duration, level, maxStudents, image } = req.body;
     const updated = await prisma.lesson.update({
       where: { id },
-      data: { ...(name && { name }), ...(price && { price: parseInt(price) }), ...(duration && { duration }), ...(level && { level }), ...(maxStudents && { maxStudents: parseInt(maxStudents) }), ...(image && { image }) },
+      data: { ...(name && { name }), ...(price && !isNaN(Number(price)) && { price: Number(price) }), ...(duration && { duration }), ...(level && { level }), ...(maxStudents && !isNaN(Number(maxStudents)) && { maxStudents: Number(maxStudents) }), ...(image && { image }) },
     });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }

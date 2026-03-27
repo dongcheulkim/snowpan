@@ -140,9 +140,10 @@ router.post('/rooms', async (req: any, res: Response) => {
 // 채팅방 정보 조회
 router.get('/rooms/:roomId', async (req: any, res: Response) => {
   try {
+    const userId = req.user.id;
     const { roomId } = req.params;
-    const room = await prisma.chatRoom.findUnique({
-      where: { id: roomId },
+    const room = await prisma.chatRoom.findFirst({
+      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
       include: {
         user1: { select: { id: true, name: true, profileImage: true } },
         user2: { select: { id: true, name: true, profileImage: true } },
@@ -159,7 +160,13 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
 // 채팅방 메시지 조회
 router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
   try {
+    const userId = req.user.id;
     const { roomId } = req.params;
+    // 채팅방 멤버인지 확인
+    const room = await prisma.chatRoom.findFirst({
+      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+    });
+    if (!room) { res.status(403).json({ error: '접근 권한이 없습니다.' }); return; }
     const messages = await prisma.message.findMany({
       where: { roomId },
       include: { sender: { select: { id: true, name: true, profileImage: true } } },
@@ -177,7 +184,9 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
     const { roomId } = req.params;
-    const room = await prisma.chatRoom.findUnique({ where: { id: roomId } });
+    const room = await prisma.chatRoom.findFirst({
+      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+    });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
 
     const now = new Date();

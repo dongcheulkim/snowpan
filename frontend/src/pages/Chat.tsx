@@ -83,7 +83,9 @@ const Chat = () => {
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
         body: { targetUserId: state.sellerId, productName: state.productName || undefined, productPath: state.productPath || undefined },
-      }).then(room => connectToRoom(room.id));
+      }).then(room => connectToRoom(room.id)).catch(() => {
+        alert('채팅방 연결에 실패했습니다.');
+      });
     } else if (chatId) {
       // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
       connectToRoom(chatId);
@@ -119,7 +121,7 @@ const Chat = () => {
 
   const sendPriceOffer = () => {
     const price = parseInt(priceInput);
-    if (!price || price <= 0 || !roomId || !socketRef.current) return;
+    if (isNaN(price) || price <= 0 || !roomId || !socketRef.current) return;
     socketRef.current.emit('send_message', { roomId, content: String(price), type: 'price_offer' });
     setShowPriceModal(false);
     setPriceInput('');
@@ -284,7 +286,7 @@ const Chat = () => {
                     />
                   )
                 )}
-                {(!msg.imageUrl || (msg.content !== '사진을 보냈습니다.' && msg.content !== '동영상을 보냈습니다.')) && (
+                {(!msg.imageUrl || (msg.content !== t('chat.sentPhoto') && msg.content !== t('chat.sentVideo') && msg.content !== '사진을 보냈습니다.' && msg.content !== '동영상을 보냈습니다.')) && (
                   <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     isMe
                       ? 'bg-accent text-white rounded-br-md'
@@ -383,7 +385,7 @@ const Chat = () => {
             </div>
             <div className="flex gap-3">
               <button onClick={() => { setShowPriceModal(false); setPriceInput(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
-              <button onClick={sendPriceOffer} disabled={!priceInput || parseInt(priceInput) <= 0} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">{t('chat.offer')}</button>
+              <button onClick={sendPriceOffer} disabled={!priceInput || isNaN(parseInt(priceInput)) || parseInt(priceInput) <= 0} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">{t('chat.offer')}</button>
             </div>
           </div>
         </div>

@@ -33,7 +33,7 @@ const httpServer = createServer(app);
 
 // === Socket.IO with optimized settings for scale ===
 const io = new Server(httpServer, {
-  cors: { origin: '*' },
+  cors: { origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*' },
   pingTimeout: 60000,
   pingInterval: 25000,
   maxHttpBufferSize: 1e6, // 1MB max message size
@@ -159,7 +159,8 @@ io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('인증 필요'));
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { userId: string };
+    if (!process.env.JWT_SECRET) return next(new Error('서버 설정 오류'));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };
     socket.data.userId = decoded.userId;
     next();
   } catch {
@@ -177,6 +178,12 @@ io.on('connection', (socket) => {
 
   socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string; type?: string }) => {
     try {
+      // 채팅방 멤버인지 확인
+      const room = await prisma.chatRoom.findFirst({
+        where: { id: data.roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+      });
+      if (!room) return;
+
       const message = await prisma.message.create({
         data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null, type: data.type || 'text' },
         include: { sender: { select: { id: true, name: true, profileImage: true } } },

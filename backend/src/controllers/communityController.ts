@@ -74,7 +74,7 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'secret') as { userId: string };
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as { userId: string };
         currentUserId = decoded.userId;
       } catch {}
     }

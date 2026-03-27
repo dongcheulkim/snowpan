@@ -75,8 +75,8 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
       data: {
         name,
         type,
-        price: parseInt(price),
-        originalPrice: originalPrice ? parseInt(originalPrice) : parseInt(price),
+        price: Number(price) || 0,
+        originalPrice: originalPrice ? (Number(originalPrice) || 0) : (Number(price) || 0),
         guests,
         features,
         image,
@@ -117,7 +117,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     const { name, type, price, originalPrice, guests, features, image } = req.body;
     const updated = await prisma.accommodation.update({
       where: { id },
-      data: { ...(name && { name }), ...(type && { type }), ...(price && { price: parseInt(price) }), ...(originalPrice && { originalPrice: parseInt(originalPrice) }), ...(guests && { guests }), ...(features && { features }), ...(image && { image }) },
+      data: { ...(name && { name }), ...(type && { type }), ...(price && !isNaN(Number(price)) && { price: Number(price) }), ...(originalPrice && !isNaN(Number(originalPrice)) && { originalPrice: Number(originalPrice) }), ...(guests && { guests }), ...(features && { features }), ...(image && { image }) },
     });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }

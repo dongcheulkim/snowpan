@@ -102,12 +102,18 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
     const userId = req.user!.id;
     const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
 
+    const parsedPrice = parseInt(price);
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      res.status(400).json({ error: '유효한 가격을 입력해주세요.' });
+      return;
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
         brand: brand || '',
         subcategory: subcategory || null,
-        price: parseInt(price),
+        price: parsedPrice,
         image,
         images: images || null,
         category: 'used',
@@ -138,7 +144,7 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
 
     const product = await prisma.product.create({
       data: {
-        name, brand, price: parseInt(price), image, category: 'new', description,
+        name, brand, price: Number(price) || 0, image, category: 'new', description,
         rating: rating ? parseFloat(rating) : undefined,
         reviewCount: reviewCount ? parseInt(reviewCount) : undefined,
       },
@@ -160,7 +166,7 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET || 'secret') as { userId: string };
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as { userId: string };
         currentUserId = decoded.userId;
       } catch { /* ignore */ }
     }
@@ -205,7 +211,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(name && { name }),
         ...(brand !== undefined && { brand }),
         ...(subcategory !== undefined && { subcategory }),
-        ...(price && { price: parseInt(price) }),
+        ...(price && !isNaN(parseInt(price)) && { price: parseInt(price) }),
         ...(image && { image }),
         ...(images !== undefined && { images }),
         ...(description !== undefined && { description }),

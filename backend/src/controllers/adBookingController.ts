@@ -180,7 +180,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           title,
           description,
           url,
-          image: image || 'none',
+          image: image || null,
           startDate: start,
           endDate: end,
           totalDays,
@@ -312,7 +312,7 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
       ]);
 
       // 배너 삭제
-      await prisma.banner.deleteMany({ where: { title: booking.title, url: booking.url } });
+      await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });
       cacheDel('banners:public');
 
       res.json({ success: true, message: '환불이 처리되었습니다.', refundAmount: Math.round(refundAmount) });
@@ -565,7 +565,7 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
     ]);
 
     // 배너 삭제
-    await prisma.banner.deleteMany({ where: { title: booking.title, url: booking.url } });
+    await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });
     cacheDel('banners:public');
 
     res.json({ success: true });
