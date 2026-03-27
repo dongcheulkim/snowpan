@@ -269,6 +269,15 @@ export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId) { res.status(403).json({ error: '본인의 상품만 끌어올릴 수 있습니다.' }); return; }
 
+    if (product.bumpedAt) {
+      const hoursSinceBump = (Date.now() - new Date(product.bumpedAt).getTime()) / (1000 * 60 * 60);
+      if (hoursSinceBump < 24) {
+        const remaining = Math.ceil(24 - hoursSinceBump);
+        res.status(429).json({ error: `끌어올리기는 24시간에 한 번만 가능합니다. ${remaining}시간 후 다시 시도해주세요.` });
+        return;
+      }
+    }
+
     const updated = await prisma.product.update({
       where: { id },
       data: { bumpedAt: new Date() },
