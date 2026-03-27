@@ -131,7 +131,7 @@ const Home = () => {
                   }`}
                 >
                   {banner.image && (
-                    <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                   )}
                   <div className="flex-1 relative z-10">
                     <div className="flex items-center gap-2 mb-1">

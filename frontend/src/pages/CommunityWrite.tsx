@@ -20,6 +20,7 @@ const CommunityWrite = () => {
   const categories = [
     { id: 'free', name: '자유' },
     { id: 'review', name: '장비리뷰' },
+    { id: 'gear', name: '장비추천' },
     { id: 'resort', name: '스키장' },
     { id: 'tip', name: '초보팁' },
     { id: 'carpool', name: '카풀' },

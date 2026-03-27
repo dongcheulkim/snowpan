@@ -27,12 +27,13 @@ interface PostData {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행',
 };
 
 const badgeColor: Record<string, string> = {
   '자유': 'text-accent-light bg-accent/10 border-accent/20',
   '장비리뷰': 'text-mint bg-mint/10 border-mint/20',
+  '장비추천': 'text-sky-500 bg-sky-50 border-sky-200',
   '스키장후기': 'text-gold bg-gold/10 border-gold/20',
   '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
