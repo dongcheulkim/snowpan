@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, uploadImages, imageUrl } from '../api';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
@@ -100,8 +100,10 @@ const AdminDashboard = () => {
 
   // Banner form state
   const [showBannerForm, setShowBannerForm] = useState(false);
-  const [bannerForm, setBannerForm] = useState({ title: '', description: '', tag: 'AD', url: '', order: 0, active: true });
+  const [bannerForm, setBannerForm] = useState({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true });
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState('');
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -168,14 +170,22 @@ const AdminDashboard = () => {
 
   const handleBannerSubmit = async () => {
     try {
+      let imgUrl = bannerForm.image;
+      if (bannerImageFile) {
+        const urls = await uploadImages([bannerImageFile]);
+        imgUrl = urls[0];
+      }
+      const body = { ...bannerForm, image: imgUrl };
       if (editingBannerId) {
-        await api(`/admin/banners/${editingBannerId}`, { method: 'PUT', body: bannerForm });
+        await api(`/admin/banners/${editingBannerId}`, { method: 'PUT', body });
       } else {
-        await api('/admin/banners', { method: 'POST', body: bannerForm });
+        await api('/admin/banners', { method: 'POST', body });
       }
       setShowBannerForm(false);
-      setBannerForm({ title: '', description: '', tag: 'AD', url: '', order: 0, active: true });
+      setBannerForm({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true });
       setEditingBannerId(null);
+      setBannerImageFile(null);
+      setBannerImagePreview('');
       fetchData();
     } catch (err) {
       alert(err instanceof Error ? err.message : '저장 실패');
@@ -193,8 +203,10 @@ const AdminDashboard = () => {
   };
 
   const handleEditBanner = (banner: BannerItem) => {
-    setBannerForm({ title: banner.title, description: banner.description, tag: banner.tag, url: banner.url, order: banner.order, active: banner.active });
+    setBannerForm({ title: banner.title, description: banner.description, tag: banner.tag, url: banner.url, image: banner.image || '', order: banner.order, active: banner.active });
     setEditingBannerId(banner.id);
+    setBannerImageFile(null);
+    setBannerImagePreview(banner.image ? imageUrl(banner.image) : '');
     setShowBannerForm(true);
   };
 
@@ -353,7 +365,7 @@ const AdminDashboard = () => {
           {tab === 'banners' && (
             <div className="space-y-3">
               <button
-                onClick={() => { setShowBannerForm(true); setEditingBannerId(null); setBannerForm({ title: '', description: '', tag: 'AD', url: '', order: 0, active: true }); }}
+                onClick={() => { setShowBannerForm(true); setEditingBannerId(null); setBannerForm({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true }); setBannerImageFile(null); setBannerImagePreview(''); }}
                 className="px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors"
               >
                 + 배너 추가
@@ -367,6 +379,20 @@ const AdminDashboard = () => {
                   <input placeholder="태그 (예: AD)" value={bannerForm.tag} onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })} className={inputClass} />
                   <input placeholder="URL" value={bannerForm.url} onChange={(e) => setBannerForm({ ...bannerForm, url: e.target.value })} className={inputClass} />
                   <input type="number" placeholder="순서" value={bannerForm.order} onChange={(e) => setBannerForm({ ...bannerForm, order: parseInt(e.target.value) || 0 })} className={inputClass} />
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">배너 이미지</label>
+                    {bannerImagePreview ? (
+                      <div className="relative">
+                        <img src={bannerImagePreview} alt="preview" className="w-full max-h-48 object-contain rounded-lg bg-gray-100" />
+                        <button onClick={() => { setBannerImageFile(null); setBannerImagePreview(''); setBannerForm({ ...bannerForm, image: '' }); }} className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-sky-400 transition-colors">
+                        <span className="text-xs text-gray-400">이미지 업로드</span>
+                        <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBannerImageFile(f); setBannerImagePreview(URL.createObjectURL(f)); } }} className="hidden" />
+                      </label>
+                    )}
+                  </div>
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={bannerForm.active} onChange={(e) => setBannerForm({ ...bannerForm, active: e.target.checked })} />
                     활성화
@@ -390,6 +416,7 @@ const AdminDashboard = () => {
                       </div>
                       <p className="text-sm font-bold text-gray-900">{b.title}</p>
                       <p className="text-xs text-gray-400">{b.description}</p>
+                      {b.image && <img src={imageUrl(b.image)} alt="" className="w-32 h-16 object-contain rounded mt-1 bg-gray-50" />}
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => handleEditBanner(b)} className="px-2 py-1 bg-gray-100 text-gray-500 rounded text-[10px] font-bold">수정</button>
