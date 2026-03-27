@@ -113,7 +113,7 @@ const Home = () => {
     <div className="min-h-screen bg-sky-50">
       {/* Banner */}
       <div className="px-4 pt-2 pb-5 bg-white">
-        <div className="relative overflow-hidden rounded-2xl bg-primary-50 h-[100px]">
+        <div className="relative overflow-hidden rounded-2xl bg-primary-50 aspect-[3.5/1]">
           {banners.length > 0 ? (
             <>
               {banners.map((banner, idx) => (
