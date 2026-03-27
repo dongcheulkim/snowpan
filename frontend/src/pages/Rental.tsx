@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import Pagination from '../components/Pagination';
 
 interface RentalItem {
   id: string;
@@ -17,10 +18,15 @@ interface Resort {
   name: string;
 }
 
+const PAGE_SIZE = 12;
+
 const Rental = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
 
   const [banners, setBanners] = useState<{ title: string; desc: string; url?: string; image?: string | null }[]>([]);
@@ -41,12 +47,31 @@ const Rental = () => {
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
-    api<RentalItem[]>('/rentals').then(setRentalItems).catch(() => {});
   }, []);
 
-  const filteredItems = selectedResort === 'all'
-    ? rentalItems
-    : rentalItems.filter(item => item.resort?.id === selectedResort);
+  // 필터 변경 시 페이지 리셋
+  useEffect(() => { setPage(1); }, [selectedResort]);
+
+  useEffect(() => {
+    const fetchRentals = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
+        if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        const data = await api<{ items: RentalItem[]; totalCount: number }>(`/rentals?${params}`);
+        setRentalItems(data.items);
+        setTotalCount(data.totalCount);
+      } catch {
+        setRentalItems([]);
+        setTotalCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRentals();
+  }, [selectedResort, page]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -108,48 +133,54 @@ const Rental = () => {
       </div>
 
       {/* Rental Items */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {filteredItems.map((item) => (
-          <Link to={`/rental/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-              {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              ) : (
-                <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              )}
-            </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
-                  {item.resort?.name || ''}
-                </span>
-                <span className="text-[10px] text-gray-400">{item.duration}</span>
+      {loading ? (
+        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {rentalItems.map((item) => (
+            <Link to={`/rental/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
+              <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                {item.image.startsWith('/') || item.image.startsWith('http') ? (
+                  <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                ) : (
+                  <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
+                )}
               </div>
-              <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
-              <div className="flex flex-wrap gap-1 mb-2">
-                <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded border border-gray-200">
-                  {item.equipment}
-                </span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                <div>
-                  <div className="text-[10px] text-gray-400">{item.duration}</div>
-                  <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
+                    {item.resort?.name || ''}
+                  </span>
+                  <span className="text-[10px] text-gray-400">{item.duration}</span>
                 </div>
-                <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
-                  예약
-                </button>
+                <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded border border-gray-200">
+                    {item.equipment}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                  <div>
+                    <div className="text-[10px] text-gray-400">{item.duration}</div>
+                    <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+                  </div>
+                  <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
+                    예약
+                  </button>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
-      {filteredItems.length === 0 && (
+      {!loading && rentalItems.length === 0 && (
         <div className="text-center py-12 text-gray-400 bg-white border border-gray-200 rounded-xl text-sm">
           해당 스키장의 렌탈 정보가 없습니다.
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };

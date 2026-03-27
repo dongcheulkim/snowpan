@@ -4,27 +4,30 @@ import prisma from '../config/database';
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, level } = req.query;
+    const { resortId, level, limit, offset } = req.query;
 
-    const where: any = { approved: true }; // 승인된 레슨만 조회
+    const where: any = { approved: true };
     if (resortId) where.resortId = resortId as string;
     if (level) where.level = level as string;
 
-    const lessons = await prisma.lesson.findMany({
-      where,
-      include: {
-        resort: true,
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const take = limit ? parseInt(limit as string, 10) : 50;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
 
-    res.json(lessons);
+    const [lessons, totalCount] = await Promise.all([
+      prisma.lesson.findMany({
+        where,
+        include: {
+          resort: true,
+          user: { select: { name: true, phone: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        ...(skip !== undefined && { skip }),
+      }),
+      prisma.lesson.count({ where }),
+    ]);
+
+    res.json({ items: lessons, totalCount });
   } catch (error) {
     console.error('Get lessons error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });

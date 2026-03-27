@@ -4,26 +4,29 @@ import prisma from '../config/database';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId } = req.query;
+    const { resortId, limit, offset } = req.query;
 
-    const rentals = await prisma.rental.findMany({
-      where: {
-        ...(resortId ? { resortId: resortId as string } : {}),
-        approved: true, // 승인된 렌탈만 조회
-      },
-      include: {
-        resort: true,
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
+    const where: any = { approved: true };
+    if (resortId) where.resortId = resortId as string;
+
+    const take = limit ? parseInt(limit as string, 10) : 50;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
+
+    const [rentals, totalCount] = await Promise.all([
+      prisma.rental.findMany({
+        where,
+        include: {
+          resort: true,
+          user: { select: { name: true, phone: true } },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        take,
+        ...(skip !== undefined && { skip }),
+      }),
+      prisma.rental.count({ where }),
+    ]);
 
-    res.json(rentals);
+    res.json({ items: rentals, totalCount });
   } catch (error) {
     console.error('Get rentals error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });

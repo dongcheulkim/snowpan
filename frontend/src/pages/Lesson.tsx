@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import Pagination from '../components/Pagination';
 
 interface LessonItem {
   id: string;
@@ -18,11 +19,16 @@ interface Resort {
   name: string;
 }
 
+const PAGE_SIZE = 12;
+
 const Lesson = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
   const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
 
   const [banners, setBanners] = useState<{ title: string; desc: string }[]>([]);
@@ -53,17 +59,37 @@ const Lesson = () => {
     { id: 'demo', name: '데몬' },
   ];
 
-  useEffect(() => {
-    api<LessonItem[]>('/lessons').then(setLessonItems).catch(() => {});
-  }, []);
+  // 필터 변경 시 페이지 리셋
+  useEffect(() => { setPage(1); }, [selectedResort, selectedLevel]);
 
-  const levelMap: Record<string, string> = { beginner: 'lv1', intermediate: 'lv2', advanced: 'lv3' };
-  const filteredItems = lessonItems.filter(item => {
-    const resortMatch = selectedResort === 'all' || item.resort?.id === selectedResort;
-    const mappedLevel = levelMap[item.level] || item.level;
-    const levelMatch = selectedLevel === 'all' || mappedLevel === selectedLevel;
-    return resortMatch && levelMatch;
-  });
+  // 레벨 필터 → 백엔드 level 값으로 변환
+  const levelToBackend: Record<string, string> = { lv1: 'beginner', lv2: 'intermediate', lv3: 'advanced', demo: 'demo' };
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
+        if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        if (selectedLevel !== 'all') {
+          const backendLevel = levelToBackend[selectedLevel];
+          if (backendLevel) params.set('level', backendLevel);
+        }
+        const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
+        setLessonItems(data.items);
+        setTotalCount(data.totalCount);
+      } catch {
+        setLessonItems([]);
+        setTotalCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLessons();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedResort, selectedLevel, page]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -137,49 +163,55 @@ const Lesson = () => {
       </div>
 
       {/* Lesson Items */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {filteredItems.map((item) => (
-          <Link to={`/lesson/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-              {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              ) : (
-                <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              )}
-            </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
-                  {item.resort?.name || ''}
-                </span>
-                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                  {item.level === 'beginner' ? 'LV1' : item.level === 'intermediate' ? 'LV2' : item.level === 'advanced' ? 'LV3' : item.level}
-                </span>
+      {loading ? (
+        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {lessonItems.map((item) => (
+            <Link to={`/lesson/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors">
+              <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                {item.image.startsWith('/') || item.image.startsWith('http') ? (
+                  <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                ) : (
+                  <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
+                )}
               </div>
-              <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
-              <div className="flex items-center gap-3 mb-2 text-[11px] text-gray-400">
-                <span>{item.duration}</span>
-                <span>{item.maxStudents === 1 ? '1:1' : `${item.maxStudents}명`}</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                <div>
-                  <div className="text-[10px] text-gray-400">{item.duration}</div>
-                  <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
+                    {item.resort?.name || ''}
+                  </span>
+                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                    {item.level === 'beginner' ? 'LV1' : item.level === 'intermediate' ? 'LV2' : item.level === 'advanced' ? 'LV3' : item.level}
+                  </span>
                 </div>
-                <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
-                  예약
-                </button>
+                <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
+                <div className="flex items-center gap-3 mb-2 text-[11px] text-gray-400">
+                  <span>{item.duration}</span>
+                  <span>{item.maxStudents === 1 ? '1:1' : `${item.maxStudents}명`}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                  <div>
+                    <div className="text-[10px] text-gray-400">{item.duration}</div>
+                    <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+                  </div>
+                  <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
+                    예약
+                  </button>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
-      {filteredItems.length === 0 && (
+      {!loading && lessonItems.length === 0 && (
         <div className="text-center py-12 text-gray-400 bg-white border border-gray-200 rounded-xl text-sm">
           해당 조건의 레슨 정보가 없습니다.
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };

@@ -4,27 +4,30 @@ import prisma from '../config/database';
 
 export const getAccommodations = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, type } = req.query;
+    const { resortId, type, limit, offset } = req.query;
 
-    const accommodations = await prisma.accommodation.findMany({
-      where: {
-        ...(resortId ? { resortId: resortId as string } : {}),
-        ...(type ? { type: { contains: type as string } } : {}),
-        approved: true,
-      },
-      include: {
-        resort: true,
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
+    const where: any = { approved: true };
+    if (resortId) where.resortId = resortId as string;
+    if (type) where.type = { contains: type as string };
+
+    const take = limit ? parseInt(limit as string, 10) : 50;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
+
+    const [accommodations, totalCount] = await Promise.all([
+      prisma.accommodation.findMany({
+        where,
+        include: {
+          resort: true,
+          user: { select: { name: true, phone: true } },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        take,
+        ...(skip !== undefined && { skip }),
+      }),
+      prisma.accommodation.count({ where }),
+    ]);
 
-    res.json(accommodations);
+    res.json({ items: accommodations, totalCount });
   } catch (error) {
     console.error('Get accommodations error:', error);
     res.status(500).json({ error: '숙소 조회 중 오류가 발생했습니다.' });

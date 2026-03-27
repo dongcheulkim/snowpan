@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import Pagination from '../components/Pagination';
 
 interface AccommodationItem {
   id: string;
@@ -21,11 +22,16 @@ interface Resort {
   name: string;
 }
 
+const PAGE_SIZE = 12;
+
 const Accommodation = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [currentBanner, setCurrentBanner] = useState(0);
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
 
   const [banners, setBanners] = useState<{ title: string; desc: string }[]>([]);
@@ -57,15 +63,30 @@ const Accommodation = () => {
     { id: 'season', name: '시즌방' },
   ];
 
-  useEffect(() => {
-    api<AccommodationItem[]>('/accommodations').then(setAccommodations).catch(() => {});
-  }, []);
+  // 필터 변경 시 페이지 리셋
+  useEffect(() => { setPage(1); }, [selectedResort, selectedType]);
 
-  const filteredItems = accommodations.filter(item => {
-    const resortMatch = selectedResort === 'all' || item.resort?.id === selectedResort;
-    const typeMatch = selectedType === 'all' || item.type.includes(selectedType);
-    return resortMatch && typeMatch;
-  });
+  useEffect(() => {
+    const fetchAccommodations = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
+        if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        if (selectedType !== 'all') params.set('type', selectedType);
+        const data = await api<{ items: AccommodationItem[]; totalCount: number }>(`/accommodations?${params}`);
+        setAccommodations(data.items);
+        setTotalCount(data.totalCount);
+      } catch {
+        setAccommodations([]);
+        setTotalCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAccommodations();
+  }, [selectedResort, selectedType, page]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -139,61 +160,71 @@ const Accommodation = () => {
       </div>
 
       {/* Accommodation List */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {filteredItems.map((item) => (
-          <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
-            <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-              {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              ) : (
-                <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-              )}
-              <span className="absolute top-2 right-2 bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-200">
-                {item.type.split(',').map(t => typeMap[t] || t).join(', ')}
-              </span>
-            </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                  {item.resort?.name}
+      {loading ? (
+        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {accommodations.map((item) => (
+            <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
+              <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                {item.image.startsWith('/') || item.image.startsWith('http') ? (
+                  <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                ) : (
+                  <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
+                )}
+                <span className="absolute top-2 right-2 bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-200">
+                  {item.type.split(',').map(t => typeMap[t] || t).join(', ')}
                 </span>
-                <span className="text-[10px] text-gray-400">{item.guests}</span>
               </div>
-              <h3 className="text-sm font-bold text-gray-900 truncate mb-1.5">{item.name}</h3>
-
-              <div className="flex flex-wrap gap-1 mb-2">
-                {item.features.split(',').filter(Boolean).map((feature, idx) => (
-                  <span key={idx} className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded border border-gray-200">
-                    {feature.trim()}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                    {item.resort?.name}
                   </span>
-                ))}
-              </div>
-
-              <div className="flex justify-between items-end pt-2 border-t border-gray-200">
-                <div>
-                  <div className="text-[10px] text-gray-400 line-through">{item.originalPrice.toLocaleString()}원</div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
-                    <span className="text-[10px] text-coral font-bold">
-                      {Math.round((1 - item.price / item.originalPrice) * 100)}%
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-gray-400">1박</div>
+                  <span className="text-[10px] text-gray-400">{item.guests}</span>
                 </div>
-                <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
-                  예약
-                </button>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+                <h3 className="text-sm font-bold text-gray-900 truncate mb-1.5">{item.name}</h3>
 
-      {filteredItems.length === 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {item.features.split(',').filter(Boolean).map((feature, idx) => (
+                    <span key={idx} className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded border border-gray-200">
+                      {feature.trim()}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-end pt-2 border-t border-gray-200">
+                  <div>
+                    {item.originalPrice > item.price && (
+                      <div className="text-[10px] text-gray-400 line-through">{item.originalPrice.toLocaleString()}원</div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+                      {item.originalPrice > item.price && (
+                        <span className="text-[10px] text-coral font-bold">
+                          {Math.round((1 - item.price / item.originalPrice) * 100)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-gray-400">1박</div>
+                  </div>
+                  <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
+                    예약
+                  </button>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {!loading && accommodations.length === 0 && (
         <div className="text-center py-12 text-gray-400 bg-white border border-gray-200 rounded-xl text-sm">
           해당 조건의 숙소 정보가 없습니다.
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };
