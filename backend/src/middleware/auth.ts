@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import prisma from '../config/database';
 
 interface JwtPayload {
   userId: string;
@@ -17,11 +18,11 @@ export interface AuthRequest extends Request {
   user?: AuthUser;
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
@@ -41,7 +42,23 @@ export const authMiddleware = (
       process.env.JWT_SECRET
     ) as JwtPayload;
 
-    req.user = { id: decoded.userId, email: decoded.email, role: decoded.role };
+    // DB에서 최신 role 확인 (banned 체크)
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      res.status(401).json({ error: '존재하지 않는 사용자입니다.' });
+      return;
+    }
+
+    if (user.role === 'banned') {
+      res.status(403).json({ error: '이용이 제한된 계정입니다.' });
+      return;
+    }
+
+    req.user = { id: user.id, email: user.email, role: user.role };
     next();
   } catch (error) {
     res.status(401).json({ error: '유효하지 않은 토큰입니다.' });

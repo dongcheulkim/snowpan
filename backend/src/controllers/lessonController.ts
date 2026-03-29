@@ -40,6 +40,11 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
     const userId = req.user!.id;
     const { name, price, duration, level, maxStudents, image, resortId, instructorCert, businessLicense } = req.body;
 
+    if (!name || !price || !duration || !level || !maxStudents || !image || !resortId) {
+      res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+
     const lesson = await prisma.lesson.create({
       data: {
         name,

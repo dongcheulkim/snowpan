@@ -102,6 +102,11 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
     const userId = req.user!.id;
     const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
 
+    if (!name || !price || !image) {
+      res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+
     const parsedPrice = parseInt(price);
     if (isNaN(parsedPrice) || parsedPrice < 0) {
       res.status(400).json({ error: '유효한 가격을 입력해주세요.' });

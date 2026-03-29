@@ -103,7 +103,7 @@ model Rental {
   image                 String
   businessLicense       String?   // 사업자등록증 이미지 URL
   resortId              String
-  resort                SkiResort @relation(fields: [resortId], references: [id])
+  resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
@@ -126,7 +126,7 @@ model Lesson {
   instructorCert        String?   // 강사 자격증 이미지 URL
   businessLicense       String?   // 사업자등록증 이미지 URL
   resortId              String
-  resort                SkiResort @relation(fields: [resortId], references: [id])
+  resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
@@ -150,7 +150,7 @@ model Accommodation {
   businessLicense       String?   // 사업자등록증 이미지 URL (필수)
   accommodationPermit   String?   // 숙박업 신고증 이미지 URL
   resortId              String
-  resort                SkiResort @relation(fields: [resortId], references: [id])
+  resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false)

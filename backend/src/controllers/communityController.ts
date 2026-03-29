@@ -127,6 +127,11 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     const userId = req.user!.id;
     const { title, content, category, sport, images } = req.body;
 
+    if (!title || !content || !category || !sport) {
+      res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+
     const post = await prisma.post.create({
       data: { title, content, category, sport, userId, images: images || null },
       include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
@@ -174,6 +179,11 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { id: postId } = req.params;
     const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
+      return;
+    }
 
     const comment = await prisma.comment.create({
       data: { content, postId, userId },

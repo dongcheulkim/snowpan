@@ -69,8 +69,8 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
     const userId = req.user!.id;
     const { name, type, price, originalPrice, guests, features, image, resortId, businessLicense, accommodationPermit } = req.body;
 
-    if (!businessLicense) {
-      res.status(400).json({ error: '숙소 등록 시 사업자등록증은 필수입니다.' });
+    if (!name || !type || !price || !guests || !features || !image || !resortId || !businessLicense) {
+      res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
 
