@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
+import ErrorBoundary from './components/ErrorBoundary';
+import NotFound from './pages/NotFound';
 
 // 핵심 페이지: 즉시 로딩 (딜레이 없음)
 import Home from './pages/Home';
@@ -97,6 +99,7 @@ function App() {
   usePrefetchRoutes();
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Suspense fallback={<div className="min-h-screen" />}>
         <Routes>
           <Route path="/" element={<MainLayout />}>
@@ -146,9 +149,11 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
