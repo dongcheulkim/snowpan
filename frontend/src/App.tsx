@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
@@ -52,10 +52,52 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
 
+// 앱 로딩 후 모든 lazy 청크를 백그라운드에서 미리 로딩
+const lazyImports = [
+  () => import('./pages/UsedRegister'),
+  () => import('./pages/RentalRegister'),
+  () => import('./pages/LessonRegister'),
+  () => import('./pages/AccommodationRegister'),
+  () => import('./pages/CommunityWrite'),
+  () => import('./pages/SellerProfile'),
+  () => import('./pages/Register'),
+  () => import('./pages/AdminApproval'),
+  () => import('./pages/EditProfile'),
+  () => import('./pages/MySales'),
+  () => import('./pages/UsedEdit'),
+  () => import('./pages/MyPurchases'),
+  () => import('./pages/MyWishlist'),
+  () => import('./pages/MyPosts'),
+  () => import('./pages/NotificationSettings'),
+  () => import('./pages/ChangePassword'),
+  () => import('./pages/Terms'),
+  () => import('./pages/Support'),
+  () => import('./pages/NewEquipment'),
+  () => import('./pages/PollCreate'),
+  () => import('./pages/PollDetail'),
+  () => import('./pages/Webcam'),
+  () => import('./pages/WebcamDetail'),
+  () => import('./pages/RecentlyViewed'),
+  () => import('./pages/ForgotPassword'),
+  () => import('./pages/AdminDashboard'),
+  () => import('./pages/AdBooking'),
+];
+
+function usePrefetchRoutes() {
+  useEffect(() => {
+    // 초기 렌더 후 idle 시간에 모든 lazy 청크 프리페치
+    const id = requestIdleCallback(() => {
+      lazyImports.forEach(fn => fn().catch(() => {}));
+    }, { timeout: 3000 });
+    return () => cancelIdleCallback(id);
+  }, []);
+}
+
 function App() {
+  usePrefetchRoutes();
   return (
     <BrowserRouter>
-      <Suspense fallback={<div className="text-center py-20 text-gray-400">Loading...</div>}>
+      <Suspense fallback={<div className="min-h-screen" />}>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />

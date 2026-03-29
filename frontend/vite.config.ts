@@ -65,9 +65,12 @@ export default defineConfig({
     cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          socket: ['socket.io-client'],
+        manualChunks(id) {
+          if (id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor';
+          if (id.includes('node_modules/react/')) return 'vendor';
+          if (id.includes('socket.io-client')) return 'socket';
+          if (id.includes('hls.js')) return 'hls';
+          if (id.includes('data/webcamData')) return 'webcam-data';
         },
       },
     },
