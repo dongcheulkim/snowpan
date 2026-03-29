@@ -16,8 +16,8 @@ interface Product {
 }
 
 const conditionOptions = ['새상품', '거의 새 거', '사용감 적음', '사용감 많음'];
-const conditionToCode: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
-const codeToCondition: Record<string, string> = { '상': '새상품', '중': '사용감 적음', '하': '사용감 많음' };
+const conditionToCode: Record<string, string> = { '새상품': '상', '거의 새 거': '상중', '사용감 적음': '중', '사용감 많음': '하' };
+const codeToCondition: Record<string, string> = { '상': '새상품', '상중': '거의 새 거', '중': '사용감 적음', '하': '사용감 많음' };
 
 const UsedEdit = () => {
   const { id } = useParams();
@@ -68,6 +68,12 @@ const UsedEdit = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      if (existingImages.length === 0 && imageFiles.length === 0) {
+        alert('이미지를 최소 1장 등록해주세요.');
+        setLoading(false);
+        return;
+      }
+
       let imageUrl = existingImages[0] || '';
       let allImageUrls = existingImages.join(',');
 

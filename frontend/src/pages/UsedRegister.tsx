@@ -43,7 +43,7 @@ const UsedRegister = () => {
     setLoading(true);
 
     const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
-    const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
+    const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상중', '사용감 적음': '중', '사용감 많음': '하' };
 
     try {
       let imgUrl = imageMap[form.subcategory] || '📦';

@@ -172,8 +172,11 @@ io.on('connection', (socket) => {
   const userId = socket.data.userId;
   socket.join(`user:${userId}`);
 
-  socket.on('join_room', (roomId: string) => {
-    socket.join(`room:${roomId}`);
+  socket.on('join_room', async (roomId: string) => {
+    const room = await prisma.chatRoom.findFirst({
+      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+    });
+    if (room) socket.join(`room:${roomId}`);
   });
 
   socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string; type?: string }) => {
