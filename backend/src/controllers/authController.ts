@@ -3,6 +3,8 @@ import { AuthRequest } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
+import { sendEmail, verificationEmailHtml } from '../utils/email';
+import { sendSMS } from '../utils/sms';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -255,7 +257,9 @@ export const sendPhoneVerification = async (
       },
     });
 
-    if (process.env.NODE_ENV !== 'production') console.log(`인증번호 [${phone}]: ${code}`);
+    // SMS 발송 (환경변수 미설정 시 콘솔 로그)
+    const sent = await sendSMS(phone, `[스노우판] 인증번호: ${code}`);
+    if (!sent) console.log(`[인증번호] ${phone}: ${code}`);
 
     res.json({
       message: '인증번호가 발송되었습니다.',
@@ -346,7 +350,10 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
       data: { phone: email, code, expiresAt },
     });
 
-    if (process.env.NODE_ENV !== 'production') console.log(`비밀번호 재설정 인증번호 [${email}]: ${code}`);
+    // 이메일 발송 (환경변수 미설정 시 콘솔 로그)
+    const sent = await sendEmail(email, '[스노우판] 비밀번호 재설정 인증번호', verificationEmailHtml(code));
+    if (!sent) console.log(`[비밀번호 재설정] ${email}: ${code}`);
+
     res.json({ message: '인증번호가 이메일로 발송되었습니다.' });
   } catch (error) {
     console.error('Reset password request error:', error);

@@ -47,9 +47,9 @@ const Navbar = () => {
     if (!user) { setTimeout(() => setUnreadNotifCount(0), 0); return; }
     const token = sessionStorage.getItem('token');
     if (!token) return;
-    api<NotificationBasic[]>('/notifications')
-      .then(notifs => {
-        const count = notifs.filter(n => !n.read).length;
+    api<{ notifications: NotificationBasic[]; totalCount: number }>('/notifications?limit=50')
+      .then(data => {
+        const count = data.notifications.filter(n => !n.read).length;
         setTimeout(() => setUnreadNotifCount(count), 0);
       })
       .catch(() => { /* ignore */ });

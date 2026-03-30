@@ -54,19 +54,29 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const reviews = await prisma.review.findMany({
-      where: { sellerId: sellerId as string },
-      include: {
-        buyer: { select: { id: true, name: true, profileImage: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const { limit, offset } = req.query;
+    const take = limit ? parseInt(limit as string, 10) : 50;
+    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    const where = { sellerId: sellerId as string };
 
-    // 평균 별점 계산
-    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-    const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+    const [reviews, totalCount] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        include: {
+          buyer: { select: { id: true, name: true, profileImage: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        ...(skip !== undefined && { skip }),
+      }),
+      prisma.review.count({ where }),
+    ]);
 
-    res.json({ reviews, averageRating, totalCount: reviews.length });
+    // 평균 별점 (전체 기준)
+    const agg = await prisma.review.aggregate({ where, _avg: { rating: true } });
+    const averageRating = agg._avg.rating || 0;
+
+    res.json({ reviews, averageRating, totalCount });
   } catch (error) {
     console.error('Get reviews error:', error);
     res.status(500).json({ error: '리뷰 조회 중 오류가 발생했습니다.' });
