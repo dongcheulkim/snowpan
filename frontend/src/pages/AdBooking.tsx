@@ -27,7 +27,7 @@ const SLOT_LABELS: Record<string, string> = {
 const SLOT_DESCRIPTIONS: Record<string, string> = {
   main_banner: '홈 화면 상단에 배너로 노출됩니다',
   category: '선택한 카테고리 페이지 상단에 배너로 노출됩니다',
-  premium: '상품 리스트 최상단에 고정 노출됩니다',
+  premium: '상품 리스트 최상단 고정 (카테고리당 3개 한정, 1,000원/일)',
 };
 
 const SLOT_ICONS: Record<string, string> = {
