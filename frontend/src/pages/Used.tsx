@@ -134,7 +134,7 @@ const Used = () => {
                     product.image
                   )}
                   {product.isPremium && (
-                    <span className="absolute top-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/90 text-white shadow-sm">PREMIUM</span>
+                    <span className="absolute top-1 right-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
                   )}
                   {product.status !== 'selling' && (
                     <span className={`absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>
