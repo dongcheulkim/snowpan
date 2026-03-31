@@ -88,10 +88,14 @@ const lazyImports = [
 function usePrefetchRoutes() {
   useEffect(() => {
     // 초기 렌더 후 idle 시간에 모든 lazy 청크 프리페치
-    const id = requestIdleCallback(() => {
-      lazyImports.forEach(fn => fn().catch(() => {}));
-    }, { timeout: 3000 });
-    return () => cancelIdleCallback(id);
+    const cb = () => lazyImports.forEach(fn => fn().catch(() => {}));
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(cb, { timeout: 3000 });
+      return () => cancelIdleCallback(id);
+    } else {
+      const id = setTimeout(cb, 1000);
+      return () => clearTimeout(id);
+    }
   }, []);
 }
 
