@@ -33,8 +33,11 @@ const Notifications = () => {
 
   useEffect(() => {
     if (!user) return;
-    api<{ notifications: Notification[]; totalCount: number }>('/notifications')
-      .then(data => setNotifications(data.notifications))
+    api<any>('/notifications')
+      .then(data => {
+        const notifs = Array.isArray(data) ? data : (data?.notifications || []);
+        setNotifications(notifs);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps

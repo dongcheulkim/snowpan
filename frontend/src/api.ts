@@ -23,13 +23,13 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await res.json();
+  let data: any;
+  try { data = await res.json(); } catch { data = {}; }
   if (!res.ok) {
-    if (res.status === 401 && sessionStorage.getItem('token')) {
+    if (res.status === 401 && sessionStorage.getItem('token') && !window.location.pathname.includes('/login')) {
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
       window.location.href = '/login';
-      throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
     }
     throw new Error(data.error || '요청에 실패했습니다.');
   }

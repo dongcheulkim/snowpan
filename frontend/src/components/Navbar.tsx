@@ -6,16 +6,6 @@ import { t, onLangChange } from '../i18n';
 
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
-interface ChatRoomBasic {
-  id: string;
-  unreadCount: number;
-}
-
-interface NotificationBasic {
-  id: string;
-  read: boolean;
-}
-
 function useLocalStorageUser() {
   return useSyncExternalStore(
     (cb) => { window.addEventListener('storage', cb); return () => window.removeEventListener('storage', cb); },
@@ -34,25 +24,27 @@ const Navbar = () => {
   const location = useLocation();
   const raw = useLocalStorageUser();
   useI18nRerender();
-  // re-parse on location change to pick up login/logout
   void location.pathname;
-  const user: { id: string; name: string } | null = raw ? JSON.parse(raw) : null;
+
+  let user: { id: string; name: string } | null = null;
+  try { user = raw ? JSON.parse(raw) : null; } catch { user = null; }
+
   const [hasUnread, setHasUnread] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
 
-  // Fetch unread notification count
   const fetchNotifCount = useCallback(() => {
     if (!user) { setTimeout(() => setUnreadNotifCount(0), 0); return; }
     const token = sessionStorage.getItem('token');
     if (!token) return;
-    api<{ notifications: NotificationBasic[]; totalCount: number }>('/notifications?limit=50')
+    api<any>('/notifications?limit=50')
       .then(data => {
-        const count = data.notifications.filter(n => !n.read).length;
+        const notifs = Array.isArray(data) ? data : (data?.notifications || []);
+        const count = notifs.filter((n: any) => !n.read).length;
         setTimeout(() => setUnreadNotifCount(count), 0);
       })
-      .catch(() => { /* ignore */ });
+      .catch(() => {});
   }, [user]);
 
   useEffect(() => {
@@ -60,23 +52,22 @@ const Navbar = () => {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
-    // Cache unread count for 30 seconds to avoid fetching on every route change
     const now = Date.now();
     if (now - lastFetchRef.current < 30000) return;
     lastFetchRef.current = now;
 
-    api<ChatRoomBasic[]>('/chat/rooms')
-      .then(rooms => {
-        const total = rooms.reduce((sum, r) => sum + (r.unreadCount || 0), 0);
+    api<any>('/chat/rooms')
+      .then(data => {
+        const rooms = Array.isArray(data) ? data : [];
+        const total = rooms.reduce((sum: number, r: any) => sum + (r.unreadCount || 0), 0);
         setTimeout(() => setHasUnread(total > 0), 0);
       })
-      .catch(() => { /* ignore */ });
+      .catch(() => {});
 
     fetchNotifCount();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  // Socket.IO for real-time notifications
   useEffect(() => {
     const token = sessionStorage.getItem('token');
     if (!user || !token) return;
