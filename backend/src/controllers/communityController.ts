@@ -64,6 +64,46 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// 인기 게시글 (최근 7일, 좋아요+조회수 기준 상위 10개)
+export const getPopularPosts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sport } = req.query;
+
+    const cacheKey = `posts:popular:${sport || 'all'}`;
+    const cached = cacheGet<unknown[]>(cacheKey);
+    if (cached) { res.json(cached); return; }
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const where: any = { createdAt: { gte: oneWeekAgo } };
+    if (sport) where.sport = sport as string;
+
+    const posts = await prisma.post.findMany({
+      where,
+      take: 10,
+      include: {
+        user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+        _count: { select: { comments: true } },
+      },
+      orderBy: [{ likes: 'desc' }, { views: 'desc' }],
+    });
+
+    const result = posts.map(p => ({
+      ...p,
+      user: { ...p.user, name: resolveDisplayName(p.user), badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
+      commentCount: p._count.comments,
+      _count: undefined,
+    }));
+
+    cacheSet(cacheKey, result, 60);
+    res.json(result);
+  } catch (error) {
+    console.error('Get popular posts error:', error);
+    res.status(500).json({ error: '인기 게시글 조회 중 오류가 발생했습니다.' });
+  }
+};
+
 export const getPostById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;

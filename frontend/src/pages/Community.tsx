@@ -42,6 +42,7 @@ const Community = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
+  const [popularPosts, setPopularPosts] = useState<Post[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ const Community = () => {
 
   const tabs = [
     { id: 'all', name: t('community.all') },
+    { id: 'popular', name: '인기' },
     { id: 'free', name: t('community.free') },
     { id: 'review', name: t('community.review') },
     { id: 'gear', name: '장비추천' },
@@ -70,7 +72,19 @@ const Community = () => {
 
   useEffect(() => { setTimeout(() => setPage(1), 0); }, [sport, selectedTab, debouncedSearch]);
 
+  // 인기 게시글 로딩
   useEffect(() => {
+    if (selectedTab !== 'popular') return;
+    setLoading(true);
+    api<Post[]>(`/community/popular?sport=${sport || ''}`)
+      .then(data => { setPopularPosts(Array.isArray(data) ? data : []); })
+      .catch(() => setPopularPosts([]))
+      .finally(() => setLoading(false));
+  }, [sport, selectedTab]);
+
+  // 일반 게시글 로딩
+  useEffect(() => {
+    if (selectedTab === 'popular') return;
     setTimeout(() => setLoading(true), 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
@@ -122,15 +136,27 @@ const Community = () => {
         ))}
       </div>
 
+      {selectedTab === 'popular' && !loading && popularPosts.length > 0 && (
+        <div className="bg-gradient-to-r from-sky-50 to-white rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-sky-600">
+          <span>🔥</span> 최근 7일간 좋아요·조회수 TOP 10
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-12 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : (
         <div className="space-y-2">
-          {posts.map((post) => {
+          {(selectedTab === 'popular' ? popularPosts : posts).map((post, idx) => {
             const firstImage = post.images ? post.images.split(',')[0]?.trim() : null;
+            const rank = selectedTab === 'popular' ? idx + 1 : 0;
             return (
             <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex gap-3">
+                {rank > 0 && (
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    {rank}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
@@ -161,13 +187,13 @@ const Community = () => {
         </div>
       )}
 
-      {!loading && posts.length === 0 && (
+      {!loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
         <div className="text-center py-12 text-gray-400 card text-sm">
-          {debouncedSearch ? t('community.noResults') : t('community.noPosts')}
+          {selectedTab === 'popular' ? '최근 7일간 인기 게시글이 없습니다.' : debouncedSearch ? t('community.noResults') : t('community.noPosts')}
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      {selectedTab !== 'popular' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
     </div>
   );
 };
