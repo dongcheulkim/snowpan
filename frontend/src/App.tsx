@@ -60,9 +60,10 @@ function App() {
       <ErrorBoundary>
       <Suspense fallback={
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="relative w-12 h-12">
+          <div className="relative w-14 h-14">
             <div className="absolute inset-0 rounded-full border-4 border-sky-100" />
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-500 animate-spin" />
+            <span className="absolute inset-0 flex items-center justify-center text-lg font-black text-sky-500">판</span>
           </div>
           <span className="text-sm text-gray-400 animate-pulse">로딩 중...</span>
         </div>
