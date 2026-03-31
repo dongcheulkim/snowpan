@@ -58,7 +58,15 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-      <Suspense fallback={<div className="text-center py-20 text-gray-400">로딩 중...</div>}>
+      <Suspense fallback={
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-4 border-sky-100" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-500 animate-spin" />
+          </div>
+          <span className="text-sm text-gray-400 animate-pulse">로딩 중...</span>
+        </div>
+      }>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
