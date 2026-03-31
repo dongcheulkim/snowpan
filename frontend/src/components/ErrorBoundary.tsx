@@ -18,10 +18,6 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack);
-    // Sentry가 로딩되어 있으면 전송
-    import('@sentry/react').then(Sentry => {
-      Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
-    }).catch(() => {});
   }
 
   render() {
