@@ -25,6 +25,7 @@ import MyChatList from './pages/MyChatList';
 import Notifications from './pages/Notifications';
 import GearGuide from './pages/GearGuide';
 import Competitions from './pages/Competitions';
+import CompetitionDetail from './pages/CompetitionDetail';
 
 // 나머지: lazy 로딩
 const UsedRegister = lazy(() => import('./pages/UsedRegister'));
@@ -89,6 +90,7 @@ function App() {
             <Route path="accommodation/:id" element={<AccommodationDetail />} />
             <Route path="gear-guide" element={<GearGuide />} />
             <Route path="competitions" element={<Competitions />} />
+            <Route path="competitions/:id" element={<CompetitionDetail />} />
             <Route path="community" element={<CommunitySelect />} />
             <Route path="community/post/:id" element={<CommunityDetail />} />
             <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
