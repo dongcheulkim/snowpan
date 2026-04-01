@@ -73,14 +73,15 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
+    const where: any = {};
+    if (sport) where.sport = sport as string;
+
+    // 최근 7일 인기글 먼저, 부족하면 전체에서 채움
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const where: any = { createdAt: { gte: oneWeekAgo } };
-    if (sport) where.sport = sport as string;
-
-    const posts = await prisma.post.findMany({
-      where,
+    let posts = await prisma.post.findMany({
+      where: { ...where, createdAt: { gte: oneWeekAgo } },
       take: 10,
       include: {
         user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
@@ -88,6 +89,20 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
       },
       orderBy: [{ likes: 'desc' }, { views: 'desc' }],
     });
+
+    if (posts.length < 10) {
+      const existingIds = posts.map(p => p.id);
+      const more = await prisma.post.findMany({
+        where: { ...where, id: { notIn: existingIds } },
+        take: 10 - posts.length,
+        include: {
+          user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+          _count: { select: { comments: true } },
+        },
+        orderBy: [{ likes: 'desc' }, { views: 'desc' }],
+      });
+      posts = [...posts, ...more];
+    }
 
     const result = posts.map(p => ({
       ...p,
