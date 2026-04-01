@@ -84,6 +84,7 @@ const Home = () => {
     { id: 'accommodation', title: t('cat.accommodation'), icon: '🏨', link: '/accommodation' },
     { id: 'community', title: t('cat.community'), icon: '💬', link: '/community' },
     { id: 'gear', title: '장비추천', icon: '🔍', link: '/gear-guide' },
+    { id: 'competitions', title: '시합일정', icon: '🏆', link: '/competitions' },
     { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
   ];
 
