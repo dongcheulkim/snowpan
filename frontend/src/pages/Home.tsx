@@ -38,7 +38,6 @@ const badgeMap: Record<string, string> = {
 
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [currentVideo, setCurrentVideo] = useState(0);
   const [hotDeals, setHotDeals] = useState<Product[]>([]);
   const [communityTab, setCommunityTab] = useState<'ski' | 'board'>('ski');
   const [skiPosts, setSkiPosts] = useState<CommunityPost[]>([]);
@@ -49,17 +48,6 @@ const Home = () => {
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick((p) => p + 1), 0));
   }, []);
-
-  const youtubeVideos = [
-    // 헬스키
-    { id: 'HELLSKI_1', channel: '헬스키', title: '영상 제목 1', videoId: 'VIDEO_ID_1' },
-    { id: 'HELLSKI_2', channel: '헬스키', title: '영상 제목 2', videoId: 'VIDEO_ID_2' },
-    { id: 'HELLSKI_3', channel: '헬스키', title: '영상 제목 3', videoId: 'VIDEO_ID_3' },
-    // 최신스키
-    { id: 'LATEST_1', channel: '최신스키', title: '영상 제목 1', videoId: 'VIDEO_ID_4' },
-    { id: 'LATEST_2', channel: '최신스키', title: '영상 제목 2', videoId: 'VIDEO_ID_5' },
-    { id: 'LATEST_3', channel: '최신스키', title: '영상 제목 3', videoId: 'VIDEO_ID_6' },
-  ];
 
   const [banners, setBanners] = useState<BannerData[]>([]);
 
@@ -247,63 +235,6 @@ const Home = () => {
           ) : (
             <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
           )}
-        </div>
-
-        {/* YouTube Videos */}
-        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">🎬 유튜버의 핫한 영상!</h2>
-            <div className="flex gap-1">
-              {youtubeVideos.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentVideo(idx)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentVideo ? 'bg-red-500 w-4' : 'bg-gray-300'}`}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-xl">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentVideo * 100}%)` }}
-            >
-              {youtubeVideos.map((video) => (
-                <a
-                  key={video.id}
-                  href={`https://www.youtube.com/watch?v=${video.videoId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex-shrink-0"
-                >
-                  <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden">
-                    <img
-                      src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
-                        <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1" />
-                      </div>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-[10px] font-bold text-red-400 bg-red-500/20 px-1.5 py-0.5 rounded">YouTube</span>
-                        <span className="text-[11px] font-bold text-white">{video.channel}</span>
-                      </div>
-                      <p className="text-xs text-white/80 truncate">{video.title}</p>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-center gap-3 mt-2.5">
-            <button onClick={() => setCurrentVideo(Math.max(0, currentVideo - 1))} disabled={currentVideo === 0} className="text-xs text-gray-400 disabled:opacity-30">← 이전</button>
-            <span className="text-[10px] text-gray-400">{currentVideo + 1} / {youtubeVideos.length}</span>
-            <button onClick={() => setCurrentVideo(Math.min(youtubeVideos.length - 1, currentVideo + 1))} disabled={currentVideo === youtubeVideos.length - 1} className="text-xs text-gray-400 disabled:opacity-30">다음 →</button>
-          </div>
         </div>
 
       </div>
