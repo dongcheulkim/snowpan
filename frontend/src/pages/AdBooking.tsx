@@ -41,6 +41,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   rental: '렌탈',
   lesson: '레슨',
   accommodation: '숙소',
+  skishop: '스키샵',
 };
 
 function formatPrice(n: number): string {
