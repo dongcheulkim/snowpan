@@ -21,6 +21,7 @@ import chatRoutes from './routes/chatRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import adBookingRoutes from './routes/adBookingRoutes';
+import skiShopRoutes from './routes/skiShopRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { generalLimiter, authLimiter, writeLimiter } from './middleware/rateLimit';
@@ -153,6 +154,7 @@ app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/ad-booking', adBookingRoutes);
+app.use('/api/ski-shops', skiShopRoutes);
 
 // Socket.IO auth middleware
 io.use((socket, next) => {

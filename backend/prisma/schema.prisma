@@ -41,6 +41,7 @@ model User {
   reports          Report[]
   adRequests       AdRequest[]
   adBookings       AdBooking[]
+  skiShops         SkiShop[]
 
   @@map("users")
 }
@@ -433,4 +434,31 @@ model AdRequest {
   @@index([userId])
   @@index([status])
   @@map("ad_requests")
+}
+
+model SkiShop {
+  id              String   @id @default(uuid())
+  name            String
+  area            String   // '강원' | '경기' | '서울' 등
+  resort          String?  // 소속 스키장
+  address         String
+  description     String
+  brands          String?  // 콤마 구분 브랜드
+  phone           String?
+  instagram       String?
+  website         String?
+  naverMap        String?
+  hours           String?  // 영업시간
+  image           String?  // 샵 대표 이미지
+  businessLicense String   // 사업자등록증 이미지 (필수)
+  approved        Boolean  @default(false)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([area])
+  @@index([approved])
+  @@map("ski_shops")
 }

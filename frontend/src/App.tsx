@@ -28,6 +28,7 @@ import Competitions from './pages/Competitions';
 import CompetitionDetail from './pages/CompetitionDetail';
 
 // 나머지: lazy 로딩
+const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const UsedRegister = lazy(() => import('./pages/UsedRegister'));
 const RentalRegister = lazy(() => import('./pages/RentalRegister'));
 const LessonRegister = lazy(() => import('./pages/LessonRegister'));
@@ -90,6 +91,7 @@ function App() {
             <Route path="accommodation/:id" element={<AccommodationDetail />} />
             <Route path="gear-guide" element={<GearGuide />} />
             <Route path="skishop" element={<NewEquipment />} />
+            <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
             <Route path="competitions" element={<Competitions />} />
             <Route path="competitions/:id" element={<CompetitionDetail />} />
             <Route path="community" element={<CommunitySelect />} />
