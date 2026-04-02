@@ -27,10 +27,10 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https?:\/\/.*\/api\/banners.*/i,
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'banner-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 300 },
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 },
             },
           },
           {
