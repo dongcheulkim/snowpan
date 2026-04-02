@@ -87,7 +87,7 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { slotType, category, title, description, url, image, startDate, endDate, payMethod } = req.body;
+    const { slotType, category, title, description, url, image, textColor, textAlign, startDate, endDate, payMethod } = req.body;
 
     if (!slotType || !title || !description || !url || !startDate || !endDate) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -181,6 +181,8 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           description,
           url,
           image: image || null,
+          textColor: textColor || null,
+          textAlign: textAlign || null,
           startDate: start,
           endDate: end,
           totalDays,
@@ -350,6 +352,8 @@ export const getActiveAds = async (req: Request, res: Response): Promise<void> =
         description: true,
         url: true,
         image: true,
+        textColor: true,
+        textAlign: true,
         startDate: true,
         endDate: true,
       },

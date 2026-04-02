@@ -330,6 +330,8 @@ model Banner {
   tag         String
   url         String
   image       String?
+  textColor   String?  // 글자 색상 hex (#ffffff)
+  textAlign   String?  // 글자 위치 'left' | 'center' | 'right'
   order       Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -362,6 +364,8 @@ model AdBooking {
   description String
   url         String
   image       String?
+  textColor   String?  // 글자 색상 hex (#ffffff)
+  textAlign   String?  // 글자 위치 'left' | 'center' | 'right'
   startDate   DateTime
   endDate     DateTime
   totalDays   Int

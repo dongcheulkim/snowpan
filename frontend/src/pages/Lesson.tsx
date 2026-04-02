@@ -31,11 +31,11 @@ const Lesson = () => {
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
 
-  const [banners, setBanners] = useState<{ title: string; desc: string }[]>([]);
+  const [banners, setBanners] = useState<{ title: string; desc: string; textColor?: string | null; textAlign?: string | null }[]>([]);
 
   useEffect(() => {
     api<any[]>('/ad-booking/active?slotType=category&category=lesson')
-      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description }))))
+      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description, textColor: a.textColor, textAlign: a.textAlign }))))
       .catch(() => {});
   }, []);
 
@@ -104,12 +104,12 @@ const Lesson = () => {
           <>
             {banners.map((banner, idx) => (
               <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
-                <div className="relative z-10 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
+                <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
+                  <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
                     <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
-                    <h3 className="text-base font-bold text-gray-900">{banner.title}</h3>
+                    <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
                   </div>
-                  <p className="text-sm text-gray-500">{banner.desc}</p>
+                  <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
                 </div>
               </div>
             ))}

@@ -84,6 +84,8 @@ export default function AdBooking() {
   const [url, setUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [textColor, setTextColor] = useState('#1e293b');
+  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
 
   // Step 4: 결제
   const payMethod = 'TRANSFER';
@@ -178,6 +180,8 @@ export default function AdBooking() {
           description,
           url,
           image: imageUrl,
+          textColor: selectedSlot !== 'premium' ? textColor : undefined,
+          textAlign: selectedSlot !== 'premium' ? textAlign : undefined,
           startDate,
           endDate,
           payMethod: 'TRANSFER',
@@ -466,6 +470,51 @@ export default function AdBooking() {
               )}
             </div>
           </div>
+
+          {/* 디자인 커스터마이징 (프리미엄 제외) */}
+          {selectedSlot !== 'premium' && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">글자 색상</label>
+                <div className="flex items-center gap-3 mt-1">
+                  <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
+                  <div className="flex gap-2">
+                    {['#1e293b', '#ffffff', '#0ea5e9', '#ef4444', '#f59e0b'].map(c => (
+                      <button key={c} type="button" onClick={() => setTextColor(c)} className={`w-8 h-8 rounded-full border-2 ${textColor === c ? 'border-sky-500 scale-110' : 'border-gray-200'} transition-all`} style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-400 ml-auto">{textColor}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">글자 위치</label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {([['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']] as const).map(([val, label]) => (
+                    <button key={val} type="button" onClick={() => setTextAlign(val)} className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${textAlign === val ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 미리보기 */}
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">미리보기</label>
+                <div className="mt-1 relative overflow-hidden rounded-xl bg-gray-100 border border-gray-200 aspect-[3.5/1]">
+                  {imagePreview && (
+                    <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
+                    <div>
+                      <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>
+                      <p className="text-sm opacity-80" style={{ color: textColor }}>{description || '광고 설명'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           <button
             disabled={!canProceedStep3}
