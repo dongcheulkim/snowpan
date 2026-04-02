@@ -75,8 +75,15 @@ const Navbar = () => {
     const socket = io(SERVER_URL, { auth: { token } });
     socketRef.current = socket;
 
-    socket.on('new_notification', () => {
+    socket.on('new_notification', (data: any) => {
       setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
+      if (data?.type === 'chat') {
+        setTimeout(() => setHasUnread(true), 0);
+      }
+    });
+
+    socket.on('new_message', () => {
+      setTimeout(() => setHasUnread(true), 0);
     });
 
     return () => {

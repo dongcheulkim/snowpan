@@ -68,12 +68,13 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
+    { id: 'new', title: '새장비', icon: '🛒', link: '/new-equipment' },
+    { id: 'skishop', title: '스키샵', icon: '🏪', link: '/skishop' },
     { id: 'used', title: t('cat.used'), icon: '🏷️', link: '/used' },
     { id: 'rental', title: t('cat.rental'), icon: '⛷️', link: '/rental' },
     { id: 'lesson', title: t('cat.lesson'), icon: '🎿', link: '/lesson' },
     { id: 'accommodation', title: t('cat.accommodation'), icon: '🏨', link: '/accommodation' },
     { id: 'community', title: t('cat.community'), icon: '💬', link: '/community' },
-    { id: 'gear', title: '장비추천', icon: '🔍', link: '/gear-guide' },
     { id: 'competitions', title: '시합일정', icon: '🏆', link: '/competitions' },
     { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
   ];
