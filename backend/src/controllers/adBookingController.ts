@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createBannerFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
+import { notifyAdmins } from './notificationController';
 
 // 광고 슬롯 가격 목록 조회
 export const getSlotPricings = async (_req: Request, res: Response): Promise<void> => {
@@ -208,6 +209,8 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     if (booking.status === 'active') {
       await createBannerFromBooking(booking);
     }
+
+    await notifyAdmins('system', '새 광고 신청', `"${title}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
 
     res.status(201).json({
       bookingId: booking.id,

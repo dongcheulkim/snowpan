@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { notifyAdmins } from '../controllers/notificationController';
 
 const router = Router();
 
@@ -44,6 +45,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       },
     });
 
+    await notifyAdmins('system', '새 스키샵 등록 신청', `"${name}" 스키샵이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({ ...shop, message: '스키샵 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.' });
   } catch (error) {
     console.error('Create ski shop error:', error);

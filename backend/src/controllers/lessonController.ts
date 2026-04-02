@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { notifyAdmins } from './notificationController';
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -70,6 +71,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
       },
     });
 
+    await notifyAdmins('system', '새 레슨 등록', `"${name}" 레슨이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({
       ...lesson,
       message: '레슨 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.'

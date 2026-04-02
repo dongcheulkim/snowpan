@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { notifyAdmins } from '../controllers/notificationController';
 
 const router = Router();
 
@@ -30,6 +31,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       },
     });
 
+    const typeLabel: Record<string, string> = { product: '상품', post: '게시글', user: '유저' };
+    await notifyAdmins('system', '새 신고 접수', `${typeLabel[type] || type} 신고: ${reason}`, '/admin');
     res.status(201).json(report);
   } catch (error) {
     console.error('Create report error:', error);

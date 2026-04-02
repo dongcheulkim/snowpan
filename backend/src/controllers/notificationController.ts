@@ -77,6 +77,18 @@ export const deleteAllNotifications = async (req: AuthRequest, res: Response): P
   }
 };
 
+// 관리자 전체에게 알림 보내기
+export const notifyAdmins = async (type: string, title: string, message: string, link?: string) => {
+  try {
+    const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
+    for (const admin of admins) {
+      await prisma.notification.create({ data: { userId: admin.id, type, title, message, link } });
+    }
+  } catch (error) {
+    console.error('Notify admins error:', error);
+  }
+};
+
 // 알림 생성 헬퍼 (다른 컨트롤러에서 호출)
 export const createNotification = async (userId: string, type: string, title: string, message: string, link?: string) => {
   try {
