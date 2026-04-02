@@ -452,6 +452,8 @@ model SkiShop {
   image           String?  // 샵 대표 이미지
   businessLicense String   // 사업자등록증 이미지 (필수)
   approved        Boolean  @default(false)
+  isPremium       Boolean  @default(false)
+  premiumUntil    DateTime?
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   createdAt       DateTime @default(now())

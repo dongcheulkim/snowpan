@@ -15,7 +15,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const shops = await prisma.skiShop.findMany({
       where,
       include: { user: { select: { name: true, phone: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });
     res.json(shops);
   } catch (error) {

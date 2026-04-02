@@ -16,6 +16,7 @@ interface Shop {
   naverMap?: string | null;
   hours?: string | null;
   image?: string | null;
+  isPremium?: boolean;
 }
 
 const areas = [
@@ -35,20 +36,6 @@ export default function NewEquipment() {
   const [selectedResort, setSelectedResort] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentBanner, setCurrentBanner] = useState(0);
-  const [banners, setBanners] = useState<{ title: string; desc: string; textColor?: string | null; textAlign?: string | null }[]>([]);
-
-  useEffect(() => {
-    api<any[]>('/ad-booking/active?slotType=category&category=skishop')
-      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description, textColor: a.textColor, textAlign: a.textAlign }))))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (banners.length === 0) return;
-    const timer = setInterval(() => setCurrentBanner(prev => (prev + 1) % banners.length), 4000);
-    return () => clearInterval(timer);
-  }, [banners.length]);
 
   useEffect(() => {
     setLoading(true);
@@ -69,36 +56,6 @@ export default function NewEquipment() {
           <h1 className="text-xl font-bold text-gray-900">스키샵</h1>
         </div>
         <Link to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">+ 등록</Link>
-      </div>
-
-      {/* 광고 배너 */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
-        {banners.length > 0 ? (
-          <>
-            {banners.map((banner, idx) => (
-              <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
-                <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
-                  <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                    <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
-                    <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
-                  </div>
-                  <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
-                </div>
-              </div>
-            ))}
-            <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
-              {banners.map((_, idx) => (
-                <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-300'}`} />
-              ))}
-            </div>
-          </>
-        ) : (
-          <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-            <span className="text-lg">📢</span>
-            <span className="text-xs font-bold text-primary-dark">광고를 신청해보세요!</span>
-            <span className="text-[10px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
-          </Link>
-        )}
       </div>
 
       {/* 지역 필터 */}
@@ -137,7 +94,10 @@ export default function NewEquipment() {
       ) : (
         <div className="space-y-3">
           {shops.map((shop) => (
-            <div key={shop.id} className="card p-5">
+            <div key={shop.id} className={`card p-5 relative ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+              {shop.isPremium && (
+                <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
+              )}
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
                   {shop.image ? <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" /> : '🏪'}
