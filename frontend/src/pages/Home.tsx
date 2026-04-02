@@ -68,8 +68,7 @@ const Home = () => {
   }, [banners.length]);
 
   const categories = [
-    { id: 'new', title: '새장비', icon: '🛒', link: '/new-equipment' },
-    { id: 'skishop', title: '스키샵', icon: '🏪', link: '/skishop' },
+    { id: 'skishop', title: '스키샵', icon: '🏪', link: '/new-equipment' },
     { id: 'used', title: t('cat.used'), icon: '🏷️', link: '/used' },
     { id: 'rental', title: t('cat.rental'), icon: '⛷️', link: '/rental' },
     { id: 'lesson', title: t('cat.lesson'), icon: '🎿', link: '/lesson' },
