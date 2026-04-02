@@ -177,8 +177,9 @@ export const getPublicBanners = async (_req: Request, res: Response): Promise<vo
       orderBy: { order: 'asc' },
       take: 5,
     });
-    cacheSet(cacheKey, banners, 300); // Cache for 5 minutes
-    res.json(banners);
+    const cleaned = banners.map(b => ({ ...b, tag: b.tag.startsWith('ad:') ? 'AD' : b.tag }));
+    cacheSet(cacheKey, cleaned, 300);
+    res.json(cleaned);
   } catch (error) {
     console.error('Get public banners error:', error);
     res.status(500).json({ error: '배너 조회 중 오류가 발생했습니다.' });
