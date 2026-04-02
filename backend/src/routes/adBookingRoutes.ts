@@ -6,6 +6,7 @@ import {
   createBooking,
 
   getMyBookings,
+  deleteBooking,
   cancelBooking,
   getActiveAds,
   adminGetBookings,
@@ -29,6 +30,7 @@ router.post('/create', authenticateToken, createBooking);
 
 router.get('/my-bookings', authenticateToken, getMyBookings);
 router.post('/:id/cancel', authenticateToken, cancelBooking);
+router.delete('/:id', authenticateToken, deleteBooking);
 
 // 관리자 API (인증 필요)
 router.get('/admin/bookings', authenticateToken, adminGetBookings);

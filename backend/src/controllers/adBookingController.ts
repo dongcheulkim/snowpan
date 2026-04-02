@@ -247,6 +247,25 @@ export const getMyBookings = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+// 광고 내역 삭제 (종료/취소된 것만)
+export const deleteBooking = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const booking = await prisma.adBooking.findFirst({ where: { id, userId } });
+    if (!booking) { res.status(404).json({ error: '예약을 찾을 수 없습니다.' }); return; }
+    if (['active', 'paid', 'pending_payment'].includes(booking.status)) {
+      res.status(400).json({ error: '진행 중인 광고는 삭제할 수 없습니다. 먼저 취소해주세요.' }); return;
+    }
+    await prisma.adPayment.deleteMany({ where: { bookingId: id } });
+    await prisma.adBooking.delete({ where: { id } });
+    res.json({ message: '삭제되었습니다.' });
+  } catch (error) {
+    console.error('Delete booking error:', error);
+    res.status(500).json({ error: '삭제 실패' });
+  }
+};
+
 // 예약 취소
 export const cancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

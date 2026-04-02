@@ -303,6 +303,18 @@ const MyPage = () => {
                     <p className="text-xs font-medium text-gray-900 truncate">{ad.title}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                   </div>
+                  {!['active', 'paid', 'pending_payment'].includes(ad.status) && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm('이 광고 내역을 삭제하시겠습니까?')) return;
+                        try {
+                          await api(`/ad-booking/${ad.id}`, { method: 'DELETE' });
+                          setAdBookings(prev => prev.filter(b => b.id !== ad.id));
+                        } catch { alert('삭제에 실패했습니다.'); }
+                      }}
+                      className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0"
+                    >✕</button>
+                  )}
                 </div>
               );
             })}
