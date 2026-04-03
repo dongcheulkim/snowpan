@@ -27,11 +27,50 @@ img, video {
 }
 
 .card-hover {
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-hover:hover {
   background: #F0F9FF;
   border-color: #7DD3FC;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.08);
+}
+.card-hover:active {
+  transform: scale(0.98);
+}
+
+/* 페이지 전환 애니메이션 */
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+/* 버튼 인터랙션 */
+button, a {
+  transition: all 0.15s ease;
+}
+
+/* 이미지 로딩 스켈레톤 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 스크롤 스냅 */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* 텍스트 라인 클램프 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Global border override */

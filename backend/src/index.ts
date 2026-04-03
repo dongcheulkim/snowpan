@@ -23,8 +23,10 @@ import reportRoutes from './routes/reportRoutes';
 import adBookingRoutes from './routes/adBookingRoutes';
 import skiShopRoutes from './routes/skiShopRoutes';
 import repairShopRoutes from './routes/repairShopRoutes';
+import searchRoutes from './routes/searchRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
+import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter } from './middleware/rateLimit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 
@@ -157,6 +159,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ad-booking', adBookingRoutes);
 app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
+app.use('/api/search', searchRoutes);
 
 // Socket.IO auth middleware
 io.use((socket, next) => {
@@ -207,6 +210,7 @@ io.on('connection', (socket) => {
         const preview = data.content.length > 30 ? data.content.slice(0, 30) + '...' : data.content;
         await createNotification(recipientId, 'chat', `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
         io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: `${senderName}님의 메시지`, message: preview });
+        sendPushToUser(recipientId, `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
       }
     } catch (err) {
       console.error('Send message error:', err);
