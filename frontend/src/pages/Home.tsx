@@ -69,6 +69,7 @@ const Home = () => {
 
   const categories = [
     { id: 'skishop', title: '스키샵', icon: '🏪', link: '/new-equipment' },
+    { id: 'repair', title: '정비', icon: '🔧', link: '/repair' },
     { id: 'used', title: t('cat.used'), icon: '🏷️', link: '/used' },
     { id: 'rental', title: t('cat.rental'), icon: '⛷️', link: '/rental' },
     { id: 'lesson', title: t('cat.lesson'), icon: '🎿', link: '/lesson' },

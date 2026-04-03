@@ -42,6 +42,7 @@ model User {
   adRequests       AdRequest[]
   adBookings       AdBooking[]
   skiShops         SkiShop[]
+  repairShops      RepairShop[]
 
   @@map("users")
 }
@@ -463,4 +464,32 @@ model SkiShop {
   @@index([area])
   @@index([approved])
   @@map("ski_shops")
+}
+
+model RepairShop {
+  id              String   @id @default(uuid())
+  name            String
+  area            String
+  address         String
+  description     String
+  services        String?  // 콤마 구분 (튜닝, 왁싱, 바인딩, 엣지 등)
+  phone           String?
+  instagram       String?
+  website         String?
+  naverMap        String?
+  hours           String?
+  image           String?
+  businessLicense String
+  approved        Boolean  @default(false)
+  isPremium       Boolean  @default(false)
+  premiumUntil    DateTime?
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([area])
+  @@index([approved])
+  @@map("repair_shops")
 }

@@ -26,7 +26,7 @@ interface PendingItem {
   user?: { id: string; name: string; email?: string; phone?: string };
 }
 
-type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop';
+type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair';
 
 const badgeLabels: Record<string, { label: string; color: string }> = {
   lv1: { label: 'LV1', color: 'bg-green-500 text-white' },
@@ -62,23 +62,26 @@ const AdminApproval = () => {
   const [pendingAccom, setPendingAccom] = useState<PendingItem[]>([]);
   const [pendingBadges, setPendingBadges] = useState<PendingItem[]>([]);
   const [pendingShops, setPendingShops] = useState<PendingItem[]>([]);
+  const [pendingRepair, setPendingRepair] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
     try {
-      const [rentals, lessons, accom, badges, shops] = await Promise.all([
+      const [rentals, lessons, accom, badges, shops, repair] = await Promise.all([
         api<PendingItem[]>('/admin/rentals/pending'),
         api<PendingItem[]>('/admin/lessons/pending'),
         api<PendingItem[]>('/admin/accommodations/pending'),
         api<PendingItem[]>('/admin/badges/pending'),
         api<PendingItem[]>('/ski-shops/pending').catch(() => []),
+        api<PendingItem[]>('/repair-shops/pending').catch(() => []),
       ]);
       setPendingRentals(rentals);
       setPendingLessons(lessons);
       setPendingAccom(accom);
       setPendingBadges(badges);
       setPendingShops(shops);
+      setPendingRepair(repair);
     } catch {
       // not admin or error
     } finally {
@@ -94,6 +97,10 @@ const AdminApproval = () => {
     try {
       if (tab === 'skishop') {
         await api(`/ski-shops/${id}/approve`, { method: 'PUT' });
+        alert('승인되었습니다!'); fetchPending(); return;
+      }
+      if (tab === 'repair') {
+        await api(`/repair-shops/${id}/approve`, { method: 'PUT' });
         alert('승인되었습니다!'); fetchPending(); return;
       }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
@@ -117,6 +124,10 @@ const AdminApproval = () => {
         await api(`/ski-shops/${id}`, { method: 'DELETE' });
         alert('거부되었습니다.'); fetchPending(); return;
       }
+      if (tab === 'repair') {
+        await api(`/repair-shops/${id}`, { method: 'DELETE' });
+        alert('거부되었습니다.'); fetchPending(); return;
+      }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       await api(`/admin/${path}/${id}/reject`, { method: 'DELETE' });
       alert('거부되었습니다.');
@@ -132,6 +143,7 @@ const AdminApproval = () => {
     { id: 'accommodation' as const, name: '숙소', count: pendingAccom.length },
     { id: 'badge' as const, name: '자격증', count: pendingBadges.length },
     { id: 'skishop' as const, name: '스키샵', count: pendingShops.length },
+    { id: 'repair' as const, name: '정비샵', count: pendingRepair.length },
   ];
 
   const displayItems =
@@ -139,9 +151,37 @@ const AdminApproval = () => {
     activeTab === 'lesson' ? pendingLessons :
     activeTab === 'accommodation' ? pendingAccom :
     activeTab === 'skishop' ? pendingShops :
+    activeTab === 'repair' ? pendingRepair :
     pendingBadges;
 
   const renderItem = (item: PendingItem) => {
+    if (activeTab === 'repair') {
+      return (
+        <div key={item.id} className="card p-4">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">🔧</span>
+                <span className="font-bold text-sm text-gray-900">{item.name}</span>
+                {item.area && <span className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">{item.area}</span>}
+              </div>
+              {item.address && <div className="text-xs text-gray-400">📍 {item.address}</div>}
+              {item.description && <div className="text-xs text-gray-500 mt-1">{item.description}</div>}
+              {item.user && <div className="text-xs text-gray-400 mt-1">신청자: {item.user.name} ({item.user.email})</div>}
+              {item.businessLicense && (
+                <a href={imageUrl(item.businessLicense)} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                  <img src={imageUrl(item.businessLicense)} alt="사업자등록증" className="w-full max-w-xs object-contain rounded-lg border border-gray-200" />
+                </a>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 pt-3 border-t border-gray-100">
+            <button onClick={() => handleApprove('repair', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs">승인</button>
+            <button onClick={() => handleReject('repair', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs border border-gray-200">거부</button>
+          </div>
+        </div>
+      );
+    }
     if (activeTab === 'skishop') {
       return (
         <div key={item.id} className="card p-4">
