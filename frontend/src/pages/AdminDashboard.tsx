@@ -230,6 +230,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleAdBookingFree = async (id: string) => {
+    if (!confirm('이 광고를 무료로 승인하시겠습니까?')) return;
+    try {
+      await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST' });
+      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'active', totalPrice: 0 } : b)));
+      alert('무료 승인 완료!');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '승인 실패');
+    }
+  };
+
   const handleAdBookingCancel = async (id: string) => {
     if (!confirm('이 광고 예약을 취소하고 환불하시겠습니까?')) return;
     try {
@@ -515,12 +526,20 @@ const AdminDashboard = () => {
                       )}
                       <div className="flex gap-2 mt-2">
                         {b.status === 'pending_payment' && (
-                          <button
-                            onClick={() => handleAdBookingApprove(b.id)}
-                            className="px-3 py-1.5 bg-mint/20 text-emerald-700 rounded-lg font-bold text-[11px] hover:bg-mint/30 transition-colors"
-                          >
-                            입금 확인
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleAdBookingApprove(b.id)}
+                              className="px-3 py-1.5 bg-mint/20 text-emerald-700 rounded-lg font-bold text-[11px] hover:bg-mint/30 transition-colors"
+                            >
+                              입금 확인
+                            </button>
+                            <button
+                              onClick={() => handleAdBookingFree(b.id)}
+                              className="px-3 py-1.5 bg-sky-100 text-sky-700 rounded-lg font-bold text-[11px] hover:bg-sky-200 transition-colors"
+                            >
+                              무료 승인
+                            </button>
+                          </>
                         )}
                         {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
                           <button

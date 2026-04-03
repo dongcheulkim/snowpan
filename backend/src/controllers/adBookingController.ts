@@ -546,6 +546,42 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
   }
 };
 
+// 관리자: 무료 승인 (입금 없이 바로 active)
+export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+
+    const booking = await prisma.adBooking.findUnique({ where: { id } });
+    if (!booking) { res.status(404).json({ error: '예약을 찾을 수 없습니다.' }); return; }
+
+    await prisma.adBooking.update({ where: { id }, data: { status: 'active', totalPrice: 0, adminNote: '무료 승인' } });
+    await prisma.adPayment.upsert({
+      where: { bookingId: id },
+      update: { status: 'paid', amount: 0, payMethod: 'free', paidAt: new Date() },
+      create: { bookingId: id, paymentId: `free_${id}`, merchantUid: `free_${id}`, payMethod: 'free', amount: 0, status: 'paid', paidAt: new Date() },
+    });
+
+    await createBannerFromBooking(booking);
+    cacheDel('banners:public');
+
+    await prisma.notification.create({
+      data: {
+        type: 'system',
+        title: '광고 무료 승인',
+        message: `"${booking.title}" 광고가 무료로 승인되었습니다!`,
+        link: '/mypage',
+        userId: booking.userId,
+      },
+    });
+
+    res.json({ success: true, message: '무료 승인 완료' });
+  } catch (error) {
+    console.error('관리자 무료 승인 오류:', error);
+    res.status(500).json({ error: '입금 확인 실패' });
+  }
+};
+
 // 관리자: 예약 강제 취소/환불
 export const adminCancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
