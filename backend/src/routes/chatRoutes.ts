@@ -120,8 +120,8 @@ router.post('/rooms', async (req: any, res: Response) => {
         orderBy: { createdAt: 'desc' },
       });
       const noticeContent = JSON.stringify({ productName, productPath: productPath || null });
-      const isAlreadySent = lastMsg?.type === 'product_inquiry' &&
-        JSON.parse(lastMsg.content || '{}').productName === productName;
+      let isAlreadySent = false;
+      try { isAlreadySent = lastMsg?.type === 'product_inquiry' && JSON.parse(lastMsg.content || '{}').productName === productName; } catch {}
       if (!isAlreadySent) {
         await prisma.message.create({
           data: { roomId: room.id, senderId: userId, content: noticeContent, type: 'product_inquiry' },

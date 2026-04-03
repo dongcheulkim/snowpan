@@ -46,7 +46,7 @@ const Chat = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
-  const hasProductInfo = !!(state?.productName && state?.productPrice);
+  const hasProductInfo = !!(state?.productName && state?.productPrice && state?.productImage);
   const backPath = state?.backTo || '/chat/rooms';
 
   const markAsRead = (id: string) => {
