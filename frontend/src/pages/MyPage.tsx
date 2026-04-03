@@ -134,6 +134,7 @@ const MyPage = () => {
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
+    { label: '내 스키샵/정비샵', link: '/mypage/shops' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
     { label: t('mypage.notifications'), link: '/notifications' },
   ];

@@ -23,10 +23,12 @@ interface Product {
 }
 
 const reportReasons = [
-  '허위 매물',
-  '사기 의심',
-  '욕설/비방',
-  '부적절한 상품',
+  '허위 매물 (존재하지 않는 상품)',
+  '사기 의심 (선입금 요구, 가격 비정상)',
+  '도난품 의심',
+  '상품 상태 허위 기재',
+  '욕설/비방/불쾌한 표현',
+  '성인/음란 콘텐츠',
   '개인정보 노출',
   '기타',
 ];
@@ -68,6 +70,7 @@ const UsedDetail = () => {
       .then(p => {
         setProduct(p);
         setWishlisted(p.wishlisted);
+        document.title = `${p.name} - 스노우판`;
 
         // Save to recently viewed (localStorage)
         try {

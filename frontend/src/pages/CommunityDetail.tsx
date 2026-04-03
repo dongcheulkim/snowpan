@@ -74,6 +74,7 @@ const CommunityDetail = () => {
         setPost(data);
         setLikeCount(data.likes);
         if (data.liked) setLiked(true);
+        document.title = `${data.title} - 스노우판`;
       })
       .catch(() => {})
       .finally(() => setLoading(false));

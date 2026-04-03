@@ -30,6 +30,7 @@ import CompetitionDetail from './pages/CompetitionDetail';
 
 // 나머지: lazy 로딩
 const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
+const MyShops = lazy(() => import('./pages/MyShops'));
 const RepairShopRegister = lazy(() => import('./pages/RepairShopRegister'));
 const UsedRegister = lazy(() => import('./pages/UsedRegister'));
 const RentalRegister = lazy(() => import('./pages/RentalRegister'));
@@ -115,6 +116,7 @@ function App() {
             <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
             <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
+            <Route path="mypage/shops" element={<RequireAuth><MyShops /></RequireAuth>} />
             <Route path="mypage/notifications" element={<RequireAuth><NotificationSettings /></RequireAuth>} />
             <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
             <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />

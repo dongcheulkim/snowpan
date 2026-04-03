@@ -362,9 +362,9 @@ const AdminDashboard = () => {
                     </div>
                     <p className="text-xs text-gray-400">{u.email}</p>
                   </div>
-                  {u.role !== 'admin' && u.role !== 'banned' && (
-                    <button onClick={() => handleBan(u.id)} className="px-3 py-1.5 bg-coral/10 text-coral rounded-lg font-bold text-[11px] hover:bg-coral/20 transition-colors">
-                      정지
+                  {u.role !== 'admin' && (
+                    <button onClick={() => handleBan(u.id)} className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
+                      {u.role === 'banned' ? '정지 해제' : '정지'}
                     </button>
                   )}
                 </div>

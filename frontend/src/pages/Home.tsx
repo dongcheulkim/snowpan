@@ -46,6 +46,8 @@ const Home = () => {
   const [boardPosts, setBoardPosts] = useState<CommunityPost[]>([]);
   const [, setLangTick] = useState(0);
 
+  useEffect(() => { document.title = '스노우판 - 스키/보드 중고거래 & 렌탈'; }, []);
+
   // Re-render on language change
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick((p) => p + 1), 0));

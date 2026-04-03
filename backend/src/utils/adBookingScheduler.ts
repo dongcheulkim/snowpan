@@ -37,6 +37,20 @@ export async function updateAdBookingStatuses(): Promise<void> {
     if (toActivate.length > 0 || toComplete.length > 0) {
       cacheDel('banners:public');
     }
+
+    // 프리미엄 만료 처리 (상품 + 스키샵 + 정비샵)
+    await prisma.product.updateMany({
+      where: { isPremium: true, premiumUntil: { lt: now } },
+      data: { isPremium: false, premiumUntil: null },
+    });
+    await prisma.skiShop.updateMany({
+      where: { isPremium: true, premiumUntil: { lt: now } },
+      data: { isPremium: false, premiumUntil: null },
+    });
+    await prisma.repairShop.updateMany({
+      where: { isPremium: true, premiumUntil: { lt: now } },
+      data: { isPremium: false, premiumUntil: null },
+    });
   } catch (error) {
     console.error('광고 상태 업데이트 오류:', error);
   }

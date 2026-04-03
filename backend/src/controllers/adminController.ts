@@ -67,9 +67,13 @@ export const banUser = async (req: AuthRequest, res: Response): Promise<void> =>
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
-    const user = await prisma.user.update({ where: { id }, data: { role: 'banned' } });
-    await createNotification(id, 'system', '계정 정지', '관리자에 의해 계정이 정지되었습니다.');
-    res.json({ id: user.id, name: user.name, role: user.role, message: '유저가 정지되었습니다.' });
+    const target = await prisma.user.findUnique({ where: { id } });
+    if (!target) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+    const newRole = target.role === 'banned' ? 'user' : 'banned';
+    const user = await prisma.user.update({ where: { id }, data: { role: newRole } });
+    const msg = newRole === 'banned' ? '계정이 정지되었습니다.' : '계정 정지가 해제되었습니다.';
+    await createNotification(id, 'system', newRole === 'banned' ? '계정 정지' : '정지 해제', msg);
+    res.json({ id: user.id, name: user.name, role: user.role, message: msg });
   } catch (error) {
     console.error('Ban user error:', error);
     res.status(500).json({ error: '유저 정지 중 오류가 발생했습니다.' });
