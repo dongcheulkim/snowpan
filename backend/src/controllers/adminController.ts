@@ -178,7 +178,7 @@ export const getPublicBanners = async (_req: Request, res: Response): Promise<vo
       take: 5,
     });
     const cleaned = banners.map(b => ({ ...b, tag: b.tag.startsWith('ad:') ? 'AD' : b.tag }));
-    cacheSet(cacheKey, cleaned, 300);
+    cacheSet(cacheKey, cleaned, 30);
     res.json(cleaned);
   } catch (error) {
     console.error('Get public banners error:', error);

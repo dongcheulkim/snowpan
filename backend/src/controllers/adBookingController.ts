@@ -527,6 +527,7 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
     });
 
     await createBannerFromBooking(booking);
+    cacheDel('banners:public');
 
     await prisma.notification.create({
       data: {
