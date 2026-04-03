@@ -159,12 +159,15 @@ const AdminDashboard = () => {
   };
 
   const handleBan = async (id: string) => {
-    if (!confirm('정말 이 유저를 정지하시겠습니까?')) return;
+    const target = users.find(u => u.id === id);
+    const action = target?.role === 'banned' ? '정지 해제' : '정지';
+    if (!confirm(`이 유저를 ${action}하시겠습니까?`)) return;
     try {
-      await api(`/admin/users/${id}/ban`, { method: 'PUT' });
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: 'banned' } : u)));
+      const res = await api<{ id: string; role: string; message: string }>(`/admin/users/${id}/ban`, { method: 'PUT' });
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: res.role } : u)));
+      alert(res.message);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '정지 실패');
+      alert(err instanceof Error ? err.message : `${action} 실패`);
     }
   };
 
