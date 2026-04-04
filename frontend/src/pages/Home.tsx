@@ -42,6 +42,7 @@ const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [hotDeals, setHotDeals] = useState<Product[]>([]);
   const [communityTab, setCommunityTab] = useState<'ski' | 'board'>('ski');
+  const [polls, setPolls] = useState<CommunityPost[]>([]);
   const [skiPosts, setSkiPosts] = useState<CommunityPost[]>([]);
   const [boardPosts, setBoardPosts] = useState<CommunityPost[]>([]);
   const [, setLangTick] = useState(0);
@@ -92,14 +93,16 @@ const Home = () => {
       });
   }, []);
 
-  // 인기 커뮤니티 게시글 로딩
+  // 인기 커뮤니티 게시글 + 인기 투표 로딩
   useEffect(() => {
     Promise.all([
       api<CommunityPost[]>('/community/popular?sport=ski').catch(() => []),
       api<CommunityPost[]>('/community/popular?sport=board').catch(() => []),
-    ]).then(([ski, board]) => {
+      api<{ posts: CommunityPost[]; totalCount: number }>('/community?category=poll&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
+    ]).then(([ski, board, pollRes]) => {
       setSkiPosts(Array.isArray(ski) ? ski.slice(0, 5) : []);
       setBoardPosts(Array.isArray(board) ? board.slice(0, 5) : []);
+      setPolls(Array.isArray(pollRes) ? [] : (pollRes?.posts || []));
     });
   }, []);
 
@@ -241,6 +244,30 @@ const Home = () => {
             <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
           )}
         </div>
+
+        {/* 인기 투표 */}
+        {polls.length > 0 && (
+          <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[15px] font-bold text-gray-900">📊 인기 투표</h2>
+              <Link to="/community/ski" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
+            </div>
+            <div className="space-y-0">
+              {polls.map((post, idx) => (
+                <Link key={post.id} to={`/poll/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== polls.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200 flex-shrink-0">투표</span>
+                    <span className="text-sm text-gray-900 truncate">{post.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                    <span className="text-coral">♥{post.likes}</span>
+                    <span>💬{post.commentCount}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
 

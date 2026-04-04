@@ -63,6 +63,7 @@ const Community = () => {
     { id: 'resort', name: t('community.resort') },
     { id: 'tip', name: t('community.tip') },
     { id: 'carpool', name: t('community.carpool') },
+    { id: 'poll', name: '투표' },
   ];
 
   useEffect(() => {
@@ -116,9 +117,16 @@ const Community = () => {
           <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
           <h1 className="text-xl font-bold text-gray-900">{sportLabel} {t('community.title')}</h1>
         </div>
-        <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
-          + {t('community.write')}
-        </Link>
+        <div className="flex gap-2">
+          {selectedTab === 'poll' && (
+            <Link to="/poll/create" className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs transition-colors whitespace-nowrap">
+              + 투표
+            </Link>
+          )}
+          <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
+            + {t('community.write')}
+          </Link>
+        </div>
       </div>
 
       <div className="relative">
