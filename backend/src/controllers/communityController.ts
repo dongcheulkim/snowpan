@@ -39,7 +39,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
         take,
         ...(skip && { skip }),
         include: {
-          user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+          user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
           _count: { select: { comments: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -50,7 +50,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     const result = {
       posts: posts.map(p => ({
         ...p,
-        user: { ...p.user, name: resolveDisplayName(p.user), badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
+        user: { ...p.user, name: resolveDisplayName(p.user), badges: (p.user as any).activeBadge ? [( p.user as any).activeBadge] : [], badgeRequests: undefined },
         commentCount: p._count.comments,
         _count: undefined,
       })),
@@ -84,7 +84,7 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
       where: { ...where, createdAt: { gte: oneWeekAgo } },
       take: 10,
       include: {
-        user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+        user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
         _count: { select: { comments: true } },
       },
       orderBy: [{ likes: 'desc' }, { views: 'desc' }],
@@ -96,7 +96,7 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
         where: { ...where, id: { notIn: existingIds } },
         take: 10 - posts.length,
         include: {
-          user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+          user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
           _count: { select: { comments: true } },
         },
         orderBy: [{ likes: 'desc' }, { views: 'desc' }],
@@ -106,7 +106,7 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
 
     const result = posts.map(p => ({
       ...p,
-      user: { ...p.user, name: resolveDisplayName(p.user), badges: p.user.badgeRequests.map(b => b.badgeType), badgeRequests: undefined },
+      user: { ...p.user, name: resolveDisplayName(p.user), badges: (p.user as any).activeBadge ? [( p.user as any).activeBadge] : [], badgeRequests: undefined },
       commentCount: p._count.comments,
       _count: undefined,
     }));
@@ -140,9 +140,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
+        user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } },
         comments: {
-          include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+          include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -189,7 +189,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
 
     const post = await prisma.post.create({
       data: { title, content, category, sport, userId, images: images || null },
-      include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     res.status(201).json(post);
@@ -242,7 +242,7 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
 
     const comment = await prisma.comment.create({
       data: { content, postId, userId },
-      include: { user: { select: { id: true, name: true, nickname: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
+      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
     // 글 작성자에게 알림 (본인 댓글은 제외)

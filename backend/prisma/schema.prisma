@@ -19,6 +19,7 @@ model User {
   phoneVerified Boolean  @default(false)
   profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
+  activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
   fcmToken      String?  // Firebase Cloud Messaging token
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

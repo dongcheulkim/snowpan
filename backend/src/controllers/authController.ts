@@ -185,13 +185,14 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { nickname, profileImage } = req.body;
+    const { nickname, profileImage, activeBadge } = req.body;
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(nickname !== undefined && { nickname }),
         ...(profileImage !== undefined && { profileImage }),
+        ...(activeBadge !== undefined && { activeBadge: activeBadge || null }),
       },
     });
 
@@ -204,6 +205,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       phone: user.phone,
       phoneVerified: user.phoneVerified,
       profileImage: user.profileImage,
+      activeBadge: user.activeBadge,
       role: user.role,
       createdAt: user.createdAt,
     });
@@ -229,6 +231,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       phone: user.phone,
       phoneVerified: user.phoneVerified,
       profileImage: user.profileImage,
+      activeBadge: user.activeBadge,
       role: user.role,
       createdAt: user.createdAt,
     });

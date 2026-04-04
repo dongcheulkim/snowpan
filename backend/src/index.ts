@@ -24,6 +24,7 @@ import adBookingRoutes from './routes/adBookingRoutes';
 import skiShopRoutes from './routes/skiShopRoutes';
 import repairShopRoutes from './routes/repairShopRoutes';
 import searchRoutes from './routes/searchRoutes';
+import contactRoutes from './routes/contactRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
@@ -160,6 +161,7 @@ app.use('/api/ad-booking', adBookingRoutes);
 app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Socket.IO auth middleware
 io.use((socket, next) => {

@@ -228,8 +228,9 @@ const MyPage = () => {
             {approvedBadges.map((b) => {
               const badge = badgeDisplay[b.badgeType];
               if (!badge) return null;
+              const isActive = (user as any).activeBadge === b.badgeType;
               return (
-                <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div key={b.id} className={`flex items-center justify-between p-3 bg-white rounded-lg border ${isActive ? 'border-sky-400 bg-sky-50/50' : 'border-gray-200'}`}>
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
@@ -237,6 +238,19 @@ const MyPage = () => {
                       <div className="text-[10px] text-mint">{t('mypage.verified')}</div>
                     </div>
                   </div>
+                  <button
+                    onClick={async () => {
+                      const newBadge = isActive ? null : b.badgeType;
+                      try {
+                        await api('/auth/profile', { method: 'PUT', body: { activeBadge: newBadge } });
+                        setUser((prev: any) => prev ? { ...prev, activeBadge: newBadge } : prev);
+                        sessionStorage.setItem('user', JSON.stringify({ ...user, activeBadge: newBadge }));
+                      } catch {}
+                    }}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                  >
+                    {isActive ? '노출중' : '노출'}
+                  </button>
                 </div>
               );
             })}
