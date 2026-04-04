@@ -19,7 +19,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
         where,
         include: {
           resort: true,
-          user: { select: { name: true, phone: true } },
+          user: { select: { name: true, nickname: true, phone: true } },
         },
         orderBy: { createdAt: 'desc' },
         take,

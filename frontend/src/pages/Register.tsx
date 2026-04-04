@@ -4,7 +4,7 @@ import { api } from '../api';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', phone: '' });
+  const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', nickname: '', phone: '' });
   const [agree, setAgree] = useState({ all: false, terms: false, privacy: false, marketing: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ const Register = () => {
     try {
       const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string } }>('/auth/register', {
         method: 'POST',
-        body: { email: form.email, password: form.password, name: form.name, phone: form.phone },
+        body: { email: form.email, password: form.password, name: form.name, nickname: form.nickname || undefined, phone: form.phone },
       });
 
       sessionStorage.setItem('token', data.token);
@@ -72,7 +72,11 @@ const Register = () => {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">이름</label>
-            <input type="text" name="name" placeholder="이름을 입력하세요" value={form.name} onChange={handleChange} required className={inputClass} />
+            <input type="text" name="name" placeholder="실명을 입력하세요" value={form.name} onChange={handleChange} required className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-400">(다른 유저에게 보이는 이름)</span></label>
+            <input type="text" name="nickname" placeholder="닉네임을 입력하세요" value={form.nickname} onChange={handleChange} className={inputClass} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">이메일</label>

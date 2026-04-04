@@ -8,7 +8,7 @@ import { sendSMS } from '../utils/sms';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name, phone } = req.body;
+    const { email, password, name, nickname, phone } = req.body;
 
     const existingEmail = await prisma.user.findUnique({ where: { email } });
     if (existingEmail) {
@@ -29,6 +29,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email,
         password: hashedPassword,
         name,
+        nickname: nickname || null,
         phone,
       },
     });

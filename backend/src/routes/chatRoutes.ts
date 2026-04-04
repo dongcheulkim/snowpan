@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../config/database';
+import { displayName } from '../utils/displayName';
 
 const router = Router();
 
@@ -10,8 +11,8 @@ router.get('/rooms', async (req: any, res: Response) => {
     const rooms = await prisma.chatRoom.findMany({
       where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
       include: {
-        user1: { select: { id: true, name: true, profileImage: true } },
-        user2: { select: { id: true, name: true, profileImage: true } },
+        user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
+        user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
         _count: { select: { messages: true } },
       },
@@ -84,6 +85,8 @@ router.get('/rooms', async (req: any, res: Response) => {
 
     const roomsWithUnread = rooms.map(room => ({
       ...room,
+      user1: { ...room.user1, name: displayName(room.user1) },
+      user2: { ...room.user2, name: displayName(room.user2) },
       _count: undefined,
       unreadCount: unreadCounts[room.id] || 0,
     }));
@@ -145,12 +148,12 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
     const room = await prisma.chatRoom.findFirst({
       where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
       include: {
-        user1: { select: { id: true, name: true, profileImage: true } },
-        user2: { select: { id: true, name: true, profileImage: true } },
+        user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
+        user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
       },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
-    res.json(room);
+    res.json({ ...room, user1: { ...room.user1, name: displayName(room.user1) }, user2: { ...room.user2, name: displayName(room.user2) } });
   } catch (error) {
     console.error('Get chat room error:', error);
     res.status(500).json({ error: '채팅방 조회 실패' });
@@ -169,7 +172,7 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
     if (!room) { res.status(403).json({ error: '접근 권한이 없습니다.' }); return; }
     const messages = await prisma.message.findMany({
       where: { roomId },
-      include: { sender: { select: { id: true, name: true, profileImage: true } } },
+      include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       orderBy: { createdAt: 'asc' },
     });
     res.json(messages);

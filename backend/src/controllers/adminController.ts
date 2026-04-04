@@ -53,7 +53,7 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, phone: true, createdAt: true },
+      select: { id: true, name: true, nickname: true, email: true, role: true, phone: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
     res.json(users);

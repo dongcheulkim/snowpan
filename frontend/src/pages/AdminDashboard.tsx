@@ -357,6 +357,7 @@ const AdminDashboard = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-gray-900">{u.name}</span>
+                      {(u as any).nickname && <span className="text-xs text-gray-400">({(u as any).nickname})</span>}
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                         u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-500'
                       }`}>

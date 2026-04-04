@@ -127,7 +127,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         usageCount,
         userId,
       },
-      include: { user: { select: { name: true, phone: true } } },
+      include: { user: { select: { name: true, nickname: true, phone: true } } },
     });
 
     res.status(201).json(product);
@@ -178,7 +178,7 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { user: { select: { id: true, name: true, phone: true } } },
+      include: { user: { select: { id: true, name: true, nickname: true, phone: true } } },
     });
 
     if (!product) {
