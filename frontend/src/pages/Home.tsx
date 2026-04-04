@@ -92,14 +92,14 @@ const Home = () => {
       });
   }, []);
 
-  // 커뮤니티 게시글 로딩
+  // 인기 커뮤니티 게시글 로딩
   useEffect(() => {
     Promise.all([
-      api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=ski&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
-      api<{ posts: CommunityPost[]; totalCount: number }>('/community?sport=board&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
-    ]).then(([skiRes, boardRes]) => {
-      setSkiPosts(skiRes.posts);
-      setBoardPosts(boardRes.posts);
+      api<CommunityPost[]>('/community/popular?sport=ski').catch(() => []),
+      api<CommunityPost[]>('/community/popular?sport=board').catch(() => []),
+    ]).then(([ski, board]) => {
+      setSkiPosts(Array.isArray(ski) ? ski.slice(0, 5) : []);
+      setBoardPosts(Array.isArray(board) ? board.slice(0, 5) : []);
     });
   }, []);
 
@@ -211,7 +211,7 @@ const Home = () => {
         {/* Community */}
         <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">💬 커뮤니티</h2>
+            <h2 className="text-[15px] font-bold text-gray-900">🔥 인기 커뮤니티</h2>
             <Link to={`/community/${communityTab}`} className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
           <div className="flex gap-1 mb-3">
