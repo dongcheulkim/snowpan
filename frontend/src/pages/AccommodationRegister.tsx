@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
 
 interface Resort {
@@ -14,6 +14,7 @@ const AccommodationRegister = () => {
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [permitFile, setPermitFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [form, setForm] = useState({
     name: '',
     resortId: '',
@@ -180,7 +181,14 @@ const AccommodationRegister = () => {
         <p className="text-[10px] text-gray-400 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
       </div>
 
-      <button onClick={handleSubmit} disabled={submitting} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+      <label className="flex items-start gap-2 py-2">
+        <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+        <span className="text-xs text-gray-500">
+          <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
+        </span>
+      </label>
+
+      <button onClick={handleSubmit} disabled={submitting || !agreeTerms} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
         {submitting ? '등록 중...' : '등록 신청하기'}
       </button>
     </div>

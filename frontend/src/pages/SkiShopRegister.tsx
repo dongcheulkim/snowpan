@@ -13,6 +13,7 @@ export default function SkiShopRegister() {
   const navigate = useNavigate();
   const user = getUser();
   const [loading, setLoading] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [licensePreview, setLicensePreview] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -175,9 +176,16 @@ export default function SkiShopRegister() {
             </div>
           </div>
 
+          <label className="flex items-start gap-2 py-2">
+            <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+            <span className="text-xs text-gray-500">
+              <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
+            </span>
+          </label>
+
           <div className="flex gap-3 pt-2">
             <Link to="/new-equipment" className="flex-1 py-3 text-center bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-200">취소</Link>
-            <button type="submit" disabled={loading} className="flex-1 py-3 bg-sky-500 text-white rounded-lg font-bold text-sm hover:bg-sky-600 transition-colors disabled:opacity-50">
+            <button type="submit" disabled={loading || !agreeTerms} className="flex-1 py-3 bg-sky-500 text-white rounded-lg font-bold text-sm hover:bg-sky-600 transition-colors disabled:opacity-50">
               {loading ? '등록 중...' : '등록 신청'}
             </button>
           </div>

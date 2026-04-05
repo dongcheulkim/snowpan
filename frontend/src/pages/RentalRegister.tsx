@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 
 interface Resort {
@@ -11,6 +11,7 @@ const RentalRegister = () => {
   const navigate = useNavigate();
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [loading, setLoading] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({
@@ -152,7 +153,14 @@ const RentalRegister = () => {
         <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="장비 상태, 브랜드 등 상세 정보" rows={4} className={`${inputClass} resize-none`} />
       </div>
 
-      <button onClick={handleSubmit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+      <label className="flex items-start gap-2 py-2">
+        <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+        <span className="text-xs text-gray-500">
+          <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
+        </span>
+      </label>
+
+      <button onClick={handleSubmit} disabled={loading || !agreeTerms} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
         {loading ? '등록 중...' : '등록 신청하기'}
       </button>
     </div>

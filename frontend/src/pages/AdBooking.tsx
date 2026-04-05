@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import BookingCalendar from '../components/BookingCalendar';
 
@@ -91,6 +91,7 @@ export default function AdBooking() {
   const payMethod = 'TRANSFER';
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   useEffect(() => {
     api<SlotPricing[]>('/ad-booking/slots')
@@ -600,8 +601,15 @@ export default function AdBooking() {
             </div>
           )}
 
+          <label className="flex items-start gap-2 py-2">
+            <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+            <span className="text-xs text-gray-500">
+              <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
+            </span>
+          </label>
+
           <button
-            disabled={paying}
+            disabled={paying || !agreeTerms}
             onClick={handlePayment}
             className="w-full py-4 rounded-xl bg-sky-500 text-white font-bold text-lg disabled:opacity-60 hover:bg-sky-600 transition-colors flex items-center justify-center gap-2"
           >
