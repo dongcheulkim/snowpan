@@ -164,7 +164,6 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
 
-    const bcrypt = await import('bcryptjs');
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       res.status(400).json({ error: '현재 비밀번호가 일치하지 않습니다.' });

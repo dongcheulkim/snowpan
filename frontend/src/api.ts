@@ -38,7 +38,8 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
 
 export function getUser() {
   const raw = sessionStorage.getItem('user');
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
 export function getToken() {

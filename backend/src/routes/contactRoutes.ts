@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import { notifyAdmins } from '../controllers/notificationController';
 import { sendEmail } from '../utils/email';
+import prisma from '../config/database';
 
 const router = Router();
 
@@ -61,7 +62,6 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 // 관리자 ID 조회 (1:1 채팅용)
 router.get('/admin-id', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const { default: prisma } = await import('../config/database');
     const admin = await prisma.user.findFirst({
       where: { role: 'admin' },
       select: { id: true, name: true, nickname: true },
