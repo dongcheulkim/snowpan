@@ -1,8 +1,10 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { useEffect, useRef } from 'react';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
+import { registerPushToken, addNotificationResponseListener } from './src/utils/push';
 
 import HomeScreen from './src/screens/HomeScreen';
 import CommunityScreen from './src/screens/CommunityScreen';
@@ -39,8 +41,27 @@ function MainTabs() {
 }
 
 export default function App() {
+  const navRef = useRef<NavigationContainerRef<any>>(null);
+
+  useEffect(() => {
+    // 푸시 토큰 등록
+    registerPushToken().catch(() => {});
+
+    // 알림 클릭 시 해당 화면으로 이동
+    const sub = addNotificationResponseListener(response => {
+      const link = response.notification.request.content.data?.link as string;
+      if (link && navRef.current) {
+        if (link.startsWith('/chat/')) navRef.current.navigate('채팅');
+        else if (link.startsWith('/community/')) navRef.current.navigate('커뮤니티');
+        else if (link.startsWith('/used/')) navRef.current.navigate('홈');
+        else navRef.current.navigate('홈');
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navRef}>
       <StatusBar style="dark" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
