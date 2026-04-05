@@ -25,6 +25,7 @@ import MyChatList from './pages/MyChatList';
 import Notifications from './pages/Notifications';
 import GearGuide from './pages/GearGuide';
 import Search from './pages/Search';
+import SafeTradeGuide from './pages/SafeTradeGuide';
 import Competitions from './pages/Competitions';
 import RepairShop from './pages/RepairShop';
 import CompetitionDetail from './pages/CompetitionDetail';
@@ -95,6 +96,7 @@ function App() {
             <Route path="accommodation/:id" element={<AccommodationDetail />} />
             <Route path="gear-guide" element={<GearGuide />} />
             <Route path="search" element={<Search />} />
+            <Route path="safe-trade" element={<SafeTradeGuide />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
             <Route path="repair" element={<RepairShop />} />

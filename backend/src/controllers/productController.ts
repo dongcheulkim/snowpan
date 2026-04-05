@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { cacheGet, cacheSet } from '../utils/cache';
+import { createNotification } from './notificationController';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -210,6 +211,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, brand, subcategory, price, image, images, description, condition, usageCount, status } = req.body;
+    const oldPrice = product.price;
     const updated = await prisma.product.update({
       where: { id },
       data: {
@@ -225,6 +227,22 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
       },
     });
+
+    // 가격 인하 시 찜한 유저들에게 알림
+    const newPrice = updated.price;
+    if (newPrice < oldPrice) {
+      const wishlists = await prisma.wishlist.findMany({ where: { productId: id }, select: { userId: true } });
+      const discount = Math.round((1 - newPrice / oldPrice) * 100);
+      for (const w of wishlists) {
+        await createNotification(
+          w.userId, 'system',
+          '찜한 상품 가격 인하!',
+          `"${updated.name}" ${discount}% 할인! ${oldPrice.toLocaleString()}원 → ${newPrice.toLocaleString()}원`,
+          `/used/${id}`
+        );
+      }
+    }
+
     res.json(updated);
   } catch (error) {
     console.error('Update product error:', error);

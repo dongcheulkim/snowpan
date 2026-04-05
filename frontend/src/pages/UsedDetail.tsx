@@ -340,6 +340,11 @@ const UsedDetail = () => {
         </div>
       </div>
 
+      {/* 안전거래 가이드 링크 */}
+      <Link to="/safe-trade" className="block text-center py-2 text-xs text-sky-600 hover:underline">
+        🛡️ 안전거래 가이드 확인하기
+      </Link>
+
       {/* Full Image Viewer */}
       {showFullImage && allImages.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setShowFullImage(false)}>
