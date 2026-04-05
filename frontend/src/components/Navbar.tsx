@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
-import SearchBar from './SearchBar';
 
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
@@ -114,7 +113,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <SearchBar />
             {user && (
               <Link
                 to="/notifications"
