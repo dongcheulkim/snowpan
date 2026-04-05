@@ -26,6 +26,7 @@ import Notifications from './pages/Notifications';
 import GearGuide from './pages/GearGuide';
 import Search from './pages/Search';
 import SafeTradeGuide from './pages/SafeTradeGuide';
+import Privacy from './pages/Privacy';
 import Competitions from './pages/Competitions';
 import RepairShop from './pages/RepairShop';
 import CompetitionDetail from './pages/CompetitionDetail';
@@ -97,6 +98,7 @@ function App() {
             <Route path="gear-guide" element={<GearGuide />} />
             <Route path="search" element={<Search />} />
             <Route path="safe-trade" element={<SafeTradeGuide />} />
+            <Route path="privacy" element={<Privacy />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
             <Route path="repair" element={<RepairShop />} />

@@ -340,10 +340,13 @@ const UsedDetail = () => {
         </div>
       </div>
 
-      {/* 안전거래 가이드 링크 */}
-      <Link to="/safe-trade" className="block text-center py-2 text-xs text-sky-600 hover:underline">
-        🛡️ 안전거래 가이드 확인하기
-      </Link>
+      {/* 안전거래 가이드 + 면책 고지 */}
+      <div className="text-center py-3 space-y-1">
+        <Link to="/safe-trade" className="block text-xs text-sky-600 hover:underline">
+          🛡️ 안전거래 가이드 확인하기
+        </Link>
+        <p className="text-[9px] text-gray-300 px-4">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
+      </div>
 
       {/* Full Image Viewer */}
       {showFullImage && allImages.length > 0 && (

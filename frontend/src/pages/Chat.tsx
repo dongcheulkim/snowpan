@@ -209,8 +209,9 @@ const Chat = () => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 pb-3 px-1">
-        <div className="text-center text-[10px] text-gray-400 py-2">
-          {t('chat.safetyNotice')}
+        <div className="text-center py-2 space-y-1">
+          <p className="text-[10px] text-gray-400">{t('chat.safetyNotice')}</p>
+          <p className="text-[9px] text-gray-300">스노우판은 거래 당사자가 아닌 중개자이며, 거래에 대한 책임을 지지 않습니다. 채팅 내용은 서비스 제공을 위해 저장됩니다.</p>
         </div>
         {messages.map((msg) => {
           const isMe = msg.senderId === user.id;

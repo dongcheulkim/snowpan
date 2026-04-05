@@ -159,6 +159,8 @@ const MyPage = () => {
 
   const settings = [
     { label: t('mypage.terms'), link: '/mypage/terms' },
+    { label: '개인정보처리방침', link: '/privacy' },
+    { label: '안전거래 가이드', link: '/safe-trade' },
     { label: t('mypage.support'), link: '/mypage/support' },
   ];
 
