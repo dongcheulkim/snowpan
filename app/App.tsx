@@ -12,6 +12,12 @@ import SearchScreen from './src/screens/SearchScreen';
 import ChatListScreen from './src/screens/ChatListScreen';
 import MyPageScreen from './src/screens/MyPageScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
+import UsedListScreen from './src/screens/UsedListScreen';
+import UsedDetailScreen from './src/screens/UsedDetailScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import CommunityDetailScreen from './src/screens/CommunityDetailScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -44,16 +50,12 @@ export default function App() {
   const navRef = useRef<NavigationContainerRef<any>>(null);
 
   useEffect(() => {
-    // 푸시 토큰 등록
     registerPushToken().catch(() => {});
-
-    // 알림 클릭 시 해당 화면으로 이동
     const sub = addNotificationResponseListener(response => {
       const link = response.notification.request.content.data?.link as string;
       if (link && navRef.current) {
         if (link.startsWith('/chat/')) navRef.current.navigate('채팅');
         else if (link.startsWith('/community/')) navRef.current.navigate('커뮤니티');
-        else if (link.startsWith('/used/')) navRef.current.navigate('홈');
         else navRef.current.navigate('홈');
       }
     });
@@ -66,6 +68,12 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ presentation: 'modal' }} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Used" component={UsedListScreen} />
+        <Stack.Screen name="UsedDetail" component={UsedDetailScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="CommunityDetail" component={CommunityDetailScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
