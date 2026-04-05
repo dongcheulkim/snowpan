@@ -30,7 +30,7 @@ const Navbar = () => {
   let user: { id: string; name: string } | null = null;
   try { user = raw ? JSON.parse(raw) : null; } catch { user = null; }
 
-  const [hasUnread, setHasUnread] = useState(false);
+  const [, setHasUnread] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
@@ -115,42 +115,23 @@ const Navbar = () => {
 
           <div className="flex items-center gap-1.5">
             <SearchBar />
-            {user ? (
-              <>
-                <Link
-                  to="/chat/rooms"
-                  className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
-                  title="채팅"
-                >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  {hasUnread && (
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-coral rounded-full border-2 border-white" />
-                  )}
-                </Link>
-                <Link
-                  to="/notifications"
-                  className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
-                  title={t('nav.notifications')}
-                >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  {unreadNotifCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white px-1">
-                      {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
-                    </span>
-                  )}
-                </Link>
-                <Link
-                  to="/mypage"
-                  className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
-                >
-                  {t('nav.mypage')}
-                </Link>
-              </>
-            ) : (
+            {user && (
+              <Link
+                to="/notifications"
+                className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
+                title={t('nav.notifications')}
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {unreadNotifCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white px-1">
+                    {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            {!user && (
               <Link
                 to="/login"
                 className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
