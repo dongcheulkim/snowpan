@@ -6,18 +6,35 @@ import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { registerPushToken, addNotificationResponseListener } from './src/utils/push';
 
+// 탭 화면
 import HomeScreen from './src/screens/HomeScreen';
 import CommunityScreen from './src/screens/CommunityScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import ChatListScreen from './src/screens/ChatListScreen';
 import MyPageScreen from './src/screens/MyPageScreen';
+
+// 스택 화면
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import UsedListScreen from './src/screens/UsedListScreen';
 import UsedDetailScreen from './src/screens/UsedDetailScreen';
+import UsedRegisterScreen from './src/screens/UsedRegisterScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import CommunityDetailScreen from './src/screens/CommunityDetailScreen';
+import CommunityWriteScreen from './src/screens/CommunityWriteScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
+import RentalListScreen from './src/screens/RentalListScreen';
+import LessonListScreen from './src/screens/LessonListScreen';
+import AccommodationListScreen from './src/screens/AccommodationListScreen';
+import SkiShopScreen from './src/screens/SkiShopScreen';
+import RepairShopScreen from './src/screens/RepairShopScreen';
+import CompetitionsScreen from './src/screens/CompetitionsScreen';
+import MySalesScreen from './src/screens/MySalesScreen';
+import MyWishlistScreen from './src/screens/MyWishlistScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
+import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
+import SellerProfileScreen from './src/screens/SellerProfileScreen';
+import AdBookingScreen from './src/screens/AdBookingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -71,9 +88,23 @@ export default function App() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Used" component={UsedListScreen} />
         <Stack.Screen name="UsedDetail" component={UsedDetailScreen} />
+        <Stack.Screen name="UsedRegister" component={UsedRegisterScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="CommunityDetail" component={CommunityDetailScreen} />
+        <Stack.Screen name="CommunityWrite" component={CommunityWriteScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Rental" component={RentalListScreen} />
+        <Stack.Screen name="Lesson" component={LessonListScreen} />
+        <Stack.Screen name="Accommodation" component={AccommodationListScreen} />
+        <Stack.Screen name="SkiShop" component={SkiShopScreen} />
+        <Stack.Screen name="Repair" component={RepairShopScreen} />
+        <Stack.Screen name="Competitions" component={CompetitionsScreen} />
+        <Stack.Screen name="MySales" component={MySalesScreen} />
+        <Stack.Screen name="MyWishlist" component={MyWishlistScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="SellerProfile" component={SellerProfileScreen} />
+        <Stack.Screen name="AdBooking" component={AdBookingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
