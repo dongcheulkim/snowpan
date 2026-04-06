@@ -35,17 +35,22 @@ const Navbar = () => {
   const lastFetchRef = useRef<number>(0);
 
   const fetchNotifCount = useCallback(() => {
-    if (!user) { setTimeout(() => setUnreadNotifCount(0), 0); return; }
-    const token = sessionStorage.getItem('token');
-    if (!token) return;
-    api<any>('/notifications?limit=50')
-      .then(data => {
-        const notifs = Array.isArray(data) ? data : (data?.notifications || []);
-        const count = notifs.filter((n: any) => !n.read).length;
-        setTimeout(() => setUnreadNotifCount(count), 0);
-      })
-      .catch(() => {});
-  }, [user]);
+    try {
+      if (!user) return;
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      api<any>('/notifications?limit=50')
+        .then(data => {
+          try {
+            const notifs = Array.isArray(data) ? data : (data?.notifications || []);
+            const count = notifs.filter((n: any) => !n.read).length;
+            setUnreadNotifCount(count);
+          } catch {}
+        })
+        .catch(() => {});
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!user]);
 
   useEffect(() => {
     if (!user) { setHasUnread(false); return; }
@@ -58,9 +63,11 @@ const Navbar = () => {
 
     api<any>('/chat/rooms')
       .then(data => {
-        const rooms = Array.isArray(data) ? data : [];
-        const total = rooms.reduce((sum: number, r: any) => sum + (r.unreadCount || 0), 0);
-        setTimeout(() => setHasUnread(total > 0), 0);
+        try {
+          const rooms = Array.isArray(data) ? data : [];
+          const total = rooms.reduce((sum: number, r: any) => sum + (r.unreadCount || 0), 0);
+          setHasUnread(total > 0);
+        } catch {}
       })
       .catch(() => {});
 

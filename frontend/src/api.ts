@@ -29,7 +29,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     if (res.status === 401 && sessionStorage.getItem('token') && !window.location.pathname.includes('/login')) {
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
-      window.location.href = '/login';
+      setTimeout(() => { window.location.href = '/login'; }, 0);
     }
     throw new Error(data.error || '요청에 실패했습니다.');
   }
