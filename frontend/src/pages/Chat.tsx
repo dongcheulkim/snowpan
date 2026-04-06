@@ -3,6 +3,7 @@ import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
 import { t, onLangChange } from '../i18n';
+import ChatBotGuide from '../components/ChatBotGuide';
 
 interface Message {
   id: string;
@@ -24,7 +25,7 @@ const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
   const state = location.state as {
-    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string;
+    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean;
   } | null;
 
   const user = getUser();
@@ -41,6 +42,7 @@ const Chat = () => {
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [, setLangTick] = useState(0);
+  const [isAdminChat, setIsAdminChat] = useState(false);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -77,6 +79,8 @@ const Chat = () => {
     if (!user) return;
     const token = getToken();
     if (!token) return;
+
+    if (state?.isAdmin) setIsAdminChat(true);
 
     if (state?.sellerId) {
       // 상품에서 채팅하기로 진입 -> 방 생성/조회
@@ -213,6 +217,14 @@ const Chat = () => {
           <p className="text-[10px] text-gray-400">{t('chat.safetyNotice')}</p>
           <p className="text-[9px] text-gray-300">스노우판은 거래 당사자가 아닌 중개자이며, 거래에 대한 책임을 지지 않습니다. 채팅 내용은 서비스 제공을 위해 저장됩니다.</p>
         </div>
+        {isAdminChat && messages.length <= 2 && (
+          <ChatBotGuide onSelect={(cat, sub) => {
+            if (socketRef.current && roomId && connected) {
+              socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
+            }
+          }} />
+        )}
+
         {messages.map((msg) => {
           const isMe = msg.senderId === user.id;
           const isPriceOffer = msg.type === 'price_offer';

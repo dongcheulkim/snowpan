@@ -27,7 +27,7 @@ const Support = () => {
         method: 'POST',
         body: { targetUserId: admin.id },
       });
-      navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id } });
+      navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id, isAdmin: true } });
     } catch {
       alert('관리자 연결에 실패했습니다.');
     } finally { setChatLoading(false); }
