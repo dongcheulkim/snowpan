@@ -83,34 +83,6 @@ const Support = () => {
         <p className="text-[10px] text-gray-400 text-center mt-2">로그인 후 관리자와 바로 채팅할 수 있습니다.</p>
       </div>
 
-      {/* 이메일 문의 (비로그인도 가능) */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-900">이메일 문의</h2>
-          <button onClick={() => setShowContactForm(!showContactForm)} className="text-xs text-sky-600 font-bold">
-            {showContactForm ? '접기' : '작성하기'}
-          </button>
-        </div>
-
-        {showContactForm ? (
-          <form onSubmit={handleContactSubmit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="이름" value={contactForm.name} onChange={e => setContactForm({ ...contactForm, name: e.target.value })} required className={inputClass} />
-              <input type="email" placeholder="이메일" value={contactForm.email} onChange={e => setContactForm({ ...contactForm, email: e.target.value })} required className={inputClass} />
-            </div>
-            <select value={contactForm.category} onChange={e => setContactForm({ ...contactForm, category: e.target.value })} className={inputClass}>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <textarea placeholder="문의 내용을 입력해주세요" value={contactForm.content} onChange={e => setContactForm({ ...contactForm, content: e.target.value })} rows={4} required className={`${inputClass} resize-none`} />
-            <button type="submit" disabled={submitting} className="w-full py-2.5 bg-gray-900 text-white rounded-lg font-bold text-sm disabled:opacity-50">
-              {submitting ? '전송 중...' : '문의 보내기'}
-            </button>
-          </form>
-        ) : (
-          <p className="text-xs text-gray-400">로그인 없이도 이메일로 문의할 수 있습니다.</p>
-        )}
-      </div>
-
       {/* 운영 정보 */}
       <div className="card p-5">
         <div className="space-y-2">
