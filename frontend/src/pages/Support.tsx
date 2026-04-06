@@ -8,11 +8,6 @@ const Support = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
 
-  // 문의 폼 (비로그인용)
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', category: 'general', content: '' });
-  const [submitting, setSubmitting] = useState(false);
-
   const faqs = [
     { q: '중고 장비 거래는 어떻게 하나요?', a: '중고 메뉴에서 판매 등록 후, 구매 희망자와 채팅으로 거래 조건을 조율하세요. 직거래 또는 택배거래 모두 가능합니다.' },
     { q: '렌탈/레슨 등록은 어떻게 하나요?', a: '렌탈 또는 레슨 메뉴에서 "등록" 버튼을 눌러 정보를 입력하세요. 관리자 승인 후 목록에 노출됩니다.' },
@@ -20,15 +15,6 @@ const Support = () => {
     { q: '거래 중 문제가 생기면 어떻게 하나요?', a: '아래 "관리자에게 문의" 버튼을 통해 1:1 채팅으로 문의해주세요.' },
     { q: '비밀번호를 잊었어요.', a: '로그인 페이지에서 "비밀번호 찾기"를 통해 가입한 이메일로 재설정 코드를 받을 수 있습니다.' },
     { q: '광고는 어떻게 신청하나요?', a: '마이페이지 → 광고 신청에서 배너/프리미엄 광고를 신청할 수 있습니다.' },
-  ];
-
-  const categories = [
-    { id: 'general', name: '일반 문의' },
-    { id: 'trade', name: '거래 관련' },
-    { id: 'ad', name: '광고 문의' },
-    { id: 'bug', name: '오류 신고' },
-    { id: 'partnership', name: '제휴/협력' },
-    { id: 'other', name: '기타' },
   ];
 
   const handleAdminChat = async () => {
@@ -46,22 +32,6 @@ const Support = () => {
       alert('관리자 연결에 실패했습니다.');
     } finally { setChatLoading(false); }
   };
-
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactForm.content.trim()) { alert('내용을 입력해주세요.'); return; }
-    setSubmitting(true);
-    try {
-      const res = await api<{ message: string }>('/contact', { method: 'POST', body: contactForm });
-      alert(res.message);
-      setShowContactForm(false);
-      setContactForm({ name: '', email: '', category: 'general', content: '' });
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '문의 접수에 실패했습니다.');
-    } finally { setSubmitting(false); }
-  };
-
-  const inputClass = "w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400";
 
   return (
     <div className="space-y-4 animate-fade-in max-w-md mx-auto">
