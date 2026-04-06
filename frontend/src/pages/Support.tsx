@@ -25,7 +25,7 @@ const Support = () => {
       if (admin.id === user.id) { alert('관리자 계정입니다.'); setChatLoading(false); return; }
       const room = await api<{ id: string }>('/chat/rooms', {
         method: 'POST',
-        body: { targetUserId: admin.id, productName: '관리자 문의' },
+        body: { targetUserId: admin.id },
       });
       navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id } });
     } catch {

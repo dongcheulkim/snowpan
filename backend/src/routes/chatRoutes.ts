@@ -110,10 +110,23 @@ router.post('/rooms', async (req: any, res: Response) => {
       where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
     });
 
+    let isNewRoom = false;
     if (!room) {
       room = await prisma.chatRoom.create({
         data: { user1Id: u1, user2Id: u2 },
       });
+      isNewRoom = true;
+    }
+
+    // 관리자 채팅방 새로 생성 시 관리자 자동 인사
+    if (isNewRoom && !productName) {
+      const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { role: true } });
+      if (target?.role === 'admin') {
+        await prisma.message.create({
+          data: { roomId: room.id, senderId: targetUserId, content: '안녕하세요! 무엇을 도와드릴까요? 😊', type: 'text' },
+        });
+        await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
+      }
     }
 
     // 상품명이 있으면 안내 메시지 자동 전송
