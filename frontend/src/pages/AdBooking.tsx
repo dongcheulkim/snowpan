@@ -25,8 +25,8 @@ const SLOT_LABELS: Record<string, string> = {
 };
 
 const SLOT_DESCRIPTIONS: Record<string, string> = {
-  main_banner: '홈 화면 상단에 배너로 노출됩니다',
-  category: '선택한 카테고리 페이지 상단에 배너로 노출됩니다',
+  main_banner: '홈 화면 상단 배너 (1개월 단위)',
+  category: '카테고리 페이지 상단 배너 (1개월 단위)',
   premium: '상품 리스트 최상단 고정 (카테고리당 3개 한정, 1,000원/일)',
 };
 
@@ -332,11 +332,15 @@ export default function AdBooking() {
 
           {/* 빠른 선택 */}
           <div className="flex gap-2">
-            {[
+            {(selectedSlot === 'premium' ? [
               { label: '1일', days: 1 },
               { label: '7일', days: 7 },
               { label: '30일', days: 30 },
-            ].map(({ label, days }) => (
+            ] : [
+              { label: '1개월', days: 30 },
+              { label: '2개월', days: 60 },
+              { label: '3개월', days: 90 },
+            ]).map(({ label, days }) => (
               <button
                 key={days}
                 onClick={() => {
