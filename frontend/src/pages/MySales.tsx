@@ -99,17 +99,25 @@ const MySales = () => {
                     <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
                     <div className="text-sm font-bold text-mint mt-0.5">{item.price?.toLocaleString()}원</div>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded border ${st.color}`}>{st.text}</span>
+                  <select
+                    value={item.status}
+                    onChange={e => handleStatusChange(item.id, e.target.value)}
+                    className={`text-[11px] font-bold px-2 py-1.5 rounded-lg border appearance-none cursor-pointer ${
+                      item.status === 'selling' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
+                      item.status === 'reserved' ? 'text-yellow-600 bg-yellow-50 border-yellow-200' :
+                      'text-gray-500 bg-gray-100 border-gray-300'
+                    }`}
+                  >
+                    <option value="selling">판매중</option>
+                    <option value="reserved">예약중</option>
+                    <option value="sold">판매완료</option>
+                  </select>
                 </div>
                 <div className="flex gap-1.5 mt-3 pt-3 border-t border-gray-100">
                   <button
                     onClick={() => handleBump(item.id)}
                     className="flex-1 py-2 bg-mint/10 text-emerald-600 rounded-lg text-[11px] font-medium border border-mint/30 hover:bg-mint/20 transition-colors"
                   >{t('mySales.bump')}</button>
-                  <button
-                    onClick={() => handleStatusChange(item.id, st.next)}
-                    className="flex-1 py-2 bg-gray-50 text-gray-600 rounded-lg text-[11px] font-medium border border-gray-200 hover:bg-gray-100 transition-colors"
-                  >{st.nextText}</button>
                   <button
                     onClick={() => navigate(`/used/${item.id}/edit`)}
                     className="flex-1 py-2 bg-sky-50 text-sky-500 rounded-lg text-[11px] font-medium border border-sky-200 hover:bg-sky-100 transition-colors"
