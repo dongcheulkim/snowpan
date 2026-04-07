@@ -218,7 +218,7 @@ const UsedRegister = () => {
             {form.subcategory === 'boots' && (
               <div>
                 <label className={labelClass}>플렉스</label>
-                <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 미디엄" className={inputClass} />
+                <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 130" className={inputClass} />
               </div>
             )}
           </div>
