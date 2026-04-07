@@ -40,9 +40,9 @@ const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all ${active ? 'text-sky-500' : 'text-gray-400'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? 'text-sky-500' : 'text-gray-400'}`}
             >
-              <div className={`relative ${active ? 'scale-110' : ''} transition-transform`}>
+              <div className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
                 {active && <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-sky-500 rounded-full" />}
               </div>
