@@ -243,6 +243,14 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
+    // 판매완료 시 프리미엄 자동 해제 (잔여 기간 소멸)
+    if (updated.status === 'sold' && updated.isPremium) {
+      await prisma.product.update({
+        where: { id },
+        data: { isPremium: false, premiumUntil: null },
+      });
+    }
+
     res.json(updated);
   } catch (error) {
     console.error('Update product error:', error);
