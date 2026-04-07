@@ -10,19 +10,6 @@ interface BadgeRequest {
   image?: string;
 }
 
-interface AdBooking {
-  id: string;
-  slotType: string;
-  category: string | null;
-  title: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  totalDays: number;
-  totalPrice: number;
-  createdAt: string;
-}
-
 const badgeDisplay: Record<string, { label: string; desc: string; color: string }> = {
   lv1: { label: 'LV1', desc: 'KSIA 레벨1', color: 'bg-green-500 text-white' },
   lv2: { label: 'LV2', desc: 'KSIA 레벨2', color: 'bg-accent text-white' },
@@ -49,8 +36,6 @@ const MyPage = () => {
   const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
   const [, setLangTick] = useState(0);
 
-  // 광고 예약 상태
-  const [adBookings, setAdBookings] = useState<AdBooking[]>([]);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -71,7 +56,6 @@ const MyPage = () => {
     // 뱃지 요청 목록 조회
     api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
     // 광고 예약 목록 조회
-    api<AdBooking[]>('/ad-booking/my-bookings').then(setAdBookings).catch(() => {});
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -134,6 +118,7 @@ const MyPage = () => {
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
+    { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
     { label: t('mypage.notifications'), link: '/notifications' },
   ];
@@ -267,70 +252,6 @@ const MyPage = () => {
                       <div className="text-[10px] text-yellow-500">{t('mypage.pendingApproval')}</div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>}
-
-      {/* 광고 예약 - 관리자에겐 숨김 */}
-      {user.role !== 'admin' && <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-900">📢 광고 신청</h3>
-          <Link to="/ad-booking" className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
-            + 광고 신청하기
-          </Link>
-        </div>
-        {adBookings.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">신청한 광고가 없습니다.</p>
-        ) : (
-          <div className="space-y-2">
-            {adBookings.map((ad) => {
-              const slotLabel = ad.slotType === 'main_banner' ? '메인 배너' : ad.slotType === 'premium' ? '프리미엄' : `카테고리`;
-              const statusLabel: Record<string, string> = {
-                pending_payment: '결제 대기',
-                paid: '결제 완료',
-                active: '노출중',
-                completed: '종료',
-                cancelled: '취소됨',
-                refunded: '환불됨',
-              };
-              const statusColor: Record<string, string> = {
-                pending_payment: 'bg-yellow-100 text-yellow-700',
-                paid: 'bg-blue-100 text-blue-700',
-                active: 'bg-mint/20 text-emerald-700',
-                completed: 'bg-gray-100 text-gray-500',
-                cancelled: 'bg-coral/20 text-coral',
-                refunded: 'bg-coral/20 text-coral',
-              };
-              const startD = new Date(ad.startDate);
-              const endD = new Date(ad.endDate);
-              const dateRange = `${startD.getMonth() + 1}.${startD.getDate()} ~ ${endD.getMonth() + 1}.${endD.getDate()}`;
-              return (
-                <div key={ad.id} className="flex items-start justify-between p-3 bg-white rounded-lg border border-gray-200">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-500'}`}>
-                        {statusLabel[ad.status] || ad.status}
-                      </span>
-                      <span className="text-[10px] text-gray-400">{slotLabel}</span>
-                    </div>
-                    <p className="text-xs font-medium text-gray-900 truncate">{ad.title}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
-                  </div>
-                  {!['active', 'paid', 'pending_payment'].includes(ad.status) && (
-                    <button
-                      onClick={async () => {
-                        if (!confirm('이 광고 내역을 삭제하시겠습니까?')) return;
-                        try {
-                          await api(`/ad-booking/${ad.id}`, { method: 'DELETE' });
-                          setAdBookings(prev => prev.filter(b => b.id !== ad.id));
-                        } catch { alert('삭제에 실패했습니다.'); }
-                      }}
-                      className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0"
-                    >✕</button>
-                  )}
                 </div>
               );
             })}
