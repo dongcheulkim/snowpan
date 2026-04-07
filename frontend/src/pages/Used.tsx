@@ -14,7 +14,6 @@ interface Product {
   category: string;
   status: string;
   isPremium?: boolean;
-  length?: string | null;
   size?: string | null;
 }
 
@@ -145,7 +144,6 @@ const Used = () => {
                 <div className="p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</span>
-                    {product.length && <span className="text-[9px] text-gray-400 bg-gray-50 px-1 rounded">{product.length}cm</span>}
                     {product.size && <span className="text-[9px] text-gray-400 bg-gray-50 px-1 rounded">{product.size}</span>}
                   </div>
                   <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>

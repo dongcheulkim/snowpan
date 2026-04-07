@@ -203,18 +203,16 @@ const UsedRegister = () => {
             </div>
           </div>
 
-          {/* 스펙 (카테고리별) */}
+          {/* 스펙 */}
           <div className="grid grid-cols-2 gap-4">
-            {['ski', 'board'].includes(form.subcategory) && (
-              <div>
-                <label className={labelClass}>길이 (cm)</label>
-                <input type="text" name="length" value={form.length} onChange={handleChange} placeholder="예: 170" className={inputClass} />
-              </div>
-            )}
+            <div>
+              <label className={labelClass}>사이즈/길이</label>
+              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : '예: 265mm'} className={inputClass} />
+            </div>
             {form.subcategory === 'ski' && (
               <div>
-                <label className={labelClass}>회전반경 (m)</label>
-                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 14" className={inputClass} />
+                <label className={labelClass}>회전반경</label>
+                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 14m" className={inputClass} />
               </div>
             )}
             {['board', 'boots'].includes(form.subcategory) && (
