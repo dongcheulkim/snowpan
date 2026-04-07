@@ -77,6 +77,10 @@ model Product {
   reviewCount Int?
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
+  length      String?  // 길이 (cm) - 스키/보드
+  radius      String?  // 회전반경 (m) - 스키
+  flex        String?  // 플렉스 - 부츠/보드
+  size        String?  // 사이즈 - 부츠/바인딩/헬멧/의류
   status      String?  @default("selling") // 'selling' | 'reserved' | 'sold'
   isPremium   Boolean? @default(false)
   premiumUntil DateTime?

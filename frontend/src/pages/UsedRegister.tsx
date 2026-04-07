@@ -14,6 +14,9 @@ const UsedRegister = () => {
     subcategory: 'ski',
     brand: '',
     size: '',
+    length: '',
+    radius: '',
+    flex: '',
     year: '',
     condition: '새상품',
     price: '',
@@ -68,6 +71,10 @@ const UsedRegister = () => {
           description: form.description,
           condition: conditionMap[form.condition] || '중',
           usageCount: form.year ? `${form.year}년식` : undefined,
+          length: form.length || undefined,
+          radius: form.radius || undefined,
+          flex: form.flex || undefined,
+          size: form.size || undefined,
         },
       });
       alert('장비가 등록되었습니다!');
@@ -194,6 +201,28 @@ const UsedRegister = () => {
                 className={inputClass}
               />
             </div>
+          </div>
+
+          {/* 스펙 (카테고리별) */}
+          <div className="grid grid-cols-2 gap-4">
+            {['ski', 'board'].includes(form.subcategory) && (
+              <div>
+                <label className={labelClass}>길이 (cm)</label>
+                <input type="text" name="length" value={form.length} onChange={handleChange} placeholder="예: 170" className={inputClass} />
+              </div>
+            )}
+            {form.subcategory === 'ski' && (
+              <div>
+                <label className={labelClass}>회전반경 (m)</label>
+                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 14" className={inputClass} />
+              </div>
+            )}
+            {['board', 'boots'].includes(form.subcategory) && (
+              <div>
+                <label className={labelClass}>플렉스</label>
+                <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 미디엄" className={inputClass} />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

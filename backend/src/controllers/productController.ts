@@ -51,6 +51,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
           bumpedAt: true,
           createdAt: true,
           category: true,
+          length: true,
+          size: true,
         },
       }),
       prisma.product.count({ where }),
@@ -101,7 +103,7 @@ export const getHotDeals = async (_req: Request, res: Response): Promise<void> =
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size } = req.body;
 
     if (!name || !price || !image) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -125,6 +127,10 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         category: 'used',
         description,
         condition,
+        length: length || null,
+        radius: radius || null,
+        flex: flex || null,
+        size: size || null,
         usageCount,
         userId,
       },
@@ -210,7 +216,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size } = req.body;
     const oldPrice = product.price;
     const updated = await prisma.product.update({
       where: { id },
@@ -225,6 +231,10 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(condition && { condition }),
         ...(usageCount !== undefined && { usageCount }),
         ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
+        ...(length !== undefined && { length: length || null }),
+        ...(radius !== undefined && { radius: radius || null }),
+        ...(flex !== undefined && { flex: flex || null }),
+        ...(size !== undefined && { size: size || null }),
       },
     });
 
