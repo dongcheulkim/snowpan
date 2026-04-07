@@ -197,7 +197,7 @@ const UsedRegister = () => {
                 name="brand"
                 value={form.brand}
                 onChange={handleChange}
-                placeholder="예: Rossignol"
+                placeholder="예: 피셔"
                 className={inputClass}
               />
             </div>
