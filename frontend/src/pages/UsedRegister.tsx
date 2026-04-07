@@ -197,7 +197,7 @@ const UsedRegister = () => {
                 name="brand"
                 value={form.brand}
                 onChange={handleChange}
-                placeholder="예: 피셔"
+                placeholder={form.subcategory === 'helmet' || form.subcategory === 'goggles' ? '예: 오클리' : form.subcategory === 'board' ? '예: SG' : '예: 피셔'}
                 className={inputClass}
               />
             </div>
@@ -207,7 +207,7 @@ const UsedRegister = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>{['ski', 'board'].includes(form.subcategory) ? '사이즈/길이' : form.subcategory === 'binding' ? '바인딩 강도' : '사이즈'}</label>
-              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : form.subcategory === 'binding' ? '예: 16' : form.subcategory === 'boots' ? '예: 265mm' : form.subcategory === 'wear' ? '예: L' : '예: M'} className={inputClass} />
+              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : form.subcategory === 'binding' ? '예: 16' : form.subcategory === 'boots' ? '예: 265mm' : '예: L'} className={inputClass} />
             </div>
             {form.subcategory === 'ski' && (
               <div>
