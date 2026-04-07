@@ -224,18 +224,6 @@ const UsedRegister = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* 사이즈 */}
-            <div>
-              <label className={labelClass}>사이즈</label>
-              <input
-                type="text"
-                name="size"
-                value={form.size}
-                onChange={handleChange}
-                placeholder="예: 172cm"
-                className={inputClass}
-              />
-            </div>
 
             {/* 연식 */}
             <div>
