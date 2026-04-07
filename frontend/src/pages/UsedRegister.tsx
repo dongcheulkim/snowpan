@@ -215,7 +215,7 @@ const UsedRegister = () => {
                 <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 14m" className={inputClass} />
               </div>
             )}
-            {['board', 'boots'].includes(form.subcategory) && (
+            {form.subcategory === 'boots' && (
               <div>
                 <label className={labelClass}>플렉스</label>
                 <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 미디엄" className={inputClass} />
