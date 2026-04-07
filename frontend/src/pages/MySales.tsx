@@ -84,7 +84,7 @@ const MySales = () => {
       ) : (
         <div className="space-y-2">
           {products.map((item) => {
-            const st = statusConfig[item.status] || statusConfig.selling;
+            void statusConfig;
             return (
               <div key={item.id} className="card p-4">
                 <div className="flex items-center gap-3">
