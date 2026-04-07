@@ -206,13 +206,13 @@ const UsedRegister = () => {
           {/* 스펙 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>사이즈/길이</label>
-              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : '예: 265mm'} className={inputClass} />
+              <label className={labelClass}>{['ski', 'board'].includes(form.subcategory) ? '사이즈/길이' : '사이즈'}</label>
+              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : form.subcategory === 'boots' ? '예: 265mm' : form.subcategory === 'wear' ? '예: L' : '예: M'} className={inputClass} />
             </div>
             {form.subcategory === 'ski' && (
               <div>
-                <label className={labelClass}>회전반경</label>
-                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 14m" className={inputClass} />
+                <label className={labelClass}>회전반경(R)</label>
+                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 18m" className={inputClass} />
               </div>
             )}
             {form.subcategory === 'boots' && (
@@ -233,7 +233,7 @@ const UsedRegister = () => {
                 name="year"
                 value={form.year}
                 onChange={handleChange}
-                placeholder="예: 2022"
+                placeholder="예: 25-26"
                 className={inputClass}
               />
             </div>
