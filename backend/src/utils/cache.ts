@@ -36,3 +36,9 @@ export function cacheDel(key: string): void {
   store.delete(key);
 }
 
+export function cacheDelPrefix(prefix: string): void {
+  for (const key of store.keys()) {
+    if (key.startsWith(prefix)) store.delete(key);
+  }
+}
+

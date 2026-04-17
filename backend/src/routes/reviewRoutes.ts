@@ -25,6 +25,40 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       return;
     }
 
+    // 거래 검증: productId 필수 + 상품 판매완료 + 채팅 이력 필수
+    if (!productId) {
+      res.status(400).json({ error: '거래 상품을 지정해야 리뷰를 작성할 수 있습니다.' });
+      return;
+    }
+
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (product.userId !== sellerId) {
+      res.status(400).json({ error: '판매자 정보가 일치하지 않습니다.' });
+      return;
+    }
+    if (product.status !== 'sold') {
+      res.status(400).json({ error: '거래 완료된 상품만 리뷰를 작성할 수 있습니다.' });
+      return;
+    }
+
+    // 구매자와 판매자 간 채팅 이력 확인
+    const [u1, u2] = [buyerId, sellerId].sort();
+    const chatRoom = await prisma.chatRoom.findUnique({
+      where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+    });
+    if (!chatRoom) {
+      res.status(403).json({ error: '거래 상대와 채팅한 이력이 있어야 리뷰를 작성할 수 있습니다.' });
+      return;
+    }
+
+    // 중복 리뷰 방지 (같은 상품에 대해 같은 구매자가 여러 번 쓰는 것 방지)
+    const existing = await prisma.review.findFirst({ where: { buyerId, sellerId, productId } });
+    if (existing) {
+      res.status(400).json({ error: '이 거래에 대한 리뷰를 이미 작성하셨습니다.' });
+      return;
+    }
+
     const review = await prisma.review.create({
       data: {
         rating: parseInt(String(rating)),

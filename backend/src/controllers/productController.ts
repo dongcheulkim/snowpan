@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { cacheGet, cacheSet } from '../utils/cache';
+import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
@@ -137,6 +137,8 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       include: { user: { select: { name: true, nickname: true, phone: true } } },
     });
 
+    cacheDelPrefix('products:');
+    cacheDel('home:hotdeals');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create used product error:', error);
@@ -162,6 +164,8 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
       },
     });
 
+    cacheDelPrefix('products:');
+    cacheDel('home:hotdeals');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create new product error:', error);
@@ -261,6 +265,8 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       });
     }
 
+    cacheDelPrefix('products:');
+    cacheDel('home:hotdeals');
     res.json(updated);
   } catch (error) {
     console.error('Update product error:', error);
@@ -277,6 +283,8 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.product.delete({ where: { id } });
+    cacheDelPrefix('products:');
+    cacheDel('home:hotdeals');
     res.json({ message: '상품이 삭제되었습니다.' });
   } catch (error) {
     console.error('Delete product error:', error);
@@ -329,6 +337,8 @@ export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void
       where: { id },
       data: { bumpedAt: new Date() },
     });
+    cacheDelPrefix('products:');
+    cacheDel('home:hotdeals');
     res.json(updated);
   } catch (error) {
     console.error('Bump product error:', error);
