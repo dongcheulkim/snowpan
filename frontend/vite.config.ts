@@ -42,6 +42,22 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
+            urlPattern: /^https?:\/\/.*\/api\/community.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/api\/(rentals|lessons|accommodations|ski-shops|repair-shops).*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/api\/notifications.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/api\/chat.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {

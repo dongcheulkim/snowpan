@@ -329,7 +329,7 @@ const UsedDetail = () => {
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
                     alert('삭제되었습니다.');
-                    navigate('/used');
+                    window.location.href = '/used';
                   } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"

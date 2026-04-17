@@ -223,7 +223,7 @@ const CommunityDetail = () => {
       </div>
 
       {user && (post.userId === user.id || user.role === 'admin') && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate(`/community/${post.sport}`); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); window.location.href = `/community/${post.sport}`; } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
       )}
 
       <div className="card p-5">
