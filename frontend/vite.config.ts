@@ -35,11 +35,11 @@ export default defineConfig({
           },
           {
             urlPattern: /^https?:\/\/.*\/api\/products.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'product-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 30 },
-            },
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https?:\/\/.*\/api\/home\/hot-deals.*/i,
+            handler: 'NetworkOnly',
           },
           {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
