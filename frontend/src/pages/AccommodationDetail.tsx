@@ -138,8 +138,8 @@ const AccommodationDetail = () => {
       )}
 
       {/* Action */}
-      {user && item.userId === user.id && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/accommodations/${item.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate('/accommodation'); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">삭제</button>
+      {user && (item.userId === user.id || user.role === 'admin') && (
+        <button onClick={async () => { if (!confirm(item.userId !== user.id ? '관리자 권한으로 삭제하시겠습니까?' : '정말 삭제하시겠습니까?')) return; try { await api(`/accommodations/${item.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); navigate('/accommodation'); } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{item.userId !== user.id && user.role === 'admin' ? '관리자 삭제' : '삭제'}</button>
       )}
       {user && item.userId && item.userId !== user.id && (
         <button

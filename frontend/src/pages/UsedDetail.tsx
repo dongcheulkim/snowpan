@@ -320,11 +320,12 @@ const UsedDetail = () => {
           )}
 
           {/* Edit/Delete */}
-          {isMyProduct && (
+          {(isMyProduct || (user && user.role === 'admin')) && (
             <div className="flex gap-2">
               <button
                 onClick={async () => {
-                  if (!confirm('정말 삭제하시겠습니까?')) return;
+                  const isAdminAction = !isMyProduct && user?.role === 'admin';
+                  if (!confirm(isAdminAction ? '관리자 권한으로 이 상품을 삭제하시겠습니까?' : '정말 삭제하시겠습니까?')) return;
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
                     alert('삭제되었습니다.');
@@ -333,7 +334,7 @@ const UsedDetail = () => {
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
               >
-                {t('usedDetail.delete')}
+                {!isMyProduct && user?.role === 'admin' ? '관리자 삭제' : t('usedDetail.delete')}
               </button>
             </div>
           )}

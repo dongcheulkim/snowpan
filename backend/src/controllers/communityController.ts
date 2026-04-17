@@ -291,3 +291,16 @@ export const deletePost = async (req: AuthRequest, res: Response): Promise<void>
     res.json({ message: '게시글이 삭제되었습니다.' });
   } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
 };
+
+// 댓글 삭제 (작성자 또는 관리자)
+export const deleteComment = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const comment = await prisma.comment.findUnique({ where: { id } });
+    if (!comment) { res.status(404).json({ error: '댓글을 찾을 수 없습니다.' }); return; }
+    if (comment.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
+
+    await prisma.comment.delete({ where: { id } });
+    res.json({ message: '댓글이 삭제되었습니다.' });
+  } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
+};
