@@ -46,7 +46,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: user.nickname || user.name,
         nickname: user.nickname,
         displayName: user.displayName,
         phone: user.phone,
@@ -66,11 +66,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      res.status(400).json({ error: '이메일과 비밀번호를 입력해주세요.' });
+      return;
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       return;
     }
@@ -94,7 +99,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: user.nickname || user.name,
         nickname: user.nickname,
         displayName: user.displayName,
         phone: user.phone,
@@ -104,8 +109,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         createdAt: user.createdAt,
       },
     });
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch (error: any) {
+    console.error('Login error:', error?.message, error?.stack);
     res.status(500).json({ error: '로그인 중 오류가 발생했습니다.' });
   }
 };
@@ -198,7 +203,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     res.json({
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.nickname || user.name,
       nickname: user.nickname,
       displayName: user.displayName,
       phone: user.phone,
@@ -224,7 +229,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     res.json({
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.nickname || user.name,
       nickname: user.nickname,
       displayName: user.displayName,
       phone: user.phone,
