@@ -264,7 +264,7 @@ const UsedRegister = () => {
               name="price"
               value={form.price ? Number(form.price).toLocaleString() : ''}
               onChange={e => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })}
-              placeholder="450,000"
+              placeholder="예: 450,000"
               required
               className={inputClass}
             />

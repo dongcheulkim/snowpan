@@ -575,29 +575,50 @@ export default function AdBooking() {
           </div>
 
           {/* 입금 계좌 안내 */}
-          <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">🏦</span>
-              <span className="text-sm font-bold text-sky-800 dark:text-sky-300">입금 계좌 안내</span>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">은행</span>
-                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_BANK || '카카오뱅크'}</span>
+          {(() => {
+            const bank = import.meta.env.VITE_AD_DEPOSIT_BANK;
+            const account = import.meta.env.VITE_AD_DEPOSIT_ACCOUNT;
+            const holder = import.meta.env.VITE_AD_DEPOSIT_HOLDER;
+            if (!bank || !account || !holder) {
+              return (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">🏦</span>
+                    <span className="text-sm font-bold text-yellow-800">입금 계좌 안내</span>
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-2">
+                    계좌 정보를 관리자에게 문의해주세요. (1:1 문의로 입금 계좌를 안내해드립니다.)
+                  </p>
+                  <Link to="/mypage/support" className="inline-block mt-2 px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-bold">1:1 문의하기</Link>
+                </div>
+              );
+            }
+            return (
+              <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🏦</span>
+                  <span className="text-sm font-bold text-sky-800 dark:text-sky-300">입금 계좌 안내</span>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">은행</span>
+                    <span className="font-bold">{bank}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">계좌번호</span>
+                    <span className="font-bold">{account}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">예금주</span>
+                    <span className="font-bold">{holder}</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-2">
+                  입금 시 광고 제목을 입금자명에 적어주세요. 관리자 확인 후 바로 광고가 노출됩니다.
+                </p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">계좌번호</span>
-                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_ACCOUNT || '3333-30-5765007'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">예금주</span>
-                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_HOLDER || '김동철'}</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-2">
-              입금 시 광고 제목을 입금자명에 적어주세요. 관리자 확인 후 바로 광고가 노출됩니다.
-            </p>
-          </div>
+            );
+          })()}
 
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm">

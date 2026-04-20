@@ -29,10 +29,7 @@ const AccommodationRegister = () => {
   const featureOptions = ['스키장 셔틀', '조식 포함', '주차 무료', '온수풀', '사우나', 'BBQ', '넷플릭스', '와이파이'];
 
   useEffect(() => {
-    api<Resort[]>('/resorts').then(data => {
-      setResorts(data);
-      if (data.length > 0) setForm(prev => ({ ...prev, resortId: data[0].id }));
-    }).catch(() => {});
+    api<Resort[]>('/resorts').then(data => { setResorts(data); }).catch(() => {});
   }, []);
 
   const toggleType = (t: string) => {
@@ -121,6 +118,7 @@ const AccommodationRegister = () => {
         <div>
           <label className={labelClass}>스키장</label>
           <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
+            <option value="" disabled>스키장을 선택하세요</option>
             {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
@@ -139,11 +137,11 @@ const AccommodationRegister = () => {
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>특가 1박 가격 (원)</label>
-          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="150,000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="예: 150,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>정가 (원)</label>
-          <input type="number" value={form.originalPrice} onChange={e => setForm({...form, originalPrice: e.target.value})} placeholder="200000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.originalPrice ? Number(form.originalPrice).toLocaleString() : ''} onChange={e => setForm({...form, originalPrice: e.target.value.replace(/[^0-9]/g, '')})} placeholder="예: 200,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>최대 인원</label>

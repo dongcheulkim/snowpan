@@ -24,10 +24,7 @@ const RentalRegister = () => {
   });
 
   useEffect(() => {
-    api<Resort[]>('/resorts').then(data => {
-      setResorts(data);
-      if (data.length > 0) setForm(f => ({ ...f, resortId: data[0].id }));
-    }).catch(() => {});
+    api<Resort[]>('/resorts').then(data => { setResorts(data); }).catch(() => {});
   }, []);
 
   const equipmentOptions = ['스키', '보드', '부츠', '폴', '헬멧', '고글', '스키복 상의', '스키복 하의'];
@@ -44,8 +41,13 @@ const RentalRegister = () => {
   const handleSubmit = async () => {
     const user = getUser();
     if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
-    if (!form.name.trim() || !form.price || form.equipment.length === 0) {
-      alert('상품명, 가격, 장비를 입력해주세요.');
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('상품명');
+    if (!form.resortId) missing.push('스키장');
+    if (!form.price) missing.push('가격');
+    if (form.equipment.length === 0) missing.push('장비');
+    if (missing.length > 0) {
+      alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
       return;
     }
 
@@ -101,6 +103,7 @@ const RentalRegister = () => {
       <div>
         <label className={labelClass}>스키장</label>
         <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
+          <option value="" disabled>스키장을 선택하세요</option>
           {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
@@ -108,7 +111,7 @@ const RentalRegister = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>가격 (원/1일)</label>
-          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="45,000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="예: 45,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>기간</label>

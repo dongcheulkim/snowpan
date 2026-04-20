@@ -27,17 +27,18 @@ const LessonRegister = () => {
   });
 
   useEffect(() => {
-    api<Resort[]>('/resorts').then(data => {
-      setResorts(data);
-      if (data.length > 0) setForm(f => ({ ...f, resortId: data[0].id }));
-    }).catch(() => {});
+    api<Resort[]>('/resorts').then(data => { setResorts(data); }).catch(() => {});
   }, []);
 
   const handleSubmit = async () => {
     const user = getUser();
     if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
-    if (!form.name.trim() || !form.price) {
-      alert('레슨명과 가격을 입력해주세요.');
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('레슨명');
+    if (!form.resortId) missing.push('스키장');
+    if (!form.price) missing.push('가격');
+    if (missing.length > 0) {
+      alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
       return;
     }
     if (!certFile) {
@@ -100,6 +101,7 @@ const LessonRegister = () => {
       <div>
         <label className={labelClass}>스키장</label>
         <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
+          <option value="" disabled>스키장을 선택하세요</option>
           {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
@@ -125,7 +127,7 @@ const LessonRegister = () => {
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>가격 (원)</label>
-          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="80,000" className={inputClass} />
+          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({...form, price: e.target.value.replace(/[^0-9]/g, '')})} placeholder="예: 80,000" className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>시간</label>
