@@ -28,18 +28,22 @@ export default function MyAds() {
   const [ads, setAds] = useState<AdBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadAds = () => {
     api<AdBooking[]>('/ad-booking/my-bookings')
       .then(d => setAds(Array.isArray(d) ? d : []))
       .catch(() => setAds([]))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadAds(); }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('이 광고 내역을 삭제하시겠습니까?')) return;
     try {
       await api(`/ad-booking/${id}`, { method: 'DELETE' });
       setAds(prev => prev.filter(a => a.id !== id));
+      loadAds();
     } catch { alert('삭제에 실패했습니다.'); }
   };
 

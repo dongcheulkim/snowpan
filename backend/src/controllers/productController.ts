@@ -257,12 +257,30 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
-    // 판매완료 시 프리미엄 자동 해제 (잔여 기간 소멸)
+    // 판매완료 시 프리미엄 자동 해제 (잔여 기간 소멸, 환불 없음)
     if (updated.status === 'sold' && updated.isPremium) {
       await prisma.product.update({
         where: { id },
         data: { isPremium: false, premiumUntil: null },
       });
+    }
+    // 판매완료 시 상품과 연결된 프리미엄 광고 예약 종료 + 배너 제거
+    if (updated.status === 'sold') {
+      const relatedBookings = await prisma.adBooking.findMany({
+        where: {
+          slotType: 'premium',
+          status: { in: ['active', 'paid', 'pending_payment'] },
+          url: { contains: id },
+        },
+      });
+      for (const b of relatedBookings) {
+        await prisma.adBooking.update({
+          where: { id: b.id },
+          data: { status: 'completed', adminNote: '상품 판매 완료로 자동 종료' },
+        });
+        await prisma.banner.deleteMany({ where: { tag: `ad:${b.id}` } });
+      }
+      if (relatedBookings.length > 0) cacheDel('banners:public');
     }
 
     cacheDelPrefix('products:');

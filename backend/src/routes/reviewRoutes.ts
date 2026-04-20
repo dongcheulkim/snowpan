@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { createNotification } from '../controllers/notificationController';
+import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
@@ -71,6 +73,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         buyer: { select: { id: true, name: true, profileImage: true } },
       },
     });
+
+    const title = '새 리뷰';
+    const body = `${review.buyer.name}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
+    const link = `/profile/${sellerId}`;
+    await createNotification(sellerId, 'system', title, body, link);
+    sendPushToUser(sellerId, title, body, link);
 
     res.status(201).json(review);
   } catch (error) {

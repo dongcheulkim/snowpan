@@ -46,6 +46,7 @@ const MySales = () => {
     try {
       await api(`/products/${id}`, { method: 'DELETE' });
       setProducts(prev => prev.filter(p => p.id !== id));
+      loadProducts();
     } catch (err) {
       alert(err instanceof Error ? err.message : '삭제 실패');
     }

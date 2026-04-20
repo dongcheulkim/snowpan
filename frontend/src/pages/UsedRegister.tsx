@@ -347,14 +347,16 @@ const UsedRegister = () => {
                 <p className="text-[11px] text-gray-400 pt-1">전자상거래법 제20조에 의거, 통신판매중개자는 거래 당사자가 아님을 고지합니다.</p>
               </div>
             )}
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary accent-sky-500"
+                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary accent-sky-500 mt-0.5"
               />
-              <span className="text-xs text-gray-600">위 중고거래 주의사항을 확인했으며 동의합니다.</span>
+              <span className="text-xs text-gray-600">
+                위 중고거래 주의사항과 <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
+              </span>
             </label>
           </div>
 

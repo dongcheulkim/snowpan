@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
+import { sendPushToUser } from '../utils/push';
 
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || user.name;
@@ -248,13 +249,11 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     // 글 작성자에게 알림 (본인 댓글은 제외)
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (post && post.userId !== userId) {
-      await createNotification(
-        post.userId,
-        'chat',
-        '새 댓글',
-        `'${post.title}' 글에 댓글이 달렸습니다: "${content.slice(0, 30)}"`,
-        `/community/post/${postId}`
-      );
+      const title = '새 댓글';
+      const body = `'${post.title}' 글에 댓글이 달렸습니다: "${content.slice(0, 30)}"`;
+      const link = `/community/post/${postId}`;
+      await createNotification(post.userId, 'chat', title, body, link);
+      sendPushToUser(post.userId, title, body, link);
     }
 
     res.status(201).json(comment);
