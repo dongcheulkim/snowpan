@@ -7,10 +7,25 @@ interface ChatRoom {
   id: string;
   user1: { id: string; name: string };
   user2: { id: string; name: string };
-  messages: { content: string; createdAt: string }[];
+  messages: { content: string; createdAt: string; type?: string }[];
   unreadCount: number;
   updatedAt: string;
 }
+
+const renderPreview = (msg: { content: string; type?: string }): string => {
+  if (msg.type === 'product_inquiry') {
+    try {
+      const parsed = JSON.parse(msg.content) as { productName?: string };
+      return `📦 "${parsed.productName || '상품'}" 문의`;
+    } catch { return '📦 상품 문의'; }
+  }
+  if (msg.type === 'price_offer') {
+    const n = parseInt(msg.content, 10);
+    return Number.isFinite(n) ? `💰 ${n.toLocaleString()}원 제안` : '💰 가격 제안';
+  }
+  if (msg.type === 'image') return '📷 사진';
+  return msg.content;
+};
 
 const MyChatList = () => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
@@ -86,7 +101,7 @@ const MyChatList = () => {
                     )}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 truncate">
-                    {lastMsg ? lastMsg.content : t('myChatList.startChat')}
+                    {lastMsg ? renderPreview(lastMsg) : t('myChatList.startChat')}
                   </div>
                 </div>
                 <div className="text-[11px] text-gray-300 flex-shrink-0">

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -137,6 +137,17 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+            <Route path="marketplace" element={<Navigate to="/used" replace />} />
+            <Route path="marketplace/*" element={<Navigate to="/used" replace />} />
+            <Route path="lodging" element={<Navigate to="/accommodation" replace />} />
+            <Route path="lodging/*" element={<Navigate to="/accommodation" replace />} />
+            <Route path="my" element={<Navigate to="/mypage" replace />} />
+            <Route path="mypage/my-products" element={<Navigate to="/mypage/sales" replace />} />
+            <Route path="mypage/products" element={<Navigate to="/mypage/sales" replace />} />
+            <Route path="ski-shops" element={<Navigate to="/skishop" replace />} />
+            <Route path="ski-shop" element={<Navigate to="/skishop" replace />} />
+            <Route path="repair-shops" element={<Navigate to="/repair" replace />} />
+            <Route path="repair-shop" element={<Navigate to="/repair" replace />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

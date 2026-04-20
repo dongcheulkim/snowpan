@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
-        <Link to="/mypage" className="text-sm text-gray-400">← 내정보</Link>
+        <button type="button" onClick={() => navigate('/mypage')} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">← 내정보</button>
       </div>
 
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1 overflow-x-auto">
@@ -446,6 +446,9 @@ const AdminDashboard = () => {
           {/* Premium Tab */}
           {tab === 'premium' && (
             <div className="space-y-2">
+              {products.length === 0 && !loading && (
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">등록된 중고 상품이 없습니다.</div>
+              )}
               {products.map((p) => (
                 <div key={p.id} className="card p-4 flex items-center justify-between">
                   <div>
@@ -568,7 +571,22 @@ const AdminDashboard = () => {
                 <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 가격 설정이 없습니다.</div>
               ) : (
                 adPricings.map((p) => {
-                  const slotLabel = p.slotType === 'main_banner' ? '메인 배너' : p.slotType === 'premium' ? '프리미엄' : `카테고리: ${p.category}`;
+                  const categoryLabel: Record<string, string> = {
+                    used: '중고',
+                    rental: '렌탈',
+                    lesson: '레슨',
+                    accommodation: '숙박',
+                    'ski-shops': '스키샵',
+                    'repair-shops': '정비샵',
+                    skiShop: '스키샵',
+                    repairShop: '정비샵',
+                  };
+                  const catSuffix = p.category && p.category !== 'none' ? ` (${categoryLabel[p.category] || p.category})` : '';
+                  const slotLabel = p.slotType === 'main_banner'
+                    ? '메인 배너'
+                    : p.slotType === 'premium'
+                      ? `프리미엄${catSuffix}`
+                      : `카테고리${catSuffix}`;
                   return (
                     <div key={p.id} className="card p-4">
                       <div className="flex items-center justify-between mb-3">
