@@ -119,7 +119,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 이용약관 동의</span>
               </div>
-              <Link to="/mypage/terms" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
+              <Link to="/terms" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
             </label>
 
             {/* 개인정보처리방침 */}

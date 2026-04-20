@@ -81,37 +81,37 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
-            <Route path="used" element={<Used />} />
+            <Route path="used" element={<RequireAuth><Used /></RequireAuth>} />
             <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
-            <Route path="used/:id" element={<UsedDetail />} />
+            <Route path="used/:id" element={<RequireAuth><UsedDetail /></RequireAuth>} />
             <Route path="notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
             <Route path="chat/rooms" element={<RequireAuth><MyChatList /></RequireAuth>} />
             <Route path="chat/:chatId" element={<RequireAuth><Chat /></RequireAuth>} />
-            <Route path="rental" element={<Rental />} />
+            <Route path="rental" element={<RequireAuth><Rental /></RequireAuth>} />
             <Route path="rental/register" element={<RequireAuth><RentalRegister /></RequireAuth>} />
-            <Route path="rental/:id" element={<RentalDetail />} />
-            <Route path="lesson" element={<Lesson />} />
+            <Route path="rental/:id" element={<RequireAuth><RentalDetail /></RequireAuth>} />
+            <Route path="lesson" element={<RequireAuth><Lesson /></RequireAuth>} />
             <Route path="lesson/register" element={<RequireAuth><LessonRegister /></RequireAuth>} />
-            <Route path="lesson/:id" element={<LessonDetail />} />
-            <Route path="accommodation" element={<Accommodation />} />
+            <Route path="lesson/:id" element={<RequireAuth><LessonDetail /></RequireAuth>} />
+            <Route path="accommodation" element={<RequireAuth><Accommodation /></RequireAuth>} />
             <Route path="accommodation/register" element={<RequireAuth><AccommodationRegister /></RequireAuth>} />
-            <Route path="accommodation/:id" element={<AccommodationDetail />} />
-            <Route path="gear-guide" element={<GearGuide />} />
-            <Route path="search" element={<Search />} />
-            <Route path="safe-trade" element={<SafeTradeGuide />} />
+            <Route path="accommodation/:id" element={<RequireAuth><AccommodationDetail /></RequireAuth>} />
+            <Route path="gear-guide" element={<RequireAuth><GearGuide /></RequireAuth>} />
+            <Route path="search" element={<RequireAuth><Search /></RequireAuth>} />
+            <Route path="safe-trade" element={<RequireAuth><SafeTradeGuide /></RequireAuth>} />
             <Route path="privacy" element={<Privacy />} />
-            <Route path="skishop" element={<NewEquipment />} />
+            <Route path="skishop" element={<RequireAuth><NewEquipment /></RequireAuth>} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
-            <Route path="repair" element={<RepairShop />} />
+            <Route path="repair" element={<RequireAuth><RepairShop /></RequireAuth>} />
             <Route path="repair/register" element={<RequireAuth><RepairShopRegister /></RequireAuth>} />
-            <Route path="competitions" element={<Competitions />} />
-            <Route path="competitions/:id" element={<CompetitionDetail />} />
-            <Route path="community" element={<CommunitySelect />} />
-            <Route path="community/post/:id" element={<CommunityDetail />} />
+            <Route path="competitions" element={<RequireAuth><Competitions /></RequireAuth>} />
+            <Route path="competitions/:id" element={<RequireAuth><CompetitionDetail /></RequireAuth>} />
+            <Route path="community" element={<RequireAuth><CommunitySelect /></RequireAuth>} />
+            <Route path="community/post/:id" element={<RequireAuth><CommunityDetail /></RequireAuth>} />
             <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
-            <Route path="community/:sport" element={<Community />} />
+            <Route path="community/:sport" element={<RequireAuth><Community /></RequireAuth>} />
             <Route path="mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
-            <Route path="seller/:sellerId" element={<SellerProfile />} />
+            <Route path="seller/:sellerId" element={<RequireAuth><SellerProfile /></RequireAuth>} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="admin-approval" element={<RequireAuth><AdminApproval /></RequireAuth>} />
@@ -128,12 +128,13 @@ function App() {
             <Route path="mypage/notifications" element={<RequireAuth><NotificationSettings /></RequireAuth>} />
             <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
             <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />
+            <Route path="terms" element={<Terms />} />
             <Route path="mypage/support" element={<RequireAuth><Support /></RequireAuth>} />
             <Route path="new-equipment" element={<RequireAuth><NewEquipment /></RequireAuth>} />
             <Route path="poll/create" element={<RequireAuth><PollCreate /></RequireAuth>} />
-            <Route path="poll/:id" element={<PollDetail />} />
-            <Route path="webcam" element={<Webcam />} />
-            <Route path="webcam/:id" element={<WebcamDetail />} />
+            <Route path="poll/:id" element={<RequireAuth><PollDetail /></RequireAuth>} />
+            <Route path="webcam" element={<RequireAuth><Webcam /></RequireAuth>} />
+            <Route path="webcam/:id" element={<RequireAuth><WebcamDetail /></RequireAuth>} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
