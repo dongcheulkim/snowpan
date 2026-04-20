@@ -25,12 +25,12 @@ const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
   const state = location.state as {
-    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean;
+    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean; initialMessage?: string;
   } | null;
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(state?.initialMessage || '');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);

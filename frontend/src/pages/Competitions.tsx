@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import competitions from '../data/competitions';
+import { api, getUser } from '../api';
 
 const levelColor: Record<string, string> = {
   '전체': 'bg-green-100 text-green-700',
@@ -26,6 +27,25 @@ function getMonthLabel(dateStr: string) {
 
 export default function Competitions() {
   const [filter, setFilter] = useState<'all' | 'ski' | 'board'>('all');
+  const [chatLoading, setChatLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAdminInquiry = async () => {
+    const user = getUser();
+    if (!user) { navigate('/login'); return; }
+    setChatLoading(true);
+    try {
+      const admin = await api<{ id: string; name: string }>('/contact/admin-id');
+      if (admin.id === user.id) { alert('관리자 계정입니다.'); setChatLoading(false); return; }
+      const room = await api<{ id: string }>('/chat/rooms', {
+        method: 'POST',
+        body: { targetUserId: admin.id },
+      });
+      navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id, isAdmin: true, initialMessage: '[시합 일정 등록 문의] ' } });
+    } catch {
+      alert('관리자 연결에 실패했습니다.');
+    } finally { setChatLoading(false); }
+  };
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -47,8 +67,15 @@ export default function Competitions() {
         <span className="text-xs text-gray-400">2026-27 시즌</span>
       </div>
 
-      <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 text-sm text-sky-700">
-        시합 일정 등록은 <a href="mailto:snowpan.help@gmail.com" className="font-bold underline">snowpan.help@gmail.com</a>으로 문의주세요.
+      <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+        <span className="text-sm text-sky-700">시합 일정 등록은 관리자에게 1:1 문의해주세요.</span>
+        <button
+          onClick={handleAdminInquiry}
+          disabled={chatLoading}
+          className="flex-shrink-0 px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors disabled:opacity-50"
+        >
+          {chatLoading ? '연결 중...' : '💬 문의하기'}
+        </button>
       </div>
 
       <div className="flex gap-2">
