@@ -125,4 +125,36 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// 리뷰 작성 가능한 상품 목록 조회 (sold + 채팅이력 + 미작성)
+router.get('/eligible', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const buyerId = req.user!.id;
+    const { sellerId } = req.query;
+    if (!sellerId) { res.status(400).json({ error: 'sellerId가 필요합니다.' }); return; }
+    if (buyerId === sellerId) { res.json({ products: [] }); return; }
+
+    const [u1, u2] = [buyerId, sellerId as string].sort();
+    const chatRoom = await prisma.chatRoom.findUnique({
+      where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+    });
+    if (!chatRoom) { res.json({ products: [] }); return; }
+
+    const soldProducts = await prisma.product.findMany({
+      where: { userId: sellerId as string, status: 'sold' },
+      select: { id: true, name: true, price: true, image: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    const reviewed = await prisma.review.findMany({
+      where: { buyerId, sellerId: sellerId as string, productId: { in: soldProducts.map(p => p.id) } },
+      select: { productId: true },
+    });
+    const reviewedIds = new Set(reviewed.map(r => r.productId));
+    const eligible = soldProducts.filter(p => !reviewedIds.has(p.id));
+    res.json({ products: eligible });
+  } catch (error) {
+    console.error('Eligible review products error:', error);
+    res.status(500).json({ error: '조회 중 오류가 발생했습니다.' });
+  }
+});
+
 export default router;

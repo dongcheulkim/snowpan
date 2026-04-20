@@ -28,7 +28,7 @@ import contactRoutes from './routes/contactRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
-import { generalLimiter, authLimiter, writeLimiter } from './middleware/rateLimit';
+import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 
 dotenv.config();
@@ -136,7 +136,7 @@ app.use('/api/rentals', rentalRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/resorts', resortRoutes);
 app.use('/api/accommodations', accommodationRoutes);
-app.use('/api/community', communityRoutes);
+app.use('/api/community', strictWriteLimiter, communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
@@ -155,8 +155,8 @@ app.get('/api/home/hot-deals', (req, res, next) => {
 }, getHotDeals);
 app.use('/api/upload', authenticate, uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/reports', reportRoutes);
+app.use('/api/reviews', strictWriteLimiter, reviewRoutes);
+app.use('/api/reports', strictWriteLimiter, reportRoutes);
 app.use('/api/ad-booking', adBookingRoutes);
 app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);

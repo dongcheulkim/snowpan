@@ -14,6 +14,7 @@ export default function UsedRegisterScreen({ navigation }: any) {
   const [price, setPrice] = useState('');
   const [condition, setCondition] = useState('');
   const [description, setDescription] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -21,6 +22,10 @@ export default function UsedRegisterScreen({ navigation }: any) {
     if (!user) { navigation.navigate('Login'); return; }
     if (!name.trim() || !brand.trim() || !subcategory || !price || !condition) {
       Alert.alert('', '필수 항목을 모두 입력해주세요.');
+      return;
+    }
+    if (!agreed) {
+      Alert.alert('', '이용약관 및 중고거래 주의사항에 동의해주세요.');
       return;
     }
     setSubmitting(true);
@@ -84,7 +89,14 @@ export default function UsedRegisterScreen({ navigation }: any) {
           <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>사진 추가 (준비 중)</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[s.submitBtn, submitting && { opacity: 0.5 }]} onPress={handleSubmit} disabled={submitting} activeOpacity={0.8}>
+        <TouchableOpacity style={s.agreeRow} onPress={() => setAgreed(v => !v)} activeOpacity={0.7}>
+          <View style={[s.checkbox, agreed && s.checkboxOn]}>{agreed && <Text style={s.checkboxMark}>✓</Text>}</View>
+          <Text style={s.agreeText}>
+            중고거래 주의사항, 이용약관 및 개인정보처리방침에 동의합니다. (허위매물·사기 시도 시 이용 제한)
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[s.submitBtn, (submitting || !agreed) && { opacity: 0.5 }]} onPress={handleSubmit} disabled={submitting || !agreed} activeOpacity={0.8}>
           <Text style={s.submitText}>{submitting ? '등록 중...' : '등록하기'}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -108,4 +120,9 @@ const s = StyleSheet.create({
   imagePlaceholder: { width: 100, height: 100, backgroundColor: '#fff', borderWidth: 1, borderColor: '#BAE6FD', borderRadius: 12, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   submitBtn: { marginTop: 24, backgroundColor: '#38BDF8', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   submitText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  agreeRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 20, gap: 8 },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: '#94a3b8', marginTop: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  checkboxOn: { borderColor: '#0EA5E9', backgroundColor: '#0EA5E9' },
+  checkboxMark: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  agreeText: { flex: 1, fontSize: 12, color: '#475569', lineHeight: 18 },
 });

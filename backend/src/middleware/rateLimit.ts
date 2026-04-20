@@ -59,3 +59,12 @@ export const writeLimiter = (req: Request, res: Response, next: NextFunction): v
   }
   next();
 };
+
+// Strict: only apply to POST; abuse-prone endpoints (reviews, reports, comments, ad creation)
+// 10 per minute per IP
+export const strictWriteLimiter = (req: Request, res: Response, next: NextFunction): void => {
+  if (req.method === 'POST') {
+    return createRateLimiter(10, 60_000)(req, res, next);
+  }
+  next();
+};

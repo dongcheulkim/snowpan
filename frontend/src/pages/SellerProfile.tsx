@@ -38,6 +38,8 @@ const SellerProfile = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [eligibleProducts, setEligibleProducts] = useState<{ id: string; name: string; price: number }[]>([]);
+  const [reviewProductId, setReviewProductId] = useState('');
   const user = getUser();
   const [, setLangTick] = useState(0);
 
@@ -61,13 +63,29 @@ const SellerProfile = () => {
       .catch(() => {});
   }, [sellerId]);
 
+  const openReviewForm = async () => {
+    if (!sellerId || !user) return;
+    try {
+      const data = await api<{ products: { id: string; name: string; price: number }[] }>(`/reviews/eligible?sellerId=${sellerId}`);
+      if (!data.products.length) {
+        alert('리뷰를 작성할 수 있는 거래 내역이 없습니다. (판매완료된 상품 + 채팅 이력 필요)');
+        return;
+      }
+      setEligibleProducts(data.products);
+      setReviewProductId(data.products[0].id);
+      setShowReviewForm(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '리뷰 작성 가능 여부를 확인하지 못했습니다.');
+    }
+  };
+
   const handleSubmitReview = async () => {
-    if (!reviewContent.trim() || !sellerId) return;
+    if (!reviewContent.trim() || !sellerId || !reviewProductId) return;
     setReviewSubmitting(true);
     try {
       const newReview = await api<ReviewData>('/reviews', {
         method: 'POST',
-        body: { sellerId, rating: reviewRating, content: reviewContent.trim() },
+        body: { sellerId, rating: reviewRating, content: reviewContent.trim(), productId: reviewProductId },
       });
       setReviews(prev => [newReview, ...prev]);
       setReviewCount(prev => prev + 1);
@@ -76,6 +94,7 @@ const SellerProfile = () => {
       setShowReviewForm(false);
       setReviewContent('');
       setReviewRating(5);
+      setReviewProductId('');
     } catch (err) {
       alert(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다.');
     } finally {
@@ -157,7 +176,7 @@ const SellerProfile = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-gray-900">{t('sellerProfile.reviews')} ({reviewCount})</h3>
           {user && user.id !== sellerId && (
-            <button onClick={() => setShowReviewForm(!showReviewForm)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
+            <button onClick={() => showReviewForm ? setShowReviewForm(false) : openReviewForm()} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
               {t('sellerProfile.writeReview')}
             </button>
           )}
@@ -165,6 +184,14 @@ const SellerProfile = () => {
 
         {showReviewForm && (
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-600 block mb-1">거래 상품</label>
+              <select value={reviewProductId} onChange={e => setReviewProductId(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-gray-200 text-gray-900">
+                {eligibleProducts.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} · {p.price.toLocaleString()}원</option>
+                ))}
+              </select>
+            </div>
             <div className="mb-3">
               <label className="text-xs font-medium text-gray-600 block mb-1">{t('sellerProfile.rating')}</label>
               {renderStars(reviewRating, true, setReviewRating)}
