@@ -583,15 +583,15 @@ export default function AdBooking() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">은행</span>
-                <span className="font-bold">카카오뱅크</span>
+                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_BANK || '카카오뱅크'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">계좌번호</span>
-                <span className="font-bold">3333-30-5765007</span>
+                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_ACCOUNT || '3333-30-5765007'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">예금주</span>
-                <span className="font-bold">김동철</span>
+                <span className="font-bold">{import.meta.env.VITE_AD_DEPOSIT_HOLDER || '김동철'}</span>
               </div>
             </div>
             <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-2">

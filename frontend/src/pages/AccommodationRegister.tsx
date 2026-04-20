@@ -50,8 +50,14 @@ const AccommodationRegister = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim() || !form.price || form.types.length === 0) {
-      alert('숙소명, 가격, 숙소 유형을 입력해주세요.');
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('숙소명');
+    if (!form.resortId) missing.push('스키장');
+    if (form.types.length === 0) missing.push('숙소 유형');
+    if (!form.price) missing.push('특가 1박 가격');
+    if (!form.maxGuests) missing.push('최대 인원');
+    if (missing.length > 0) {
+      alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
       return;
     }
     if (!bizLicenseFile) {
@@ -122,7 +128,7 @@ const AccommodationRegister = () => {
           <label className={labelClass}>숙소 유형 (복수 선택)</label>
           <div className="flex flex-wrap gap-2">
             {Object.entries(typeMap).map(([key, label]) => (
-              <button key={key} onClick={() => toggleType(key)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.types.includes(key) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+              <button type="button" key={key} onClick={() => toggleType(key)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.types.includes(key) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
                 {label}
               </button>
             ))}
@@ -149,7 +155,7 @@ const AccommodationRegister = () => {
         <label className={labelClass}>편의시설</label>
         <div className="flex flex-wrap gap-2">
           {featureOptions.map(f => (
-            <button key={f} onClick={() => toggleFeature(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.features.includes(f) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+            <button type="button" key={f} onClick={() => toggleFeature(f)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.features.includes(f) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
               {f}
             </button>
           ))}

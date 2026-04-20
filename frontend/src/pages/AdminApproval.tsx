@@ -176,8 +176,8 @@ const AdminApproval = () => {
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleApprove('repair', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs">승인</button>
             <button onClick={() => handleReject('repair', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs border border-gray-200">거부</button>
+            <button onClick={() => handleApprove('repair', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs">승인</button>
           </div>
         </div>
       );
@@ -204,8 +204,8 @@ const AdminApproval = () => {
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleApprove('skishop', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
             <button onClick={() => handleReject('skishop', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
+            <button onClick={() => handleApprove('skishop', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
           </div>
         </div>
       );
