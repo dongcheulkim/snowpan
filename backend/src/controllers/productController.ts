@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
+import { sanitizeText } from '../utils/sanitize';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -116,22 +117,26 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       return;
     }
 
+    const cleanName = sanitizeText(name, 100);
+    const cleanDescription = sanitizeText(description, 5000);
+    if (!cleanName) { res.status(400).json({ error: '상품명을 입력해주세요.' }); return; }
+
     const product = await prisma.product.create({
       data: {
-        name,
-        brand: brand || '',
+        name: cleanName,
+        brand: sanitizeText(brand, 60) || '',
         subcategory: subcategory || null,
         price: parsedPrice,
         image,
         images: images || null,
         category: 'used',
-        description,
-        condition,
-        length: length || null,
-        radius: radius || null,
-        flex: flex || null,
-        size: size || null,
-        usageCount,
+        description: cleanDescription,
+        condition: sanitizeText(condition, 20),
+        length: sanitizeText(length, 30) || null,
+        radius: sanitizeText(radius, 30) || null,
+        flex: sanitizeText(flex, 30) || null,
+        size: sanitizeText(size, 30) || null,
+        usageCount: sanitizeText(usageCount, 30),
         userId,
       },
       include: { user: { select: { name: true, nickname: true, phone: true } } },
@@ -225,20 +230,20 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     const updated = await prisma.product.update({
       where: { id },
       data: {
-        ...(name && { name }),
-        ...(brand !== undefined && { brand }),
+        ...(name && { name: sanitizeText(name, 100) }),
+        ...(brand !== undefined && { brand: sanitizeText(brand, 60) || '' }),
         ...(subcategory !== undefined && { subcategory }),
         ...(price && !isNaN(parseInt(price)) && { price: parseInt(price) }),
         ...(image && { image }),
         ...(images !== undefined && { images }),
-        ...(description !== undefined && { description }),
-        ...(condition && { condition }),
-        ...(usageCount !== undefined && { usageCount }),
+        ...(description !== undefined && { description: sanitizeText(description, 5000) }),
+        ...(condition && { condition: sanitizeText(condition, 20) }),
+        ...(usageCount !== undefined && { usageCount: sanitizeText(usageCount, 30) }),
         ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
-        ...(length !== undefined && { length: length || null }),
-        ...(radius !== undefined && { radius: radius || null }),
-        ...(flex !== undefined && { flex: flex || null }),
-        ...(size !== undefined && { size: size || null }),
+        ...(length !== undefined && { length: sanitizeText(length, 30) || null }),
+        ...(radius !== undefined && { radius: sanitizeText(radius, 30) || null }),
+        ...(flex !== undefined && { flex: sanitizeText(flex, 30) || null }),
+        ...(size !== undefined && { size: sanitizeText(size, 30) || null }),
       },
     });
 

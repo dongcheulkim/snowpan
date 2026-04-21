@@ -3,6 +3,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
+import { sanitizeText } from '../utils/sanitize';
 
 const router = Router();
 
@@ -61,10 +62,13 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       return;
     }
 
+    const cleanContent = sanitizeText(content, 2000);
+    if (!cleanContent) { res.status(400).json({ error: '리뷰 내용을 입력해주세요.' }); return; }
+
     const review = await prisma.review.create({
       data: {
         rating: parseInt(String(rating)),
-        content,
+        content: cleanContent,
         sellerId,
         buyerId,
         productId: productId || null,

@@ -2,6 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/((?!assets|icons|sw.js|manifest.webmanifest|favicon.ico|snowpan-icon.svg).*)", "destination": "/index.html" }
+    { "source": "/((?!api|assets|icons|sw.js|manifest.webmanifest|favicon.ico|snowpan-icon.svg).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
   ]
 }

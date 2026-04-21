@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from '../controllers/notificationController';
+import { sanitizeText } from '../utils/sanitize';
 
 const router = Router();
 
@@ -38,9 +39,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 
     const shop = await prisma.skiShop.create({
       data: {
-        name, area, resort: resort || null, address, description,
-        brands: brands || null, phone: phone || null, instagram: instagram || null,
-        website: website || null, naverMap: naverMap || null, hours: hours || null,
+        name: sanitizeText(name, 100) || name,
+        area: sanitizeText(area, 40) || area,
+        resort: sanitizeText(resort, 60) || null,
+        address: sanitizeText(address, 200) || address,
+        description: sanitizeText(description, 2000) || description,
+        brands: sanitizeText(brands, 500) || null,
+        phone: sanitizeText(phone, 40) || null,
+        instagram: sanitizeText(instagram, 60) || null,
+        website: sanitizeText(website, 300) || null,
+        naverMap: sanitizeText(naverMap, 300) || null,
+        hours: sanitizeText(hours, 200) || null,
         image: image || null, businessLicense, userId, approved: false,
       },
     });

@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
 import { sendPushToUser } from '../utils/push';
+import { sanitizeText } from '../utils/sanitize';
 
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || user.name;
@@ -188,8 +189,15 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
+    const cleanTitle = sanitizeText(title, 200);
+    const cleanContent = sanitizeText(content, 10000);
+    if (!cleanTitle || !cleanContent) {
+      res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+      return;
+    }
+
     const post = await prisma.post.create({
-      data: { title, content, category, sport, userId, images: images || null },
+      data: { title: cleanTitle, content: cleanContent, category, sport, userId, images: images || null },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
@@ -236,13 +244,14 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     const { id: postId } = req.params;
     const { content } = req.body;
 
-    if (!content || !content.trim()) {
+    const cleanContent = sanitizeText(content, 2000);
+    if (!cleanContent) {
       res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
       return;
     }
 
     const comment = await prisma.comment.create({
-      data: { content, postId, userId },
+      data: { content: cleanContent, postId, userId },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
@@ -250,7 +259,7 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (post && post.userId !== userId) {
       const title = '새 댓글';
-      const body = `'${post.title}' 글에 댓글이 달렸습니다: "${content.slice(0, 30)}"`;
+      const body = `'${post.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`;
       const link = `/community/post/${postId}`;
       await createNotification(post.userId, 'chat', title, body, link);
       sendPushToUser(post.userId, title, body, link);
