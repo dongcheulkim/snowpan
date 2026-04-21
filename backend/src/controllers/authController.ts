@@ -191,10 +191,26 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { nickname, profileImage, activeBadge } = req.body;
 
+    if (nickname !== undefined && nickname !== null && nickname !== '') {
+      const trimmed = String(nickname).trim();
+      if (trimmed.length < 2 || trimmed.length > 20) {
+        res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
+        return;
+      }
+      const duplicate = await prisma.user.findFirst({
+        where: { nickname: trimmed, NOT: { id: userId } },
+        select: { id: true },
+      });
+      if (duplicate) {
+        res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
+        return;
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(nickname !== undefined && { nickname }),
+        ...(nickname !== undefined && { nickname: nickname ? String(nickname).trim() : null }),
         ...(profileImage !== undefined && { profileImage }),
         ...(activeBadge !== undefined && { activeBadge: activeBadge || null }),
       },

@@ -91,6 +91,9 @@ const AdminDashboard = () => {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [userPage, setUserPage] = useState(0);
+  const USERS_PER_PAGE = 30;
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
@@ -350,31 +353,61 @@ const AdminDashboard = () => {
           )}
 
           {/* Users Tab */}
-          {tab === 'users' && (
-            <div className="space-y-2">
-              {users.map((u) => (
-                <div key={u.id} className="card p-4 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-900">{u.name}</span>
-                      {(u as any).nickname && <span className="text-xs text-gray-400">({(u as any).nickname})</span>}
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                        u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {u.role}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400">{u.email}</p>
-                  </div>
-                  {u.role !== 'admin' && (
-                    <button onClick={() => handleBan(u.id)} className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
-                      {u.role === 'banned' ? '정지 해제' : '정지'}
-                    </button>
-                  )}
+          {tab === 'users' && (() => {
+            const q = userSearch.trim().toLowerCase();
+            const filtered = q
+              ? users.filter(u =>
+                  u.name.toLowerCase().includes(q) ||
+                  u.email.toLowerCase().includes(q) ||
+                  ((u as any).nickname || '').toLowerCase().includes(q)
+                )
+              : users;
+            const totalPages = Math.max(1, Math.ceil(filtered.length / USERS_PER_PAGE));
+            const currentPage = Math.min(userPage, totalPages - 1);
+            const pageUsers = filtered.slice(currentPage * USERS_PER_PAGE, (currentPage + 1) * USERS_PER_PAGE);
+            return (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="이름 · 닉네임 · 이메일 검색"
+                    value={userSearch}
+                    onChange={(e) => { setUserSearch(e.target.value); setUserPage(0); }}
+                    className={`flex-1 ${inputClass}`}
+                  />
+                  <span className="text-[11px] text-gray-400 whitespace-nowrap">{filtered.length}명</span>
                 </div>
-              ))}
-            </div>
-          )}
+                {pageUsers.map((u) => (
+                  <div key={u.id} className="card p-4 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-900">{u.name}</span>
+                        {(u as any).nickname && <span className="text-xs text-gray-400">({(u as any).nickname})</span>}
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {u.role}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400">{u.email}</p>
+                    </div>
+                    {u.role !== 'admin' && (
+                      <button onClick={() => handleBan(u.id)} className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
+                        {u.role === 'banned' ? '정지 해제' : '정지'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-3">
+                    <button onClick={() => setUserPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-500 disabled:opacity-30">← 이전</button>
+                    <span className="text-xs text-gray-500">{currentPage + 1} / {totalPages}</span>
+                    <button onClick={() => setUserPage(Math.min(totalPages - 1, currentPage + 1))} disabled={currentPage >= totalPages - 1} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-500 disabled:opacity-30">다음 →</button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Banners Tab */}
           {tab === 'banners' && (
