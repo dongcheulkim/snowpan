@@ -11,7 +11,7 @@ interface MetaOptions {
 const SITE_NAME = '스노우판';
 const DEFAULT_TITLE = '스노우판 - 스키/보드 중고거래 & 렌탈';
 const DEFAULT_DESC = '스키 장비부터 레슨까지, 한눈에 비교하세요';
-const DEFAULT_IMAGE = 'https://snowpan.vercel.app/icons/icon-512.svg';
+const DEFAULT_IMAGE = 'https://snowpan.vercel.app/icons/og-image.png';
 const SITE_URL = 'https://snowpan.vercel.app';
 
 // tag 이름별 selector 정보
