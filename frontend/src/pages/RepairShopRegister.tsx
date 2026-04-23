@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
@@ -23,6 +24,11 @@ export default function RepairShopRegister() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const isDirty = !loading && (
+    form.name.trim() !== '' || form.address.trim() !== '' || form.description.trim() !== '' || form.services.trim() !== '' || licenseFile !== null || imageFile !== null
+  );
+  useUnloadGuard(isDirty);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

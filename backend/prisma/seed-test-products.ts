@@ -16,7 +16,6 @@ const brandsBy: Record<string, string[]> = {
   etc: ['스노우팬', '메이트', '로우', '제네릭'],
 };
 const conditions = ['상', '상중', '중', '하'];
-const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
 const sizeBy: Record<string, string[]> = {
   ski: ['155cm', '160cm', '165cm', '170cm', '175cm', '180cm', '185cm'],
   board: ['148cm', '152cm', '155cm', '158cm', '162cm', '165cm'],
@@ -30,6 +29,9 @@ const sizeBy: Record<string, string[]> = {
 const years = ['22-23', '23-24', '24-25', '25-26'];
 
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Deterministic placeholder images from picsum.photos (size 400x400)
+function placeholder(seed: number) { return `https://picsum.photos/seed/snowpan-${seed}/400/400`; }
 
 async function main() {
   const isProd = process.env.DATABASE_URL?.includes('render.com');
@@ -56,13 +58,15 @@ async function main() {
     const name = `${brand} ${sub === 'ski' ? '스키' : sub === 'board' ? '보드' : sub === 'boots' ? '부츠' : sub === 'binding' ? '바인딩' : sub === 'helmet' ? '헬멧' : sub === 'goggles' ? '고글' : sub === 'wear' ? '스키복' : '장비'} ${year}`;
     const size = pick(sizeBy[sub]);
 
+    const imgs = [placeholder(i), placeholder(i + 10000), placeholder(i + 20000)];
     await prisma.product.create({
       data: {
         name,
         brand,
         subcategory: sub,
         price: basePrice,
-        image: imageMap[sub],
+        image: imgs[0],
+        images: imgs.join(','),
         category: 'used',
         description: `${year} ${brand} ${sub} 상태 ${condition}. 테스트 시드 데이터입니다.`,
         condition,

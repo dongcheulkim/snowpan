@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 interface Resort {
   id: string;
@@ -31,6 +32,11 @@ const AccommodationRegister = () => {
   useEffect(() => {
     api<Resort[]>('/resorts').then(data => { setResorts(data); }).catch(() => {});
   }, []);
+
+  const isDirty = !submitting && (
+    form.name.trim() !== '' || form.types.length > 0 || form.price !== '' || form.originalPrice !== '' || form.features.length > 0 || imageFiles.length > 0 || bizLicenseFile !== null || permitFile !== null
+  );
+  useUnloadGuard(isDirty);
 
   const toggleType = (t: string) => {
     setForm(prev => ({

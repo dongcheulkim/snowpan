@@ -245,19 +245,21 @@ const UsedDetail = () => {
                     신고
                   </button>
                 )}
-                {/* Wishlist button */}
-                <button
-                  onClick={async () => {
-                    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
-                    try {
-                      const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
-                      setWishlisted(res.wishlisted);
-                    } catch { /* ignore */ }
-                  }}
-                  className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
-                >
-                  {wishlisted ? '♥' : '♡'}
-                </button>
+                {/* Wishlist button — hidden for own products */}
+                {user && product.userId !== user.id && (
+                  <button
+                    aria-label={wishlisted ? '찜 해제' : '찜하기'}
+                    onClick={async () => {
+                      try {
+                        const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
+                        setWishlisted(res.wishlisted);
+                      } catch (e) { alert(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+                    }}
+                    className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
+                  >
+                    {wishlisted ? '♥' : '♡'}
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 interface Resort {
   id: string;
@@ -29,6 +30,11 @@ const LessonRegister = () => {
   useEffect(() => {
     api<Resort[]>('/resorts').then(data => { setResorts(data); }).catch(() => {});
   }, []);
+
+  const isDirty = !loading && (
+    form.name.trim() !== '' || form.price !== '' || form.description.trim() !== '' || imageFiles.length > 0 || certFile !== null || bizLicenseFile !== null
+  );
+  useUnloadGuard(isDirty);
 
   const handleSubmit = async () => {
     const user = getUser();

@@ -125,6 +125,10 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       res.status(400).json({ error: '유효한 가격을 입력해주세요.' });
       return;
     }
+    if (parsedPrice > 100_000_000) {
+      res.status(400).json({ error: '최대 등록 가격은 1억원입니다.' });
+      return;
+    }
 
     const cleanName = sanitizeText(name, 100);
     const cleanDescription = sanitizeText(description, 5000);
@@ -235,6 +239,10 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size } = req.body;
+    if (price !== undefined && !isNaN(parseInt(price)) && parseInt(price) > 100_000_000) {
+      res.status(400).json({ error: '최대 등록 가격은 1억원입니다.' });
+      return;
+    }
     const oldPrice = product.price;
     const updated = await prisma.product.update({
       where: { id },
@@ -329,6 +337,13 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
   try {
     const { id } = req.params;
     const userId = req.user!.id;
+
+    const target = await prisma.product.findUnique({ where: { id }, select: { userId: true } });
+    if (!target) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (target.userId === userId) {
+      res.status(400).json({ error: '본인 상품은 찜할 수 없습니다.' });
+      return;
+    }
 
     const existing = await prisma.wishlist.findUnique({
       where: { userId_productId: { userId, productId: id } },

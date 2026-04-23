@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 interface Resort {
   id: string;
@@ -28,6 +29,11 @@ const RentalRegister = () => {
   }, []);
 
   const equipmentOptions = ['스키', '보드', '부츠', '폴', '헬멧', '고글', '스키복 상의', '스키복 하의'];
+
+  const isDirty = !loading && (
+    form.name.trim() !== '' || form.price !== '' || form.equipment.length > 0 || form.description.trim() !== '' || imageFiles.length > 0 || bizLicenseFile !== null
+  );
+  useUnloadGuard(isDirty);
 
   const toggleEquipment = (eq: string) => {
     setForm(prev => ({

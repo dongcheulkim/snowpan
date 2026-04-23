@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 const resorts = [
@@ -28,6 +29,11 @@ export default function SkiShopRegister() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const isDirty = !loading && (
+    form.name.trim() !== '' || form.address.trim() !== '' || form.description.trim() !== '' || form.brands.trim() !== '' || licenseFile !== null || imageFile !== null
+  );
+  useUnloadGuard(isDirty);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

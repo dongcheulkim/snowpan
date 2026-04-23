@@ -72,11 +72,17 @@ const Used = () => {
     { id: 'etc', name: t('used.cat.etc') },
   ];
 
-  // Debounce search → URL
+  // Debounce search → URL (replace, not push, to avoid history spam)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      updateParam('q', searchQuery);
+      const currentQ = searchParams.get('q') || '';
+      if (currentQ !== searchQuery) {
+        const next = new URLSearchParams(searchParams);
+        if (searchQuery) next.set('q', searchQuery); else next.delete('q');
+        next.delete('page');
+        setSearchParams(next, { replace: true });
+      }
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps

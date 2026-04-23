@@ -17,13 +17,15 @@ import {
   getMyAdRequests,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
+import { sensitiveAuthLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/phone/send', sendPhoneVerification);
-router.post('/phone/verify', verifyPhone);
+router.post('/register', sensitiveAuthLimiter, register);
+router.post('/login', sensitiveAuthLimiter, login);
+router.post('/phone/send', sensitiveAuthLimiter, sendPhoneVerification);
+router.post('/phone/verify', sensitiveAuthLimiter, verifyPhone);
+router.post('/reset-password-request', sensitiveAuthLimiter, resetPasswordRequest);
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile', authenticateToken, updateProfile);
 router.put('/change-password', authenticateToken, changePassword);
@@ -31,8 +33,7 @@ router.get('/my-badges', authenticateToken, getMyBadges);
 router.post('/badge-request', authenticateToken, requestBadge);
 router.get('/seller/:id', getSellerProfile);
 router.post('/fcm-token', authenticateToken, saveFcmToken);
-router.post('/reset-password-request', resetPasswordRequest);
-router.post('/reset-password', resetPassword);
+router.post('/reset-password', sensitiveAuthLimiter, resetPassword);
 router.post('/ad-request', authenticateToken, createAdRequest);
 router.get('/my-ad-requests', authenticateToken, getMyAdRequests);
 

@@ -49,8 +49,12 @@ function createRateLimiter(maxRequests: number, windowMs: number = 60_000) {
 // Default: 500 requests per minute per IP
 export const generalLimiter = createRateLimiter(500, 60_000);
 
-// Auth routes: 120 per minute (covers login + repeated /profile polling from RequireAdmin)
-export const authLimiter = createRateLimiter(120, 60_000);
+// Auth routes (broad): 300 per minute — covers /auth/profile polling from RequireAdmin
+// and anything else under /api/auth that isn't sensitive
+export const authLimiter = createRateLimiter(300, 60_000);
+
+// Sensitive auth endpoints (login/register/password reset/phone verify): 10 per minute
+export const sensitiveAuthLimiter = createRateLimiter(10, 60_000);
 
 // Write operations (POST/PUT/DELETE): 200 per minute
 export const writeLimiter = (req: Request, res: Response, next: NextFunction): void => {

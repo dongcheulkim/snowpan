@@ -132,7 +132,7 @@ function App() {
             <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />
             <Route path="terms" element={<Terms />} />
             <Route path="mypage/support" element={<RequireAuth><Support /></RequireAuth>} />
-            <Route path="new-equipment" element={<RequireAuth><NewEquipment /></RequireAuth>} />
+            <Route path="new-equipment" element={<NewEquipment />} />
             <Route path="poll/create" element={<RequireAuth><PollCreate /></RequireAuth>} />
             <Route path="poll/:id" element={<PollDetail />} />
             <Route path="webcam" element={<Webcam />} />
