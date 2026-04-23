@@ -145,6 +145,19 @@ const Used = () => {
         </select>
       </div>
 
+      {(selectedCategory !== 'all' || searchQuery || sort !== 'newest') && (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-gray-400">적용된 필터:</span>
+          {selectedCategory !== 'all' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{categories.find(c => c.id === selectedCategory)?.name}</span>}
+          {searchQuery && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">"{searchQuery}"</span>}
+          {sort !== 'newest' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{sort === 'price_asc' ? '가격↑' : '가격↓'}</span>}
+          <button
+            onClick={() => { setSearchQuery(''); setSearchParams({}, { replace: false }); }}
+            className="ml-auto text-[11px] text-gray-400 hover:text-gray-900 underline"
+          >초기화</button>
+        </div>
+      )}
+
       {/* Categories */}
       <div className="relative">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x">

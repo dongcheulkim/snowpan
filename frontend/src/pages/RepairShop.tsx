@@ -71,7 +71,7 @@ export default function RepairShop() {
       ) : (
         <div className="space-y-3">
           {shops.map((shop) => (
-            <div key={shop.id} className={`card p-5 relative ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+            <Link to={`/repair/${shop.id}`} key={shop.id} className={`card p-5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
@@ -81,7 +81,7 @@ export default function RepairShop() {
                   <h3 className="text-base font-bold text-gray-900">{shop.name}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">📍 {shop.address}</p>
                   {shop.hours && <p className="text-xs text-gray-400">🕐 {shop.hours}</p>}
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{shop.description}</p>
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2">{shop.description}</p>
                   {shop.services && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {shop.services.split(',').filter(Boolean).map((s, i) => (
@@ -89,15 +89,15 @@ export default function RepairShop() {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-3 mt-3 text-xs flex-wrap">
-                    {shop.phone && <a href={`tel:${shop.phone}`} className="text-gray-500 hover:text-gray-900">📞 {shop.phone}</a>}
-                    {shop.instagram && <a href={`https://instagram.com/${shop.instagram}`} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:underline">@{shop.instagram}</a>}
-                    {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">홈페이지</a>}
-                    {shop.naverMap && <a href={shop.naverMap} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">네이버지도</a>}
+                  <div className="flex items-center gap-3 mt-3 text-xs flex-wrap" onClick={e => e.stopPropagation()}>
+                    {shop.phone && <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-gray-500 hover:text-gray-900">📞 {shop.phone}</a>}
+                    {shop.instagram && <a href={`https://instagram.com/${shop.instagram}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-pink-500 hover:underline">@{shop.instagram}</a>}
+                    {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-sky-600 hover:underline">홈페이지</a>}
+                    {shop.naverMap && <a href={shop.naverMap} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-green-600 hover:underline">네이버지도</a>}
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

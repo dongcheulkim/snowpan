@@ -305,6 +305,34 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       if (relatedBookings.length > 0) cacheDel('banners:public');
     }
 
+    // 판매완료로 전환 시: 해당 상품에 대해 product_inquiry 메시지를 보낸 구매자들에게 리뷰 요청 알림
+    if (updated.status === 'sold' && product.status !== 'sold') {
+      try {
+        const inquiryMessages = await prisma.message.findMany({
+          where: {
+            type: 'product_inquiry',
+            content: { contains: id },
+          },
+          select: { senderId: true, roomId: true },
+        });
+        const buyerIds = new Set<string>();
+        for (const m of inquiryMessages) {
+          if (m.senderId !== updated.userId) buyerIds.add(m.senderId);
+        }
+        for (const buyerId of buyerIds) {
+          await createNotification(
+            buyerId,
+            'system',
+            '거래 완료 — 판매자 평가해주세요',
+            `"${updated.name}" 상품이 판매완료되었습니다. 판매자에게 리뷰를 남겨보세요.`,
+            `/seller/${updated.userId}`
+          );
+        }
+      } catch (e) {
+        console.error('Sold notification error:', e);
+      }
+    }
+
     cacheDelPrefix('products:');
     cacheDel('home:hotdeals');
     res.json(updated);

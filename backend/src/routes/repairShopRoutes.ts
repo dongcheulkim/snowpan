@@ -90,6 +90,20 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
   } catch (error) { res.status(500).json({ error: '승인 실패' }); }
 });
 
+// 단일 정비샵 조회 (공개, 승인된 것만) — 반드시 /my, /pending 뒤에
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const shop = await prisma.repairShop.findFirst({
+      where: { id: req.params.id, approved: true },
+      include: { user: { select: { id: true, name: true, nickname: true, phone: true } } },
+    });
+    if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
+    res.json(shop);
+  } catch (error) {
+    res.status(500).json({ error: '정비샵 조회 실패' });
+  }
+});
+
 // 관리자: 거절
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {

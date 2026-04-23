@@ -48,6 +48,9 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || 3000;
 
+// Expose io for routers via app locals
+app.set('io', io);
+
 // === Security Headers Middleware ===
 app.use((_req, res, next) => {
   res.set('X-Content-Type-Options', 'nosniff');

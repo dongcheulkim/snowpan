@@ -17,6 +17,10 @@ interface Message {
 
 interface ChatRoomInfo {
   id: string;
+  user1Id: string;
+  user2Id: string;
+  user1LastReadAt: string | null;
+  user2LastReadAt: string | null;
   user1: { id: string; name: string };
   user2: { id: string; name: string };
 }
@@ -36,6 +40,7 @@ const Chat = () => {
   const [uploading, setUploading] = useState(false);
   const [fullImage, setFullImage] = useState<string | null>(null);
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
+  const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [priceInput, setPriceInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -60,6 +65,11 @@ const Chat = () => {
     if (!token) return;
     setRoomId(id);
     api<Message[]>(`/chat/rooms/${id}/messages`).then(setMessages);
+    api<ChatRoomInfo>(`/chat/rooms/${id}`).then(room => {
+      if (!user) return;
+      const isUser1 = room.user1Id === user.id;
+      setOtherLastReadAt(isUser1 ? room.user2LastReadAt : room.user1LastReadAt);
+    }).catch(() => {});
     markAsRead(id);
 
     const socket = io(SERVER_URL, { auth: { token } });
@@ -71,6 +81,10 @@ const Chat = () => {
     socket.on('new_message', (msg: Message) => {
       setMessages(prev => [...prev, msg]);
       markAsRead(id);
+    });
+    socket.on('room_read', (data: { roomId: string; userId: string; readAt: string }) => {
+      if (data.roomId !== id || !user) return;
+      if (data.userId !== user.id) setOtherLastReadAt(data.readAt);
     });
     socket.on('disconnect', () => setConnected(false));
   };
@@ -308,8 +322,11 @@ const Chat = () => {
                     {msg.content}
                   </div>
                 )}
-                <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
-                  {formatTime(msg.createdAt)}
+                <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                  {isMe && otherLastReadAt && new Date(otherLastReadAt).getTime() >= new Date(msg.createdAt).getTime() && (
+                    <span className="text-sky-500 font-medium">읽음</span>
+                  )}
+                  <span>{formatTime(msg.createdAt)}</span>
                 </div>
               </div>
             </div>

@@ -211,6 +211,8 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
     } else if (room.user2Id === userId) {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user2LastReadAt: now } });
     }
+    const io = req.app.get('io');
+    if (io) io.to(`room:${roomId}`).emit('room_read', { roomId, userId, readAt: now.toISOString() });
     res.json({ message: '읽음 처리 완료' });
   } catch (error) {
     console.error('Mark as read error:', error);
