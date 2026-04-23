@@ -41,7 +41,37 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       prisma.post.count(),
       prisma.chatRoom.count(),
     ]);
-    res.json({ users, products, posts, chatRooms });
+
+    // 최근 14일 일별 가입·등록 추이
+    const days = 14;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const since = new Date(today);
+    since.setDate(since.getDate() - (days - 1));
+
+    const [newUsers, newProducts] = await Promise.all([
+      prisma.user.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
+      prisma.product.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
+    ]);
+
+    const buckets: { date: string; users: number; products: number }[] = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(since);
+      d.setDate(since.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      buckets.push({ date: key.slice(5), users: 0, products: 0 });
+    }
+    const keyOf = (d: Date) => d.toISOString().slice(0, 10).slice(5);
+    for (const u of newUsers) {
+      const b = buckets.find(x => x.date === keyOf(new Date(u.createdAt)));
+      if (b) b.users++;
+    }
+    for (const p of newProducts) {
+      const b = buckets.find(x => x.date === keyOf(new Date(p.createdAt)));
+      if (b) b.products++;
+    }
+
+    res.json({ users, products, posts, chatRooms, daily: buckets });
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ error: '통계 조회 중 오류가 발생했습니다.' });

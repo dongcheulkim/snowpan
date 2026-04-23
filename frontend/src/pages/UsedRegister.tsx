@@ -111,10 +111,38 @@ const UsedRegister = () => {
       </Link>
 
       <div className="card rounded-2xl p-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">중고 장비 등록</h1>
           <p className="text-sm text-gray-400">판매할 장비 정보를 입력해주세요</p>
         </div>
+
+        {(() => {
+          const steps = [
+            { label: '사진·기본정보', done: imageFiles.length > 0 && form.name.trim() !== '' && form.brand.trim() !== '' },
+            { label: '스펙·상태', done: form.condition !== '' && (form.size !== '' || form.length !== '') },
+            { label: '가격·거래', done: form.price !== '' && form.description.trim() !== '' && agreed },
+          ];
+          const completed = steps.filter(s => s.done).length;
+          const pct = Math.round((completed / steps.length) * 100);
+          return (
+            <div className="mb-7">
+              <div className="flex items-center justify-between mb-2 text-xs">
+                <span className="text-gray-500">진행 {completed}/{steps.length}</span>
+                <span className="font-bold text-accent">{pct}%</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="flex justify-between mt-2">
+                {steps.map((s, i) => (
+                  <span key={i} className={`text-[10px] ${s.done ? 'text-accent font-bold' : 'text-gray-400'}`}>
+                    {s.done ? '✓ ' : `${i + 1}. `}{s.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           {/* 사진 업로드 영역 */}

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
+import Logo from './Logo';
 
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
@@ -112,14 +113,21 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-accent-light tracking-tight">
-                {t('nav.title')}
-              </span>
+            <Link to="/" aria-label="스노우판 홈">
+              <Logo />
             </Link>
           </div>
 
           <div className="flex items-center gap-1.5">
+            <Link
+              to="/search"
+              aria-label="검색"
+              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Link>
             {user && (
               <Link
                 to="/notifications"

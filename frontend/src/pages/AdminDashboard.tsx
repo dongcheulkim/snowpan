@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
@@ -20,6 +21,7 @@ interface StatsData {
   products: number;
   posts: number;
   chatRooms: number;
+  daily?: { date: string; users: number; products: number }[];
 }
 
 interface UserItem {
@@ -336,19 +338,39 @@ const AdminDashboard = () => {
 
           {/* Stats Tab */}
           {tab === 'stats' && stats && (
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: '총 유저 수', value: stats.users, icon: '👥' },
-                { label: '총 상품 수', value: stats.products, icon: '📦' },
-                { label: '총 게시글 수', value: stats.posts, icon: '📝' },
-                { label: '총 채팅방 수', value: stats.chatRooms, icon: '💬' },
-              ].map((s) => (
-                <div key={s.label} className="card p-5 text-center">
-                  <div className="text-3xl mb-2">{s.icon}</div>
-                  <div className="text-2xl font-bold text-gray-900">{s.value.toLocaleString()}</div>
-                  <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: '총 유저 수', value: stats.users, icon: '👥' },
+                  { label: '총 상품 수', value: stats.products, icon: '📦' },
+                  { label: '총 게시글 수', value: stats.posts, icon: '📝' },
+                  { label: '총 채팅방 수', value: stats.chatRooms, icon: '💬' },
+                ].map((s) => (
+                  <div key={s.label} className="card p-5 text-center">
+                    <div className="text-3xl mb-2">{s.icon}</div>
+                    <div className="text-2xl font-bold text-gray-900">{s.value.toLocaleString()}</div>
+                    <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              {stats.daily && stats.daily.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">최근 14일 가입·상품 등록 추이</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={stats.daily} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                        <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={{ stroke: '#e5e7eb' }} />
+                        <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={{ stroke: '#e5e7eb' }} allowDecimals={false} />
+                        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Line type="monotone" dataKey="users" name="신규 가입" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="products" name="신규 상품" stroke="#10b981" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
 
