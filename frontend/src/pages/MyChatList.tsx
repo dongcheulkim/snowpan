@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
+import EmptyState from '../components/EmptyState';
+import { ListRowSkeleton } from '../components/Skeleton';
 
 interface ChatRoom {
   id: string;
@@ -73,9 +75,17 @@ const MyChatList = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">{t('general.loading')}</div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => <ListRowSkeleton key={i} />)}
+        </div>
       ) : rooms.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('myChatList.empty')}</div>
+        <EmptyState
+          icon="💬"
+          title={t('myChatList.empty')}
+          description="관심 있는 상품에 메시지를 보내 거래를 시작해보세요."
+          ctaLabel="장비 둘러보기"
+          ctaTo="/used"
+        />
       ) : (
         <div className="space-y-2">
           {rooms.map((room) => {

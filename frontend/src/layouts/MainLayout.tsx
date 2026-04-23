@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
+import ToastHost from '../components/Toast';
 
 const MainLayout = () => {
   useEffect(() => {
@@ -29,6 +30,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <BottomNav />
+      <ToastHost />
     </div>
   );
 };

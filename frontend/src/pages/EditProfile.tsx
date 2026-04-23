@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+import { toastSuccess, toastError } from '../components/Toast';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -47,10 +48,10 @@ const EditProfile = () => {
         body: { nickname: form.nickname.trim(), profileImage },
       });
       sessionStorage.setItem('user', JSON.stringify(updated));
-      alert('프로필이 수정되었습니다.');
+      toastSuccess('프로필이 수정되었습니다.');
       navigate('/mypage');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '수정에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
     } finally {
       setLoading(false);
     }

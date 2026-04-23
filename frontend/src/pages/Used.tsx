@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
+import { ProductGridSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 
 interface Product {
   id: string;
@@ -179,18 +181,18 @@ const Used = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">{t('general.loading')}</div>
+        <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {products.map((product) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             return (
               <Link to={`/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
-                <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
+                <div className={`relative h-28 flex items-center justify-center text-4xl overflow-hidden ${product.image.startsWith('/') || product.image.startsWith('http') ? 'bg-gray-100' : 'bg-gradient-to-br from-sky-100 to-sky-200'}`}>
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span style="font-size:2rem">📷</span>'; }} />
                   ) : (
-                    product.image
+                    <span className="text-5xl drop-shadow-sm">{product.image}</span>
                   )}
                   {product.isPremium && (
                     <span className="absolute top-1 right-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
@@ -214,9 +216,13 @@ const Used = () => {
       )}
 
       {!loading && products.length === 0 && (
-        <div className="text-center py-12 text-gray-400 card text-sm">
-          {t('used.noItems')}
-        </div>
+        <EmptyState
+          icon="🎿"
+          title={t('used.noItems')}
+          description="다른 키워드로 검색하거나 직접 장비를 등록해보세요."
+          ctaLabel="+ 내 장비 등록하기"
+          ctaTo="/used/register"
+        />
       )}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

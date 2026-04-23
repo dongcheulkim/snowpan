@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
+import { toastSuccess, toastError } from '../components/Toast';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
@@ -91,10 +92,10 @@ const UsedRegister = () => {
           size: form.size || undefined,
         },
       });
-      alert('장비가 등록되었습니다!');
+      toastSuccess('장비가 등록되었습니다!');
       navigate('/used');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {
       setLoading(false);
     }
