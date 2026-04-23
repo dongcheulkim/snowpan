@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /mypage
+Disallow: /chat
+Disallow: /notifications
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+
+Sitemap: https://snowpan.vercel.app/sitemap.xml

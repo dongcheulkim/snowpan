@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, uploadImages } from '../api';
+import { api, getUser, setUser, uploadImages } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 
 const EditProfile = () => {
@@ -47,7 +47,7 @@ const EditProfile = () => {
         method: 'PUT',
         body: { nickname: form.nickname.trim(), profileImage },
       });
-      sessionStorage.setItem('user', JSON.stringify(updated));
+      setUser(updated);
       toastSuccess('프로필이 수정되었습니다.');
       navigate('/mypage');
     } catch (err) {

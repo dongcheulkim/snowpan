@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
+import { useMeta } from '../hooks/useMeta';
+import ShareButton from '../components/ShareButton';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
 
@@ -26,6 +28,12 @@ const AccommodationDetail = () => {
   const [loading, setLoading] = useState(true);
   const user = getUser();
 
+  useMeta({
+    title: item ? `${item.name} ${item.price.toLocaleString()}원` : undefined,
+    description: item ? `${item.resort?.name ? item.resort.name + ' · ' : ''}${typeMap[item.type.split(',')[0]] || item.type} · ${item.guests}인 - 스노우판 숙소 예약` : undefined,
+    image: item?.image ? (item.image.startsWith('http') ? item.image : imageUrl(item.image)) : undefined,
+    type: 'product',
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -62,9 +70,12 @@ const AccommodationDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
-        ← 숙소 목록
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
+          ← 숙소 목록
+        </Link>
+        <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
+      </div>
 
       {/* Hero */}
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, setAuth } from '../api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -49,8 +49,8 @@ const Register = () => {
         body: { email: form.email, password: form.password, name: form.name, nickname: form.nickname || undefined, phone: form.phone },
       });
 
-      sessionStorage.setItem('token', data.token);
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+      // 회원가입 직후엔 탭 세션만 유지 (자동로그인은 사용자가 명시적으로 로그인 시 켜도록)
+      setAuth(data.token, data.user, false);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');

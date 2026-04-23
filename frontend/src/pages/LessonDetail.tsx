@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
+import { useMeta } from '../hooks/useMeta';
+import ShareButton from '../components/ShareButton';
 
 interface LessonData {
   id: string;
@@ -24,6 +26,12 @@ const LessonDetail = () => {
   const [loading, setLoading] = useState(true);
   const user = getUser();
 
+  useMeta({
+    title: item ? `${item.name} ${item.price.toLocaleString()}원 · ${levelLabels[item.level] || item.level}` : undefined,
+    description: item ? `${item.resort?.name ? item.resort.name + ' · ' : ''}${item.duration} · 최대 ${item.maxStudents}명 - 스노우판 스키/보드 레슨` : undefined,
+    image: item?.image ? (item.image.startsWith('http') ? item.image : imageUrl(item.image)) : undefined,
+    type: 'product',
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -52,7 +60,10 @@ const LessonDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
+      <div className="flex items-center justify-between">
+        <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
+        <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
+      </div>
 
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
         {isImage ? <img src={imgSrc} alt={item.name} className="w-full h-full object-cover" /> : <span className="relative">{item.image}</span>}

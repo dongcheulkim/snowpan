@@ -13,7 +13,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   } else {
-    const stored = sessionStorage.getItem('token');
+    const stored = getToken();
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
@@ -34,9 +34,8 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   let data: any;
   try { data = await res.json(); } catch { data = {}; }
   if (!res.ok) {
-    if (res.status === 401 && sessionStorage.getItem('token') && !window.location.pathname.includes('/login')) {
-      sessionStorage.removeItem('user');
-      sessionStorage.removeItem('token');
+    if (res.status === 401 && getToken() && !window.location.pathname.includes('/login')) {
+      logout();
       setTimeout(() => { window.location.href = '/login'; }, 0);
     }
     if (res.status === 429) {
@@ -53,20 +52,55 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   return data as T;
 }
 
+// 저장 위치: autoLogin=true 이면 localStorage (브라우저 닫아도 유지),
+// 아니면 sessionStorage (탭 닫으면 사라짐).
+function authStore(): Storage {
+  return localStorage.getItem('snowpan.persistent') === '1' ? localStorage : sessionStorage;
+}
+
+export function setAuth(token: string, user: unknown, persistent: boolean) {
+  // 기존 저장소 정리 후 새 위치에 기록
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+
+  if (persistent) {
+    localStorage.setItem('snowpan.persistent', '1');
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+  } else {
+    localStorage.removeItem('snowpan.persistent');
+    sessionStorage.setItem('token', token);
+    sessionStorage.setItem('user', JSON.stringify(user));
+  }
+}
+
+export function setUser(user: unknown) {
+  // 기존 저장 위치를 유지하며 user 정보만 갱신
+  authStore().setItem('user', JSON.stringify(user));
+}
+
 export function getUser() {
-  const raw = sessionStorage.getItem('user');
+  const raw = authStore().getItem('user') ?? sessionStorage.getItem('user') ?? localStorage.getItem('user');
   if (!raw) return null;
   try { return JSON.parse(raw); } catch { return null; }
 }
 
 export function getToken() {
-  return sessionStorage.getItem('token');
+  return authStore().getItem('token') ?? sessionStorage.getItem('token') ?? localStorage.getItem('token');
+}
+
+export function isPersistentLogin() {
+  return localStorage.getItem('snowpan.persistent') === '1';
 }
 
 export function logout() {
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('token');
-  sessionStorage.removeItem('autoLogin');
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('snowpan.persistent');
 }
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');

@@ -43,7 +43,7 @@ try {
       });
       // 로그인 시 user context 자동 태깅
       try {
-        const raw = sessionStorage.getItem('user');
+        const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
         if (raw) {
           const u = JSON.parse(raw);
           S.setUser({ id: u.id, email: u.email, username: u.nickname || u.name });

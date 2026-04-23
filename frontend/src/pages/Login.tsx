@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, setAuth, isPersistentLogin } from '../api';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
@@ -23,10 +23,7 @@ const Login = () => {
       setEmail(savedEmail);
       setSaveEmail(true);
     }
-    const auto = sessionStorage.getItem('autoLogin');
-    if (auto === 'true') {
-      setAutoLogin(true);
-    }
+    if (isPersistentLogin()) setAutoLogin(true);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,19 +37,12 @@ const Login = () => {
         body: { email, password },
       });
 
-      sessionStorage.setItem('token', data.token);
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+      setAuth(data.token, data.user, autoLogin);
 
       if (saveEmail) {
         localStorage.setItem('savedEmail', email);
       } else {
         localStorage.removeItem('savedEmail');
-      }
-
-      if (autoLogin) {
-        sessionStorage.setItem('autoLogin', 'true');
-      } else {
-        sessionStorage.removeItem('autoLogin');
       }
 
       navigate('/');

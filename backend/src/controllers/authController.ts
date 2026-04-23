@@ -369,9 +369,10 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    // PhoneVerification 테이블을 재사용하여 이메일 인증코드 저장 (phone 필드에 email 저장)
-    await prisma.phoneVerification.create({
-      data: { phone: email, code, expiresAt },
+    // 같은 이메일에 대해 남아있는 과거 코드 제거 후 신규 발급
+    await prisma.emailVerification.deleteMany({ where: { email, purpose: 'password_reset' } });
+    await prisma.emailVerification.create({
+      data: { email, code, expiresAt, purpose: 'password_reset' },
     });
 
     // 이메일 발송 (환경변수 미설정 시 콘솔 로그)
@@ -390,8 +391,17 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
   try {
     const { email, code, newPassword } = req.body;
 
-    const verification = await prisma.phoneVerification.findFirst({
-      where: { phone: email, code, verified: false, expiresAt: { gte: new Date() } },
+    if (!email || !code || !newPassword) {
+      res.status(400).json({ error: '필수 항목이 누락되었습니다.' });
+      return;
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+      res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
+      return;
+    }
+
+    const verification = await prisma.emailVerification.findFirst({
+      where: { email, code, purpose: 'password_reset', expiresAt: { gte: new Date() } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -400,11 +410,17 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(404).json({ error: '해당 이메일로 가입된 계정이 없습니다.' });
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.$transaction([
       prisma.user.update({ where: { email }, data: { password: hashedPassword } }),
       // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화
-      prisma.phoneVerification.deleteMany({ where: { phone: email } }),
+      prisma.emailVerification.deleteMany({ where: { email } }),
     ]);
 
     res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
+import { useMeta } from '../hooks/useMeta';
 
 interface Product {
   id: string;
@@ -49,6 +50,13 @@ const UsedDetail = () => {
   const user = getUser();
   const [, setLangTick] = useState(0);
 
+  useMeta({
+    title: product ? `${product.name}${product.brand ? ` · ${product.brand}` : ''} ${product.price.toLocaleString()}원` : undefined,
+    description: product ? (product.description?.slice(0, 150) || `${product.name} 중고 스키/보드 장비 - 스노우판에서 안전하게 거래하세요.`) : undefined,
+    image: product?.image ? (product.image.startsWith('http') ? product.image : imageUrl(product.image)) : undefined,
+    type: 'product',
+  });
+
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
@@ -70,7 +78,6 @@ const UsedDetail = () => {
       .then(p => {
         setProduct(p);
         setWishlisted(p.wishlisted);
-        document.title = `${p.name} - 스노우판`;
 
         // Save to recently viewed (localStorage)
         try {

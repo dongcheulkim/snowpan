@@ -39,6 +39,7 @@ import skiShopRoutes from './routes/skiShopRoutes';
 import repairShopRoutes from './routes/repairShopRoutes';
 import searchRoutes from './routes/searchRoutes';
 import contactRoutes from './routes/contactRoutes';
+import sitemapRoutes from './routes/sitemapRoutes';
 import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
@@ -205,6 +206,9 @@ app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
+
+// SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
+app.use('/', sitemapRoutes);
 
 // Sentry error handler — must be AFTER all routes, BEFORE other error middleware
 if (process.env.SENTRY_DSN_BACKEND) {

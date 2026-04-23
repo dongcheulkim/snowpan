@@ -298,6 +298,18 @@ model PhoneVerification {
   @@map("phone_verifications")
 }
 
+model EmailVerification {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  purpose   String   @default("password_reset") // 'password_reset' | 'email_change' 등
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email, code])
+  @@map("email_verifications")
+}
+
 model Review {
   id        String   @id @default(uuid())
   rating    Int      // 1-5

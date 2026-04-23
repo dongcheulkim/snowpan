@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { useMeta } from '../hooks/useMeta';
+import ShareButton from '../components/ShareButton';
 
 interface Shop {
   id: string;
@@ -25,6 +27,12 @@ export default function RepairShopDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  useMeta({
+    title: shop ? `${shop.name}${shop.area ? ` · ${shop.area}` : ''}` : undefined,
+    description: shop ? (shop.description?.slice(0, 150) || `${shop.name} 스키/보드 정비샵 정보 - 스노우판`) : undefined,
+    image: shop?.image ? (shop.image.startsWith('http') ? shop.image : imageUrl(shop.image)) : undefined,
+  });
+
   useEffect(() => {
     if (!id) return;
     api<Shop>(`/repair-shops/${id}`)
@@ -43,7 +51,10 @@ export default function RepairShopDetail() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to="/repair" className="inline-flex items-center text-gray-400 text-sm hover:text-gray-900">&larr; 정비샵 목록</Link>
+      <div className="flex items-center justify-between">
+        <Link to="/repair" className="inline-flex items-center text-gray-400 text-sm hover:text-gray-900">&larr; 정비샵 목록</Link>
+        <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
+      </div>
 
       {shop.image && (
         <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-video">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { api } from '../api';
+import { api, getToken } from '../api';
 import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
 import Logo from './Logo';
@@ -10,7 +10,7 @@ const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api')
 function useLocalStorageUser() {
   return useSyncExternalStore(
     (cb) => { window.addEventListener('storage', cb); return () => window.removeEventListener('storage', cb); },
-    () => sessionStorage.getItem('user'),
+    () => localStorage.getItem('user') ?? sessionStorage.getItem('user'),
   );
 }
 
@@ -38,7 +38,7 @@ const Navbar = () => {
   const fetchNotifCount = useCallback(() => {
     try {
       if (!user) return;
-      const token = sessionStorage.getItem('token');
+      const token = getToken();
       if (!token) return;
       api<any>('/notifications?limit=50')
         .then(data => {
@@ -55,7 +55,7 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!user) { setHasUnread(false); return; }
-    const token = sessionStorage.getItem('token');
+    const token = getToken();
     if (!token) return;
 
     const now = Date.now();
@@ -77,7 +77,7 @@ const Navbar = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
+    const token = getToken();
     if (!user || !token) return;
 
     const socket = io(SERVER_URL, { auth: { token } });

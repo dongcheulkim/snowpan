@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, uploadImages, logout } from '../api';
+import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api';
 import { t, onLangChange, getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
@@ -50,7 +50,7 @@ const MyPage = () => {
     api<Record<string, unknown>>('/auth/profile').then(data => {
       const updated = { ...stored, ...data };
       setUser(updated);
-      sessionStorage.setItem('user', JSON.stringify(updated));
+      saveUser(updated);
     }).catch(() => {});
 
     // 뱃지 요청 목록 조회
@@ -70,7 +70,7 @@ const MyPage = () => {
         method: 'PUT',
         body: { profileImage: urls[0] },
       });
-      sessionStorage.setItem('user', JSON.stringify(updated));
+      saveUser(updated);
       setUser(prev => prev ? { ...prev, profileImage: urls[0] } : prev);
     } catch {
       alert('사진 업로드에 실패했습니다.');
@@ -230,7 +230,7 @@ const MyPage = () => {
                       try {
                         await api('/auth/profile', { method: 'PUT', body: { activeBadge: newBadge } });
                         setUser((prev: any) => prev ? { ...prev, activeBadge: newBadge } : prev);
-                        sessionStorage.setItem('user', JSON.stringify({ ...user, activeBadge: newBadge }));
+                        saveUser({ ...user, activeBadge: newBadge });
                       } catch {}
                     }}
                     className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}

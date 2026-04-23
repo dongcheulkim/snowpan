@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, setUser } from '../api';
 
 type AuthState = 'verifying' | 'allow' | 'deny-login' | 'deny-home';
 
@@ -18,13 +18,12 @@ const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
       .then(u => {
         if (cancelled) return;
         if (u.role === 'admin') {
-          // refresh cached user so stale tampered sessionStorage gets corrected
           const stored = getUser();
-          if (stored) sessionStorage.setItem('user', JSON.stringify({ ...stored, role: 'admin' }));
+          if (stored) setUser({ ...stored, role: 'admin' });
           setState('allow');
         } else {
           const stored = getUser();
-          if (stored) sessionStorage.setItem('user', JSON.stringify({ ...stored, role: u.role }));
+          if (stored) setUser({ ...stored, role: u.role });
           setState('deny-home');
         }
       })
