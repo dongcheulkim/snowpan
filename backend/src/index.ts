@@ -48,9 +48,17 @@ import { startAdBookingScheduler } from './utils/adBookingScheduler';
 const app = express();
 const httpServer = createServer(app);
 
+// CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선, 미설정 시 프로덕션=snowpan.vercel.app, dev=localhost
+const DEFAULT_ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
+  ? ['https://snowpan.vercel.app']
+  : ['http://localhost:5173', 'http://localhost:3000'];
+const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+  : DEFAULT_ALLOWED_ORIGINS;
+
 // === Socket.IO with optimized settings for scale ===
 const io = new Server(httpServer, {
-  cors: { origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*' },
+  cors: { origin: ALLOWED_ORIGINS, credentials: true },
   pingTimeout: 60000,
   pingInterval: 25000,
   maxHttpBufferSize: 1e6, // 1MB max message size
@@ -121,7 +129,15 @@ app.use((req, res, next) => {
 app.use(generalLimiter);
 app.use(writeLimiter);
 
-app.use(cors());
+app.use(cors({
+  origin: (origin, cb) => {
+    // 서버 내부 호출 / Postman 등 origin 없을 땐 허용
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   maxAge: '7d',
@@ -220,10 +236,19 @@ io.on('connection', (socket) => {
   socket.join(`user:${userId}`);
 
   socket.on('join_room', async (roomId: string) => {
-    const room = await prisma.chatRoom.findFirst({
-      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
-    });
-    if (room) socket.join(`room:${roomId}`);
+    try {
+      const room = await prisma.chatRoom.findFirst({
+        where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+      });
+      if (!room) {
+        socket.emit('room_error', { roomId, error: '접근할 수 없는 채팅방입니다.' });
+        return;
+      }
+      socket.join(`room:${roomId}`);
+    } catch (err) {
+      console.error('join_room error:', err);
+      socket.emit('room_error', { roomId, error: '채팅방 접근 중 오류가 발생했습니다.' });
+    }
   });
 
   socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string; type?: string }) => {
@@ -316,14 +341,20 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 httpServer.listen(PORT, async () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);
-  startAdBookingScheduler();
 
+  try {
+    startAdBookingScheduler();
+  } catch (err) {
+    console.error('광고 스케줄러 시작 실패:', err);
+  }
 
   // Keep-alive: 5분마다 자기 자신에게 핑 (Render 슬립 방지)
   const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
   if (RENDER_URL) {
     setInterval(() => {
-      fetch(`${RENDER_URL}/api/health`).catch(() => {});
+      fetch(`${RENDER_URL}/api/health`).catch((err) => {
+        console.warn('Keep-alive ping 실패:', err?.message || err);
+      });
     }, 5 * 60 * 1000);
   }
 });

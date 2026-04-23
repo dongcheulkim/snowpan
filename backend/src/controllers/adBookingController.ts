@@ -169,11 +169,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       const totalPrice = basePrice - discountAmount;
       const merchantUid = `snowpan_ad_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-      // 시작일이 오늘 이하면 바로 active, 아니면 pending_payment
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const isReady = start <= now;
-
+      // 계좌이체 방식: 모든 예약은 pending_payment 로 시작하고 관리자가 입금 확인 후 승인
       return tx.adBooking.create({
         data: {
           slotType,
@@ -188,27 +184,22 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           endDate: end,
           totalDays,
           totalPrice,
-          status: isReady ? 'active' : 'pending_payment',
+          status: 'pending_payment',
           userId,
           pricingId: pricing.id,
           payment: {
             create: {
               paymentId: merchantUid,
               merchantUid,
-              payMethod: 'transfer',
+              payMethod: payMethod === 'TRANSFER' ? 'transfer' : (payMethod || 'transfer'),
               amount: totalPrice,
-              status: isReady ? 'paid' : 'pending',
+              status: 'pending',
               paidAt: new Date(),
             },
           },
         },
       });
     });
-
-    // 바로 active면 배너 즉시 생성
-    if (booking.status === 'active') {
-      await createBannerFromBooking(booking);
-    }
 
     await notifyAdmins('system', '새 광고 신청', `"${title}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
 

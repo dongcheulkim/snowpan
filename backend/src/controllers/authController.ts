@@ -400,10 +400,12 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    await prisma.phoneVerification.update({ where: { id: verification.id }, data: { verified: true } });
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({ where: { email }, data: { password: hashedPassword } });
+    await prisma.$transaction([
+      prisma.user.update({ where: { email }, data: { password: hashedPassword } }),
+      // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화
+      prisma.phoneVerification.deleteMany({ where: { phone: email } }),
+    ]);
 
     res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
   } catch (error) {

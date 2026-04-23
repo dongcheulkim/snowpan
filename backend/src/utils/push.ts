@@ -1,5 +1,7 @@
 import prisma from '../config/database';
 
+let fcmWarningShown = false;
+
 // Expo Push + FCM 통합 발송
 export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
@@ -24,7 +26,13 @@ export async function sendPushToUser(userId: string, title: string, body: string
     } else {
       // FCM (웹 푸시)
       const serverKey = process.env.FCM_SERVER_KEY;
-      if (!serverKey) return;
+      if (!serverKey) {
+        if (!fcmWarningShown) {
+          console.warn('⚠️  FCM_SERVER_KEY 미설정 — 웹 푸시 알림이 비활성화됩니다.');
+          fcmWarningShown = true;
+        }
+        return;
+      }
       await fetch('https://fcm.googleapis.com/fcm/send', {
         method: 'POST',
         headers: { 'Authorization': `key=${serverKey}`, 'Content-Type': 'application/json' },
