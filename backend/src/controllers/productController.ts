@@ -8,10 +8,10 @@ import { sanitizeText } from '../utils/sanitize';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, subcategory, userId, status, search, limit, offset } = req.query;
+    const { category, subcategory, userId, status, search, limit, offset, sort } = req.query;
 
     // Cache key based on query params
-    const cacheKey = `products:${JSON.stringify({ category, subcategory, userId, status, search, limit, offset })}`;
+    const cacheKey = `products:${JSON.stringify({ category, subcategory, userId, status, search, limit, offset, sort })}`;
     const cached = cacheGet<{ products: unknown[]; totalCount: number }>(cacheKey);
     if (cached) {
       res.json(cached);
@@ -34,10 +34,19 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     const take = limit ? parseInt(limit as string, 10) : 50;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
 
+    const primary = [
+      { isPremium: { sort: 'desc' as const, nulls: 'last' as const } },
+      { bumpedAt: { sort: 'desc' as const, nulls: 'last' as const } },
+    ];
+    const orderBy =
+      sort === 'price_asc' ? [...primary, { price: 'asc' as const }]
+      : sort === 'price_desc' ? [...primary, { price: 'desc' as const }]
+      : [...primary, { createdAt: 'desc' as const }];
+
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
         where,
-        orderBy: [{ isPremium: { sort: 'desc', nulls: 'last' } }, { bumpedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+        orderBy,
         take,
         ...(skip && { skip }),
         select: {

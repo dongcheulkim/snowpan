@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
@@ -20,14 +20,35 @@ interface Product {
 const PAGE_SIZE = 12;
 
 const Used = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get('category') || 'all';
+  const sort = searchParams.get('sort') || 'newest';
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const initialSearch = searchParams.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [, setLangTick] = useState(0);
+
+  const updateParam = (key: string, value: string | null, resetPage = true) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === null || value === '' || (key === 'category' && value === 'all') || (key === 'sort' && value === 'newest')) {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+    if (resetPage) next.delete('page');
+    setSearchParams(next, { replace: false });
+  };
+  const setSelectedCategory = (v: string) => updateParam('category', v);
+  const setSort = (v: string) => updateParam('sort', v);
+  const setPage = (p: number) => {
+    const next = new URLSearchParams(searchParams);
+    if (p <= 1) next.delete('page'); else next.set('page', String(p));
+    setSearchParams(next, { replace: false });
+  };
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -51,14 +72,15 @@ const Used = () => {
     { id: 'etc', name: t('used.cat.etc') },
   ];
 
-  // Debounce search
+  // Debounce search → URL
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      updateParam('q', searchQuery);
+    }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
-
-  // Reset page on filter change
-  useEffect(() => { setPage(1); }, [selectedCategory, debouncedSearch]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -67,6 +89,7 @@ const Used = () => {
         const params = new URLSearchParams({ category: 'used', limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedCategory !== 'all') params.set('subcategory', selectedCategory);
         if (debouncedSearch) params.set('search', debouncedSearch);
+        if (sort && sort !== 'newest') params.set('sort', sort);
         const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
         setProducts(data.products);
         setTotalCount(data.totalCount);
@@ -78,7 +101,7 @@ const Used = () => {
       }
     };
     fetchProducts();
-  }, [selectedCategory, debouncedSearch, page]);
+  }, [selectedCategory, debouncedSearch, page, sort]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -94,14 +117,27 @@ const Used = () => {
         </Link>
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder={t('used.search')}
-        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
-      />
+      {/* Search + Sort */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          aria-label="상품 검색"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t('used.search')}
+          className="flex-1 min-w-0 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
+        />
+        <select
+          aria-label="정렬 기준"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-accent/50 transition-all"
+        >
+          <option value="newest">최신순</option>
+          <option value="price_asc">가격↑</option>
+          <option value="price_desc">가격↓</option>
+        </select>
+      </div>
 
       {/* Categories */}
       <div className="relative">

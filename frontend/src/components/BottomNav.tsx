@@ -32,7 +32,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom">
+    <nav aria-label="주요 메뉴" className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom">
       <div className="max-w-lg mx-auto flex justify-around items-center h-16 px-2">
         {items.map((item) => {
           const active = item.path === '/' ? path === '/' : path.startsWith(item.path);
@@ -40,9 +40,11 @@ const BottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
               className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? 'text-sky-500' : 'text-gray-400'}`}
             >
-              <div className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
+              <div aria-hidden="true" className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
                 {active && <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-sky-500 rounded-full" />}
               </div>

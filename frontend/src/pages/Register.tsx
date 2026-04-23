@@ -71,28 +71,28 @@ const Register = () => {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">이름</label>
-            <input type="text" name="name" placeholder="실명을 입력하세요" value={form.name} onChange={handleChange} required className={inputClass} />
+            <label htmlFor="reg-name" className="block text-sm font-medium text-gray-500 mb-2">이름</label>
+            <input id="reg-name" type="text" name="name" autoComplete="name" placeholder="실명을 입력하세요" value={form.name} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-400">(다른 유저에게 보이는 이름)</span></label>
-            <input type="text" name="nickname" placeholder="닉네임을 입력하세요" value={form.nickname} onChange={handleChange} className={inputClass} />
+            <label htmlFor="reg-nickname" className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-400">(다른 유저에게 보이는 이름)</span></label>
+            <input id="reg-nickname" type="text" name="nickname" autoComplete="username" placeholder="닉네임을 입력하세요" value={form.nickname} onChange={handleChange} className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">이메일</label>
-            <input type="email" name="email" placeholder="이메일을 입력하세요" value={form.email} onChange={handleChange} required className={inputClass} />
+            <label htmlFor="reg-email" className="block text-sm font-medium text-gray-500 mb-2">이메일</label>
+            <input id="reg-email" type="email" name="email" autoComplete="email" placeholder="이메일을 입력하세요" value={form.email} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">전화번호</label>
-            <input type="tel" name="phone" placeholder="01012345678" value={form.phone} onChange={handleChange} required className={inputClass} />
+            <label htmlFor="reg-phone" className="block text-sm font-medium text-gray-500 mb-2">전화번호</label>
+            <input id="reg-phone" type="tel" name="phone" autoComplete="tel" placeholder="01012345678" value={form.phone} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">비밀번호</label>
-            <input type="password" name="password" placeholder="6자 이상 입력하세요" value={form.password} onChange={handleChange} required className={inputClass} />
+            <label htmlFor="reg-password" className="block text-sm font-medium text-gray-500 mb-2">비밀번호</label>
+            <input id="reg-password" type="password" name="password" autoComplete="new-password" placeholder="6자 이상 입력하세요" value={form.password} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">비밀번호 확인</label>
-            <input type="password" name="passwordConfirm" placeholder="비밀번호를 다시 입력하세요" value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
+            <label htmlFor="reg-password-confirm" className="block text-sm font-medium text-gray-500 mb-2">비밀번호 확인</label>
+            <input id="reg-password-confirm" type="password" name="passwordConfirm" autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요" value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
           </div>
 
           {/* 약관 동의 */}

@@ -17,11 +17,19 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (networkErr) {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new Error('인터넷 연결이 끊어졌습니다. 네트워크를 확인해주세요.');
+    }
+    throw new Error('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+  }
 
   let data: any;
   try { data = await res.json(); } catch { data = {}; }
@@ -31,7 +39,16 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       sessionStorage.removeItem('token');
       setTimeout(() => { window.location.href = '/login'; }, 0);
     }
-    throw new Error(data.error || '요청에 실패했습니다.');
+    if (res.status === 429) {
+      const retry = res.headers.get('Retry-After');
+      throw new Error(data.error || `요청이 너무 많습니다. ${retry ? retry + '초 후 ' : '잠시 후 '}다시 시도해주세요.`);
+    }
+    if (res.status >= 500) {
+      throw new Error(data.error || '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+    if (res.status === 403) throw new Error(data.error || '권한이 없습니다.');
+    if (res.status === 404) throw new Error(data.error || '요청한 정보를 찾을 수 없습니다.');
+    throw new Error(data.error || `요청에 실패했습니다. (${res.status})`);
   }
   return data as T;
 }

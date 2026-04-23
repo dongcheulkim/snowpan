@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
@@ -29,10 +30,23 @@ const UsedRegister = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const isDirty = !loading && (
+    form.name.trim() !== '' ||
+    form.brand.trim() !== '' ||
+    form.price !== '' ||
+    form.description.trim() !== '' ||
+    imageFiles.length > 0
+  );
+  useUnloadGuard(isDirty);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) {
       alert('중고거래 주의사항에 동의해주세요.');
+      return;
+    }
+    if (imageFiles.length === 0) {
+      alert('상품 사진을 최소 1장 업로드해주세요.');
       return;
     }
 
@@ -115,6 +129,13 @@ const UsedRegister = () => {
                 const files = Array.from(e.target.files || []);
                 const remaining = 5 - images.length;
                 if (remaining <= 0) { alert('사진은 최대 5장까지 가능합니다.'); return; }
+                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+                const tooBig = files.filter(f => f.size > MAX_SIZE);
+                if (tooBig.length > 0) {
+                  alert(`다음 파일이 5MB를 초과합니다:\n${tooBig.map(f => `• ${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join('\n')}\n\n이미지 크기를 줄여서 다시 시도해주세요.`);
+                  e.target.value = '';
+                  return;
+                }
                 const toProcess = files.slice(0, remaining);
                 toProcess.forEach((file) => {
                   const reader = new FileReader();
