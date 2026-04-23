@@ -2,12 +2,12 @@
   <rect width="1200" height="630" fill="#ffffff"/>
 
   <!-- Main wordmark -->
-  <text x="600" y="310" font-size="200" text-anchor="middle" fill="#0f172a" font-weight="900" letter-spacing="-10" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', sans-serif">스노우판</text>
+  <text x="600" y="310" font-size="180" text-anchor="middle" fill="#0f172a" font-weight="900" letter-spacing="6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">SNOWPAN</text>
 
   <!-- Accent underline -->
-  <rect x="430" y="340" width="340" height="18" rx="9" fill="#0ea5e9"/>
+  <rect x="340" y="340" width="520" height="18" rx="9" fill="#0ea5e9"/>
 
   <!-- Tagline -->
   <text x="600" y="450" font-size="38" text-anchor="middle" fill="#334155" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">스키 · 보드 중고거래 &amp; 렌탈</text>
-  <text x="600" y="500" font-size="26" text-anchor="middle" fill="#64748b" font-weight="500" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">장비부터 레슨 · 숙소까지 한눈에 비교</text>
+  <text x="600" y="500" font-size="26" text-anchor="middle" fill="#64748b" font-weight="500" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif">Ski &amp; Snowboard Marketplace</text>
 </svg>
