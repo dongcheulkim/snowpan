@@ -1,8 +1,22 @@
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Sentry init (SENTRY_DSN_BACKEND 설정 시 활성화)
+if (process.env.SENTRY_DSN_BACKEND) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN_BACKEND,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 0.1,
+  });
+  console.log('🔍 Sentry 활성화됨');
+}
+
 import path from 'path';
 import jwt from 'jsonwebtoken';
 import { createGzip } from 'zlib';
@@ -30,8 +44,6 @@ import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
-
-dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
@@ -143,8 +155,20 @@ app.use('/api/community', strictWriteLimiter, communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check
-app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+// Health check — DB ping + uptime
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      status: 'ok',
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+      db: 'connected',
+    });
+  } catch {
+    res.status(503).json({ status: 'error', db: 'disconnected' });
+  }
+});
 
 // 공개 배너 API (인증 불필요)
 import { getPublicBanners } from './controllers/adminController';
@@ -165,6 +189,17 @@ app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
+
+// Sentry error handler — must be AFTER all routes, BEFORE other error middleware
+if (process.env.SENTRY_DSN_BACKEND) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
+// Fallback JSON error handler
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(err.status || 500).json({ error: err.message || '서버 내부 오류' });
+});
 
 // Socket.IO auth middleware
 io.use((socket, next) => {

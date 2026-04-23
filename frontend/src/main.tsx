@@ -22,13 +22,36 @@ if ('serviceWorker' in navigator) {
 }
 
 // Sentry (VITE_SENTRY_DSN 설정 시 활성화)
+// Vercel env에 VITE_SENTRY_DSN을 세팅하면 자동으로 활성화됩니다.
 try {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   if (dsn) {
-    // @ts-ignore
-    import('@sentry/react').then(S => S.init({ dsn, environment: import.meta.env.MODE, tracesSampleRate: 0.1 }));
+    import('@sentry/react').then(S => {
+      S.init({
+        dsn,
+        environment: import.meta.env.MODE,
+        release: import.meta.env.VITE_RELEASE || undefined,
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0,
+        replaysOnErrorSampleRate: 1.0,
+        beforeSend(event) {
+          // 서드파티 스크립트 잡음 / 브라우저 확장 에러 필터
+          const msg = event.message || event.exception?.values?.[0]?.value || '';
+          if (/ResizeObserver|Non-Error promise rejection/.test(msg)) return null;
+          return event;
+        },
+      });
+      // 로그인 시 user context 자동 태깅
+      try {
+        const raw = sessionStorage.getItem('user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          S.setUser({ id: u.id, email: u.email, username: u.nickname || u.name });
+        }
+      } catch { /* ignore */ }
+    });
   }
-} catch {}
+} catch { /* ignore */ }
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

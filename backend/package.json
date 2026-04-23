@@ -20,6 +20,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@sentry/node": "^10.49.0",
     "@types/multer": "^2.1.0",
     "@types/sanitize-html": "^2.16.1",
     "bcryptjs": "^3.0.3",
