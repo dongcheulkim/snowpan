@@ -148,15 +148,19 @@ const Used = () => {
       </div>
 
       {(selectedCategory !== 'all' || searchQuery || sort !== 'newest') && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] text-gray-400">적용된 필터:</span>
           {selectedCategory !== 'all' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{categories.find(c => c.id === selectedCategory)?.name}</span>}
           {searchQuery && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">"{searchQuery}"</span>}
           {sort !== 'newest' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{sort === 'price_asc' ? '가격↑' : '가격↓'}</span>}
           <button
-            onClick={() => { setSearchQuery(''); setSearchParams({}, { replace: false }); }}
-            className="ml-auto text-[11px] text-gray-400 hover:text-gray-900 underline"
-          >초기화</button>
+            onClick={() => { setSearchQuery(''); setDebouncedSearch(''); setSearchParams({}, { replace: false }); }}
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-white border border-gray-300 text-gray-700 rounded-full hover:bg-coral/10 hover:border-coral/30 hover:text-coral transition-colors"
+            aria-label="필터 초기화"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            초기화
+          </button>
         </div>
       )}
 

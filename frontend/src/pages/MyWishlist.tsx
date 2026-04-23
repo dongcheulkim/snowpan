@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
+import { toastSuccess, toastError } from '../components/Toast';
 
 interface WishProduct {
   id: string;
@@ -37,7 +38,10 @@ const MyWishlist = () => {
     try {
       await api(`/products/${productId}/wishlist`, { method: 'POST' });
       setProducts(prev => prev.filter(p => p.id !== productId));
-    } catch { /* ignore */ }
+      toastSuccess('찜을 해제했습니다');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '찜 해제에 실패했습니다');
+    }
   };
 
   return (

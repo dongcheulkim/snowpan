@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
+import { toastSuccess, toastError } from '../components/Toast';
 
 interface Product {
   id: string;
@@ -260,7 +261,8 @@ const UsedDetail = () => {
                       try {
                         const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
                         setWishlisted(res.wishlisted);
-                      } catch (e) { alert(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+                        toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
+                      } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
                     }}
                     className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
                   >
