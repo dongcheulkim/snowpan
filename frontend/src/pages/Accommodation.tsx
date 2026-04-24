@@ -172,7 +172,7 @@ const Accommodation = () => {
                 ) : (
                   <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
                 )}
-                <span className="absolute top-2 right-2 bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px] font-bold border border-gray-200">
+                <span className="absolute top-2 right-2 bg-white/85 backdrop-blur-md text-gray-900 px-2 py-0.5 rounded-md text-[10px] font-bold ring-1 ring-white/40 shadow-sm">
                   {item.type.split(',').map(t => typeMap[t] || t).join(', ')}
                 </span>
               </div>

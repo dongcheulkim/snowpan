@@ -42,7 +42,7 @@ const BottomNav = () => {
             >
               <div aria-hidden="true" className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
-                {active && <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-sky-500 rounded-full" />}
+                {active && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-900 rounded-full" />}
               </div>
               <span className={`text-[10px] font-medium ${active ? 'text-sky-500' : 'text-gray-400'}`}>{item.label}</span>
             </Link>

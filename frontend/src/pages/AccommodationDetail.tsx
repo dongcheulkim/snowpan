@@ -84,7 +84,7 @@ const AccommodationDetail = () => {
         ) : (
           <span className="relative">{item.image}</span>
         )}
-        <span className="absolute top-4 right-4 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-300">
+        <span className="absolute top-4 right-4 bg-white/85 backdrop-blur-md text-gray-900 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-white/40 shadow-sm">
           {typeText}
         </span>
       </div>

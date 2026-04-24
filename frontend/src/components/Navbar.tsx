@@ -110,7 +110,7 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-10 sm:px-12">
         <div className="flex justify-between h-14">
           <div className="flex items-center">
             <Link to="/" aria-label="스노우판 홈">
