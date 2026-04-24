@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import BrandHero from '../components/BrandHero';
 
 interface Product {
   id: string;
@@ -110,6 +111,11 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
+      {/* 브랜드 소개 — 항상 노출 */}
+      <div className="px-4 pt-3 pb-4 bg-white">
+        <BrandHero />
+      </div>
+
       {/* Banner — 등록된 광고 있을 때만 노출 */}
       {banners.length > 0 && (
         <div className="px-4 pt-2 pb-5 bg-white">
