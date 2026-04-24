@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
-import { ChartIcon, ChatIcon, FireIcon, MegaphoneIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -110,50 +110,42 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
-      {/* Banner */}
-      <div className="px-4 pt-2 pb-5 bg-white">
-        <div className="relative overflow-hidden rounded-2xl bg-primary-50 aspect-[3.5/1]">
-          {banners.length > 0 ? (
-            <>
-              {banners.map((banner, idx) => (
-                <a
-                  key={banner.id}
-                  href={banner.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
-                    idx === currentBanner
-                      ? 'opacity-100 translate-x-0'
-                      : idx < currentBanner
-                      ? 'opacity-0 -translate-x-full'
-                      : 'opacity-0 translate-x-full'
-                  }`}
-                >
-                  {banner.image && (
-                    <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                  )}
-                  <div className={`flex-1 relative z-10 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : 'text-left'}`}>
-                    <div className={`flex items-center gap-2 mb-1 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                      <span className="text-[15px] font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</span>
-                    </div>
-                    <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.description}</p>
+      {/* Banner — 등록된 광고 있을 때만 노출 */}
+      {banners.length > 0 && (
+        <div className="px-4 pt-2 pb-5 bg-white">
+          <div className="relative overflow-hidden rounded-2xl bg-primary-50 aspect-[3.5/1]">
+            {banners.map((banner, idx) => (
+              <a
+                key={banner.id}
+                href={banner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
+                  idx === currentBanner
+                    ? 'opacity-100 translate-x-0'
+                    : idx < currentBanner
+                    ? 'opacity-0 -translate-x-full'
+                    : 'opacity-0 translate-x-full'
+                }`}
+              >
+                {banner.image && (
+                  <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                )}
+                <div className={`flex-1 relative z-10 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : 'text-left'}`}>
+                  <div className={`flex items-center gap-2 mb-1 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
+                    <span className="text-[15px] font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</span>
                   </div>
-                  <span className="absolute bottom-2 left-3 text-[9px] font-bold text-white/60 z-10">AD</span>
-                </a>
-              ))}
-              <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
-                {currentBanner + 1}/{banners.length}
-              </div>
-            </>
-          ) : (
-            <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-              <MegaphoneIcon size={24} className="text-gray-700" />
-              <span className="text-sm font-bold text-gray-900">광고를 신청해보세요!</span>
-              <span className="text-[11px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
-            </Link>
-          )}
+                  <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.description}</p>
+                </div>
+                <span className="absolute bottom-2 left-3 text-[9px] font-bold text-white/60 z-10">AD</span>
+              </a>
+            ))}
+            <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
+              {currentBanner + 1}/{banners.length}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Categories */}
       <div className="px-4 pb-5 bg-white">
