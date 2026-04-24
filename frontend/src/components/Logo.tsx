@@ -1,33 +1,37 @@
 interface LogoProps { withText?: boolean; className?: string; }
 
-// SNOW PAN — 진짜 폰트(Inter Thin) 사용 + A 자리에 삼각형 SVG.
-// 브랜드북의 elegant 한 mono-line sans-serif 톤 그대로.
+// SNOW PAN — Inter Thin (100) + A 자리 삼각형 SVG.
+// 브랜드북의 ultra-thin monoline 톤 최대한 맞춤.
 export default function Logo({ withText = true, className = '' }: LogoProps) {
   void withText;
   return (
     <span
       className={`inline-flex items-center text-gray-900 select-none ${className}`}
       style={{
-        fontFamily: 'Inter, "Helvetica Neue", "Apple SD Gothic Neo", system-ui, sans-serif',
-        fontWeight: 200,
-        fontSize: '20px',
-        letterSpacing: '0.18em',
+        fontFamily: '"Inter", "Helvetica Neue", "HelveticaNeue-UltraLight", "Apple SD Gothic Neo", system-ui, sans-serif',
+        fontWeight: 100,
+        fontSize: '22px',
+        letterSpacing: '0.2em',
       }}
     >
       SNOW&nbsp;P
-      {/* A — crossbar 없는 삼각형. 폰트 비율에 맞춘 세로/가로 비. */}
+      {/*
+        A 삼각형 — 폰트 A 글자와 비슷한 비율.
+        A 글자 aspect: 높이 ≈ fontSize × 0.72, 폭 ≈ fontSize × 0.67
+        stroke-width 는 Inter Thin 100 의 수직 stroke 두께에 맞춰 얇게.
+      */}
       <svg
-        viewBox="0 0 50 60"
-        width="0.6em"
-        height="0.7em"
+        viewBox="0 0 70 80"
+        width="0.67em"
+        height="0.78em"
         aria-hidden="true"
-        style={{ display: 'inline-block', verticalAlign: '-0.05em', marginLeft: '0.05em', marginRight: '0.05em' }}
+        style={{ display: 'inline-block', verticalAlign: '-0.04em', marginLeft: '0.06em', marginRight: '0.06em' }}
       >
         <polyline
-          points="3,57 25,3 47,57"
+          points="3,77 35,3 67,77"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.4"
+          strokeWidth="1.6"
           strokeLinecap="square"
           strokeLinejoin="miter"
         />
