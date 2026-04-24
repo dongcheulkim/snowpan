@@ -55,6 +55,17 @@ k6 run --out json=results.json load.js
 3. **Prisma 커넥션 풀**: 기본 10. 동접이 이보다 많으면 쿼리가 큐잉됨 → `DATABASE_URL`에 `?connection_limit=30` 추가해서 늘릴 수 있음
 4. **실사용자 영향**: stress/spike는 실제 사용자 응답 지연 유발 가능. 트래픽 적은 시간 (새벽 2-6시) 권장
 
+## 🌩 Cloudflare / Render 소스 IP 한계
+
+Render 는 Cloudflare CDN 뒤에 있고, Cloudflare 는 **소스 IP 기반 레이트 리밋** 을 자동 적용합니다.
+단일 머신에서 k6 를 돌리면 40~50 VU 넘어갈 때 Cloudflare 가 `429 (Server: cloudflare, Retry-After: 15)` 를 반환하는데, 이건 우리 Express 가 아니라 **CDN 엣지가 차단한 것**. 키 (X-Loadtest-Key) 로도 못 뚫음.
+
+**그래서 로컬에서 측정 가능한 한계는 30~40 VU 수준**. 그 이상 용량을 보려면:
+
+1. **k6 Cloud** (권장) — https://grafana.com/products/cloud/k6/ — 여러 지역에서 분산 부하. 무료 티어 월 50 VUh
+2. **여러 AWS/GCP 인스턴스에서 동시 실행** — 각 인스턴스가 다른 public IP 라 Cloudflare 제한 우회
+3. **Cloudflare Bypass** — Render Dashboard → Settings → Networking 에서 Cloudflare 앞단 우회 가능하지만 프로덕션 DDoS 보호도 풀림. 비추천
+
 ## 병목 해석 가이드
 
 - **p95 응답 시간 > 3s** → Prisma 쿼리 N+1 문제 또는 인덱스 부재 의심
@@ -69,3 +80,15 @@ k6 run --out json=results.json load.js
 - 응답 느린 엔드포인트 → 쿼리 최적화 + 캐싱 추가
 - 에러율 높음 → Render 티어 업그레이드 또는 수평 확장
 - DB 커넥션 고갈 → `connection_limit` 증가 또는 연결 풀러 (pgBouncer) 도입
+
+## 📊 최근 측정 기준 (2026-04-24)
+
+단일 맥북에서 측정한 결과 (Cloudflare 한계 내):
+
+| VU | 결과 | p95 | p99 | 처리량 | 비고 |
+|----|------|-----|-----|--------|------|
+| 1  | ✅ 100% | 272ms | — | 낮음 | smoke |
+| 30 | ✅ 100% | 217ms | 419ms | 12.6 req/s | **깨끗한 실측** |
+| 50 | ⚠️ ~95% | 370ms | 560ms | 20.5 req/s | CF 차단 시작 |
+
+30 VU 기준으로도 **실제 30명이 동시에 쓰는 상황이 아닌, 각 VU 가 여러 요청을 빠르게 보내는 부하 패턴**이라 실사용자 기준으로는 대략 동접 150~200명에 해당합니다.
