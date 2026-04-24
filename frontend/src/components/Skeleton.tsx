@@ -1,5 +1,7 @@
+// shimmer gradient — index.css 의 .skeleton + keyframes shimmer 를 재활용.
+// 단순 opacity pulse (animate-pulse) 보다 빛이 쓸고 지나가는 느낌이라 로딩 체감 시간 단축.
 export function SkeletonBox({ className = '' }: { className?: string }) {
-  return <div className={`bg-gray-200 rounded animate-pulse ${className}`} />;
+  return <div className={`skeleton rounded ${className}`} />;
 }
 
 export function ProductCardSkeleton() {

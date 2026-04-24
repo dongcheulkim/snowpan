@@ -149,7 +149,7 @@ const Home = () => {
 
       {/* Categories */}
       <div className="px-4 pb-5 bg-white">
-        <div className="grid grid-cols-5 gap-y-3">
+        <div className="grid grid-cols-4 gap-y-4 gap-x-2">
           {categories.map((cat) => {
             const Icon = categoryIcons[cat.id];
             return (
@@ -158,10 +158,10 @@ const Home = () => {
                 to={cat.link}
                 className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
               >
-                <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 group-hover:bg-gray-100 transition-colors">
-                  <Icon size={32} />
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-100 transition-colors">
+                  <Icon size={34} />
                 </div>
-                <span className="text-xs font-semibold text-gray-900">{cat.title}</span>
+                <span className="text-xs font-semibold text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
             );
           })}

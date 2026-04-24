@@ -143,11 +143,25 @@ const UsedRegister = () => {
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
               </div>
-              <div className="flex justify-between mt-2">
+              {/* 스텝 라벨 — 좁은 화면 (≤ 375px) 에선 번호 원 + 현재 스텝만 노출해서 overflow 방지 */}
+              <div className="hidden sm:flex justify-between mt-2">
                 {steps.map((s, i) => (
-                  <span key={i} className={`text-[10px] ${s.done ? 'text-accent font-bold' : 'text-gray-400'}`}>
+                  <span key={i} className={`text-[10px] ${s.done ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
                     {s.done ? '✓ ' : `${i + 1}. `}{s.label}
                   </span>
+                ))}
+              </div>
+              <div className="flex sm:hidden items-center justify-between mt-2 gap-2">
+                {steps.map((s, i) => (
+                  <div key={i} className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      {s.done ? '✓' : i + 1}
+                    </span>
+                    {/* 활성 스텝 (첫 미완료) 라벨만 표시, 나머지는 번호만 */}
+                    {(completed === i && !s.done) && (
+                      <span className="text-[10px] text-gray-900 font-bold truncate">{s.label}</span>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

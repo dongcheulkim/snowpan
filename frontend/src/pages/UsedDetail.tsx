@@ -178,9 +178,13 @@ const UsedDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
         <div>
-          <div className="card h-80 flex items-center justify-center bg-gray-100 overflow-hidden cursor-pointer" onClick={() => hasImages && !imgError && setShowFullImage(true)}>
+          <div
+            className="card aspect-[4/3] sm:aspect-square max-h-[480px] flex items-center justify-center overflow-hidden cursor-pointer"
+            style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)' }}
+            onClick={() => hasImages && !imgError && setShowFullImage(true)}
+          >
             {hasImages && !imgError ? (
-              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} loading="eager" decoding="async" />
             ) : (
               <div className="text-center text-gray-400">
                 <CameraIcon size={56} strokeWidth={1.4} />

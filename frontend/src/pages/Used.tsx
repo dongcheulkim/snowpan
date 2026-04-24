@@ -118,13 +118,23 @@ const Used = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">{t('used.title')}</h1>
+        {/* 태블릿+ 에서만 헤더 우측 버튼, 모바일은 FAB 사용 */}
         <Link
           to="/used/register"
-          className="px-4 py-1.5 bg-mint text-black rounded-lg font-bold text-xs hover:bg-emerald-300 transition-colors whitespace-nowrap"
+          className="hidden sm:inline-block px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           {t('used.register')}
         </Link>
       </div>
+
+      {/* 모바일 FAB — 엄지로 쉽게 닿는 우하단 */}
+      <Link
+        to="/used/register"
+        aria-label="장비 등록"
+        className="sm:hidden fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </Link>
 
       {/* Search + Sort */}
       <div className="flex gap-2">
