@@ -67,3 +67,17 @@ export const authMiddleware = async (
 
 // Alias for consistency
 export const authenticateToken = authMiddleware;
+
+// 관리자 전용 라우트 가드 — authMiddleware 뒤에 체이닝 해서 사용.
+// 현재 컨트롤러마다 반복되는 role 체크를 중앙화. 신규 라우트에서는 이 미들웨어를 쓰는 걸 권장.
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({ error: '인증이 필요합니다.' });
+    return;
+  }
+  if (req.user.role !== 'admin') {
+    res.status(403).json({ error: '관리자만 접근할 수 있습니다.' });
+    return;
+  }
+  next();
+};

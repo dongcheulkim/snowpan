@@ -25,12 +25,6 @@ const MySales = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
-  const statusConfig: Record<string, { text: string; color: string; next: string; nextText: string }> = {
-    selling: { text: t('used.status.selling'), color: 'text-emerald-600 bg-emerald-50 border-emerald-200', next: 'reserved', nextText: t('mySales.toReserved') },
-    reserved: { text: t('used.status.reserved'), color: 'text-yellow-600 bg-yellow-50 border-yellow-200', next: 'sold', nextText: t('mySales.toSold') },
-    sold: { text: t('used.status.sold'), color: 'text-gray-500 bg-gray-100 border-gray-300', next: 'selling', nextText: t('mySales.toSelling') },
-  };
-
   const loadProducts = () => {
     if (!user) return;
     api<{ products: Product[]; totalCount: number }>(`/products?userId=${user.id}&category=used`)
@@ -39,8 +33,10 @@ const MySales = () => {
       .finally(() => setLoading(false));
   };
 
+  useEffect(() => {
+    loadProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadProducts(); }, []);
+  }, [user?.id]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
@@ -86,7 +82,6 @@ const MySales = () => {
       ) : (
         <div className="space-y-2">
           {products.map((item) => {
-            void statusConfig;
             return (
               <div key={item.id} className="card p-4">
                 <div className="flex items-center gap-3">

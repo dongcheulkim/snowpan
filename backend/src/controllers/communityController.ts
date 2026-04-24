@@ -5,6 +5,7 @@ import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
+import jwt from 'jsonwebtoken';
 
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || user.name;
@@ -130,7 +131,6 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const jwt = require('jsonwebtoken');
         const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as { userId: string };
         currentUserId = decoded.userId;
       } catch {}
