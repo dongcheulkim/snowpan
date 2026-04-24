@@ -105,8 +105,20 @@ export function logout() {
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
-export function imageUrl(src: string): string {
-  if (!src || src.startsWith('http')) return src;
+// Cloudinary 자동 최적화: f_auto (WebP/AVIF 자동), q_auto (적응형 품질), 옵셔널 width 리사이즈.
+// res.cloudinary.com/<cloud>/image/upload/... 형태에서만 삽입. 다른 CDN / picsum 은 원본 그대로.
+function transformCloudinary(url: string, width?: number): string {
+  if (!url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
+  // 이미 변환이 들어있으면 그대로 반환
+  if (/\/image\/upload\/[^/]*(f_auto|q_auto|w_\d+)/.test(url)) return url;
+  const params = ['f_auto', 'q_auto'];
+  if (width) params.push(`w_${width}`, 'c_limit');
+  return url.replace('/image/upload/', `/image/upload/${params.join(',')}/`);
+}
+
+export function imageUrl(src: string, width?: number): string {
+  if (!src) return src;
+  if (src.startsWith('http')) return transformCloudinary(src, width);
   if (src.startsWith('/')) return `${SERVER_URL}${src}`;
   return src;
 }

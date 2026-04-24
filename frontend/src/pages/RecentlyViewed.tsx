@@ -72,7 +72,7 @@ const RecentlyViewed = () => {
             >
               <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden flex-shrink-0">
                 {isUrl(item.image) ? (
-                  <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={imageUrl(item.image, 180)} alt={item.name} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <PackageIcon size={22} />
                 )}

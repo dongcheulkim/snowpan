@@ -26,12 +26,12 @@ import {
   approveAdRequest,
   rejectAdRequest,
 } from '../controllers/adminController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
-// 모든 관리자 라우트는 인증 필요
-router.use(authenticateToken);
+// 모든 관리자 라우트: 인증 + admin 권한 한번에. 각 컨트롤러 인라인 체크는 중복이라 제거 가능.
+router.use(authenticateToken, requireAdmin);
 
 // 승인 대기 목록 조회
 router.get('/rentals/pending', getPendingRentals);

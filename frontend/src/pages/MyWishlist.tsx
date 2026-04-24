@@ -63,7 +63,7 @@ const MyWishlist = () => {
               <Link to={`/used/${item.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 overflow-hidden flex-shrink-0">
                   {item.image.startsWith('http') || item.image.startsWith('/') ? (
-                    <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
+                    <img src={imageUrl(item.image, 150)} alt="" loading="lazy" className="w-full h-full object-cover" />
                   ) : <PackageIcon size={20} />}
                 </div>
                 <div className="flex-1 min-w-0">
