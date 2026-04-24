@@ -1,10 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <rect width="192" height="192" rx="38" fill="#ffffff"/>
-  <g transform="translate(96 96) scale(0.42) translate(-180 -50)">
-    <g fill="none" stroke="#0f172a" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter">
-      <path d="M 25 95 V 10 H 65 Q 95 10 95 32 Q 95 54 65 54 H 25"/>
-      <polyline points="125,95 170,10 215,95"/>
-      <path d="M 250 95 V 10 L 330 95 V 10"/>
+  <g transform="translate(96 96) scale(0.32) translate(-270 -50)">
+    <g fill="none" stroke="#0f172a" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter">
+      <path d="M 47 18 Q 3 18 3 33 Q 3 50 25 50 Q 47 50 47 67 Q 47 82 3 82"/>
+      <path d="M 65 82 V 18 L 115 82 V 18"/>
+      <ellipse cx="155" cy="50" rx="25" ry="32"/>
+      <polyline points="195,18 207,82 220,32 233,82 245,18"/>
+      <path d="M 305 82 V 18 H 335 Q 355 18 355 35 Q 355 52 335 52 H 305"/>
+      <polyline points="370,82 395,18 420,82"/>
+      <path d="M 435 82 V 18 L 485 82 V 18"/>
     </g>
   </g>
 </svg>
