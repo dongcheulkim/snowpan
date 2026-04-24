@@ -384,9 +384,9 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Sticky Input Bar */}
-      <div className="flex-shrink-0 border-t border-gray-200 bg-white safe-area-bottom">
-        <div className="max-w-2xl mx-auto px-3 py-2.5 flex items-end gap-2">
+      {/* Sticky Input Bar — 하나의 pill 안에 모든 컨트롤 통합 */}
+      <div className="flex-shrink-0 border-t border-gray-100 bg-white safe-area-bottom">
+        <div className="max-w-2xl mx-auto px-3 py-2.5">
           <input
             ref={fileInputRef}
             type="file"
@@ -395,27 +395,28 @@ const Chat = () => {
             className="hidden"
             onChange={handleFileUpload}
           />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={!connected || uploading}
-            aria-label="사진 첨부"
-            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
-          >
-            {uploading ? (
-              <span className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin block" />
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-            )}
-          </button>
-          <button
-            onClick={() => setShowPriceModal(true)}
-            disabled={!connected}
-            aria-label="가격 제안"
-            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0 text-base font-bold"
-          >
-            ₩
-          </button>
-          <div className="flex-1 bg-gray-100 rounded-2xl flex items-end px-1">
+          {/* 통합 pill: 좌측 버튼들 + 입력 + 우측 전송 모두 한 pill 안 */}
+          <div className="flex items-end gap-1 bg-gray-100 rounded-3xl pl-1.5 pr-1.5 py-1.5 transition-colors focus-within:bg-gray-200/70">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!connected || uploading}
+              aria-label="사진 첨부"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
+            >
+              {uploading ? (
+                <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin block" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              )}
+            </button>
+            <button
+              onClick={() => setShowPriceModal(true)}
+              disabled={!connected}
+              aria-label="가격 제안"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0 text-[13px] font-bold"
+            >
+              ₩
+            </button>
             <textarea
               ref={textareaRef}
               value={input}
@@ -427,18 +428,22 @@ const Chat = () => {
               }}
               onKeyDown={handleKeyDown}
               placeholder={t('chat.inputPlaceholder')}
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none overflow-y-auto leading-relaxed"
+              className="flex-1 bg-transparent px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none overflow-y-auto leading-relaxed min-h-[32px]"
               style={{ maxHeight: 120 }}
             />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || !connected}
+              aria-label="전송"
+              className={`w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-95 flex-shrink-0 ${
+                input.trim() && connected
+                  ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
+                  : 'bg-gray-300 text-white cursor-not-allowed'
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l14 0M13 5l7 7-7 7" /></svg>
+            </button>
           </div>
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || !connected}
-            aria-label="전송"
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
-          </button>
         </div>
       </div>
 
