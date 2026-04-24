@@ -413,9 +413,14 @@ const Chat = () => {
               onClick={() => setShowPriceModal(true)}
               disabled={!connected}
               aria-label="가격 제안"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0 text-[13px] font-bold"
+              title="가격 제안"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
             >
-              ₩
+              {/* 가격 태그 아이콘 */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <circle cx="7" cy="7" r="1.2" fill="currentColor" />
+              </svg>
             </button>
             <textarea
               ref={textareaRef}
