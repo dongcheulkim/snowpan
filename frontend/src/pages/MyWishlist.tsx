@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { toastSuccess, toastError } from '../components/Toast';
+import { HeartFilledIcon, PackageIcon } from '../components/Icons';
 
 interface WishProduct {
   id: string;
@@ -60,10 +61,10 @@ const MyWishlist = () => {
           {products.map((item) => (
             <div key={item.id} className="card p-4 flex items-center gap-3">
               <Link to={`/used/${item.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 overflow-hidden flex-shrink-0">
                   {item.image.startsWith('http') || item.image.startsWith('/') ? (
                     <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
-                  ) : '📦'}
+                  ) : <PackageIcon size={20} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
@@ -75,7 +76,7 @@ const MyWishlist = () => {
                   </div>
                 </div>
               </Link>
-              <button onClick={() => handleRemove(item.id)} className="text-xl text-coral flex-shrink-0 active:scale-125 transition-transform">♥</button>
+              <button onClick={() => handleRemove(item.id)} aria-label="찜 해제" className="text-coral flex-shrink-0 active:scale-125 transition-transform"><HeartFilledIcon size={20} /></button>
             </div>
           ))}
         </div>

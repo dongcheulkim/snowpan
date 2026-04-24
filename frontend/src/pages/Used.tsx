@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import { PackageIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -221,7 +222,7 @@ const Used = () => {
 
       {!loading && products.length === 0 && (
         <EmptyState
-          icon="🎿"
+          icon={<PackageIcon size={48} strokeWidth={1.4} />}
           title={t('used.noItems')}
           description="다른 키워드로 검색하거나 직접 장비를 등록해보세요."
           ctaLabel="+ 내 장비 등록하기"

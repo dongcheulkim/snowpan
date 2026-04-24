@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
-import { categoryIcons } from '../components/CategoryIcons';
+import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
+import { ChatIcon, FireIcon, MegaphoneIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -146,8 +147,8 @@ const Home = () => {
             </>
           ) : (
             <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-              <span className="text-2xl">📢</span>
-              <span className="text-sm font-bold text-primary-dark">광고를 신청해보세요!</span>
+              <MegaphoneIcon size={24} className="text-gray-700" />
+              <span className="text-sm font-bold text-gray-900">광고를 신청해보세요!</span>
               <span className="text-[11px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
             </Link>
           )}
@@ -181,7 +182,7 @@ const Home = () => {
         {/* Hot Deals */}
         <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">🏷️ 중고 인기매물</h2>
+            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물</h2>
             <Link to="/used" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
           {hotDeals.length > 0 ? (
@@ -218,15 +219,15 @@ const Home = () => {
         {/* Community */}
         <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">🔥 인기 커뮤니티</h2>
+            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><FireIcon size={18} /> 인기 커뮤니티</h2>
             <Link to={`/community/${communityTab}`} className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
           <div className="flex gap-1 mb-3">
-            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${communityTab === 'ski' ? 'bg-accent text-white' : 'bg-gray-100 text-gray-500'}`}>
-              ⛷️ 스키
+            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'ski' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+              <SkiIcon size={14} /> 스키
             </button>
-            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${communityTab === 'board' ? 'bg-accent text-white' : 'bg-gray-100 text-gray-500'}`}>
-              🏂 보드
+            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'board' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+              <SnowboardIcon size={14} /> 보드
             </button>
           </div>
           {(communityTab === 'ski' ? skiPosts : boardPosts).length > 0 ? (
@@ -238,8 +239,8 @@ const Home = () => {
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
-                    <span className="text-coral">♥{post.likes}</span>
-                    <span>💬{post.commentCount}</span>
+                    <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
+                    <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
                   </div>
                 </Link>
               ))}
@@ -264,8 +265,8 @@ const Home = () => {
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
-                    <span className="text-coral">♥{post.likes}</span>
-                    <span>💬{post.commentCount}</span>
+                    <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
+                    <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
                   </div>
                 </Link>
               ))}

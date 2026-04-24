@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
+import { BellIcon, ChatIcon, CheckIcon, CloseIcon, MegaphoneIcon, TrophyIcon } from '../components/Icons';
 
 interface Notification {
   id: string;
@@ -23,12 +24,15 @@ const Notifications = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
-  const typeIcons: Record<string, string> = {
-    chat: '💬',
-    approve: '✅',
-    reject: '❌',
-    system: '📢',
-    badge: '🏅',
+  const renderTypeIcon = (type: string) => {
+    const cls = 'text-gray-700';
+    switch (type) {
+      case 'chat': return <ChatIcon size={20} className={cls} />;
+      case 'approve': return <CheckIcon size={20} className="text-emerald-600" />;
+      case 'reject': return <CloseIcon size={20} className="text-red-600" />;
+      case 'badge': return <TrophyIcon size={20} className={cls} />;
+      default: return <MegaphoneIcon size={20} className={cls} />;
+    }
   };
 
   useEffect(() => {
@@ -123,7 +127,7 @@ const Notifications = () => {
         <div className="text-center py-16 text-gray-400 text-sm">{t('general.loading')}</div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
-          <div className="text-4xl mb-3">🔔</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><BellIcon size={48} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-400">{t('notifications.empty')}</p>
         </div>
       ) : (
@@ -137,8 +141,8 @@ const Notifications = () => {
                 idx < notifications.length - 1 ? 'border-b border-gray-100' : ''
               } ${!noti.read ? 'bg-sky-50/50' : ''}`}
             >
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
-                {typeIcons[noti.type] || '📢'}
+              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                {renderTypeIcon(noti.type)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -150,9 +154,10 @@ const Notifications = () => {
               </div>
               <button
                 onClick={(e) => handleDelete(noti.id, e)}
+                aria-label="삭제"
                 className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 p-1"
               >
-                ✕
+                <CloseIcon size={16} />
               </button>
             </Link>
           ))}

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { MaintenanceIcon, SkiShopIcon } from '../components/CategoryIcons';
+import { LocationIcon, PackageIcon, WarningIcon } from '../components/Icons';
 
 interface PendingItem {
   id: string;
@@ -161,11 +163,11 @@ const AdminApproval = () => {
           <div className="flex items-start gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">🔧</span>
+                <MaintenanceIcon size={18} className="text-gray-700" />
                 <span className="font-bold text-sm text-gray-900">{item.name}</span>
                 {item.area && <span className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">{item.area}</span>}
               </div>
-              {item.address && <div className="text-xs text-gray-400">📍 {item.address}</div>}
+              {item.address && <div className="text-xs text-gray-400 inline-flex items-center gap-1"><LocationIcon size={12} /> {item.address}</div>}
               {item.description && <div className="text-xs text-gray-500 mt-1">{item.description}</div>}
               {item.user && <div className="text-xs text-gray-400 mt-1">신청자: {item.user.name} ({item.user.email})</div>}
               {item.businessLicense && (
@@ -188,11 +190,11 @@ const AdminApproval = () => {
           <div className="flex items-start gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">🏪</span>
+                <SkiShopIcon size={18} className="text-gray-700" />
                 <span className="font-bold text-sm text-gray-900">{item.name}</span>
                 {item.area && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded">{item.area}</span>}
               </div>
-              {item.address && <div className="text-xs text-gray-400">📍 {item.address}</div>}
+              {item.address && <div className="text-xs text-gray-400 inline-flex items-center gap-1"><LocationIcon size={12} /> {item.address}</div>}
               {item.description && <div className="text-xs text-gray-500 mt-1">{item.description}</div>}
               {item.user && <div className="text-xs text-gray-400 mt-1">신청자: {item.user.name} ({item.user.email})</div>}
               {item.businessLicense && (
@@ -259,10 +261,10 @@ const AdminApproval = () => {
     return (
       <div key={item.id} className="card p-4">
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
             {item.image && (item.image.startsWith('/') || item.image.startsWith('http'))
-              ? <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover rounded-xl" />
-              : item.image || '📦'}
+              ? <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
+              : <PackageIcon size={24} />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-sm text-gray-900">{item.name}</div>
@@ -311,7 +313,7 @@ const AdminApproval = () => {
         )}
         {!item.businessLicense && !item.instructorCert && (
           <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
-            <p className="text-[10px] text-yellow-600 font-medium">⚠️ 인증서류가 첨부되지 않았습니다</p>
+            <p className="text-[10px] text-yellow-600 font-medium inline-flex items-center gap-1"><WarningIcon size={12} /> 인증서류가 첨부되지 않았습니다</p>
           </div>
         )}
 

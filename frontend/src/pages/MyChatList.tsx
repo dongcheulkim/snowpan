@@ -4,6 +4,7 @@ import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import EmptyState from '../components/EmptyState';
 import { ListRowSkeleton } from '../components/Skeleton';
+import { ChatIcon } from '../components/Icons';
 
 interface ChatRoom {
   id: string;
@@ -80,7 +81,7 @@ const MyChatList = () => {
         </div>
       ) : rooms.length === 0 ? (
         <EmptyState
-          icon="💬"
+          icon={<ChatIcon size={48} strokeWidth={1.4} />}
           title={t('myChatList.empty')}
           description="관심 있는 상품에 메시지를 보내 거래를 시작해보세요."
           ctaLabel="장비 둘러보기"

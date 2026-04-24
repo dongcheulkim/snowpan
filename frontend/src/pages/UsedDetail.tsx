@@ -4,6 +4,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../components/Toast';
+import { HeartFilledIcon, HeartOutlineIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -264,9 +265,9 @@ const UsedDetail = () => {
                         toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
                       } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
                     }}
-                    className={`text-2xl transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
+                    className={`transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
                   >
-                    {wishlisted ? '♥' : '♡'}
+                    {wishlisted ? <HeartFilledIcon size={26} /> : <HeartOutlineIcon size={26} />}
                   </button>
                 )}
               </div>

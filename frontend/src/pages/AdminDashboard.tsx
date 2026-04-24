@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import { CalendarIcon, ChartIcon, ChatIcon, DocumentIcon, PackageIcon, UsersIcon } from '../components/Icons';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
@@ -344,26 +345,26 @@ const AdminDashboard = () => {
             <div className="space-y-4">
               {/* 실시간 + 오늘 + 주간 핵심 지표 */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="card p-5 text-center bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
-                  <div className="text-3xl mb-2">🟢</div>
-                  <div className="text-2xl font-bold text-emerald-600">{(stats.live?.concurrent ?? 0).toLocaleString()}</div>
+                <div className="card p-5 text-center">
+                  <div className="mx-auto mb-2 flex items-center justify-center"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /></div>
+                  <div className="text-2xl font-bold text-gray-900">{(stats.live?.concurrent ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">실시간 동접</div>
                   <div className="text-[10px] text-gray-400 mt-0.5">로그인 {stats.live?.concurrentUsers ?? 0}명</div>
                 </div>
-                <div className="card p-5 text-center bg-gradient-to-br from-sky-50 to-white border-sky-200">
-                  <div className="text-3xl mb-2">📅</div>
-                  <div className="text-2xl font-bold text-sky-600">{(stats.today?.visitors ?? 0).toLocaleString()}</div>
+                <div className="card p-5 text-center">
+                  <div className="mx-auto mb-2 flex justify-center text-gray-700"><CalendarIcon size={26} /></div>
+                  <div className="text-2xl font-bold text-gray-900">{(stats.today?.visitors ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">오늘 방문자</div>
                   <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.today?.pageviews ?? 0).toLocaleString()}</div>
                 </div>
-                <div className="card p-5 text-center bg-gradient-to-br from-violet-50 to-white border-violet-200">
-                  <div className="text-3xl mb-2">📊</div>
-                  <div className="text-2xl font-bold text-violet-600">{(stats.week?.uniqueVisitors ?? 0).toLocaleString()}</div>
+                <div className="card p-5 text-center">
+                  <div className="mx-auto mb-2 flex justify-center text-gray-700"><ChartIcon size={26} /></div>
+                  <div className="text-2xl font-bold text-gray-900">{(stats.week?.uniqueVisitors ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">주간 순방문</div>
                   <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.week?.pageviews ?? 0).toLocaleString()}</div>
                 </div>
                 <div className="card p-5 text-center">
-                  <div className="text-3xl mb-2">👥</div>
+                  <div className="mx-auto mb-2 flex justify-center text-gray-700"><UsersIcon size={26} /></div>
                   <div className="text-2xl font-bold text-gray-900">{stats.users.toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">누적 가입</div>
                 </div>
@@ -372,12 +373,12 @@ const AdminDashboard = () => {
               {/* 누적 카운트 */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: '총 상품', value: stats.products, icon: '📦' },
-                  { label: '총 게시글', value: stats.posts, icon: '📝' },
-                  { label: '총 채팅방', value: stats.chatRooms, icon: '💬' },
+                  { label: '총 상품', value: stats.products, Icon: PackageIcon },
+                  { label: '총 게시글', value: stats.posts, Icon: DocumentIcon },
+                  { label: '총 채팅방', value: stats.chatRooms, Icon: ChatIcon },
                 ].map((s) => (
                   <div key={s.label} className="card p-4 text-center">
-                    <div className="text-2xl mb-1">{s.icon}</div>
+                    <div className="mx-auto mb-1 flex justify-center text-gray-700"><s.Icon size={20} /></div>
                     <div className="text-lg font-bold text-gray-900">{s.value.toLocaleString()}</div>
                     <div className="text-xs text-gray-400 mt-1">{s.label}</div>
                   </div>
