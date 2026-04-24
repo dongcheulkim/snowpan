@@ -12,6 +12,25 @@ export const BASE_URL = __ENV.BASE_URL || 'https://snowpan.onrender.com';
 export const pageLoadTrend = new Trend('page_load_time', true);
 export const errorCount = new Counter('errors');
 
+// VU 별로 고유한 가짜 IP 생성 → trust proxy 가 설정된 서버에서 서로 다른 rate-limit bucket 할당됨.
+// 10.x.x.x 사설 대역 (실제 유저 IP와 겹치지 않음).
+function fakeIp() {
+  // __VU 는 k6 전역: 현재 VU 번호 (1-based)
+  const vu = typeof __VU !== 'undefined' ? __VU : 1;
+  const a = 10;
+  const b = (vu >> 16) & 0xff;
+  const c = (vu >> 8) & 0xff;
+  const d = vu & 0xff;
+  return `${a}.${b}.${c}.${d || 1}`;
+}
+
+function defaultHeaders() {
+  return {
+    'X-Forwarded-For': fakeIp(),
+    'User-Agent': `k6-loadtest/1.0 vu=${typeof __VU !== 'undefined' ? __VU : 0}`,
+  };
+}
+
 function checkAndTrack(res, name, expectedStatus = 200) {
   const ok = check(res, {
     [`${name} status is ${expectedStatus}`]: (r) => r.status === expectedStatus,
@@ -25,10 +44,10 @@ function checkAndTrack(res, name, expectedStatus = 200) {
 // 홈 진입 플로우 — 배너 + 인기매물
 export function homeFlow() {
   group('home', () => {
-    const res = http.get(`${BASE_URL}/api/banners`, { tags: { name: 'banners' } });
+    const res = http.get(`${BASE_URL}/api/banners`, { tags: { name: 'banners' }, headers: defaultHeaders() });
     checkAndTrack(res, 'banners');
 
-    const hot = http.get(`${BASE_URL}/api/home/hot-deals`, { tags: { name: 'hot-deals' } });
+    const hot = http.get(`${BASE_URL}/api/home/hot-deals`, { tags: { name: 'hot-deals' }, headers: defaultHeaders() });
     checkAndTrack(hot, 'hot-deals');
 
     sleep(randomBetween(1, 3));
@@ -39,7 +58,7 @@ export function homeFlow() {
 export function usedBrowseFlow() {
   group('used-browse', () => {
     // 1) 목록 조회
-    const list = http.get(`${BASE_URL}/api/products?category=used&limit=12`, { tags: { name: 'products-list' } });
+    const list = http.get(`${BASE_URL}/api/products?category=used&limit=12`, { tags: { name: 'products-list' }, headers: defaultHeaders() });
     checkAndTrack(list, 'products-list');
 
     // 2) 목록에서 랜덤 아이템 하나 골라서 상세 조회 (있으면)
@@ -50,7 +69,7 @@ export function usedBrowseFlow() {
         const pick = products[Math.floor(Math.random() * products.length)];
         if (pick && pick.id) {
           sleep(randomBetween(1, 2));
-          const detail = http.get(`${BASE_URL}/api/products/${pick.id}`, { tags: { name: 'product-detail' } });
+          const detail = http.get(`${BASE_URL}/api/products/${pick.id}`, { tags: { name: 'product-detail' }, headers: defaultHeaders() });
           checkAndTrack(detail, 'product-detail');
         }
       }
@@ -71,7 +90,7 @@ export function categoryBrowseFlow() {
   const pick = categories[Math.floor(Math.random() * categories.length)];
 
   group('category-browse', () => {
-    const res = http.get(`${BASE_URL}${pick.path}`, { tags: { name: pick.name } });
+    const res = http.get(`${BASE_URL}${pick.path}`, { tags: { name: pick.name }, headers: defaultHeaders() });
     checkAndTrack(res, pick.name);
     sleep(randomBetween(1, 2));
   });
@@ -83,7 +102,7 @@ export function searchFlow() {
   const q = queries[Math.floor(Math.random() * queries.length)];
 
   group('search', () => {
-    const res = http.get(`${BASE_URL}/api/search?q=${encodeURIComponent(q)}`, { tags: { name: 'search' } });
+    const res = http.get(`${BASE_URL}/api/search?q=${encodeURIComponent(q)}`, { tags: { name: 'search' }, headers: defaultHeaders() });
     checkAndTrack(res, 'search');
     sleep(randomBetween(1, 2));
   });
@@ -91,7 +110,7 @@ export function searchFlow() {
 
 // Health check (스모크 전용)
 export function healthCheck() {
-  const res = http.get(`${BASE_URL}/api/health`, { tags: { name: 'health' } });
+  const res = http.get(`${BASE_URL}/api/health`, { tags: { name: 'health' }, headers: defaultHeaders() });
   checkAndTrack(res, 'health');
 }
 

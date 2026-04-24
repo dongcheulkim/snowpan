@@ -49,6 +49,11 @@ import { startAdBookingScheduler } from './utils/adBookingScheduler';
 const app = express();
 const httpServer = createServer(app);
 
+// Render / Vercel 리버스 프록시 뒤에 있을 때 req.ip 가 실제 클라이언트 IP 되도록.
+// 이게 없으면 모든 사용자가 LB IP 하나로 잡혀 rate limit 이 전원 공유되는 버그 발생.
+// 프록시 한 홉만 신뢰 (true 는 헤더 스푸핑에 취약).
+app.set('trust proxy', 1);
+
 // CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선, 미설정 시 프로덕션=snowpan.vercel.app, dev=localhost
 const DEFAULT_ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
   ? ['https://snowpan.vercel.app']
