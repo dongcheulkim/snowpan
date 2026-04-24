@@ -8,25 +8,40 @@ export default {
   theme: {
     extend: {
       borderColor: {
-        DEFAULT: '#BAE6FD',
+        DEFAULT: '#E5E7EB', // gray-200, neutral
       },
       colors: {
+        // ── PAN 브랜드: 흑백 모노크롬 ──
+        // 기존 sky-* 톤을 slate 로 재매핑해서 전 페이지에서 자동으로 톤이 바뀜.
+        sky: {
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#0F172A', // 강조 = 검정
+          600: '#0F172A',
+          700: '#020617',
+          800: '#020617',
+          900: '#000000',
+        },
         primary: {
-          DEFAULT: '#38BDF8',
-          light: '#7DD3FC',
-          dark: '#0EA5E9',
-          50: '#F0F9FF',
-          100: '#E0F2FE',
-          200: '#BAE6FD',
+          DEFAULT: '#0F172A',
+          light: '#334155',
+          dark: '#000000',
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
         },
         accent: {
-          DEFAULT: '#38BDF8',
-          light: '#7DD3FC',
-          dim: '#0EA5E9',
+          DEFAULT: '#0F172A',
+          light: '#334155',
+          dim: '#475569',
         },
-        mint: '#10B981',
-        coral: '#F43F5E',
-        gold: '#F59E0B',
+        // 상태 컬러 — PAN 톤에 맞게 살짝 차분하게
+        mint: '#059669',   // emerald-600 (selling/success)
+        coral: '#DC2626',  // red-600 (danger)
+        gold: '#D97706',   // amber-600 (warning/premium)
       },
       animation: {
         'fade-in': 'fadeIn 0.35s ease-out',

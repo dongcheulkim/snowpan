@@ -11,16 +11,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClass: Record<Variant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-light active:bg-accent disabled:bg-gray-200 disabled:text-gray-400',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 disabled:bg-gray-50 disabled:text-gray-300',
-  destructive: 'bg-coral text-white hover:bg-red-500 active:bg-red-600 disabled:bg-gray-200 disabled:text-gray-400',
-  ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 active:bg-gray-200',
+  // PAN: 검정 배경 + 흰 글자, hover 시 살짝 밝게
+  primary: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-black disabled:bg-gray-200 disabled:text-gray-400',
+  secondary: 'bg-white text-gray-900 border border-gray-300 hover:border-gray-900 hover:bg-gray-50 active:bg-gray-100 disabled:bg-gray-50 disabled:text-gray-300',
+  destructive: 'bg-coral text-white hover:bg-red-700 active:bg-red-800 disabled:bg-gray-200 disabled:text-gray-400',
+  ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
 };
 
 const sizeClass: Record<Size, string> = {
   sm: 'px-3 py-1.5 text-xs rounded-lg',
-  md: 'px-4 py-2.5 text-sm rounded-xl',
-  lg: 'px-5 py-3 text-sm rounded-xl font-bold',
+  md: 'px-4 py-2.5 text-sm rounded-lg',
+  lg: 'px-5 py-3 text-sm rounded-lg font-bold tracking-tight',
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
