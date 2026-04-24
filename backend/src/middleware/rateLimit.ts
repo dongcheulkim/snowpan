@@ -7,6 +7,17 @@ interface RateLimitEntry {
 
 const ipMap = new Map<string, RateLimitEntry>();
 
+// 실제 클라이언트 IP 추출: Render 는 Cloudflare → Render LB → Express 2홉 체인이라
+// trust proxy 만으로는 부족. Cloudflare 가 원본 IP를 CF-Connecting-IP 헤더에 실어 보냄.
+// 우선순위: CF-Connecting-IP → X-Real-IP → req.ip → socket.
+function getClientIp(req: Request): string {
+  const cf = req.header('cf-connecting-ip');
+  if (cf) return cf.trim();
+  const xReal = req.header('x-real-ip');
+  if (xReal) return xReal.trim();
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
 // Cleanup expired entries every 60 seconds
 setInterval(() => {
   const now = Date.now();
@@ -26,7 +37,7 @@ function createRateLimiter(maxRequests: number, windowMs: number = 60_000) {
       return next();
     }
 
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    const ip = getClientIp(req);
     const key = `${ip}:${maxRequests}`;
     const now = Date.now();
 

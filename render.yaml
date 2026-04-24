@@ -4,7 +4,8 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm install && npm run build
-    startCommand: npx tsx prisma/merge-chatrooms.ts && npx prisma db push --skip-generate && npx tsx prisma/seed-test-images.ts && node dist/index.js
+    # seed-test-images.ts 는 1회성이라 체인에서 제거 — 필요 시 수동으로 npx tsx prisma/seed-test-images.ts 실행.
+    startCommand: npx tsx prisma/merge-chatrooms.ts && npx prisma db push --skip-generate && node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
