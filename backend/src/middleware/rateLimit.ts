@@ -19,6 +19,13 @@ setInterval(() => {
 
 function createRateLimiter(maxRequests: number, windowMs: number = 60_000) {
   return (req: Request, res: Response, next: NextFunction): void => {
+    // 로드테스트 bypass: LOADTEST_BYPASS_KEY env 가 설정되어 있고 요청 헤더와 일치하면 rate limit 스킵.
+    // 프로덕션에서 이 env를 의도적으로 세팅할 때만 동작함.
+    const bypassKey = process.env.LOADTEST_BYPASS_KEY;
+    if (bypassKey && req.header('X-Loadtest-Key') === bypassKey) {
+      return next();
+    }
+
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
     const key = `${ip}:${maxRequests}`;
     const now = Date.now();

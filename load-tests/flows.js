@@ -5,6 +5,11 @@ import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
+export const status429 = new Counter('status_429');
+export const status4xx = new Counter('status_4xx_other');
+export const status5xx = new Counter('status_5xx');
+export const statusOther = new Counter('status_other');
+
 // 기본 엔드포인트 (env로 오버라이드 가능)
 export const BASE_URL = __ENV.BASE_URL || 'https://snowpan.onrender.com';
 
@@ -24,9 +29,13 @@ function fakeIp() {
   return `${a}.${b}.${c}.${d || 1}`;
 }
 
+// 서버 rate limit 을 우회해서 순수 용량만 측정. 키는 render.yaml 과 동기화.
+const LOADTEST_BYPASS_KEY = __ENV.LOADTEST_BYPASS_KEY || '570aa05b333d6fbf7dfa5de40842f8477139f4a2b4e4f0af';
+
 function defaultHeaders() {
   return {
     'X-Forwarded-For': fakeIp(),
+    'X-Loadtest-Key': LOADTEST_BYPASS_KEY,
     'User-Agent': `k6-loadtest/1.0 vu=${typeof __VU !== 'undefined' ? __VU : 0}`,
   };
 }
@@ -37,7 +46,17 @@ function checkAndTrack(res, name, expectedStatus = 200) {
     [`${name} body non-empty`]: (r) => (r.body || '').length > 0,
   });
   pageLoadTrend.add(res.timings.duration, { endpoint: name });
-  if (!ok) errorCount.add(1, { endpoint: name });
+  if (!ok) {
+    errorCount.add(1, { endpoint: name });
+    if (res.status === 429) status429.add(1, { endpoint: name });
+    else if (res.status >= 500) status5xx.add(1, { endpoint: name });
+    else if (res.status >= 400) status4xx.add(1, { endpoint: name });
+    else statusOther.add(1, { endpoint: name, code: String(res.status) });
+    // 처음 5개 실패만 상세 로깅 (과도한 출력 방지)
+    if (__ITER < 3 && __VU <= 3) {
+      console.log(`[FAIL] ${name} status=${res.status} body=${(res.body || '').slice(0, 120)}`);
+    }
+  }
   return ok;
 }
 

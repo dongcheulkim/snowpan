@@ -22,3 +22,7 @@ services:
         sync: false
       - key: PORT
         value: 3000
+      # 부하테스트 rate-limit bypass 키 (load-tests/ 가 이 값을 헤더로 전송).
+      # 일반 사용자는 이 키를 모르므로 영향 없음. 교체하려면 render.yaml + load-tests/flows.js 동시 변경.
+      - key: LOADTEST_BYPASS_KEY
+        value: 570aa05b333d6fbf7dfa5de40842f8477139f4a2b4e4f0af
