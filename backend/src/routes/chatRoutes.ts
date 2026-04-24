@@ -153,6 +153,31 @@ router.post('/rooms', async (req: any, res: Response) => {
   }
 });
 
+// 채팅방 삭제 — 참여자 둘 중 누구든 삭제하면 방 + 메시지 전부 제거 (양쪽에서 사라짐).
+// 당근마켓 "나가기" 와 같은 hard delete 방식.
+router.delete('/rooms/:roomId', async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { roomId } = req.params;
+    const room = await prisma.chatRoom.findFirst({
+      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+    });
+    if (!room) {
+      res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' });
+      return;
+    }
+    // Message.roomId 에 onDelete:Cascade 가 없어서 수동 삭제. 트랜잭션으로 묶어 원자성 보장.
+    await prisma.$transaction([
+      prisma.message.deleteMany({ where: { roomId } }),
+      prisma.chatRoom.delete({ where: { id: roomId } }),
+    ]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete chat room error:', error);
+    res.status(500).json({ error: '채팅방 삭제 실패' });
+  }
+});
+
 // 채팅방 정보 조회
 router.get('/rooms/:roomId', async (req: any, res: Response) => {
   try {

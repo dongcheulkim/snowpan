@@ -4,7 +4,8 @@ import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import EmptyState from '../components/EmptyState';
 import { ListRowSkeleton } from '../components/Skeleton';
-import { ChatIcon, UserIcon } from '../components/Icons';
+import { ChatIcon, CloseIcon, UserIcon } from '../components/Icons';
+import { toastSuccess, toastError } from '../components/Toast';
 
 interface ChatRoom {
   id: string;
@@ -55,6 +56,22 @@ const MyChatList = () => {
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDelete = async (roomId: string, otherName: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(`${otherName}님과의 대화를 삭제하시겠습니까?\n상대방도 대화 내용을 볼 수 없게 됩니다.`)) return;
+    // optimistic update
+    const prev = rooms;
+    setRooms(rooms.filter(r => r.id !== roomId));
+    try {
+      await api(`/chat/rooms/${roomId}`, { method: 'DELETE' });
+      toastSuccess('대화방이 삭제되었습니다');
+    } catch (err) {
+      setRooms(prev);
+      toastError(err instanceof Error ? err.message : '삭제에 실패했습니다');
+    }
+  };
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -122,8 +139,17 @@ const MyChatList = () => {
                     {lastMsg ? renderPreview(lastMsg) : t('myChatList.startChat')}
                   </div>
                 </div>
-                <div className="text-[11px] text-gray-300 flex-shrink-0">
-                  {lastMsg ? formatTime(lastMsg.createdAt) : ''}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className="text-[11px] text-gray-300">
+                    {lastMsg ? formatTime(lastMsg.createdAt) : ''}
+                  </span>
+                  <button
+                    onClick={(e) => handleDelete(room.id, other.name, e)}
+                    aria-label="대화 삭제"
+                    className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-coral hover:bg-coral/10 rounded transition-colors"
+                  >
+                    <CloseIcon size={14} />
+                  </button>
                 </div>
               </Link>
             );
