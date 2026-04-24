@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "https://snowpan-backend.onrender.com/sitemap.xml" },
+    { "source": "/sitemap.xml", "destination": "https://snowpan.onrender.com/sitemap.xml" },
     { "source": "/((?!api|assets|icons|sw.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)", "destination": "/index.html" }
   ],
   "headers": [
