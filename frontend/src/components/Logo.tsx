@@ -27,10 +27,10 @@ export default function Logo({ withText = true, className = '' }: LogoProps) {
         style={{ display: 'inline-block', verticalAlign: 'baseline', marginLeft: '0.04em', marginRight: '0.04em' }}
       >
         <polyline
-          points="4,68 30,4 56,68"
+          points="6,68 30,6 54,68"
           fill="none"
           stroke="currentColor"
-          strokeWidth="7"
+          strokeWidth="13"
           strokeLinecap="butt"
           strokeLinejoin="miter"
         />

@@ -6,7 +6,7 @@
     <text x="530" y="320" text-anchor="end" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="130" letter-spacing="10">SNOW P</text>
     <text x="680" y="320" text-anchor="start" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="130" letter-spacing="10">N</text>
   </g>
-  <polyline points="546,320 605,204 664,320" stroke="#0f172a" stroke-width="16" fill="none" stroke-linecap="butt" stroke-linejoin="miter"/>
+  <polyline points="546,320 605,204 664,320" stroke="#0f172a" stroke-width="24" fill="none" stroke-linecap="butt" stroke-linejoin="miter"/>
 
   <!-- Divider -->
   <line x1="540" y1="420" x2="660" y2="420" stroke="#0f172a" stroke-width="2" stroke-linecap="square"/>

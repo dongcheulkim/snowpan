@@ -4,5 +4,5 @@
     <text x="216" y="280" text-anchor="end" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="82" letter-spacing="6">SNOW P</text>
     <text x="304" y="280" text-anchor="start" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="82" letter-spacing="6">N</text>
   </g>
-  <polyline points="226,280 256,206 286,280" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="butt" stroke-linejoin="miter"/>
+  <polyline points="226,280 256,206 286,280" stroke="#ffffff" stroke-width="15" fill="none" stroke-linecap="butt" stroke-linejoin="miter"/>
 </svg>
