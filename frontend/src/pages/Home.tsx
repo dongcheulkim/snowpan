@@ -65,13 +65,16 @@ const Home = () => {
       .catch(() => {});
   }, []);
 
+  // 브랜드 슬라이드 1 + 광고 N = 총 슬라이드 수. 브랜드 혼자면 회전 안 함.
+  const totalSlides = 1 + banners.length;
+
   useEffect(() => {
-    if (banners.length === 0) return;
+    if (totalSlides <= 1) return;
     const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
+      setCurrentBanner((prev) => (prev + 1) % totalSlides);
     }, 4000);
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [totalSlides]);
 
   const categories: { id: keyof typeof categoryIcons; title: string; link: string }[] = [
     { id: 'skishop', title: '스키샵', link: '/new-equipment' },
@@ -111,25 +114,31 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
-      {/* 브랜드 소개 — 항상 노출 */}
-      <div className="px-4 pt-3 pb-4 bg-white">
-        <BrandHero />
-      </div>
+      {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0) */}
+      <div className="px-4 pt-3 pb-5 bg-white">
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 aspect-[3.5/1]">
+          {/* Slide #0: 브랜드 소개 */}
+          <div
+            className={`absolute inset-0 transition-all duration-500 ${
+              currentBanner === 0 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'
+            }`}
+          >
+            <BrandHero />
+          </div>
 
-      {/* Banner — 등록된 광고 있을 때만 노출 */}
-      {banners.length > 0 && (
-        <div className="px-4 pt-2 pb-5 bg-white">
-          <div className="relative overflow-hidden rounded-2xl bg-primary-50 aspect-[3.5/1]">
-            {banners.map((banner, idx) => (
+          {/* Slide #1~N: 광고 */}
+          {banners.map((banner, idx) => {
+            const slideIdx = idx + 1;
+            return (
               <a
                 key={banner.id}
                 href={banner.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
-                  idx === currentBanner
+                  slideIdx === currentBanner
                     ? 'opacity-100 translate-x-0'
-                    : idx < currentBanner
+                    : slideIdx < currentBanner
                     ? 'opacity-0 -translate-x-full'
                     : 'opacity-0 translate-x-full'
                 }`}
@@ -145,13 +154,24 @@ const Home = () => {
                 </div>
                 <span className="absolute bottom-2 left-3 text-[9px] font-bold text-white/60 z-10">AD</span>
               </a>
-            ))}
-            <div className="absolute bottom-2 right-3 text-[10px] text-gray-400 bg-white/70 px-1.5 py-0.5 rounded">
-              {currentBanner + 1}/{banners.length}
+            );
+          })}
+
+          {/* 인디케이터 — 슬라이드 2개 이상일 때만 */}
+          {totalSlides > 1 && (
+            <div className="absolute bottom-2 right-3 flex gap-1.5 z-10">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentBanner(i)}
+                  aria-label={`슬라이드 ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === currentBanner ? 'bg-gray-900 w-5' : 'bg-gray-300 w-1.5'}`}
+                />
+              ))}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Categories */}
       <div className="px-4 pb-5 bg-white">
