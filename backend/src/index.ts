@@ -44,6 +44,7 @@ import { authMiddleware as authenticate } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
+import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 
 const app = express();
@@ -134,6 +135,7 @@ app.use((req, res, next) => {
 // === Rate Limiting ===
 app.use(generalLimiter);
 app.use(writeLimiter);
+app.use(trackVisit);
 
 app.use(cors({
   origin: (origin, cb) => {

@@ -32,9 +32,17 @@ export const resolveReport = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 // ===== 통계 =====
+function todayKST(): string {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0, 10);
+}
+
 export const getStats = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+
+    // 1) 누적 카운트
     const [users, products, posts, chatRooms] = await Promise.all([
       prisma.user.count(),
       prisma.product.count(),
@@ -42,36 +50,99 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       prisma.chatRoom.count(),
     ]);
 
-    // 최근 14일 일별 가입·등록 추이
-    const days = 14;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const since = new Date(today);
-    since.setDate(since.getDate() - (days - 1));
+    // 2) 동시접속자 (Socket.IO connection 수). 미들웨어에서 io 를 app.locals 에 셋팅했음.
+    const io = req.app.get('io');
+    let concurrent = 0;
+    let concurrentUsers = 0;
+    try {
+      // engine.clientsCount = 활성 socket 연결 수 (인증 안 된 연결 포함 가능)
+      concurrent = io?.engine?.clientsCount ?? 0;
+      // 로그인 유저 룸 (`user:<id>`) 의 distinct 카운트
+      const rooms = io?.sockets?.adapter?.rooms;
+      if (rooms) {
+        let n = 0;
+        for (const key of rooms.keys()) {
+          if (typeof key === 'string' && key.startsWith('user:')) n++;
+        }
+        concurrentUsers = n;
+      }
+    } catch { /* ignore */ }
 
-    const [newUsers, newProducts] = await Promise.all([
+    // 3) DAU/방문 통계 — 최근 14일
+    const days = 14;
+    const today = todayKST();
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    since.setDate(since.getDate() - (days - 1));
+    const sinceStr = (() => { const d = new Date(since.getTime() + 9 * 60 * 60 * 1000); return d.toISOString().slice(0, 10); })();
+
+    const [newUsers, newProducts, visits] = await Promise.all([
       prisma.user.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
       prisma.product.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
+      prisma.dailyVisit.findMany({
+        where: { date: { gte: sinceStr } },
+        select: { date: true, ip: true, count: true },
+      }),
     ]);
 
-    const buckets: { date: string; users: number; products: number }[] = [];
+    // 일별 버킷 — KST 기준
+    const buckets: { date: string; users: number; products: number; visitors: number; pageviews: number }[] = [];
+    const dateList: string[] = [];
     for (let i = 0; i < days; i++) {
       const d = new Date(since);
       d.setDate(since.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
-      buckets.push({ date: key.slice(5), users: 0, products: 0 });
+      const kstDate = new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      dateList.push(kstDate);
+      buckets.push({ date: kstDate.slice(5), users: 0, products: 0, visitors: 0, pageviews: 0 });
     }
-    const keyOf = (d: Date) => d.toISOString().slice(0, 10).slice(5);
+
+    const kstKeyOfDate = (d: Date) => new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10).slice(5);
     for (const u of newUsers) {
-      const b = buckets.find(x => x.date === keyOf(new Date(u.createdAt)));
+      const b = buckets.find(x => x.date === kstKeyOfDate(new Date(u.createdAt)));
       if (b) b.users++;
     }
     for (const p of newProducts) {
-      const b = buckets.find(x => x.date === keyOf(new Date(p.createdAt)));
+      const b = buckets.find(x => x.date === kstKeyOfDate(new Date(p.createdAt)));
       if (b) b.products++;
     }
+    // visits — date 가 이미 'YYYY-MM-DD' KST. distinct ip 카운트 + pageview 합계
+    const visitorsByDate = new Map<string, Set<string>>();
+    const pageviewsByDate = new Map<string, number>();
+    for (const v of visits) {
+      const set = visitorsByDate.get(v.date) || new Set();
+      set.add(v.ip);
+      visitorsByDate.set(v.date, set);
+      pageviewsByDate.set(v.date, (pageviewsByDate.get(v.date) || 0) + v.count);
+    }
+    for (const b of buckets) {
+      const fullDate = dateList.find(d => d.slice(5) === b.date);
+      if (fullDate) {
+        b.visitors = visitorsByDate.get(fullDate)?.size || 0;
+        b.pageviews = pageviewsByDate.get(fullDate) || 0;
+      }
+    }
 
-    res.json({ users, products, posts, chatRooms, daily: buckets });
+    // 4) 핵심 지표 요약
+    const todayBucket = buckets.find(b => b.date === today.slice(5)) || { visitors: 0, pageviews: 0 };
+    const last7 = buckets.slice(-7);
+    const wau = new Set<string>();
+    for (const v of visits) {
+      const dayIndex = dateList.indexOf(v.date);
+      if (dayIndex >= dateList.length - 7) wau.add(v.ip);
+    }
+
+    res.json({
+      // 누적
+      users, products, posts, chatRooms,
+      // 실시간
+      live: { concurrent, concurrentUsers },
+      // 오늘
+      today: { visitors: todayBucket.visitors, pageviews: todayBucket.pageviews },
+      // 최근 7일
+      week: { uniqueVisitors: wau.size, pageviews: last7.reduce((s, b) => s + b.pageviews, 0) },
+      // 14일 차트 데이터
+      daily: buckets,
+    });
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ error: '통계 조회 중 오류가 발생했습니다.' });

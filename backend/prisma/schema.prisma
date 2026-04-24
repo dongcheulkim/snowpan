@@ -310,6 +310,22 @@ model EmailVerification {
   @@map("email_verifications")
 }
 
+// 일일 방문 집계 — IP 단위로 하루 한 row, count 증가시켜 페이지뷰 누적.
+// 관리자 통계 (DAU, 일별 방문자 추이, 페이지뷰) 의 데이터 소스.
+model DailyVisit {
+  id        String   @id @default(uuid())
+  ip        String
+  userId    String?  // 로그인한 유저면 기록
+  date      String   // YYYY-MM-DD (KST 기준)
+  count     Int      @default(1)
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @default(now())
+
+  @@unique([ip, date])
+  @@index([date])
+  @@map("daily_visits")
+}
+
 model Review {
   id        String   @id @default(uuid())
   rating    Int      // 1-5

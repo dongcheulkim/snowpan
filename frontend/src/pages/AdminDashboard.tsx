@@ -21,7 +21,10 @@ interface StatsData {
   products: number;
   posts: number;
   chatRooms: number;
-  daily?: { date: string; users: number; products: number }[];
+  live?: { concurrent: number; concurrentUsers: number };
+  today?: { visitors: number; pageviews: number };
+  week?: { uniqueVisitors: number; pageviews: number };
+  daily?: { date: string; users: number; products: number; visitors: number; pageviews: number }[];
 }
 
 interface UserItem {
@@ -339,23 +342,52 @@ const AdminDashboard = () => {
           {/* Stats Tab */}
           {tab === 'stats' && stats && (
             <div className="space-y-4">
+              {/* 실시간 + 오늘 + 주간 핵심 지표 */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="card p-5 text-center bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
+                  <div className="text-3xl mb-2">🟢</div>
+                  <div className="text-2xl font-bold text-emerald-600">{(stats.live?.concurrent ?? 0).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1">실시간 동접</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">로그인 {stats.live?.concurrentUsers ?? 0}명</div>
+                </div>
+                <div className="card p-5 text-center bg-gradient-to-br from-sky-50 to-white border-sky-200">
+                  <div className="text-3xl mb-2">📅</div>
+                  <div className="text-2xl font-bold text-sky-600">{(stats.today?.visitors ?? 0).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1">오늘 방문자</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.today?.pageviews ?? 0).toLocaleString()}</div>
+                </div>
+                <div className="card p-5 text-center bg-gradient-to-br from-violet-50 to-white border-violet-200">
+                  <div className="text-3xl mb-2">📊</div>
+                  <div className="text-2xl font-bold text-violet-600">{(stats.week?.uniqueVisitors ?? 0).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1">주간 순방문</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.week?.pageviews ?? 0).toLocaleString()}</div>
+                </div>
+                <div className="card p-5 text-center">
+                  <div className="text-3xl mb-2">👥</div>
+                  <div className="text-2xl font-bold text-gray-900">{stats.users.toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1">누적 가입</div>
+                </div>
+              </div>
+
+              {/* 누적 카운트 */}
+              <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: '총 유저 수', value: stats.users, icon: '👥' },
-                  { label: '총 상품 수', value: stats.products, icon: '📦' },
-                  { label: '총 게시글 수', value: stats.posts, icon: '📝' },
-                  { label: '총 채팅방 수', value: stats.chatRooms, icon: '💬' },
+                  { label: '총 상품', value: stats.products, icon: '📦' },
+                  { label: '총 게시글', value: stats.posts, icon: '📝' },
+                  { label: '총 채팅방', value: stats.chatRooms, icon: '💬' },
                 ].map((s) => (
-                  <div key={s.label} className="card p-5 text-center">
-                    <div className="text-3xl mb-2">{s.icon}</div>
-                    <div className="text-2xl font-bold text-gray-900">{s.value.toLocaleString()}</div>
+                  <div key={s.label} className="card p-4 text-center">
+                    <div className="text-2xl mb-1">{s.icon}</div>
+                    <div className="text-lg font-bold text-gray-900">{s.value.toLocaleString()}</div>
                     <div className="text-xs text-gray-400 mt-1">{s.label}</div>
                   </div>
                 ))}
               </div>
+
+              {/* 일별 방문자 + PV 차트 */}
               {stats.daily && stats.daily.length > 0 && (
                 <div className="card p-5">
-                  <h3 className="text-sm font-bold text-gray-900 mb-4">최근 14일 가입·상품 등록 추이</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">최근 14일 방문자 · 페이지뷰</h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={stats.daily} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>
@@ -364,8 +396,28 @@ const AdminDashboard = () => {
                         <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={{ stroke: '#e5e7eb' }} allowDecimals={false} />
                         <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Line type="monotone" dataKey="users" name="신규 가입" stroke="#0ea5e9" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="products" name="신규 상품" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="visitors" name="순방문자" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="pageviews" name="페이지뷰" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* 신규 가입 + 등록 차트 (기존 차트 유지) */}
+              {stats.daily && stats.daily.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">최근 14일 가입 · 상품 등록</h3>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={stats.daily} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                        <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={{ stroke: '#e5e7eb' }} />
+                        <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={{ stroke: '#e5e7eb' }} allowDecimals={false} />
+                        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Line type="monotone" dataKey="users" name="신규 가입" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="products" name="신규 상품" stroke="#f59e0b" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
