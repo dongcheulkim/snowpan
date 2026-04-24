@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="102" fill="#0f172a"/>
   <g fill="#ffffff">
-    <text x="198" y="278" text-anchor="end" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="100" font-size="80" letter-spacing="11">SNOW P</text>
-    <text x="320" y="278" text-anchor="start" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="100" font-size="80" letter-spacing="11">N</text>
+    <text x="216" y="280" text-anchor="end" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="82" letter-spacing="6">SNOW P</text>
+    <text x="304" y="280" text-anchor="start" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="82" letter-spacing="6">N</text>
   </g>
-  <polyline points="214,278 256,210 298,278" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="square" stroke-linejoin="miter"/>
+  <polyline points="226,280 256,206 286,280" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="butt" stroke-linejoin="miter"/>
 </svg>

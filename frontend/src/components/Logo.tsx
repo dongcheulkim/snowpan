@@ -1,38 +1,37 @@
 interface LogoProps { withText?: boolean; className?: string; }
 
-// SNOW PAN — Inter Thin (100) + A 자리 삼각형 SVG.
-// 브랜드북의 ultra-thin monoline 톤 최대한 맞춤.
+// SNOW PAN — Bold sans-serif + A 자리 두꺼운 삼각형.
+// 브랜드북은 Helvetica Bold 급의 묵직한 wordmark. 삼각형도 같은 두께로 보이게 filled polygon.
 export default function Logo({ withText = true, className = '' }: LogoProps) {
   void withText;
   return (
     <span
-      className={`inline-flex items-center text-gray-900 select-none ${className}`}
+      className={`inline-flex items-baseline text-gray-900 select-none ${className}`}
       style={{
-        fontFamily: '"Inter", "Helvetica Neue", "HelveticaNeue-UltraLight", "Apple SD Gothic Neo", system-ui, sans-serif',
-        fontWeight: 100,
+        fontFamily: '"Helvetica Neue", Helvetica, "Inter", "Apple SD Gothic Neo", system-ui, sans-serif',
+        fontWeight: 700,
         fontSize: '22px',
-        letterSpacing: '0.2em',
+        letterSpacing: '0.08em',
       }}
     >
       SNOW&nbsp;P
       {/*
-        A 삼각형 — 폰트 A 글자와 비슷한 비율.
-        A 글자 aspect: 높이 ≈ fontSize × 0.72, 폭 ≈ fontSize × 0.67
-        stroke-width 는 Inter Thin 100 의 수직 stroke 두께에 맞춰 얇게.
+        A 삼각형 — crossbar 없이 두 대각선이 위에서 만나는 chevron.
+        strokeWidth 를 fontSize 의 ~12% 로 잡아 letter stroke 와 시각적 일치.
       */}
       <svg
-        viewBox="0 0 70 80"
-        width="0.67em"
-        height="0.78em"
+        viewBox="0 0 60 72"
+        width="0.58em"
+        height="0.7em"
         aria-hidden="true"
-        style={{ display: 'inline-block', verticalAlign: '-0.04em', marginLeft: '0.06em', marginRight: '0.06em' }}
+        style={{ display: 'inline-block', verticalAlign: 'baseline', marginLeft: '0.04em', marginRight: '0.04em' }}
       >
         <polyline
-          points="3,77 35,3 67,77"
+          points="4,68 30,4 56,68"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="square"
+          strokeWidth="7"
+          strokeLinecap="butt"
           strokeLinejoin="miter"
         />
       </svg>
