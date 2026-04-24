@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
+import { HeartFilledIcon, UserIcon } from '../components/Icons';
 
 interface Comment {
   id: string;
@@ -195,8 +196,8 @@ const CommunityDetail = () => {
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm overflow-hidden">
-            {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
+            {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={16} />}
           </div>
           <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
           <UserBadges badges={post.user.badges} />
@@ -216,7 +217,7 @@ const CommunityDetail = () => {
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'}`}>
-            ♥ {likeCount}
+            <HeartFilledIcon size={14} /> {likeCount}
           </button>
           <span className="text-sm text-gray-400">{t('communityDetail.comments')} {post.comments.length}</span>
         </div>
@@ -231,8 +232,8 @@ const CommunityDetail = () => {
         <div className="space-y-4">
           {post.comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5 overflow-hidden">
-                {comment.user.profileImage ? <img src={comment.user.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0 mt-0.5 overflow-hidden">
+                {comment.user.profileImage ? <img src={comment.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={14} />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">

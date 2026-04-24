@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
+import { PackageIcon } from '../components/Icons';
 
 interface RecentProduct {
   id: string;
@@ -69,11 +70,11 @@ const RecentlyViewed = () => {
               to={`/used/${item.id}`}
               className="card p-4 flex items-center gap-3 block card-hover"
             >
-              <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-2xl border border-gray-200 overflow-hidden flex-shrink-0">
+              <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden flex-shrink-0">
                 {isUrl(item.image) ? (
                   <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
-                  '📦'
+                  <PackageIcon size={22} />
                 )}
               </div>
               <div className="flex-1 min-w-0">

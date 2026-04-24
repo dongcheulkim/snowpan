@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
+import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 
 interface Message {
   id: string;
@@ -194,7 +195,7 @@ const Chat = () => {
       <div className="card p-4 mb-3">
         <div className="flex items-center gap-3">
           <Link to={backPath} className="text-gray-400 hover:text-gray-900 transition-colors text-sm">&larr;</Link>
-          <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-sm">👤</div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400"><UserIcon size={16} /></div>
           <div className="flex-1">
             <div className="text-sm font-bold text-gray-900">{otherName}</div>
             <div className="text-[10px] text-gray-400">{connected ? t('chat.online') : t('chat.connecting')}</div>
@@ -250,7 +251,7 @@ const Chat = () => {
             const inner = (
               <div className={`rounded-2xl border-2 p-3.5 ${isMe ? 'border-accent/40 bg-accent/5' : 'border-gray-300 bg-white'}`}>
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-base">📦</span>
+                  <PackageIcon size={16} className="text-gray-700" />
                   <span className="text-[10px] font-semibold text-gray-400">상품 문의</span>
                 </div>
                 <p className="text-sm font-bold text-gray-900 leading-snug">
@@ -390,7 +391,7 @@ const Chat = () => {
       {/* Full Image Viewer */}
       {fullImage && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setFullImage(null)}>
-          <button className="absolute top-4 right-4 text-white text-2xl" onClick={() => setFullImage(null)}>✕</button>
+          <button className="absolute top-4 right-4 text-white" aria-label="닫기" onClick={() => setFullImage(null)}><CloseIcon size={24} /></button>
           <img src={fullImage} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
         </div>
       )}

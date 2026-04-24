@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { MaintenanceIcon, SkiShopIcon } from '../components/CategoryIcons';
 
 interface Shop {
   id: string;
@@ -28,7 +29,7 @@ export default function MyShops() {
   const ShopCard = ({ shop, type }: { shop: Shop; type: string }) => (
     <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="text-lg">{type === 'ski' ? '🏪' : '🔧'}</span>
+        <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
           <p className="text-[10px] text-gray-400">{shop.area}</p>
@@ -51,7 +52,7 @@ export default function MyShops() {
 
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-900">🏪 스키샵</h2>
+          <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><SkiShopIcon size={16} /> 스키샵</h2>
           <Link to="/skishop/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {skiShops.length === 0 ? (
@@ -63,7 +64,7 @@ export default function MyShops() {
 
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-900">🔧 정비샵</h2>
+          <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><MaintenanceIcon size={16} /> 정비샵</h2>
           <Link to="/repair/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {repairShops.length === 0 ? (

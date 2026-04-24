@@ -4,6 +4,7 @@ import { api, imageUrl as toImageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
+import { FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 
 interface Post {
   id: string;
@@ -52,7 +53,12 @@ const Community = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
-  const sportLabel = sport === 'ski' ? '⛷️ ' + t('used.cat.ski') : '🏂 ' + t('used.cat.board');
+  const SportLabel = () => (
+    <span className="inline-flex items-center gap-1.5">
+      {sport === 'ski' ? <SkiIcon size={16} /> : <SnowboardIcon size={16} />}
+      {sport === 'ski' ? t('used.cat.ski') : t('used.cat.board')}
+    </span>
+  );
 
   const tabs = [
     { id: 'all', name: t('community.all') },
@@ -115,7 +121,7 @@ const Community = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
-          <h1 className="text-xl font-bold text-gray-900">{sportLabel} {t('community.title')}</h1>
+          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {t('community.title')}</h1>
         </div>
         <div className="flex gap-2">
           {selectedTab === 'poll' && (
@@ -146,7 +152,7 @@ const Community = () => {
 
       {selectedTab === 'popular' && !loading && popularPosts.length > 0 && (
         <div className="bg-gradient-to-r from-sky-50 to-white rounded-xl px-3 py-2 flex items-center gap-2 text-xs text-sky-600">
-          <span>🔥</span> 최근 7일간 좋아요·조회수 TOP 10
+          <FireIcon size={12} /> 최근 7일간 좋아요·조회수 TOP 10
         </div>
       )}
 
@@ -178,7 +184,7 @@ const Community = () => {
                     <span className="text-[11px] text-gray-400 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
                     <div className="flex items-center gap-3 text-[11px] text-gray-400">
                       <span>조회 {post.views}</span>
-                      <span className="text-coral">♥ {post.likes}</span>
+                      <span className="text-coral inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {post.likes}</span>
                       <span>{t('communityDetail.comments')} {post.commentCount}</span>
                     </div>
                   </div>

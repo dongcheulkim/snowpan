@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
+import { MegaphoneIcon } from '../components/Icons';
 
 interface AccommodationItem {
   id: string;
@@ -118,7 +119,7 @@ const Accommodation = () => {
           </>
         ) : (
           <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-            <span className="text-lg">📢</span>
+            <MegaphoneIcon size={18} className="text-gray-700" />
             <span className="text-xs font-bold text-primary-dark">광고를 신청해보세요!</span>
             <span className="text-[10px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
           </Link>

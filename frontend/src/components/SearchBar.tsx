@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { MaintenanceIcon, SkiShopIcon } from './CategoryIcons';
+import { CloseIcon } from './Icons';
 
 interface SearchResult {
   products: { id: string; name: string; price: number; brand: string }[];
@@ -78,7 +80,7 @@ export default function SearchBar() {
                   className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
                 />
                 {query && (
-                  <button onClick={() => setQuery('')} className="text-gray-300 hover:text-gray-500 text-sm">✕</button>
+                  <button onClick={() => setQuery('')} aria-label="지우기" className="text-gray-300 hover:text-gray-500"><CloseIcon size={14} /></button>
                 )}
               </div>
 
@@ -123,7 +125,7 @@ export default function SearchBar() {
                       <div className="text-[10px] font-bold text-gray-400 mb-2">스키샵 · 정비샵</div>
                       {results!.shops.map(s => (
                         <button key={`${s.type}-${s.id}`} onClick={() => go(s.type === 'ski' ? '/new-equipment' : '/repair')} className="w-full flex items-center gap-3 py-2 hover:bg-gray-50 rounded-lg px-2 transition-colors text-left">
-                          <span className="text-sm">{s.type === 'ski' ? '🏪' : '🔧'}</span>
+                          <span className="text-gray-700">{s.type === 'ski' ? <SkiShopIcon size={16} /> : <MaintenanceIcon size={16} />}</span>
                           <span className="text-sm text-gray-900 flex-1 truncate">{s.name}</span>
                           <span className="text-[10px] text-gray-400">{s.area}</span>
                         </button>

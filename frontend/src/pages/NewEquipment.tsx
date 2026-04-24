@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { SkiShopIcon } from '../components/CategoryIcons';
+import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 
 interface Shop {
   id: string;
@@ -87,7 +89,7 @@ export default function NewEquipment() {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : shops.length === 0 ? (
         <div className="text-center py-16 card">
-          <div className="text-4xl mb-3">🏪</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SkiShopIcon size={44} /></div>
           <p className="text-sm text-gray-400">{selectedArea !== 'all' || selectedResort !== 'all' ? '해당 지역에 등록된 스키샵이 없습니다.' : '아직 등록된 스키샵이 없습니다.'}</p>
           <p className="text-xs text-gray-300 mt-1">직접 스키샵을 등록해보세요!</p>
         </div>
@@ -99,16 +101,16 @@ export default function NewEquipment() {
                 <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
               )}
               <div className="flex gap-4">
-                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
-                  {shop.image ? <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" /> : '🏪'}
+                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
+                  {shop.image ? <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" /> : <SkiShopIcon size={32} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900">{shop.name}</h3>
                     {shop.resort && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200">{shop.resort}</span>}
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">📍 {shop.address}</p>
-                  {shop.hours && <p className="text-xs text-gray-400">🕐 {shop.hours}</p>}
+                  <p className="text-xs text-gray-400 mt-0.5 inline-flex items-center gap-1"><LocationIcon size={12} /> {shop.address}</p>
+                  {shop.hours && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><ClockIcon size={12} /> {shop.hours}</p>}
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2">{shop.description}</p>
                   {shop.brands && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -118,7 +120,7 @@ export default function NewEquipment() {
                     </div>
                   )}
                   <div className="flex items-center gap-3 mt-3 text-xs flex-wrap" onClick={e => e.stopPropagation()}>
-                    {shop.phone && <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-gray-500 hover:text-gray-900">📞 {shop.phone}</a>}
+                    {shop.phone && <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-gray-500 hover:text-gray-900 inline-flex items-center gap-1"><PhoneIcon size={12} /> {shop.phone}</a>}
                     {shop.instagram && <a href={`https://instagram.com/${shop.instagram}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-pink-500 hover:underline">@{shop.instagram}</a>}
                     {shop.website && <a href={shop.website} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-sky-600 hover:underline">홈페이지</a>}
                     {shop.naverMap && <a href={shop.naverMap} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-green-600 hover:underline">네이버지도</a>}

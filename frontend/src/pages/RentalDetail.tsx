@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
+import { SadIcon } from '../components/Icons';
 
 interface RentalData {
   id: string;
@@ -37,7 +38,7 @@ const RentalDetail = () => {
   if (!item) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <div className="text-6xl mb-4">😢</div>
+        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-300"><SadIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">렌탈 정보를 찾을 수 없습니다</h2>
         <Link to="/rental" className="text-gray-400 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
       </div>

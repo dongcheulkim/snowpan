@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import competitions from '../data/competitions';
 import { api, getUser } from '../api';
+import { ChatIcon, LocationIcon, SkiIcon, SnowboardIcon, TrophyIcon } from '../components/Icons';
 
 const levelColor: Record<string, string> = {
   '전체': 'bg-green-100 text-green-700',
@@ -74,27 +75,31 @@ export default function Competitions() {
           disabled={chatLoading}
           className="flex-shrink-0 px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors disabled:opacity-50"
         >
-          {chatLoading ? '연결 중...' : '💬 문의하기'}
+          {chatLoading ? '연결 중...' : <span className="inline-flex items-center gap-1"><ChatIcon size={12} /> 문의하기</span>}
         </button>
       </div>
 
       <div className="flex gap-2">
-        {([['all', '전체'], ['ski', '⛷️ 스키'], ['board', '🏂 보드']] as const).map(([id, label]) => (
+        {([
+          { id: 'all', label: '전체', icon: null },
+          { id: 'ski', label: '스키', icon: <SkiIcon size={13} /> },
+          { id: 'board', label: '보드', icon: <SnowboardIcon size={13} /> },
+        ] as const).map(({ id, label, icon }) => (
           <button
             key={id}
             onClick={() => setFilter(id)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              filter === id ? 'bg-accent text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 ${
+              filter === id ? 'bg-gray-900 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
             }`}
           >
-            {label}
+            {icon}{label}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 && (
         <div className="text-center py-16 card">
-          <div className="text-4xl mb-3">🏆</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><TrophyIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-400">아직 등록된 시합 일정이 없습니다.</p>
           <p className="text-xs text-gray-300 mt-1">시즌이 시작되면 업데이트됩니다.</p>
         </div>
@@ -135,7 +140,7 @@ export default function Competitions() {
                       </div>
                       <h3 className="text-sm font-bold text-gray-900 mb-1">{comp.title}</h3>
                       <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                        <span>📍 {comp.location}</span>
+                        <span className="inline-flex items-center gap-1"><LocationIcon size={11} /> {comp.location}</span>
                         <span>· {comp.organizer}</span>
                       </div>
                     </div>

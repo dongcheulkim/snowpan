@@ -4,7 +4,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../components/Toast';
-import { HeartFilledIcon, HeartOutlineIcon } from '../components/Icons';
+import { CameraIcon, CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -182,8 +182,8 @@ const UsedDetail = () => {
             {hasImages && !imgError ? (
               <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
             ) : (
-              <div className="text-center">
-                <span className="text-6xl">📷</span>
+              <div className="text-center text-gray-400">
+                <CameraIcon size={56} strokeWidth={1.4} />
                 <p className="text-xs text-gray-400 mt-2">{t('usedDetail.noImage')}</p>
               </div>
             )}
@@ -304,7 +304,7 @@ const UsedDetail = () => {
           {/* Seller */}
           <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-lg">👤</div>
+              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400"><UserIcon size={20} /></div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
               </div>
@@ -355,8 +355,8 @@ const UsedDetail = () => {
 
       {/* 안전거래 가이드 + 면책 고지 */}
       <div className="text-center py-3 space-y-1">
-        <Link to="/safe-trade" className="block text-xs text-sky-600 hover:underline">
-          🛡️ 안전거래 가이드 확인하기
+        <Link to="/safe-trade" className="inline-flex items-center gap-1 text-xs text-gray-900 hover:underline">
+          <ShieldIcon size={12} /> 안전거래 가이드 확인하기
         </Link>
         <p className="text-[9px] text-gray-300 px-4">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
       </div>
@@ -364,7 +364,7 @@ const UsedDetail = () => {
       {/* Full Image Viewer */}
       {showFullImage && allImages.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setShowFullImage(false)}>
-          <button className="absolute top-4 right-4 text-white text-2xl z-10" onClick={() => setShowFullImage(false)}>✕</button>
+          <button className="absolute top-4 right-4 text-white z-10" aria-label="닫기" onClick={() => setShowFullImage(false)}><CloseIcon size={24} /></button>
           <img src={allImages[selectedImage]} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
           {allImages.length > 1 && (
             <>

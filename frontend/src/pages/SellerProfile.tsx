@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
+import { StarIcon, UserIcon } from '../components/Icons';
 
 interface SellerData {
   id: string;
@@ -117,10 +118,11 @@ const SellerProfile = () => {
         <button
           key={star}
           onClick={() => interactive && onChange?.(star)}
-          className={`text-lg ${interactive ? 'cursor-pointer' : 'cursor-default'} ${star <= rating ? 'text-gold' : 'text-gray-300'}`}
+          className={`${interactive ? 'cursor-pointer' : 'cursor-default'} ${star <= rating ? 'text-gold' : 'text-gray-300'}`}
           disabled={!interactive}
+          aria-label={`${star}점`}
         >
-          ★
+          <StarIcon size={18} />
         </button>
       ))}
     </div>
@@ -143,10 +145,10 @@ const SellerProfile = () => {
 
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-3xl mx-auto mb-4 overflow-hidden">
+        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 mx-auto mb-4 overflow-hidden">
           {seller.profileImage ? (
             <img src={seller.profileImage} alt="" className="w-full h-full object-cover" />
-          ) : '👤'}
+          ) : <UserIcon size={36} />}
         </div>
         <div className="flex items-center justify-center gap-2 mb-1">
           <h1 className="text-xl font-bold text-gray-900">{seller.name}</h1>
@@ -219,13 +221,13 @@ const SellerProfile = () => {
             {reviews.map((review) => (
               <div key={review.id} className="p-3 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] overflow-hidden">
-                    {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : '👤'}
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
+                    {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
                   </div>
                   <span className="text-xs font-bold text-gray-900">{review.buyer.name}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <span key={s} className={`text-xs ${s <= review.rating ? 'text-gold' : 'text-gray-300'}`}>★</span>
+                      <span key={s} className={`${s <= review.rating ? 'text-gold' : 'text-gray-300'}`}><StarIcon size={11} /></span>
                     ))}
                   </div>
                   <span className="text-[10px] text-gray-400">{formatTime(review.createdAt)}</span>

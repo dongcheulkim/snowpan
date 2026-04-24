@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
+import { MaintenanceIcon } from '../components/CategoryIcons';
 
 interface Shop {
   id: string;
@@ -67,7 +68,7 @@ export default function RepairShopDetail() {
           <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded">{shop.area}</span>
           {shop.isPremium && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">AD</span>}
         </div>
-        <h1 className="text-xl font-bold text-gray-900">🔧 {shop.name}</h1>
+        <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><MaintenanceIcon size={22} /> {shop.name}</h1>
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{shop.description}</p>
         {shop.services && (
           <div className="flex flex-wrap gap-1 pt-2">

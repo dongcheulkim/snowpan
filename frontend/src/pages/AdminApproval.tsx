@@ -233,7 +233,7 @@ const AdminApproval = () => {
           </div>
           {/* 뱃지 선택 */}
           <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-            <div className="text-[10px] font-bold text-gray-500 mb-2">📋 뱃지 선택</div>
+            <div className="text-[10px] font-bold text-gray-500 mb-2">뱃지 선택</div>
             <div className="flex gap-1.5 flex-wrap">
               {allBadgeOptions.map(opt => (
                 <button
@@ -288,7 +288,7 @@ const AdminApproval = () => {
         {/* 인증서류 */}
         {(item.businessLicense || item.instructorCert || item.accommodationPermit) && (
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-            <div className="text-[10px] font-bold text-gray-500 mb-2">📋 인증서류</div>
+            <div className="text-[10px] font-bold text-gray-500 mb-2">인증서류</div>
             <div className="flex gap-2 flex-wrap">
               {item.instructorCert && (
                 <a href={imageUrl(item.instructorCert)} target="_blank" rel="noopener noreferrer" className="block">

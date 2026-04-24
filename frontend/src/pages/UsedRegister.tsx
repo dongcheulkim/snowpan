@@ -60,11 +60,21 @@ const UsedRegister = () => {
 
     setLoading(true);
 
-    const imageMap: Record<string, string> = { ski: '🎿', board: '🏂', boots: '🥾', binding: '⛓️', helmet: '⛑️', goggles: '🥽', wear: '🧥', etc: '📦' };
+    // 이미지 미업로드 시 카테고리별 picsum placeholder 사용 (실제 이미지로 렌더됨)
+    const placeholderByCat: Record<string, string> = {
+      ski: 'https://picsum.photos/seed/pan-ski/400/400',
+      board: 'https://picsum.photos/seed/pan-board/400/400',
+      boots: 'https://picsum.photos/seed/pan-boots/400/400',
+      binding: 'https://picsum.photos/seed/pan-binding/400/400',
+      helmet: 'https://picsum.photos/seed/pan-helmet/400/400',
+      goggles: 'https://picsum.photos/seed/pan-goggles/400/400',
+      wear: 'https://picsum.photos/seed/pan-wear/400/400',
+      etc: 'https://picsum.photos/seed/pan-gear/400/400',
+    };
     const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상중', '사용감 적음': '중', '사용감 많음': '하' };
 
     try {
-      let imgUrl = imageMap[form.subcategory] || '📦';
+      let imgUrl = placeholderByCat[form.subcategory] || placeholderByCat.etc;
       let allImageUrls = '';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);

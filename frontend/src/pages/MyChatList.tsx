@@ -4,7 +4,7 @@ import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import EmptyState from '../components/EmptyState';
 import { ListRowSkeleton } from '../components/Skeleton';
-import { ChatIcon } from '../components/Icons';
+import { ChatIcon, UserIcon } from '../components/Icons';
 
 interface ChatRoom {
   id: string;
@@ -19,14 +19,14 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
   if (msg.type === 'product_inquiry') {
     try {
       const parsed = JSON.parse(msg.content) as { productName?: string };
-      return `📦 "${parsed.productName || '상품'}" 문의`;
-    } catch { return '📦 상품 문의'; }
+      return `[상품] "${parsed.productName || '상품'}" 문의`;
+    } catch { return '[상품] 상품 문의'; }
   }
   if (msg.type === 'price_offer') {
     const n = parseInt(msg.content, 10);
-    return Number.isFinite(n) ? `💰 ${n.toLocaleString()}원 제안` : '💰 가격 제안';
+    return Number.isFinite(n) ? `[가격] ${n.toLocaleString()}원 제안` : '[가격] 가격 제안';
   }
-  if (msg.type === 'image') return '📷 사진';
+  if (msg.type === 'image') return '[사진]';
   return msg.content;
 };
 
@@ -99,8 +99,8 @@ const MyChatList = () => {
                 key={room.id}
                 className="card p-4 flex items-center gap-3 block"
               >
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl border border-gray-200">
-                  👤
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 border border-gray-200">
+                  <UserIcon size={22} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

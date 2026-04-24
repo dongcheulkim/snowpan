@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { LocationIcon, TrophyIcon } from '../components/Icons';
 import competitions from '../data/competitions';
 
 const levelColor: Record<string, string> = {
@@ -22,7 +23,7 @@ export default function CompetitionDetail() {
   if (!comp) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <div className="text-5xl mb-4">🏆</div>
+        <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center text-gray-300"><TrophyIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">대회를 찾을 수 없습니다</h2>
         <Link to="/competitions" className="text-gray-500 hover:text-gray-900 text-sm">← 시합 일정으로</Link>
       </div>
@@ -50,11 +51,11 @@ export default function CompetitionDetail() {
           {isPast && (
             <div className="absolute top-3 right-3 bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full">종료</div>
           )}
-          <div className="text-5xl mb-4">🏆</div>
+          <div className="mx-auto mb-4 text-white flex justify-center"><TrophyIcon size={56} /></div>
           <h1 className="text-2xl font-black mb-2">{comp.title}</h1>
           <p className="text-sky-100 text-sm">{comp.organizer} 주최</p>
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
-            <span>📍 {comp.location}</span>
+            <span className="inline-flex items-center gap-1"><LocationIcon size={14} /> {comp.location}</span>
           </div>
           <div className="mt-2 text-lg font-bold">
             {formatDate(comp.date)}

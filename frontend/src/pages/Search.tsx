@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
+import { MaintenanceIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
 
 interface SearchResult {
   products: { id: string; name: string; price: number; brand: string; image: string }[];
@@ -53,14 +55,14 @@ export default function Search() {
           className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
         />
         {query && (
-          <button onClick={() => { setQuery(''); setResults(null); }} className="text-gray-300 hover:text-gray-500 text-sm">✕</button>
+          <button onClick={() => { setQuery(''); setResults(null); }} aria-label="지우기" className="text-gray-300 hover:text-gray-500"><CloseIcon size={16} /></button>
         )}
       </div>
 
       {/* 검색 전 안내 */}
       {!debounced && !loading && (
         <div className="text-center py-12">
-          <div className="text-4xl mb-3">🔍</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SearchIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-400">중고장비, 커뮤니티 글, 스키샵을 검색해보세요</p>
         </div>
       )}
@@ -71,7 +73,7 @@ export default function Search() {
       {/* 결과 없음 */}
       {!loading && debounced && !hasResults && (
         <div className="text-center py-12">
-          <div className="text-3xl mb-3">😅</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SadIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-400">"{debounced}"에 대한 검색 결과가 없습니다.</p>
         </div>
       )}
@@ -80,7 +82,7 @@ export default function Search() {
       {!loading && results?.products && results.products.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <h2 className="text-sm font-bold text-gray-900">🏷️ 중고장비</h2>
+            <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={16} /> 중고장비</h2>
             <Link to={`/used?search=${encodeURIComponent(debounced)}`} className="text-xs text-sky-600">더보기</Link>
           </div>
           <div className="space-y-2">
@@ -89,7 +91,7 @@ export default function Search() {
                 <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                   {(p.image?.startsWith('http') || p.image?.startsWith('/')) ? (
                     <img src={imageUrl(p.image)} alt="" className="w-full h-full object-cover" />
-                  ) : <span className="flex items-center justify-center w-full h-full text-lg">{p.image || '📷'}</span>}
+                  ) : <span className="flex items-center justify-center w-full h-full text-gray-400"><PackageIcon size={20} /></span>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
@@ -105,7 +107,7 @@ export default function Search() {
       {/* 커뮤니티 결과 */}
       {!loading && results?.posts && results.posts.length > 0 && (
         <div>
-          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1">💬 커뮤니티</h2>
+          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><ChatIcon size={16} /> 커뮤니티</h2>
           <div className="card overflow-hidden">
             {results.posts.map((p, idx) => (
               <Link key={p.id} to={`/community/post/${p.id}`} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${idx < results.posts.length - 1 ? 'border-b border-gray-100' : ''}`}>
@@ -120,11 +122,11 @@ export default function Search() {
       {/* 샵 결과 */}
       {!loading && results?.shops && results.shops.length > 0 && (
         <div>
-          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1">🏪 스키샵 · 정비샵</h2>
+          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><SkiShopIcon size={16} /> 스키샵 · 정비샵</h2>
           <div className="space-y-2">
             {results.shops.map(s => (
               <Link key={`${s.type}-${s.id}`} to={s.type === 'ski' ? '/new-equipment' : '/repair'} className="card p-3 flex items-center gap-3 card-hover block">
-                <span className="text-xl">{s.type === 'ski' ? '🏪' : '🔧'}</span>
+                <span className="text-gray-700">{s.type === 'ski' ? <SkiShopIcon size={22} /> : <MaintenanceIcon size={22} />}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">{s.name}</p>
                   <p className="text-[10px] text-gray-400">{s.area}</p>

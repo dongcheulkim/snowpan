@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { HeartFilledIcon } from '../components/Icons';
 
 interface Post {
   id: string;
@@ -65,7 +66,7 @@ const MySales = () => {
               <div className="text-sm font-medium text-gray-900 mb-1">{post.title}</div>
               <div className="text-xs text-gray-400 line-clamp-1">{post.content}</div>
               <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400">
-                <span>♥ {post.likes}</span>
+                <span className="inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {post.likes}</span>
                 <span>댓글 {post.commentCount ?? 0}</span>
               </div>
             </Link>

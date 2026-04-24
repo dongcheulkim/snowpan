@@ -2,6 +2,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import Hls from 'hls.js';
 import webcamData from '../data/webcamData';
+import { ProhibitIcon } from '../components/Icons';
+import { LivecamIcon } from '../components/CategoryIcons';
 
 const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,7 +50,7 @@ const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }
   if (error) {
     return (
       <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white min-h-[200px]">
-        <span className="text-2xl">📡</span>
+        <LivecamIcon size={28} className="text-gray-500" />
         <span className="text-xs text-gray-400">스트림을 불러올 수 없습니다</span>
       </div>
     );
@@ -152,7 +154,7 @@ const WebcamDetail = () => {
           <div className="card rounded-2xl overflow-hidden">
             {iframeFailed ? (
               <div className="h-[500px] bg-gray-50 flex flex-col items-center justify-center gap-4">
-                <div className="text-5xl">🚫</div>
+                <ProhibitIcon size={48} className="text-gray-300" />
                 <div className="text-center">
                   <p className="text-sm font-medium text-gray-700 mb-1">외부 임베딩이 차단되었습니다</p>
                   <p className="text-xs text-gray-400">공식 사이트에서 직접 확인해주세요</p>

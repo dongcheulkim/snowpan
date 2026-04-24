@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
+import { PackageIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -93,7 +94,7 @@ const MySales = () => {
                     {item.image?.startsWith('http') ? (
                       <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl">📦</div>
+                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><PackageIcon size={20} /></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/used/${item.id}`)}>

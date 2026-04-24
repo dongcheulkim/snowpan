@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
-import { ChatIcon, FireIcon, MegaphoneIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import { ChartIcon, ChatIcon, FireIcon, MegaphoneIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 
 interface Product {
   id: string;
@@ -254,7 +254,7 @@ const Home = () => {
         {polls.length > 0 && (
           <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[15px] font-bold text-gray-900">📊 인기 투표</h2>
+              <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><ChartIcon size={18} /> 인기 투표</h2>
               <Link to="/community/ski" className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
             </div>
             <div className="space-y-0">

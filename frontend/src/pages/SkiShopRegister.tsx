@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
+import { ClipboardIcon, CloseIcon } from '../components/Icons';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 const resorts = [
@@ -86,11 +87,11 @@ export default function SkiShopRegister() {
             {licensePreview ? (
               <div className="relative">
                 <img src={licensePreview} alt="" className="w-full max-h-48 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setLicenseFile(null); setLicensePreview(''); }} className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                <button type="button" onClick={() => { setLicenseFile(null); setLicensePreview(''); }} aria-label="제거" className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-sky-300 rounded-lg cursor-pointer hover:border-sky-500 transition-colors bg-sky-50/50">
-                <span className="text-2xl mb-1">📋</span>
+                <ClipboardIcon size={28} className="text-gray-400 mb-1" />
                 <span className="text-xs text-sky-600 font-medium">사업자등록증 사진 업로드</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -106,7 +107,7 @@ export default function SkiShopRegister() {
             {imagePreview ? (
               <div className="relative">
                 <img src={imagePreview} alt="" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} aria-label="제거" className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">

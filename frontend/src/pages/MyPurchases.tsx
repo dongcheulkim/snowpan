@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PackageIcon } from '../components/Icons';
 
 const MyPurchases = () => {
   const purchases = JSON.parse(localStorage.getItem('myPurchases') || '[]');
@@ -16,7 +17,7 @@ const MyPurchases = () => {
         <div className="space-y-2">
           {purchases.map((item: { id: string; name: string; price: number; image?: string; date?: string }) => (
             <div key={item.id} className="card p-4 flex items-center gap-3">
-              <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl">{item.image || '📦'}</div>
+              <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 overflow-hidden">{item.image && (item.image.startsWith('http') || item.image.startsWith('/')) ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <PackageIcon size={20} />}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
                 <div className="text-xs text-gray-400 mt-0.5">{item.date || '날짜 없음'}</div>

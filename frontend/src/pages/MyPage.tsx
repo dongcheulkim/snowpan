@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api';
+import { CameraIcon, UserIcon } from '../components/Icons';
 import { t, onLangChange, getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
@@ -154,17 +155,17 @@ const MyPage = () => {
       <div className="card p-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0 cursor-pointer" onClick={() => profileInputRef.current?.click()}>
-            <div className="w-14 h-14 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl overflow-hidden hover:border-accent transition-colors">
+            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 overflow-hidden hover:border-gray-900 transition-colors">
               {uploadingPhoto ? (
-                <span className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                <span className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
               ) : user.profileImage ? (
                 <img src={user.profileImage} alt="" className="w-full h-full object-cover" />
               ) : (
-                '👤'
+                <UserIcon size={28} />
               )}
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center text-[10px] border-2 border-white pointer-events-none">
-              📷
+            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center border-2 border-white pointer-events-none">
+              <CameraIcon size={11} strokeWidth={2} />
             </div>
             <input ref={profileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfilePhoto} />
           </div>

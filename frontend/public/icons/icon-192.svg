@@ -1,14 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <rect width="192" height="192" rx="38" fill="#ffffff"/>
-  <g transform="translate(96 96) scale(0.32) translate(-270 -50)">
-    <g fill="none" stroke="#0f172a" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter">
-      <path d="M 47 18 Q 3 18 3 33 Q 3 50 25 50 Q 47 50 47 67 Q 47 82 3 82"/>
-      <path d="M 65 82 V 18 L 115 82 V 18"/>
-      <ellipse cx="155" cy="50" rx="25" ry="32"/>
-      <polyline points="195,18 207,82 220,32 233,82 245,18"/>
-      <path d="M 305 82 V 18 H 335 Q 355 18 355 35 Q 355 52 335 52 H 305"/>
-      <polyline points="370,82 395,18 420,82"/>
-      <path d="M 435 82 V 18 L 485 82 V 18"/>
-    </g>
+  <!-- "SNOW P" : N  — 폰트로 그리고 A 자리만 삼각형 -->
+  <g fill="#0f172a">
+    <text x="78" y="103" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="200" font-size="26" letter-spacing="3.5">SNOW P</text>
+    <text x="116" y="103" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="200" font-size="26" letter-spacing="3.5">N</text>
   </g>
+  <polyline points="84,103 96,80 108,103" stroke="#0f172a" stroke-width="1.6" fill="none" stroke-linecap="square" stroke-linejoin="miter"/>
 </svg>

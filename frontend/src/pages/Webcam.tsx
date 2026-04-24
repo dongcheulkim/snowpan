@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { MountainIcon } from '../components/Icons';
 
 const Webcam = () => {
   const webcams = [
@@ -37,8 +38,8 @@ const Webcam = () => {
           const cardContent = (
             <>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
-                  🏔️
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-700">
+                  <MountainIcon size={22} />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-gray-900">{cam.name}</div>

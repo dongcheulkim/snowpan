@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="text-center">
-            <div className="text-5xl mb-4">⚠️</div>
+            <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center text-gray-300"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.3L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.3a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">문제가 발생했습니다</h1>
             <p className="text-sm text-gray-400 mb-6">잠시 후 다시 시도해주세요.</p>
             <div className="flex gap-3 justify-center">

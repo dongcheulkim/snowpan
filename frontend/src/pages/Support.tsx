@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { ChatIcon } from '../components/Icons';
 
 const Support = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ const Support = () => {
           disabled={chatLoading}
           className="w-full py-3 bg-sky-500 text-white rounded-xl font-bold text-sm hover:bg-sky-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {chatLoading ? '연결 중...' : '💬 관리자에게 1:1 채팅'}
+          {chatLoading ? '연결 중...' : <span className="inline-flex items-center gap-1.5"><ChatIcon size={14} /> 관리자에게 1:1 채팅</span>}
         </button>
         <p className="text-[10px] text-gray-400 text-center mt-2">로그인 후 관리자와 바로 채팅할 수 있습니다.</p>
       </div>

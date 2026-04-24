@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SkiIcon, SnowboardIcon } from '../components/Icons';
 
 const CommunitySelect = () => {
   return (
@@ -9,18 +10,18 @@ const CommunitySelect = () => {
       <div className="flex gap-4 w-full max-w-xs">
         <Link
           to="/community/ski"
-          className="flex-1 flex flex-col items-center gap-3 py-8 bg-white border-2 border-gray-200 rounded-2xl active:scale-95 active:border-primary transition-all shadow-sm"
+          className="flex-1 flex flex-col items-center gap-3 py-8 bg-white border-2 border-gray-200 rounded-2xl active:scale-95 active:border-gray-900 transition-all shadow-sm text-gray-900"
         >
-          <span className="text-5xl">⛷️</span>
+          <SkiIcon size={48} strokeWidth={1.6} />
           <span className="text-lg font-bold text-gray-900">스키</span>
           <span className="text-[11px] text-gray-400">SKI</span>
         </Link>
 
         <Link
           to="/community/board"
-          className="flex-1 flex flex-col items-center gap-3 py-8 bg-white border-2 border-gray-200 rounded-2xl active:scale-95 active:border-primary transition-all shadow-sm"
+          className="flex-1 flex flex-col items-center gap-3 py-8 bg-white border-2 border-gray-200 rounded-2xl active:scale-95 active:border-gray-900 transition-all shadow-sm text-gray-900"
         >
-          <span className="text-5xl">🏂</span>
+          <SnowboardIcon size={48} strokeWidth={1.6} />
           <span className="text-lg font-bold text-gray-900">보드</span>
           <span className="text-[11px] text-gray-400">BOARD</span>
         </Link>

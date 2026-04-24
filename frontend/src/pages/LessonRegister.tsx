@@ -54,7 +54,9 @@ const LessonRegister = () => {
 
     setLoading(true);
     try {
-      let image = form.type === 'board' ? '🏂' : '⛷️';
+      let image = form.type === 'board'
+      ? 'https://picsum.photos/seed/pan-lesson-board/600/400'
+      : 'https://picsum.photos/seed/pan-lesson-ski/600/400';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         image = urls[0];
@@ -162,7 +164,7 @@ const LessonRegister = () => {
       <div>
         <label className={labelClass}>강사 자격증 <span className="text-coral text-xs">*필수</span></label>
         <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${certFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-400 hover:border-primary/50'}`}>
-          {certFile ? `📄 ${certFile.name}` : 'KSIA/SBAK 등 강사 자격증 사진 업로드'}
+          {certFile ? certFile.name : 'KSIA/SBAK 등 강사 자격증 사진 업로드'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setCertFile(e.target.files?.[0] || null)} />
         </label>
       </div>
@@ -170,7 +172,7 @@ const LessonRegister = () => {
       <div>
         <label className={labelClass}>사업자등록증 <span className="text-gray-400 font-normal">(선택)</span></label>
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
-          {bizLicenseFile ? `📄 ${bizLicenseFile.name}` : '사업자등록증 사진 업로드'}
+          {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진 업로드'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
         </label>
       </div>

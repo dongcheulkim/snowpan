@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+import { CloseIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
@@ -15,7 +16,12 @@ const CommunityWrite = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const sportLabel = sport === 'ski' ? '⛷️ 스키' : '🏂 보드';
+  const SportLabel = () => (
+    <span className="inline-flex items-center gap-1.5">
+      {sport === 'ski' ? <SkiIcon size={14} /> : <SnowboardIcon size={14} />}
+      {sport === 'ski' ? '스키' : '보드'}
+    </span>
+  );
 
   const categories = [
     { id: 'free', name: '자유' },
@@ -75,7 +81,7 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900">{sportLabel} 글쓰기</h1>
+          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> 글쓰기</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-400">취소</button>
       </div>
@@ -116,7 +122,7 @@ const CommunityWrite = () => {
           {imagePreviews.map((preview, idx) => (
             <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
               <img src={preview} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => removeImage(idx)} className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full text-[10px] flex items-center justify-center">✕</button>
+              <button onClick={() => removeImage(idx)} aria-label="이미지 삭제" className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center"><CloseIcon size={11} /></button>
             </div>
           ))}
           {imageFiles.length < 5 && (

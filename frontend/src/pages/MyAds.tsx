@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { CloseIcon, MegaphoneIcon } from '../components/Icons';
 
 interface AdBooking {
   id: string;
@@ -63,7 +64,7 @@ export default function MyAds() {
         <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
       ) : ads.length === 0 ? (
         <div className="text-center py-16 card">
-          <div className="text-4xl mb-3">📢</div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><MegaphoneIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-400">신청한 광고가 없습니다.</p>
           <Link to="/ad-booking" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs">
             광고 신청하기
@@ -89,7 +90,7 @@ export default function MyAds() {
                   <p className="text-[10px] text-gray-400 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                 </div>
                 {!['active', 'paid', 'pending_payment'].includes(ad.status) && (
-                  <button onClick={() => handleDelete(ad.id)} className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0">✕</button>
+                  <button onClick={() => handleDelete(ad.id)} aria-label="삭제" className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0"><CloseIcon size={14} /></button>
                 )}
               </div>
             );

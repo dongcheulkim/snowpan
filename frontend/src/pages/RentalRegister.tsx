@@ -59,7 +59,9 @@ const RentalRegister = () => {
 
     setLoading(true);
     try {
-      let image = form.equipment.includes('보드') ? '🏂' : '⛷️';
+      let image = form.equipment.includes('보드')
+      ? 'https://picsum.photos/seed/pan-rental-board/600/400'
+      : 'https://picsum.photos/seed/pan-rental-ski/600/400';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         image = urls[0];
@@ -151,7 +153,7 @@ const RentalRegister = () => {
       <div>
         <label className={labelClass}>사업자등록증 <span className="text-gray-400 font-normal">(선택)</span></label>
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
-          {bizLicenseFile ? `📄 ${bizLicenseFile.name}` : '사업자등록증 사진을 업로드하세요'}
+          {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진을 업로드하세요'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
         </label>
         <p className="text-[10px] text-gray-400 mt-1">사업 목적 렌탈 시 사업자등록증을 첨부하면 승인이 빨라집니다.</p>

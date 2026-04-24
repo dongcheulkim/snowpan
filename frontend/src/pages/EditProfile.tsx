@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser, uploadImages } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
+import { CameraIcon, UserIcon } from '../components/Icons';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -69,15 +70,15 @@ const EditProfile = () => {
       {/* Profile Image */}
       <div className="card p-5 flex flex-col items-center gap-3">
         <label className="relative cursor-pointer group">
-          <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-4xl overflow-hidden group-hover:border-accent transition-colors">
+          <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-400 overflow-hidden group-hover:border-gray-900 transition-colors">
             {profilePreview ? (
               <img src={profilePreview} alt="프로필" className="w-full h-full object-cover" />
             ) : (
-              '👤'
+              <UserIcon size={44} />
             )}
           </div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center text-sm border-2 border-white">
-            📷
+          <div className="absolute bottom-0 right-0 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center border-2 border-white">
+            <CameraIcon size={16} strokeWidth={2} />
           </div>
           <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfileImage} />
         </label>
