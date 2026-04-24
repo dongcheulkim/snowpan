@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
+import { categoryIcons } from '../components/CategoryIcons';
 
 interface Product {
   id: string;
@@ -70,16 +71,16 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  const categories = [
-    { id: 'skishop', title: '스키샵', icon: '🏪', link: '/new-equipment' },
-    { id: 'repair', title: '정비', icon: '🔧', link: '/repair' },
-    { id: 'used', title: t('cat.used'), icon: '🏷️', link: '/used' },
-    { id: 'rental', title: t('cat.rental'), icon: '⛷️', link: '/rental' },
-    { id: 'lesson', title: t('cat.lesson'), icon: '🎿', link: '/lesson' },
-    { id: 'accommodation', title: t('cat.accommodation'), icon: '🏨', link: '/accommodation' },
-    { id: 'community', title: t('cat.community'), icon: '💬', link: '/community' },
-    { id: 'competitions', title: '시합일정', icon: '🏆', link: '/competitions' },
-    { id: 'webcam', title: t('cat.webcam'), icon: '📹', link: '/webcam' },
+  const categories: { id: keyof typeof categoryIcons; title: string; link: string }[] = [
+    { id: 'skishop', title: '스키샵', link: '/new-equipment' },
+    { id: 'repair', title: '정비', link: '/repair' },
+    { id: 'used', title: t('cat.used'), link: '/used' },
+    { id: 'rental', title: t('cat.rental'), link: '/rental' },
+    { id: 'lesson', title: t('cat.lesson'), link: '/lesson' },
+    { id: 'accommodation', title: t('cat.accommodation'), link: '/accommodation' },
+    { id: 'community', title: t('cat.community'), link: '/community' },
+    { id: 'competitions', title: '시합일정', link: '/competitions' },
+    { id: 'webcam', title: t('cat.webcam'), link: '/webcam' },
   ];
 
   // 인기중고매물 독립 로딩 (경량 API, 실패 시 기존 API 폴백)
@@ -156,18 +157,21 @@ const Home = () => {
       {/* Categories */}
       <div className="px-4 pb-5 bg-white">
         <div className="grid grid-cols-5 gap-y-3">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={cat.link}
-              className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-            >
-              <div className="w-14 h-14 bg-white border-2 border-sky-300 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
-                {cat.icon}
-              </div>
-              <span className="text-xs font-semibold text-gray-900">{cat.title}</span>
-            </Link>
-          ))}
+          {categories.map((cat) => {
+            const Icon = categoryIcons[cat.id];
+            return (
+              <Link
+                key={cat.id}
+                to={cat.link}
+                className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+              >
+                <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 group-hover:bg-gray-100 transition-colors">
+                  <Icon size={32} />
+                </div>
+                <span className="text-xs font-semibold text-gray-900">{cat.title}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
