@@ -23,6 +23,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // 신규 SW 즉시 활성화 + 모든 탭에서 즉시 제어 (stale 청크 안 남음)
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {

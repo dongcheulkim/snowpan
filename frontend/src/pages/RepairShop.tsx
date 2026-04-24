@@ -42,7 +42,7 @@ export default function RepairShop() {
   }, [selectedArea]);
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-2xl mx-auto">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-gray-400 text-lg">←</Link>
@@ -71,7 +71,7 @@ export default function RepairShop() {
           <p className="text-xs text-gray-300 mt-1">직접 정비샵을 등록해보세요!</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {shops.map((shop) => (
             <Link to={`/repair/${shop.id}`} key={shop.id} className={`card p-5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}

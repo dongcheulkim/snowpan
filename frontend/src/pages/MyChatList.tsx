@@ -42,9 +42,16 @@ const MyChatList = () => {
 
   useEffect(() => {
     if (!user) return;
-    api<ChatRoom[]>('/chat/rooms')
-      .then(setRooms)
-      .catch(() => {})
+    api<ChatRoom[] | { items: ChatRoom[] }>('/chat/rooms')
+      .then((data) => {
+        // 배열 또는 {items: []} 둘 다 대응
+        const list = Array.isArray(data) ? data : (data as { items?: ChatRoom[] })?.items || [];
+        setRooms(list);
+      })
+      .catch((err) => {
+        console.error('채팅방 목록 로드 실패:', err?.message || err);
+        setRooms([]);
+      })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -89,9 +96,9 @@ const MyChatList = () => {
         />
       ) : (
         <div className="space-y-2">
-          {rooms.map((room) => {
+          {rooms.filter(r => r && r.user1 && r.user2).map((room) => {
             const other = room.user1.id === user.id ? room.user2 : room.user1;
-            const lastMsg = room.messages[0];
+            const lastMsg = (room.messages && room.messages[0]) || null;
             return (
               <Link
                 to={`/chat/${room.id}`}

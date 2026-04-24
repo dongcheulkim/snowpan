@@ -51,7 +51,7 @@ export default function NewEquipment() {
   }, [selectedArea, selectedResort]);
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-2xl mx-auto">
+    <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-gray-400 text-lg">←</Link>
@@ -94,7 +94,7 @@ export default function NewEquipment() {
           <p className="text-xs text-gray-300 mt-1">직접 스키샵을 등록해보세요!</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {shops.map((shop) => (
             <Link to={`/skishop/${shop.id}`} key={shop.id} className={`card p-5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && (

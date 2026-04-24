@@ -3,11 +3,17 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-// 오래된 API 캐시 강제 삭제 (v2 이전 버전 유저용)
+// 오래된 캐시 강제 삭제 (API + workbox precache 둘 다).
+// 과거 배포에 섞여 stale 로고 chunk 가 서빙되는 버그 방지.
 if ('caches' in window) {
   caches.keys().then(names => {
     names.forEach(name => {
-      if (name.includes('product-cache') || name.includes('api-cache') || name.includes('banner-cache')) {
+      if (
+        name.includes('product-cache') ||
+        name.includes('api-cache') ||
+        name.includes('banner-cache') ||
+        name.startsWith('workbox-precache') // 구 precache 전체 비움
+      ) {
         caches.delete(name);
       }
     });

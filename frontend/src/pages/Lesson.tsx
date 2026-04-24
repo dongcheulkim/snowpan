@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
-import { MegaphoneIcon } from '../components/Icons';
 
 interface LessonItem {
   id: string;
@@ -99,35 +98,27 @@ const Lesson = () => {
         <Link to="/lesson/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors">+ 등록</Link>
       </div>
 
-      {/* Ad Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
-        {banners.length > 0 ? (
-          <>
-            {banners.map((banner, idx) => (
-              <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
-                <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
-                  <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                    <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
-                    <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
-                  </div>
-                  <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
+      {/* Ad Banner — 광고 있을 때만 노출 */}
+      {banners.length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
+          {banners.map((banner, idx) => (
+            <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
+              <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
+                <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
+                  <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                  <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
                 </div>
+                <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
               </div>
-            ))}
-            <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
-              {banners.map((_, idx) => (
-                <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400'}`} />
-              ))}
             </div>
-          </>
-        ) : (
-          <Link to="/ad-booking" className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-            <MegaphoneIcon size={18} className="text-gray-700" />
-            <span className="text-xs font-bold text-primary-dark">광고를 신청해보세요!</span>
-            <span className="text-[10px] text-gray-400">이 자리에 내 광고가 노출됩니다</span>
-          </Link>
-        )}
-      </div>
+          ))}
+          <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
+            {banners.map((_, idx) => (
+              <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400'}`} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Resort Filter */}
       <div className="flex gap-2 overflow-x-auto pb-1">
