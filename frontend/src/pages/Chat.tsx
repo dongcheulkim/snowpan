@@ -49,8 +49,6 @@ const Chat = () => {
   const [fullImage, setFullImage] = useState<string | null>(null);
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
-  const [showPriceModal, setShowPriceModal] = useState(false);
-  const [priceInput, setPriceInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,14 +141,6 @@ const Chat = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  };
-
-  const sendPriceOffer = () => {
-    const price = parseInt(priceInput);
-    if (isNaN(price) || price <= 0 || !roomId || !socketRef.current) return;
-    socketRef.current.emit('send_message', { roomId, content: String(price), type: 'price_offer' });
-    setShowPriceModal(false);
-    setPriceInput('');
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -409,19 +399,6 @@ const Chat = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
               )}
             </button>
-            <button
-              onClick={() => setShowPriceModal(true)}
-              disabled={!connected}
-              aria-label="가격 제안"
-              title="가격 제안"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
-            >
-              {/* 가격 태그 아이콘 */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <circle cx="7" cy="7" r="1.2" fill="currentColor" />
-              </svg>
-            </button>
             <textarea
               ref={textareaRef}
               value={input}
@@ -460,31 +437,6 @@ const Chat = () => {
         </div>
       )}
 
-      {/* Price Offer Modal */}
-      {showPriceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowPriceModal(false)} />
-          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('chat.priceOffer')}</h3>
-            <p className="text-xs text-gray-400 mb-4">{t('chat.enterPrice')}</p>
-            <div className="relative mb-5">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={priceInput ? Number(priceInput).toLocaleString() : ''}
-                onChange={(e) => setPriceInput(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="0"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 text-lg font-bold placeholder-gray-300 focus:outline-none pr-8"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">원</span>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => { setShowPriceModal(false); setPriceInput(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
-              <button onClick={sendPriceOffer} disabled={!priceInput || isNaN(parseInt(priceInput)) || parseInt(priceInput) <= 0} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">{t('chat.offer')}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
