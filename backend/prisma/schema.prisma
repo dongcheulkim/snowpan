@@ -179,6 +179,8 @@ model BadgeRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([status, createdAt]) // 관리자 승인 대기 목록
+  @@index([userId])             // 내 뱃지 요청 조회
   @@map("badge_requests")
 }
 
@@ -270,6 +272,8 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
+  @@index([postId, createdAt])
+  @@index([userId])
   @@map("comments")
 }
 
@@ -284,6 +288,8 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
+  @@index([userId, createdAt]) // /api/notifications 최신순 조회
+  @@index([userId, read])      // 미읽음 카운트
   @@map("notifications")
 }
 

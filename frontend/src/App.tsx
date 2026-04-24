@@ -6,33 +6,33 @@ import RequireAdmin from './components/RequireAdmin';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './pages/NotFound';
 
-// 핵심 페이지: 즉시 로딩 (딜레이 없음)
+// 즉시 로딩 — 첫 방문 시 90%+ 가 이 페이지로 감.
 import Home from './pages/Home';
 import Used from './pages/Used';
 import UsedDetail from './pages/UsedDetail';
-import Rental from './pages/Rental';
-import RentalDetail from './pages/RentalDetail';
-import Lesson from './pages/Lesson';
-import LessonDetail from './pages/LessonDetail';
-import Accommodation from './pages/Accommodation';
-import AccommodationDetail from './pages/AccommodationDetail';
-import Community from './pages/Community';
-import CommunityDetail from './pages/CommunityDetail';
-import CommunitySelect from './pages/CommunitySelect';
-import MyPage from './pages/MyPage';
 import Login from './pages/Login';
-import Chat from './pages/Chat';
-import MyChatList from './pages/MyChatList';
-import Notifications from './pages/Notifications';
-import GearGuide from './pages/GearGuide';
+import MyPage from './pages/MyPage';
 import Search from './pages/Search';
-import SafeTradeGuide from './pages/SafeTradeGuide';
-import Privacy from './pages/Privacy';
-import Competitions from './pages/Competitions';
-import RepairShop from './pages/RepairShop';
-import CompetitionDetail from './pages/CompetitionDetail';
+import Community from './pages/Community';
 
-// 나머지: lazy 로딩
+// lazy 로딩 — Suspense fallback 보임.
+const Rental = lazy(() => import('./pages/Rental'));
+const RentalDetail = lazy(() => import('./pages/RentalDetail'));
+const Lesson = lazy(() => import('./pages/Lesson'));
+const LessonDetail = lazy(() => import('./pages/LessonDetail'));
+const Accommodation = lazy(() => import('./pages/Accommodation'));
+const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
+const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
+const CommunitySelect = lazy(() => import('./pages/CommunitySelect'));
+const Chat = lazy(() => import('./pages/Chat'));
+const MyChatList = lazy(() => import('./pages/MyChatList'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const GearGuide = lazy(() => import('./pages/GearGuide'));
+const SafeTradeGuide = lazy(() => import('./pages/SafeTradeGuide'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Competitions = lazy(() => import('./pages/Competitions'));
+const RepairShop = lazy(() => import('./pages/RepairShop'));
+const CompetitionDetail = lazy(() => import('./pages/CompetitionDetail'));
 const MyAds = lazy(() => import('./pages/MyAds'));
 const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const SkiShopDetail = lazy(() => import('./pages/SkiShopDetail'));

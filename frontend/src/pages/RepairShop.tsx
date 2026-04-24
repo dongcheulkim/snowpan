@@ -77,7 +77,7 @@ export default function RepairShop() {
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
-                  {shop.image ? <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" /> : <MaintenanceIcon size={32} />}
+                  {shop.image ? <img src={shop.image} alt={shop.name} loading="lazy" className="w-full h-full object-cover" /> : <MaintenanceIcon size={32} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-bold text-gray-900">{shop.name}</h3>

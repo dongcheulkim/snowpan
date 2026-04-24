@@ -187,7 +187,7 @@ const Home = () => {
                 >
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl overflow-hidden">
                     {deal.image.startsWith('/') || deal.image.startsWith('http') ? (
-                      <img src={imageUrl(deal.image)} alt={deal.name} className="w-full h-full object-cover" />
+                      <img src={imageUrl(deal.image)} alt={deal.name} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
                       <span>{deal.image}</span>
                     )}
