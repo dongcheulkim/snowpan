@@ -197,8 +197,24 @@ const Chat = () => {
     );
   }
 
+  // 첫 진입 시 자주 쓰는 빠른 답장
+  const quickReplies = hasProductInfo
+    ? ['안녕하세요!', '아직 판매 중인가요?', '직거래 가능할까요?', '상태가 어떤가요?', '사진 더 볼 수 있을까요?']
+    : ['안녕하세요!', '문의드립니다.', '직거래 가능한 지역이 어디인가요?'];
+
+  const sendQuickReply = (text: string) => {
+    if (!roomId || !socketRef.current || !connected) return;
+    socketRef.current.emit('send_message', { roomId, content: text });
+  };
+
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50 animate-fade-in z-20">
+    <div
+      className="fixed inset-0 flex flex-col animate-fade-in z-20"
+      style={{
+        // 미세한 점 패턴 배경 — 빈 채팅창의 허전함 완화
+        background: 'radial-gradient(circle at 1px 1px, rgba(15,23,42,0.04) 1px, transparent 0) 0 0 / 24px 24px, #fafafa',
+      }}
+    >
       {/* Sticky Header */}
       <header className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
@@ -247,7 +263,7 @@ const Chat = () => {
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
           {/* 안전 거래 고지 — 컴팩트 단일 라인 */}
           <div className="flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-500">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur border border-gray-200 text-[10px] text-gray-500 shadow-sm">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>
               안전거래 — 직거래·에스크로 권장
             </span>
@@ -259,6 +275,32 @@ const Chat = () => {
                 socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
               }
             }} />
+          )}
+
+          {/* 빈 상태 — 메시지 없을 때 친근한 안내 + 빠른 답장 */}
+          {!isAdminChat && messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+              <div className="w-16 h-16 rounded-full bg-white border border-gray-200 flex items-center justify-center mb-4 shadow-sm">
+                <UserIcon size={32} className="text-gray-400" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900 mb-1">{otherName}</h3>
+              <p className="text-xs text-gray-500 mb-1">대화를 시작해보세요</p>
+              <p className="text-[10px] text-gray-400 mb-6 leading-relaxed">
+                정중한 인사와 함께 거래를 시작하면 응답률이 올라가요
+              </p>
+              <div className="w-full flex flex-wrap gap-2 justify-center max-w-md">
+                {quickReplies.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendQuickReply(q)}
+                    disabled={!connected}
+                    className="px-3.5 py-2 bg-white border border-gray-200 rounded-full text-xs text-gray-700 font-medium hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all active:scale-95 disabled:opacity-30 shadow-sm"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {messages.map((msg, idx) => {
@@ -335,8 +377,18 @@ const Chat = () => {
             return (
               <div key={msg.id}>
                 {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
-                <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[78%]">
+                <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                  {/* 상대 메시지 좌측 아바타 — 그룹 첫 메시지에만 보이고, 나머지는 빈 공간 유지로 정렬 일관성 */}
+                  {!isMe && (
+                    isFirstInGroup ? (
+                      <div className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden shadow-sm">
+                        <UserIcon size={14} />
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 flex-shrink-0" aria-hidden="true" />
+                    )
+                  )}
+                  <div className="max-w-[72%]">
                     {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</div>}
                     {msg.imageUrl && (
                       msg.imageUrl.includes('/video/') ? (
