@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { api, getToken } from '../api';
 import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
+import { showBrowserNotification } from '../utils/pushNotification';
 import Logo from './Logo';
 
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
@@ -87,11 +88,28 @@ const Navbar = () => {
       setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
       if (data?.type === 'chat') {
         setTimeout(() => setHasUnread(true), 0);
+        // chat 알림은 new_message 핸들러에서 표시 — 중복 방지
+        return;
       }
+      showBrowserNotification({
+        title: data?.title || '새 알림',
+        body: data?.message || data?.body,
+        link: data?.link,
+        tag: data?.type || 'snowpan',
+      });
     });
 
-    socket.on('new_message', () => {
+    socket.on('new_message', (data: any) => {
       setTimeout(() => setHasUnread(true), 0);
+      // 본인이 보낸 메시지는 알림 X
+      if (data?.senderId === user?.id) return;
+      const senderName = data?.sender?.nickname || data?.sender?.name || '알 수 없음';
+      showBrowserNotification({
+        title: `${senderName}님의 메시지`,
+        body: data?.content || '새 메시지가 도착했어요',
+        link: data?.roomId ? `/chat/${data.roomId}` : '/chat/rooms',
+        tag: data?.roomId ? `chat-${data.roomId}` : 'chat',
+      });
     });
 
     return () => {

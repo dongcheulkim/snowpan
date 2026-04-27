@@ -1,8 +1,8 @@
 import prisma from '../config/database';
 
-let fcmWarningShown = false;
-
-// Expo Push + FCM 통합 발송
+// 백그라운드 푸시 — 현재 Expo (모바일 앱) 만 활성화.
+// 웹 백그라운드 푸시는 Web Push (VAPID) 로 별도 구현 예정.
+// 웹 사용자는 탭 열려있을 때 Socket.IO + Browser Notification 으로 알림 수신.
 export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { fcmToken: true } });
@@ -11,7 +11,6 @@ export async function sendPushToUser(userId: string, title: string, body: string
     const token = user.fcmToken;
 
     if (token.startsWith('ExponentPushToken')) {
-      // Expo Push
       await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -23,26 +22,8 @@ export async function sendPushToUser(userId: string, title: string, body: string
           data: { link: link || '/' },
         }),
       });
-    } else {
-      // FCM (웹 푸시)
-      const serverKey = process.env.FCM_SERVER_KEY;
-      if (!serverKey) {
-        if (!fcmWarningShown) {
-          console.warn('⚠️  FCM_SERVER_KEY 미설정 — 웹 푸시 알림이 비활성화됩니다.');
-          fcmWarningShown = true;
-        }
-        return;
-      }
-      await fetch('https://fcm.googleapis.com/fcm/send', {
-        method: 'POST',
-        headers: { 'Authorization': `key=${serverKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: token,
-          notification: { title, body, icon: '/icons/icon-192.svg' },
-          data: { link: link || '/' },
-        }),
-      });
     }
+    // 다른 토큰 형식 (구 FCM) 은 무시 — 레거시 FCM HTTP API 는 2024-06 deprecated.
   } catch (error) {
     console.error('Push failed:', error);
   }

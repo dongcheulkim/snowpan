@@ -342,6 +342,63 @@ export const verifyPhone = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// 회원 탈퇴 — 거래 기록은 전자상거래법 5년 보관 의무로 유지하고 PII만 익명화.
+// 비밀번호 확인 후 이메일·전화·이름·프로필을 마스킹하고 role='deleted'로 잠금.
+export const deleteAccount = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { password } = req.body as { password?: string };
+
+    if (!password) {
+      res.status(400).json({ error: '비밀번호를 입력해주세요.' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+    if (user.role === 'deleted') { res.status(400).json({ error: '이미 탈퇴한 계정입니다.' }); return; }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.status(400).json({ error: '비밀번호가 일치하지 않습니다.' });
+      return;
+    }
+
+    const stamp = Date.now();
+    const anonEmail = `deleted_${userId}@snowpan.local`;
+    const anonPhone = `deleted_${stamp}_${userId.slice(0, 8)}`;
+    const lockedPasswordHash = await bcrypt.hash(`__deleted__${stamp}__${Math.random()}`, 10);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: anonEmail,
+          phone: anonPhone,
+          name: '탈퇴한 회원',
+          nickname: null,
+          profileImage: null,
+          fcmToken: null,
+          activeBadge: null,
+          phoneVerified: false,
+          password: lockedPasswordHash,
+          role: 'deleted',
+        },
+      });
+      // 판매중 매물은 자동으로 거두기 (예약/판매완료 매물은 거래 기록 유지)
+      await tx.product.updateMany({
+        where: { userId, status: 'selling' },
+        data: { status: 'sold' },
+      });
+    });
+
+    res.json({ message: '탈퇴 처리되었습니다.' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: '탈퇴 처리 중 오류가 발생했습니다.' });
+  }
+};
+
 // FCM 토큰 저장
 export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

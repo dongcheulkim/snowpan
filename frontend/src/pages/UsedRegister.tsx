@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../components/Toast';
+import MarketPriceBadge from '../components/MarketPriceBadge';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
@@ -342,6 +343,14 @@ const UsedRegister = () => {
               required
               className={inputClass}
             />
+            {form.price && Number(form.price) > 0 && (
+              <MarketPriceBadge
+                subcategory={form.subcategory}
+                brand={form.brand}
+                price={Number(form.price)}
+                variant="inline"
+              />
+            )}
           </div>
 
           {/* 거래 방법 */}

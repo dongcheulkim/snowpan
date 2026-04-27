@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
+import PushPermissionPrompt from '../components/PushPermissionPrompt';
 
 const MainLayout = () => {
   useEffect(() => {
@@ -11,12 +12,6 @@ const MainLayout = () => {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {});
     }
   }, []);
 
@@ -31,6 +26,7 @@ const MainLayout = () => {
       </main>
       <BottomNav />
       <ToastHost />
+      <PushPermissionPrompt />
     </div>
   );
 };

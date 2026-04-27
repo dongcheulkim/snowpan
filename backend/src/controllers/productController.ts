@@ -109,6 +109,75 @@ export const getHotDeals = async (_req: Request, res: Response): Promise<void> =
   }
 };
 
+// 시세 통계 — 같은 subcategory + brand (선택) 기준 최근 6개월간 등록된 중고 매물의 가격 분포.
+// 등록자가 가격 정할 때, 구매자가 비싼지 싼지 판단할 때 사용.
+export const getMarketStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { subcategory, brand } = req.query;
+    if (!subcategory || typeof subcategory !== 'string') {
+      res.status(400).json({ error: 'subcategory는 필수입니다.' });
+      return;
+    }
+
+    const cacheKey = `market:${subcategory}:${brand || ''}`;
+    const cached = cacheGet<any>(cacheKey);
+    if (cached) {
+      res.json(cached);
+      return;
+    }
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const where: any = {
+      category: 'used',
+      subcategory,
+      createdAt: { gte: sixMonthsAgo },
+    };
+    if (brand && typeof brand === 'string' && brand.trim()) {
+      where.brand = { equals: brand.trim(), mode: 'insensitive' };
+    }
+
+    const items = await prisma.product.findMany({
+      where,
+      select: { price: true },
+    });
+
+    if (items.length < 3) {
+      const result = { count: items.length, available: false };
+      cacheSet(cacheKey, result, 300);
+      res.json(result);
+      return;
+    }
+
+    const prices = items.map((p) => p.price).sort((a, b) => a - b);
+    const sum = prices.reduce((a, b) => a + b, 0);
+    const avg = Math.round(sum / prices.length);
+    const median = prices[Math.floor(prices.length / 2)];
+    const min = prices[0];
+    const max = prices[prices.length - 1];
+    const p25 = prices[Math.floor(prices.length * 0.25)];
+    const p75 = prices[Math.floor(prices.length * 0.75)];
+
+    const result = {
+      available: true,
+      count: prices.length,
+      avg,
+      median,
+      min,
+      max,
+      p25,
+      p75,
+      windowDays: 180,
+    };
+    cacheSet(cacheKey, result, 600);
+    res.json(result);
+  } catch (error) {
+    console.error('Get market stats error:', error);
+    res.status(500).json({ error: '시세 조회 중 오류가 발생했습니다.' });
+  }
+};
+
 // 중고 장비 등록 (로그인 필요)
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

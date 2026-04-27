@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../components/Toast';
 import { CameraIcon, CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
+import MarketPriceBadge from '../components/MarketPriceBadge';
 
 interface Product {
   id: string;
@@ -217,8 +218,9 @@ const UsedDetail = () => {
           {/* Price + Status + Wishlist + Share + Report */}
           <div className="card p-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
+                <MarketPriceBadge subcategory={product.subcategory} brand={product.brand} price={product.price} variant="badge" />
                 {isMyProduct ? (
                   <select
                     value={product.status}

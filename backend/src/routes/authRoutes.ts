@@ -15,6 +15,7 @@ import {
   resetPassword,
   createAdRequest,
   getMyAdRequests,
+  deleteAccount,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
@@ -29,6 +30,7 @@ router.post('/reset-password-request', sensitiveAuthLimiter, resetPasswordReques
 router.get('/profile', authenticateToken, getProfile);
 router.put('/profile', authenticateToken, updateProfile);
 router.put('/change-password', authenticateToken, changePassword);
+router.delete('/account', authenticateToken, sensitiveAuthLimiter, deleteAccount);
 router.get('/my-badges', authenticateToken, getMyBadges);
 router.post('/badge-request', authenticateToken, requestBadge);
 router.get('/seller/:id', getSellerProfile);

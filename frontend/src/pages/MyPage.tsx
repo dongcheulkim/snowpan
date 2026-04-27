@@ -36,6 +36,9 @@ const MyPage = () => {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
   const [, setLangTick] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
 
   useEffect(() => {
@@ -60,6 +63,21 @@ const MyPage = () => {
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) { alert('비밀번호를 입력해주세요.'); return; }
+    setDeleting(true);
+    try {
+      await api('/auth/account', { method: 'DELETE', body: { password: deletePassword } });
+      logout();
+      alert('탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
+      navigate('/');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '탈퇴 처리에 실패했습니다.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleProfilePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -320,6 +338,60 @@ const MyPage = () => {
       <button onClick={handleLogout} className="w-full py-3.5 bg-white text-gray-500 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
         {t('mypage.logout')}
       </button>
+
+      {/* Account deletion */}
+      <div className="text-center mt-3">
+        <button
+          onClick={() => { setDeletePassword(''); setShowDeleteModal(true); }}
+          className="text-xs text-gray-400 hover:text-coral transition-colors underline underline-offset-2"
+        >
+          회원 탈퇴
+        </button>
+      </div>
+
+      {/* Delete account modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && setShowDeleteModal(false)} />
+          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">회원 탈퇴</h3>
+            <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 mb-4 text-[12px] text-rose-700 leading-relaxed">
+              <p className="font-bold mb-1">탈퇴 시 처리되는 내용</p>
+              <ul className="space-y-0.5 list-disc list-inside marker:text-rose-400">
+                <li>이메일·전화번호·이름 등 개인정보 삭제</li>
+                <li>판매중 매물은 자동으로 거둠</li>
+                <li>거래·후기·게시글은 익명 처리되어 유지</li>
+                <li>같은 정보로 재가입은 즉시 불가</li>
+              </ul>
+            </div>
+            <p className="text-xs text-gray-500 mb-2">계속하려면 비밀번호를 입력해주세요.</p>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              placeholder="비밀번호"
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm outline-none focus:border-coral mb-5"
+              autoComplete="current-password"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-40"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting || !deletePassword}
+                className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm hover:bg-coral/90 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleting ? '처리 중...' : '탈퇴하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Badge Modal */}
       {showBadgeModal && (
