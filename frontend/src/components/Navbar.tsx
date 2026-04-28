@@ -141,14 +141,38 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // 데스크톱 헤더 카테고리 — 모바일은 홈 카테고리 그리드, 데스크톱은 상단 텍스트 링크.
+  const navLinks: { label: string; to: string }[] = [
+    { label: '중고거래', to: '/used' },
+    { label: '스키샵', to: '/skishop' },
+    { label: '렌탈', to: '/rental' },
+    { label: '레슨', to: '/lesson' },
+    { label: '숙소', to: '/accommodation' },
+    { label: '커뮤니티', to: '/community' },
+  ];
+
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
         <div className="flex justify-between h-14">
-          <div className="flex items-center">
+          <div className="flex items-center gap-8">
             <Link to="/" aria-label="스노우판 홈">
               <Logo />
             </Link>
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((l) => {
+                const active = location.pathname === l.to || location.pathname.startsWith(l.to + '/');
+                return (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    className={`px-3 h-11 inline-flex items-center rounded-lg text-sm font-medium transition-colors ${active ? 'text-gray-900 bg-gray-100' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -157,7 +181,7 @@ const Navbar = () => {
               onClick={toggleTheme}
               aria-label={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
               aria-pressed={darkMode}
-              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
               title={darkMode ? '라이트 모드' : '다크 모드'}
             >
               {darkMode ? (
@@ -173,7 +197,7 @@ const Navbar = () => {
             <Link
               to="/search"
               aria-label="검색"
-              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -182,7 +206,7 @@ const Navbar = () => {
             {user && (
               <Link
                 to="/notifications"
-                className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
+                className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors relative"
                 title={t('nav.notifications')}
               >
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

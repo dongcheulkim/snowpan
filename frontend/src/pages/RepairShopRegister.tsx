@@ -71,7 +71,7 @@ export default function RepairShopRegister() {
             {licensePreview ? (
               <div className="relative">
                 <img src={licensePreview} alt="" className="w-full max-h-48 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setLicenseFile(null); setLicensePreview(''); }} aria-label="제거" className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></button>
+                <button type="button" onClick={() => { setLicenseFile(null); setLicensePreview(''); }} aria-label="제거" className="absolute -top-2 -right-2 min-w-11 min-h-11 w-11 h-11 inline-flex items-center justify-center"><span className="w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></span></button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-sky-300 rounded-lg cursor-pointer hover:border-sky-500 transition-colors bg-sky-50/50">
@@ -87,7 +87,7 @@ export default function RepairShopRegister() {
             {imagePreview ? (
               <div className="relative">
                 <img src={imagePreview} alt="" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} aria-label="제거" className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></button>
+                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} aria-label="제거" className="absolute -top-2 -right-2 min-w-11 min-h-11 w-11 h-11 inline-flex items-center justify-center"><span className="w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></span></button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">

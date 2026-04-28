@@ -160,14 +160,20 @@ const Home = () => {
 
           {/* 인디케이터 — 슬라이드 2개 이상일 때만 */}
           {totalSlides > 1 && (
-            <div className="absolute bottom-2 right-3 flex gap-1.5 z-10">
+            <div className="absolute bottom-0 right-0 flex z-10">
               {Array.from({ length: totalSlides }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentBanner(i)}
                   aria-label={`슬라이드 ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${i === currentBanner ? 'bg-gray-900 w-5' : 'bg-gray-300 w-1.5'}`}
-                />
+                  aria-current={i === currentBanner}
+                  className="min-w-11 min-h-11 inline-flex items-center justify-center"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`block h-1.5 rounded-full transition-all duration-300 ${i === currentBanner ? 'bg-gray-900 w-5' : 'bg-gray-400 w-1.5'}`}
+                  />
+                </button>
               ))}
             </div>
           )}

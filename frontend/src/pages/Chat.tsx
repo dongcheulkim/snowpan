@@ -443,7 +443,7 @@ const Chat = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={!connected || uploading}
               aria-label="사진 첨부"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
+              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
             >
               {uploading ? (
                 <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin block" />
@@ -469,7 +469,7 @@ const Chat = () => {
               onClick={sendMessage}
               disabled={!input.trim() || !connected}
               aria-label="전송"
-              className={`w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-95 flex-shrink-0 ${
+              className={`min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-95 flex-shrink-0 ${
                 input.trim() && connected
                   ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
                   : 'bg-gray-300 text-white cursor-not-allowed'

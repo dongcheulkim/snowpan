@@ -113,9 +113,17 @@ const Lesson = () => {
               </div>
             </div>
           ))}
-          <div className="absolute bottom-2 right-4 flex gap-1.5 z-10">
+          <div className="absolute bottom-0 right-0 flex z-10">
             {banners.map((_, idx) => (
-              <button key={idx} onClick={() => setCurrentBanner(idx)} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400'}`} />
+              <button
+                key={idx}
+                onClick={() => setCurrentBanner(idx)}
+                aria-label={`슬라이드 ${idx + 1}`}
+                aria-current={idx === currentBanner}
+                className="min-w-11 min-h-11 inline-flex items-center justify-center"
+              >
+                <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400 w-1.5'}`} />
+              </button>
             ))}
           </div>
         </div>
