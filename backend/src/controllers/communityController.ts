@@ -211,6 +211,22 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
+    // 중복 게시글 차단 — 같은 사용자가 같은 제목+내용을 5분 내 재등록 시 도배로 간주.
+    const fiveMinAgo = new Date(Date.now() - 5 * 60_000);
+    const dupe = await prisma.post.findFirst({
+      where: {
+        userId,
+        title: cleanTitle,
+        content: cleanContent,
+        createdAt: { gte: fiveMinAgo },
+      },
+      select: { id: true },
+    });
+    if (dupe) {
+      res.status(409).json({ error: '같은 내용의 글이 방금 등록되었습니다. 잠시 후 다시 시도해주세요.' });
+      return;
+    }
+
     const post = await prisma.post.create({
       data: { title: cleanTitle, content: cleanContent, category, sport, userId, images: images || null },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
@@ -264,21 +280,41 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
       res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
       return;
     }
+    if (cleanContent.length < 1) {
+      res.status(400).json({ error: '댓글은 1자 이상이어야 합니다.' });
+      return;
+    }
+
+    // 게시글 존재 확인 — 없는 postId 로 댓글 생성 차단.
+    const targetPost = await prisma.post.findUnique({ where: { id: postId }, select: { id: true, userId: true, title: true } });
+    if (!targetPost) {
+      res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return;
+    }
+
+    // 중복 댓글 차단 — 같은 글에 같은 내용을 1분 내 반복 시 도배로 간주.
+    const oneMinAgo = new Date(Date.now() - 60_000);
+    const dupe = await prisma.comment.findFirst({
+      where: { userId, postId, content: cleanContent, createdAt: { gte: oneMinAgo } },
+      select: { id: true },
+    });
+    if (dupe) {
+      res.status(409).json({ error: '같은 댓글이 방금 등록되었습니다.' });
+      return;
+    }
 
     const comment = await prisma.comment.create({
       data: { content: cleanContent, postId, userId },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } } } } },
     });
 
-    // 글 작성자에게 알림 (본인 댓글은 제외)
-    const post = await prisma.post.findUnique({ where: { id: postId } });
-    if (post && post.userId !== userId) {
+    // 글 작성자에게 알림 (본인 댓글은 제외) — targetPost 재사용.
+    if (targetPost.userId !== userId) {
       const title = '새 댓글';
-      const body = `'${post.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`;
+      const body = `'${targetPost.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`;
       const link = `/community/post/${postId}`;
-      // type='community' — 'chat' 으로 잘못 분류되던 것 정정 (분류·필터·뱃지 분리에 영향).
-      await createNotification(post.userId, 'community', title, body, link);
-      sendPushToUser(post.userId, title, body, link);
+      await createNotification(targetPost.userId, 'community', title, body, link);
+      sendPushToUser(targetPost.userId, title, body, link);
     }
 
     res.status(201).json(comment);

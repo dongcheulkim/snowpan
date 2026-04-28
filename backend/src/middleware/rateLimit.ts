@@ -90,3 +90,48 @@ export const strictWriteLimiter = (req: Request, res: Response, next: NextFuncti
   }
   next();
 };
+
+// 인증된 사용자별 rate limit — IP 우회 (VPN/Tor) 시 IP 기반 limiter 가 무력하므로
+// userId 기반으로 추가 throttle. createUserLimiter(maxPerWindow, windowMs).
+// req.user 가 없으면 (비로그인) 다음 미들웨어로 넘김 — IP 기반 limiter 가 잡음.
+const userMap = new Map<string, RateLimitEntry>();
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of userMap) {
+    if (now > entry.resetAt) userMap.delete(key);
+  }
+}, 60_000);
+
+export function createUserLimiter(maxRequests: number, windowMs: number) {
+  return (req: any, res: Response, next: NextFunction): void => {
+    const userId: string | undefined = req.user?.id;
+    if (!userId) { next(); return; }
+    const key = `${userId}:${maxRequests}:${windowMs}`;
+    const now = Date.now();
+    const entry = userMap.get(key);
+    if (!entry || now > entry.resetAt) {
+      userMap.set(key, { count: 1, resetAt: now + windowMs });
+      next();
+      return;
+    }
+    if (entry.count >= maxRequests) {
+      const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+      res.set('Retry-After', String(retryAfter));
+      res.status(429).json({
+        error: '너무 빠르게 작성하고 있습니다. 잠시 후 다시 시도해주세요.',
+        retryAfter,
+      });
+      return;
+    }
+    entry.count++;
+    next();
+  };
+}
+
+// 글 작성: 1분에 3건, 1시간에 20건 (스팸 방지). 정상 사용자에겐 충분.
+export const postCreateLimiter = createUserLimiter(3, 60_000);
+export const postCreateLimiterHourly = createUserLimiter(20, 60 * 60_000);
+
+// 댓글: 1분에 5건, 1시간에 60건.
+export const commentCreateLimiter = createUserLimiter(5, 60_000);
+export const commentCreateLimiterHourly = createUserLimiter(60, 60 * 60_000);
