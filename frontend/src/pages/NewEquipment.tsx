@@ -4,6 +4,7 @@ import { api } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
+import CategoryAdBanner from '../components/CategoryAdBanner';
 
 interface Shop {
   id: string;
@@ -60,6 +61,9 @@ export default function NewEquipment() {
         </div>
         <RegisterCTA to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
+
+      {/* Ad Banner — 광고 있을 때만 노출 */}
+      <CategoryAdBanner category="skishop" />
 
       {/* 지역 필터 */}
       <div className="flex gap-2 overflow-x-auto pb-1">

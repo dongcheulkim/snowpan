@@ -60,6 +60,7 @@ import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
+import { seedAdPricing } from './utils/seedAdPricing';
 
 const app = express();
 const httpServer = createServer(app);
@@ -389,6 +390,12 @@ httpServer.listen(PORT, async () => {
     startAdBookingScheduler();
   } catch (err) {
     console.error('광고 스케줄러 시작 실패:', err);
+  }
+
+  try {
+    await seedAdPricing();
+  } catch (err) {
+    console.error('광고 가격 시드 실패:', err);
   }
 
   // Keep-alive: 5분마다 자기 자신에게 핑 (Render 슬립 방지)

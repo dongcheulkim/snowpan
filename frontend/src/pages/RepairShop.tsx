@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
+import RegisterCTA from '../components/RegisterCTA';
+import CategoryAdBanner from '../components/CategoryAdBanner';
 
 interface Shop {
   id: string;
@@ -48,8 +50,11 @@ export default function RepairShop() {
           <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">정비샵</h1>
         </div>
-        <Link to="/repair/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">+ 등록</Link>
+        <RegisterCTA to="/repair/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
+
+      {/* Ad Banner — 광고 있을 때만 노출 */}
+      <CategoryAdBanner category="repair" />
 
       {/* 지역 필터 */}
       <div className="flex gap-2 overflow-x-auto pb-1">

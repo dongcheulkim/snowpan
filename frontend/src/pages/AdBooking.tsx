@@ -39,7 +39,9 @@ const SLOT_ICONS: Record<string, ComponentType<{ size?: number; className?: stri
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  used: '중고장터',
+  skishop: '스키샵',
+  repair: '정비',
+  used: '중고거래',
   rental: '렌탈',
   lesson: '레슨',
   accommodation: '숙소',
