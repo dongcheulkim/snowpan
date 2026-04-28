@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
 import PushPermissionPrompt from '../components/PushPermissionPrompt';
 import ReviewPromptModal from '../components/ReviewPromptModal';
 
+const SITE_URL = 'https://snowpan.vercel.app';
+
 const MainLayout = () => {
+  const location = useLocation();
+
   useEffect(() => {
     const theme = localStorage.getItem('theme');
     if (theme === 'dark') {
@@ -15,6 +19,18 @@ const MainLayout = () => {
       document.documentElement.classList.remove('dark');
     }
   }, []);
+
+  // 모든 페이지에 canonical link 자동 설정 — useMeta 미사용 페이지 포함.
+  // 쿼리 파라미터는 제외해서 같은 페이지의 중복 색인 방지.
+  useEffect(() => {
+    let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!el) {
+      el = document.createElement('link');
+      el.rel = 'canonical';
+      document.head.appendChild(el);
+    }
+    el.href = `${SITE_URL}${location.pathname}`;
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">

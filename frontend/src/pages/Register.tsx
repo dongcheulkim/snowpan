@@ -37,8 +37,16 @@ const Register = () => {
       return;
     }
 
-    if (form.password.length < 6) {
-      setError('비밀번호는 6자 이상이어야 합니다.');
+    // 비밀번호 정책: 8자 이상 + 영문 + 숫자 (특수문자는 권장이지만 강제 X — 외국인 사용자 키보드 부담)
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(form.password)) {
+      setError('비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.');
+      return;
+    }
+
+    // 한국 휴대폰 형식 (01[016789]xxxxxxxx, 하이픈 허용)
+    const phoneClean = form.phone.replace(/[-\s]/g, '');
+    if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
+      setError('올바른 휴대폰 번호 형식이 아닙니다. (예: 01012345678)');
       return;
     }
 
@@ -84,15 +92,15 @@ const Register = () => {
           </div>
           <div>
             <label htmlFor="reg-phone" className="block text-sm font-medium text-gray-500 mb-2">전화번호</label>
-            <input id="reg-phone" type="tel" name="phone" autoComplete="tel" placeholder="01012345678" value={form.phone} onChange={handleChange} required className={inputClass} />
+            <input id="reg-phone" type="tel" name="phone" autoComplete="tel" placeholder="01012345678" pattern="01[016789][0-9]{7,8}" inputMode="numeric" maxLength={11} title="01x로 시작하는 휴대폰 번호 (하이픈 없이)" value={form.phone} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
             <label htmlFor="reg-password" className="block text-sm font-medium text-gray-500 mb-2">비밀번호</label>
-            <input id="reg-password" type="password" name="password" autoComplete="new-password" placeholder="6자 이상 입력하세요" value={form.password} onChange={handleChange} required className={inputClass} />
+            <input id="reg-password" type="password" name="password" autoComplete="new-password" placeholder="영문+숫자 8자 이상" minLength={8} pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" title="영문과 숫자를 포함해 8자 이상" value={form.password} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
             <label htmlFor="reg-password-confirm" className="block text-sm font-medium text-gray-500 mb-2">비밀번호 확인</label>
-            <input id="reg-password-confirm" type="password" name="passwordConfirm" autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요" value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
+            <input id="reg-password-confirm" type="password" name="passwordConfirm" autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요" minLength={8} value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
           </div>
 
           {/* 약관 동의 */}

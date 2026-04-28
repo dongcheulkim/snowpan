@@ -6,12 +6,14 @@ export default function Logo({ withText = true, className = '' }: LogoProps) {
   void withText;
   return (
     <span
-      className={`inline-flex items-baseline text-gray-900 select-none ${className}`}
+      className={`inline-flex items-baseline text-gray-900 dark:text-white select-none ${className}`}
       style={{
         fontFamily: '"Helvetica Neue", Helvetica, "Inter", "Apple SD Gothic Neo", system-ui, sans-serif',
         fontWeight: 700,
         fontSize: '22px',
         letterSpacing: '0.08em',
+        // 안전 padding — 일부 폰트 폴백에서 S 의 left bearing 이 음수가 되어 좌측 클립되는 문제 방지.
+        paddingLeft: '2px',
       }}
     >
       SNOW&nbsp;P

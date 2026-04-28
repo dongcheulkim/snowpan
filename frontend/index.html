@@ -31,6 +31,37 @@
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <link rel="dns-prefetch" href="https://picsum.photos">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Inter:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Schema.org Organization + WebSite (구조화 데이터) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://snowpan.vercel.app/#organization",
+          "name": "스노우판",
+          "alternateName": "SNOW PAN",
+          "url": "https://snowpan.vercel.app",
+          "logo": "https://snowpan.vercel.app/icons/icon-192.png",
+          "description": "스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에 — 설원 위의 자유, 끝없는 플레이의 장.",
+          "areaServed": "KR"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://snowpan.vercel.app/#website",
+          "url": "https://snowpan.vercel.app",
+          "name": "스노우판",
+          "publisher": { "@id": "https://snowpan.vercel.app/#organization" },
+          "inLanguage": "ko-KR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://snowpan.vercel.app/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
     <style>
       /* 프로덕션 방문자에겐 Vercel Toolbar/Live Feedback 숨김 */
       #vercel-live-feedback,

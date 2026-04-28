@@ -64,6 +64,48 @@ const UsedDetail = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
+  // Schema.org Product JSON-LD — Google 리치 결과 (가격·상태 노출).
+  useEffect(() => {
+    if (!product) return;
+    const SCRIPT_ID = 'snowpan-product-jsonld';
+    document.getElementById(SCRIPT_ID)?.remove();
+    const conditionMap: Record<string, string> = {
+      '상': 'https://schema.org/NewCondition',
+      '중': 'https://schema.org/UsedCondition',
+      '하': 'https://schema.org/UsedCondition',
+    };
+    const availability =
+      product.status === 'sold'
+        ? 'https://schema.org/SoldOut'
+        : product.status === 'reserved'
+        ? 'https://schema.org/LimitedAvailability'
+        : 'https://schema.org/InStock';
+    const productImage = product.image?.startsWith('http') ? product.image : imageUrl(product.image);
+    const data = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description || `${product.name} — 스노우판 중고 스키/보드 장비`,
+      brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+      image: productImage,
+      itemCondition: product.condition ? conditionMap[product.condition] : 'https://schema.org/UsedCondition',
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'KRW',
+        price: product.price,
+        availability,
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+        seller: product.user ? { '@type': 'Person', name: product.user.name } : undefined,
+      },
+    };
+    const script = document.createElement('script');
+    script.id = SCRIPT_ID;
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(data);
+    document.head.appendChild(script);
+    return () => { document.getElementById(SCRIPT_ID)?.remove(); };
+  }, [product]);
+
   const statusLabel: Record<string, { text: string; color: string }> = {
     selling: { text: t('used.status.selling'), color: 'bg-mint/20 text-emerald-700' },
     reserved: { text: t('used.status.reserved'), color: 'bg-yellow-100 text-yellow-700' },

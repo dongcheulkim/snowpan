@@ -10,13 +10,31 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name, nickname, phone } = req.body;
 
+    if (!email || !password || !name || !phone) {
+      res.status(400).json({ error: '필수 정보를 모두 입력해주세요.' });
+      return;
+    }
+
+    // 비밀번호 정책 — 클라이언트만 믿지 않고 서버에서도 강제.
+    if (typeof password !== 'string' || !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) {
+      res.status(400).json({ error: '비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.' });
+      return;
+    }
+
+    // 한국 휴대폰 형식 (하이픈 자동 제거 후 검사).
+    const phoneClean = String(phone).replace(/[-\s]/g, '');
+    if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
+      res.status(400).json({ error: '올바른 휴대폰 번호 형식이 아닙니다.' });
+      return;
+    }
+
     const existingEmail = await prisma.user.findUnique({ where: { email } });
     if (existingEmail) {
       res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
       return;
     }
 
-    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    const existingPhone = await prisma.user.findUnique({ where: { phone: phoneClean } });
     if (existingPhone) {
       res.status(400).json({ error: '이미 가입된 전화번호입니다. 같은 전화번호로는 하나의 계정만 만들 수 있습니다.' });
       return;
@@ -44,7 +62,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         password: hashedPassword,
         name,
         nickname: trimmedNickname || null,
-        phone,
+        phone: phoneClean,
       },
     });
 

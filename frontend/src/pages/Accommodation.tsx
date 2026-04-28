@@ -98,7 +98,7 @@ const Accommodation = () => {
 
       {/* Ad Banner — 광고 있을 때만 노출 */}
       {banners.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
+        <div className="relative overflow-hidden rounded-2xl border h-24" style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
           {banners.map((banner, idx) => (
             <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${idx === currentBanner ? "translate-x-0" : idx < currentBanner ? "-translate-x-full pointer-events-none" : "translate-x-full pointer-events-none"}`}>
               <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>

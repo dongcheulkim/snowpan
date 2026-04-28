@@ -83,7 +83,7 @@ const Rental = () => {
 
       {/* Ad Banner — 광고 있을 때만 노출 */}
       {banners.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
+        <div className="relative overflow-hidden rounded-2xl border h-24" style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
           {banners.map((banner, idx) => (
             <div
               key={idx}

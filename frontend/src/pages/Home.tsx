@@ -115,9 +115,14 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-sky-50">
       <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
-      {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0) */}
+      {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
+          광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
+          어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피. */}
       <div className="px-4 pt-3 pb-5 bg-white">
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 aspect-[3.5/1] md:aspect-[6/1] lg:aspect-[8/1] max-h-44">
+        <div
+          className="relative overflow-hidden rounded-2xl border aspect-[3.5/1] md:aspect-[6/1] lg:aspect-[8/1] max-h-44"
+          style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+        >
           {/* Slide #0: 브랜드 소개 — translate-only 슬라이드 (opacity 페이드 제거 → 두 슬라이드 동시 노출 버그 해소) */}
           <div
             aria-hidden={currentBanner !== 0}
