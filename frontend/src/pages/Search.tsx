@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
 import { MaintenanceIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
+import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface SearchResult {
   products: { id: string; name: string; price: number; brand: string; image: string }[];
   posts: { id: string; title: string; category: string; sport: string }[];
   shops: { id: string; name: string; area: string; type: string }[];
 }
-
-const categoryMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장', tip: '초보팁', carpool: '카풀', poll: '투표',
-};
 
 export default function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -111,7 +108,7 @@ export default function Search() {
           <div className="card overflow-hidden">
             {results.posts.map((p, idx) => (
               <Link key={p.id} to={`/community/post/${p.id}`} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${idx < results.posts.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
+                <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{communityCategoryLabel(p.category, p.sport)}</span>
                 <span className="text-sm text-gray-900 flex-1 truncate">{p.title}</span>
               </Link>
             ))}

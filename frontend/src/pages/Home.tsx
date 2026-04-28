@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import BrandHero from '../components/BrandHero';
+import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface Product {
   id: string;
@@ -36,10 +37,6 @@ interface CommunityPost {
   user: { name: string };
   createdAt: string;
 }
-
-const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', resort: '스키장', tip: '초보팁', carpool: '카풀',
-};
 
 const Home = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -269,7 +266,7 @@ const Home = () => {
               {(communityTab === 'ski' ? skiPosts : boardPosts).map((post, idx, arr) => (
                 <Link key={post.id} to={`/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
+                    <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{communityCategoryLabel(post.category, communityTab)}</span>
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">

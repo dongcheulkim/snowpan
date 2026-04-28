@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { CloseIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import { communityCategories } from '../utils/communityLabels';
+import { useUnloadGuard } from '../hooks/useUnloadGuard';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
@@ -23,14 +25,7 @@ const CommunityWrite = () => {
     </span>
   );
 
-  const categories = [
-    { id: 'free', name: '자유' },
-    { id: 'review', name: '장비리뷰' },
-    { id: 'gear', name: '장비추천' },
-    { id: 'resort', name: '스키장' },
-    { id: 'tip', name: '초보팁' },
-    { id: 'carpool', name: '카풀' },
-  ];
+  const categories = communityCategories(sport);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -53,6 +48,12 @@ const CommunityWrite = () => {
   const CONTENT_MAX = 5000;
   const titleOver = title.length > TITLE_MAX;
   const contentOver = content.length > CONTENT_MAX;
+
+  // 작성 중인데 실수로 페이지 떠나면 경고 — 카테고리 변경/sport 전환 시도 시 데이터 보호.
+  const isDirty = !submitting && (
+    title.trim() !== '' || content.trim() !== '' || imageFiles.length > 0
+  );
+  useUnloadGuard(isDirty);
   // <script>·이벤트 핸들러 등 sanitize 대상 패턴 — 사전 안내용 (백엔드가 실제 정화).
   const looksUnsafe = /<script\b|on\w+\s*=|<iframe\b|javascript:/i.test(title + ' ' + content);
 

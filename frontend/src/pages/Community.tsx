@@ -6,6 +6,7 @@ import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
 import { FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface Post {
   id: string;
@@ -61,16 +62,17 @@ const Community = () => {
     </span>
   );
 
+  // 카테고리 라벨은 종목별로 다름 — 보드 커뮤니티에선 'resort' 가 '라이딩 장소' 로 표시.
   const tabs = [
     { id: 'all', name: t('community.all') },
     { id: 'popular', name: '인기' },
-    { id: 'free', name: t('community.free') },
-    { id: 'review', name: t('community.review') },
-    { id: 'gear', name: '장비추천' },
-    { id: 'resort', name: t('community.resort') },
-    { id: 'tip', name: t('community.tip') },
-    { id: 'carpool', name: t('community.carpool') },
-    { id: 'poll', name: '투표' },
+    { id: 'free', name: communityCategoryLabel('free', sport) },
+    { id: 'review', name: communityCategoryLabel('review', sport) },
+    { id: 'gear', name: communityCategoryLabel('gear', sport) },
+    { id: 'resort', name: communityCategoryLabel('resort', sport) },
+    { id: 'tip', name: communityCategoryLabel('tip', sport) },
+    { id: 'carpool', name: communityCategoryLabel('carpool', sport) },
+    { id: 'poll', name: communityCategoryLabel('poll', sport) },
   ];
 
   useEffect(() => {

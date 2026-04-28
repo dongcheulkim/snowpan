@@ -3,16 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { MaintenanceIcon, SkiShopIcon } from './CategoryIcons';
 import { CloseIcon } from './Icons';
+import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface SearchResult {
   products: { id: string; name: string; price: number; brand: string }[];
   posts: { id: string; title: string; category: string; sport: string }[];
   shops: { id: string; name: string; area: string; type: string }[];
 }
-
-const categoryMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', resort: '스키장', tip: '초보팁', carpool: '카풀',
-};
 
 export default function SearchBar() {
   const [open, setOpen] = useState(false);
@@ -112,7 +109,7 @@ export default function SearchBar() {
                       <div className="text-[10px] font-bold text-gray-500 mb-2">커뮤니티</div>
                       {results!.posts.map(p => (
                         <button key={p.id} onClick={() => go(`/community/post/${p.id}`)} className="w-full flex items-center gap-3 py-2 hover:bg-gray-50 rounded-lg px-2 transition-colors text-left">
-                          <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
+                          <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{communityCategoryLabel(p.category, p.sport)}</span>
                           <span className="text-sm text-gray-900 flex-1 truncate">{p.title}</span>
                         </button>
                       ))}

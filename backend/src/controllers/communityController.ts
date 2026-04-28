@@ -276,7 +276,8 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
       const title = '새 댓글';
       const body = `'${post.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`;
       const link = `/community/post/${postId}`;
-      await createNotification(post.userId, 'chat', title, body, link);
+      // type='community' — 'chat' 으로 잘못 분류되던 것 정정 (분류·필터·뱃지 분리에 영향).
+      await createNotification(post.userId, 'community', title, body, link);
       sendPushToUser(post.userId, title, body, link);
     }
 
