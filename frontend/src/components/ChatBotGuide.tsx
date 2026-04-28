@@ -58,7 +58,7 @@ export default function ChatBotGuide({ onSelect }: Props) {
               <BotIcon size={18} className="text-gray-700" />
               <span className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><Icon size={16} /> {label}</span>
             </div>
-            <p className="text-[10px] text-gray-400 mb-3">세부 항목을 선택해주세요</p>
+            <p className="text-[10px] text-gray-500 mb-3">세부 항목을 선택해주세요</p>
             <div className="space-y-1.5">
               {categories[selectedCat].subs.map(sub => (
                 <button
@@ -74,7 +74,7 @@ export default function ChatBotGuide({ onSelect }: Props) {
               ))}
               <button
                 onClick={() => setStep('main')}
-                className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-gray-600"
+                className="w-full text-left px-3 py-2 text-xs text-gray-500 hover:text-gray-600"
               >
                 ← 뒤로
               </button>

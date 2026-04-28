@@ -64,7 +64,7 @@ const Login = () => {
       <div className="card p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('login.title')}</h1>
-          <p className="text-sm text-gray-400">{t('login.welcome')}</p>
+          <p className="text-sm text-gray-500">{t('login.welcome')}</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
@@ -108,7 +108,7 @@ const Login = () => {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-white text-gray-400">{t('login.socialLogin')}</span>
+              <span className="px-3 bg-white text-gray-500">{t('login.socialLogin')}</span>
             </div>
           </div>
 
@@ -141,7 +141,7 @@ const Login = () => {
         </div>
 
         <div className="mt-4 text-center space-y-2">
-          <Link to="/forgot-password" className="text-xs text-gray-400 hover:underline block">{t('login.forgotPassword')}</Link>
+          <Link to="/forgot-password" className="text-xs text-gray-500 hover:underline block">{t('login.forgotPassword')}</Link>
           <Link to="/register" className="text-xs text-primary-dark hover:underline block">{t('login.noAccount')}</Link>
         </div>
       </div>

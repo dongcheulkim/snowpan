@@ -26,11 +26,11 @@ export default function BrandHero() {
         <p className="mt-1 text-[11px] sm:text-sm font-semibold text-gray-800 leading-tight">
           설원 위의 자유, 끝없는 플레이의 장
         </p>
-        <p className="text-[9px] sm:text-[10px] text-gray-400 tracking-[0.14em] font-medium mt-0.5">
+        <p className="text-[9px] sm:text-[10px] text-gray-500 tracking-[0.14em] font-medium mt-0.5">
           FREEDOM ON THE SNOW · ENDLESS PLAYGROUND
         </p>
       </div>
-      <span className="text-[9px] font-bold text-gray-400 tracking-wider ml-3 flex-shrink-0">ABOUT</span>
+      <span className="text-[9px] font-bold text-gray-500 tracking-wider ml-3 flex-shrink-0">ABOUT</span>
     </div>
   );
 }

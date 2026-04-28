@@ -71,14 +71,14 @@ const MySales = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('mySales.title')}</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">{t('mySales.loading')}</div>
+        <div className="text-center py-16 text-gray-500 text-sm">{t('mySales.loading')}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('mySales.empty')}</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{t('mySales.empty')}</div>
       ) : (
         <div className="space-y-2">
           {products.map((item) => {
@@ -89,7 +89,7 @@ const MySales = () => {
                     {item.image?.startsWith('http') ? (
                       <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"><PackageIcon size={20} /></div>
+                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500"><PackageIcon size={20} /></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/used/${item.id}`)}>

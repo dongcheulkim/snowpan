@@ -60,14 +60,14 @@ export default function RepairShopRegister() {
   return (
     <div className="max-w-lg mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/repair" className="text-gray-400 text-lg">←</Link>
+        <Link to="/repair" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">정비샵 등록</h1>
       </div>
 
       <div className="card p-6">
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className={labelClass}>사업자등록증 * <span className="text-xs text-gray-400">(필수)</span></label>
+            <label className={labelClass}>사업자등록증 * <span className="text-xs text-gray-500">(필수)</span></label>
             {licensePreview ? (
               <div className="relative">
                 <img src={licensePreview} alt="" className="w-full max-h-48 object-contain rounded-lg border border-gray-200" />
@@ -75,7 +75,7 @@ export default function RepairShopRegister() {
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-sky-300 rounded-lg cursor-pointer hover:border-sky-500 transition-colors bg-sky-50/50">
-                <ClipboardIcon size={28} className="text-gray-400 mb-1" />
+                <ClipboardIcon size={28} className="text-gray-500 mb-1" />
                 <span className="text-xs text-sky-600 font-medium">사업자등록증 사진 업로드</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setLicenseFile(f); setLicensePreview(URL.createObjectURL(f)); } }} />
               </label>
@@ -83,7 +83,7 @@ export default function RepairShopRegister() {
           </div>
 
           <div>
-            <label className={labelClass}>샵 대표 사진 <span className="text-xs text-gray-400">(선택)</span></label>
+            <label className={labelClass}>샵 대표 사진 <span className="text-xs text-gray-500">(선택)</span></label>
             {imagePreview ? (
               <div className="relative">
                 <img src={imagePreview} alt="" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
@@ -91,7 +91,7 @@ export default function RepairShopRegister() {
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
-                <span className="text-xs text-gray-400">사진 업로드</span>
+                <span className="text-xs text-gray-500">사진 업로드</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); } }} />
               </label>
             )}
@@ -125,7 +125,7 @@ export default function RepairShopRegister() {
           </div>
 
           <div>
-            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-400">(콤마로 구분)</span></label>
+            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-500">(콤마로 구분)</span></label>
             <input type="text" name="services" value={form.services} onChange={handleChange} placeholder="예: 튜닝, 왁싱, 엣지, 바인딩, 부츠피팅" className={inputClass} />
           </div>
 

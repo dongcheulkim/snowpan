@@ -23,7 +23,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
       >
         ← 이전
       </button>
-      {start > 1 && <span className="px-2 text-xs text-gray-400">...</span>}
+      {start > 1 && <span className="px-2 text-xs text-gray-500">...</span>}
       {pages.map(p => (
         <button
           key={p}
@@ -35,7 +35,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
           {p}
         </button>
       ))}
-      {end < totalPages && <span className="px-2 text-xs text-gray-400">...</span>}
+      {end < totalPages && <span className="px-2 text-xs text-gray-500">...</span>}
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}

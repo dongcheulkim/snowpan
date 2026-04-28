@@ -22,7 +22,7 @@ const MainLayout = () => {
         본문 바로가기
       </a>
       <Navbar />
-      <main id="main-content" className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24">
+      <main id="main-content" className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
         <Outlet />
       </main>
       <BottomNav />

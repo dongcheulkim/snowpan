@@ -80,10 +80,10 @@ const CommunityWrite = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">&larr;</button>
+          <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
           <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> 글쓰기</h1>
         </div>
-        <button onClick={() => navigate(-1)} className="text-sm text-gray-400">취소</button>
+        <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
 
       <div>
@@ -128,7 +128,7 @@ const CommunityWrite = () => {
           {imageFiles.length < 5 && (
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-accent/50 hover:text-accent-light transition-all"
+              className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 hover:border-accent/50 hover:text-accent-light transition-all"
             >
               <span className="text-xl">+</span>
               <span className="text-[10px]">{imageFiles.length}/5</span>
@@ -140,7 +140,7 @@ const CommunityWrite = () => {
       <div className="card p-4 space-y-3">
         <button onClick={() => setShowRules(!showRules)} className="flex items-center justify-between w-full">
           <span className="text-sm font-bold text-gray-700">커뮤니티 이용규칙</span>
-          <span className="text-gray-400 text-xs">{showRules ? '접기' : '펼치기'}</span>
+          <span className="text-gray-500 text-xs">{showRules ? '접기' : '펼치기'}</span>
         </button>
         {showRules && (
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed space-y-2">
@@ -160,7 +160,7 @@ const CommunityWrite = () => {
         </label>
       </div>
 
-      <button onClick={handleSubmit} disabled={!agreed || submitting} className={`w-full h-12 rounded-xl font-bold text-sm transition-colors ${agreed ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+      <button onClick={handleSubmit} disabled={!agreed || submitting} className={`w-full h-12 rounded-xl font-bold text-sm transition-colors ${agreed ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
         {submitting ? '등록 중...' : '등록하기'}
       </button>
     </div>

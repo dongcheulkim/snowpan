@@ -48,7 +48,7 @@ const AccommodationDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="text-4xl mb-4">⏳</div>
-        <p className="text-sm text-gray-400">불러오는 중...</p>
+        <p className="text-sm text-gray-500">불러오는 중...</p>
       </div>
     );
   }
@@ -56,9 +56,9 @@ const AccommodationDetail = () => {
   if (!item) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-300"><SadIcon size={56} strokeWidth={1.4} /></div>
+        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500"><SadIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">숙소 정보를 찾을 수 없습니다</h2>
-        <Link to="/accommodation" className="text-gray-400 hover:text-gray-900 text-sm">
+        <Link to="/accommodation" className="text-gray-500 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -72,7 +72,7 @@ const AccommodationDetail = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">
+        <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">
           ← 숙소 목록
         </Link>
         <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
@@ -96,18 +96,18 @@ const AccommodationDetail = () => {
           <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">
             {item.resort?.name}
           </span>
-          <span className="text-[10px] text-gray-400">{item.guests}</span>
+          <span className="text-[10px] text-gray-500">{item.guests}</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
         {item.resort?.location && (
-          <p className="text-xs text-gray-400 mb-3">{item.resort.location}</p>
+          <p className="text-xs text-gray-500 mb-3">{item.resort.location}</p>
         )}
       </div>
 
       {/* Price */}
       <div className="card rounded-2xl p-5">
         {discount > 0 && (
-          <div className="text-sm text-gray-400 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
+          <div className="text-sm text-gray-500 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
         )}
         <div className="flex items-center gap-3">
           <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
@@ -115,7 +115,7 @@ const AccommodationDetail = () => {
             <span className="text-sm text-coral font-bold bg-coral/10 px-2 py-1 rounded-lg border border-coral/20">{discount}% 할인</span>
           )}
         </div>
-        <div className="text-xs text-gray-400 mt-1">1박 기준</div>
+        <div className="text-xs text-gray-500 mt-1">1박 기준</div>
       </div>
 
       {/* Features */}
@@ -138,11 +138,11 @@ const AccommodationDetail = () => {
           <h3 className="text-sm font-bold text-gray-900 mb-3">등록자 정보</h3>
           <div className="space-y-2.5">
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-400">이름</span>
+              <span className="text-xs text-gray-500">이름</span>
               <span className="text-sm text-gray-900">{item.user.name}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-400">연락처</span>
+              <span className="text-xs text-gray-500">연락처</span>
               <span className="text-sm text-gray-900">{item.user.phone}</span>
             </div>
           </div>

@@ -118,7 +118,7 @@ const SellerProfile = () => {
         <button
           key={star}
           onClick={() => interactive && onChange?.(star)}
-          className={`${interactive ? 'cursor-pointer' : 'cursor-default'} ${star <= rating ? 'text-gold' : 'text-gray-300'}`}
+          className={`${interactive ? 'cursor-pointer' : 'cursor-default'} ${star <= rating ? 'text-gold' : 'text-gray-500'}`}
           disabled={!interactive}
           aria-label={`${star}점`}
         >
@@ -128,24 +128,24 @@ const SellerProfile = () => {
     </div>
   );
 
-  if (loading) return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
+  if (loading) return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">{t('general.loading')}</div>;
 
   if (!seller) {
     return (
       <div className="text-center py-20 animate-fade-in">
         <h2 className="text-xl font-bold text-gray-900 mb-2">{t('sellerProfile.notFound')}</h2>
-        <Link to="/used" className="text-gray-400 hover:text-gray-900 text-sm">&larr; {t('sellerProfile.backToList')}</Link>
+        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">&larr; {t('sellerProfile.backToList')}</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; {t('sellerProfile.back')}</Link>
+      <Link to="/used" className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('sellerProfile.back')}</Link>
 
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 mx-auto mb-4 overflow-hidden">
+        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 mx-auto mb-4 overflow-hidden">
           {seller.profileImage ? (
             <img src={seller.profileImage} alt="" className="w-full h-full object-cover" />
           ) : <UserIcon size={36} />}
@@ -158,17 +158,17 @@ const SellerProfile = () => {
           <div className="flex items-center justify-center gap-1.5 mt-2">
             {renderStars(Math.round(averageRating))}
             <span className="text-sm font-bold text-gold">{averageRating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({reviewCount})</span>
+            <span className="text-xs text-gray-500">({reviewCount})</span>
           </div>
         )}
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gray-900">{seller.products.length}개</div>
-            <div className="text-[10px] text-gray-400">{t('sellerProfile.sales')}</div>
+            <div className="text-[10px] text-gray-500">{t('sellerProfile.sales')}</div>
           </div>
           <div className="py-3 bg-white rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
-            <div className="text-[10px] text-gray-400">{t('sellerProfile.avgRating')}</div>
+            <div className="text-[10px] text-gray-500">{t('sellerProfile.avgRating')}</div>
           </div>
         </div>
       </div>
@@ -215,22 +215,22 @@ const SellerProfile = () => {
         )}
 
         {reviews.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">{t('sellerProfile.noReviews')}</p>
+          <p className="text-sm text-gray-500 text-center py-6">{t('sellerProfile.noReviews')}</p>
         ) : (
           <div className="space-y-3">
             {reviews.map((review) => (
               <div key={review.id} className="p-3 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden">
                     {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
                   </div>
                   <span className="text-xs font-bold text-gray-900">{review.buyer.name}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => (
-                      <span key={s} className={`${s <= review.rating ? 'text-gold' : 'text-gray-300'}`}><StarIcon size={11} /></span>
+                      <span key={s} className={`${s <= review.rating ? 'text-gold' : 'text-gray-500'}`}><StarIcon size={11} /></span>
                     ))}
                   </div>
-                  <span className="text-[10px] text-gray-400">{formatTime(review.createdAt)}</span>
+                  <span className="text-[10px] text-gray-500">{formatTime(review.createdAt)}</span>
                 </div>
                 <p className="text-sm text-gray-600">{review.content}</p>
               </div>
@@ -243,7 +243,7 @@ const SellerProfile = () => {
       <div className="card rounded-2xl p-5">
         <h3 className="text-sm font-bold text-gray-900 mb-3">{t('sellerProfile.productsForSale')} ({seller.products.length})</h3>
         {seller.products.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">{t('sellerProfile.noProducts')}</p>
+          <p className="text-sm text-gray-500 text-center py-6">{t('sellerProfile.noProducts')}</p>
         ) : (
           <div className="space-y-3">
             {seller.products.map((item) => (
@@ -261,7 +261,7 @@ const SellerProfile = () => {
                   <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
                   <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
                 </div>
-                <span className="text-gray-400 text-xs">&rarr;</span>
+                <span className="text-gray-500 text-xs">&rarr;</span>
               </Link>
             ))}
           </div>

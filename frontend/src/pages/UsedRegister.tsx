@@ -61,29 +61,19 @@ const UsedRegister = () => {
 
     setLoading(true);
 
-    // 이미지 미업로드 시 카테고리별 picsum placeholder 사용 (실제 이미지로 렌더됨)
-    const placeholderByCat: Record<string, string> = {
-      ski: 'https://picsum.photos/seed/pan-ski/400/400',
-      board: 'https://picsum.photos/seed/pan-board/400/400',
-      boots: 'https://picsum.photos/seed/pan-boots/400/400',
-      binding: 'https://picsum.photos/seed/pan-binding/400/400',
-      helmet: 'https://picsum.photos/seed/pan-helmet/400/400',
-      goggles: 'https://picsum.photos/seed/pan-goggles/400/400',
-      wear: 'https://picsum.photos/seed/pan-wear/400/400',
-      etc: 'https://picsum.photos/seed/pan-gear/400/400',
-    };
-    const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상중', '사용감 적음': '중', '사용감 많음': '하' };
+    // 사진 1장 이상 업로드 강제 (위에서 이미 검증). 외부 placeholder 의존 제거.
+    // 백엔드/노출 라벨 통일: 상/중/하 3단계만 유효. "상중" 같은 사이값은 사용 안 함.
+    const conditionMap: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
 
     try {
-      let imgUrl = placeholderByCat[form.subcategory] || placeholderByCat.etc;
-      let allImageUrls = '';
-      if (imageFiles.length > 0) {
-        const urls = await uploadImages(imageFiles);
-        if (urls.length > 0) {
-          imgUrl = urls[0];
-          allImageUrls = urls.join(',');
-        }
+      const urls = await uploadImages(imageFiles);
+      if (urls.length === 0) {
+        toastError('사진 업로드에 실패했습니다. 다시 시도해주세요.');
+        setLoading(false);
+        return;
       }
+      const imgUrl = urls[0];
+      const allImageUrls = urls.join(',');
 
       await api('/products/used', {
         method: 'POST',
@@ -117,14 +107,14 @@ const UsedRegister = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/used" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors mb-6">
+      <Link to="/used" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors mb-6">
         ← 중고 장비 목록
       </Link>
 
       <div className="card rounded-2xl p-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">중고 장비 등록</h1>
-          <p className="text-sm text-gray-400">판매할 장비 정보를 입력해주세요</p>
+          <p className="text-sm text-gray-500">판매할 장비 정보를 입력해주세요</p>
         </div>
 
         {(() => {
@@ -147,7 +137,7 @@ const UsedRegister = () => {
               {/* 스텝 라벨 — 좁은 화면 (≤ 375px) 에선 번호 원 + 현재 스텝만 노출해서 overflow 방지 */}
               <div className="hidden sm:flex justify-between mt-2">
                 {steps.map((s, i) => (
-                  <span key={i} className={`text-[10px] ${s.done ? 'text-gray-900 font-bold' : 'text-gray-400'}`}>
+                  <span key={i} className={`text-[10px] ${s.done ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
                     {s.done ? '✓ ' : `${i + 1}. `}{s.label}
                   </span>
                 ))}
@@ -155,7 +145,7 @@ const UsedRegister = () => {
               <div className="flex sm:hidden items-center justify-between mt-2 gap-2">
                 {steps.map((s, i) => (
                   <div key={i} className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <span className={`flex-shrink-0 w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
                       {s.done ? '✓' : i + 1}
                     </span>
                     {/* 활성 스텝 (첫 미완료) 라벨만 표시, 나머지는 번호만 */}
@@ -225,13 +215,13 @@ const UsedRegister = () => {
               className="bg-gray-100 rounded-lg p-8 text-center border-2 border-dashed border-gray-300 hover:border-accent/50 transition-all cursor-pointer block"
             >
               <div className="text-sm text-gray-500">클릭하여 사진을 업로드하세요</div>
-              <div className="text-xs text-gray-400 mt-1">{images.length}/5장 · JPG, PNG</div>
+              <div className="text-xs text-gray-500 mt-1">{images.length}/5장 · JPG, PNG</div>
             </label>
           </div>
 
           {/* 상품명 */}
           <div>
-            <label className={labelClass}>상품명 <span className="text-gray-400 text-xs font-normal">(한글로 써주시는게 좋아요!)</span></label>
+            <label className={labelClass}>상품명 <span className="text-gray-500 text-xs font-normal">(한글로 써주시는게 좋아요!)</span></label>
             <input
               type="text"
               name="name"
@@ -413,7 +403,7 @@ const UsedRegister = () => {
               className="flex items-center justify-between w-full"
             >
               <span className="text-sm font-bold text-gray-700">중고거래 주의사항</span>
-              <span className="text-gray-400 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
+              <span className="text-gray-500 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
             </button>
             {showRules && (
               <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed space-y-2">
@@ -427,7 +417,7 @@ const UsedRegister = () => {
                   <li><span className="font-medium text-gray-600">개인정보 보호</span> — 게시글에 연락처, 계좌번호 등 개인정보를 직접 노출하지 마세요</li>
                   <li><span className="font-medium text-gray-600">플랫폼 책임 범위</span> — 스노우판은 통신판매중개자로서 거래 당사자가 아니며, 거래에 대한 책임은 판매자·구매자에게 있습니다</li>
                 </ul>
-                <p className="text-[11px] text-gray-400 pt-1">전자상거래법 제20조에 의거, 통신판매중개자는 거래 당사자가 아님을 고지합니다.</p>
+                <p className="text-[11px] text-gray-500 pt-1">전자상거래법 제20조에 의거, 통신판매중개자는 거래 당사자가 아님을 고지합니다.</p>
               </div>
             )}
             <label className="flex items-start gap-2 cursor-pointer">
@@ -449,7 +439,7 @@ const UsedRegister = () => {
             className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] mt-2 ${
               agreed
                 ? 'bg-accent text-white hover:bg-accent-light'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
             }`}
           >
             {loading ? (

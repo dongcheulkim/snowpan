@@ -48,20 +48,20 @@ const MyWishlist = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('myWishlist.title')}</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">{t('myWishlist.loading')}</div>
+        <div className="text-center py-16 text-gray-500 text-sm">{t('myWishlist.loading')}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">{t('myWishlist.empty')}</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{t('myWishlist.empty')}</div>
       ) : (
         <div className="space-y-2">
           {products.map((item) => (
             <div key={item.id} className="card p-4 flex items-center gap-3">
               <Link to={`/used/${item.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500 overflow-hidden flex-shrink-0">
                   {item.image.startsWith('http') || item.image.startsWith('/') ? (
                     <img src={imageUrl(item.image, 150)} alt="" loading="lazy" className="w-full h-full object-cover" />
                   ) : <PackageIcon size={20} />}
@@ -71,7 +71,7 @@ const MyWishlist = () => {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</span>
                     {item.status !== 'selling' && (
-                      <span className="text-[10px] text-gray-400">{statusText[item.status]}</span>
+                      <span className="text-[10px] text-gray-500">{statusText[item.status]}</span>
                     )}
                   </div>
                 </div>

@@ -240,7 +240,7 @@ export default function AdBooking() {
                   ? 'bg-sky-500 text-white'
                   : s < step
                   ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
-                  : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700'
               }`}
             >
               {s < step ? '✓' : s}
@@ -284,7 +284,7 @@ export default function AdBooking() {
                     {minPrice > 0 && (
                       <div className="text-right">
                         <div className="text-sky-600 font-bold">{formatPrice(minPrice)}원</div>
-                        <div className="text-xs text-gray-400">/ 1일</div>
+                        <div className="text-xs text-gray-500">/ 1일</div>
                       </div>
                     )}
                   </div>
@@ -296,7 +296,7 @@ export default function AdBooking() {
           {/* 카테고리 선택 (category/premium 타입일 때) */}
           {(selectedSlot === 'category' || selectedSlot === 'premium') && (
             <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-500 mb-2">
                 카테고리 선택
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -307,7 +307,7 @@ export default function AdBooking() {
                     className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
                       selectedCategory === key
                         ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-500 hover:border-gray-300'
                     }`}
                   >
                     {label}
@@ -379,7 +379,7 @@ export default function AdBooking() {
                   <span className="text-sm text-gray-500">시작일</span>
                   <div className="font-bold text-sky-700 dark:text-sky-400">{formatDate(startDate)}</div>
                 </div>
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
                 <div className="text-right">
@@ -391,7 +391,7 @@ export default function AdBooking() {
               </div>
               {endDate && currentPricing && (
                 <div className="mt-3 pt-3 border-t border-sky-200 dark:border-sky-800 flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-gray-600 dark:text-gray-500">
                     {totalDays}일 × {formatPrice(currentPricing.pricePerDay)}원
                   </span>
                   <span className="font-bold text-sky-700 dark:text-sky-400">
@@ -418,7 +418,7 @@ export default function AdBooking() {
           <h2 className="text-lg font-bold mb-2">광고 내용 작성</h2>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">광고 제목 *</label>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 제목 *</label>
             <input
               type="text"
               value={title}
@@ -429,7 +429,7 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">광고 설명 *</label>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 설명 *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -440,7 +440,7 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">연결 URL *</label>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">연결 URL *</label>
             <input
               type="url"
               value={url}
@@ -451,7 +451,7 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">광고 이미지</label>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 이미지</label>
             <div className="mt-1">
               {imagePreview ? (
                 <div className="relative">
@@ -469,10 +469,10 @@ export default function AdBooking() {
                 </div>
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-sky-400 transition-colors">
-                  <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-8 h-8 text-gray-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-sm text-gray-400">이미지 업로드</span>
+                  <span className="text-sm text-gray-500">이미지 업로드</span>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
               )}
@@ -483,7 +483,7 @@ export default function AdBooking() {
           {selectedSlot !== 'premium' && (
             <>
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">글자 색상</label>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">글자 색상</label>
                 <div className="flex items-center gap-3 mt-1">
                   <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
                   <div className="flex gap-2">
@@ -491,12 +491,12 @@ export default function AdBooking() {
                       <button key={c} type="button" onClick={() => setTextColor(c)} className={`w-8 h-8 rounded-full border-2 ${textColor === c ? 'border-sky-500 scale-110' : 'border-gray-200'} transition-all`} style={{ backgroundColor: c }} />
                     ))}
                   </div>
-                  <span className="text-xs text-gray-400 ml-auto">{textColor}</span>
+                  <span className="text-xs text-gray-500 ml-auto">{textColor}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">글자 위치</label>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">글자 위치</label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
                   {([['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']] as const).map(([val, label]) => (
                     <button key={val} type="button" onClick={() => setTextAlign(val)} className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${textAlign === val ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
@@ -508,7 +508,7 @@ export default function AdBooking() {
 
               {/* 미리보기 */}
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">미리보기</label>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">미리보기</label>
                 <div className="mt-1 relative overflow-hidden rounded-xl bg-gray-100 border border-gray-200 aspect-[3.5/1]">
                   {imagePreview && (
                     <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -651,7 +651,7 @@ export default function AdBooking() {
             )}
           </button>
 
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-xs text-gray-500 text-center">
             입금 확인 후 관리자가 승인하면 광고가 바로 노출됩니다.
           </p>
         </div>

@@ -32,7 +32,7 @@ export default function MyShops() {
         <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
-          <p className="text-[10px] text-gray-400">{shop.area}</p>
+          <p className="text-[10px] text-gray-500">{shop.area}</p>
         </div>
       </div>
       <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
@@ -41,12 +41,12 @@ export default function MyShops() {
     </div>
   );
 
-  if (loading) return <div className="text-center py-20 text-gray-400 text-sm">로딩 중...</div>;
+  if (loading) return <div className="text-center py-20 text-gray-500 text-sm">로딩 중...</div>;
 
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">내 스키샵/정비샵</h1>
       </div>
 
@@ -56,7 +56,7 @@ export default function MyShops() {
           <Link to="/skishop/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {skiShops.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">등록한 스키샵이 없습니다.</p>
+          <p className="text-xs text-gray-500 text-center py-4">등록한 스키샵이 없습니다.</p>
         ) : (
           <div className="space-y-2">{skiShops.map(s => <ShopCard key={s.id} shop={s} type="ski" />)}</div>
         )}
@@ -68,7 +68,7 @@ export default function MyShops() {
           <Link to="/repair/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {repairShops.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">등록한 정비샵이 없습니다.</p>
+          <p className="text-xs text-gray-500 text-center py-4">등록한 정비샵이 없습니다.</p>
         ) : (
           <div className="space-y-2">{repairShops.map(s => <ShopCard key={s.id} shop={s} type="repair" />)}</div>
         )}

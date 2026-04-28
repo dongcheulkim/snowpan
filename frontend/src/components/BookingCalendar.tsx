@@ -119,13 +119,13 @@ export default function BookingCalendar({
 
     let cellClass = 'h-10 w-full rounded-lg text-sm font-medium transition-all ';
     if (isDisabled) {
-      cellClass += 'text-gray-300 dark:text-gray-600 cursor-not-allowed line-through';
+      cellClass += 'text-gray-500 dark:text-gray-600 cursor-not-allowed line-through';
     } else if (isSelected) {
       cellClass += 'bg-sky-500 text-white shadow-md';
     } else if (inRange) {
       cellClass += 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300';
     } else {
-      cellClass += 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-pointer';
+      cellClass += 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-500 cursor-pointer';
     }
 
     if (isToday && !isSelected) {
@@ -179,7 +179,7 @@ export default function BookingCalendar({
           <div
             key={name}
             className={`text-center text-xs font-medium py-1 ${
-              i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'
+              i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-500'
             }`}
           >
             {name}
@@ -191,7 +191,7 @@ export default function BookingCalendar({
       <div className="grid grid-cols-7 gap-1">{cells}</div>
 
       {/* 범례 */}
-      <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
+      <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-sky-500" />
           <span>선택됨</span>

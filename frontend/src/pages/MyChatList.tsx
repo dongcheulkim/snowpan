@@ -86,7 +86,7 @@ const MyChatList = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">{t('chat.loginRequired')}</p>
+        <p className="text-gray-500 mb-4">{t('chat.loginRequired')}</p>
         <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
@@ -95,7 +95,7 @@ const MyChatList = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/" className="text-gray-400 text-lg">&larr;</Link>
+        <Link to="/" className="text-gray-500 text-lg">&larr;</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('myChatList.title')}</h1>
       </div>
 
@@ -123,7 +123,7 @@ const MyChatList = () => {
                 key={room.id}
                 className="card p-4 flex items-center gap-3 block"
               >
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 border border-gray-200">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500 border border-gray-200">
                   <UserIcon size={22} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -135,18 +135,18 @@ const MyChatList = () => {
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-400 mt-0.5 truncate">
+                  <div className="text-xs text-gray-500 mt-0.5 truncate">
                     {lastMsg ? renderPreview(lastMsg) : t('myChatList.startChat')}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className="text-[11px] text-gray-300">
+                  <span className="text-[11px] text-gray-500">
                     {lastMsg ? formatTime(lastMsg.createdAt) : ''}
                   </span>
                   <button
                     onClick={(e) => handleDelete(room.id, other.name, e)}
                     aria-label="대화 삭제"
-                    className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-coral hover:bg-coral/10 rounded transition-colors"
+                    className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-coral hover:bg-coral/10 rounded transition-colors"
                   >
                     <CloseIcon size={14} />
                   </button>

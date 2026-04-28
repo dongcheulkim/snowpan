@@ -109,18 +109,18 @@ const UsedEdit = () => {
   const inputClass = "w-full px-3 py-2.5 bg-white border border-sky-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 transition-all";
   const labelClass = "block text-sm font-medium text-gray-500 mb-2";
 
-  if (fetching) return <div className="text-center py-20 text-gray-400 text-sm">불러오는 중...</div>;
+  if (fetching) return <div className="text-center py-20 text-gray-500 text-sm">불러오는 중...</div>;
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/mypage/sales" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors mb-6">
+      <Link to="/mypage/sales" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors mb-6">
         ← 판매 내역으로
       </Link>
 
       <div className="card rounded-2xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">상품 수정</h1>
-          <p className="text-sm text-gray-400">장비 정보를 수정해주세요</p>
+          <p className="text-sm text-gray-500">장비 정보를 수정해주세요</p>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -185,7 +185,7 @@ const UsedEdit = () => {
             )}
             <label htmlFor="photo-upload" className="bg-gray-50 rounded-lg p-6 text-center border-2 border-dashed border-sky-200 hover:border-sky-400 transition-all cursor-pointer block">
               <div className="text-sm text-gray-500">클릭하여 사진 추가</div>
-              <div className="text-xs text-gray-400 mt-1">{existingImages.length + images.length}/5장</div>
+              <div className="text-xs text-gray-500 mt-1">{existingImages.length + images.length}/5장</div>
             </label>
           </div>
 

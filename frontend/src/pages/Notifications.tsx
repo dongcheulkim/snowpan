@@ -93,7 +93,7 @@ const Notifications = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">{t('notifications.loginRequired')}</p>
+        <p className="text-gray-500 mb-4">{t('notifications.loginRequired')}</p>
         <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
@@ -103,7 +103,7 @@ const Notifications = () => {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-gray-400 text-lg">←</Link>
+          <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
             <span className="text-xs font-bold text-white bg-red-500 px-1.5 py-0.5 rounded-full">{unreadCount}</span>
@@ -111,7 +111,7 @@ const Notifications = () => {
         </div>
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
-            <button onClick={handleMarkAllRead} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            <button onClick={handleMarkAllRead} className="text-xs text-gray-500 hover:text-gray-600 transition-colors">
               {t('notifications.markAllRead')}
             </button>
           )}
@@ -124,11 +124,11 @@ const Notifications = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">{t('general.loading')}</div>
+        <div className="text-center py-16 text-gray-500 text-sm">{t('general.loading')}</div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><BellIcon size={48} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-400">{t('notifications.empty')}</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><BellIcon size={48} strokeWidth={1.4} /></div>
+          <p className="text-sm text-gray-500">{t('notifications.empty')}</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -149,13 +149,13 @@ const Notifications = () => {
                   <span className="text-sm font-bold text-gray-900 truncate">{noti.title}</span>
                   {!noti.read && <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />}
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5 truncate">{noti.message}</p>
-                <span className="text-[10px] text-gray-300 mt-1 block">{formatTime(noti.createdAt)}</span>
+                <p className="text-xs text-gray-500 mt-0.5 truncate">{noti.message}</p>
+                <span className="text-[10px] text-gray-500 mt-1 block">{formatTime(noti.createdAt)}</span>
               </div>
               <button
                 onClick={(e) => handleDelete(noti.id, e)}
                 aria-label="삭제"
-                className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 p-1"
+                className="text-gray-500 hover:text-red-400 transition-colors flex-shrink-0 p-1"
               >
                 <CloseIcon size={16} />
               </button>

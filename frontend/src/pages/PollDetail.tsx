@@ -180,7 +180,7 @@ const PollDetail = () => {
   if (!poll) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-400 text-sm">투표를 찾을 수 없습니다.</p>
+        <p className="text-gray-500 text-sm">투표를 찾을 수 없습니다.</p>
       </div>
     );
   }
@@ -189,7 +189,7 @@ const PollDetail = () => {
     <div className="space-y-4 animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">←</button>
+        <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">←</button>
         <h1 className="text-xl font-bold text-gray-900">투표</h1>
       </div>
 
@@ -197,7 +197,7 @@ const PollDetail = () => {
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[10px] font-semibold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">투표</span>
-          <span className="text-[11px] text-gray-400">{poll.author}</span>
+          <span className="text-[11px] text-gray-500">{poll.author}</span>
         </div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">{poll.title}</h2>
 
@@ -226,7 +226,7 @@ const PollDetail = () => {
                     {isSelected && '✓ '}{opt.label}
                   </span>
                   {voted && (
-                    <span className={`text-sm ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-400'}`}>
+                    <span className={`text-sm ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-500'}`}>
                       {opt.pct}%
                     </span>
                   )}
@@ -237,15 +237,15 @@ const PollDetail = () => {
         </div>
 
         {voted && (
-          <p className="text-xs text-gray-400 text-center mb-3">{poll.totalVotes.toLocaleString()}명 참여</p>
+          <p className="text-xs text-gray-500 text-center mb-3">{poll.totalVotes.toLocaleString()}명 참여</p>
         )}
         {!voted && (
-          <p className="text-xs text-gray-400 text-center mb-3">선택지를 눌러 투표하세요</p>
+          <p className="text-xs text-gray-500 text-center mb-3">선택지를 눌러 투표하세요</p>
         )}
 
         {/* Stats */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-4 text-[12px] text-gray-400">
+          <div className="flex items-center gap-4 text-[12px] text-gray-500">
             <span className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -257,7 +257,7 @@ const PollDetail = () => {
           </div>
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1 text-[12px] transition-colors ${liked ? 'text-red-500' : 'text-gray-400'}`}
+            className={`flex items-center gap-1 text-[12px] transition-colors ${liked ? 'text-red-500' : 'text-gray-500'}`}
           >
             <svg className="w-4 h-4" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -272,7 +272,7 @@ const PollDetail = () => {
         <h3 className="text-sm font-bold text-gray-900 mb-3">댓글 {comments.length}</h3>
 
         {comments.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-6">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+          <p className="text-xs text-gray-500 text-center py-6">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
         )}
 
         <div className="space-y-3">
@@ -285,7 +285,7 @@ const PollDetail = () => {
                   </div>
                   <span className="text-xs font-bold text-gray-700">{cmt.author}</span>
                 </div>
-                <span className="text-[10px] text-gray-300">{formatTime(cmt.createdAt)}</span>
+                <span className="text-[10px] text-gray-500">{formatTime(cmt.createdAt)}</span>
               </div>
               <p className="text-sm text-gray-600 pl-8">{cmt.content}</p>
             </div>
@@ -306,7 +306,7 @@ const PollDetail = () => {
             onClick={handleAddComment}
             disabled={!newComment.trim()}
             className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-              newComment.trim() ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-100 text-gray-300'
+              newComment.trim() ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-100 text-gray-500'
             }`}
           >
             등록

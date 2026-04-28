@@ -61,7 +61,7 @@ const BottomNav = () => {
     <nav
       aria-label="주요 메뉴"
       aria-hidden={keyboardOpen}
-      className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
         keyboardOpen ? 'translate-y-full pointer-events-none' : 'translate-y-0'
       }`}
     >
@@ -75,13 +75,13 @@ const BottomNav = () => {
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
               tabIndex={keyboardOpen ? -1 : 0}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? 'text-sky-500' : 'text-gray-400'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? 'text-sky-500' : 'text-gray-500'}`}
             >
               <div aria-hidden="true" className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
                 {active && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-900 rounded-full" />}
               </div>
-              <span className={`text-[10px] font-medium ${active ? 'text-sky-500' : 'text-gray-400'}`}>{item.label}</span>
+              <span className={`text-[10px] font-medium ${active ? 'text-sky-500' : 'text-gray-500'}`}>{item.label}</span>
             </Link>
           );
         })}

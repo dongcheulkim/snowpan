@@ -51,7 +51,7 @@ const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }
     return (
       <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white min-h-[200px]">
         <LivecamIcon size={28} className="text-gray-500" />
-        <span className="text-xs text-gray-400">스트림을 불러올 수 없습니다</span>
+        <span className="text-xs text-gray-500">스트림을 불러올 수 없습니다</span>
       </div>
     );
   }
@@ -90,11 +90,11 @@ const WebcamDetail = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/webcam" className="text-gray-400 hover:text-gray-900 text-lg transition-colors">←</Link>
+          <Link to="/webcam" className="text-gray-500 hover:text-gray-900 text-lg transition-colors">←</Link>
           <div>
             <h1 className="text-xl font-bold text-gray-900">{cam.name}</h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
+              <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
@@ -144,7 +144,7 @@ const WebcamDetail = () => {
             </div>
           </div>
 
-          <p className="text-[11px] text-gray-400 text-center">
+          <p className="text-[11px] text-gray-500 text-center">
             {cam.cameras!.length}개 카메라 · {currentStream!.label}
           </p>
         </>
@@ -154,10 +154,10 @@ const WebcamDetail = () => {
           <div className="card rounded-2xl overflow-hidden">
             {iframeFailed ? (
               <div className="h-[500px] bg-gray-50 flex flex-col items-center justify-center gap-4">
-                <ProhibitIcon size={48} className="text-gray-300" />
+                <ProhibitIcon size={48} className="text-gray-500" />
                 <div className="text-center">
                   <p className="text-sm font-medium text-gray-700 mb-1">외부 임베딩이 차단되었습니다</p>
-                  <p className="text-xs text-gray-400">공식 사이트에서 직접 확인해주세요</p>
+                  <p className="text-xs text-gray-500">공식 사이트에서 직접 확인해주세요</p>
                 </div>
                 <a
                   href={cam.url}
@@ -188,7 +188,7 @@ const WebcamDetail = () => {
               />
             )}
           </div>
-          <p className="text-[11px] text-gray-400 text-center">
+          <p className="text-[11px] text-gray-500 text-center">
             이 스키장은 자체 스트림이 지원되지 않아 공식 사이트를 표시합니다.
           </p>
         </>

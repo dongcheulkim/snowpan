@@ -48,18 +48,18 @@ const RecentlyViewed = () => {
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/mypage" className="text-gray-400 text-lg">&larr;</Link>
+          <Link to="/mypage" className="text-gray-500 text-lg">&larr;</Link>
           <h1 className="text-xl font-bold text-gray-900">{t('recentlyViewed.title')}</h1>
         </div>
         {products.length > 0 && (
-          <button onClick={clearHistory} className="text-xs text-gray-400 hover:text-coral transition-colors">
+          <button onClick={clearHistory} className="text-xs text-gray-500 hover:text-coral transition-colors">
             {t('recentlyViewed.deleteAll')}
           </button>
         )}
       </div>
 
       {products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">
           {t('recentlyViewed.empty')}
         </div>
       ) : (
@@ -70,7 +70,7 @@ const RecentlyViewed = () => {
               to={`/used/${item.id}`}
               className="card p-4 flex items-center gap-3 block card-hover"
             >
-              <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200 overflow-hidden flex-shrink-0">
+              <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-200 overflow-hidden flex-shrink-0">
                 {isUrl(item.image) ? (
                   <img src={imageUrl(item.image, 180)} alt={item.name} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
@@ -81,7 +81,7 @@ const RecentlyViewed = () => {
                 <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
                 <div className="text-sm font-bold text-mint mt-0.5">{item.price.toLocaleString()}원</div>
               </div>
-              <div className="text-[11px] text-gray-300 flex-shrink-0">
+              <div className="text-[11px] text-gray-500 flex-shrink-0">
                 {formatTime(item.viewedAt)}
               </div>
             </Link>

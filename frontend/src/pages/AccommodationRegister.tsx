@@ -111,7 +111,7 @@ const AccommodationRegister = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">숙소 등록</h1>
-        <button onClick={() => navigate(-1)} className="text-sm text-gray-400">취소</button>
+        <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
       <p className="text-xs text-coral">* 관리자 승인 후 노출됩니다</p>
 
@@ -168,7 +168,7 @@ const AccommodationRegister = () => {
 
       <div>
         <label className={labelClass}>사진</label>
-        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
           <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
         </label>
@@ -176,19 +176,19 @@ const AccommodationRegister = () => {
 
       <div>
         <label className={labelClass}>사업자등록증 <span className="text-coral text-xs">*필수</span></label>
-        <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${bizLicenseFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-400 hover:border-primary/50'}`}>
+        <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${bizLicenseFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-500 hover:border-primary/50'}`}>
           {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진 업로드'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
         </label>
       </div>
 
       <div>
-        <label className={labelClass}>숙박업 신고증 <span className="text-gray-400 font-normal">(선택)</span></label>
-        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-primary/50 transition-all">
+        <label className={labelClass}>숙박업 신고증 <span className="text-gray-500 font-normal">(선택)</span></label>
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {permitFile ? permitFile.name : '숙박업 신고증 사진 업로드'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setPermitFile(e.target.files?.[0] || null)} />
         </label>
-        <p className="text-[10px] text-gray-400 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
+        <p className="text-[10px] text-gray-500 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
       </div>
 
       <label className="flex items-start gap-2 py-2">

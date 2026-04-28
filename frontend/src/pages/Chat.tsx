@@ -29,7 +29,7 @@ interface ChatRoomInfo {
 // 메시지 그룹 사이 날짜 구분선
 const DateSeparator = ({ label }: { label: string }) => (
   <div className="flex items-center justify-center py-2">
-    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 px-2.5 py-0.5 rounded-full">{label}</span>
+    <span className="text-[10px] font-medium text-gray-500 bg-gray-50 px-2.5 py-0.5 rounded-full">{label}</span>
   </div>
 );
 
@@ -191,7 +191,7 @@ const Chat = () => {
   if (!user) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <p className="text-gray-400 mb-4">{t('chat.loginRequired')}</p>
+        <p className="text-gray-500 mb-4">{t('chat.loginRequired')}</p>
         <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
@@ -221,13 +221,13 @@ const Chat = () => {
           <Link to={backPath} aria-label="뒤로" className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </Link>
-          <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 overflow-hidden flex-shrink-0">
+          <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden flex-shrink-0">
             <UserIcon size={18} />
             <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white ${connected ? 'bg-emerald-500' : 'bg-gray-300'}`} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
-            <div className="text-[10px] text-gray-400">{connected ? '온라인' : '연결 중…'}</div>
+            <div className="text-[10px] text-gray-500">{connected ? '온라인' : '연결 중…'}</div>
           </div>
         </div>
 
@@ -238,7 +238,7 @@ const Chat = () => {
             className="block border-t border-gray-100 bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">
                 {state!.productImage!.startsWith('http') || state!.productImage!.startsWith('/') ? (
                   <img src={state!.productImage!.startsWith('/') ? `${SERVER_URL}${state!.productImage}` : state!.productImage} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -246,13 +246,13 @@ const Chat = () => {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] text-gray-400 mb-px">문의 상품</div>
+                <div className="text-[11px] text-gray-500 mb-px">문의 상품</div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-900 truncate">{state!.productName}</span>
                   <span className="text-xs font-bold text-gray-900 flex-shrink-0">{state!.productPrice!.toLocaleString()}원</span>
                 </div>
               </div>
-              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
+              <svg className="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
             </div>
           </Link>
         )}
@@ -281,11 +281,11 @@ const Chat = () => {
           {!isAdminChat && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="w-16 h-16 rounded-full bg-white border border-gray-200 flex items-center justify-center mb-4 shadow-sm">
-                <UserIcon size={32} className="text-gray-400" />
+                <UserIcon size={32} className="text-gray-500" />
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-1">{otherName}</h3>
               <p className="text-xs text-gray-500 mb-1">대화를 시작해보세요</p>
-              <p className="text-[10px] text-gray-400 mb-6 leading-relaxed">
+              <p className="text-[10px] text-gray-500 mb-6 leading-relaxed">
                 정중한 인사와 함께 거래를 시작하면 응답률이 올라가요
               </p>
               <div className="w-full flex flex-wrap gap-2 justify-center max-w-md">
@@ -317,7 +317,7 @@ const Chat = () => {
               try { parsed = JSON.parse(msg.content); } catch { parsed = { productName: msg.content }; }
               const inner = (
                 <div className={`rounded-2xl px-4 py-3 ${isMe ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-900'}`}>
-                  <div className={`flex items-center gap-1.5 mb-1 ${isMe ? 'text-white/60' : 'text-gray-400'}`}>
+                  <div className={`flex items-center gap-1.5 mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>
                     <PackageIcon size={13} />
                     <span className="text-[10px] font-semibold tracking-wide">상품 문의</span>
                   </div>
@@ -325,7 +325,7 @@ const Chat = () => {
                     "{parsed.productName}"
                   </p>
                   {parsed.productPath && (
-                    <p className={`text-[10px] mt-1.5 ${isMe ? 'text-white/60' : 'text-gray-400'}`}>탭하여 상품 보기 →</p>
+                    <p className={`text-[10px] mt-1.5 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>탭하여 상품 보기 →</p>
                   )}
                 </div>
               );
@@ -334,11 +334,11 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
                       {parsed.productPath ? (
                         <Link to={parsed.productPath} className="block active:opacity-70 transition-opacity">{inner}</Link>
                       ) : inner}
-                      <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                      <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                         {showRead && <span className="text-gray-900 font-medium">읽음</span>}
                         <span>{formatTime(msg.createdAt)}</span>
                       </div>
@@ -355,14 +355,14 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
                       <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200'}`}>
-                        <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-400'}`}>가격 제안</div>
+                        <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>가격 제안</div>
                         <div className="text-xl font-black tracking-tight">
                           {isNaN(priceVal) ? msg.content : `${priceVal.toLocaleString()}원`}
                         </div>
                       </div>
-                      <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                      <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                         {showRead && <span className="text-gray-900 font-medium">읽음</span>}
                         <span>{formatTime(msg.createdAt)}</span>
                       </div>
@@ -381,7 +381,7 @@ const Chat = () => {
                   {/* 상대 메시지 좌측 아바타 — 그룹 첫 메시지에만 보이고, 나머지는 빈 공간 유지로 정렬 일관성 */}
                   {!isMe && (
                     isFirstInGroup ? (
-                      <div className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden shadow-sm">
+                      <div className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden shadow-sm">
                         <UserIcon size={14} />
                       </div>
                     ) : (
@@ -389,7 +389,7 @@ const Chat = () => {
                     )
                   )}
                   <div className="max-w-[72%]">
-                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-400 mb-1 ml-1">{msg.sender.name}</div>}
+                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
                     {msg.imageUrl && (
                       msg.imageUrl.includes('/video/') ? (
                         <video src={msg.imageUrl} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 280 }} />
@@ -413,7 +413,7 @@ const Chat = () => {
                         {msg.content}
                       </div>
                     )}
-                    <div className={`text-[10px] text-gray-400 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                    <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                       {showRead && <span className="text-gray-900 font-medium">읽음</span>}
                       <span>{formatTime(msg.createdAt)}</span>
                     </div>

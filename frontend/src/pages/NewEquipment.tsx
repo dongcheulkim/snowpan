@@ -55,7 +55,7 @@ export default function NewEquipment() {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-gray-400 text-lg">←</Link>
+          <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">스키샵</h1>
         </div>
         <RegisterCTA to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
@@ -74,12 +74,12 @@ export default function NewEquipment() {
       {/* 스키장 필터 */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => setSelectedResort('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-400 border border-gray-200'}`}>
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-500 border border-gray-200'}`}>
           전체
         </button>
         {resortList.map(r => (
           <button key={r} onClick={() => setSelectedResort(r)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-400 border border-gray-200'}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-500 border border-gray-200'}`}>
             {r}
           </button>
         ))}
@@ -87,12 +87,12 @@ export default function NewEquipment() {
 
       {/* 목록 */}
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : shops.length === 0 ? (
         <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SkiShopIcon size={44} /></div>
-          <p className="text-sm text-gray-400">{selectedArea !== 'all' || selectedResort !== 'all' ? '해당 지역에 등록된 스키샵이 없습니다.' : '아직 등록된 스키샵이 없습니다.'}</p>
-          <p className="text-xs text-gray-300 mt-1">직접 스키샵을 등록해보세요!</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SkiShopIcon size={44} /></div>
+          <p className="text-sm text-gray-500">{selectedArea !== 'all' || selectedResort !== 'all' ? '해당 지역에 등록된 스키샵이 없습니다.' : '아직 등록된 스키샵이 없습니다.'}</p>
+          <p className="text-xs text-gray-500 mt-1">직접 스키샵을 등록해보세요!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -102,7 +102,7 @@ export default function NewEquipment() {
                 <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
               )}
               <div className="flex gap-4">
-                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
+                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden">
                   {shop.image ? <img src={shop.image} alt={shop.name} loading="lazy" className="w-full h-full object-cover" /> : <SkiShopIcon size={32} />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -110,8 +110,8 @@ export default function NewEquipment() {
                     <h3 className="text-base font-bold text-gray-900">{shop.name}</h3>
                     {shop.resort && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200">{shop.resort}</span>}
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5 inline-flex items-center gap-1"><LocationIcon size={12} /> {shop.address}</p>
-                  {shop.hours && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><ClockIcon size={12} /> {shop.hours}</p>}
+                  <p className="text-xs text-gray-500 mt-0.5 inline-flex items-center gap-1"><LocationIcon size={12} /> {shop.address}</p>
+                  {shop.hours && <p className="text-xs text-gray-500 inline-flex items-center gap-1"><ClockIcon size={12} /> {shop.hours}</p>}
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-2">{shop.description}</p>
                   {shop.brands && (
                     <div className="flex flex-wrap gap-1 mt-2">

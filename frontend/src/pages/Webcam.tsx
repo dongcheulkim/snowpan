@@ -30,7 +30,7 @@ const Webcam = () => {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400">스키장을 선택하면 실시간 웹캠을 볼 수 있습니다.</p>
+      <p className="text-xs text-gray-500">스키장을 선택하면 실시간 웹캠을 볼 수 있습니다.</p>
 
       {/* Resort cards */}
       <div className="grid grid-cols-1 gap-3">
@@ -44,12 +44,12 @@ const Webcam = () => {
                 <div>
                   <div className="text-sm font-bold text-gray-900">{cam.name}</div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
-                    <span className="text-[10px] text-gray-400">{cam.slopes}면 · {cam.elevation}</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
+                    <span className="text-[10px] text-gray-500">{cam.slopes}면 · {cam.elevation}</span>
                     {cam.hasStream ? (
                       <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-medium">{cam.cams}캠</span>
                     ) : (
-                      <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">외부 링크</span>
+                      <span className="text-[10px] text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">외부 링크</span>
                     )}
                   </div>
                 </div>
@@ -61,12 +61,12 @@ const Webcam = () => {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                     </span>
-                    <span className="text-xs text-gray-400">LIVE</span>
+                    <span className="text-xs text-gray-500">LIVE</span>
                   </>
                 ) : (
-                  <span className="text-xs text-gray-300">공식사이트</span>
+                  <span className="text-xs text-gray-500">공식사이트</span>
                 )}
-                <span className="text-gray-300">›</span>
+                <span className="text-gray-500">›</span>
               </div>
             </>
           );

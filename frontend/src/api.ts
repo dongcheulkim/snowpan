@@ -116,10 +116,18 @@ function transformCloudinary(url: string, width?: number): string {
   return url.replace('/image/upload/', `/image/upload/${params.join(',')}/`);
 }
 
+// 외부 placeholder (picsum.photos) 가 차단되거나 느릴 때 로컬 SVG 로 폴백.
+// 기존 DB row 들이 가진 picsum URL 도 자동 교체.
+const LOCAL_PLACEHOLDER = '/icons/placeholder-card.svg';
+
 export function imageUrl(src: string, width?: number): string {
   if (!src) return src;
+  if (src.includes('picsum.photos')) return LOCAL_PLACEHOLDER;
   if (src.startsWith('http')) return transformCloudinary(src, width);
-  if (src.startsWith('/')) return `${SERVER_URL}${src}`;
+  if (src.startsWith('/')) {
+    if (src.startsWith('/icons/') || src.startsWith('/uploads/')) return src;
+    return `${SERVER_URL}${src}`;
+  }
   return src;
 }
 

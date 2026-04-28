@@ -57,7 +57,7 @@ const ForgotPassword = () => {
       <div className="card p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">비밀번호 찾기</h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             {step === 'email' && '가입한 이메일을 입력하세요'}
             {step === 'code' && '이메일로 전송된 인증번호를 입력하세요'}
             {step === 'password' && '새 비밀번호를 설정하세요'}

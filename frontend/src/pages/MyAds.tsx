@@ -52,7 +52,7 @@ export default function MyAds() {
     <div className="max-w-md mx-auto space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+          <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">광고 관리</h1>
         </div>
         <Link to="/ad-booking" className="px-3 py-1.5 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors">
@@ -61,11 +61,11 @@ export default function MyAds() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : ads.length === 0 ? (
         <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><MegaphoneIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-400">신청한 광고가 없습니다.</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><MegaphoneIcon size={44} strokeWidth={1.4} /></div>
+          <p className="text-sm text-gray-500">신청한 광고가 없습니다.</p>
           <Link to="/ad-booking" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs">
             광고 신청하기
           </Link>
@@ -84,13 +84,13 @@ export default function MyAds() {
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-500'}`}>
                       {statusLabel[ad.status] || ad.status}
                     </span>
-                    <span className="text-[10px] text-gray-400">{slotLabel}</span>
+                    <span className="text-[10px] text-gray-500">{slotLabel}</span>
                   </div>
                   <p className="text-sm font-medium text-gray-900 truncate">{ad.title}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                 </div>
                 {!['active', 'paid', 'pending_payment'].includes(ad.status) && (
-                  <button onClick={() => handleDelete(ad.id)} aria-label="삭제" className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0"><CloseIcon size={14} /></button>
+                  <button onClick={() => handleDelete(ad.id)} aria-label="삭제" className="text-gray-500 hover:text-red-400 transition-colors p-1 flex-shrink-0"><CloseIcon size={14} /></button>
                 )}
               </div>
             );

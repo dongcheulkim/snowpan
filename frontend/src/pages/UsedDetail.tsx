@@ -148,7 +148,7 @@ const UsedDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
+    return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">{t('general.loading')}</div>;
   }
 
   if (!product) {
@@ -172,7 +172,7 @@ const UsedDetail = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">
+      <Link to="/used" className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">
         &larr; {t('usedDetail.backToUsed')}
       </Link>
 
@@ -187,9 +187,9 @@ const UsedDetail = () => {
             {hasImages && !imgError ? (
               <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} loading="eager" decoding="async" />
             ) : (
-              <div className="text-center text-gray-400">
+              <div className="text-center text-gray-500">
                 <CameraIcon size={56} strokeWidth={1.4} />
-                <p className="text-xs text-gray-400 mt-2">{t('usedDetail.noImage')}</p>
+                <p className="text-xs text-gray-500 mt-2">{t('usedDetail.noImage')}</p>
               </div>
             )}
           </div>
@@ -212,7 +212,7 @@ const UsedDetail = () => {
               {product.brand && <span className="uppercase">{product.brand}</span>}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            <div className="text-xs text-gray-400">{formatDate(product.createdAt)}</div>
+            <div className="text-xs text-gray-500">{formatDate(product.createdAt)}</div>
           </div>
 
           {/* Price + Status + Wishlist + Share + Report */}
@@ -241,7 +241,7 @@ const UsedDetail = () => {
                 {/* Share button */}
                 <button
                   onClick={handleShare}
-                  className="text-gray-400 hover:text-accent transition-colors p-1"
+                  className="text-gray-500 hover:text-accent transition-colors p-1"
                   title={t('usedDetail.share')}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,7 +252,7 @@ const UsedDetail = () => {
                 {user && !isMyProduct && (
                   <button
                     onClick={() => setShowReportModal(true)}
-                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-coral hover:bg-coral/5 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-coral hover:bg-coral/5 rounded-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -271,7 +271,7 @@ const UsedDetail = () => {
                         toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
                       } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
                     }}
-                    className={`transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-300 hover:text-coral/50'}`}
+                    className={`transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-500 hover:text-coral/50'}`}
                   >
                     {wishlisted ? <HeartFilledIcon size={26} /> : <HeartOutlineIcon size={26} />}
                   </button>
@@ -286,13 +286,13 @@ const UsedDetail = () => {
             <div className="space-y-2">
               {product.condition && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                  <span className="text-xs text-gray-400">{t('usedDetail.condition')}</span>
+                  <span className="text-xs text-gray-500">{t('usedDetail.condition')}</span>
                   <span className="text-sm text-gray-900 font-medium">{conditionLabels[product.condition] || product.condition}</span>
                 </div>
               )}
               {product.usageCount && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                  <span className="text-xs text-gray-400">{t('usedDetail.year')}</span>
+                  <span className="text-xs text-gray-500">{t('usedDetail.year')}</span>
                   <span className="text-sm text-gray-900 font-medium">{product.usageCount}</span>
                 </div>
               )}
@@ -310,7 +310,7 @@ const UsedDetail = () => {
           {/* Seller */}
           <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400"><UserIcon size={20} /></div>
+              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-500"><UserIcon size={20} /></div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
               </div>
@@ -364,7 +364,7 @@ const UsedDetail = () => {
         <Link to="/safe-trade" className="inline-flex items-center gap-1 text-xs text-gray-900 hover:underline">
           <ShieldIcon size={12} /> 안전거래 가이드 확인하기
         </Link>
-        <p className="text-[9px] text-gray-300 px-4">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
+        <p className="text-[9px] text-gray-500 px-4">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
       </div>
 
       {/* Full Image Viewer */}
@@ -388,7 +388,7 @@ const UsedDetail = () => {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">상품 신고</h3>
-            <p className="text-xs text-gray-400 mb-4">신고 사유를 선택해주세요</p>
+            <p className="text-xs text-gray-500 mb-4">신고 사유를 선택해주세요</p>
             <div className="space-y-2 mb-4">
               {reportReasons.map((reason) => (
                 <button key={reason} onClick={() => setReportReason(reason)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${reportReason === reason ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>

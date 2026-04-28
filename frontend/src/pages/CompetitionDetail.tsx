@@ -23,7 +23,7 @@ export default function CompetitionDetail() {
   if (!comp) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center text-gray-300"><TrophyIcon size={56} strokeWidth={1.4} /></div>
+        <div className="mx-auto mb-4 w-14 h-14 flex items-center justify-center text-gray-500"><TrophyIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">대회를 찾을 수 없습니다</h2>
         <Link to="/competitions" className="text-gray-500 hover:text-gray-900 text-sm">← 시합 일정으로</Link>
       </div>
@@ -38,8 +38,8 @@ export default function CompetitionDetail() {
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       {/* 헤더 */}
       <div className="flex items-center gap-3">
-        <Link to="/competitions" className="text-gray-400 text-lg">←</Link>
-        <span className="text-xs text-gray-400">시합 일정</span>
+        <Link to="/competitions" className="text-gray-500 text-lg">←</Link>
+        <span className="text-xs text-gray-500">시합 일정</span>
       </div>
 
       {/* 포스터 영역 */}
@@ -109,31 +109,31 @@ export default function CompetitionDetail() {
         <h2 className="text-sm font-bold text-gray-900">참가 안내</h2>
         {comp.fee && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">참가비</span>
+            <span className="text-gray-500">참가비</span>
             <span className="font-medium text-gray-900">{comp.fee}</span>
           </div>
         )}
         {comp.eligibility && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">참가 자격</span>
+            <span className="text-gray-500">참가 자격</span>
             <span className="font-medium text-gray-900">{comp.eligibility}</span>
           </div>
         )}
         {comp.prize && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">시상</span>
+            <span className="text-gray-500">시상</span>
             <span className="font-medium text-gray-900">{comp.prize}</span>
           </div>
         )}
         {comp.contact && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">문의</span>
+            <span className="text-gray-500">문의</span>
             <span className="font-medium text-gray-900">{comp.contact}</span>
           </div>
         )}
         {comp.website && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">웹사이트</span>
+            <span className="text-gray-500">웹사이트</span>
             <a href={comp.website} target="_blank" rel="noopener noreferrer" className="font-medium text-sky-600 hover:underline">{comp.website.replace('https://', '')}</a>
           </div>
         )}

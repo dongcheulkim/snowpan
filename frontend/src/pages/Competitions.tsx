@@ -63,9 +63,9 @@ export default function Competitions() {
   return (
     <div className="space-y-5 animate-fade-in max-w-2xl mx-auto">
       <div className="flex items-center gap-3">
-        <Link to="/" className="text-gray-400 text-lg">←</Link>
+        <Link to="/" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">시합 일정</h1>
-        <span className="text-xs text-gray-400">2026-27 시즌</span>
+        <span className="text-xs text-gray-500">2026-27 시즌</span>
       </div>
 
       <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
@@ -99,9 +99,9 @@ export default function Competitions() {
 
       {filtered.length === 0 && (
         <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><TrophyIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-400">아직 등록된 시합 일정이 없습니다.</p>
-          <p className="text-xs text-gray-300 mt-1">시즌이 시작되면 업데이트됩니다.</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><TrophyIcon size={44} strokeWidth={1.4} /></div>
+          <p className="text-sm text-gray-500">아직 등록된 시합 일정이 없습니다.</p>
+          <p className="text-xs text-gray-500 mt-1">시즌이 시작되면 업데이트됩니다.</p>
         </div>
       )}
 
@@ -124,10 +124,10 @@ export default function Competitions() {
                 >
                   <div className="flex gap-4">
                     <div className="flex-shrink-0 text-center w-14">
-                      <div className={`text-lg font-black ${isPast ? 'text-gray-300' : 'text-sky-500'}`}>
+                      <div className={`text-lg font-black ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>
                         {formatDate(comp.date)}
                       </div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-[10px] text-gray-500">
                         ({formatDay(comp.date)})
                         {comp.endDate && <> ~ {formatDate(comp.endDate)}</>}
                       </div>
@@ -139,13 +139,13 @@ export default function Competitions() {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${levelColor[comp.level] || 'bg-gray-100 text-gray-500'}`}>{comp.level}</span>
                       </div>
                       <h3 className="text-sm font-bold text-gray-900 mb-1">{comp.title}</h3>
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500">
                         <span className="inline-flex items-center gap-1"><LocationIcon size={11} /> {comp.location}</span>
                         <span>· {comp.organizer}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center text-gray-300 flex-shrink-0">→</div>
+                    <div className="flex items-center text-gray-500 flex-shrink-0">→</div>
                   </div>
                 </Link>
               );

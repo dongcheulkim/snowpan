@@ -114,6 +114,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
+      <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0) */}
       <div className="px-4 pt-3 pb-5 bg-white">
         <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 aspect-[3.5/1]">
@@ -230,7 +231,7 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-4">아직 등록된 매물이 없습니다.</p>
+            <p className="text-sm text-gray-500 text-center py-4">아직 등록된 매물이 없습니다.</p>
           )}
         </div>
 
@@ -253,10 +254,10 @@ const Home = () => {
               {(communityTab === 'ski' ? skiPosts : boardPosts).map((post, idx, arr) => (
                 <Link key={post.id} to={`/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
+                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                  <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
                     <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
                     <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
                   </div>
@@ -264,7 +265,7 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center py-4">아직 게시글이 없습니다.</p>
+            <p className="text-sm text-gray-500 text-center py-4">아직 게시글이 없습니다.</p>
           )}
         </div>
 
@@ -282,7 +283,7 @@ const Home = () => {
                     <span className="text-[10px] font-medium text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200 flex-shrink-0">투표</span>
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400 flex-shrink-0 ml-2">
+                  <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
                     <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
                     <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
                   </div>

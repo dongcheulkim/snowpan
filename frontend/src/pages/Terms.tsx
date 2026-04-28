@@ -251,7 +251,7 @@ const Terms = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">이용약관</h1>
       </div>
 
@@ -283,7 +283,7 @@ const Terms = () => {
               className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
             >
               <span className="text-sm font-bold text-gray-900 pr-4">{section.title}</span>
-              <span className={`text-gray-400 text-xs transition-transform duration-200 ${openSection === idx ? 'rotate-90' : ''}`}>→</span>
+              <span className={`text-gray-500 text-xs transition-transform duration-200 ${openSection === idx ? 'rotate-90' : ''}`}>→</span>
             </button>
             {openSection === idx && (
               <div className="px-5 pb-4">
@@ -311,8 +311,8 @@ const Terms = () => {
 
       {/* 시행일 */}
       <div className="card p-5 text-center">
-        <p className="text-xs text-gray-400">본 약관은 2026년 1월 1일부터 시행됩니다.</p>
-        <p className="text-[10px] text-gray-300 mt-1">최종 수정일: 2026년 4월 25일 (베타 서비스 기간 반영 — 유료 결제/광고 조항은 정식 출시 시점에 효력 개시)</p>
+        <p className="text-xs text-gray-500">본 약관은 2026년 1월 1일부터 시행됩니다.</p>
+        <p className="text-[10px] text-gray-500 mt-1">최종 수정일: 2026년 4월 25일 (베타 서비스 기간 반영 — 유료 결제/광고 조항은 정식 출시 시점에 효력 개시)</p>
       </div>
     </div>
   );

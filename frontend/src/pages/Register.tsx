@@ -66,7 +66,7 @@ const Register = () => {
       <div className="card p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">회원가입</h1>
-          <p className="text-sm text-gray-400">스노우판에 가입하세요</p>
+          <p className="text-sm text-gray-500">스노우판에 가입하세요</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -75,7 +75,7 @@ const Register = () => {
             <input id="reg-name" type="text" name="name" autoComplete="name" placeholder="실명을 입력하세요" value={form.name} onChange={handleChange} required className={inputClass} />
           </div>
           <div>
-            <label htmlFor="reg-nickname" className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-400">(다른 유저에게 보이는 이름)</span></label>
+            <label htmlFor="reg-nickname" className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-500">(다른 유저에게 보이는 이름)</span></label>
             <input id="reg-nickname" type="text" name="nickname" autoComplete="username" placeholder="닉네임을 입력하세요" value={form.nickname} onChange={handleChange} className={inputClass} />
           </div>
           <div>
@@ -119,7 +119,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 이용약관 동의</span>
               </div>
-              <Link to="/terms" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
+              <Link to="/terms" target="_blank" className="text-[10px] text-gray-500 hover:underline flex-shrink-0">보기</Link>
             </label>
 
             {/* 개인정보처리방침 */}
@@ -133,7 +133,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 개인정보처리방침 동의</span>
               </div>
-              <Link to="/privacy" target="_blank" className="text-[10px] text-gray-400 hover:underline flex-shrink-0">보기</Link>
+              <Link to="/privacy" target="_blank" className="text-[10px] text-gray-500 hover:underline flex-shrink-0">보기</Link>
             </label>
 
             {/* 마케팅 수신 */}

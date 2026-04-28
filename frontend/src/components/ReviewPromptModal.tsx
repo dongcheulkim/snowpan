@@ -123,7 +123,7 @@ export default function ReviewPromptModal() {
                 aria-label={`${n}점`}
               >
                 <svg
-                  className={`w-8 h-8 ${n <= rating ? 'text-gold' : 'text-gray-300'}`}
+                  className={`w-8 h-8 ${n <= rating ? 'text-gold' : 'text-gray-500'}`}
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -141,7 +141,7 @@ export default function ReviewPromptModal() {
             maxLength={500}
             className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-accent resize-none"
           />
-          <div className="text-right text-[10px] text-gray-400 mt-0.5">{content.length}/500</div>
+          <div className="text-right text-[10px] text-gray-500 mt-0.5">{content.length}/500</div>
 
           <div className="flex gap-2 mt-3">
             <button

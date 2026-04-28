@@ -106,7 +106,7 @@ const Lesson = () => {
             <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
               <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
                 <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                  <span className="text-[9px] font-bold bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">AD</span>
+                  <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">AD</span>
                   <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
                 </div>
                 <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
@@ -147,7 +147,7 @@ const Lesson = () => {
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedLevel === level.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
+                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
             }`}
           >
             {level.name}
@@ -157,7 +157,7 @@ const Lesson = () => {
 
       {/* Lesson Items */}
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {lessonItems.map((item) => (
@@ -179,13 +179,13 @@ const Lesson = () => {
                   </span>
                 </div>
                 <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
-                <div className="flex items-center gap-3 mb-2 text-[11px] text-gray-400">
+                <div className="flex items-center gap-3 mb-2 text-[11px] text-gray-500">
                   <span>{item.duration}</span>
                   <span>{item.maxStudents === 1 ? '1:1' : `${item.maxStudents}명`}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                   <div>
-                    <div className="text-[10px] text-gray-400">{item.duration}</div>
+                    <div className="text-[10px] text-gray-500">{item.duration}</div>
                     <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
                   </div>
                   <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
@@ -199,7 +199,7 @@ const Lesson = () => {
       )}
 
       {!loading && lessonItems.length === 0 && (
-        <div className="text-center py-12 text-gray-400 bg-white border border-gray-200 rounded-xl text-sm">
+        <div className="text-center py-12 text-gray-500 bg-white border border-gray-200 rounded-xl text-sm">
           해당 조건의 레슨 정보가 없습니다.
         </div>
       )}

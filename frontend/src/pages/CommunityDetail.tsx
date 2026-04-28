@@ -153,7 +153,7 @@ const CommunityDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">{t('general.loading')}</div>;
+    return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">{t('general.loading')}</div>;
   }
 
   if (!post) {
@@ -170,22 +170,22 @@ const CommunityDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-400 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
+      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
           <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>{badge}</span>
-          <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
+          <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
           <div className="flex-1" />
           {/* Share button */}
-          <button onClick={handleShare} className="p-1.5 text-gray-400 hover:text-accent transition-colors" title={t('usedDetail.share')}>
+          <button onClick={handleShare} className="p-1.5 text-gray-500 hover:text-accent transition-colors" title={t('usedDetail.share')}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
           {/* Report button */}
           {user && user.id !== post.userId && (
-            <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-400 hover:text-coral transition-colors" title={t('usedDetail.report')}>
+            <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-500 hover:text-coral transition-colors" title={t('usedDetail.report')}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
               </svg>
@@ -196,12 +196,12 @@ const CommunityDetail = () => {
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden">
             {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={16} />}
           </div>
           <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
           <UserBadges badges={post.user.badges} />
-          <span className="text-[11px] text-gray-400">· 조회 {post.views}</span>
+          <span className="text-[11px] text-gray-500">· 조회 {post.views}</span>
         </div>
 
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{post.content}</p>
@@ -219,7 +219,7 @@ const CommunityDetail = () => {
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'}`}>
             <HeartFilledIcon size={14} /> {likeCount}
           </button>
-          <span className="text-sm text-gray-400">{t('communityDetail.comments')} {post.comments.length}</span>
+          <span className="text-sm text-gray-500">{t('communityDetail.comments')} {post.comments.length}</span>
         </div>
       </div>
 
@@ -232,14 +232,14 @@ const CommunityDetail = () => {
         <div className="space-y-4">
           {post.comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0 mt-0.5 overflow-hidden">
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0 mt-0.5 overflow-hidden">
                 {comment.user.profileImage ? <img src={comment.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={14} />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>
                   <UserBadges badges={comment.user.badges} />
-                  <span className="text-[10px] text-gray-400">{formatTime(comment.createdAt)}</span>
+                  <span className="text-[10px] text-gray-500">{formatTime(comment.createdAt)}</span>
                   {user && (comment.user.id === user.id || user.role === 'admin') && (
                     <button
                       onClick={async () => {
@@ -249,7 +249,7 @@ const CommunityDetail = () => {
                           setPost(prev => prev ? { ...prev, comments: prev.comments.filter(c => c.id !== comment.id) } : prev);
                         } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
                       }}
-                      className="ml-auto text-[10px] text-gray-300 hover:text-red-400 transition-colors"
+                      className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
                     >삭제</button>
                   )}
                 </div>
@@ -277,7 +277,7 @@ const CommunityDetail = () => {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('communityDetail.reportPost')}</h3>
-            <p className="text-xs text-gray-400 mb-4">{t('communityDetail.selectReason')}</p>
+            <p className="text-xs text-gray-500 mb-4">{t('communityDetail.selectReason')}</p>
             <div className="space-y-2 mb-4">
               {reportReasons.map((reason) => (
                 <button key={reason} onClick={() => setReportReason(reason)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${reportReason === reason ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>

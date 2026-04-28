@@ -12,9 +12,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClass: Record<Variant, string> = {
   // PAN: 검정 배경 + 흰 글자, hover 시 살짝 밝게
-  primary: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-black disabled:bg-gray-200 disabled:text-gray-400',
-  secondary: 'bg-white text-gray-900 border border-gray-300 hover:border-gray-900 hover:bg-gray-50 active:bg-gray-100 disabled:bg-gray-50 disabled:text-gray-300',
-  destructive: 'bg-coral text-white hover:bg-red-700 active:bg-red-800 disabled:bg-gray-200 disabled:text-gray-400',
+  primary: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-black disabled:bg-gray-200 disabled:text-gray-500',
+  secondary: 'bg-white text-gray-900 border border-gray-300 hover:border-gray-900 hover:bg-gray-50 active:bg-gray-100 disabled:bg-gray-50 disabled:text-gray-500',
+  destructive: 'bg-coral text-white hover:bg-red-700 active:bg-red-800 disabled:bg-gray-200 disabled:text-gray-500',
   ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
 };
 

@@ -42,10 +42,10 @@ export default function SkiShopDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="text-center py-20 text-sm text-gray-400">로딩 중...</div>;
+  if (loading) return <div className="text-center py-20 text-sm text-gray-500">로딩 중...</div>;
   if (!shop) return (
     <div className="text-center py-20">
-      <p className="text-sm text-gray-400 mb-3">{error || '스키샵을 찾을 수 없습니다.'}</p>
+      <p className="text-sm text-gray-500 mb-3">{error || '스키샵을 찾을 수 없습니다.'}</p>
       <Link to="/skishop" className="text-sm text-sky-600 underline">← 스키샵 목록</Link>
     </div>
   );
@@ -53,7 +53,7 @@ export default function SkiShopDetail() {
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/skishop" className="inline-flex items-center text-gray-400 text-sm hover:text-gray-900">&larr; 스키샵 목록</Link>
+        <Link to="/skishop" className="inline-flex items-center text-gray-500 text-sm hover:text-gray-900">&larr; 스키샵 목록</Link>
         <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
       </div>
 
@@ -66,7 +66,7 @@ export default function SkiShopDetail() {
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-bold px-2 py-0.5 bg-sky-50 text-sky-600 rounded">{shop.area}</span>
-          {shop.resort && <span className="text-[10px] text-gray-400">인근 {shop.resort}</span>}
+          {shop.resort && <span className="text-[10px] text-gray-500">인근 {shop.resort}</span>}
           {shop.isPremium && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">AD</span>}
         </div>
         <h1 className="text-xl font-bold text-gray-900">{shop.name}</h1>
@@ -74,10 +74,10 @@ export default function SkiShopDetail() {
       </div>
 
       <div className="card p-5 space-y-2.5 text-sm">
-        <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">주소</span><span className="text-gray-900">{shop.address}</span></div>
-        {shop.hours && <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">영업시간</span><span className="text-gray-900 whitespace-pre-line">{shop.hours}</span></div>}
-        {shop.brands && <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">취급 브랜드</span><span className="text-gray-900">{shop.brands}</span></div>}
-        {shop.phone && <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">전화</span><a href={`tel:${shop.phone}`} className="text-sky-600">{shop.phone}</a></div>}
+        <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">주소</span><span className="text-gray-900">{shop.address}</span></div>
+        {shop.hours && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">영업시간</span><span className="text-gray-900 whitespace-pre-line">{shop.hours}</span></div>}
+        {shop.brands && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">취급 브랜드</span><span className="text-gray-900">{shop.brands}</span></div>}
+        {shop.phone && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">전화</span><a href={`tel:${shop.phone}`} className="text-sky-600">{shop.phone}</a></div>}
       </div>
 
       {(shop.instagram || shop.website || shop.naverMap) && (

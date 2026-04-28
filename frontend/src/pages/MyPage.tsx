@@ -173,7 +173,7 @@ const MyPage = () => {
       <div className="card p-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0 cursor-pointer" onClick={() => profileInputRef.current?.click()}>
-            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 overflow-hidden hover:border-gray-900 transition-colors">
+            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden hover:border-gray-900 transition-colors">
               {uploadingPhoto ? (
                 <span className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
               ) : user.profileImage ? (
@@ -200,7 +200,7 @@ const MyPage = () => {
                 );
               })}
             </div>
-            <p className="text-sm text-gray-400">{user.email}</p>
+            <p className="text-sm text-gray-500">{user.email}</p>
           </div>
         </div>
 
@@ -211,7 +211,7 @@ const MyPage = () => {
           ].map((stat) => (
             <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
               <div className="text-base font-bold text-gray-900">{stat.value}</div>
-              <div className="text-[10px] text-gray-400">{stat.label}</div>
+              <div className="text-[10px] text-gray-500">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -227,7 +227,7 @@ const MyPage = () => {
         </div>
 
         {approvedBadges.length === 0 && pendingBadges.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">{t('mypage.noBadges')}</p>
+          <p className="text-xs text-gray-500 text-center py-4">{t('mypage.noBadges')}</p>
         ) : (
           <div className="space-y-2">
             {approvedBadges.map((b) => {
@@ -252,7 +252,7 @@ const MyPage = () => {
                         saveUser({ ...user, activeBadge: newBadge });
                       } catch {}
                     }}
-                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                   >
                     {isActive ? '노출중' : '노출'}
                   </button>
@@ -283,7 +283,7 @@ const MyPage = () => {
         {menuItems.map((item, idx) => (
           <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < menuItems.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-900">{item.label}</span>
-            <span className="text-gray-400 text-xs">→</span>
+            <span className="text-gray-500 text-xs">→</span>
           </Link>
         ))}
       </div>
@@ -329,7 +329,7 @@ const MyPage = () => {
         {settings.map((item, idx) => (
           <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
             <span className="text-sm font-medium text-gray-500">{item.label}</span>
-            <span className="text-gray-400 text-xs">→</span>
+            <span className="text-gray-500 text-xs">→</span>
           </Link>
         ))}
       </div>
@@ -343,7 +343,7 @@ const MyPage = () => {
       <div className="text-center mt-3">
         <button
           onClick={() => { setDeletePassword(''); setShowDeleteModal(true); }}
-          className="text-xs text-gray-400 hover:text-coral transition-colors underline underline-offset-2"
+          className="text-xs text-gray-500 hover:text-coral transition-colors underline underline-offset-2"
         >
           회원 탈퇴
         </button>
@@ -399,11 +399,11 @@ const MyPage = () => {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
           <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('mypage.certVerification')}</h3>
-            <p className="text-xs text-gray-400 mb-5">자격증 사진을 첨부하면 관리자가 확인 후 적절한 뱃지를 부여합니다.</p>
+            <p className="text-xs text-gray-500 mb-5">자격증 사진을 첨부하면 관리자가 확인 후 적절한 뱃지를 부여합니다.</p>
 
             <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
-              <p className="text-[11px] text-gray-400 mb-2">{t('mypage.uploadCertPhoto')}</p>
-              <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-400 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
+              <p className="text-[11px] text-gray-500 mb-2">{t('mypage.uploadCertPhoto')}</p>
+              <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
                 {badgeImage ? badgeImage.name : t('mypage.selectPhoto')}
                 <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
               </label>

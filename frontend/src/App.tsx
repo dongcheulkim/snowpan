@@ -78,7 +78,7 @@ function App() {
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-500 animate-spin" />
             <span className="absolute inset-0 flex items-center justify-center text-lg font-black text-sky-500">판</span>
           </div>
-          <span className="text-sm text-gray-400 animate-pulse">로딩 중...</span>
+          <span className="text-sm text-gray-500 animate-pulse">로딩 중...</span>
         </div>
       }>
         <Routes>

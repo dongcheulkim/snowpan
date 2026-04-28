@@ -43,15 +43,15 @@ const LessonDetail = () => {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400 text-sm animate-fade-in">로딩 중...</div>;
+    return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">로딩 중...</div>;
   }
 
   if (!item) {
     return (
       <div className="text-center py-20 animate-fade-in">
-        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-300"><SadIcon size={56} strokeWidth={1.4} /></div>
+        <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500"><SadIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">레슨 정보를 찾을 수 없습니다</h2>
-        <Link to="/lesson" className="text-gray-400 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
+        <Link to="/lesson" className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
       </div>
     );
   }
@@ -62,7 +62,7 @@ const LessonDetail = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
+        <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
         <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
       </div>
 
@@ -91,7 +91,7 @@ const LessonDetail = () => {
             { label: '위치', value: item.resort?.location || '-' },
           ].map((info) => (
             <div key={info.label} className="py-2 border-b border-gray-200">
-              <span className="text-[10px] text-gray-400 block">{info.label}</span>
+              <span className="text-[10px] text-gray-500 block">{info.label}</span>
               <span className="text-sm text-gray-900">{info.value}</span>
             </div>
           ))}
@@ -103,11 +103,11 @@ const LessonDetail = () => {
           <h3 className="text-sm font-bold text-gray-900 mb-3">강사 정보</h3>
           <div className="space-y-2.5">
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-400">이름</span>
+              <span className="text-xs text-gray-500">이름</span>
               <span className="text-sm text-gray-900">{item.user.name}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-400">연락처</span>
+              <span className="text-xs text-gray-500">연락처</span>
               <span className="text-sm text-gray-900">{item.user.phone}</span>
             </div>
           </div>

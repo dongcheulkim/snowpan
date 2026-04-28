@@ -44,7 +44,7 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
   if (!stats.available || !stats.median) {
     if (variant === 'inline') {
       return (
-        <p className="text-[11px] text-gray-400 mt-1">
+        <p className="text-[11px] text-gray-500 mt-1">
           시세 데이터 부족 (등록 매물 {stats.count}개)
         </p>
       );

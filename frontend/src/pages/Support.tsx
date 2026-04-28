@@ -37,7 +37,7 @@ const Support = () => {
   return (
     <div className="space-y-4 animate-fade-in max-w-md mx-auto">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">고객센터</h1>
       </div>
 
@@ -51,7 +51,7 @@ const Support = () => {
         >
           {chatLoading ? '연결 중...' : <span className="inline-flex items-center gap-1.5"><ChatIcon size={14} /> 관리자에게 1:1 채팅</span>}
         </button>
-        <p className="text-[10px] text-gray-400 text-center mt-2">로그인 후 관리자와 바로 채팅할 수 있습니다.</p>
+        <p className="text-[10px] text-gray-500 text-center mt-2">로그인 후 관리자와 바로 채팅할 수 있습니다.</p>
       </div>
 
       {/* 운영 정보 */}
@@ -76,7 +76,7 @@ const Support = () => {
             <div key={idx} className={idx < faqs.length - 1 ? 'border-b border-gray-50' : ''}>
               <button onClick={() => setOpenFaq(openFaq === idx ? null : idx)} className="w-full flex items-center justify-between px-5 py-4 text-left">
                 <span className="text-sm font-medium text-gray-900 pr-4">{faq.q}</span>
-                <span className={`text-gray-400 text-xs transition-transform ${openFaq === idx ? 'rotate-90' : ''}`}>→</span>
+                <span className={`text-gray-500 text-xs transition-transform ${openFaq === idx ? 'rotate-90' : ''}`}>→</span>
               </button>
               {openFaq === idx && (
                 <div className="px-5 pb-4">

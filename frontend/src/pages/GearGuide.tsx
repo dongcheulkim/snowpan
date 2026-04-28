@@ -175,7 +175,7 @@ export default function GearGuide() {
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">🎿 장비 추천 가이드</h1>
-        <Link to="/" className="text-sm text-gray-400">← 홈</Link>
+        <Link to="/" className="text-sm text-gray-500">← 홈</Link>
       </div>
 
       <p className="text-sm text-gray-500">레벨에 맞는 브랜드와 모델을 확인해보세요</p>
@@ -184,13 +184,13 @@ export default function GearGuide() {
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
         <button
           onClick={() => setSport('ski')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'ski' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'ski' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
           ⛷️ 스키
         </button>
         <button
           onClick={() => setSport('board')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
           🏂 스노보드
         </button>
@@ -227,25 +227,25 @@ export default function GearGuide() {
       {/* 브랜드 목록 */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <div className="text-center py-10 text-gray-400 text-sm">해당 레벨에 맞는 브랜드가 없습니다.</div>
+          <div className="text-center py-10 text-gray-500 text-sm">해당 레벨에 맞는 브랜드가 없습니다.</div>
         ) : (
           filtered.map(brand => (
             <div key={brand.name} className="card p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">{brand.name}</h3>
-                  <span className="text-[10px] text-gray-400">{brand.country}</span>
+                  <span className="text-[10px] text-gray-500">{brand.country}</span>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">{brand.style}</span>
               </div>
               <p className="text-xs text-gray-600 leading-relaxed mb-3">{brand.desc}</p>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400">추천 모델</span>
+                <span className="text-[10px] font-bold text-gray-500">추천 모델</span>
                 <span className="text-xs text-primary-dark font-medium">{brand.models}</span>
               </div>
               <div className="flex gap-1 mt-2">
                 {brand.levels.map(lv => (
-                  <span key={lv} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${lv === level ? `${LEVEL_INFO[lv].badge} text-white` : 'bg-gray-100 text-gray-400'}`}>
+                  <span key={lv} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${lv === level ? `${LEVEL_INFO[lv].badge} text-white` : 'bg-gray-100 text-gray-500'}`}>
                     {LEVEL_INFO[lv].label}
                   </span>
                 ))}

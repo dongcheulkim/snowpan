@@ -45,14 +45,14 @@ const MySales = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">내 게시글</h1>
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
+        <div className="text-center py-16 text-gray-500 text-sm">불러오는 중...</div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">작성한 게시글이 없습니다.</div>
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">작성한 게시글이 없습니다.</div>
       ) : (
         <div className="space-y-2">
           {posts.map((post) => (
@@ -61,11 +61,11 @@ const MySales = () => {
                 <span className="text-[10px] font-medium text-primary bg-primary-50 px-2 py-0.5 rounded">
                   {CATEGORY_LABEL[post.category] || post.category}
                 </span>
-                <span className="text-[10px] text-gray-400">{formatDate(post.createdAt)}</span>
+                <span className="text-[10px] text-gray-500">{formatDate(post.createdAt)}</span>
               </div>
               <div className="text-sm font-medium text-gray-900 mb-1">{post.title}</div>
-              <div className="text-xs text-gray-400 line-clamp-1">{post.content}</div>
-              <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-400">
+              <div className="text-xs text-gray-500 line-clamp-1">{post.content}</div>
+              <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500">
                 <span className="inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {post.likes}</span>
                 <span>댓글 {post.commentCount ?? 0}</span>
               </div>

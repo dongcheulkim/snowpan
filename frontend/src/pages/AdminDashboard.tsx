@@ -288,7 +288,7 @@ const AdminDashboard = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
-        <button type="button" onClick={() => navigate('/mypage')} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">← 내정보</button>
+        <button type="button" onClick={() => navigate('/mypage')} className="text-sm text-gray-500 hover:text-gray-600 transition-colors">← 내정보</button>
       </div>
 
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1 overflow-x-auto">
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-2 ${
-              tab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'
+              tab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
             }`}
           >
             {t.label}
@@ -306,14 +306,14 @@ const AdminDashboard = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">로딩 중...</div>
+        <div className="text-center py-16 text-gray-500 text-sm">로딩 중...</div>
       ) : (
         <>
           {/* Reports Tab */}
           {tab === 'reports' && (
             <div className="space-y-3">
               {reports.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">신고가 없습니다.</div>
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">신고가 없습니다.</div>
               ) : (
                 reports.map((r) => (
                   <div key={r.id} className="card p-4">
@@ -322,13 +322,13 @@ const AdminDashboard = () => {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.status === 'resolved' ? 'bg-mint/20 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
                           {r.status === 'resolved' ? '처리완료' : '대기중'}
                         </span>
-                        <span className="text-xs text-gray-400 ml-2">{r.type}</span>
+                        <span className="text-xs text-gray-500 ml-2">{r.type}</span>
                       </div>
-                      <span className="text-[10px] text-gray-300">{new Date(r.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-sm font-medium text-gray-900 mb-1">{r.reason}</p>
-                    {r.description && <p className="text-xs text-gray-400 mb-2">{r.description}</p>}
-                    <p className="text-[10px] text-gray-300">신고자: {r.reporter.name} ({r.reporter.email})</p>
+                    {r.description && <p className="text-xs text-gray-500 mb-2">{r.description}</p>}
+                    <p className="text-[10px] text-gray-500">신고자: {r.reporter.name} ({r.reporter.email})</p>
                     {r.status === 'pending' && (
                       <button onClick={() => handleResolve(r.id)} className="mt-3 px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors">
                         처리 완료
@@ -349,19 +349,19 @@ const AdminDashboard = () => {
                   <div className="mx-auto mb-2 flex items-center justify-center"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /></div>
                   <div className="text-2xl font-bold text-gray-900">{(stats.live?.concurrent ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">실시간 동접</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">로그인 {stats.live?.concurrentUsers ?? 0}명</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">로그인 {stats.live?.concurrentUsers ?? 0}명</div>
                 </div>
                 <div className="card p-5 text-center">
                   <div className="mx-auto mb-2 flex justify-center text-gray-700"><CalendarIcon size={26} /></div>
                   <div className="text-2xl font-bold text-gray-900">{(stats.today?.visitors ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">오늘 방문자</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.today?.pageviews ?? 0).toLocaleString()}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">PV {(stats.today?.pageviews ?? 0).toLocaleString()}</div>
                 </div>
                 <div className="card p-5 text-center">
                   <div className="mx-auto mb-2 flex justify-center text-gray-700"><ChartIcon size={26} /></div>
                   <div className="text-2xl font-bold text-gray-900">{(stats.week?.uniqueVisitors ?? 0).toLocaleString()}</div>
                   <div className="text-xs text-gray-500 mt-1">주간 순방문</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">PV {(stats.week?.pageviews ?? 0).toLocaleString()}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">PV {(stats.week?.pageviews ?? 0).toLocaleString()}</div>
                 </div>
                 <div className="card p-5 text-center">
                   <div className="mx-auto mb-2 flex justify-center text-gray-700"><UsersIcon size={26} /></div>
@@ -380,7 +380,7 @@ const AdminDashboard = () => {
                   <div key={s.label} className="card p-4 text-center">
                     <div className="mx-auto mb-1 flex justify-center text-gray-700"><s.Icon size={20} /></div>
                     <div className="text-lg font-bold text-gray-900">{s.value.toLocaleString()}</div>
-                    <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -450,21 +450,21 @@ const AdminDashboard = () => {
                     onChange={(e) => { setUserSearch(e.target.value); setUserPage(0); }}
                     className={`flex-1 ${inputClass}`}
                   />
-                  <span className="text-[11px] text-gray-400 whitespace-nowrap">{filtered.length}명</span>
+                  <span className="text-[11px] text-gray-500 whitespace-nowrap">{filtered.length}명</span>
                 </div>
                 {pageUsers.map((u) => (
                   <div key={u.id} className="card p-4 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gray-900">{u.name}</span>
-                        {(u as any).nickname && <span className="text-xs text-gray-400">({(u as any).nickname})</span>}
+                        {(u as any).nickname && <span className="text-xs text-gray-500">({(u as any).nickname})</span>}
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-500'
                         }`}>
                           {u.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">{u.email}</p>
+                      <p className="text-xs text-gray-500">{u.email}</p>
                     </div>
                     {u.role !== 'admin' && (
                       <button onClick={() => handleBan(u.id)} className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
@@ -511,7 +511,7 @@ const AdminDashboard = () => {
                       </div>
                     ) : (
                       <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-sky-400 transition-colors">
-                        <span className="text-xs text-gray-400">이미지 업로드</span>
+                        <span className="text-xs text-gray-500">이미지 업로드</span>
                         <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBannerImageFile(f); setBannerImagePreview(URL.createObjectURL(f)); } }} className="hidden" />
                       </label>
                     )}
@@ -532,13 +532,13 @@ const AdminDashboard = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${b.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${b.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
                           {b.active ? '활성' : '비활성'}
                         </span>
-                        <span className="text-[10px] text-gray-400">순서: {b.order}</span>
+                        <span className="text-[10px] text-gray-500">순서: {b.order}</span>
                       </div>
                       <p className="text-sm font-bold text-gray-900">{b.title}</p>
-                      <p className="text-xs text-gray-400">{b.description}</p>
+                      <p className="text-xs text-gray-500">{b.description}</p>
                       {b.image && <img src={imageUrl(b.image)} alt="" className="w-32 h-16 object-contain rounded mt-1 bg-gray-50" />}
                     </div>
                     <div className="flex gap-1">
@@ -555,7 +555,7 @@ const AdminDashboard = () => {
           {tab === 'premium' && (
             <div className="space-y-2">
               {products.length === 0 && !loading && (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">등록된 중고 상품이 없습니다.</div>
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">등록된 중고 상품이 없습니다.</div>
               )}
               {products.map((p) => (
                 <div key={p.id} className="card p-4 flex items-center justify-between">
@@ -566,7 +566,7 @@ const AdminDashboard = () => {
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">PREMIUM</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400">{p.price.toLocaleString()}원</p>
+                    <p className="text-xs text-gray-500">{p.price.toLocaleString()}원</p>
                   </div>
                   <button
                     onClick={() => handleTogglePremium(p.id, p.isPremium)}
@@ -588,21 +588,21 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="card p-3 text-center">
                     <div className="text-lg font-bold text-gray-900">{adRevenue.totalRevenue.toLocaleString()}원</div>
-                    <div className="text-[10px] text-gray-400">총 매출</div>
+                    <div className="text-[10px] text-gray-500">총 매출</div>
                   </div>
                   <div className="card p-3 text-center">
                     <div className="text-lg font-bold text-accent">{adRevenue.monthlyRevenue.toLocaleString()}원</div>
-                    <div className="text-[10px] text-gray-400">이번 달</div>
+                    <div className="text-[10px] text-gray-500">이번 달</div>
                   </div>
                   <div className="card p-3 text-center">
                     <div className="text-lg font-bold text-gray-900">{adRevenue.totalPayments}</div>
-                    <div className="text-[10px] text-gray-400">결제 건수</div>
+                    <div className="text-[10px] text-gray-500">결제 건수</div>
                   </div>
                 </div>
               )}
 
               {adBookings.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 예약이 없습니다.</div>
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 예약이 없습니다.</div>
               ) : (
                 adBookings.map((b) => {
                   const slotLabel = b.slotType === 'main_banner' ? '메인 배너' : b.slotType === 'premium' ? '프리미엄' : `카테고리: ${b.category}`;
@@ -622,20 +622,20 @@ const AdminDashboard = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.color}`}>{s.label}</span>
-                          <span className="text-[10px] text-gray-400">{slotLabel}</span>
+                          <span className="text-[10px] text-gray-500">{slotLabel}</span>
                         </div>
-                        <span className="text-[10px] text-gray-300">{new Date(b.createdAt).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-gray-500">{new Date(b.createdAt).toLocaleDateString()}</span>
                       </div>
                       <p className="text-sm font-bold text-gray-900 mb-0.5">{b.title}</p>
                       <p className="text-xs text-gray-500 mb-1">
                         {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일)
                       </p>
                       <p className="text-xs font-bold text-accent mb-1">{b.totalPrice.toLocaleString()}원</p>
-                      <p className="text-[10px] text-gray-400">
+                      <p className="text-[10px] text-gray-500">
                         {b.user.name} ({b.user.email}) · {b.user.phone}
                       </p>
                       {b.payment && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">
+                        <p className="text-[10px] text-gray-500 mt-0.5">
                           결제: {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString()}
                         </p>
                       )}
@@ -676,7 +676,7 @@ const AdminDashboard = () => {
           {tab === 'adPricing' && (
             <div className="space-y-3">
               {adPricings.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-400 text-sm">광고 가격 설정이 없습니다.</div>
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 가격 설정이 없습니다.</div>
               ) : (
                 adPricings.map((p) => {
                   const categoryLabel: Record<string, string> = {
@@ -700,20 +700,20 @@ const AdminDashboard = () => {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
                             {p.active ? '활성' : '비활성'}
                           </span>
                         </div>
                         <button
                           onClick={() => handlePricingUpdate(p, 'active', !p.active)}
-                          className="text-[10px] text-gray-400 hover:text-gray-600"
+                          className="text-[10px] text-gray-500 hover:text-gray-600"
                         >
                           {p.active ? '비활성화' : '활성화'}
                         </button>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[10px] text-gray-400 block mb-1">1일 가격 (원)</label>
+                          <label className="text-[10px] text-gray-500 block mb-1">1일 가격 (원)</label>
                           <input
                             type="number"
                             defaultValue={p.pricePerDay}
@@ -725,7 +725,7 @@ const AdminDashboard = () => {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] text-gray-400 block mb-1">동시 광고 수</label>
+                          <label className="text-[10px] text-gray-500 block mb-1">동시 광고 수</label>
                           <input
                             type="number"
                             defaultValue={p.maxConcurrent}

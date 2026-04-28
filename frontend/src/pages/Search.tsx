@@ -43,7 +43,7 @@ export default function Search() {
     <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
       {/* 검색 입력 */}
       <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3 shadow-sm">
-        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -55,26 +55,26 @@ export default function Search() {
           className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
         />
         {query && (
-          <button onClick={() => { setQuery(''); setResults(null); }} aria-label="지우기" className="text-gray-300 hover:text-gray-500"><CloseIcon size={16} /></button>
+          <button onClick={() => { setQuery(''); setResults(null); }} aria-label="지우기" className="text-gray-500 hover:text-gray-500"><CloseIcon size={16} /></button>
         )}
       </div>
 
       {/* 검색 전 안내 */}
       {!debounced && !loading && (
         <div className="text-center py-12">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SearchIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-400">중고장비, 커뮤니티 글, 스키샵을 검색해보세요</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SearchIcon size={44} strokeWidth={1.4} /></div>
+          <p className="text-sm text-gray-500">중고장비, 커뮤니티 글, 스키샵을 검색해보세요</p>
         </div>
       )}
 
       {/* 로딩 */}
-      {loading && <div className="text-center py-12 text-sm text-gray-400 animate-pulse">검색 중...</div>}
+      {loading && <div className="text-center py-12 text-sm text-gray-500 animate-pulse">검색 중...</div>}
 
       {/* 결과 없음 */}
       {!loading && debounced && !hasResults && (
         <div className="text-center py-12">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-300"><SadIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-400">"{debounced}"에 대한 검색 결과가 없습니다.</p>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SadIcon size={44} strokeWidth={1.4} /></div>
+          <p className="text-sm text-gray-500">"{debounced}"에 대한 검색 결과가 없습니다.</p>
         </div>
       )}
 
@@ -91,11 +91,11 @@ export default function Search() {
                 <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                   {(p.image?.startsWith('http') || p.image?.startsWith('/')) ? (
                     <img src={imageUrl(p.image)} alt="" className="w-full h-full object-cover" />
-                  ) : <span className="flex items-center justify-center w-full h-full text-gray-400"><PackageIcon size={20} /></span>}
+                  ) : <span className="flex items-center justify-center w-full h-full text-gray-500"><PackageIcon size={20} /></span>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
-                  <p className="text-[10px] text-gray-400">{p.brand}</p>
+                  <p className="text-[10px] text-gray-500">{p.brand}</p>
                 </div>
                 <span className="text-sm font-bold text-sky-600 flex-shrink-0">{p.price.toLocaleString()}원</span>
               </Link>
@@ -111,7 +111,7 @@ export default function Search() {
           <div className="card overflow-hidden">
             {results.posts.map((p, idx) => (
               <Link key={p.id} to={`/community/post/${p.id}`} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${idx < results.posts.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
+                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
                 <span className="text-sm text-gray-900 flex-1 truncate">{p.title}</span>
               </Link>
             ))}
@@ -129,7 +129,7 @@ export default function Search() {
                 <span className="text-gray-700">{s.type === 'ski' ? <SkiShopIcon size={22} /> : <MaintenanceIcon size={22} />}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">{s.name}</p>
-                  <p className="text-[10px] text-gray-400">{s.area}</p>
+                  <p className="text-[10px] text-gray-500">{s.area}</p>
                 </div>
               </Link>
             ))}

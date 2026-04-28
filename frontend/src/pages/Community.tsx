@@ -120,7 +120,7 @@ const Community = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/community')} className="text-gray-400 text-lg">←</button>
+          <button onClick={() => navigate('/community')} className="text-gray-500 text-lg">←</button>
           <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {t('community.title')}</h1>
         </div>
         <div className="flex gap-2">
@@ -136,7 +136,7 @@ const Community = () => {
       </div>
 
       <div className="relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('community.searchPlaceholder')} className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400" />
@@ -157,7 +157,7 @@ const Community = () => {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400 text-sm">{t('general.loading')}</div>
+        <div className="text-center py-12 text-gray-500 text-sm">{t('general.loading')}</div>
       ) : (
         <div className="space-y-2">
           {(selectedTab === 'popular' ? popularPosts : posts).map((post, idx) => {
@@ -167,7 +167,7 @@ const Community = () => {
             <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex gap-3">
                 {rank > 0 && (
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
                     {rank}
                   </div>
                 )}
@@ -176,13 +176,13 @@ const Community = () => {
                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
                       {badgeMap[post.category] || post.category}
                     </span>
-                    <span className="text-[10px] text-gray-400">{formatTime(post.createdAt)}</span>
+                    <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
                   </div>
                   <h3 className="text-sm font-bold text-gray-900 mb-1">{post.title}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
-                    <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                    <span className="text-[11px] text-gray-500 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>
+                    <div className="flex items-center gap-3 text-[11px] text-gray-500">
                       <span>조회 {post.views}</span>
                       <span className="text-coral inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {post.likes}</span>
                       <span>{t('communityDetail.comments')} {post.commentCount}</span>
@@ -202,7 +202,7 @@ const Community = () => {
       )}
 
       {!loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
-        <div className="text-center py-12 text-gray-400 card text-sm">
+        <div className="text-center py-12 text-gray-500 card text-sm">
           {selectedTab === 'popular' ? '최근 7일간 인기 게시글이 없습니다.' : debouncedSearch ? t('community.noResults') : t('community.noPosts')}
         </div>
       )}

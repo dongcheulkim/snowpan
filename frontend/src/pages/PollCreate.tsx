@@ -61,7 +61,7 @@ const PollCreate = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-gray-400 text-lg">←</button>
+        <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">←</button>
         <h1 className="text-xl font-bold text-gray-900">투표 만들기</h1>
       </div>
 
@@ -77,7 +77,7 @@ const PollCreate = () => {
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary"
             maxLength={50}
           />
-          <p className="text-[11px] text-gray-400 mt-1 text-right">{title.length}/50</p>
+          <p className="text-[11px] text-gray-500 mt-1 text-right">{title.length}/50</p>
         </div>
 
         {/* Options */}
@@ -98,7 +98,7 @@ const PollCreate = () => {
                 {options.length > 2 && (
                   <button
                     onClick={() => removeOption(idx)}
-                    className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-400 transition-colors"
+                    className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-400 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,12 +111,12 @@ const PollCreate = () => {
           {options.length < 6 && (
             <button
               onClick={addOption}
-              className="mt-2 w-full py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-400 font-medium active:bg-gray-50 transition-colors"
+              className="mt-2 w-full py-2.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 font-medium active:bg-gray-50 transition-colors"
             >
               + 선택지 추가
             </button>
           )}
-          <p className="text-[11px] text-gray-400 mt-1">최소 2개, 최대 6개까지 가능</p>
+          <p className="text-[11px] text-gray-500 mt-1">최소 2개, 최대 6개까지 가능</p>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ const PollCreate = () => {
           className="flex items-center justify-between w-full"
         >
           <span className="text-sm font-bold text-gray-700">커뮤니티 이용규칙</span>
-          <span className="text-gray-400 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
+          <span className="text-gray-500 text-xs">{showRules ? '접기 ▲' : '펼치기 ▼'}</span>
         </button>
         {showRules && (
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed space-y-2">
@@ -141,7 +141,7 @@ const PollCreate = () => {
               <li><span className="font-medium text-gray-600">여론 조작</span> — 특정 목적의 편향된 투표, 조작 의도가 있는 선택지 구성 금지</li>
               <li><span className="font-medium text-gray-600">도배/어뷰징</span> — 동일·유사 투표 반복 생성, 투표수 조작 등 금지</li>
             </ul>
-            <p className="text-[11px] text-gray-400 pt-1">위반 게시글은 정보통신망법 제44조의2에 의거하여 삭제 조치됩니다.</p>
+            <p className="text-[11px] text-gray-500 pt-1">위반 게시글은 정보통신망법 제44조의2에 의거하여 삭제 조치됩니다.</p>
           </div>
         )}
         <label className="flex items-center gap-2 cursor-pointer">
@@ -160,7 +160,7 @@ const PollCreate = () => {
         className={`w-full py-3.5 font-bold rounded-xl text-sm transition-colors ${
           agreed
             ? 'bg-primary text-white active:bg-primary-dark'
-            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
         }`}
       >
         투표 올리기

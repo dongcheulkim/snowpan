@@ -160,7 +160,7 @@ const Used = () => {
 
       {(selectedCategory !== 'all' || searchQuery || sort !== 'newest') && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] text-gray-400">적용된 필터:</span>
+          <span className="text-[11px] text-gray-500">적용된 필터:</span>
           {selectedCategory !== 'all' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{categories.find(c => c.id === selectedCategory)?.name}</span>}
           {searchQuery && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">"{searchQuery}"</span>}
           {sort !== 'newest' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{sort === 'price_asc' ? '가격↑' : '가격↓'}</span>}
@@ -219,7 +219,7 @@ const Used = () => {
                 <div className="p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</span>
-                    {product.size && <span className="text-[9px] text-gray-400 bg-gray-50 px-1 rounded">{product.size}</span>}
+                    {product.size && <span className="text-[9px] text-gray-500 bg-gray-50 px-1 rounded">{product.size}</span>}
                   </div>
                   <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
                   <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>

@@ -39,7 +39,7 @@ const ChangePassword = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">비밀번호 변경</h1>
       </div>
 

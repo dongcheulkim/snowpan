@@ -42,10 +42,10 @@ export default function RepairShopDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="text-center py-20 text-sm text-gray-400">로딩 중...</div>;
+  if (loading) return <div className="text-center py-20 text-sm text-gray-500">로딩 중...</div>;
   if (!shop) return (
     <div className="text-center py-20">
-      <p className="text-sm text-gray-400 mb-3">{error || '정비샵을 찾을 수 없습니다.'}</p>
+      <p className="text-sm text-gray-500 mb-3">{error || '정비샵을 찾을 수 없습니다.'}</p>
       <Link to="/repair" className="text-sm text-sky-600 underline">← 정비샵 목록</Link>
     </div>
   );
@@ -53,7 +53,7 @@ export default function RepairShopDetail() {
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/repair" className="inline-flex items-center text-gray-400 text-sm hover:text-gray-900">&larr; 정비샵 목록</Link>
+        <Link to="/repair" className="inline-flex items-center text-gray-500 text-sm hover:text-gray-900">&larr; 정비샵 목록</Link>
         <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
       </div>
 
@@ -80,9 +80,9 @@ export default function RepairShopDetail() {
       </div>
 
       <div className="card p-5 space-y-2.5 text-sm">
-        <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">주소</span><span className="text-gray-900">{shop.address}</span></div>
-        {shop.hours && <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">영업시간</span><span className="text-gray-900 whitespace-pre-line">{shop.hours}</span></div>}
-        {shop.phone && <div className="flex gap-2"><span className="text-gray-400 w-16 flex-shrink-0">전화</span><a href={`tel:${shop.phone}`} className="text-sky-600">{shop.phone}</a></div>}
+        <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">주소</span><span className="text-gray-900">{shop.address}</span></div>
+        {shop.hours && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">영업시간</span><span className="text-gray-900 whitespace-pre-line">{shop.hours}</span></div>}
+        {shop.phone && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">전화</span><a href={`tel:${shop.phone}`} className="text-sky-600">{shop.phone}</a></div>}
       </div>
 
       {(shop.instagram || shop.website || shop.naverMap) && (

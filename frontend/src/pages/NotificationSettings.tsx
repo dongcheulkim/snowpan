@@ -26,7 +26,7 @@ const NotificationSettings = () => {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/mypage" className="text-gray-400 text-lg">←</Link>
+        <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">알림 설정</h1>
       </div>
 
@@ -35,7 +35,7 @@ const NotificationSettings = () => {
           <div key={item.key} className={`flex items-center justify-between px-5 py-4 ${idx < items.length - 1 ? 'border-b border-gray-50' : ''}`}>
             <div>
               <div className="text-sm font-medium text-gray-900">{item.label}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{item.desc}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{item.desc}</div>
             </div>
             <button onClick={() => toggle(item.key)} className={`w-11 h-6 rounded-full transition-colors relative ${settings[item.key] ? 'bg-primary' : 'bg-gray-200'}`}>
               <div className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition-transform ${settings[item.key] ? 'translate-x-5.5 right-0.5' : 'left-0.5'}`} />
