@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { createBannerFromBooking } from '../utils/adBookingScheduler';
+import { createBannerFromBooking, applyPremiumFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins } from './notificationController';
 
@@ -510,14 +510,22 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    // paid → active로 바로 전환 + 배너 생성
+    // paid → active로 바로 전환
     await prisma.adBooking.update({ where: { id }, data: { status: 'active' } });
     await prisma.adPayment.update({
       where: { bookingId: id },
       data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
     });
 
-    await createBannerFromBooking(booking);
+    // slotType 별 활성화 분기:
+    // - premium: 대상 상품/샵 isPremium=true (배너 X)
+    // - main_banner: 홈 Banner 레코드 생성 (홈 rotator 노출)
+    // - category: adBooking 레코드 자체로 카테고리 페이지에서 직접 조회 (Banner 레코드 X — 홈 오염 방지)
+    if (booking.slotType === 'premium') {
+      await applyPremiumFromBooking(booking);
+    } else if (booking.slotType === 'main_banner') {
+      await createBannerFromBooking(booking);
+    }
     cacheDel('banners:public');
 
     await prisma.notification.create({
@@ -553,7 +561,11 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
       create: { bookingId: id, paymentId: `free_${id}`, merchantUid: `free_${id}`, payMethod: 'free', amount: 0, status: 'paid', paidAt: new Date() },
     });
 
-    await createBannerFromBooking(booking);
+    if (booking.slotType === 'premium') {
+      await applyPremiumFromBooking(booking);
+    } else if (booking.slotType === 'main_banner') {
+      await createBannerFromBooking(booking);
+    }
     cacheDel('banners:public');
 
     await prisma.notification.create({

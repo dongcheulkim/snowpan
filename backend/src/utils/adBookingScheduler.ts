@@ -16,13 +16,18 @@ export async function updateAdBookingStatuses(): Promise<void> {
       data: { status: 'cancelled' },
     });
 
-    // paid + startDate <= now → active + 배너 자동 생성
+    // paid + startDate <= now → active + 배너 자동 생성 + 프리미엄 적용
     const toActivate = await prisma.adBooking.findMany({
       where: { status: 'paid', startDate: { lte: now } },
     });
     for (const booking of toActivate) {
       await prisma.adBooking.update({ where: { id: booking.id }, data: { status: 'active' } });
-      await createBannerFromBooking(booking);
+      if (booking.slotType === 'premium') {
+        await applyPremiumFromBooking(booking);
+      } else if (booking.slotType === 'main_banner') {
+        await createBannerFromBooking(booking);
+      }
+      // category 타입은 adBooking 레코드 자체가 카테고리 페이지에 노출 — Banner 추가 X
     }
 
     // active + endDate < now → completed + 배너 자동 삭제
@@ -53,6 +58,46 @@ export async function updateAdBookingStatuses(): Promise<void> {
     });
   } catch (error) {
     console.error('광고 상태 업데이트 오류:', error);
+  }
+}
+
+// 프리미엄 광고 활성화 — booking.url 에서 대상 (상품/스키샵/정비샵) 추출 후 isPremium=true.
+// URL 형식: '/used/<id>', '/skishop/<id>', '/repair/<id>' (또는 절대 URL).
+// premiumUntil = booking.endDate 로 설정 → 광고 만료와 함께 자동 해제.
+export async function applyPremiumFromBooking(booking: {
+  id: string;
+  slotType: string;
+  url: string;
+  endDate: Date;
+}): Promise<void> {
+  if (booking.slotType !== 'premium' || !booking.url) return;
+  // 절대 URL 이어도 path 만 추출
+  const match = booking.url.match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
+  if (!match) {
+    console.warn(`프리미엄 광고 URL 파싱 실패: ${booking.url}`);
+    return;
+  }
+  const kind = match[1];
+  const targetId = match[2];
+  try {
+    if (kind === 'used') {
+      await prisma.product.update({
+        where: { id: targetId },
+        data: { isPremium: true, premiumUntil: booking.endDate },
+      });
+    } else if (kind === 'skishop') {
+      await prisma.skiShop.update({
+        where: { id: targetId },
+        data: { isPremium: true, premiumUntil: booking.endDate },
+      });
+    } else if (kind === 'repair') {
+      await prisma.repairShop.update({
+        where: { id: targetId },
+        data: { isPremium: true, premiumUntil: booking.endDate },
+      });
+    }
+  } catch (error) {
+    console.error(`프리미엄 적용 실패 (${kind}/${targetId}):`, error);
   }
 }
 

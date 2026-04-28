@@ -34,6 +34,20 @@ const Used = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [, setLangTick] = useState(0);
+  const [banners, setBanners] = useState<{ title: string; desc: string; url?: string; textColor?: string | null; textAlign?: string | null }[]>([]);
+  const [currentBanner, setCurrentBanner] = useState(0);
+
+  useEffect(() => {
+    api<any[]>('/ad-booking/active?slotType=category&category=used')
+      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description, url: a.url, textColor: a.textColor, textAlign: a.textAlign }))))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (banners.length === 0) return;
+    const timer = setInterval(() => setCurrentBanner((p) => (p + 1) % banners.length), 4000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
   const updateParam = (key: string, value: string | null, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
@@ -135,6 +149,48 @@ const Used = () => {
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </Link>
+
+      {/* Ad Banner — 광고 있을 때만 노출 */}
+      {banners.length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl border h-24" style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}>
+          {banners.map((banner, idx) => (
+            <a
+              key={idx}
+              href={banner.url || '#'}
+              target={banner.url ? '_blank' : undefined}
+              rel={banner.url ? 'noopener noreferrer' : undefined}
+              aria-hidden={idx !== currentBanner}
+              tabIndex={idx === currentBanner ? 0 : -1}
+              className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${
+                idx === currentBanner ? 'translate-x-0' : idx < currentBanner ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
+              }`}
+            >
+              <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
+                <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
+                  <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
+                  <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
+                </div>
+                <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
+              </div>
+            </a>
+          ))}
+          {banners.length > 1 && (
+            <div className="absolute bottom-0 right-0 flex z-10">
+              {banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentBanner(idx)}
+                  aria-label={`슬라이드 ${idx + 1}`}
+                  aria-current={idx === currentBanner}
+                  className="min-w-11 min-h-11 inline-flex items-center justify-center"
+                >
+                  <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400 w-1.5'}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Search + Sort */}
       <div className="flex gap-2">
