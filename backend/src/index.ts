@@ -245,6 +245,16 @@ app.use('/api/contact', contactRoutes);
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
 app.use('/', sitemapRoutes);
 
+// 404 JSON 응답 — /api/* 매칭 안 되는 경로 (잘못된 메서드/경로 포함) 일 때
+// Express 기본 HTML 페이지 대신 JSON 으로 일관성 유지.
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'API 엔드포인트를 찾을 수 없습니다.',
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
 // Sentry error handler — must be AFTER all routes, BEFORE other error middleware
 if (SENTRY_DSN && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(SENTRY_DSN)) {
   Sentry.setupExpressErrorHandler(app);

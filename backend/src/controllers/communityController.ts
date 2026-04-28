@@ -200,8 +200,23 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    const cleanTitle = sanitizeText(title, 200);
-    const cleanContent = sanitizeText(content, 10000);
+    // 클라이언트와 한도 일치: 제목 50자, 본문 5000자.
+    // sanitize 전 원본 길이 검증 — 사용자가 의도적으로 큰 입력 보낸 경우 truncate 대신 거절.
+    if (typeof title !== 'string' || typeof content !== 'string') {
+      res.status(400).json({ error: '제목과 내용은 문자열이어야 합니다.' });
+      return;
+    }
+    if (title.length > 50) {
+      res.status(400).json({ error: `제목은 50자 이내여야 합니다. (현재 ${title.length}자)` });
+      return;
+    }
+    if (content.length > 5000) {
+      res.status(400).json({ error: `내용은 5000자 이내여야 합니다. (현재 ${content.length}자)` });
+      return;
+    }
+
+    const cleanTitle = sanitizeText(title, 50);
+    const cleanContent = sanitizeText(content, 5000);
     if (!cleanTitle || !cleanContent) {
       res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
       return;
@@ -275,6 +290,14 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     const { id: postId } = req.params;
     const { content } = req.body;
 
+    if (typeof content !== 'string') {
+      res.status(400).json({ error: '댓글은 문자열이어야 합니다.' });
+      return;
+    }
+    if (content.length > 2000) {
+      res.status(400).json({ error: `댓글은 2000자 이내여야 합니다. (현재 ${content.length}자)` });
+      return;
+    }
     const cleanContent = sanitizeText(content, 2000);
     if (!cleanContent) {
       res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
