@@ -3,9 +3,23 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+// 시작 시 JWT_SECRET 강도 검사 — 약한 시크릿이면 즉시 종료.
+// "snowpan-super-secret..." 같은 placeholder 가 프로덕션에 새는 사고 방지.
+const JWT_SECRET = process.env.JWT_SECRET;
+const WEAK_SECRETS = ['change-in-production', 'snowpan-super-secret', 'your-secret', 'secret', 'changeme'];
+if (!JWT_SECRET || JWT_SECRET.length < 32 || WEAK_SECRETS.some(w => JWT_SECRET.toLowerCase().includes(w))) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('🛑 JWT_SECRET 이 약합니다. 32자 이상 난수로 설정하세요 (openssl rand -hex 32).');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  JWT_SECRET 이 약합니다. 프로덕션 배포 전 교체 필수.');
+  }
+}
 
 // Sentry init (SENTRY_DSN_BACKEND 설정 시 활성화)
 if (process.env.SENTRY_DSN_BACKEND) {
@@ -78,14 +92,21 @@ const PORT = process.env.PORT || 3000;
 // Expose io for routers via app locals
 app.set('io', io);
 
-// === Security Headers Middleware ===
-app.use((_req, res, next) => {
-  res.set('X-Content-Type-Options', 'nosniff');
-  res.set('X-Frame-Options', 'DENY');
-  res.set('X-XSS-Protection', '1; mode=block');
-  res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  next();
-});
+// === Security Headers (helmet) ===
+// CSP 는 frontend 가 별도 도메인 (snowpan.vercel.app) 이고 API 만 서빙하므로
+// connect-src 'self' 만으로 충분. 인라인 스크립트/스타일 없음.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  strictTransportSecurity: { maxAge: 31536000, includeSubDomains: true },
+}));
+app.disable('x-powered-by');
 
 // === Gzip Compression Middleware (Node.js built-in zlib) ===
 app.use((req, res, next) => {
