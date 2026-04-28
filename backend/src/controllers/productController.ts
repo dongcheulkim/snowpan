@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
+import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
@@ -333,18 +334,21 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
-    // 가격 인하 시 찜한 유저들에게 알림
+    // 가격 인하 시 찜한 유저들에게 알림 — 5% 이상 인하만 (사소한 변경 스팸 방지).
+    // DB 알림 + Socket.IO 실시간 푸시 + 모바일 푸시 전부 발송.
     const newPrice = updated.price;
-    if (newPrice < oldPrice) {
+    if (newPrice < oldPrice && (oldPrice - newPrice) / oldPrice >= 0.05) {
       const wishlists = await prisma.wishlist.findMany({ where: { productId: id }, select: { userId: true } });
       const discount = Math.round((1 - newPrice / oldPrice) * 100);
+      const title = '찜한 상품 가격 인하';
+      const body = `${discount}%↓ ${updated.name} (${oldPrice.toLocaleString()}원 → ${newPrice.toLocaleString()}원)`;
+      const link = `/used/${id}`;
+      const io = req.app.get('io');
       for (const w of wishlists) {
-        await createNotification(
-          w.userId, 'system',
-          '찜한 상품 가격 인하!',
-          `"${updated.name}" ${discount}% 할인! ${oldPrice.toLocaleString()}원 → ${newPrice.toLocaleString()}원`,
-          `/used/${id}`
-        );
+        if (w.userId === userId) continue; // 본인이 가격 내린 거면 본인에게 알림 X
+        await createNotification(w.userId, 'system', title, body, link);
+        if (io) io.to(`user:${w.userId}`).emit('new_notification', { type: 'price_drop', title, message: body, link });
+        sendPushToUser(w.userId, title, body, link);
       }
     }
 

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
 import PushPermissionPrompt from '../components/PushPermissionPrompt';
+import ReviewPromptModal from '../components/ReviewPromptModal';
 
 const MainLayout = () => {
   useEffect(() => {
@@ -27,6 +28,7 @@ const MainLayout = () => {
       <BottomNav />
       <ToastHost />
       <PushPermissionPrompt />
+      <ReviewPromptModal />
     </div>
   );
 };

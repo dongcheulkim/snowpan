@@ -129,6 +129,61 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// 내가 거래 후 리뷰 안 쓴 건 모두 조회 — 거래 후 리뷰 강제 모달용.
+// 내가 채팅한 모든 상대 중, sold 매물이 있고, 그 매물에 내가 리뷰 안 쓴 것.
+router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    const rooms = await prisma.chatRoom.findMany({
+      where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+      select: { user1Id: true, user2Id: true },
+      take: 200,
+    });
+    const partnerIds = Array.from(new Set(
+      rooms.map((r) => (r.user1Id === userId ? r.user2Id : r.user1Id)).filter((id) => id !== userId),
+    ));
+    if (partnerIds.length === 0) { res.json({ pending: [] }); return; }
+
+    const soldProducts = await prisma.product.findMany({
+      where: { userId: { in: partnerIds }, status: 'sold' },
+      select: { id: true, name: true, price: true, image: true, userId: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+    });
+    if (soldProducts.length === 0) { res.json({ pending: [] }); return; }
+
+    const reviewed = await prisma.review.findMany({
+      where: { buyerId: userId, productId: { in: soldProducts.map((p) => p.id) } },
+      select: { productId: true },
+    });
+    const reviewedIds = new Set(reviewed.map((r) => r.productId));
+    const eligible = soldProducts.filter((p) => !reviewedIds.has(p.id));
+
+    const sellerIds = Array.from(new Set(eligible.map((p) => p.userId).filter(Boolean) as string[]));
+    const sellers = await prisma.user.findMany({
+      where: { id: { in: sellerIds } },
+      select: { id: true, name: true, nickname: true, profileImage: true, role: true },
+    });
+    const sellerById = new Map(sellers.map((s) => [s.id, s]));
+
+    const pending = eligible.slice(0, 5).map((p) => ({
+      productId: p.id,
+      productName: p.name,
+      productPrice: p.price,
+      productImage: p.image,
+      sellerId: p.userId,
+      seller: p.userId ? sellerById.get(p.userId) || null : null,
+      soldAt: p.updatedAt,
+    })).filter((x) => x.seller && x.seller.role !== 'deleted');
+
+    res.json({ pending });
+  } catch (error) {
+    console.error('Pending reviews error:', error);
+    res.status(500).json({ error: '조회 중 오류가 발생했습니다.' });
+  }
+});
+
 // 리뷰 작성 가능한 상품 목록 조회 (sold + 채팅이력 + 미작성)
 router.get('/eligible', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
