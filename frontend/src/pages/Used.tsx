@@ -205,7 +205,19 @@ const Used = () => {
               <Link to={`/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
                 <div className={`relative h-28 flex items-center justify-center text-4xl overflow-hidden ${product.image.startsWith('/') || product.image.startsWith('http') ? 'bg-gray-100' : 'bg-gradient-to-br from-sky-100 to-sky-200'}`}>
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
-                    <img src={imageUrl(product.image)} alt={product.name} className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <img
+                      src={imageUrl(product.image, 400)}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={e => {
+                        const img = e.target as HTMLImageElement;
+                        if (!img.dataset.fallback) {
+                          img.dataset.fallback = '1';
+                          img.src = '/icons/placeholder-card.svg';
+                        }
+                      }}
+                    />
                   ) : (
                     <span className="text-5xl drop-shadow-sm">{product.image}</span>
                   )}

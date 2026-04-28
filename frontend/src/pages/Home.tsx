@@ -117,11 +117,12 @@ const Home = () => {
       <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0) */}
       <div className="px-4 pt-3 pb-5 bg-white">
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 aspect-[3.5/1]">
-          {/* Slide #0: 브랜드 소개 */}
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 aspect-[3.5/1] md:aspect-[6/1] lg:aspect-[8/1] max-h-44">
+          {/* Slide #0: 브랜드 소개 — translate-only 슬라이드 (opacity 페이드 제거 → 두 슬라이드 동시 노출 버그 해소) */}
           <div
-            className={`absolute inset-0 transition-all duration-500 ${
-              currentBanner === 0 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'
+            aria-hidden={currentBanner !== 0}
+            className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+              currentBanner === 0 ? 'translate-x-0' : '-translate-x-full pointer-events-none'
             }`}
           >
             <BrandHero />
@@ -130,18 +131,21 @@ const Home = () => {
           {/* Slide #1~N: 광고 */}
           {banners.map((banner, idx) => {
             const slideIdx = idx + 1;
+            const inactive = slideIdx !== currentBanner;
             return (
               <a
                 key={banner.id}
                 href={banner.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`absolute inset-0 flex items-center px-5 transition-all duration-500 cursor-pointer ${
+                aria-hidden={inactive}
+                tabIndex={inactive ? -1 : 0}
+                className={`absolute inset-0 flex items-center px-5 transition-transform duration-500 ease-in-out cursor-pointer ${
                   slideIdx === currentBanner
-                    ? 'opacity-100 translate-x-0'
+                    ? 'translate-x-0'
                     : slideIdx < currentBanner
-                    ? 'opacity-0 -translate-x-full'
-                    : 'opacity-0 translate-x-full'
+                    ? '-translate-x-full pointer-events-none'
+                    : 'translate-x-full pointer-events-none'
                 }`}
               >
                 {banner.image && (

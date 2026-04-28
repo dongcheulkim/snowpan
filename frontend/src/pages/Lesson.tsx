@@ -103,7 +103,7 @@ const Lesson = () => {
       {banners.length > 0 && (
         <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 h-24">
           {banners.map((banner, idx) => (
-            <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
+            <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${idx === currentBanner ? "translate-x-0" : idx < currentBanner ? "-translate-x-full pointer-events-none" : "translate-x-full pointer-events-none"}`}>
               <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
                 <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
                   <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
@@ -172,7 +172,7 @@ const Lesson = () => {
             <Link to={`/lesson/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors">
               <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                  <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
                 ) : (
                   <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
                 )}
