@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
+import { parsePrice } from '../utils/validate';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,15 +41,20 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
     const userId = req.user!.id;
     const { name, price, duration, equipment, image, resortId, businessLicense } = req.body;
 
-    if (!name || !price || !duration || !equipment || !image || !resortId) {
+    if (!name || !duration || !equipment || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    const priceResult = parsePrice(price);
+    if (!priceResult.ok) {
+      res.status(400).json({ error: priceResult.error });
       return;
     }
 
     const rental = await prisma.rental.create({
       data: {
         name,
-        price: Number(price) || 0,
+        price: priceResult.value,
         duration,
         equipment,
         image,
@@ -111,9 +117,15 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, price, duration, equipment, image } = req.body;
+    let priceUpdate: number | undefined;
+    if (price !== undefined && price !== null && price !== '') {
+      const r = parsePrice(price);
+      if (!r.ok) { res.status(400).json({ error: r.error }); return; }
+      priceUpdate = r.value;
+    }
     const updated = await prisma.rental.update({
       where: { id },
-      data: { ...(name && { name }), ...(price && !isNaN(Number(price)) && { price: Number(price) }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
+      data: { ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
     });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }

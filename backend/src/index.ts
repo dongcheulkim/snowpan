@@ -167,7 +167,9 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+// JSON body 200KB 상한 — 일반 폼 충분, 거대 페이로드 DoS 방지.
+// 이미지 업로드는 multipart 라 별도 (uploadRoutes 의 multer 가 20MB).
+app.use(express.json({ limit: '200kb' }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   maxAge: '7d',
   immutable: true,
@@ -245,6 +247,15 @@ if (process.env.SENTRY_DSN_BACKEND) {
 
 // Fallback JSON error handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // body-parser 의 size/JSON 에러를 적절한 4xx 로 매핑.
+  if (err?.type === 'entity.too.large' || err?.status === 413) {
+    res.status(413).json({ error: '요청 본문이 너무 큽니다 (최대 200KB).' });
+    return;
+  }
+  if (err?.type === 'entity.parse.failed' || err instanceof SyntaxError) {
+    res.status(400).json({ error: '요청 본문이 올바른 JSON 이 아닙니다.' });
+    return;
+  }
   console.error('Unhandled error:', err);
   res.status(err.status || 500).json({ error: err.message || '서버 내부 오류' });
 });

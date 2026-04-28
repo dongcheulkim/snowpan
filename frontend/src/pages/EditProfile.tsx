@@ -38,24 +38,27 @@ const EditProfile = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    let updated: Record<string, unknown> | null = null;
     try {
       let profileImage = form.profileImage;
       if (profileFile) {
         const urls = await uploadImages([profileFile]);
         profileImage = urls[0];
       }
-      const updated = await api<Record<string, unknown>>('/auth/profile', {
+      updated = await api<Record<string, unknown>>('/auth/profile', {
         method: 'PUT',
         body: { nickname: form.nickname.trim(), profileImage },
       });
-      setUser(updated);
-      toastSuccess('프로필이 수정되었습니다.');
-      navigate('/mypage');
     } catch (err) {
+      // 닉 중복/길이/권한 등 — 백엔드 메시지를 그대로 노출.
       toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
-    } finally {
       setLoading(false);
+      return;
     }
+    setUser(updated!);
+    toastSuccess('프로필이 수정되었습니다.');
+    setLoading(false);
+    navigate('/mypage');
   };
 
   const inputClass = "w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400";

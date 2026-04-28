@@ -1,0 +1,42 @@
+// 입력 정수/가격 검증 헬퍼.
+// parseInt 가 음수도 그대로 받기 때문에 별도 체크 필요.
+
+const MAX_PRICE = 100_000_000; // 1억원
+
+export interface ParsedPrice {
+  ok: true;
+  value: number;
+}
+export interface ParseError {
+  ok: false;
+  error: string;
+}
+
+export function parsePrice(raw: unknown): ParsedPrice | ParseError {
+  if (raw === undefined || raw === null || raw === '') {
+    return { ok: false, error: '가격을 입력해주세요.' };
+  }
+  const n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+  if (!Number.isFinite(n) || Number.isNaN(n)) {
+    return { ok: false, error: '유효한 가격을 입력해주세요.' };
+  }
+  if (n <= 0) {
+    return { ok: false, error: '가격은 1원 이상이어야 합니다.' };
+  }
+  if (n > MAX_PRICE) {
+    return { ok: false, error: `최대 등록 가격은 ${MAX_PRICE.toLocaleString()}원입니다.` };
+  }
+  return { ok: true, value: Math.floor(n) };
+}
+
+// 양수 정수 (인원, 수량 등)
+export function parsePositiveInt(raw: unknown, max = 1_000_000): ParsedPrice | ParseError {
+  if (raw === undefined || raw === null || raw === '') {
+    return { ok: false, error: '값을 입력해주세요.' };
+  }
+  const n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+  if (!Number.isFinite(n) || Number.isNaN(n) || n <= 0 || n > max) {
+    return { ok: false, error: '유효한 값을 입력해주세요.' };
+  }
+  return { ok: true, value: Math.floor(n) };
+}

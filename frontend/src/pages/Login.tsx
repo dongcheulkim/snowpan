@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api, setAuth, isPersistentLogin } from '../api';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get('next');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [saveEmail, setSaveEmail] = useState(false);
@@ -45,7 +47,9 @@ const Login = () => {
         localStorage.removeItem('savedEmail');
       }
 
-      navigate('/');
+      // open redirect 방지: 외부 URL/프로토콜 차단, 내부 경로만 허용.
+      const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+      navigate(safeNext);
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
     } finally {

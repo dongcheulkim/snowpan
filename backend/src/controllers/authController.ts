@@ -22,6 +22,20 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // 닉네임 중복 사전 차단 — Prisma unique constraint 가 던지는 모호한 500 대신 친절한 409 반환.
+    const trimmedNickname = nickname ? String(nickname).trim() : '';
+    if (trimmedNickname) {
+      if (trimmedNickname.length < 2 || trimmedNickname.length > 20) {
+        res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
+        return;
+      }
+      const existingNickname = await prisma.user.findFirst({ where: { nickname: trimmedNickname }, select: { id: true } });
+      if (existingNickname) {
+        res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
+        return;
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -29,7 +43,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email,
         password: hashedPassword,
         name,
-        nickname: nickname || null,
+        nickname: trimmedNickname || null,
         phone,
       },
     });

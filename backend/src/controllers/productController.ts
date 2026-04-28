@@ -6,6 +6,7 @@ import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
+import { parsePrice } from '../utils/validate';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -185,18 +186,13 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
     const userId = req.user!.id;
     const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size } = req.body;
 
-    if (!name || !price || !image) {
+    if (!name || !image) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
-
-    const parsedPrice = parseInt(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      res.status(400).json({ error: '유효한 가격을 입력해주세요.' });
-      return;
-    }
-    if (parsedPrice > 100_000_000) {
-      res.status(400).json({ error: '최대 등록 가격은 1억원입니다.' });
+    const priceResult = parsePrice(price);
+    if (!priceResult.ok) {
+      res.status(400).json({ error: priceResult.error });
       return;
     }
 
@@ -209,7 +205,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         name: cleanName,
         brand: sanitizeText(brand, 60) || '',
         subcategory: subcategory || null,
-        price: parsedPrice,
+        price: priceResult.value,
         image,
         images: images || null,
         category: 'used',
@@ -243,10 +239,15 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
     }
 
     const { name, brand, price, image, description, rating, reviewCount } = req.body;
+    const priceResult = parsePrice(price);
+    if (!priceResult.ok) {
+      res.status(400).json({ error: priceResult.error });
+      return;
+    }
 
     const product = await prisma.product.create({
       data: {
-        name, brand, price: Number(price) || 0, image, category: 'new', description,
+        name, brand, price: priceResult.value, image, category: 'new', description,
         rating: rating ? parseFloat(rating) : undefined,
         reviewCount: reviewCount ? parseInt(reviewCount) : undefined,
       },
@@ -309,9 +310,14 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size } = req.body;
-    if (price !== undefined && !isNaN(parseInt(price)) && parseInt(price) > 100_000_000) {
-      res.status(400).json({ error: '최대 등록 가격은 1억원입니다.' });
-      return;
+    let priceUpdate: number | undefined;
+    if (price !== undefined && price !== null && price !== '') {
+      const priceResult = parsePrice(price);
+      if (!priceResult.ok) {
+        res.status(400).json({ error: priceResult.error });
+        return;
+      }
+      priceUpdate = priceResult.value;
     }
     const oldPrice = product.price;
     const updated = await prisma.product.update({
@@ -320,7 +326,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(name && { name: sanitizeText(name, 100) }),
         ...(brand !== undefined && { brand: sanitizeText(brand, 60) || '' }),
         ...(subcategory !== undefined && { subcategory }),
-        ...(price && !isNaN(parseInt(price)) && { price: parseInt(price) }),
+        ...(priceUpdate !== undefined && { price: priceUpdate }),
         ...(image && { image }),
         ...(images !== undefined && { images }),
         ...(description !== undefined && { description: sanitizeText(description, 5000) }),

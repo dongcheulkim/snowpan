@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
+import RegisterCTA from '../components/RegisterCTA';
 
 interface Shop {
   id: string;
@@ -57,7 +58,7 @@ export default function NewEquipment() {
           <Link to="/" className="text-gray-400 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">스키샵</h1>
         </div>
-        <Link to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">+ 등록</Link>
+        <RegisterCTA to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
       {/* 지역 필터 */}
