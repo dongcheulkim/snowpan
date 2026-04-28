@@ -29,9 +29,11 @@ if ('serviceWorker' in navigator) {
 
 // Sentry (VITE_SENTRY_DSN 설정 시 활성화)
 // Vercel env에 VITE_SENTRY_DSN을 세팅하면 자동으로 활성화됩니다.
+// 형식이 깨진 DSN 으로 init 하면 console 에 'Invalid Sentry Dsn' 빨갛게 뜨므로 사전 검증.
+const VALID_DSN = /^https?:\/\/[^@]+@[^/]+\/\d+/;
 try {
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
-  if (dsn) {
+  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+  if (dsn && VALID_DSN.test(dsn)) {
     import('@sentry/react').then(S => {
       S.init({
         dsn,

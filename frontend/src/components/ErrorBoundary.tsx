@@ -18,9 +18,10 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack);
-    // Sentry가 로드되어 있으면 forward
+    // Sentry가 로드되어 있으면 forward — DSN 형식 검증 후에만.
     try {
-      if (import.meta.env.VITE_SENTRY_DSN) {
+      const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+      if (dsn && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(dsn)) {
         import('@sentry/react').then(S => {
           S.withScope(scope => {
             scope.setExtra('componentStack', info.componentStack);

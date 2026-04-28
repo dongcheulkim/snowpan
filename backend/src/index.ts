@@ -22,13 +22,17 @@ if (!JWT_SECRET || JWT_SECRET.length < 32 || WEAK_SECRETS.some(w => JWT_SECRET.t
 }
 
 // Sentry init (SENTRY_DSN_BACKEND 설정 시 활성화)
-if (process.env.SENTRY_DSN_BACKEND) {
+// 형식 검증 후에만 init — 잘못된 DSN 으로 init 시 'Invalid Sentry Dsn' 노이즈 방지.
+const SENTRY_DSN = process.env.SENTRY_DSN_BACKEND;
+if (SENTRY_DSN && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(SENTRY_DSN)) {
   Sentry.init({
-    dsn: process.env.SENTRY_DSN_BACKEND,
+    dsn: SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: 0.1,
   });
   console.log('🔍 Sentry 활성화됨');
+} else if (SENTRY_DSN) {
+  console.warn('⚠️  SENTRY_DSN_BACKEND 형식이 올바르지 않습니다. Sentry 비활성화.');
 }
 
 import path from 'path';
@@ -242,7 +246,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/', sitemapRoutes);
 
 // Sentry error handler — must be AFTER all routes, BEFORE other error middleware
-if (process.env.SENTRY_DSN_BACKEND) {
+if (SENTRY_DSN && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(SENTRY_DSN)) {
   Sentry.setupExpressErrorHandler(app);
 }
 

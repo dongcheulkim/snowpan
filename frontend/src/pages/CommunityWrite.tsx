@@ -49,11 +49,21 @@ const CommunityWrite = () => {
     setImagePreviews(newFiles.map(f => URL.createObjectURL(f)));
   };
 
+  const TITLE_MAX = 50;
+  const CONTENT_MAX = 5000;
+  const titleOver = title.length > TITLE_MAX;
+  const contentOver = content.length > CONTENT_MAX;
+  // <script>·이벤트 핸들러 등 sanitize 대상 패턴 — 사전 안내용 (백엔드가 실제 정화).
+  const looksUnsafe = /<script\b|on\w+\s*=|<iframe\b|javascript:/i.test(title + ' ' + content);
+
   const handleSubmit = async () => {
     const user = getUser();
     if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
     if (!title.trim()) { alert('제목을 입력해주세요.'); return; }
+    if (title.trim().length < 2) { alert('제목은 2자 이상이어야 합니다.'); return; }
+    if (titleOver) { alert(`제목은 ${TITLE_MAX}자 이내여야 합니다. (현재 ${title.length}자)`); return; }
     if (!content.trim()) { alert('내용을 입력해주세요.'); return; }
+    if (contentOver) { alert(`내용은 ${CONTENT_MAX}자 이내여야 합니다. (현재 ${content.length}자)`); return; }
     if (!agreed) { alert('커뮤니티 이용규칙에 동의해주세요.'); return; }
 
     setSubmitting(true);
@@ -125,10 +135,14 @@ const CommunityWrite = () => {
           placeholder="제목을 입력하세요"
           required
           minLength={2}
-          maxLength={50}
-          className="w-full h-11 px-3.5 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400"
+          aria-invalid={titleOver}
+          className={`w-full h-11 px-3.5 rounded-lg text-sm border text-gray-900 placeholder-gray-400 transition-colors ${
+            titleOver ? 'bg-rose-50 border-coral focus:border-coral' : 'bg-gray-50 border-gray-100'
+          }`}
         />
-        <div className="text-right text-[10px] text-gray-500 mt-0.5">{title.length}/50</div>
+        <div className={`text-right text-[10px] mt-0.5 font-medium ${titleOver ? 'text-coral' : 'text-gray-500'}`}>
+          {title.length}/{TITLE_MAX}{titleOver ? ` · ${title.length - TITLE_MAX}자 초과` : ''}
+        </div>
       </div>
 
       <div>
@@ -141,10 +155,19 @@ const CommunityWrite = () => {
           placeholder="내용을 입력하세요"
           rows={12}
           required
-          maxLength={5000}
-          className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none"
+          aria-invalid={contentOver}
+          className={`w-full px-3.5 py-3 rounded-lg text-sm border text-gray-900 placeholder-gray-400 resize-none transition-colors ${
+            contentOver ? 'bg-rose-50 border-coral focus:border-coral' : 'bg-gray-50 border-gray-100'
+          }`}
         />
-        <div className="text-right text-[10px] text-gray-500 mt-0.5">{content.length}/5000</div>
+        <div className={`text-right text-[10px] mt-0.5 font-medium ${contentOver ? 'text-coral' : 'text-gray-500'}`}>
+          {content.length}/{CONTENT_MAX}{contentOver ? ` · ${content.length - CONTENT_MAX}자 초과` : ''}
+        </div>
+        {looksUnsafe && (
+          <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5 mt-2 leading-relaxed">
+            ⚠️ HTML 태그·스크립트는 자동으로 제거됩니다. 일반 텍스트로 입력해주세요.
+          </p>
+        )}
       </div>
 
       {/* Image Upload */}
