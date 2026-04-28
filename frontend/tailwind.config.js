@@ -10,12 +10,11 @@ export default {
         DEFAULT: '#E5E7EB', // gray-200, neutral
       },
       colors: {
-        // ── 스노우 ── 순백 대신 살짝 쿨톤이 도는 off-white. 눈부심 ↓, 설원 분위기.
-        // 위계: deep (body) < DEFAULT (card) < soft (header/거의 흰색).
+        // ── 스노우 ── slate-50 (#F8FAFC) 통일. 본문·카드·푸터 모두 같은 톤,
+        // 카드는 border/shadow 로만 분리. 눈부심 ↓, 깔끔한 미니멀.
         snow: {
-          DEFAULT: '#F8FAFC', // 카드 (살짝 쿨한 off-white)
-          soft: '#FCFDFE',    // 가장 밝은 톤 (헤더 등)
-          deep: '#EEF2F7',    // 페이지 배경 (눈에 띄게 한 톤 어두운 snow)
+          DEFAULT: '#F8FAFC',
+          soft: '#FCFDFE', // 약간 더 밝은 elevation 이 필요할 때만
         },
         // ── PAN 브랜드: 흑백 모노크롬 ──
         // 기존 sky-* 톤을 slate 로 재매핑해서 전 페이지에서 자동으로 톤이 바뀜.
