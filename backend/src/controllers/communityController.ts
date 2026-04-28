@@ -189,10 +189,25 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
+    // 카테고리 화이트리스트 — 'poll' 은 PollCreate 라우트에서만 허용.
+    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool'];
+    if (!allowedCategories.includes(category)) {
+      res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
+      return;
+    }
+    if (!['ski', 'board'].includes(sport)) {
+      res.status(400).json({ error: '유효하지 않은 종목입니다.' });
+      return;
+    }
+
     const cleanTitle = sanitizeText(title, 200);
     const cleanContent = sanitizeText(content, 10000);
     if (!cleanTitle || !cleanContent) {
       res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+      return;
+    }
+    if (cleanTitle.length < 2) {
+      res.status(400).json({ error: '제목은 2자 이상이어야 합니다.' });
       return;
     }
 

@@ -87,24 +87,64 @@ const CommunityWrite = () => {
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">카테고리</label>
-        <div className="flex gap-1.5 flex-wrap">
+        <span id="cw-category-label" className="text-sm font-semibold text-gray-700 block mb-2">카테고리</span>
+        <div role="radiogroup" aria-labelledby="cw-category-label" className="flex gap-1.5 flex-wrap">
           {categories.map((cat) => (
-            <button key={cat.id} onClick={() => setCategory(cat.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${category === cat.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
+            <button
+              key={cat.id}
+              type="button"
+              role="radio"
+              aria-checked={category === cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${category === cat.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}
+            >
               {cat.name}
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-gray-500 mt-2">
+          투표 글은 별도로 작성합니다.{' '}
+          <button
+            type="button"
+            onClick={() => navigate('/poll/create')}
+            className="text-accent font-medium underline underline-offset-2"
+          >
+            투표 만들기 →
+          </button>
+        </p>
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">제목</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목을 입력하세요" className="w-full h-11 px-3.5 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400" maxLength={50} />
+        <label htmlFor="cw-title" className="text-sm font-semibold text-gray-700 block mb-2">제목</label>
+        <input
+          id="cw-title"
+          name="title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="제목을 입력하세요"
+          required
+          minLength={2}
+          maxLength={50}
+          className="w-full h-11 px-3.5 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400"
+        />
+        <div className="text-right text-[10px] text-gray-500 mt-0.5">{title.length}/50</div>
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-gray-700 block mb-2">내용</label>
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="내용을 입력하세요" rows={12} className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none" />
+        <label htmlFor="cw-content" className="text-sm font-semibold text-gray-700 block mb-2">내용</label>
+        <textarea
+          id="cw-content"
+          name="content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="내용을 입력하세요"
+          rows={12}
+          required
+          maxLength={5000}
+          className="w-full px-3.5 py-3 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400 resize-none"
+        />
+        <div className="text-right text-[10px] text-gray-500 mt-0.5">{content.length}/5000</div>
       </div>
 
       {/* Image Upload */}
