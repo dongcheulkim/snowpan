@@ -117,6 +117,32 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // 프리미엄 슬롯: URL 이 가리키는 상품/샵이 본인 소유인지 검증.
+    // 남의 등록물을 임의로 프리미엄 띄우는 것 방지.
+    if (slotType === 'premium') {
+      const match = String(url).match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
+      if (!match) {
+        res.status(400).json({ error: '프리미엄 광고 URL 은 본인 등록물의 상세 페이지여야 합니다 (예: /used/<id>).' });
+        return;
+      }
+      const [, kind, targetId] = match;
+      let owned = false;
+      if (kind === 'used') {
+        const p = await prisma.product.findUnique({ where: { id: targetId }, select: { userId: true } });
+        owned = !!p && p.userId === userId;
+      } else if (kind === 'skishop') {
+        const s = await prisma.skiShop.findUnique({ where: { id: targetId }, select: { userId: true } });
+        owned = !!s && s.userId === userId;
+      } else if (kind === 'repair') {
+        const r = await prisma.repairShop.findUnique({ where: { id: targetId }, select: { userId: true } });
+        owned = !!r && r.userId === userId;
+      }
+      if (!owned) {
+        res.status(403).json({ error: '본인이 등록한 상품/샵만 프리미엄으로 띄울 수 있습니다.' });
+        return;
+      }
+    }
+
     // 오래된 pending_payment 정리 (30분 초과)
     const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
     await prisma.adBooking.updateMany({

@@ -4,7 +4,11 @@ import prisma from '../config/database';
 // 관리자가 별도 설정 없이도 6 개 카테고리 + main_banner + premium 가격이 자리잡음.
 // 이미 admin 이 수정한 가격은 덮어쓰지 않음 (where 일치 시 update X).
 
-const CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation'];
+// 카테고리 배너: 6개 (used/skishop/repair/rental/lesson/accommodation).
+// 프리미엄: 3개만 (Product/SkiShop/RepairShop 모델만 isPremium 필드 보유).
+//   → rental/lesson/accommodation 은 "최상단 고정" 의미가 약하고 모델도 미지원.
+const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation'];
+const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
 
 const SEEDS: Array<{
   slotType: string;
@@ -21,23 +25,22 @@ const SEEDS: Array<{
     maxConcurrent: 3,
     description: '홈 화면 상단 배너 (최대 3개 회전)',
   },
-  // 카테고리별 배너 + 프리미엄 (6개 카테고리)
-  ...CATEGORIES.flatMap((category) => [
-    {
-      slotType: 'category',
-      category,
-      pricePerDay: 30_000,
-      maxConcurrent: 2,
-      description: `${category} 카테고리 페이지 상단 배너`,
-    },
-    {
-      slotType: 'premium',
-      category,
-      pricePerDay: 1_000,
-      maxConcurrent: 3,
-      description: `${category} 리스트 최상단 고정 (카테고리당 3개)`,
-    },
-  ]),
+  // 카테고리 배너
+  ...BANNER_CATEGORIES.map((category) => ({
+    slotType: 'category',
+    category,
+    pricePerDay: 30_000,
+    maxConcurrent: 2,
+    description: `${category} 카테고리 페이지 상단 배너`,
+  })),
+  // 프리미엄 (3개만)
+  ...PREMIUM_CATEGORIES.map((category) => ({
+    slotType: 'premium',
+    category,
+    pricePerDay: 1_000,
+    maxConcurrent: 3,
+    description: `${category} 리스트 최상단 고정 (카테고리당 3개, 본인 등록물만)`,
+  })),
 ];
 
 export async function seedAdPricing(): Promise<void> {

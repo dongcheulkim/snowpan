@@ -47,6 +47,25 @@ const CATEGORY_LABELS: Record<string, string> = {
   accommodation: '숙소',
 };
 
+// 프리미엄 노출이 가능한 카테고리 — Product/SkiShop/RepairShop 모델만 isPremium 지원.
+const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
+
+// 본인 등록물 dropdown 에 쓰일 entity API 경로 + URL 형식.
+interface MyListing { id: string; name: string; image?: string }
+const MY_LISTINGS_API: Record<string, { url: string; pickArray: (data: any) => any[] }> = {
+  used: {
+    url: '/products?category=used&userId=__ME__',
+    pickArray: (d) => Array.isArray(d) ? d : (d?.products || []),
+  },
+  skishop: { url: '/ski-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
+  repair: { url: '/repair-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
+};
+const URL_PREFIX: Record<string, string> = {
+  used: '/used/',
+  skishop: '/skishop/',
+  repair: '/repair/',
+};
+
 function formatPrice(n: number): string {
   return n.toLocaleString('ko-KR');
 }
@@ -96,6 +115,26 @@ export default function AdBooking() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  // 프리미엄 슬롯: 자기 등록물 dropdown 데이터.
+  const [myListings, setMyListings] = useState<MyListing[]>([]);
+  const [myListingsLoading, setMyListingsLoading] = useState(false);
+  const me = getUser();
+
+  useEffect(() => {
+    if (selectedSlot !== 'premium' || !selectedCategory || !me) {
+      setMyListings([]);
+      return;
+    }
+    const config = MY_LISTINGS_API[selectedCategory];
+    if (!config) { setMyListings([]); return; }
+    setMyListingsLoading(true);
+    const path = config.url.replace('__ME__', me.id);
+    api<any>(path)
+      .then((data) => setMyListings(config.pickArray(data).slice(0, 50)))
+      .catch(() => setMyListings([]))
+      .finally(() => setMyListingsLoading(false));
+  }, [selectedSlot, selectedCategory, me?.id]);
 
   useEffect(() => {
     api<SlotPricing[]>('/ad-booking/slots')
@@ -302,20 +341,27 @@ export default function AdBooking() {
                 카테고리 선택
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                  <button
-                    key={key}
-                    onClick={() => handleCategorySelect(key)}
-                    className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
-                      selectedCategory === key
-                        ? 'border-sky-500 bg-sky-50 text-sky-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                {Object.entries(CATEGORY_LABELS)
+                  .filter(([key]) => selectedSlot !== 'premium' || PREMIUM_CATEGORIES.includes(key))
+                  .map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleCategorySelect(key)}
+                      className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
+                        selectedCategory === key
+                          ? 'border-sky-500 bg-sky-50 text-sky-700'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
               </div>
+              {selectedSlot === 'premium' && (
+                <p className="text-xs text-gray-500 mt-2">
+                  프리미엄 노출은 본인이 등록한 상품/스키샵/정비샵만 가능합니다.
+                </p>
+              )}
             </div>
           )}
 
@@ -442,14 +488,55 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">연결 URL *</label>
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
-            />
+            <label className="text-sm font-medium text-gray-600">
+              {selectedSlot === 'premium' ? '프리미엄 띄울 내 등록물 *' : '연결 URL *'}
+            </label>
+            {selectedSlot === 'premium' ? (
+              <div className="mt-1">
+                {myListingsLoading ? (
+                  <div className="px-4 py-3 rounded-xl border border-gray-200 bg-snow text-sm text-gray-500">
+                    내 등록물 불러오는 중...
+                  </div>
+                ) : myListings.length === 0 ? (
+                  <div className="px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-snow text-sm text-gray-500">
+                    이 카테고리에 등록한 항목이 없습니다.{' '}
+                    <Link to={`/${selectedCategory === 'used' ? 'used' : selectedCategory === 'skishop' ? 'skishop' : 'repair'}/register`} className="text-sky-600 underline">
+                      먼저 등록
+                    </Link>
+                    하고 다시 와주세요.
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={url}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setUrl(id ? `${URL_PREFIX[selectedCategory]}${id}` : '');
+                      }}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
+                    >
+                      <option value="">선택해주세요</option>
+                      {myListings.map((item) => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                    {url && (
+                      <p className="text-xs text-gray-500 mt-1.5">
+                        연결 URL: <span className="font-mono">{url}</span>
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
+              />
+            )}
           </div>
 
           <div>
