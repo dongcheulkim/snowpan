@@ -153,7 +153,7 @@ const Home = () => {
                   </div>
                   <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.description}</p>
                 </div>
-                <span className="absolute bottom-2 left-3 text-[9px] font-bold text-white/60 z-10">AD</span>
+                <span className="absolute bottom-2 left-3 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-black/55 text-white z-10">AD</span>
               </a>
             );
           })}
@@ -248,10 +248,10 @@ const Home = () => {
             <Link to={`/community/${communityTab}`} className="text-xs text-primary-dark font-medium">더보기 &gt;</Link>
           </div>
           <div className="flex gap-1 mb-3">
-            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'ski' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'ski' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
               <SkiIcon size={14} /> 스키
             </button>
-            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'board' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'board' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
               <SnowboardIcon size={14} /> 보드
             </button>
           </div>
@@ -260,7 +260,7 @@ const Home = () => {
               {(communityTab === 'ski' ? skiPosts : boardPosts).map((post, idx, arr) => (
                 <Link key={post.id} to={`/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
+                    <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{badgeMap[post.category] || post.category}</span>
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">

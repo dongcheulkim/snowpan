@@ -136,7 +136,7 @@ export default function Competitions() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${levelColor[comp.level] || 'bg-gray-100 text-gray-500'}`}>{comp.level}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${levelColor[comp.level] || 'bg-gray-100 text-gray-600'}`}>{comp.level}</span>
                       </div>
                       <h3 className="text-sm font-bold text-gray-900 mb-1">{comp.title}</h3>
                       <div className="flex items-center gap-2 text-[11px] text-gray-500">

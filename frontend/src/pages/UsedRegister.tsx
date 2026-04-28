@@ -145,7 +145,7 @@ const UsedRegister = () => {
               <div className="flex sm:hidden items-center justify-between mt-2 gap-2">
                 {steps.map((s, i) => (
                   <div key={i} className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <span className={`flex-shrink-0 w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${s.done ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
                       {s.done ? '✓' : i + 1}
                     </span>
                     {/* 활성 스텝 (첫 미완료) 라벨만 표시, 나머지는 번호만 */}

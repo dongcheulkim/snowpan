@@ -144,7 +144,7 @@ const Community = () => {
 
       <div className="flex gap-1.5 flex-wrap">
         {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setSelectedTab(tab.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-500 active:bg-gray-200'}`}>
+          <button key={tab.id} onClick={() => setSelectedTab(tab.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
             {tab.name}
           </button>
         ))}
@@ -167,13 +167,13 @@ const Community = () => {
             <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex gap-3">
                 {rank > 0 && (
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
                     {rank}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badgeMap[post.category] || ''] || 'text-gray-600 bg-gray-100 border-gray-300'}`}>
                       {badgeMap[post.category] || post.category}
                     </span>
                     <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>

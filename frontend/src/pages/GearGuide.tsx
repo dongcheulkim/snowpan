@@ -207,7 +207,7 @@ export default function GearGuide() {
               className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 level === lv
                   ? `${info.badge} text-white ring-2 ring-offset-1 ring-primary`
-                  : 'bg-gray-100 text-gray-500'
+                  : 'bg-gray-100 text-gray-600'
               }`}
             >
               {info.label}
@@ -245,7 +245,7 @@ export default function GearGuide() {
               </div>
               <div className="flex gap-1 mt-2">
                 {brand.levels.map(lv => (
-                  <span key={lv} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${lv === level ? `${LEVEL_INFO[lv].badge} text-white` : 'bg-gray-100 text-gray-500'}`}>
+                  <span key={lv} className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${lv === level ? `${LEVEL_INFO[lv].badge} text-white` : 'bg-gray-100 text-gray-600'}`}>
                     {LEVEL_INFO[lv].label}
                   </span>
                 ))}

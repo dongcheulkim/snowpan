@@ -76,7 +76,7 @@ export default function RepairShop() {
             <Link to={`/repair/${shop.id}`} key={shop.id} className={`card p-5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
               <div className="flex gap-4">
-                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden">
+                <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 flex-shrink-0 overflow-hidden">
                   {shop.image ? <img src={shop.image} alt={shop.name} loading="lazy" className="w-full h-full object-cover" /> : <MaintenanceIcon size={32} />}
                 </div>
                 <div className="flex-1 min-w-0">

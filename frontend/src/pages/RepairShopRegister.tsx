@@ -159,7 +159,7 @@ export default function RepairShopRegister() {
           </label>
 
           <div className="flex gap-3 pt-2">
-            <Link to="/repair" className="flex-1 py-3 text-center bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-200">취소</Link>
+            <Link to="/repair" className="flex-1 py-3 text-center bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-200">취소</Link>
             <button type="submit" disabled={loading || !agreeTerms} className="flex-1 py-3 bg-sky-500 text-white rounded-lg font-bold text-sm hover:bg-sky-600 transition-colors disabled:opacity-50">
               {loading ? '등록 중...' : '등록 신청'}
             </button>

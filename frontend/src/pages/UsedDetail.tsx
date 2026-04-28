@@ -310,7 +310,7 @@ const UsedDetail = () => {
           {/* Seller */}
           <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-500"><UserIcon size={20} /></div>
+              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-600"><UserIcon size={20} /></div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
               </div>
@@ -404,7 +404,7 @@ const UsedDetail = () => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
               <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
                 {reportSubmitting ? '처리 중...' : t('usedDetail.report')}
               </button>

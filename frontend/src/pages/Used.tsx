@@ -185,7 +185,7 @@ const Used = () => {
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 snap-start ${
               selectedCategory === cat.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {cat.name}

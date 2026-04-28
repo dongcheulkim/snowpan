@@ -125,7 +125,7 @@ export default function BookingCalendar({
     } else if (inRange) {
       cellClass += 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300';
     } else {
-      cellClass += 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-500 cursor-pointer';
+      cellClass += 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-600 cursor-pointer';
     }
 
     if (isToday && !isSelected) {

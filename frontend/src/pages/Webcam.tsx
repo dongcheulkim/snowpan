@@ -44,7 +44,7 @@ const Webcam = () => {
                 <div>
                   <div className="text-sm font-bold text-gray-900">{cam.name}</div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
+                    <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
                     <span className="text-[10px] text-gray-500">{cam.slopes}면 · {cam.elevation}</span>
                     {cam.hasStream ? (
                       <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-medium">{cam.cams}캠</span>

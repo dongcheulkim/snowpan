@@ -57,7 +57,7 @@ const RentalDetail = () => {
       </div>
 
       <div className="card rounded-2xl p-5">
-        <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{item.resort?.name}</span>
+        <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{item.resort?.name}</span>
         <h1 className="text-2xl font-bold text-gray-900 mt-2 mb-1">{item.name}</h1>
         <div className="text-xs text-gray-500">{item.duration}</div>
       </div>

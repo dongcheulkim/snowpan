@@ -72,8 +72,8 @@ const LessonDetail = () => {
 
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{item.resort?.name}</span>
-          <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{levelLabels[item.level] || item.level}</span>
+          <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{item.resort?.name}</span>
+          <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{levelLabels[item.level] || item.level}</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
       </div>

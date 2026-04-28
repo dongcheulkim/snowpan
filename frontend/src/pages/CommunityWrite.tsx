@@ -90,7 +90,7 @@ const CommunityWrite = () => {
         <label className="text-sm font-semibold text-gray-700 block mb-2">카테고리</label>
         <div className="flex gap-1.5 flex-wrap">
           {categories.map((cat) => (
-            <button key={cat.id} onClick={() => setCategory(cat.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${category === cat.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 active:bg-gray-200'}`}>
+            <button key={cat.id} onClick={() => setCategory(cat.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${category === cat.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
               {cat.name}
             </button>
           ))}

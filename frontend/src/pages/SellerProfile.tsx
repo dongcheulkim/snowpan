@@ -145,7 +145,7 @@ const SellerProfile = () => {
 
       {/* Profile Card */}
       <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 mx-auto mb-4 overflow-hidden">
+        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 mx-auto mb-4 overflow-hidden">
           {seller.profileImage ? (
             <img src={seller.profileImage} alt="" className="w-full h-full object-cover" />
           ) : <UserIcon size={36} />}
@@ -206,7 +206,7 @@ const SellerProfile = () => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-3"
             />
             <div className="flex gap-2">
-              <button onClick={() => { setShowReviewForm(false); setReviewContent(''); }} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg text-xs font-medium border border-gray-200">{t('btn.cancel')}</button>
+              <button onClick={() => { setShowReviewForm(false); setReviewContent(''); }} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium border border-gray-200">{t('btn.cancel')}</button>
               <button onClick={handleSubmitReview} disabled={!reviewContent.trim() || reviewSubmitting} className="flex-1 py-2 bg-accent text-white rounded-lg text-xs font-bold disabled:opacity-30">
                 {reviewSubmitting ? t('sellerProfile.submitting') : t('communityDetail.submit')}
               </button>
@@ -221,7 +221,7 @@ const SellerProfile = () => {
             {reviews.map((review) => (
               <div key={review.id} className="p-3 bg-white rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
                     {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
                   </div>
                   <span className="text-xs font-bold text-gray-900">{review.buyer.name}</span>

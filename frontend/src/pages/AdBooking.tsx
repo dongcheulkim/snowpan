@@ -240,7 +240,7 @@ export default function AdBooking() {
                   ? 'bg-sky-500 text-white'
                   : s < step
                   ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700'
               }`}
             >
               {s < step ? '✓' : s}

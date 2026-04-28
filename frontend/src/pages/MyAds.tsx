@@ -21,7 +21,7 @@ const statusLabel: Record<string, string> = {
 };
 const statusColor: Record<string, string> = {
   pending_payment: 'bg-yellow-100 text-yellow-700', paid: 'bg-blue-100 text-blue-700',
-  active: 'bg-mint/20 text-emerald-700', completed: 'bg-gray-100 text-gray-500',
+  active: 'bg-mint/20 text-emerald-700', completed: 'bg-gray-100 text-gray-600',
   cancelled: 'bg-coral/20 text-coral', refunded: 'bg-coral/20 text-coral',
 };
 
@@ -81,7 +81,7 @@ export default function MyAds() {
               <div key={ad.id} className="card p-4 flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-600'}`}>
                       {statusLabel[ad.status] || ad.status}
                     </span>
                     <span className="text-[10px] text-gray-500">{slotLabel}</span>

@@ -306,7 +306,7 @@ const PollDetail = () => {
             onClick={handleAddComment}
             disabled={!newComment.trim()}
             className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-              newComment.trim() ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-100 text-gray-500'
+              newComment.trim() ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-100 text-gray-600'
             }`}
           >
             등록

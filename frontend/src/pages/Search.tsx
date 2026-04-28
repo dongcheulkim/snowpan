@@ -111,7 +111,7 @@ export default function Search() {
           <div className="card overflow-hidden">
             {results.posts.map((p, idx) => (
               <Link key={p.id} to={`/community/post/${p.id}`} className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-50 ${idx < results.posts.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
+                <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{categoryMap[p.category] || p.category}</span>
                 <span className="text-sm text-gray-900 flex-1 truncate">{p.title}</span>
               </Link>
             ))}

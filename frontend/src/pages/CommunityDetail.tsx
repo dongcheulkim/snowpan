@@ -174,7 +174,7 @@ const CommunityDetail = () => {
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badge] || 'text-gray-500 bg-gray-100 border-gray-300'}`}>{badge}</span>
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeColor[badge] || 'text-gray-600 bg-gray-100 border-gray-300'}`}>{badge}</span>
           <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
           <div className="flex-1" />
           {/* Share button */}
@@ -196,7 +196,7 @@ const CommunityDetail = () => {
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
             {post.user.profileImage ? <img src={post.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={16} />}
           </div>
           <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
@@ -216,7 +216,7 @@ const CommunityDetail = () => {
         )}
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
-          <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'}`}>
+          <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'}`}>
             <HeartFilledIcon size={14} /> {likeCount}
           </button>
           <span className="text-sm text-gray-500">{t('communityDetail.comments')} {post.comments.length}</span>
@@ -232,7 +232,7 @@ const CommunityDetail = () => {
         <div className="space-y-4">
           {post.comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0 mt-0.5 overflow-hidden">
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden">
                 {comment.user.profileImage ? <img src={comment.user.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={14} />}
               </div>
               <div className="flex-1">
@@ -293,7 +293,7 @@ const CommunityDetail = () => {
               className="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); setReportDesc(''); }} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-300">{t('btn.cancel')}</button>
               <button onClick={handleReport} disabled={!reportReason || reportSubmitting} className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm disabled:opacity-30">
                 {reportSubmitting ? t('communityDetail.processing') : t('usedDetail.report')}
               </button>

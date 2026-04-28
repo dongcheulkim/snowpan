@@ -102,7 +102,7 @@ const MySales = () => {
                     className={`text-[11px] font-bold px-2 py-1.5 rounded-lg border appearance-none cursor-pointer ${
                       item.status === 'selling' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
                       item.status === 'reserved' ? 'text-yellow-600 bg-yellow-50 border-yellow-200' :
-                      'text-gray-500 bg-gray-100 border-gray-300'
+                      'text-gray-600 bg-gray-100 border-gray-300'
                     }`}
                   >
                     <option value="selling">판매중</option>

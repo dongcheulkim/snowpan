@@ -221,7 +221,7 @@ const Chat = () => {
           <Link to={backPath} aria-label="뒤로" className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </Link>
-          <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden flex-shrink-0">
+          <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
             <UserIcon size={18} />
             <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white ${connected ? 'bg-emerald-500' : 'bg-gray-300'}`} />
           </div>
@@ -238,7 +238,7 @@ const Chat = () => {
             className="block border-t border-gray-100 bg-gray-50 active:bg-gray-100 transition-colors"
           >
             <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0">
                 {state!.productImage!.startsWith('http') || state!.productImage!.startsWith('/') ? (
                   <img src={state!.productImage!.startsWith('/') ? `${SERVER_URL}${state!.productImage}` : state!.productImage} alt="" className="w-full h-full object-cover" />
                 ) : (

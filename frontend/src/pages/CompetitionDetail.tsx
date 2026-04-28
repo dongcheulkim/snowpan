@@ -141,7 +141,7 @@ export default function CompetitionDetail() {
 
       {/* 하단 버튼 */}
       <div className="flex gap-3">
-        <Link to="/competitions" className="flex-1 py-3 text-center bg-gray-100 text-gray-500 rounded-xl font-medium text-sm border border-gray-200">
+        <Link to="/competitions" className="flex-1 py-3 text-center bg-gray-100 text-gray-600 rounded-xl font-medium text-sm border border-gray-200">
           ← 목록으로
         </Link>
         {comp.website && (

@@ -173,7 +173,7 @@ const MyPage = () => {
       <div className="card p-6">
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0 cursor-pointer" onClick={() => profileInputRef.current?.click()}>
-            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden hover:border-gray-900 transition-colors">
+            <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden hover:border-gray-900 transition-colors">
               {uploadingPhoto ? (
                 <span className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
               ) : user.profileImage ? (
@@ -252,7 +252,7 @@ const MyPage = () => {
                         saveUser({ ...user, activeBadge: newBadge });
                       } catch {}
                     }}
-                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                   >
                     {isActive ? '노출중' : '노출'}
                   </button>
@@ -377,7 +377,7 @@ const MyPage = () => {
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={deleting}
-                className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-40"
+                className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors disabled:opacity-40"
               >
                 취소
               </button>
@@ -410,7 +410,7 @@ const MyPage = () => {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
+              <button onClick={() => { setShowBadgeModal(false); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
               <button onClick={handleRequestBadge} disabled={!badgeImage || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
                 {submitting ? t('mypage.requesting') : t('mypage.verifyRequest')}
               </button>

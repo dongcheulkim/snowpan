@@ -93,7 +93,7 @@ const Rental = () => {
             >
               <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
                 <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                  <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">AD</span>
+                  <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
                   <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
                 </div>
                 <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
@@ -125,7 +125,7 @@ const Rental = () => {
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {resort.name}
@@ -149,14 +149,14 @@ const Rental = () => {
               </div>
               <div className="p-3">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
+                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
                     {item.resort?.name || ''}
                   </span>
                   <span className="text-[10px] text-gray-500">{item.duration}</span>
                 </div>
                 <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
                 <div className="flex flex-wrap gap-1 mb-2">
-                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded border border-gray-200">
+                  <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
                     {item.equipment}
                   </span>
                 </div>

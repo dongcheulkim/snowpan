@@ -245,7 +245,7 @@ const UsedEdit = () => {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Link to="/mypage/sales" className="flex-1 py-3.5 text-center bg-gray-100 text-gray-500 rounded-lg font-medium text-sm border border-sky-200 hover:bg-gray-200 transition-colors">
+            <Link to="/mypage/sales" className="flex-1 py-3.5 text-center bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-sky-200 hover:bg-gray-200 transition-colors">
               취소
             </Link>
             <button type="submit" disabled={loading} className="flex-1 py-3.5 bg-sky-400 text-white rounded-lg font-bold text-sm hover:bg-sky-500 transition-colors active:scale-[0.98] disabled:opacity-50">

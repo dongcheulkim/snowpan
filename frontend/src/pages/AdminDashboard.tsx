@@ -459,7 +459,7 @@ const AdminDashboard = () => {
                         <span className="text-sm font-bold text-gray-900">{u.name}</span>
                         {(u as any).nickname && <span className="text-xs text-gray-500">({(u as any).nickname})</span>}
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                          u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-500'
+                          u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-600'
                         }`}>
                           {u.role}
                         </span>
@@ -475,9 +475,9 @@ const AdminDashboard = () => {
                 ))}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 pt-3">
-                    <button onClick={() => setUserPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-500 disabled:opacity-30">← 이전</button>
+                    <button onClick={() => setUserPage(Math.max(0, currentPage - 1))} disabled={currentPage === 0} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-600 disabled:opacity-30">← 이전</button>
                     <span className="text-xs text-gray-500">{currentPage + 1} / {totalPages}</span>
-                    <button onClick={() => setUserPage(Math.min(totalPages - 1, currentPage + 1))} disabled={currentPage >= totalPages - 1} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-500 disabled:opacity-30">다음 →</button>
+                    <button onClick={() => setUserPage(Math.min(totalPages - 1, currentPage + 1))} disabled={currentPage >= totalPages - 1} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-600 disabled:opacity-30">다음 →</button>
                   </div>
                 )}
               </div>
@@ -521,7 +521,7 @@ const AdminDashboard = () => {
                     활성화
                   </label>
                   <div className="flex gap-2">
-                    <button onClick={() => { setShowBannerForm(false); setEditingBannerId(null); }} className="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs">취소</button>
+                    <button onClick={() => { setShowBannerForm(false); setEditingBannerId(null); }} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs">취소</button>
                     <button onClick={handleBannerSubmit} className="flex-1 py-2 bg-accent text-white rounded-lg font-bold text-xs">저장</button>
                   </div>
                 </div>
@@ -532,7 +532,7 @@ const AdminDashboard = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${b.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${b.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                           {b.active ? '활성' : '비활성'}
                         </span>
                         <span className="text-[10px] text-gray-500">순서: {b.order}</span>
@@ -542,7 +542,7 @@ const AdminDashboard = () => {
                       {b.image && <img src={imageUrl(b.image)} alt="" className="w-32 h-16 object-contain rounded mt-1 bg-gray-50" />}
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => handleEditBanner(b)} className="px-2 py-1 bg-gray-100 text-gray-500 rounded text-[10px] font-bold">수정</button>
+                      <button onClick={() => handleEditBanner(b)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">수정</button>
                       <button onClick={() => handleDeleteBanner(b.id)} className="px-2 py-1 bg-coral/10 text-coral rounded text-[10px] font-bold">삭제</button>
                     </div>
                   </div>
@@ -571,7 +571,7 @@ const AdminDashboard = () => {
                   <button
                     onClick={() => handleTogglePremium(p.id, p.isPremium)}
                     className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${
-                      p.isPremium ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gold/10 text-yellow-700 hover:bg-gold/20'
+                      p.isPremium ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gold/10 text-yellow-700 hover:bg-gold/20'
                     }`}
                   >
                     {p.isPremium ? '해제' : '프리미엄 설정'}
@@ -610,11 +610,11 @@ const AdminDashboard = () => {
                     pending_payment: { label: '결제 대기', color: 'bg-yellow-100 text-yellow-700' },
                     paid: { label: '결제 완료', color: 'bg-blue-100 text-blue-700' },
                     active: { label: '노출중', color: 'bg-mint/20 text-emerald-700' },
-                    completed: { label: '종료', color: 'bg-gray-100 text-gray-500' },
+                    completed: { label: '종료', color: 'bg-gray-100 text-gray-600' },
                     cancelled: { label: '취소', color: 'bg-coral/20 text-coral' },
                     refunded: { label: '환불', color: 'bg-coral/20 text-coral' },
                   };
-                  const s = statusMap[b.status] || { label: b.status, color: 'bg-gray-100 text-gray-500' };
+                  const s = statusMap[b.status] || { label: b.status, color: 'bg-gray-100 text-gray-600' };
                   const startD = new Date(b.startDate);
                   const endD = new Date(b.endDate);
                   return (
@@ -700,7 +700,7 @@ const AdminDashboard = () => {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                             {p.active ? '활성' : '비활성'}
                           </span>
                         </div>

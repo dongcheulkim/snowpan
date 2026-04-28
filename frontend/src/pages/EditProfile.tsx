@@ -73,7 +73,7 @@ const EditProfile = () => {
       {/* Profile Image */}
       <div className="card p-5 flex flex-col items-center gap-3">
         <label className="relative cursor-pointer group">
-          <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-500 overflow-hidden group-hover:border-gray-900 transition-colors">
+          <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden group-hover:border-gray-900 transition-colors">
             {profilePreview ? (
               <img src={profilePreview} alt="프로필" className="w-full h-full object-cover" />
             ) : (

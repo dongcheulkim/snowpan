@@ -106,7 +106,7 @@ const Lesson = () => {
             <div key={idx} className={`absolute inset-0 flex items-center px-6 transition-all duration-700 ease-in-out ${idx === currentBanner ? 'opacity-100 translate-x-0' : idx < currentBanner ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
               <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
                 <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                  <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">AD</span>
+                  <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
                   <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
                 </div>
                 <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
@@ -138,7 +138,7 @@ const Lesson = () => {
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {resort.name}
@@ -155,7 +155,7 @@ const Lesson = () => {
             className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 ${
               selectedLevel === level.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
+                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-600 border border-gray-200'
             }`}
           >
             {level.name}
@@ -179,10 +179,10 @@ const Lesson = () => {
               </div>
               <div className="p-3">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
+                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
                     {item.resort?.name || ''}
                   </span>
-                  <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
                     {item.level === 'beginner' ? 'LV1' : item.level === 'intermediate' ? 'LV2' : item.level === 'advanced' ? 'LV3' : item.level}
                   </span>
                 </div>
