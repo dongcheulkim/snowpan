@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { CalendarIcon, ChartIcon, ChatIcon, CloseIcon, DocumentIcon, PackageIcon, UsersIcon } from '../components/Icons';
+import { adSlotLabelKr, SLOT_DESCRIPTIONS } from '../utils/adLabels';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
@@ -605,7 +606,7 @@ const AdminDashboard = () => {
                 <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 예약이 없습니다.</div>
               ) : (
                 adBookings.map((b) => {
-                  const slotLabel = b.slotType === 'main_banner' ? '메인 배너' : b.slotType === 'premium' ? '프리미엄' : `카테고리: ${b.category}`;
+                  const slotLabel = adSlotLabelKr(b.slotType, b.category);
                   const statusMap: Record<string, { label: string; color: string }> = {
                     pending_payment: { label: '결제 대기', color: 'bg-yellow-100 text-yellow-700' },
                     paid: { label: '결제 완료', color: 'bg-blue-100 text-blue-700' },
@@ -679,34 +680,23 @@ const AdminDashboard = () => {
                 <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 가격 설정이 없습니다.</div>
               ) : (
                 adPricings.map((p) => {
-                  const categoryLabel: Record<string, string> = {
-                    used: '중고',
-                    rental: '렌탈',
-                    lesson: '레슨',
-                    accommodation: '숙박',
-                    'ski-shops': '스키샵',
-                    'repair-shops': '정비샵',
-                    skiShop: '스키샵',
-                    repairShop: '정비샵',
-                  };
-                  const catSuffix = p.category && p.category !== 'none' ? ` (${categoryLabel[p.category] || p.category})` : '';
-                  const slotLabel = p.slotType === 'main_banner'
-                    ? '메인 배너'
-                    : p.slotType === 'premium'
-                      ? `프리미엄${catSuffix}`
-                      : `카테고리${catSuffix}`;
+                  const slotLabel = adSlotLabelKr(p.slotType, p.category);
+                  const slotDesc = SLOT_DESCRIPTIONS[p.slotType];
                   return (
                     <div key={p.id} className="card p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                            {p.active ? '활성' : '비활성'}
-                          </span>
+                      <div className="flex items-start justify-between mb-3 gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                              {p.active ? '활성' : '비활성'}
+                            </span>
+                          </div>
+                          {slotDesc && <p className="text-[11px] text-gray-500 leading-tight">{slotDesc}</p>}
                         </div>
                         <button
                           onClick={() => handlePricingUpdate(p, 'active', !p.active)}
-                          className="text-[10px] text-gray-500 hover:text-gray-600"
+                          className="text-[10px] text-gray-500 hover:text-gray-600 flex-shrink-0"
                         >
                           {p.active ? '비활성화' : '활성화'}
                         </button>

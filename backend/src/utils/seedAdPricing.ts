@@ -4,10 +4,10 @@ import prisma from '../config/database';
 // 관리자가 별도 설정 없이도 6 개 카테고리 + main_banner + premium 가격이 자리잡음.
 // 이미 admin 이 수정한 가격은 덮어쓰지 않음 (where 일치 시 update X).
 
-// 카테고리 배너: 6개 (used/skishop/repair/rental/lesson/accommodation).
+// 카테고리 배너: 7개 (used/skishop/repair/rental/lesson/accommodation/community).
 // 프리미엄: 3개만 (Product/SkiShop/RepairShop 모델만 isPremium 필드 보유).
-//   → rental/lesson/accommodation 은 "최상단 고정" 의미가 약하고 모델도 미지원.
-const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation'];
+//   → rental/lesson/accommodation/community 는 "최상단 고정" 의미가 약하고 모델도 미지원.
+const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community'];
 const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
 
 const SEEDS: Array<{

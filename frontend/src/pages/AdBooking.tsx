@@ -4,6 +4,7 @@ import { api, getUser, uploadImages } from '../api';
 import BookingCalendar from '../components/BookingCalendar';
 import { BankIcon, CloseIcon, MountainIcon, StarIcon } from '../components/Icons';
 import type { ComponentType } from 'react';
+import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
 
 interface SlotPricing {
   id: string;
@@ -39,12 +40,13 @@ const SLOT_ICONS: Record<string, ComponentType<{ size?: number; className?: stri
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  skishop: '스키샵',
-  repair: '정비',
-  used: '중고거래',
-  rental: '렌탈',
-  lesson: '레슨',
-  accommodation: '숙소',
+  skishop: SHARED_CATEGORY_LABELS.skishop,
+  repair: SHARED_CATEGORY_LABELS.repair,
+  used: SHARED_CATEGORY_LABELS.used,
+  rental: SHARED_CATEGORY_LABELS.rental,
+  lesson: SHARED_CATEGORY_LABELS.lesson,
+  accommodation: SHARED_CATEGORY_LABELS.accommodation,
+  community: SHARED_CATEGORY_LABELS.community,
 };
 
 // 프리미엄 노출이 가능한 카테고리 — Product/SkiShop/RepairShop 모델만 isPremium 지원.

@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
 import { FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import CategoryAdBanner from '../components/CategoryAdBanner';
 
 interface Post {
   id: string;
@@ -134,6 +135,8 @@ const Community = () => {
           </Link>
         </div>
       </div>
+
+      <CategoryAdBanner category="community" />
 
       <div className="relative">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
