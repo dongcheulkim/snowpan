@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
+import { Link } from 'react-router-dom';
+import { api, getUser } from '../api';
 
 interface AdItem {
   title: string;
@@ -18,10 +19,13 @@ interface RawAd {
 }
 
 // 카테고리 페이지 상단 광고 배너 — slotType=category, category=<key> 활성 광고를 회전.
-// 광고 없으면 null 반환 (자리 차지 X).
+// 광고 없으면 "광고 자리 모집 중" placeholder 로 영역 유지 (레이아웃 일관성 + 광고 판매 유도).
 export default function CategoryAdBanner({ category }: { category: string }) {
   const [banners, setBanners] = useState<AdItem[]>([]);
   const [current, setCurrent] = useState(0);
+  const user = getUser();
+  // 비로그인 시 /login?next=/ad-booking 로 안내해도 되지만 일단 /ad-booking 으로 통일.
+  const adLink = user ? '/ad-booking' : '/login?next=/ad-booking';
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +51,25 @@ export default function CategoryAdBanner({ category }: { category: string }) {
     return () => clearInterval(t);
   }, [banners.length]);
 
-  if (banners.length === 0) return null;
+  // 광고 0건 → "여기 광고 모집 중" placeholder.
+  if (banners.length === 0) {
+    return (
+      <Link
+        to={adLink}
+        aria-label="광고 신청"
+        className="block relative overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-white/60 hover:bg-white hover:border-gray-400 transition-colors h-24 flex items-center justify-between px-6"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
+            <span className="text-sm font-bold text-gray-700">이 자리 광고 모집 중</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">카테고리 상단 노출 30,000원/일 · 클릭해서 신청</p>
+        </div>
+        <span className="text-xs text-gray-500 ml-3 flex-shrink-0 hidden sm:inline">광고 신청 →</span>
+      </Link>
+    );
+  }
 
   return (
     <div

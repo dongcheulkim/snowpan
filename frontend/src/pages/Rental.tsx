@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
+import CategoryAdBanner from '../components/CategoryAdBanner';
 
 interface RentalItem {
   id: string;
@@ -23,28 +24,11 @@ const PAGE_SIZE = 12;
 
 const Rental = () => {
   const [selectedResort, setSelectedResort] = useState<string>('all');
-  const [currentBanner, setCurrentBanner] = useState(0);
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
-
-  const [banners, setBanners] = useState<{ title: string; desc: string; url?: string; image?: string | null; textColor?: string | null; textAlign?: string | null }[]>([]);
-
-  useEffect(() => {
-    api<any[]>('/ad-booking/active?slotType=category&category=rental')
-      .then(ads => setBanners(ads.map(a => ({ title: a.title, desc: a.description, url: a.url, image: a.image, textColor: a.textColor, textAlign: a.textAlign }))))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (banners.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [banners.length]);
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
@@ -81,40 +65,7 @@ const Rental = () => {
         <RegisterCTA to="/rental/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
-      {/* Ad Banner — 광고 있을 때만 노출 */}
-      {banners.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl border h-24" style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
-          {banners.map((banner, idx) => (
-            <div
-              key={idx}
-              className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${
-                idx === currentBanner ? 'translate-x-0' : idx < currentBanner ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
-              }`}
-            >
-              <div className={`relative z-10 flex-1 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : ''}`}>
-                <div className={`flex items-center gap-2 mb-0.5 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
-                  <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
-                  <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
-                </div>
-                <p className="text-sm" style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}>{banner.desc}</p>
-              </div>
-            </div>
-          ))}
-          <div className="absolute bottom-0 right-0 flex z-10">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentBanner(idx)}
-                aria-label={`슬라이드 ${idx + 1}`}
-                aria-current={idx === currentBanner}
-                className="min-w-11 min-h-11 inline-flex items-center justify-center"
-              >
-                <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all duration-300 ${idx === currentBanner ? 'bg-accent w-4' : 'bg-gray-400 w-1.5'}`} />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <CategoryAdBanner category="rental" />
 
       {/* Resort Filter */}
       <div className="flex gap-2 overflow-x-auto pb-1">
