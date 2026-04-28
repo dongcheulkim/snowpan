@@ -106,7 +106,7 @@ const UsedEdit = () => {
     }
   };
 
-  const inputClass = "w-full px-3 py-2.5 bg-white border border-sky-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 transition-all";
+  const inputClass = "w-full px-3 py-2.5 bg-snow border border-sky-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 transition-all";
   const labelClass = "block text-sm font-medium text-gray-500 mb-2";
 
   if (fetching) return <div className="text-center py-20 text-gray-500 text-sm">불러오는 중...</div>;

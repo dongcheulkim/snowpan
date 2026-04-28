@@ -6,7 +6,7 @@ export default function Logo({ withText = true, className = '' }: LogoProps) {
   void withText;
   return (
     <span
-      className={`inline-flex items-baseline text-gray-900 dark:text-white select-none ${className}`}
+      className={`inline-flex items-baseline text-gray-900 select-none ${className}`}
       style={{
         fontFamily: '"Helvetica Neue", Helvetica, "Inter", "Apple SD Gothic Neo", system-ui, sans-serif',
         fontWeight: 700,

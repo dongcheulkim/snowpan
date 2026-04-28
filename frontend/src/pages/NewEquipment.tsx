@@ -65,7 +65,7 @@ export default function NewEquipment() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {areas.map(a => (
           <button key={a.id} onClick={() => { setSelectedArea(a.id); setSelectedResort('all'); }}
-            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
+            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
             {a.name}
           </button>
         ))}
@@ -74,12 +74,12 @@ export default function NewEquipment() {
       {/* 스키장 필터 */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => setSelectedResort('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-500 border border-gray-200'}`}>
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
           전체
         </button>
         {resortList.map(r => (
           <button key={r} onClick={() => setSelectedResort(r)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-white text-gray-500 border border-gray-200'}`}>
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
             {r}
           </button>
         ))}

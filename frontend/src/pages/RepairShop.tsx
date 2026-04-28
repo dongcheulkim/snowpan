@@ -55,7 +55,7 @@ export default function RepairShop() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {areas.map(a => (
           <button key={a.id} onClick={() => setSelectedArea(a.id)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
+            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
             {a.name}
           </button>
         ))}

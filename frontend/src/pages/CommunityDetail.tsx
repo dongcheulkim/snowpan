@@ -261,7 +261,7 @@ const CommunityDetail = () => {
 
         {user ? (
           <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
-            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
+            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
             <button onClick={handleComment} disabled={!newComment.trim()} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
           </div>
         ) : (
@@ -275,7 +275,7 @@ const CommunityDetail = () => {
       {showReportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
-          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+          <div className="relative bg-snow rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('communityDetail.reportPost')}</h3>
             <p className="text-xs text-gray-500 mb-4">{t('communityDetail.selectReason')}</p>
             <div className="space-y-2 mb-4">

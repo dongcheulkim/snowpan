@@ -428,7 +428,7 @@ const UsedDetail = () => {
       {showReportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowReportModal(false)} />
-          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+          <div className="relative bg-snow rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">상품 신고</h3>
             <p className="text-xs text-gray-500 mb-4">신고 사유를 선택해주세요</p>
             <div className="space-y-2 mb-4">

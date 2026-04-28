@@ -128,7 +128,7 @@ const WebcamDetail = () => {
                   className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                     selectedCam === idx
                       ? 'bg-accent text-white'
-                      : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                      : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   {String(idx + 1).padStart(2, '0')}. {c.label}

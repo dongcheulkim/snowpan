@@ -338,7 +338,7 @@ const AdminApproval = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              activeTab === tab.id ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'
             }`}
           >
             {tab.name} ({tab.count})

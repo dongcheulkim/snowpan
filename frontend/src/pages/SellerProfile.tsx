@@ -162,11 +162,11 @@ const SellerProfile = () => {
           </div>
         )}
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="py-3 bg-white rounded-xl border border-gray-200">
+          <div className="py-3 bg-snow rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gray-900">{seller.products.length}개</div>
             <div className="text-[10px] text-gray-500">{t('sellerProfile.sales')}</div>
           </div>
-          <div className="py-3 bg-white rounded-xl border border-gray-200">
+          <div className="py-3 bg-snow rounded-xl border border-gray-200">
             <div className="text-base font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
             <div className="text-[10px] text-gray-500">{t('sellerProfile.avgRating')}</div>
           </div>
@@ -188,7 +188,7 @@ const SellerProfile = () => {
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
             <div className="mb-3">
               <label className="text-xs font-medium text-gray-600 block mb-1">거래 상품</label>
-              <select value={reviewProductId} onChange={e => setReviewProductId(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-gray-200 text-gray-900">
+              <select value={reviewProductId} onChange={e => setReviewProductId(e.target.value)} className="w-full px-3 py-2 rounded-lg text-sm bg-snow border border-gray-200 text-gray-900">
                 {eligibleProducts.map(p => (
                   <option key={p.id} value={p.id}>{p.name} · {p.price.toLocaleString()}원</option>
                 ))}
@@ -203,7 +203,7 @@ const SellerProfile = () => {
               onChange={e => setReviewContent(e.target.value)}
               placeholder={t('sellerProfile.reviewPlaceholder')}
               rows={3}
-              className="w-full px-3 py-2 rounded-lg text-sm bg-white border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-3"
+              className="w-full px-3 py-2 rounded-lg text-sm bg-snow border border-gray-200 text-gray-900 placeholder-gray-400 resize-none mb-3"
             />
             <div className="flex gap-2">
               <button onClick={() => { setShowReviewForm(false); setReviewContent(''); }} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium border border-gray-200">{t('btn.cancel')}</button>
@@ -219,7 +219,7 @@ const SellerProfile = () => {
         ) : (
           <div className="space-y-3">
             {reviews.map((review) => (
-              <div key={review.id} className="p-3 bg-white rounded-lg border border-gray-200">
+              <div key={review.id} className="p-3 bg-snow rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
                     {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
@@ -250,7 +250,7 @@ const SellerProfile = () => {
               <Link
                 key={item.id}
                 to={`/used/${item.id}`}
-                className="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
+                className="flex items-center gap-3 p-3 bg-snow rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
               >
                 <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-2xl border border-gray-200 overflow-hidden flex-shrink-0">
                   {item.image.startsWith('http') || item.image.startsWith('/') ? (

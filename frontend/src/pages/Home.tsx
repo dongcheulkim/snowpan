@@ -118,7 +118,7 @@ const Home = () => {
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
           어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피. */}
-      <div className="px-4 pt-3 pb-5 bg-white">
+      <div className="px-4 pt-3 pb-5 bg-snow">
         <div
           className="relative overflow-hidden rounded-2xl border aspect-[3.5/1] md:aspect-[6/1] lg:aspect-[8/1] max-h-44"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
@@ -190,7 +190,7 @@ const Home = () => {
       </div>
 
       {/* Categories — 9개 아이템: 모바일 3×3, 태블릿 5×2, 데스크톱 9×1 (균등 정렬) */}
-      <div className="px-4 pb-5 bg-white">
+      <div className="px-4 pb-5 bg-snow">
         <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-y-4 gap-x-2">
           {categories.map((cat) => {
             const Icon = categoryIcons[cat.id];
@@ -214,7 +214,7 @@ const Home = () => {
       <div className="px-4 py-4 space-y-4">
 
         {/* Hot Deals */}
-        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+        <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물</h2>
             <Link to="/used" className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
@@ -251,7 +251,7 @@ const Home = () => {
         </div>
 
         {/* Community */}
-        <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+        <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><FireIcon size={18} /> 인기 커뮤니티</h2>
             <Link to={`/community/${communityTab}`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
@@ -286,7 +286,7 @@ const Home = () => {
 
         {/* 인기 투표 */}
         {polls.length > 0 && (
-          <div className="bg-white border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+          <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><ChartIcon size={18} /> 인기 투표</h2>
               <Link to="/community/ski" className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>

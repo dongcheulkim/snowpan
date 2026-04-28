@@ -91,7 +91,7 @@ export default function ReviewPromptModal() {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !submitting && handleDismiss()} />
-      <div className="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+      <div className="relative bg-snow rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
         <div className="px-5 pt-5 pb-3 border-b border-gray-100">
           <p className="text-[11px] font-bold text-accent tracking-wider">DEAL FEEDBACK</p>
           <h3 className="text-lg font-bold text-gray-900 mt-0.5">거래 어떠셨나요?</h3>

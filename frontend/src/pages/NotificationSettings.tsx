@@ -38,7 +38,7 @@ const NotificationSettings = () => {
               <div className="text-xs text-gray-500 mt-0.5">{item.desc}</div>
             </div>
             <button onClick={() => toggle(item.key)} className={`w-11 h-6 rounded-full transition-colors relative ${settings[item.key] ? 'bg-primary' : 'bg-gray-200'}`}>
-              <div className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition-transform ${settings[item.key] ? 'translate-x-5.5 right-0.5' : 'left-0.5'}`} />
+              <div className={`w-5 h-5 bg-snow rounded-full shadow absolute top-0.5 transition-transform ${settings[item.key] ? 'translate-x-5.5 right-0.5' : 'left-0.5'}`} />
             </button>
           </div>
         ))}

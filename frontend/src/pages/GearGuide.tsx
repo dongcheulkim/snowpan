@@ -184,13 +184,13 @@ export default function GearGuide() {
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
         <button
           onClick={() => setSport('ski')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'ski' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'ski' ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
           ⛷️ 스키
         </button>
         <button
           onClick={() => setSport('board')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'board' ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
           🏂 스노보드
         </button>

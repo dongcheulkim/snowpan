@@ -33,7 +33,6 @@ const MyPage = () => {
 
   const [badgeImage, setBadgeImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
   const [, setLangTick] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -142,17 +141,6 @@ const MyPage = () => {
     { label: t('mypage.notifications'), link: '/notifications' },
   ];
 
-  const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   const toggleLang = () => {
     const next = lang === 'ko' ? 'en' : 'ko';
@@ -209,7 +197,7 @@ const MyPage = () => {
             { label: t('mypage.joinDate'), value: formatDate(user.createdAt) },
             { label: t('mypage.badges'), value: `${approvedBadges.length}개` },
           ].map((stat) => (
-            <div key={stat.label} className="text-center py-2 bg-white rounded-lg">
+            <div key={stat.label} className="text-center py-2 bg-snow rounded-lg">
               <div className="text-base font-bold text-gray-900">{stat.value}</div>
               <div className="text-[10px] text-gray-500">{stat.label}</div>
             </div>
@@ -235,7 +223,7 @@ const MyPage = () => {
               if (!badge) return null;
               const isActive = (user as any).activeBadge === b.badgeType;
               return (
-                <div key={b.id} className={`flex items-center justify-between p-3 bg-white rounded-lg border ${isActive ? 'border-sky-400 bg-sky-50/50' : 'border-gray-200'}`}>
+                <div key={b.id} className={`flex items-center justify-between p-3 bg-snow rounded-lg border ${isActive ? 'border-sky-400 bg-sky-50/50' : 'border-gray-200'}`}>
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
@@ -263,7 +251,7 @@ const MyPage = () => {
               const badge = badgeDisplay[b.badgeType];
               if (!badge) return null;
               return (
-                <div key={b.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 opacity-60">
+                <div key={b.id} className="flex items-center justify-between p-3 bg-snow rounded-lg border border-gray-200 opacity-60">
                   <div className="flex items-center gap-3">
                     <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
                     <div>
@@ -302,17 +290,8 @@ const MyPage = () => {
         </div>
       )}
 
-      {/* Dark Mode & Language */}
+      {/* Language */}
       <div className="card overflow-hidden">
-        <div className="w-full flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <span className="text-sm font-medium text-gray-900">{t('mypage.darkMode')}</span>
-          <button
-            onClick={toggleDarkMode}
-            className={`w-12 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-accent' : 'bg-gray-300'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
-          </button>
-        </div>
         <div className="w-full flex items-center justify-between px-5 py-4">
           <span className="text-sm font-medium text-gray-900">{t('mypage.langLabel')}</span>
           <button
@@ -335,7 +314,7 @@ const MyPage = () => {
       </div>
 
       {/* Logout */}
-      <button onClick={handleLogout} className="w-full py-3.5 bg-white text-gray-500 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
+      <button onClick={handleLogout} className="w-full py-3.5 bg-snow text-gray-500 rounded-xl font-medium text-sm border border-gray-200 hover:bg-coral/10 hover:text-coral hover:border-coral/20 transition-all active:scale-[0.98]">
         {t('mypage.logout')}
       </button>
 
@@ -353,7 +332,7 @@ const MyPage = () => {
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && setShowDeleteModal(false)} />
-          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+          <div className="relative bg-snow rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">회원 탈퇴</h3>
             <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 mb-4 text-[12px] text-rose-700 leading-relaxed">
               <p className="font-bold mb-1">탈퇴 시 처리되는 내용</p>
@@ -397,7 +376,7 @@ const MyPage = () => {
       {showBadgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
-          <div className="relative bg-white rounded-xl p-6 w-full max-w-sm border border-gray-300">
+          <div className="relative bg-snow rounded-xl p-6 w-full max-w-sm border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('mypage.certVerification')}</h3>
             <p className="text-xs text-gray-500 mb-5">자격증 사진을 첨부하면 관리자가 확인 후 적절한 뱃지를 부여합니다.</p>
 

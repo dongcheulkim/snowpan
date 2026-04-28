@@ -35,21 +35,6 @@ const Navbar = () => {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
-  const [darkMode, setDarkMode] = useState(() =>
-    typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
-  );
-
-  const toggleTheme = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   const fetchNotifCount = useCallback(() => {
     try {
@@ -176,24 +161,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
-              aria-pressed={darkMode}
-              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-              title={darkMode ? '라이트 모드' : '다크 모드'}
-            >
-              {darkMode ? (
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m11.32 0 1.41 1.41M4.93 4.93l1.41 1.41M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-                </svg>
-              )}
-            </button>
             <Link
               to="/search"
               aria-label="검색"

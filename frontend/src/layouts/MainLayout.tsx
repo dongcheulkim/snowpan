@@ -11,12 +11,12 @@ const SITE_URL = 'https://snowpan.vercel.app';
 const MainLayout = () => {
   const location = useLocation();
 
+  // 다크모드 잔여 정리 — 이전 사용자가 'dark' 로 저장해뒀을 수 있어
+  // 한 번 더 확실히 제거.
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('dark');
+    if (localStorage.getItem('theme') === 'dark') {
+      localStorage.removeItem('theme');
     }
   }, []);
 
@@ -33,7 +33,7 @@ const MainLayout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-snow-deep flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
         본문 바로가기
       </a>
@@ -43,7 +43,7 @@ const MainLayout = () => {
       <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
         <Outlet />
       </main>
-      <footer className="hidden md:block border-t border-gray-200 bg-white">
+      <footer className="hidden md:block border-t border-gray-200 bg-snow">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="font-bold text-gray-700">SNOW PAN</p>

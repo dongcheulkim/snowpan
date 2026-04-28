@@ -67,7 +67,7 @@ const Register = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
+  const inputClass = "w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">

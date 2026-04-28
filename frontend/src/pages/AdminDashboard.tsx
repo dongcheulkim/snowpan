@@ -282,7 +282,7 @@ const AdminDashboard = () => {
     { id: 'adPricing', label: '광고가격' },
   ];
 
-  const inputClass = "w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
+  const inputClass = "w-full px-3 py-2 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-2 ${
-              tab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              tab === t.id ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'
             }`}
           >
             {t.label}

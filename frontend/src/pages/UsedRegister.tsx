@@ -102,7 +102,7 @@ const UsedRegister = () => {
     }
   };
 
-  const inputClass = "w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
+  const inputClass = "w-full px-3 py-2.5 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all";
   const labelClass = "block text-sm font-medium text-gray-500 mb-2";
 
   return (
@@ -243,14 +243,14 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="ski" className="bg-white">스키</option>
-                <option value="board" className="bg-white">보드</option>
-                <option value="boots" className="bg-white">부츠</option>
-                <option value="binding" className="bg-white">바인딩</option>
-                <option value="helmet" className="bg-white">헬멧</option>
-                <option value="goggles" className="bg-white">고글</option>
-                <option value="wear" className="bg-white">의류</option>
-                <option value="etc" className="bg-white">기타</option>
+                <option value="ski" className="bg-snow">스키</option>
+                <option value="board" className="bg-snow">보드</option>
+                <option value="boots" className="bg-snow">부츠</option>
+                <option value="binding" className="bg-snow">바인딩</option>
+                <option value="helmet" className="bg-snow">헬멧</option>
+                <option value="goggles" className="bg-snow">고글</option>
+                <option value="wear" className="bg-snow">의류</option>
+                <option value="etc" className="bg-snow">기타</option>
               </select>
             </div>
 
@@ -355,7 +355,7 @@ const UsedRegister = () => {
                   className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                     form.tradeMethod === method
                       ? 'bg-accent text-white'
-                      : 'bg-white text-gray-500 border border-gray-300 active:bg-gray-50'
+                      : 'bg-snow text-gray-500 border border-gray-300 active:bg-gray-50'
                   }`}
                 >
                   {method}
@@ -396,7 +396,7 @@ const UsedRegister = () => {
 
 
           {/* 중고거래 주의사항 */}
-          <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+          <div className="bg-snow border border-gray-200 rounded-xl p-4 space-y-3">
             <button
               type="button"
               onClick={() => setShowRules(!showRules)}

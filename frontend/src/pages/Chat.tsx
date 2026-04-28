@@ -280,7 +280,7 @@ const Chat = () => {
           {/* 빈 상태 — 메시지 없을 때 친근한 안내 + 빠른 답장 */}
           {!isAdminChat && messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-white border border-gray-200 flex items-center justify-center mb-4 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-snow border border-gray-200 flex items-center justify-center mb-4 shadow-sm">
                 <UserIcon size={32} className="text-gray-500" />
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-1">{otherName}</h3>
@@ -294,7 +294,7 @@ const Chat = () => {
                     key={i}
                     onClick={() => sendQuickReply(q)}
                     disabled={!connected}
-                    className="px-3.5 py-2 bg-white border border-gray-200 rounded-full text-xs text-gray-700 font-medium hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all active:scale-95 disabled:opacity-30 shadow-sm"
+                    className="px-3.5 py-2 bg-snow border border-gray-200 rounded-full text-xs text-gray-700 font-medium hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all active:scale-95 disabled:opacity-30 shadow-sm"
                   >
                     {q}
                   </button>
@@ -316,7 +316,7 @@ const Chat = () => {
               let parsed: { productName?: string; productPath?: string } = {};
               try { parsed = JSON.parse(msg.content); } catch { parsed = { productName: msg.content }; }
               const inner = (
-                <div className={`rounded-2xl px-4 py-3 ${isMe ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-900'}`}>
+                <div className={`rounded-2xl px-4 py-3 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
                   <div className={`flex items-center gap-1.5 mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>
                     <PackageIcon size={13} />
                     <span className="text-[10px] font-semibold tracking-wide">상품 문의</span>
@@ -356,7 +356,7 @@ const Chat = () => {
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
                       {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
-                      <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200'}`}>
+                      <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200'}`}>
                         <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>가격 제안</div>
                         <div className="text-xl font-black tracking-tight">
                           {isNaN(priceVal) ? msg.content : `${priceVal.toLocaleString()}원`}
@@ -381,7 +381,7 @@ const Chat = () => {
                   {/* 상대 메시지 좌측 아바타 — 그룹 첫 메시지에만 보이고, 나머지는 빈 공간 유지로 정렬 일관성 */}
                   {!isMe && (
                     isFirstInGroup ? (
-                      <div className="w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden shadow-sm">
+                      <div className="w-7 h-7 rounded-full bg-snow border border-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0 overflow-hidden shadow-sm">
                         <UserIcon size={14} />
                       </div>
                     ) : (
@@ -408,7 +408,7 @@ const Chat = () => {
                       <div className={`px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words ${
                         isMe
                           ? 'bg-gray-900 text-white rounded-2xl rounded-br-md'
-                          : 'bg-white text-gray-900 rounded-2xl rounded-bl-md border border-gray-200'
+                          : 'bg-snow text-gray-900 rounded-2xl rounded-bl-md border border-gray-200'
                       }`}>
                         {msg.content}
                       </div>
@@ -427,7 +427,7 @@ const Chat = () => {
       </div>
 
       {/* Sticky Input Bar — 하나의 pill 안에 모든 컨트롤 통합 */}
-      <div className="flex-shrink-0 border-t border-gray-100 bg-white safe-area-bottom">
+      <div className="flex-shrink-0 border-t border-gray-100 bg-snow safe-area-bottom">
         <div className="max-w-2xl mx-auto px-3 py-2.5">
           <input
             ref={fileInputRef}
@@ -443,7 +443,7 @@ const Chat = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={!connected || uploading}
               aria-label="사진 첨부"
-              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-white transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
+              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-snow transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
             >
               {uploading ? (
                 <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin block" />

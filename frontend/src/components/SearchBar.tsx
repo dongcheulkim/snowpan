@@ -65,7 +65,7 @@ export default function SearchBar() {
       ) : (
         <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in" onClick={() => setOpen(false)}>
           <div className="max-w-lg mx-auto pt-3 px-4" onClick={e => e.stopPropagation()}>
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="bg-snow rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               {/* 입력 */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
                 <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

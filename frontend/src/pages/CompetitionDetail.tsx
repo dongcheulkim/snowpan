@@ -46,7 +46,7 @@ export default function CompetitionDetail() {
       <div className={`card overflow-hidden ${isPast ? 'opacity-60' : ''}`}>
         <div className="relative bg-gradient-to-br from-sky-500 to-blue-700 text-white p-8 text-center">
           {isToday && (
-            <div className="absolute top-3 right-3 bg-white text-sky-600 text-[10px] font-black px-2 py-1 rounded-full animate-pulse">TODAY</div>
+            <div className="absolute top-3 right-3 bg-snow text-sky-600 text-[10px] font-black px-2 py-1 rounded-full animate-pulse">TODAY</div>
           )}
           {isPast && (
             <div className="absolute top-3 right-3 bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full">종료</div>

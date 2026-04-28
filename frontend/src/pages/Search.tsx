@@ -42,7 +42,7 @@ export default function Search() {
   return (
     <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
       {/* 검색 입력 */}
-      <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 px-4 py-3 shadow-sm">
+      <div className="flex items-center gap-3 bg-snow rounded-2xl border border-gray-200 px-4 py-3 shadow-sm">
         <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>

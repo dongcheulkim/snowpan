@@ -27,7 +27,7 @@ export default function ChatBotGuide({ onSelect }: Props) {
   return (
     <div className="mx-2 mb-3">
       {step === 'main' && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 animate-fade-in">
+        <div className="bg-snow rounded-2xl border border-gray-200 p-4 animate-fade-in">
           <div className="flex items-center gap-2 mb-3">
             <BotIcon size={18} className="text-gray-700" />
             <span className="text-sm font-bold text-gray-900">어떤 도움이 필요하신가요?</span>
@@ -53,7 +53,7 @@ export default function ChatBotGuide({ onSelect }: Props) {
       {step === 'sub' && selectedCat && (() => {
         const { Icon, label } = categories[selectedCat];
         return (
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 animate-fade-in">
+          <div className="bg-snow rounded-2xl border border-gray-200 p-4 animate-fade-in">
             <div className="flex items-center gap-2 mb-1">
               <BotIcon size={18} className="text-gray-700" />
               <span className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><Icon size={16} /> {label}</span>

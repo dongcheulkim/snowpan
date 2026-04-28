@@ -144,13 +144,13 @@ const Used = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('used.search')}
-          className="flex-1 min-w-0 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
+          className="flex-1 min-w-0 px-4 py-2.5 bg-snow border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-accent/50 transition-all"
         />
         <select
           aria-label="정렬 기준"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-accent/50 transition-all"
+          className="px-3 py-2.5 bg-snow border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-accent/50 transition-all"
         >
           <option value="newest">최신순</option>
           <option value="price_asc">가격↑</option>
@@ -166,7 +166,7 @@ const Used = () => {
           {sort !== 'newest' && <span className="text-[11px] px-2 py-0.5 bg-accent/10 text-accent rounded">{sort === 'price_asc' ? '가격↑' : '가격↓'}</span>}
           <button
             onClick={() => { setSearchQuery(''); setDebouncedSearch(''); setSearchParams({}, { replace: false }); }}
-            className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-white border border-gray-300 text-gray-700 rounded-full hover:bg-coral/10 hover:border-coral/30 hover:text-coral transition-colors"
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 bg-snow border border-gray-300 text-gray-700 rounded-full hover:bg-coral/10 hover:border-coral/30 hover:text-coral transition-colors"
             aria-label="필터 초기화"
           >
             <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -185,14 +185,14 @@ const Used = () => {
             className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 snap-start ${
               selectedCategory === cat.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {cat.name}
           </button>
         ))}
         </div>
-        <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-50 dark:from-slate-900 to-transparent" />
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-50 to-transparent" />
       </div>
 
       {loading ? (

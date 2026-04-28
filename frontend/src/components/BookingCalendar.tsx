@@ -119,13 +119,13 @@ export default function BookingCalendar({
 
     let cellClass = 'h-10 w-full rounded-lg text-sm font-medium transition-all ';
     if (isDisabled) {
-      cellClass += 'text-gray-500 dark:text-gray-600 cursor-not-allowed line-through';
+      cellClass += 'text-gray-500 cursor-not-allowed line-through';
     } else if (isSelected) {
       cellClass += 'bg-sky-500 text-white shadow-md';
     } else if (inRange) {
-      cellClass += 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300';
+      cellClass += 'bg-sky-100 text-sky-700';
     } else {
-      cellClass += 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-600 cursor-pointer';
+      cellClass += 'hover:bg-gray-100 text-gray-700 cursor-pointer';
     }
 
     if (isToday && !isSelected) {
@@ -155,17 +155,17 @@ export default function BookingCalendar({
           type="button"
           onClick={prevMonth}
           disabled={isPrevDisabled}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{monthLabel}</span>
+        <span className="text-lg font-bold text-gray-800">{monthLabel}</span>
         <button
           type="button"
           onClick={nextMonth}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-2 rounded-lg hover:bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -197,11 +197,11 @@ export default function BookingCalendar({
           <span>선택됨</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-sky-100 dark:bg-sky-900/30" />
+          <div className="w-3 h-3 rounded bg-sky-100" />
           <span>선택 범위</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-gray-200 dark:bg-gray-600 line-through" />
+          <div className="w-3 h-3 rounded bg-gray-200 line-through" />
           <span>예약 불가</span>
         </div>
       </div>

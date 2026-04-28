@@ -19,7 +19,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        className="px-3 py-2 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg disabled:opacity-30 hover:bg-gray-50 transition-colors"
+        className="px-3 py-2 text-xs text-gray-500 bg-snow border border-gray-200 rounded-lg disabled:opacity-30 hover:bg-gray-50 transition-colors"
       >
         ← 이전
       </button>
@@ -29,7 +29,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
           key={p}
           onClick={() => onPageChange(p)}
           className={`w-8 h-8 text-xs rounded-lg font-medium transition-colors ${
-            p === page ? 'bg-accent text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+            p === page ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'
           }`}
         >
           {p}
@@ -39,7 +39,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        className="px-3 py-2 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg disabled:opacity-30 hover:bg-gray-50 transition-colors"
+        className="px-3 py-2 text-xs text-gray-500 bg-snow border border-gray-200 rounded-lg disabled:opacity-30 hover:bg-gray-50 transition-colors"
       >
         다음 →
       </button>

@@ -27,7 +27,7 @@ export default function MyShops() {
   }, []);
 
   const ShopCard = ({ shop, type }: { shop: Shop; type: string }) => (
-    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+    <div className="flex items-center justify-between p-3 bg-snow rounded-lg border border-gray-200">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
         <div className="min-w-0">

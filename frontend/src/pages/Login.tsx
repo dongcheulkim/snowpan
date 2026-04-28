@@ -57,7 +57,7 @@ const Login = () => {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
+  const inputClass = "w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
@@ -108,7 +108,7 @@ const Login = () => {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-white text-gray-500">{t('login.socialLogin')}</span>
+              <span className="px-3 bg-snow text-gray-500">{t('login.socialLogin')}</span>
             </div>
           </div>
 

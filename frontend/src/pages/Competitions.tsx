@@ -89,7 +89,7 @@ export default function Competitions() {
             key={id}
             onClick={() => setFilter(id)}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5 ${
-              filter === id ? 'bg-gray-900 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+              filter === id ? 'bg-gray-900 text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             {icon}{label}

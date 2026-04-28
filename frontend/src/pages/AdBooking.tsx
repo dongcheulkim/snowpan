@@ -239,14 +239,14 @@ export default function AdBooking() {
                 s === step
                   ? 'bg-sky-500 text-white'
                   : s < step
-                  ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700'
+                  ? 'bg-sky-100 text-sky-600'
+                  : 'bg-gray-100 text-gray-600'
               }`}
             >
               {s < step ? '✓' : s}
             </div>
             {s < 4 && (
-              <div className={`flex-1 h-0.5 mx-1 ${s < step ? 'bg-sky-400' : 'bg-gray-200 dark:bg-gray-600'}`} />
+              <div className={`flex-1 h-0.5 mx-1 ${s < step ? 'bg-sky-400' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
@@ -269,14 +269,14 @@ export default function AdBooking() {
                   onClick={() => handleSlotSelect(slotType)}
                   className={`p-4 rounded-xl border-2 text-left transition-all ${
                     selectedSlot === slotType
-                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                      ? 'border-sky-500 bg-sky-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {(() => { const Icon = SLOT_ICONS[slotType]; return Icon ? <Icon size={22} className="text-gray-700" /> : null; })()}
                     <div className="flex-1">
-                      <div className="font-bold text-gray-800 dark:text-gray-200">
+                      <div className="font-bold text-gray-800">
                         {SLOT_LABELS[slotType]}
                       </div>
                       <div className="text-sm text-gray-500">{SLOT_DESCRIPTIONS[slotType]}</div>
@@ -296,7 +296,7 @@ export default function AdBooking() {
           {/* 카테고리 선택 (category/premium 타입일 때) */}
           {(selectedSlot === 'category' || selectedSlot === 'premium') && (
             <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-500 mb-2">
+              <h3 className="text-sm font-semibold text-gray-600 mb-2">
                 카테고리 선택
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -306,8 +306,8 @@ export default function AdBooking() {
                     onClick={() => handleCategorySelect(key)}
                     className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
                       selectedCategory === key
-                        ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400'
-                        : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-500 hover:border-gray-300'
+                        ? 'border-sky-500 bg-sky-50 text-sky-700'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                   >
                     {label}
@@ -354,7 +354,7 @@ export default function AdBooking() {
                     .split('T')[0];
                   handleDateSelect(start, end);
                 }}
-                className="flex-1 py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium hover:border-sky-400 hover:text-sky-600 transition-all"
+                className="flex-1 py-2 px-3 rounded-lg border border-gray-200 text-sm font-medium hover:border-sky-400 hover:text-sky-600 transition-all"
               >
                 {label}
               </button>
@@ -362,7 +362,7 @@ export default function AdBooking() {
           </div>
 
           {/* 캘린더 */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+          <div className="bg-white rounded-xl p-4 border border-gray-100">
             <BookingCalendar
               unavailableDates={unavailableDates}
               selectedStart={startDate}
@@ -373,28 +373,28 @@ export default function AdBooking() {
 
           {/* 선택된 기간 표시 */}
           {startDate && (
-            <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4">
+            <div className="bg-sky-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-sm text-gray-500">시작일</span>
-                  <div className="font-bold text-sky-700 dark:text-sky-400">{formatDate(startDate)}</div>
+                  <div className="font-bold text-sky-700">{formatDate(startDate)}</div>
                 </div>
                 <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">종료일</span>
-                  <div className="font-bold text-sky-700 dark:text-sky-400">
+                  <div className="font-bold text-sky-700">
                     {endDate ? formatDate(endDate) : '선택해주세요'}
                   </div>
                 </div>
               </div>
               {endDate && currentPricing && (
-                <div className="mt-3 pt-3 border-t border-sky-200 dark:border-sky-800 flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-500">
+                <div className="mt-3 pt-3 border-t border-sky-200 flex justify-between">
+                  <span className="text-sm text-gray-600">
                     {totalDays}일 × {formatPrice(currentPricing.pricePerDay)}원
                   </span>
-                  <span className="font-bold text-sky-700 dark:text-sky-400">
+                  <span className="font-bold text-sky-700">
                     {formatPrice(totalPrice)}원
                   </span>
                 </div>
@@ -418,40 +418,40 @@ export default function AdBooking() {
           <h2 className="text-lg font-bold mb-2">광고 내용 작성</h2>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 제목 *</label>
+            <label className="text-sm font-medium text-gray-600">광고 제목 *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="광고 제목을 입력하세요"
-              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-sky-400 outline-none"
+              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 설명 *</label>
+            <label className="text-sm font-medium text-gray-600">광고 설명 *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="광고 설명을 입력하세요"
               rows={3}
-              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-sky-400 outline-none resize-none"
+              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none resize-none"
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">연결 URL *</label>
+            <label className="text-sm font-medium text-gray-600">연결 URL *</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
-              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-sky-400 outline-none"
+              className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600 dark:text-gray-500">광고 이미지</label>
+            <label className="text-sm font-medium text-gray-600">광고 이미지</label>
             <div className="mt-1">
               {imagePreview ? (
                 <div className="relative">
@@ -468,7 +468,7 @@ export default function AdBooking() {
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-sky-400 transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-sky-400 transition-colors">
                   <svg className="w-8 h-8 text-gray-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -483,7 +483,7 @@ export default function AdBooking() {
           {selectedSlot !== 'premium' && (
             <>
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">글자 색상</label>
+                <label className="text-sm font-medium text-gray-600">글자 색상</label>
                 <div className="flex items-center gap-3 mt-1">
                   <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
                   <div className="flex gap-2">
@@ -496,7 +496,7 @@ export default function AdBooking() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">글자 위치</label>
+                <label className="text-sm font-medium text-gray-600">글자 위치</label>
                 <div className="grid grid-cols-3 gap-2 mt-1">
                   {([['left', '왼쪽'], ['center', '가운데'], ['right', '오른쪽']] as const).map(([val, label]) => (
                     <button key={val} type="button" onClick={() => setTextAlign(val)} className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${textAlign === val ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
@@ -508,7 +508,7 @@ export default function AdBooking() {
 
               {/* 미리보기 */}
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-500">미리보기</label>
+                <label className="text-sm font-medium text-gray-600">미리보기</label>
                 <div className="mt-1 relative overflow-hidden rounded-xl bg-gray-100 border border-gray-200 aspect-[3.5/1]">
                   {imagePreview && (
                     <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -540,7 +540,7 @@ export default function AdBooking() {
           <h2 className="text-lg font-bold mb-2">입금 안내</h2>
 
           {/* 주문 요약 */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 space-y-3">
+          <div className="bg-white rounded-xl p-4 border border-gray-100 space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-500">광고 위치</span>
               <span className="font-medium">
@@ -569,7 +569,7 @@ export default function AdBooking() {
               </div>
             )}
 
-            <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="pt-3 border-t border-gray-100">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold">총 금액</span>
                 <span className="text-2xl font-bold text-sky-600">{formatPrice(totalPrice)}원</span>
@@ -584,7 +584,7 @@ export default function AdBooking() {
             const holder = import.meta.env.VITE_AD_DEPOSIT_HOLDER;
             if (!bank || !account || !holder) {
               return (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4">
+                <div className="bg-yellow-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <BankIcon size={18} className="text-gray-700" />
                     <span className="text-sm font-bold text-yellow-800">입금 계좌 안내</span>
@@ -597,12 +597,12 @@ export default function AdBooking() {
               );
             }
             return (
-              <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 space-y-2">
+              <div className="bg-sky-50 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2 mb-1">
                   <BankIcon size={18} className="text-gray-700" />
-                  <span className="text-sm font-bold text-sky-800 dark:text-sky-300">입금 계좌 안내</span>
+                  <span className="text-sm font-bold text-sky-800">입금 계좌 안내</span>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 space-y-1.5">
+                <div className="bg-white rounded-lg p-3 space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">은행</span>
                     <span className="font-bold">{bank}</span>
@@ -616,7 +616,7 @@ export default function AdBooking() {
                     <span className="font-bold">{holder}</span>
                   </div>
                 </div>
-                <p className="text-[11px] text-sky-600 dark:text-sky-400 mt-2">
+                <p className="text-[11px] text-sky-600 mt-2">
                   입금 시 광고 제목을 입금자명에 적어주세요. 관리자 확인 후 바로 광고가 노출됩니다.
                 </p>
               </div>
@@ -624,7 +624,7 @@ export default function AdBooking() {
           })()}
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm">
+            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm">
               {error}
             </div>
           )}

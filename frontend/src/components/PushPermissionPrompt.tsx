@@ -36,7 +36,7 @@ export default function PushPermissionPrompt() {
     <div
       role="dialog"
       aria-label="알림 권한 요청"
-      className="fixed left-1/2 -translate-x-1/2 bottom-20 z-[60] w-[calc(100%-1.5rem)] max-w-sm rounded-2xl bg-white shadow-xl border border-gray-200 p-4 animate-fade-in-up"
+      className="fixed left-1/2 -translate-x-1/2 bottom-20 z-[60] w-[calc(100%-1.5rem)] max-w-sm rounded-2xl bg-snow shadow-xl border border-gray-200 p-4 animate-fade-in-up"
     >
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center flex-shrink-0">

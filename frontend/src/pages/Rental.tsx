@@ -125,7 +125,7 @@ const Rental = () => {
             className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
               selectedResort === resort.id
                 ? 'bg-accent text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
             }`}
           >
             {resort.name}
@@ -139,7 +139,7 @@ const Rental = () => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {rentalItems.map((item) => (
-            <Link to={`/rental/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
+            <Link to={`/rental/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
               <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {item.image.startsWith('/') || item.image.startsWith('http') ? (
                   <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
@@ -176,7 +176,7 @@ const Rental = () => {
       )}
 
       {!loading && rentalItems.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-white border border-gray-200 rounded-xl text-sm">
+        <div className="text-center py-12 text-gray-500 bg-snow border border-gray-200 rounded-xl text-sm">
           해당 스키장의 렌탈 정보가 없습니다.
         </div>
       )}
