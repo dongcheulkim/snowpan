@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
@@ -17,14 +17,32 @@ const MainLayout = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
         본문 바로가기
       </a>
-      <Navbar />
-      <main id="main-content" className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
+      <header>
+        <Navbar />
+      </header>
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
         <Outlet />
       </main>
+      <footer className="hidden md:block border-t border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="font-bold text-gray-700">SNOW PAN</p>
+            <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-5 gap-y-2">
+              <Link to="/terms" className="hover:text-gray-900">이용약관</Link>
+              <Link to="/privacy" className="hover:text-gray-900">개인정보처리방침</Link>
+              <Link to="/safe-trade" className="hover:text-gray-900">안전거래 가이드</Link>
+              <Link to="/mypage/support" className="hover:text-gray-900">고객센터</Link>
+            </nav>
+          </div>
+          <p className="mt-4 leading-relaxed text-gray-500">
+            © {new Date().getFullYear()} 스노우판 · 본 서비스는 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래에 대한 책임을 지지 않습니다.
+          </p>
+        </div>
+      </footer>
       <BottomNav />
       <ToastHost />
       <PushPermissionPrompt />
