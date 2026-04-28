@@ -222,7 +222,7 @@ const Navbar = () => {
             {!user && (
               <Link
                 to="/login"
-                className="px-4 py-1.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
+                className="inline-flex items-center justify-center min-h-11 px-4 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
               >
                 {t('nav.login')}
               </Link>

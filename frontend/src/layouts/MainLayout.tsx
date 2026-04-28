@@ -31,11 +31,11 @@ const MainLayout = () => {
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="font-bold text-gray-700">SNOW PAN</p>
-            <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-5 gap-y-2">
-              <Link to="/terms" className="hover:text-gray-900">이용약관</Link>
-              <Link to="/privacy" className="hover:text-gray-900">개인정보처리방침</Link>
-              <Link to="/safe-trade" className="hover:text-gray-900">안전거래 가이드</Link>
-              <Link to="/mypage/support" className="hover:text-gray-900">고객센터</Link>
+            <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2">
+              <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
+              <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
+              <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>
+              <Link to="/mypage/support" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">고객센터</Link>
             </nav>
           </div>
           <p className="mt-4 leading-relaxed text-gray-500">
