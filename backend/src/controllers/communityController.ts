@@ -7,6 +7,10 @@ import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import jwt from 'jsonwebtoken';
 
+// UUID v4 검증 — 'categories', 'votes' 같은 단어가 :id 자리에 들어와도
+// Prisma 가 던지는 500 대신 즉시 404 반환.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || user.name;
 
@@ -125,6 +129,10 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
 export const getPostById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    if (!UUID_RE.test(id)) {
+      res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return;
+    }
 
     // 토큰에서 userId 추출 (선택적)
     let currentUserId: string | null = null;
@@ -258,26 +266,49 @@ export const likePost = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     const { id } = req.params;
     const userId = req.user!.id;
+    if (!UUID_RE.test(id)) {
+      res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return;
+    }
 
-    const existing = await prisma.postLike.findUnique({
-      where: { postId_userId: { postId: id, userId } },
-    });
+    // race condition 방지 — find→create/delete 분리 시 동시 요청이 양쪽 분기 동시 실행해
+    // likes 카운터가 ±2 되거나 unique 위반 발생.
+    // 해결: postLike 의 unique 제약 (postId_userId) 을 락처럼 사용해서
+    //   1) create 먼저 시도 → 성공이면 좋아요 추가
+    //   2) 실패 (unique violation) 면 delete → 좋아요 취소
+    // 같은 트랜잭션 안에서 likes 카운터도 같이 증감 → 원자성 보장.
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        await tx.postLike.create({ data: { postId: id, userId } });
+        const post = await tx.post.update({
+          where: { id },
+          data: { likes: { increment: 1 } },
+        });
+        return { likes: post.likes, liked: true };
+      });
+      res.json(result);
+      return;
+    } catch (e: any) {
+      // P2002 = Prisma unique constraint violation → 이미 좋아요 누른 상태 → 취소.
+      if (e?.code !== 'P2002') throw e;
+    }
 
-    if (existing) {
-      await prisma.postLike.delete({ where: { id: existing.id } });
-      const post = await prisma.post.update({
+    const result = await prisma.$transaction(async (tx) => {
+      // deleteMany 는 0 행 삭제도 throw 안 함 → 동시 cancel 두 번 들어와도 안전.
+      const del = await tx.postLike.deleteMany({ where: { postId: id, userId } });
+      if (del.count === 0) {
+        // 그 사이 다른 요청이 먼저 취소함 — 카운터 건드리지 않고 현재값 반환.
+        const post = await tx.post.findUnique({ where: { id }, select: { likes: true } });
+        return { likes: post?.likes ?? 0, liked: false };
+      }
+      const post = await tx.post.update({
         where: { id },
         data: { likes: { decrement: 1 } },
       });
-      res.json({ likes: post.likes, liked: false });
-    } else {
-      await prisma.postLike.create({ data: { postId: id, userId } });
-      const post = await prisma.post.update({
-        where: { id },
-        data: { likes: { increment: 1 } },
-      });
-      res.json({ likes: post.likes, liked: true });
-    }
+      return { likes: post.likes, liked: false };
+    });
+    res.json(result);
+    return;
   } catch (error) {
     console.error('Like post error:', error);
     res.status(500).json({ error: '좋아요 처리 중 오류가 발생했습니다.' });
@@ -289,6 +320,11 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { id: postId } = req.params;
     const { content } = req.body;
+
+    if (!UUID_RE.test(postId)) {
+      res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return;
+    }
 
     if (typeof content !== 'string') {
       res.status(400).json({ error: '댓글은 문자열이어야 합니다.' });
