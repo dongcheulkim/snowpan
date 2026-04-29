@@ -11,6 +11,22 @@ import jwt from 'jsonwebtoken';
 // Prisma 가 던지는 500 대신 즉시 404 반환.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// 조회수 어뷰징 방지 — (게시글, 사용자|IP) 쌍 기준 30분 dedup.
+// LRU 흉내 — 5000건 넘으면 오래된 항목 정리. 인스턴스 메모리만 사용 (재시작 시 초기화).
+const recentViews = new Map<string, number>();
+const VIEW_DEDUP_MS = 30 * 60_000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, ts] of recentViews) {
+    if (now - ts > VIEW_DEDUP_MS) recentViews.delete(k);
+  }
+  if (recentViews.size > 5000) {
+    // 너무 많이 쌓이면 절반 제거 (가장 먼저 등록된 것).
+    const keysToDelete = Array.from(recentViews.keys()).slice(0, recentViews.size - 2500);
+    for (const k of keysToDelete) recentViews.delete(k);
+  }
+}, 5 * 60_000);
+
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || user.name;
 
@@ -144,8 +160,14 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       } catch {}
     }
 
-    // 조회수 증가
-    await prisma.post.update({ where: { id }, data: { views: { increment: 1 } } });
+    // 조회수 어뷰징 방지 — 같은 (userId|IP) 가 같은 글을 30분 내 재조회 시 카운트 X.
+    // 본인 새로고침 도배 / 봇 자동조회 차단. 메모리 캐시 (재시작 시 초기화 OK).
+    const viewerKey = currentUserId || req.header('cf-connecting-ip') || req.header('x-real-ip') || req.ip || 'anon';
+    const dedupKey = `view:${id}:${viewerKey}`;
+    if (!recentViews.has(dedupKey)) {
+      recentViews.set(dedupKey, Date.now());
+      await prisma.post.update({ where: { id }, data: { views: { increment: 1 } } });
+    }
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -268,6 +290,14 @@ export const likePost = async (req: AuthRequest, res: Response): Promise<void> =
     const userId = req.user!.id;
     if (!UUID_RE.test(id)) {
       res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+      return;
+    }
+
+    // 셀프 좋아요 차단 — 본인 글 좋아요로 인기 조작 방지.
+    const post = await prisma.post.findUnique({ where: { id }, select: { userId: true } });
+    if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
+    if (post.userId === userId) {
+      res.status(400).json({ error: '본인 글에는 좋아요를 누를 수 없습니다.' });
       return;
     }
 

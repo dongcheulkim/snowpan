@@ -104,6 +104,31 @@ router.post('/rooms', async (req: any, res: Response) => {
     const userId = req.user.id;
     const { targetUserId, productName, productPath } = req.body;
 
+    // 입력 검증 — 누락/형식/자기자신 채팅 차단 (이전엔 500 떨어짐).
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      res.status(400).json({ error: 'targetUserId 가 필요합니다.' });
+      return;
+    }
+    if (!UUID_RE.test(targetUserId)) {
+      res.status(400).json({ error: 'targetUserId 형식이 올바르지 않습니다.' });
+      return;
+    }
+    if (targetUserId === userId) {
+      res.status(400).json({ error: '자기 자신과는 채팅할 수 없습니다.' });
+      return;
+    }
+    // 대상 사용자 존재 확인 (deleted 계정 차단).
+    const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true, role: true } });
+    if (!target) {
+      res.status(404).json({ error: '대상 사용자를 찾을 수 없습니다.' });
+      return;
+    }
+    if (target.role === 'deleted') {
+      res.status(410).json({ error: '탈퇴한 사용자입니다.' });
+      return;
+    }
+
     const [u1, u2] = [userId, targetUserId].sort();
 
     let room = await prisma.chatRoom.findUnique({
@@ -118,15 +143,12 @@ router.post('/rooms', async (req: any, res: Response) => {
       isNewRoom = true;
     }
 
-    // 관리자 채팅방 새로 생성 시 관리자 자동 인사
-    if (isNewRoom && !productName) {
-      const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { role: true } });
-      if (target?.role === 'admin') {
-        await prisma.message.create({
-          data: { roomId: room.id, senderId: targetUserId, content: '안녕하세요! 무엇을 도와드릴까요? 😊', type: 'text' },
-        });
-        await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
-      }
+    // 관리자 채팅방 새로 생성 시 관리자 자동 인사 (위에서 이미 fetch 한 target 재사용).
+    if (isNewRoom && !productName && target.role === 'admin') {
+      await prisma.message.create({
+        data: { roomId: room.id, senderId: targetUserId, content: '안녕하세요! 무엇을 도와드릴까요? 😊', type: 'text' },
+      });
+      await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
     }
 
     // 상품명이 있으면 안내 메시지 자동 전송

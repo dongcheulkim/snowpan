@@ -157,7 +157,13 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
       select: { id: true, name: true, nickname: true, email: true, role: true, phone: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(users);
+    // 전화번호 마스킹 — 가운데 4자리 가림 (010-1234-5678 → 010-****-5678).
+    // admin 권한이라도 list 화면에선 평문 노출 X. 신고 처리 등 필요 시 별도 단건 조회로.
+    const masked = users.map((u) => ({
+      ...u,
+      phone: u.phone ? u.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1****$3') : u.phone,
+    }));
+    res.json(masked);
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: '유저 목록 조회 중 오류가 발생했습니다.' });
@@ -178,6 +184,49 @@ export const banUser = async (req: AuthRequest, res: Response): Promise<void> =>
   } catch (error) {
     console.error('Ban user error:', error);
     res.status(500).json({ error: '유저 정지 중 오류가 발생했습니다.' });
+  }
+};
+
+// 관리자: 사용자 강제 탈퇴 — 사용자 본인 탈퇴와 동일하게 PII 익명화 처리.
+// 거래·후기·게시글은 전자상거래법 5년 보관 의무로 유지.
+export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+    if (id === req.user!.id) { res.status(400).json({ error: '본인 계정은 사용자 화면에서 탈퇴해주세요.' }); return; }
+
+    const target = await prisma.user.findUnique({ where: { id } });
+    if (!target) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+    if (target.role === 'deleted') { res.status(400).json({ error: '이미 탈퇴 처리된 계정입니다.' }); return; }
+
+    const stamp = Date.now();
+    const anonEmail = `deleted_${id}@snowpan.local`;
+    const anonPhone = `deleted_${stamp}_${id.slice(0, 8)}`;
+    const lockedHash = `__admin_deleted_${stamp}__${Math.random().toString(36).slice(2)}`;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: {
+          email: anonEmail,
+          phone: anonPhone,
+          name: '탈퇴한 회원',
+          nickname: null,
+          profileImage: null,
+          fcmToken: null,
+          activeBadge: null,
+          phoneVerified: false,
+          password: lockedHash,
+          role: 'deleted',
+        },
+      });
+      await tx.product.updateMany({ where: { userId: id, status: 'selling' }, data: { status: 'sold' } });
+    });
+
+    res.json({ success: true, message: '계정이 익명화 처리되었습니다.' });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({ error: '사용자 삭제 중 오류가 발생했습니다.' });
   }
 };
 

@@ -17,6 +17,7 @@ import {
   getStats,
   getUsers,
   banUser,
+  adminDeleteUser,
   setProductPremium,
   getBannersAdmin,
   createBanner,
@@ -61,6 +62,7 @@ router.get('/stats', getStats);
 // 유저 관리
 router.get('/users', getUsers);
 router.put('/users/:id/ban', banUser);
+router.delete('/users/:id', adminDeleteUser);
 
 // 프리미엄 관리
 router.put('/products/:id/premium', setProductPremium);

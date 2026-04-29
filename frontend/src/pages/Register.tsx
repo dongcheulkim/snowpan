@@ -84,7 +84,19 @@ const Register = () => {
           </div>
           <div>
             <label htmlFor="reg-nickname" className="block text-sm font-medium text-gray-500 mb-2">닉네임 <span className="text-xs text-gray-500">(다른 유저에게 보이는 이름)</span></label>
-            <input id="reg-nickname" type="text" name="nickname" autoComplete="username" placeholder="닉네임을 입력하세요" value={form.nickname} onChange={handleChange} className={inputClass} />
+            <input
+              id="reg-nickname"
+              type="text"
+              name="nickname"
+              autoComplete="username"
+              placeholder="2~20자 (선택)"
+              minLength={2}
+              maxLength={20}
+              value={form.nickname}
+              onChange={handleChange}
+              className={inputClass}
+            />
+            <p className="text-[10px] text-gray-500 mt-1">2~20자, 다른 사용자와 중복 불가. 비워두면 이름이 표시됩니다.</p>
           </div>
           <div>
             <label htmlFor="reg-email" className="block text-sm font-medium text-gray-500 mb-2">이메일</label>
