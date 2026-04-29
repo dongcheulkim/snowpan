@@ -34,7 +34,10 @@ const VALID_DSN = /^https?:\/\/[^@]+@[^/]+\/\d+/;
 try {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
   if (dsn && VALID_DSN.test(dsn)) {
-    import('@sentry/react').then(S => {
+    // .catch() 필수 — Safari 등 특정 브라우저에서 dynamic import 실패 시
+    // unhandled promise rejection 으로 Sentry 가 자기 자신 로드 실패를 보고하는
+    // 무한 루프 방지.
+    import('@sentry/react').then((S) => {
       S.init({
         dsn,
         environment: import.meta.env.MODE,
@@ -43,9 +46,9 @@ try {
         replaysSessionSampleRate: 0,
         replaysOnErrorSampleRate: 1.0,
         beforeSend(event) {
-          // 서드파티 스크립트 잡음 / 브라우저 확장 에러 필터
+          // 서드파티 스크립트 잡음 / 브라우저 확장 에러 필터 + Sentry 자체 모듈 로드 실패 무시
           const msg = event.message || event.exception?.values?.[0]?.value || '';
-          if (/ResizeObserver|Non-Error promise rejection/.test(msg)) return null;
+          if (/ResizeObserver|Non-Error promise rejection|@sentry\/react.*does not resolve/i.test(msg)) return null;
           return event;
         },
       });
@@ -57,7 +60,7 @@ try {
           S.setUser({ id: u.id, email: u.email, username: u.nickname || u.name });
         }
       } catch { /* ignore */ }
-    });
+    }).catch(() => { /* Sentry 로드 실패는 silent — 앱 동작에 영향 없음 */ });
   }
 } catch { /* ignore */ }
 

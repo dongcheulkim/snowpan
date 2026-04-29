@@ -22,12 +22,12 @@ class ErrorBoundary extends Component<Props, State> {
     try {
       const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
       if (dsn && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(dsn)) {
-        import('@sentry/react').then(S => {
-          S.withScope(scope => {
+        import('@sentry/react').then((S) => {
+          S.withScope((scope) => {
             scope.setExtra('componentStack', info.componentStack);
             S.captureException(error);
           });
-        });
+        }).catch(() => { /* Sentry 로드 실패는 silent */ });
       }
     } catch { /* ignore */ }
   }
