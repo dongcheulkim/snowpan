@@ -39,8 +39,12 @@ export function signRefreshToken(userId: string, family?: string): string {
 
 export function verifyRefreshToken(token: string): RefreshPayload {
   const { refresh } = getSecrets();
-  const decoded = jwt.verify(token, refresh) as RefreshPayload;
+  const decoded = jwt.verify(token, refresh, {
+    algorithms: ['HS256'],
+    ignoreExpiration: false,
+  }) as RefreshPayload;
   if (decoded.type !== 'refresh') throw new Error('잘못된 토큰 타입');
+  if (!decoded.jti || !decoded.fam) throw new Error('레거시 토큰');
   return decoded;
 }
 

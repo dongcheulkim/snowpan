@@ -37,10 +37,15 @@ export const authMiddleware = async (
       return;
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    ) as JwtPayload;
+    // 명시적 algorithm + 만료 검증 강제. type='access' 만 허용 — refresh 토큰을 access 자리에 넣는 공격 차단.
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      ignoreExpiration: false,
+    }) as JwtPayload & { type?: string };
+    if (decoded.type && decoded.type !== 'access') {
+      res.status(401).json({ error: '잘못된 토큰 타입입니다.' });
+      return;
+    }
 
     // DB에서 최신 role 확인 (banned 체크)
     const user = await prisma.user.findUnique({

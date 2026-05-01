@@ -284,7 +284,11 @@ io.use((socket, next) => {
   if (!token) return next(new Error('인증 필요'));
   try {
     if (!process.env.JWT_SECRET) return next(new Error('서버 설정 오류'));
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      ignoreExpiration: false,
+    }) as { userId: string; type?: string };
+    if (decoded.type && decoded.type !== 'access') return next(new Error('잘못된 토큰 타입'));
     socket.data.userId = decoded.userId;
     next();
   } catch {

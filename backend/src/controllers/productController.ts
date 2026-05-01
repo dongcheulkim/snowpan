@@ -275,9 +275,12 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as { userId: string };
-        currentUserId = decoded.userId;
-      } catch { /* ignore */ }
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!, {
+          algorithms: ['HS256'],
+          ignoreExpiration: false,
+        }) as { userId: string; type?: string };
+        if (!decoded.type || decoded.type === 'access') currentUserId = decoded.userId;
+      } catch { /* 만료/위조 토큰은 비로그인 처리 */ }
     }
 
     const product = await prisma.product.findUnique({

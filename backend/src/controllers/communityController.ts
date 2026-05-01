@@ -155,18 +155,25 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!) as { userId: string };
-        currentUserId = decoded.userId;
-      } catch {}
+        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!, {
+          algorithms: ['HS256'],
+          ignoreExpiration: false,
+        }) as { userId: string; type?: string };
+        // refresh 토큰을 access 자리에 넣는 공격 방어.
+        if (!decoded.type || decoded.type === 'access') currentUserId = decoded.userId;
+      } catch { /* 만료/위조 토큰은 비로그인 처리 */ }
     }
 
     // 조회수 어뷰징 방지 — 같은 (userId|IP) 가 같은 글을 30분 내 재조회 시 카운트 X.
     // 본인 새로고침 도배 / 봇 자동조회 차단. 메모리 캐시 (재시작 시 초기화 OK).
+    // 존재하지 않는 글이면 update 가 P2025 throw 하므로 catch 해서 무시 (findUnique 에서 404 처리).
     const viewerKey = currentUserId || req.header('cf-connecting-ip') || req.header('x-real-ip') || req.ip || 'anon';
     const dedupKey = `view:${id}:${viewerKey}`;
     if (!recentViews.has(dedupKey)) {
       recentViews.set(dedupKey, Date.now());
-      await prisma.post.update({ where: { id }, data: { views: { increment: 1 } } });
+      try {
+        await prisma.post.update({ where: { id }, data: { views: { increment: 1 } } });
+      } catch { /* 글 없음 → 아래 findUnique 에서 404 처리 */ }
     }
 
     const post = await prisma.post.findUnique({
