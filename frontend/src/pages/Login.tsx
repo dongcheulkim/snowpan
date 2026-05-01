@@ -36,7 +36,7 @@ const Login = () => {
     try {
       const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string; createdAt: string } }>('/auth/login', {
         method: 'POST',
-        body: { email, password },
+        body: { email, password, remember: autoLogin },
       });
 
       setAuth(data.token, data.user, autoLogin);

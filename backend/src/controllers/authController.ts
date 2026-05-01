@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
+import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME } from '../utils/tokens';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -66,11 +67,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' as any }
-    );
+    // 듀얼 토큰: access 1h (응답 body) + refresh 14d (HttpOnly 쿠키).
+    const token = signAccessToken(user);
+    // 가입 직후엔 자동 로그인 끔 (세션 쿠키 — 브라우저 닫으면 만료).
+    setRefreshCookie(res, user.id, false);
 
     res.status(201).json({
       message: '회원가입이 완료되었습니다.',
@@ -119,11 +119,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' as any }
-    );
+    if (user.role === 'deleted') {
+      res.status(403).json({ error: '탈퇴한 계정입니다.' });
+      return;
+    }
+    if (user.role === 'banned') {
+      res.status(403).json({ error: '정지된 계정입니다.' });
+      return;
+    }
+
+    // 듀얼 토큰: access 1h (응답 body) + refresh 14d/세션 (HttpOnly 쿠키).
+    // body 의 remember=true 면 14일 유지, 없으면 브라우저 닫을 때 만료.
+    const remember = req.body?.remember === true;
+    const token = signAccessToken(user);
+    setRefreshCookie(res, user.id, remember);
 
     res.json({
       message: '로그인에 성공했습니다.',
@@ -424,6 +433,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
+    clearRefreshCookie(res);
     res.json({ message: '탈퇴 처리되었습니다.' });
   } catch (error) {
     console.error('Delete account error:', error);
@@ -593,4 +603,58 @@ export const getMyAdRequests = async (req: AuthRequest, res: Response): Promise<
     console.error('Get my ad requests error:', error);
     res.status(500).json({ error: '광고 신청 목록 조회 중 오류가 발생했습니다.' });
   }
+};
+
+// 액세스 토큰 재발급 — refresh 쿠키만으로 인증.
+// 사용자 상태 (탈퇴/정지) 도 함께 검증해서 계정 무효화 즉시 반영.
+export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME];
+    if (!cookieToken) {
+      res.status(401).json({ error: '재인증이 필요합니다.' });
+      return;
+    }
+    let payload;
+    try {
+      payload = verifyRefreshToken(cookieToken);
+    } catch {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '재인증이 필요합니다.' });
+      return;
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true },
+    });
+    if (!user || user.role === 'deleted' || user.role === 'banned') {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '재인증이 필요합니다.' });
+      return;
+    }
+    const token = signAccessToken(user);
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.nickname || user.name,
+        nickname: user.nickname,
+        displayName: user.displayName,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified,
+        profileImage: user.profileImage,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: '토큰 갱신 중 오류가 발생했습니다.' });
+  }
+};
+
+// 로그아웃 — refresh 쿠키 제거. 클라이언트는 별도로 access 토큰을 메모리/세션에서 비움.
+export const logout = (_req: Request, res: Response): void => {
+  clearRefreshCookie(res);
+  res.json({ message: '로그아웃되었습니다.' });
 };

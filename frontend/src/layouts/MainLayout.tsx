@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
@@ -19,6 +20,10 @@ const MainLayout = () => {
       localStorage.removeItem('theme');
     }
   }, []);
+
+  // 새 탭/새 세션에서 access 토큰 없지만 refresh 쿠키 있으면 자동 복원.
+  // persistent 유저가 사이트 다시 열었을 때 끊김없이 로그인 유지.
+  useEffect(() => { restoreSession(); }, []);
 
   // 모든 페이지에 canonical link 자동 설정 — useMeta 미사용 페이지 포함.
   // 쿼리 파라미터는 제외해서 같은 페이지의 중복 색인 방지.

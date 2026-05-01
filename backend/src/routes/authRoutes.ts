@@ -16,6 +16,8 @@ import {
   createAdRequest,
   getMyAdRequests,
   deleteAccount,
+  refreshAccessToken,
+  logout,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
@@ -24,6 +26,8 @@ const router = Router();
 
 router.post('/register', sensitiveAuthLimiter, register);
 router.post('/login', sensitiveAuthLimiter, login);
+router.post('/refresh', refreshAccessToken);
+router.post('/logout', logout);
 router.post('/phone/send', sensitiveAuthLimiter, sendPhoneVerification);
 router.post('/phone/verify', sensitiveAuthLimiter, verifyPhone);
 router.post('/reset-password-request', sensitiveAuthLimiter, resetPasswordRequest);

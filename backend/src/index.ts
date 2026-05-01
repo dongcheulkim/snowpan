@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -175,6 +176,8 @@ app.use(cors({
 // JSON body 200KB 상한 — 일반 폼 충분, 거대 페이로드 DoS 방지.
 // 이미지 업로드는 multipart 라 별도 (uploadRoutes 의 multer 가 20MB).
 app.use(express.json({ limit: '200kb' }));
+// HttpOnly 쿠키 (refresh token) 파싱.
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   maxAge: '7d',
   immutable: true,

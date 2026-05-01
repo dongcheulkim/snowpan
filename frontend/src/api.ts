@@ -4,10 +4,43 @@ interface ApiOptions {
   method?: string;
   body?: unknown;
   token?: string;
+  // 내부용: refresh 후 재시도 시 무한 루프 방지.
+  _retried?: boolean;
+}
+
+// access 토큰이 1h 로 짧아져서 자주 만료됨.
+// 401 발생 → /auth/refresh (HttpOnly 쿠키 자동 전송) → 새 access 토큰 → 원 요청 재시도.
+// refresh 도 실패면 진짜 만료 → /login 리다이렉트.
+let refreshPromise: Promise<string | null> | null = null;
+async function tryRefreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data?.token) return null;
+      // user 정보도 함께 갱신 (role 변경 등 반영).
+      try {
+        if (data.user) authStore().setItem('user', JSON.stringify(data.user));
+      } catch {}
+      authStore().setItem('token', data.token);
+      return data.token as string;
+    } catch {
+      return null;
+    } finally {
+      // 다음 호출은 새로 시도.
+      setTimeout(() => { refreshPromise = null; }, 0);
+    }
+  })();
+  return refreshPromise;
 }
 
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
-  const { method = 'GET', body, token } = options;
+  const { method = 'GET', body, token, _retried } = options;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (token) {
@@ -23,8 +56,10 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      // refresh 쿠키 cross-domain 전송에 필요.
+      credentials: 'include',
     });
-  } catch (networkErr) {
+  } catch {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       throw new Error('인터넷 연결이 끊어졌습니다. 네트워크를 확인해주세요.');
     }
@@ -34,9 +69,17 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   let data: any;
   try { data = await res.json(); } catch { data = {}; }
   if (!res.ok) {
-    if (res.status === 401 && getToken() && !window.location.pathname.includes('/login')) {
-      logout();
-      setTimeout(() => { window.location.href = '/login'; }, 0);
+    // 401 → access 토큰 만료 가능성 → 쿠키 기반 refresh 시도, 성공하면 한 번 재시도.
+    // refresh/login/register/logout 자체는 재귀 방지.
+    if (res.status === 401 && !_retried && !path.startsWith('/auth/refresh') && !path.startsWith('/auth/login') && !path.startsWith('/auth/register') && !path.startsWith('/auth/logout')) {
+      const newToken = await tryRefreshAccessToken();
+      if (newToken) {
+        return api<T>(path, { ...options, _retried: true });
+      }
+      if (getToken() && !window.location.pathname.includes('/login')) {
+        logout();
+        setTimeout(() => { window.location.href = '/login'; }, 0);
+      }
     }
     if (res.status === 429) {
       const retry = res.headers.get('Retry-After');
@@ -52,14 +95,22 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   return data as T;
 }
 
-// 저장 위치: autoLogin=true 이면 localStorage (브라우저 닫아도 유지),
-// 아니면 sessionStorage (탭 닫으면 사라짐).
+// 토큰 저장 정책 — XSS 노출 최소화:
+// - access 토큰: 항상 sessionStorage (탭 닫으면 사라짐, 1시간 만료).
+// - 자동 로그인 (persistent): 토큰 저장 X, refresh 쿠키 (HttpOnly) 가 14일 보존.
+//   탭 새로 열거나 토큰 만료 시 /auth/refresh 로 자동 재발급.
+// - user 정보 (UI 상태) 만 persistent 면 localStorage 에 저장.
 function authStore(): Storage {
+  // 토큰은 항상 sessionStorage. user 정보 위치만 분기.
+  return sessionStorage;
+}
+
+function userStore(): Storage {
   return localStorage.getItem('snowpan.persistent') === '1' ? localStorage : sessionStorage;
 }
 
 export function setAuth(token: string, user: unknown, persistent: boolean) {
-  // 기존 저장소 정리 후 새 위치에 기록
+  // 기존 저장소 모두 정리 (구버전 잔재 포함).
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('user');
   localStorage.removeItem('token');
@@ -67,35 +118,45 @@ export function setAuth(token: string, user: unknown, persistent: boolean) {
 
   if (persistent) {
     localStorage.setItem('snowpan.persistent', '1');
-    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
   } else {
     localStorage.removeItem('snowpan.persistent');
-    sessionStorage.setItem('token', token);
     sessionStorage.setItem('user', JSON.stringify(user));
   }
+  // 토큰은 항상 sessionStorage — XSS 시 영향 1시간 + 탭 닫으면 사라짐.
+  sessionStorage.setItem('token', token);
 }
 
 export function setUser(user: unknown) {
-  // 기존 저장 위치를 유지하며 user 정보만 갱신
-  authStore().setItem('user', JSON.stringify(user));
+  userStore().setItem('user', JSON.stringify(user));
 }
 
 export function getUser() {
-  const raw = authStore().getItem('user') ?? sessionStorage.getItem('user') ?? localStorage.getItem('user');
+  const raw = userStore().getItem('user') ?? sessionStorage.getItem('user') ?? localStorage.getItem('user');
   if (!raw) return null;
   try { return JSON.parse(raw); } catch { return null; }
 }
 
 export function getToken() {
-  return authStore().getItem('token') ?? sessionStorage.getItem('token') ?? localStorage.getItem('token');
+  // 토큰은 sessionStorage 만. localStorage 의 옛 토큰은 무시 (안전).
+  return sessionStorage.getItem('token');
 }
 
 export function isPersistentLogin() {
   return localStorage.getItem('snowpan.persistent') === '1';
 }
 
+// 앱 시작 시 호출 — sessionStorage 에 토큰 없지만 user 정보가 있으면 (새 탭 등)
+// refresh 쿠키로 access 토큰 자동 복원. persistent 사용자가 새 탭 열어도 로그인 유지.
+export async function restoreSession(): Promise<void> {
+  if (sessionStorage.getItem('token')) return;
+  if (!getUser()) return;
+  await tryRefreshAccessToken();
+}
+
 export function logout() {
+  // 백엔드에 refresh 쿠키 제거 요청 (실패해도 진행).
+  fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('token');
   localStorage.removeItem('user');
