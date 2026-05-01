@@ -7,30 +7,47 @@ import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
 import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
+import { normalizeEmail } from '../utils/validate';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name, nickname, phone } = req.body;
 
+    // 모든 입력 type 검증 — 객체/배열 주입 시 즉시 거절 (NoSQL injection 방어).
+    if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string' || typeof phone !== 'string') {
+      res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
+      return;
+    }
+    if (nickname !== undefined && typeof nickname !== 'string') {
+      res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
+      return;
+    }
     if (!email || !password || !name || !phone) {
       res.status(400).json({ error: '필수 정보를 모두 입력해주세요.' });
       return;
     }
 
+    // 이메일 정규화 — trim + lowercase. 같은 사용자 분신 차단.
+    const emailNormalized = normalizeEmail(email);
+    if (!emailNormalized) {
+      res.status(400).json({ error: '올바른 이메일 형식이 아닙니다.' });
+      return;
+    }
+
     // 비밀번호 정책 — 클라이언트만 믿지 않고 서버에서도 강제.
-    if (typeof password !== 'string' || !/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) {
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) {
       res.status(400).json({ error: '비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.' });
       return;
     }
 
     // 한국 휴대폰 형식 (하이픈 자동 제거 후 검사).
-    const phoneClean = String(phone).replace(/[-\s]/g, '');
+    const phoneClean = phone.replace(/[-\s]/g, '');
     if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
       res.status(400).json({ error: '올바른 휴대폰 번호 형식이 아닙니다.' });
       return;
     }
 
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    const existingEmail = await prisma.user.findUnique({ where: { email: emailNormalized } });
     if (existingEmail) {
       res.status(400).json({ error: '이미 사용 중인 이메일입니다.' });
       return;
@@ -60,9 +77,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: emailNormalized,
         password: hashedPassword,
-        name,
+        name: name.trim(),
         nickname: trimmedNickname || null,
         phone: phoneClean,
       },
@@ -100,13 +117,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
     const ip = (req.header('cf-connecting-ip') || req.header('x-real-ip') || req.ip || 'unknown').toString();
 
+    // type 검증 — 객체/배열 주입 차단 (NoSQL injection 방어).
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
+      return;
+    }
     if (!email || !password) {
       res.status(400).json({ error: '이메일과 비밀번호를 입력해주세요.' });
       return;
     }
 
+    // 이메일 정규화 — 가입 시와 동일하게 처리해야 매칭됨.
+    const emailNormalized = normalizeEmail(email) || email.trim().toLowerCase();
+
     // Account lockout — 같은 (email, IP) 가 10회 실패하면 30분 잠금.
-    const lockState = isLocked(String(email), ip);
+    const lockState = isLocked(emailNormalized, ip);
     if (lockState.locked) {
       res.set('Retry-After', String(lockState.retryAfter || 1800));
       res.status(429).json({
@@ -115,7 +140,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: emailNormalized } });
 
     // Constant-time bcrypt — 사용자 존재 여부와 상관없이 항상 bcrypt 실행.
     // 사용자 없으면 dummy hash 와 비교 → 처리 시간 일정 → timing-based user enumeration 차단.
@@ -123,7 +148,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const isPasswordValid = await bcrypt.compare(password, passwordHash);
 
     if (!user || !isPasswordValid) {
-      recordFailure(String(email), ip);
+      recordFailure(emailNormalized, ip);
       res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       return;
     }
@@ -138,7 +163,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // 로그인 성공 — 실패 카운터 리셋.
-    recordSuccess(String(email), ip);
+    recordSuccess(emailNormalized, ip);
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d/세션 (HttpOnly 쿠키).
     // body 의 remember=true 면 14일 유지, 없으면 브라우저 닫을 때 만료.
@@ -477,7 +502,8 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
       res.json({ message: GENERIC_MSG });
       return;
     }
-    const user = await prisma.user.findUnique({ where: { email } });
+    const emailNormalized = normalizeEmail(email) || email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: emailNormalized } });
     if (!user || user.role === 'deleted') {
       // 미등록/탈퇴 계정 — 등록된 것처럼 응답하되 실제 발송 X.
       res.json({ message: GENERIC_MSG });
@@ -496,13 +522,13 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    await prisma.emailVerification.deleteMany({ where: { email, purpose: 'password_reset' } });
+    await prisma.emailVerification.deleteMany({ where: { email: emailNormalized, purpose: 'password_reset' } });
     await prisma.emailVerification.create({
-      data: { email, code, expiresAt, purpose: 'password_reset' },
+      data: { email: emailNormalized, code, expiresAt, purpose: 'password_reset' },
     });
 
-    const sent = await sendEmail(email, '[스노우판] 비밀번호 재설정 인증번호', verificationEmailHtml(code));
-    if (!sent) console.log(`[비밀번호 재설정] ${email}: ${code}`);
+    const sent = await sendEmail(emailNormalized, '[스노우판] 비밀번호 재설정 인증번호', verificationEmailHtml(code));
+    if (!sent) console.log(`[비밀번호 재설정] ${emailNormalized}: ${code}`);
 
     res.json({ message: GENERIC_MSG });
   } catch (error) {
@@ -517,17 +543,24 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
   try {
     const { email, code, newPassword } = req.body;
 
+    // type 검증 + 필수 입력 + 비밀번호 정책 (가입과 동일).
+    if (typeof email !== 'string' || typeof code !== 'string' || typeof newPassword !== 'string') {
+      res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
+      return;
+    }
     if (!email || !code || !newPassword) {
       res.status(400).json({ error: '필수 항목이 누락되었습니다.' });
       return;
     }
-    if (typeof newPassword !== 'string' || newPassword.length < 6) {
-      res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(newPassword)) {
+      res.status(400).json({ error: '비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.' });
       return;
     }
 
+    const emailNormalized = normalizeEmail(email) || email.trim().toLowerCase();
+
     const verification = await prisma.emailVerification.findFirst({
-      where: { email, code, purpose: 'password_reset', expiresAt: { gte: new Date() } },
+      where: { email: emailNormalized, code, purpose: 'password_reset', expiresAt: { gte: new Date() } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -536,7 +569,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: emailNormalized } });
     if (!user) {
       res.status(404).json({ error: '해당 이메일로 가입된 계정이 없습니다.' });
       return;
@@ -544,9 +577,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.$transaction([
-      prisma.user.update({ where: { email }, data: { password: hashedPassword } }),
+      prisma.user.update({ where: { email: emailNormalized }, data: { password: hashedPassword } }),
       // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화
-      prisma.emailVerification.deleteMany({ where: { email } }),
+      prisma.emailVerification.deleteMany({ where: { email: emailNormalized } }),
     ]);
 
     res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });

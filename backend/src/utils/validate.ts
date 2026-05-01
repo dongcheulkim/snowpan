@@ -29,6 +29,20 @@ export function parsePrice(raw: unknown): ParsedPrice | ParseError {
   return { ok: true, value: Math.floor(n) };
 }
 
+// 이메일 정규화 — trim + toLowerCase. 같은 사용자가 대소문자/공백으로
+// 여러 계정 만드는 것 (account splitting) 차단.
+// RFC 5321 상 local part 는 case-sensitive 가 맞지만, 실제 메일 서버
+// (Gmail 등) 는 다 case-insensitive 라 사용자 혼란 + 사기 행위만 늘어남.
+export function normalizeEmail(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim().toLowerCase();
+  if (!trimmed) return null;
+  // 간단한 형식 체크 — local@host 형태 + 호스트에 . 1개 이상.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return null;
+  if (trimmed.length > 254) return null;
+  return trimmed;
+}
+
 // 사용자 입력 이미지 URL 검증 — Cloudinary 또는 우리 도메인만 허용.
 // 임의 외부 URL 차단 — 사용자에게 보일 이미지에 추적 픽셀/피싱 URL 박는 것 방지.
 const ALLOWED_IMAGE_HOSTS = ['res.cloudinary.com', 'snowpan.vercel.app', 'snowpan.onrender.com'];
