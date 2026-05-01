@@ -455,12 +455,20 @@ export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<voi
 };
 
 // 비밀번호 재설정 요청 (이메일로 인증코드 전송)
+// 보안: user enumeration 방지 — 등록 여부에 관계없이 같은 응답 반환.
+// 등록된 이메일에만 실제 코드 발송.
 export const resetPasswordRequest = async (req: Request, res: Response): Promise<void> => {
+  const GENERIC_MSG = '입력한 이메일이 등록된 계정이라면 인증번호가 발송됩니다. 메일함을 확인해주세요.';
   try {
     const { email } = req.body;
+    if (!email || typeof email !== 'string') {
+      res.json({ message: GENERIC_MSG });
+      return;
+    }
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      res.status(404).json({ error: '해당 이메일로 가입된 계정이 없습니다.' });
+    if (!user || user.role === 'deleted') {
+      // 미등록/탈퇴 계정 — 등록된 것처럼 응답하되 실제 발송 X.
+      res.json({ message: GENERIC_MSG });
       return;
     }
 
@@ -468,20 +476,19 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    // 같은 이메일에 대해 남아있는 과거 코드 제거 후 신규 발급
     await prisma.emailVerification.deleteMany({ where: { email, purpose: 'password_reset' } });
     await prisma.emailVerification.create({
       data: { email, code, expiresAt, purpose: 'password_reset' },
     });
 
-    // 이메일 발송 (환경변수 미설정 시 콘솔 로그)
     const sent = await sendEmail(email, '[스노우판] 비밀번호 재설정 인증번호', verificationEmailHtml(code));
     if (!sent) console.log(`[비밀번호 재설정] ${email}: ${code}`);
 
-    res.json({ message: '인증번호가 이메일로 발송되었습니다.' });
+    res.json({ message: GENERIC_MSG });
   } catch (error) {
     console.error('Reset password request error:', error);
-    res.status(500).json({ error: '인증번호 발송 중 오류가 발생했습니다.' });
+    // 에러도 일반 메시지로 — 어떤 시도든 같은 응답.
+    res.json({ message: GENERIC_MSG });
   }
 };
 

@@ -29,6 +29,25 @@ export function parsePrice(raw: unknown): ParsedPrice | ParseError {
   return { ok: true, value: Math.floor(n) };
 }
 
+// 사용자 입력 이미지 URL 검증 — Cloudinary 또는 우리 도메인만 허용.
+// 임의 외부 URL 차단 — 사용자에게 보일 이미지에 추적 픽셀/피싱 URL 박는 것 방지.
+const ALLOWED_IMAGE_HOSTS = ['res.cloudinary.com', 'snowpan.vercel.app', 'snowpan.onrender.com'];
+export function isAllowedImageUrl(url: unknown): boolean {
+  if (!url || typeof url !== 'string') return false;
+  // 상대 경로 — /uploads/, /icons/ 만 허용.
+  if (url.startsWith('/')) {
+    return url.startsWith('/uploads/') || url.startsWith('/icons/');
+  }
+  // 절대 URL — http(s) + 화이트리스트 호스트만.
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+    return ALLOWED_IMAGE_HOSTS.includes(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 // 양수 정수 (인원, 수량 등)
 export function parsePositiveInt(raw: unknown, max = 1_000_000): ParsedPrice | ParseError {
   if (raw === undefined || raw === null || raw === '') {

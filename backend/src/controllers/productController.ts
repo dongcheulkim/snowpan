@@ -6,7 +6,7 @@ import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
-import { parsePrice } from '../utils/validate';
+import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -188,6 +188,10 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
 
     if (!name || !image) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    if (!isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '이미지는 사이트 업로드 또는 Cloudinary 만 허용됩니다.' });
       return;
     }
     const priceResult = parsePrice(price);
