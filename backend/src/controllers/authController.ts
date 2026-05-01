@@ -5,7 +5,8 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME } from '../utils/tokens';
+import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily } from '../utils/tokens';
+import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -97,24 +98,32 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    const ip = (req.header('cf-connecting-ip') || req.header('x-real-ip') || req.ip || 'unknown').toString();
 
     if (!email || !password) {
       res.status(400).json({ error: '이메일과 비밀번호를 입력해주세요.' });
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user || !user.password) {
-      res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+    // Account lockout — 같은 (email, IP) 가 10회 실패하면 30분 잠금.
+    const lockState = isLocked(String(email), ip);
+    if (lockState.locked) {
+      res.set('Retry-After', String(lockState.retryAfter || 1800));
+      res.status(429).json({
+        error: `로그인 시도가 너무 많습니다. ${Math.ceil((lockState.retryAfter || 1800) / 60)}분 후 다시 시도해주세요.`,
+      });
       return;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!isPasswordValid) {
+    // Constant-time bcrypt — 사용자 존재 여부와 상관없이 항상 bcrypt 실행.
+    // 사용자 없으면 dummy hash 와 비교 → 처리 시간 일정 → timing-based user enumeration 차단.
+    const passwordHash = user?.password || DUMMY_BCRYPT_HASH;
+    const isPasswordValid = await bcrypt.compare(password, passwordHash);
+
+    if (!user || !isPasswordValid) {
+      recordFailure(String(email), ip);
       res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
       return;
     }
@@ -127,6 +136,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res.status(403).json({ error: '정지된 계정입니다.' });
       return;
     }
+
+    // 로그인 성공 — 실패 카운터 리셋.
+    recordSuccess(String(email), ip);
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d/세션 (HttpOnly 쿠키).
     // body 의 remember=true 면 14일 유지, 없으면 브라우저 닫을 때 만료.
@@ -472,6 +484,14 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
       return;
     }
 
+    // 이메일 폭탄 방지 — 같은 이메일 24시간 내 5회 초과 발송 차단.
+    const sendCheck = canSendEmail(email);
+    if (!sendCheck.ok) {
+      // 공격자에게도 같은 응답 — 다만 실제 발송 X.
+      res.json({ message: GENERIC_MSG });
+      return;
+    }
+
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
@@ -612,8 +632,10 @@ export const getMyAdRequests = async (req: AuthRequest, res: Response): Promise<
   }
 };
 
-// 액세스 토큰 재발급 — refresh 쿠키만으로 인증.
-// 사용자 상태 (탈퇴/정지) 도 함께 검증해서 계정 무효화 즉시 반영.
+// 액세스 토큰 재발급 — refresh 쿠키만으로 인증 + token rotation.
+// 매 refresh 마다 새 refresh 토큰 발급 (rotation). 옛 토큰 재사용 감지되면
+// family 통째로 무효화 → 도난 시 사용자가 자기 토큰으로 다시 refresh 시도 시
+// 즉시 강제 로그아웃 → 공격자 차단.
 export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
   try {
     const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME];
@@ -629,6 +651,22 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       res.status(401).json({ error: '재인증이 필요합니다.' });
       return;
     }
+
+    // family 가 이미 무효화된 경우 (도난 감지된 family) → 거절.
+    if (isFamilyRevoked(payload.fam)) {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '재인증이 필요합니다.' });
+      return;
+    }
+
+    // jti 재사용 감지 — 토큰이 두 번째 쓰이면 도난 의심 → family 무효화.
+    if (!consumeJti(payload.jti)) {
+      revokeFamily(payload.fam);
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '비정상 접근이 감지되어 로그아웃되었습니다. 다시 로그인해주세요.' });
+      return;
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true },
@@ -638,7 +676,11 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       res.status(401).json({ error: '재인증이 필요합니다.' });
       return;
     }
+
+    // 새 access + 새 refresh (같은 family 유지) — rotation.
     const token = signAccessToken(user);
+    setRefreshCookie(res, user.id, true, payload.fam);
+
     res.json({
       token,
       user: {

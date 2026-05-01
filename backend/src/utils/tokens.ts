@@ -22,16 +22,19 @@ function getSecrets(): { access: string; refresh: string } {
 }
 
 export interface AccessPayload { userId: string; email: string; role: string; type: 'access'; }
-export interface RefreshPayload { userId: string; type: 'refresh'; }
+// jti = unique token ID, fam = token family (rotation 추적용).
+export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; }
 
 export function signAccessToken(user: { id: string; email: string; role: string }): string {
   const { access } = getSecrets();
   return jwt.sign({ userId: user.id, email: user.email, role: user.role, type: 'access' }, access, { expiresIn: ACCESS_TTL });
 }
 
-export function signRefreshToken(userId: string): string {
+export function signRefreshToken(userId: string, family?: string): string {
   const { refresh } = getSecrets();
-  return jwt.sign({ userId, type: 'refresh' }, refresh, { expiresIn: REFRESH_TTL });
+  const jti = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const fam = family || `${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return jwt.sign({ userId, type: 'refresh', jti, fam }, refresh, { expiresIn: REFRESH_TTL });
 }
 
 export function verifyRefreshToken(token: string): RefreshPayload {
@@ -39,6 +42,33 @@ export function verifyRefreshToken(token: string): RefreshPayload {
   const decoded = jwt.verify(token, refresh) as RefreshPayload;
   if (decoded.type !== 'refresh') throw new Error('잘못된 토큰 타입');
   return decoded;
+}
+
+// 사용된 jti 추적 — rotation 시 옛 jti 가 재사용되면 도난 의심 → family 통째로 무효화.
+// 메모리 캐시 (재시작 시 초기화 OK — 재시작이 곧 강제 rotation).
+const usedJtis = new Map<string, number>(); // jti → timestamp
+const revokedFamilies = new Map<string, number>(); // family → timestamp
+const TOKEN_DEDUP_MS = 14 * 24 * 60 * 60_000;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, ts] of usedJtis) if (now - ts > TOKEN_DEDUP_MS) usedJtis.delete(k);
+  for (const [k, ts] of revokedFamilies) if (now - ts > TOKEN_DEDUP_MS) revokedFamilies.delete(k);
+}, 60 * 60_000);
+
+export function isFamilyRevoked(fam: string): boolean {
+  return revokedFamilies.has(fam);
+}
+
+export function revokeFamily(fam: string): void {
+  revokedFamilies.set(fam, Date.now());
+}
+
+// jti 가 처음 사용되면 등록하고 OK 반환. 이미 사용된 적이 있으면 false (replay).
+export function consumeJti(jti: string): boolean {
+  if (usedJtis.has(jti)) return false;
+  usedJtis.set(jti, Date.now());
+  return true;
 }
 
 // 쿠키 옵션 — cross-domain (vercel ↔ render) 대응.
@@ -56,9 +86,10 @@ export function refreshCookieOptions(remember: boolean): CookieOptions {
 
 export const REFRESH_COOKIE_NAME = 'snowpan_rt';
 
-// 로그인/등록 시 쿠키 설정 헬퍼.
-export function setRefreshCookie(res: Response, userId: string, remember: boolean): void {
-  const token = signRefreshToken(userId);
+// 로그인/등록 시 쿠키 설정 헬퍼. family 미지정 → 새 family 생성 (새 로그인).
+// rotation 시는 같은 family 유지 → 도난 감지 가능.
+export function setRefreshCookie(res: Response, userId: string, remember: boolean, family?: string): void {
+  const token = signRefreshToken(userId, family);
   res.cookie(REFRESH_COOKIE_NAME, token, refreshCookieOptions(remember));
 }
 
