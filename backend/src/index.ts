@@ -201,9 +201,16 @@ app.get('/', (req, res) => {
 
 // 모든 /api/* 요청에서 Authorization 헤더 검증 — 헤더 있을 때만.
 // 만료/위조 토큰이 보내지면 endpoint 가 공개여도 즉시 401 → 클라 refresh 트리거.
-// 단, /api/auth/refresh 는 cookie 만 쓰고 access token 은 만료된 상태라 예외.
+// 인증 흐름 자체 (login/register/refresh/logout/reset) 는 예외 — 사용자가 만료된
+// 옛 토큰을 sessionStorage 에 가지고 있어도 새로 로그인 가능해야 함.
+const AUTH_BYPASS = new Set([
+  '/auth/login', '/auth/register', '/auth/refresh', '/auth/logout',
+  '/auth/reset-password-request', '/auth/reset-password',
+  '/auth/phone/send', '/auth/phone/verify',
+  '/auth/kakao', '/auth/kakao/callback', '/auth/naver', '/auth/naver/callback',
+]);
 app.use('/api', (req, res, next) => {
-  if (req.path === '/auth/refresh' || req.path === '/auth/logout') return next();
+  if (AUTH_BYPASS.has(req.path)) return next();
   return validateAuthHeaderIfPresent(req, res, next);
 });
 
