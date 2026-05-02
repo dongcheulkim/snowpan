@@ -59,7 +59,7 @@ import repairShopRoutes from './routes/repairShopRoutes';
 import searchRoutes from './routes/searchRoutes';
 import contactRoutes from './routes/contactRoutes';
 import sitemapRoutes from './routes/sitemapRoutes';
-import { authMiddleware as authenticate } from './middleware/auth';
+import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
@@ -197,6 +197,14 @@ app.use('/api/products', (req, res, next) => {
 
 app.get('/', (req, res) => {
   res.json({ message: '스노우프라이스 API 서버입니다.' });
+});
+
+// 모든 /api/* 요청에서 Authorization 헤더 검증 — 헤더 있을 때만.
+// 만료/위조 토큰이 보내지면 endpoint 가 공개여도 즉시 401 → 클라 refresh 트리거.
+// 단, /api/auth/refresh 는 cookie 만 쓰고 access token 은 만료된 상태라 예외.
+app.use('/api', (req, res, next) => {
+  if (req.path === '/auth/refresh' || req.path === '/auth/logout') return next();
+  return validateAuthHeaderIfPresent(req, res, next);
 });
 
 // Auth routes with stricter rate limit

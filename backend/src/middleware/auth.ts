@@ -79,6 +79,31 @@ export const authMiddleware = async (
 // Alias for consistency
 export const authenticateToken = authMiddleware;
 
+// 글로벌 사전 미들웨어 — Authorization 헤더가 *있을 때* 검증.
+// 헤더 없으면 통과 (공개 endpoint 정상 작동).
+// 헤더 있는데 만료/위조면 401 → 클라가 즉시 refresh 시도하도록.
+// audit P0 "만료 토큰 → 200 통과" 대응: 헤더가 있으면 무조건 검증 통과해야 진입 가능.
+export const validateAuthHeaderIfPresent = (req: Request, res: Response, next: NextFunction): void => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) { next(); return; }
+  const token = auth.slice(7).trim();
+  if (!token) { next(); return; }
+  if (!process.env.JWT_SECRET) {
+    res.status(500).json({ error: '서버 설정 오류' });
+    return;
+  }
+  try {
+    jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      ignoreExpiration: false,
+    });
+    next();
+  } catch (err: any) {
+    const expired = err?.name === 'TokenExpiredError';
+    res.status(401).json({ error: expired ? '세션이 만료되었습니다.' : '유효하지 않은 토큰입니다.' });
+  }
+};
+
 // 관리자 전용 라우트 가드 — authMiddleware 뒤에 체이닝 해서 사용.
 // 현재 컨트롤러마다 반복되는 role 체크를 중앙화. 신규 라우트에서는 이 미들웨어를 쓰는 걸 권장.
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
