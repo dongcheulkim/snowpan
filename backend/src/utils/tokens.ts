@@ -75,6 +75,31 @@ export function consumeJti(jti: string): boolean {
   return true;
 }
 
+// 사용자 단위 토큰 무효화 — 비밀번호 변경/탈퇴/정지 시 호출.
+// userId → 무효화 시각 (초). 이 시각 이후 발급된 토큰만 유효 (iat 비교).
+// JWT 자체는 stateless 라 비번 바꿔도 옛 토큰 살아있는 문제 → 메모리 마커 로 차단.
+const userInvalidatedAt = new Map<string, number>(); // userId → unix seconds
+
+setInterval(() => {
+  const cutoff = Math.floor(Date.now() / 1000) - 14 * 24 * 60 * 60; // 14일 지난 항목 정리
+  for (const [k, ts] of userInvalidatedAt) {
+    if (ts < cutoff) userInvalidatedAt.delete(k);
+  }
+}, 60 * 60_000);
+
+export function invalidateUserTokens(userId: string): void {
+  userInvalidatedAt.set(userId, Math.floor(Date.now() / 1000));
+}
+
+// 토큰 iat 가 사용자 무효화 시각보다 이전이면 → 무효.
+// auth middleware / refresh 에서 호출.
+export function isTokenIatStale(userId: string, iat: number | undefined): boolean {
+  if (!iat) return false;
+  const cutoff = userInvalidatedAt.get(userId);
+  if (!cutoff) return false;
+  return iat < cutoff;
+}
+
 // 쿠키 옵션 — cross-domain (vercel ↔ render) 대응.
 // SameSite=None + Secure 필수, HttpOnly 로 JS 접근 차단.
 // remember=true 면 14일 만료, false 면 세션 쿠키.

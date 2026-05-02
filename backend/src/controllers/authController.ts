@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily } from '../utils/tokens';
+import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
 import { normalizeEmail } from '../utils/validate';
 
@@ -255,6 +255,9 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+    // 모든 기존 토큰 무효화 — 비번 변경 후 옛 토큰으로 접근 차단.
+    invalidateUserTokens(userId);
+    clearRefreshCookie(res);
 
     res.json({ message: '비밀번호가 변경되었습니다.' });
   } catch (error) {
@@ -470,6 +473,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
+    invalidateUserTokens(userId);
     clearRefreshCookie(res);
     res.json({ message: '탈퇴 처리되었습니다.' });
   } catch (error) {
@@ -581,6 +585,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화
       prisma.emailVerification.deleteMany({ where: { email: emailNormalized } }),
     ]);
+    // 모든 기존 토큰 무효화 — 비번 재설정 후 옛 토큰으로 접근 차단.
+    invalidateUserTokens(user.id);
+    clearRefreshCookie(res);
 
     res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
   } catch (error) {
@@ -697,6 +704,13 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       revokeFamily(payload.fam);
       clearRefreshCookie(res);
       res.status(401).json({ error: '비정상 접근이 감지되어 로그아웃되었습니다. 다시 로그인해주세요.' });
+      return;
+    }
+
+    // 사용자 단위 무효화 (비밀번호 변경/탈퇴 후 옛 refresh 토큰) → 거절.
+    if (isTokenIatStale(payload.userId, (payload as any).iat)) {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
       return;
     }
 

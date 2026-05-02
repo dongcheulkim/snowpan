@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
+import { isTokenIatStale } from '../utils/tokens';
 
 interface JwtPayload {
   userId: string;
@@ -41,9 +42,14 @@ export const authMiddleware = async (
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as JwtPayload & { type?: string };
+    }) as JwtPayload & { type?: string; iat?: number };
     if (decoded.type && decoded.type !== 'access') {
       res.status(401).json({ error: '잘못된 토큰 타입입니다.' });
+      return;
+    }
+    // 비번 변경/탈퇴 등으로 사용자 단위로 토큰 무효화된 경우 — 옛 토큰 거절.
+    if (isTokenIatStale(decoded.userId, decoded.iat)) {
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
       return;
     }
 

@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
+import { invalidateUserTokens } from '../utils/tokens';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -178,6 +179,7 @@ export const banUser = async (req: AuthRequest, res: Response): Promise<void> =>
     if (!target) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
     const newRole = target.role === 'banned' ? 'user' : 'banned';
     const user = await prisma.user.update({ where: { id }, data: { role: newRole } });
+    if (newRole === 'banned') invalidateUserTokens(id);
     const msg = newRole === 'banned' ? '계정이 정지되었습니다.' : '계정 정지가 해제되었습니다.';
     await createNotification(id, 'system', newRole === 'banned' ? '계정 정지' : '정지 해제', msg);
     res.json({ id: user.id, name: user.name, role: user.role, message: msg });
@@ -222,6 +224,7 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
       });
       await tx.product.updateMany({ where: { userId: id, status: 'selling' }, data: { status: 'sold' } });
     });
+    invalidateUserTokens(id);
 
     res.json({ success: true, message: '계정이 익명화 처리되었습니다.' });
   } catch (error) {
@@ -231,6 +234,8 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
 };
 
 // ===== 프리미엄 관리 =====
+// (위 banUser, adminDeleteUser 의 token invalidation 은 별도 import + 호출)
+
 export const setProductPremium = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
