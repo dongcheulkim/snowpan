@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { toastSuccess, toastError } from '../components/Toast';
-import { HeartFilledIcon, PackageIcon } from '../components/Icons';
+import { HeartFilledIcon, HeartOutlineIcon, PackageIcon } from '../components/Icons';
+import EmptyState from '../components/EmptyState';
 
 interface WishProduct {
   id: string;
@@ -53,9 +54,15 @@ const MyWishlist = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-500 text-sm">{t('myWishlist.loading')}</div>
+        <div className="text-center py-12 text-gray-500 text-sm">{t('myWishlist.loading')}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{t('myWishlist.empty')}</div>
+        <EmptyState
+          icon={<HeartOutlineIcon size={48} strokeWidth={1.4} />}
+          title={t('myWishlist.empty')}
+          description={"마음에 드는 장비에 하트를 눌러두면\n여기에 모이고 가격 변동을 놓치지 않아요."}
+          ctaLabel="중고장비 둘러보기"
+          ctaTo="/used"
+        />
       ) : (
         <div className="space-y-2">
           {products.map((item) => (

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import { BellIcon, ChatIcon, CheckIcon, CloseIcon, MegaphoneIcon, TrophyIcon } from '../components/Icons';
+import EmptyState from '../components/EmptyState';
 
 interface Notification {
   id: string;
@@ -124,12 +125,13 @@ const Notifications = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-500 text-sm">{t('general.loading')}</div>
+        <div className="text-center py-12 text-gray-500 text-sm">{t('general.loading')}</div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><BellIcon size={48} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-500">{t('notifications.empty')}</p>
-        </div>
+        <EmptyState
+          icon={<BellIcon size={48} strokeWidth={1.4} />}
+          title={t('notifications.empty')}
+          description={"새 메시지·승인·관심글 댓글 등\n중요한 소식이 여기에 표시됩니다."}
+        />
       ) : (
         <div className="card overflow-hidden">
           {notifications.map((noti, idx) => (

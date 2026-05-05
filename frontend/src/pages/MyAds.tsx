@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { CloseIcon, MegaphoneIcon } from '../components/Icons';
+import EmptyState from '../components/EmptyState';
 
 interface AdBooking {
   id: string;
@@ -63,13 +64,13 @@ export default function MyAds() {
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : ads.length === 0 ? (
-        <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><MegaphoneIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-500">신청한 광고가 없습니다.</p>
-          <Link to="/ad-booking" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs">
-            광고 신청하기
-          </Link>
-        </div>
+        <EmptyState
+          icon={<MegaphoneIcon size={48} strokeWidth={1.4} />}
+          title="아직 신청한 광고가 없어요"
+          description={"메인 배너·카테고리 광고로 더 많은 노출을\n받아보세요. 베타 기간 무료 노출 기회도 있어요."}
+          ctaLabel="광고 신청하기"
+          ctaTo="/ad-booking"
+        />
       ) : (
         <div className="space-y-2">
           {ads.map((ad) => {

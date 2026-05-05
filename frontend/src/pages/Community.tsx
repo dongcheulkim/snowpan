@@ -4,8 +4,9 @@ import { api, imageUrl as toImageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import Pagination from '../components/Pagination';
-import { FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
+import { ChatIcon, FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import EmptyState from '../components/EmptyState';
 import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface Post {
@@ -207,9 +208,28 @@ const Community = () => {
       )}
 
       {!loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
-        <div className="text-center py-12 text-gray-500 card text-sm">
-          {selectedTab === 'popular' ? '최근 7일간 인기 게시글이 없습니다.' : debouncedSearch ? t('community.noResults') : t('community.noPosts')}
-        </div>
+        selectedTab === 'popular' ? (
+          <EmptyState
+            icon={<FireIcon size={48} />}
+            title="최근 7일간 인기 게시글이 없어요"
+            description={"좋아요·조회수가 누적되면 TOP 10이 표시됩니다.\n첫 게시글을 남겨 인기글에 도전해보세요."}
+            ctaLabel="글쓰기"
+            ctaTo={`/community/${sport}/write`}
+          />
+        ) : debouncedSearch ? (
+          <EmptyState
+            title={t('community.noResults')}
+            description={`"${debouncedSearch}" 와(과) 일치하는 게시글이 없어요.\n다른 키워드로 검색해보세요.`}
+          />
+        ) : (
+          <EmptyState
+            icon={<ChatIcon size={48} strokeWidth={1.4} />}
+            title={t('community.noPosts')}
+            description={"첫 글을 남겨\n다른 스키어들과 이야기를 시작해보세요."}
+            ctaLabel="첫 글 쓰기"
+            ctaTo={`/community/${sport}/write`}
+          />
+        )
       )}
 
       {selectedTab !== 'popular' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}

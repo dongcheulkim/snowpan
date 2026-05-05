@@ -41,7 +41,7 @@ export default function MyShops() {
     </div>
   );
 
-  if (loading) return <div className="text-center py-20 text-gray-500 text-sm">로딩 중...</div>;
+  if (loading) return <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>;
 
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
@@ -56,7 +56,10 @@ export default function MyShops() {
           <Link to="/skishop/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {skiShops.length === 0 ? (
-          <p className="text-xs text-gray-500 text-center py-4">등록한 스키샵이 없습니다.</p>
+          <div className="text-center py-6">
+            <p className="text-xs text-gray-500 mb-2">아직 등록한 스키샵이 없어요</p>
+            <Link to="/skishop/register" className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">+ 스키샵 등록하기</Link>
+          </div>
         ) : (
           <div className="space-y-2">{skiShops.map(s => <ShopCard key={s.id} shop={s} type="ski" />)}</div>
         )}
@@ -68,7 +71,10 @@ export default function MyShops() {
           <Link to="/repair/register" className="text-xs text-sky-600 font-bold">+ 등록</Link>
         </div>
         {repairShops.length === 0 ? (
-          <p className="text-xs text-gray-500 text-center py-4">등록한 정비샵이 없습니다.</p>
+          <div className="text-center py-6">
+            <p className="text-xs text-gray-500 mb-2">아직 등록한 정비샵이 없어요</p>
+            <Link to="/repair/register" className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">+ 정비샵 등록하기</Link>
+          </div>
         ) : (
           <div className="space-y-2">{repairShops.map(s => <ShopCard key={s.id} shop={s} type="repair" />)}</div>
         )}

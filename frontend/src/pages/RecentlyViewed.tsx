@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
-import { PackageIcon } from '../components/Icons';
+import { ClockIcon, PackageIcon } from '../components/Icons';
+import EmptyState from '../components/EmptyState';
 
 interface RecentProduct {
   id: string;
@@ -59,9 +60,13 @@ const RecentlyViewed = () => {
       </div>
 
       {products.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">
-          {t('recentlyViewed.empty')}
-        </div>
+        <EmptyState
+          icon={<ClockIcon size={48} strokeWidth={1.4} />}
+          title={t('recentlyViewed.empty')}
+          description={"중고 장비 상세 페이지에 들어가면\n최근 본 매물 7일치가 여기에 모입니다."}
+          ctaLabel="중고장비 둘러보기"
+          ctaTo="/used"
+        />
       ) : (
         <div className="space-y-2">
           {products.map((item) => (

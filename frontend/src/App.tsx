@@ -50,7 +50,6 @@ const AdminApproval = lazy(() => import('./pages/AdminApproval'));
 const EditProfile = lazy(() => import('./pages/EditProfile'));
 const MySales = lazy(() => import('./pages/MySales'));
 const UsedEdit = lazy(() => import('./pages/UsedEdit'));
-const MyPurchases = lazy(() => import('./pages/MyPurchases'));
 const MyWishlist = lazy(() => import('./pages/MyWishlist'));
 const MyPosts = lazy(() => import('./pages/MyPosts'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
@@ -125,7 +124,6 @@ function App() {
             <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />
             <Route path="mypage/sales" element={<RequireAuth><MySales /></RequireAuth>} />
             <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
-            <Route path="mypage/purchases" element={<RequireAuth><MyPurchases /></RequireAuth>} />
             <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
             <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />

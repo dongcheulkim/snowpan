@@ -49,10 +49,7 @@ const MyChatList = () => {
         const list = Array.isArray(data) ? data : (data as { items?: ChatRoom[] })?.items || [];
         setRooms(list);
       })
-      .catch((err) => {
-        console.error('채팅방 목록 로드 실패:', err?.message || err);
-        setRooms([]);
-      })
+      .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

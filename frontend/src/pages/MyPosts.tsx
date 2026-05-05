@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
-import { HeartFilledIcon } from '../components/Icons';
+import { HeartFilledIcon, ChatIcon } from '../components/Icons';
+import EmptyState from '../components/EmptyState';
 
 interface Post {
   id: string;
@@ -23,7 +24,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   poll: '투표',
 };
 
-const MySales = () => {
+const MyPosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const user = getUser();
@@ -50,9 +51,15 @@ const MySales = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-gray-500 text-sm">불러오는 중...</div>
+        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">작성한 게시글이 없습니다.</div>
+        <EmptyState
+          icon={<ChatIcon size={48} strokeWidth={1.4} />}
+          title="아직 작성한 게시글이 없어요"
+          description={"커뮤니티에 후기·팁·질문을 남겨\n다른 스키어들과 이야기해보세요."}
+          ctaLabel="커뮤니티 둘러보기"
+          ctaTo="/community"
+        />
       ) : (
         <div className="space-y-2">
           {posts.map((post) => (
@@ -77,4 +84,4 @@ const MySales = () => {
   );
 };
 
-export default MySales;
+export default MyPosts;

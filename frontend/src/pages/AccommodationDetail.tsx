@@ -45,12 +45,7 @@ const AccommodationDetail = () => {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="text-center py-20 animate-fade-in">
-        <div className="text-4xl mb-4">⏳</div>
-        <p className="text-sm text-gray-500">불러오는 중...</p>
-      </div>
-    );
+    return <div className="text-center py-12 text-gray-500 text-sm animate-fade-in">로딩 중...</div>;
   }
 
   if (!item) {
