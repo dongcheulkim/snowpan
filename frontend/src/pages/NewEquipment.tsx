@@ -93,10 +93,17 @@ export default function NewEquipment() {
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : shops.length === 0 ? (
-        <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SkiShopIcon size={44} /></div>
-          <p className="text-sm text-gray-500">{selectedArea !== 'all' || selectedResort !== 'all' ? '해당 지역에 등록된 스키샵이 없습니다.' : '아직 등록된 스키샵이 없습니다.'}</p>
-          <p className="text-xs text-gray-500 mt-1">직접 스키샵을 등록해보세요!</p>
+        <div className="text-center py-16 px-6 card">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><SkiShopIcon size={44} /></div>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">
+            {selectedArea !== 'all' || selectedResort !== 'all' ? '이 지역엔 아직 스키샵이 없어요' : '아직 등록된 스키샵이 없어요'}
+          </h3>
+          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+            첫 번째로 등록해서 손님들에게 노출 기회를<br/>가져가세요. 베타 기간 등록 무료입니다.
+          </p>
+          <RegisterCTA to="/skishop/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
+            + 첫 스키샵 등록하기
+          </RegisterCTA>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

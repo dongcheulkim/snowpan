@@ -163,8 +163,19 @@ const Lesson = () => {
       )}
 
       {!loading && lessonItems.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-snow border border-gray-200 rounded-xl text-sm">
-          해당 조건의 레슨 정보가 없습니다.
+        <div className="text-center py-12 px-6 card">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="7" r="3"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/>
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 레슨이 없어요</h3>
+          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+            강사·자격을 가진 분이라면 첫 등록자가 되어<br/>레슨생을 만나보세요. 베타 기간 등록 무료입니다.
+          </p>
+          <Link to="/lesson/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+            + 첫 레슨 등록하기
+          </Link>
         </div>
       )}
 

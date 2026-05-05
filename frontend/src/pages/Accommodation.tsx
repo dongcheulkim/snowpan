@@ -176,8 +176,19 @@ const Accommodation = () => {
       )}
 
       {!loading && accommodations.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-snow border border-gray-200 rounded-xl text-sm">
-          해당 조건의 숙소 정보가 없습니다.
+        <div className="text-center py-12 px-6 card">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/>
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 숙소가 없어요</h3>
+          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+            펜션·콘도·시즌방 운영자라면 첫 등록자가 되어<br/>스키어들을 직접 만나보세요. 베타 기간 등록 무료입니다.
+          </p>
+          <Link to="/accommodation/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+            + 첫 숙소 등록하기
+          </Link>
         </div>
       )}
 

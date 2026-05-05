@@ -127,8 +127,19 @@ const Rental = () => {
       )}
 
       {!loading && rentalItems.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-snow border border-gray-200 rounded-xl text-sm">
-          해당 스키장의 렌탈 정보가 없습니다.
+        <div className="text-center py-12 px-6 card">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7l3-4h12l3 4M3 7v13h18V7M3 7h18M9 11h6"/>
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 렌탈샵이 없어요</h3>
+          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+            첫 번째로 등록해서 사용자들에게 노출 기회를<br/>가져가세요. 베타 기간은 등록 무료입니다.
+          </p>
+          <Link to="/rental/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+            + 첫 렌탈샵 등록하기
+          </Link>
         </div>
       )}
 

@@ -73,10 +73,14 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
   const diffPct = Math.round((ratio - 1) * 100);
   const diffText = diffPct === 0 ? '시세와 동일' : diffPct > 0 ? `+${diffPct}%` : `${diffPct}%`;
   const scope = brand ? `${brand} ${subcatLabels[subcategory] || subcategory}` : subcatLabels[subcategory] || subcategory;
+  const windowDays = stats.windowDays || 180;
+  // 데이터 출처 — 외부 가격 비교 사이트가 아니라 본 플랫폼에 등록된 매물 자체.
+  // 사용자에게 명확히 알려서 신뢰도 ↑ + 오해 방지.
+  const sourceTitle = `최근 ${windowDays}일 동안 스노우판에 등록된 ${scope} 중고 매물 ${stats.count}건의 가격 분포 (중앙값 ${median.toLocaleString()}원). 외부 시세 사이트가 아닌 본 플랫폼 거래 데이터 기반입니다.`;
 
   if (variant === 'inline') {
     return (
-      <div className={`mt-2 rounded-lg border px-3 py-2 ${tone}`}>
+      <div className={`mt-2 rounded-lg border px-3 py-2 ${tone}`} title={sourceTitle}>
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-bold">{label}</span>
           <span className="text-[11px] font-mono">{diffText}</span>
@@ -85,18 +89,24 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
           {scope} 시세 중앙값 {median.toLocaleString()}원
           <span className="opacity-60"> · {stats.count}건 기준</span>
         </div>
+        <div className="text-[10px] opacity-60 mt-1 leading-tight">
+          출처: 최근 {Math.round(windowDays / 30)}개월 스노우판 등록 매물
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`inline-flex flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 ${tone}`}>
+    <div className={`inline-flex flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 ${tone}`} title={sourceTitle}>
       <div className="flex items-baseline gap-1.5">
         <span className="text-[11px] font-bold">{label}</span>
         <span className="text-[10px] font-mono opacity-80">{diffText}</span>
       </div>
       <span className="text-[10px] opacity-70">
         시세 {median.toLocaleString()}원 · {stats.count}건
+      </span>
+      <span className="text-[9px] opacity-60">
+        스노우판 등록 매물 기준 (최근 {Math.round(windowDays / 30)}개월)
       </span>
     </div>
   );

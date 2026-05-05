@@ -70,10 +70,17 @@ export default function RepairShop() {
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : shops.length === 0 ? (
-        <div className="text-center py-16 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><MaintenanceIcon size={44} /></div>
-          <p className="text-sm text-gray-500">{selectedArea !== 'all' ? '해당 지역에 등록된 정비샵이 없습니다.' : '아직 등록된 정비샵이 없습니다.'}</p>
-          <p className="text-xs text-gray-500 mt-1">직접 정비샵을 등록해보세요!</p>
+        <div className="text-center py-16 px-6 card">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">
+            {selectedArea !== 'all' ? '이 지역엔 아직 정비샵이 없어요' : '아직 등록된 정비샵이 없어요'}
+          </h3>
+          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+            튜닝·왁싱 전문이라면 첫 등록자가 되어<br/>스키어들을 만나보세요. 베타 기간 등록 무료입니다.
+          </p>
+          <RegisterCTA to="/repair/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
+            + 첫 정비샵 등록하기
+          </RegisterCTA>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
