@@ -1,48 +1,22 @@
 interface LogoProps { withText?: boolean; className?: string; }
 
-// SNOW PAN — Bold sans-serif + A 자리 두꺼운 삼각형.
-// 브랜드북은 Helvetica Bold 급의 묵직한 wordmark. 삼각형도 같은 두께로 보이게 filled polygon.
+// SNOW PAN — 공식 AI 워드마크 (PDF→SVG 변환).
+// 이미지 자산을 그대로 사용하여 브랜드북과 1:1 일치.
 export default function Logo({ withText = true, className = '' }: LogoProps) {
-  void withText;
+  const src = withText ? '/snowpan-wordmark.svg' : '/pan-wordmark.svg';
+  const alt = withText ? 'SNOW PAN' : 'PAN';
   return (
-    <span
-      className={`inline-flex items-baseline text-gray-900 select-none ${className}`}
-      style={{
-        fontFamily: '"Helvetica Neue", Helvetica, "Inter", "Apple SD Gothic Neo", system-ui, sans-serif',
-        fontWeight: 700,
-        fontSize: '22px',
-        letterSpacing: '0.08em',
-        // 안전 padding — 일부 폰트 폴백에서 S 의 left bearing 이 음수가 되어 좌측 클립되는 문제 방지.
-        paddingLeft: '2px',
-      }}
-    >
-      SNOW&nbsp;P
-      {/*
-        A 삼각형 — crossbar 없이 두 대각선이 위에서 만나는 chevron.
-        strokeWidth 를 fontSize 의 ~12% 로 잡아 letter stroke 와 시각적 일치.
-      */}
-      <svg
-        viewBox="0 0 60 72"
-        width="0.58em"
-        height="0.7em"
-        aria-hidden="true"
-        style={{ display: 'inline-block', verticalAlign: 'baseline', marginLeft: '0.04em', marginRight: '0.04em' }}
-      >
-        <polyline
-          points="6,68 30,6 54,68"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="13"
-          strokeLinecap="butt"
-          strokeLinejoin="miter"
-        />
-      </svg>
-      N
-    </span>
+    <img
+      src={src}
+      alt={alt}
+      draggable={false}
+      className={`select-none ${className}`}
+      style={{ height: '22px', width: 'auto', display: 'inline-block' }}
+    />
   );
 }
 
-// 6점 눈송이 아이콘 (브랜드북 ICON 영역)
+// 6점 눈송이 아이콘 (브랜드북 ICON 영역) — 비-워드마크 자리에서 사용.
 export function Snowflake({ size = 24 }: { size?: number }) {
   const arm = (
     <g>
