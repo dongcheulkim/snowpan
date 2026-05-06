@@ -47,8 +47,8 @@ export function showBrowserNotification({ title, body, link, tag }: NotifyOption
   try {
     const notif = new Notification(title, {
       body,
-      icon: '/icons/icon-192.svg',
-      badge: '/icons/icon-192.svg',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
       tag,
     });
     notif.onclick = () => {

@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['snowpan-icon.svg', 'icons/og-image.png', 'robots.txt'],
+      includeAssets: ['snowpan-icon.svg', 'icons/og-image.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-16.png', 'robots.txt'],
       manifest: {
         name: '스노우판',
         short_name: '스노우판',
