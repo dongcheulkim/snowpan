@@ -67,7 +67,7 @@ const LessonDetail = () => {
       </div>
 
       <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
-        {isImage ? <img src={imgSrc} alt={item.name} className="w-full h-full object-cover" /> : <span className="relative">{item.image}</span>}
+        {isImage ? <img src={imgSrc} alt={item.name} loading="lazy" className="w-full h-full object-cover" /> : <span className="relative">{item.image}</span>}
       </div>
 
       <div className="card rounded-2xl p-5">

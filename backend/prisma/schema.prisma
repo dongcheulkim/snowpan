@@ -537,6 +537,27 @@ model RepairShop {
   @@map("repair_shops")
 }
 
+// 실시간 웹캠 — 리조트 메타 + 카메라 스트림 URL.
+// 시즌별로 스트림 URL 이 자주 바뀌고 새 리조트 추가될 수 있어 DB 화.
+model Webcam {
+  id          String   @id @default(uuid())
+  slug        String   @unique // 'yongpyong'
+  name        String   // '용평리조트'
+  region      String   // '강원'
+  slopes      Int      @default(0)
+  elevation   String?  // '1,458m'
+  camCount    Int      @default(0)
+  cameras     Json?    // [{ label, stream }] — JSON 배열
+  externalUrl String?  // 스트림 없을 때 공식 사이트
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, order])
+  @@map("webcams")
+}
+
 // 위클리 다이제스트 이메일 구독 — 로그인 안 한 비회원도 구독 가능.
 // 발송 cron 은 추후 구현, 지금은 수집만.
 model NewsletterSubscription {

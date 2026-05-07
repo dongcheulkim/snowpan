@@ -68,9 +68,12 @@ const Support = () => {
         </div>
       </div>
 
-      {/* FAQ */}
+      {/* FAQ — quick view + 도움말 센터 링크 */}
       <div>
-        <h2 className="text-sm font-bold text-gray-900 mb-3 px-1">자주 묻는 질문</h2>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-sm font-bold text-gray-900">자주 묻는 질문</h2>
+          <Link to="/help" className="text-xs text-sky-600 font-bold hover:underline">전체 보기 →</Link>
+        </div>
         <div className="card overflow-hidden">
           {faqs.map((faq, idx) => (
             <div key={idx} className={idx < faqs.length - 1 ? 'border-b border-gray-50' : ''}>

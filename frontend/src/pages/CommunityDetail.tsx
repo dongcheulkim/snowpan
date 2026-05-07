@@ -210,7 +210,7 @@ const CommunityDetail = () => {
         {postImages.length > 0 && (
           <div className="mt-4 space-y-2">
             {postImages.map((img, idx) => (
-              <img key={idx} src={img} alt="" className="w-full rounded-lg border border-gray-200" />
+              <img key={idx} src={img} alt="" loading="lazy" className="w-full rounded-lg border border-gray-200" />
             ))}
           </div>
         )}

@@ -87,7 +87,7 @@ export default function Search() {
               <Link key={p.id} to={`/used/${p.id}`} className="card p-3 flex items-center gap-3 card-hover block">
                 <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                   {(p.image?.startsWith('http') || p.image?.startsWith('/')) ? (
-                    <img src={imageUrl(p.image, 200)} alt={p.name} className="w-full h-full object-cover" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
+                    <img src={imageUrl(p.image, 200)} alt={p.name} loading="lazy" className="w-full h-full object-cover" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
                   ) : <span className="flex items-center justify-center w-full h-full text-gray-500"><PackageIcon size={20} /></span>}
                 </div>
                 <div className="flex-1 min-w-0">

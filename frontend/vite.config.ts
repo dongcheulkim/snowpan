@@ -111,7 +111,6 @@ export default defineConfig({
           if (id.includes('node_modules/react/')) return 'vendor';
           if (id.includes('socket.io-client')) return 'socket';
           if (id.includes('hls.js')) return 'hls';
-          if (id.includes('data/webcamData')) return 'webcam-data';
         },
       },
     },

@@ -61,6 +61,7 @@ import contactRoutes from './routes/contactRoutes';
 import sitemapRoutes from './routes/sitemapRoutes';
 import newsletterRoutes from './routes/newsletterRoutes';
 import referralRoutes from './routes/referralRoutes';
+import webcamRoutes from './routes/webcamRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
@@ -263,6 +264,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', strictWriteLimiter, newsletterRoutes);
 app.use('/api/referral', referralRoutes);
+app.use('/api/webcams', webcamRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
 app.use('/', sitemapRoutes);

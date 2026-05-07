@@ -1,9 +1,22 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import Hls from 'hls.js';
-import webcamData from '../data/webcamData';
+import { api } from '../api';
 import { ProhibitIcon } from '../components/Icons';
 import { LivecamIcon } from '../components/CategoryIcons';
+
+interface CamInfo { label: string; stream: string }
+interface WebcamData {
+  id: string;
+  slug: string;
+  name: string;
+  region: string;
+  slopes: number;
+  elevation: string | null;
+  camCount: number;
+  cameras: CamInfo[] | null;
+  externalUrl: string | null;
+}
 
 const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -71,7 +84,20 @@ const WebcamDetail = () => {
   const { id } = useParams();
   const [selectedCam, setSelectedCam] = useState(0);
   const [iframeFailed, setIframeFailed] = useState(false);
-  const cam = id ? webcamData[id] : null;
+  const [cam, setCam] = useState<WebcamData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setLoading(false); return; }
+    api<WebcamData>(`/webcams/${encodeURIComponent(id)}`)
+      .then(setCam)
+      .catch(() => setCam(null))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center py-12 text-gray-500 text-sm animate-fade-in">로딩 중...</div>;
+  }
 
   if (!cam) {
     return (
@@ -82,8 +108,9 @@ const WebcamDetail = () => {
     );
   }
 
-  const hasStreams = cam.cameras && cam.cameras.length > 0;
-  const currentStream = hasStreams ? cam.cameras![selectedCam] : null;
+  const cameras = cam.cameras || [];
+  const hasStreams = cameras.length > 0;
+  const currentStream = hasStreams ? cameras[selectedCam] : null;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -107,7 +134,7 @@ const WebcamDetail = () => {
           </div>
         </div>
         <a
-          href={cam.url}
+          href={cam.externalUrl || '#'}
           target="_blank"
           rel="noopener noreferrer"
           className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors border border-gray-200"
@@ -121,7 +148,7 @@ const WebcamDetail = () => {
           {/* Camera selector tabs */}
           <div className="overflow-x-auto pb-1">
             <div className="flex gap-1.5 min-w-max">
-              {cam.cameras!.map((c, idx) => (
+              {cameras.map((c, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedCam(idx)}
@@ -145,7 +172,7 @@ const WebcamDetail = () => {
           </div>
 
           <p className="text-[11px] text-gray-500 text-center">
-            {cam.cameras!.length}개 카메라 · {currentStream!.label}
+            {cameras.length}개 카메라 · {currentStream!.label}
           </p>
         </>
       ) : (
@@ -160,7 +187,7 @@ const WebcamDetail = () => {
                   <p className="text-xs text-gray-500">공식 사이트에서 직접 확인해주세요</p>
                 </div>
                 <a
-                  href={cam.url}
+                  href={cam.externalUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold hover:bg-accent-light transition-colors"
@@ -170,7 +197,7 @@ const WebcamDetail = () => {
               </div>
             ) : (
               <iframe
-                src={cam.url}
+                src={cam.externalUrl || '#'}
                 className="w-full h-[500px] md:h-[600px] border-0"
                 title={`${cam.name} 실시간 웹캠`}
                 sandbox="allow-scripts allow-same-origin allow-popups"

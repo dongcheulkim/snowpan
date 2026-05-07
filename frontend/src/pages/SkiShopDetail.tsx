@@ -59,7 +59,7 @@ export default function SkiShopDetail() {
 
       {shop.image && (
         <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-video">
-          <img src={imageUrl(shop.image)} alt={shop.name} className="w-full h-full object-cover" />
+          <img src={imageUrl(shop.image)} alt={shop.name} loading="lazy" className="w-full h-full object-cover" />
         </div>
       )}
 

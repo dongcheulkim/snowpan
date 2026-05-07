@@ -69,6 +69,7 @@ const MainLayout = () => {
               <p className="font-bold text-gray-700">SNOW PAN</p>
               <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2 md:justify-end">
                 <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
+                <Link to="/help" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">도움말</Link>
                 <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
                 <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
                 <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>
