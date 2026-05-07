@@ -532,3 +532,17 @@ model RepairShop {
   @@index([approved])
   @@map("repair_shops")
 }
+
+// 위클리 다이제스트 이메일 구독 — 로그인 안 한 비회원도 구독 가능.
+// 발송 cron 은 추후 구현, 지금은 수집만.
+model NewsletterSubscription {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  source      String?  // 'home_footer' 등 가입 경로 추적
+  unsubToken  String   @unique @default(uuid()) // 1-click unsubscribe
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([active])
+  @@map("newsletter_subscriptions")
+}

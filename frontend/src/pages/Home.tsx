@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import BrandHero from '../components/BrandHero';
+import SeasonCountdown from '../components/SeasonCountdown';
 import { communityCategoryLabel } from '../utils/communityLabels';
 
 interface Product {
@@ -205,6 +206,11 @@ const Home = () => {
             );
           })}
         </div>
+      </div>
+
+      {/* 시즌 카운트다운 */}
+      <div className="px-4 pb-2 bg-snow">
+        <SeasonCountdown />
       </div>
 
       {/* Category Sections */}

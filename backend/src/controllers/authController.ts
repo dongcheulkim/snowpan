@@ -596,7 +596,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// 공개 판매자 프로필
+// 공개 판매자 프로필 + 신뢰 신호 (가입일, 등록·판매·커뮤니티 활동량)
 export const getSellerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -615,11 +615,16 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
 
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
 
-    const products = await prisma.product.findMany({
-      where: { userId: id, category: 'used' },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, price: true, image: true, createdAt: true },
-    });
+    // 신뢰 신호 — 한 번에 병렬 조회
+    const [products, soldCount, postCount] = await Promise.all([
+      prisma.product.findMany({
+        where: { userId: id, category: 'used' },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, name: true, price: true, image: true, status: true, createdAt: true },
+      }),
+      prisma.product.count({ where: { userId: id, category: 'used', status: 'sold' } }),
+      prisma.post.count({ where: { userId: id } }).catch(() => 0),
+    ]);
 
     const displayName = user.displayName === 'nickname' && user.nickname ? user.nickname : user.name;
 
@@ -630,6 +635,11 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
       badges: user.badgeRequests.map(b => b.badgeType),
       createdAt: user.createdAt,
       products,
+      stats: {
+        listingCount: products.length,
+        soldCount,
+        postCount,
+      },
     });
   } catch (error) {
     console.error('Get seller profile error:', error);

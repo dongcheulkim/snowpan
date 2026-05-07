@@ -6,14 +6,15 @@ import RequireAdmin from './components/RequireAdmin';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './pages/NotFound';
 
-// 즉시 로딩 — 첫 방문 시 90%+ 가 이 페이지로 감.
+// 즉시 로딩 — 랜딩 + 가장 빈번한 첫 클릭만. Login/MyPage/Search/Community 는
+// lazy 로 빼서 초기 번들 크기 감소 (LCP / FCP 개선).
 import Home from './pages/Home';
 import Used from './pages/Used';
 import UsedDetail from './pages/UsedDetail';
-import Login from './pages/Login';
-import MyPage from './pages/MyPage';
-import Search from './pages/Search';
-import Community from './pages/Community';
+const Login = lazy(() => import('./pages/Login'));
+const MyPage = lazy(() => import('./pages/MyPage'));
+const Search = lazy(() => import('./pages/Search'));
+const Community = lazy(() => import('./pages/Community'));
 
 // lazy 로딩 — Suspense fallback 보임.
 const Rental = lazy(() => import('./pages/Rental'));

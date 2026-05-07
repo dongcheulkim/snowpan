@@ -11,7 +11,21 @@ interface SellerData {
   profileImage: string | null;
   badges: string[];
   createdAt: string;
-  products: { id: string; name: string; price: number; image: string; createdAt: string }[];
+  products: { id: string; name: string; price: number; image: string; status?: string; createdAt: string }[];
+  stats?: { listingCount: number; soldCount: number; postCount: number };
+}
+
+// 가입일 → 자연어 (예: "3개월째 활동 중", "1년 2개월째 활동 중").
+function memberDuration(createdAt: string): string {
+  const ms = Date.now() - new Date(createdAt).getTime();
+  const days = Math.floor(ms / 86400000);
+  if (days < 14) return `가입한 지 ${days}일`;
+  if (days < 60) return `가입한 지 ${Math.floor(days / 7)}주`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}개월째 활동 중`;
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  return rem === 0 ? `${years}년째 활동 중` : `${years}년 ${rem}개월째 활동 중`;
 }
 
 interface ReviewData {
@@ -161,14 +175,23 @@ const SellerProfile = () => {
             <span className="text-xs text-gray-500">({reviewCount})</span>
           </div>
         )}
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="py-3 bg-snow rounded-xl border border-gray-200">
-            <div className="text-base font-bold text-gray-900">{seller.products.length}개</div>
-            <div className="text-[10px] text-gray-500">{t('sellerProfile.sales')}</div>
+        <p className="text-[11px] text-gray-500 mt-1">{memberDuration(seller.createdAt)}</p>
+        <div className="grid grid-cols-4 gap-2 mt-4">
+          <div className="py-2.5 bg-snow rounded-xl border border-gray-200">
+            <div className="text-sm font-bold text-gray-900">{seller.stats?.listingCount ?? seller.products.length}</div>
+            <div className="text-[10px] text-gray-500">등록</div>
           </div>
-          <div className="py-3 bg-snow rounded-xl border border-gray-200">
-            <div className="text-base font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
-            <div className="text-[10px] text-gray-500">{t('sellerProfile.avgRating')}</div>
+          <div className="py-2.5 bg-snow rounded-xl border border-gray-200">
+            <div className="text-sm font-bold text-emerald-600">{seller.stats?.soldCount ?? 0}</div>
+            <div className="text-[10px] text-gray-500">판매</div>
+          </div>
+          <div className="py-2.5 bg-snow rounded-xl border border-gray-200">
+            <div className="text-sm font-bold text-sky-600">{seller.stats?.postCount ?? 0}</div>
+            <div className="text-[10px] text-gray-500">글</div>
+          </div>
+          <div className="py-2.5 bg-snow rounded-xl border border-gray-200">
+            <div className="text-sm font-bold text-gold">{averageRating > 0 ? averageRating.toFixed(1) : '-'}</div>
+            <div className="text-[10px] text-gray-500">평점</div>
           </div>
         </div>
       </div>

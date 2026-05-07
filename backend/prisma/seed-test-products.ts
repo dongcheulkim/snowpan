@@ -30,8 +30,23 @@ const years = ['22-23', '23-24', '24-25', '25-26'];
 
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Deterministic placeholder images from picsum.photos (size 400x400)
-function placeholder(seed: number) { return `https://picsum.photos/seed/snowpan-${seed}/400/400`; }
+// 카테고리별 self-hosted 시드 이미지 (Unsplash, free license).
+// frontend/public/seed-images/ 에 다운로드되어 있어 CDN/Vercel 에서 서빙됨.
+// 무관한 picsum 랜덤 사진 대신 카테고리에 맞는 사진 사용 → 첫인상 ↑.
+const SEED_IMAGES_BY_SUBCAT: Record<string, string[]> = {
+  ski: ['/seed-images/skis-on-snow.jpg', '/seed-images/alpine-slope.jpg'],
+  board: ['/seed-images/snowboard.jpg', '/seed-images/alpine-slope.jpg'],
+  boots: ['/seed-images/skis-on-snow.jpg', '/seed-images/helmet-goggles.jpg'],
+  binding: ['/seed-images/skis-on-snow.jpg', '/seed-images/snowboard.jpg'],
+  helmet: ['/seed-images/helmet-goggles.jpg', '/seed-images/alpine-slope.jpg'],
+  goggles: ['/seed-images/helmet-goggles.jpg', '/seed-images/alpine-slope.jpg'],
+  wear: ['/seed-images/ski-jacket.jpg', '/seed-images/alpine-slope.jpg'],
+  etc: ['/seed-images/alpine-slope.jpg', '/seed-images/skis-on-snow.jpg'],
+};
+function categoryImage(sub: string, seed: number): string {
+  const pool = SEED_IMAGES_BY_SUBCAT[sub] || SEED_IMAGES_BY_SUBCAT.etc;
+  return pool[seed % pool.length];
+}
 
 async function main() {
   const isProd = process.env.DATABASE_URL?.includes('render.com');
@@ -58,7 +73,7 @@ async function main() {
     const name = `${brand} ${sub === 'ski' ? '스키' : sub === 'board' ? '보드' : sub === 'boots' ? '부츠' : sub === 'binding' ? '바인딩' : sub === 'helmet' ? '헬멧' : sub === 'goggles' ? '고글' : sub === 'wear' ? '스키복' : '장비'} ${year}`;
     const size = pick(sizeBy[sub]);
 
-    const imgs = [placeholder(i), placeholder(i + 10000), placeholder(i + 20000)];
+    const imgs = [categoryImage(sub, i), categoryImage(sub, i + 1), categoryImage(sub, i + 2)];
     await prisma.product.create({
       data: {
         name,
