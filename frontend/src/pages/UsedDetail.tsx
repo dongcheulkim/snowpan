@@ -411,7 +411,7 @@ const UsedDetail = () => {
       {showFullImage && allImages.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setShowFullImage(false)}>
           <button className="absolute top-4 right-4 text-white z-10" aria-label="닫기" onClick={() => setShowFullImage(false)}><CloseIcon size={24} /></button>
-          <img src={allImages[selectedImage]} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
+          <img src={allImages[selectedImage]} alt={product.name} className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
           {allImages.length > 1 && (
             <>
               <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.max(0, prev - 1)); }}>&lsaquo;</button>

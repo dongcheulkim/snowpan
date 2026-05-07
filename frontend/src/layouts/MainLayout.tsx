@@ -10,6 +10,7 @@ import CookieConsent from '../components/CookieConsent';
 import InstallPrompt from '../components/InstallPrompt';
 import PullToRefresh from '../components/PullToRefresh';
 import NewsletterSubscribe from '../components/NewsletterSubscribe';
+import { setupAnalytics, trackPageView } from '../utils/analytics';
 
 const SITE_URL = 'https://snowpan.vercel.app';
 
@@ -28,6 +29,14 @@ const MainLayout = () => {
   // 새 탭/새 세션에서 access 토큰 없지만 refresh 쿠키 있으면 자동 복원.
   // persistent 유저가 사이트 다시 열었을 때 끊김없이 로그인 유지.
   useEffect(() => { restoreSession(); }, []);
+
+  // GA4 — 동의 받은 경우만 로드 (PIPA / 정보통신망법 준수)
+  useEffect(() => { setupAnalytics(); }, []);
+
+  // 페이지뷰 — SPA 라우팅 변경 시마다 트래킹 (gtag 미로드 상태에선 no-op)
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
 
   // 모든 페이지에 canonical link 자동 설정 — useMeta 미사용 페이지 포함.
   // 쿼리 파라미터는 제외해서 같은 페이지의 중복 색인 방지.
@@ -59,6 +68,7 @@ const MainLayout = () => {
             <div className="flex flex-col items-start md:items-end gap-3 text-xs">
               <p className="font-bold text-gray-700">SNOW PAN</p>
               <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2 md:justify-end">
+                <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
                 <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
                 <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
                 <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>

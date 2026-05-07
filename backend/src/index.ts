@@ -60,6 +60,7 @@ import searchRoutes from './routes/searchRoutes';
 import contactRoutes from './routes/contactRoutes';
 import sitemapRoutes from './routes/sitemapRoutes';
 import newsletterRoutes from './routes/newsletterRoutes';
+import referralRoutes from './routes/referralRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
@@ -261,6 +262,7 @@ app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/newsletter', strictWriteLimiter, newsletterRoutes);
+app.use('/api/referral', referralRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
 app.use('/', sitemapRoutes);

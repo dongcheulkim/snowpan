@@ -11,6 +11,32 @@ interface SearchResult {
   shops: { id: string; name: string; area: string; type: string }[];
 }
 
+// 빈 상태 추천 — 검색창 열렸지만 아직 미입력일 때 인기 키워드 노출.
+const POPULAR_QUERIES = [
+  { label: '#스키 부츠', q: '부츠' },
+  { label: '#버튼 보드', q: '버튼' },
+  { label: '#오클리 고글', q: '오클리' },
+  { label: '#하이원 시즌권', q: '하이원' },
+  { label: '#카풀', q: '카풀' },
+  { label: '#용평', q: '용평' },
+];
+
+const RECENT_KEY = 'recent-searches-v1';
+function getRecent(): string[] {
+  try {
+    const v = localStorage.getItem(RECENT_KEY);
+    return v ? (JSON.parse(v) as string[]).slice(0, 5) : [];
+  } catch { return []; }
+}
+function saveRecent(q: string) {
+  if (!q || q.length < 2) return;
+  try {
+    const cur = getRecent().filter(x => x !== q);
+    cur.unshift(q);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(cur.slice(0, 5)));
+  } catch { /* ignore */ }
+}
+
 export default function SearchBar() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -47,7 +73,11 @@ export default function SearchBar() {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const go = (path: string) => { setOpen(false); setQuery(''); navigate(path); };
+  const go = (path: string) => {
+    if (debounced) saveRecent(debounced);
+    setOpen(false); setQuery(''); navigate(path);
+  };
+  const recent = getRecent();
 
   const hasResults = results && (results.products.length > 0 || results.posts.length > 0 || results.shops.length > 0);
 
@@ -81,11 +111,41 @@ export default function SearchBar() {
                 )}
               </div>
 
+              {/* 빈 상태 — 추천 키워드 + 최근 검색 */}
+              {!query && !loading && (
+                <div className="px-4 py-3 space-y-3">
+                  {recent.length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-bold text-gray-500 mb-1.5">최근 검색</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recent.map(r => (
+                          <button key={r} onClick={() => setQuery(r)} className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200">
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-500 mb-1.5">인기 키워드</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {POPULAR_QUERIES.map(p => (
+                        <button key={p.q} onClick={() => setQuery(p.q)} className="text-xs px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100">
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 결과 */}
               {loading && <div className="px-4 py-6 text-center text-xs text-gray-500 animate-pulse">검색 중...</div>}
 
               {!loading && debounced && !hasResults && (
-                <div className="px-4 py-6 text-center text-xs text-gray-500">검색 결과가 없습니다.</div>
+                <div className="px-4 py-6 text-center text-xs text-gray-500">
+                  "{debounced}" 와(과) 일치하는 결과가 없습니다.
+                </div>
               )}
 
               {!loading && hasResults && (

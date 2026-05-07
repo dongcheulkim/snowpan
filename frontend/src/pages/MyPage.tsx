@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api';
 import { CameraIcon, UserIcon } from '../components/Icons';
+import ReferralCard from '../components/ReferralCard';
 import { t, onLangChange, getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
@@ -265,6 +266,9 @@ const MyPage = () => {
           </div>
         )}
       </div>}
+
+      {/* 친구 초대 — 베타 기간 추천 코드 공유 */}
+      <ReferralCard />
 
       {/* Menu */}
       <div className="card overflow-hidden">

@@ -21,6 +21,10 @@ model User {
   role          String   @default("user") // 'user' | 'admin'
   activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
   fcmToken      String?  // Firebase Cloud Messaging token
+  referralCode  String?  @unique // 본인의 추천 코드 (lazy 생성)
+  referredById  String?  // 누구의 추천으로 가입했는지
+  referredBy    User?    @relation("referrals", fields: [referredById], references: [id])
+  referrals     User[]   @relation("referrals")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

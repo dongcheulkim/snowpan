@@ -11,7 +11,7 @@ import { normalizeEmail } from '../utils/validate';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name, nickname, phone } = req.body;
+    const { email, password, name, nickname, phone, referralCode } = req.body;
 
     // 모든 입력 type 검증 — 객체/배열 주입 시 즉시 거절 (NoSQL injection 방어).
     if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string' || typeof phone !== 'string') {
@@ -75,6 +75,16 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 추천 코드 검증 — 잘못된 코드는 무시하고 가입 진행 (UX 우선).
+    let referredById: string | undefined;
+    if (typeof referralCode === 'string' && referralCode.trim()) {
+      const code = referralCode.trim().toUpperCase();
+      if (/^[A-Z0-9]{4,12}$/.test(code)) {
+        const referrer = await prisma.user.findUnique({ where: { referralCode: code }, select: { id: true } });
+        if (referrer) referredById = referrer.id;
+      }
+    }
+
     const user = await prisma.user.create({
       data: {
         email: emailNormalized,
@@ -82,6 +92,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         name: name.trim(),
         nickname: trimmedNickname || null,
         phone: phoneClean,
+        referredById: referredById,
       },
     });
 

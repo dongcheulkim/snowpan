@@ -1,10 +1,21 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api, setAuth } from '../api';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', nickname: '', phone: '' });
+  const [searchParams] = useSearchParams();
+  // ?ref=CODE — 추천 링크로 들어왔을 때 자동 채움
+  const refFromUrl = searchParams.get('ref') || '';
+  const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', nickname: '', phone: '', referralCode: refFromUrl });
+  const [referrerName, setReferrerName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!refFromUrl) return;
+    api<{ referrerName?: string }>(`/referral/lookup/${encodeURIComponent(refFromUrl)}`)
+      .then(d => setReferrerName(d.referrerName || null))
+      .catch(() => setReferrerName(null));
+  }, [refFromUrl]);
   const [agree, setAgree] = useState({ all: false, terms: false, privacy: false, marketing: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,7 +65,7 @@ const Register = () => {
     try {
       const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string } }>('/auth/register', {
         method: 'POST',
-        body: { email: form.email, password: form.password, name: form.name, nickname: form.nickname || undefined, phone: form.phone },
+        body: { email: form.email, password: form.password, name: form.name, nickname: form.nickname || undefined, phone: form.phone, referralCode: form.referralCode || undefined },
       });
 
       // 회원가입 직후엔 탭 세션만 유지 (자동로그인은 사용자가 명시적으로 로그인 시 켜도록)
@@ -113,6 +124,26 @@ const Register = () => {
           <div>
             <label htmlFor="reg-password-confirm" className="block text-sm font-medium text-gray-500 mb-2">비밀번호 확인</label>
             <input id="reg-password-confirm" type="password" name="passwordConfirm" autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요" minLength={8} value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
+          </div>
+
+          {/* 추천 코드 (선택) */}
+          <div>
+            <label htmlFor="reg-ref" className="block text-sm font-medium text-gray-500 mb-2">
+              추천 코드 <span className="text-xs text-gray-500">(선택)</span>
+            </label>
+            <input
+              id="reg-ref"
+              type="text"
+              name="referralCode"
+              placeholder="추천인 코드 (있는 경우)"
+              value={form.referralCode}
+              onChange={handleChange}
+              className={inputClass}
+              autoCapitalize="characters"
+            />
+            {referrerName && (
+              <p className="text-[11px] text-emerald-600 mt-1">✓ {referrerName}님의 추천으로 가입합니다</p>
+            )}
           </div>
 
           {/* 약관 동의 */}

@@ -277,7 +277,7 @@ const SellerProfile = () => {
               >
                 <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-2xl border border-gray-200 overflow-hidden flex-shrink-0">
                   {item.image.startsWith('http') || item.image.startsWith('/') ? (
-                    <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
+                    <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                   ) : item.image}
                 </div>
                 <div className="flex-1 min-w-0">
