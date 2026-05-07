@@ -4,8 +4,9 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../components/Toast';
-import { CameraIcon, CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
+import { CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
 import MarketPriceBadge from '../components/MarketPriceBadge';
+import CategoryPlaceholder from '../components/CategoryPlaceholder';
 
 interface Product {
   id: string;
@@ -229,10 +230,7 @@ const UsedDetail = () => {
             {hasImages && !imgError ? (
               <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} loading="eager" decoding="async" />
             ) : (
-              <div className="text-center text-gray-500">
-                <CameraIcon size={56} strokeWidth={1.4} />
-                <p className="text-xs text-gray-500 mt-2">{t('usedDetail.noImage')}</p>
-              </div>
+              <CategoryPlaceholder subcategory={product.subcategory} />
             )}
           </div>
           {allImages.length > 1 && (

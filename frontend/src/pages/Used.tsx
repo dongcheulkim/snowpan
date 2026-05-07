@@ -7,6 +7,7 @@ import { ProductGridSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import CategoryPlaceholder from '../components/CategoryPlaceholder';
 
 interface Product {
   id: string;
@@ -201,12 +202,12 @@ const Used = () => {
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {products.map((product) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             return (
               <Link to={`/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
-                <div className={`relative h-28 flex items-center justify-center text-4xl overflow-hidden ${product.image.startsWith('/') || product.image.startsWith('http') ? 'bg-gray-100' : 'bg-gradient-to-br from-sky-100 to-sky-200'}`}>
+                <div className="relative h-28 flex items-center justify-center text-4xl overflow-hidden bg-gray-100">
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img
                       src={imageUrl(product.image, 400)}
@@ -217,13 +218,17 @@ const Used = () => {
                         const img = e.target as HTMLImageElement;
                         if (!img.dataset.fallback) {
                           img.dataset.fallback = '1';
-                          img.src = '/icons/placeholder-card.svg';
+                          img.style.display = 'none';
+                          const ph = img.parentElement?.querySelector('[data-placeholder]') as HTMLElement;
+                          if (ph) ph.style.display = '';
                         }
                       }}
                     />
-                  ) : (
-                    <span className="text-5xl drop-shadow-sm">{product.image}</span>
-                  )}
+                  ) : null}
+                  {/* 카테고리 일러스트 폴백 — 사진 없거나 로드 실패 시 */}
+                  <div data-placeholder className="absolute inset-0" style={{ display: (product.image.startsWith('/') || product.image.startsWith('http')) ? 'none' : 'block' }}>
+                    <CategoryPlaceholder subcategory={product.subcategory} />
+                  </div>
                   {product.isPremium && (
                     <span className="absolute top-1 right-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
                   )}

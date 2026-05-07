@@ -26,6 +26,7 @@ const subcatLabels: Record<string, string> = {
   helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
 };
 
+// 스노우판 핵심 차별화 — '시세 대비 가격' 비교는 가장 강력한 셀링 포인트라 시각적으로 충분히 강조.
 export default function MarketPriceBadge({ subcategory, brand, price, variant = 'badge' }: Props) {
   const [stats, setStats] = useState<MarketStats | null>(null);
 
@@ -45,7 +46,7 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
     if (variant === 'inline') {
       return (
         <p className="text-[11px] text-gray-500 mt-1">
-          시세 데이터 부족 (등록 매물 {stats.count}개)
+          시세 데이터 부족 (등록 매물 {stats.count}건)
         </p>
       );
     }
@@ -54,60 +55,84 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
 
   const median = stats.median;
   const ratio = price / median;
+  // 톤: 시세보다 싸면 mint(긍정), 비슷하면 sky(중립), 비싸면 amber/coral(주의).
   let label: string;
-  let tone: string;
+  let toneBg: string;
+  let toneText: string;
+  let toneBorder: string;
+  let toneAccent: string;
+  let icon: string;
   if (ratio <= 0.85) {
-    label = '시세 대비 저렴';
-    tone = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    label = '시세 대비 저렴해요';
+    toneBg = 'bg-emerald-50';
+    toneText = 'text-emerald-700';
+    toneBorder = 'border-emerald-200';
+    toneAccent = 'text-emerald-600';
+    icon = '🔥';
   } else if (ratio <= 1.15) {
-    label = '시세 적정';
-    tone = 'bg-sky-50 text-sky-700 border-sky-200';
+    label = '시세 적정 수준';
+    toneBg = 'bg-sky-50';
+    toneText = 'text-sky-700';
+    toneBorder = 'border-sky-200';
+    toneAccent = 'text-sky-600';
+    icon = '💡';
   } else if (ratio <= 1.35) {
-    label = '시세 대비 비쌈';
-    tone = 'bg-amber-50 text-amber-700 border-amber-200';
+    label = '시세 대비 비싸요';
+    toneBg = 'bg-amber-50';
+    toneText = 'text-amber-700';
+    toneBorder = 'border-amber-200';
+    toneAccent = 'text-amber-600';
+    icon = '⚠️';
   } else {
-    label = '시세보다 많이 비쌈';
-    tone = 'bg-rose-50 text-rose-700 border-rose-200';
+    label = '시세보다 많이 비싸요';
+    toneBg = 'bg-rose-50';
+    toneText = 'text-rose-700';
+    toneBorder = 'border-rose-200';
+    toneAccent = 'text-rose-600';
+    icon = '⚠️';
   }
 
   const diffPct = Math.round((ratio - 1) * 100);
-  const diffText = diffPct === 0 ? '시세와 동일' : diffPct > 0 ? `+${diffPct}%` : `${diffPct}%`;
+  const diffAbs = Math.abs(diffPct);
+  const diffText = diffPct === 0 ? '시세와 동일' : diffPct > 0 ? `+${diffPct}%` : `−${diffAbs}%`;
   const scope = brand ? `${brand} ${subcatLabels[subcategory] || subcategory}` : subcatLabels[subcategory] || subcategory;
   const windowDays = stats.windowDays || 180;
-  // 데이터 출처 — 외부 가격 비교 사이트가 아니라 본 플랫폼에 등록된 매물 자체.
-  // 사용자에게 명확히 알려서 신뢰도 ↑ + 오해 방지.
-  const sourceTitle = `최근 ${windowDays}일 동안 스노우판에 등록된 ${scope} 중고 매물 ${stats.count}건의 가격 분포 (중앙값 ${median.toLocaleString()}원). 외부 시세 사이트가 아닌 본 플랫폼 거래 데이터 기반입니다.`;
+  const windowMonths = Math.round(windowDays / 30);
+  // 데이터 출처 — 외부 가격 비교 사이트가 아닌 본 플랫폼 자체 매물.
+  const sourceTitle = `최근 ${windowDays}일간 스노우판에 등록된 ${scope} 중고 매물 ${stats.count}건의 가격 분포 (중앙값 ${median.toLocaleString()}원). 외부 시세 사이트가 아닌 본 플랫폼 거래 데이터 기반입니다.`;
 
   if (variant === 'inline') {
     return (
-      <div className={`mt-2 rounded-lg border px-3 py-2 ${tone}`} title={sourceTitle}>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-bold">{label}</span>
-          <span className="text-[11px] font-mono">{diffText}</span>
+      <div className={`mt-2 rounded-xl border-2 ${toneBorder} ${toneBg} px-4 py-3`} title={sourceTitle}>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-base" aria-hidden>{icon}</span>
+          <span className={`text-sm font-bold ${toneText}`}>{label}</span>
+          <span className={`ml-auto text-base font-black ${toneAccent} font-mono`}>{diffText}</span>
         </div>
-        <div className="text-[11px] mt-0.5 opacity-80">
-          {scope} 시세 중앙값 {median.toLocaleString()}원
-          <span className="opacity-60"> · {stats.count}건 기준</span>
+        <div className={`text-xs ${toneText} opacity-90`}>
+          {scope} 시세 중앙값 <strong>{median.toLocaleString()}원</strong>
+          <span className="opacity-70"> · 매물 {stats.count}건 분석</span>
         </div>
-        <div className="text-[10px] opacity-60 mt-1 leading-tight">
-          출처: 최근 {Math.round(windowDays / 30)}개월 스노우판 등록 매물
+        <div className={`text-[10px] ${toneText} opacity-60 mt-1.5 leading-tight`}>
+          출처: 최근 {windowMonths}개월 스노우판 등록 매물 (외부 시세 사이트 아님)
         </div>
       </div>
     );
   }
 
+  // 'badge' — UsedDetail 가격 옆. 컴팩트하지만 % 와 라벨은 충분히 큼.
   return (
-    <div className={`inline-flex flex-col gap-0.5 rounded-lg border px-2.5 py-1.5 ${tone}`} title={sourceTitle}>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-[11px] font-bold">{label}</span>
-        <span className="text-[10px] font-mono opacity-80">{diffText}</span>
+    <div className={`inline-flex items-center gap-2 rounded-xl border-2 ${toneBorder} ${toneBg} px-3 py-2`} title={sourceTitle}>
+      <span className="text-base leading-none" aria-hidden>{icon}</span>
+      <div className="flex flex-col gap-0">
+        <div className="flex items-baseline gap-1.5">
+          <span className={`text-sm font-bold ${toneText} leading-tight`}>{label}</span>
+          <span className={`text-base font-black ${toneAccent} font-mono leading-tight`}>{diffText}</span>
+        </div>
+        <span className={`text-[10px] ${toneText} opacity-70`}>
+          스노우판 매물 {stats.count}건 · 최근 {windowMonths}개월 분석
+        </span>
       </div>
-      <span className="text-[10px] opacity-70">
-        시세 {median.toLocaleString()}원 · {stats.count}건
-      </span>
-      <span className="text-[9px] opacity-60">
-        스노우판 등록 매물 기준 (최근 {Math.round(windowDays / 30)}개월)
-      </span>
     </div>
   );
 }

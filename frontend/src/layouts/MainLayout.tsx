@@ -45,11 +45,11 @@ const MainLayout = () => {
       <header>
         <Navbar />
       </header>
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
+      <main id="main-content" className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
         <Outlet />
       </main>
       <footer className="hidden md:block border-t border-gray-200 bg-snow">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
+        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="font-bold text-gray-700">SNOW PAN</p>
             <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2">
