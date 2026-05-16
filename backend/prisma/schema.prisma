@@ -102,6 +102,8 @@ model Product {
   @@index([createdAt])
   @@index([status])
   @@index([bumpedAt])
+  @@index([brand]) // 시세 통계 (subcategory + brand 필터) 가속
+  @@index([category, subcategory, brand]) // 시세 통계 핵심 — 5K DAU 시즌 피크 대비
   @@map("products")
 }
 
@@ -123,6 +125,7 @@ model Rental {
 
   @@index([resortId])
   @@index([userId])
+  @@index([approved, createdAt]) // 승인된 매물 최신순 목록
   @@map("rentals")
 }
 
@@ -146,6 +149,7 @@ model Lesson {
 
   @@index([resortId])
   @@index([userId])
+  @@index([approved, createdAt])
   @@map("lessons")
 }
 
@@ -170,6 +174,7 @@ model Accommodation {
 
   @@index([resortId])
   @@index([userId])
+  @@index([approved, createdAt])
   @@map("accommodations")
 }
 
@@ -217,6 +222,7 @@ model Message {
 
   @@index([roomId])
   @@index([senderId])
+  @@index([roomId, createdAt]) // 채팅방 메시지 페이지네이션
   @@map("messages")
 }
 
@@ -240,6 +246,8 @@ model Post {
   @@index([category])
   @@index([userId])
   @@index([createdAt])
+  @@index([sport, createdAt]) // 종목별 최신순 (커뮤니티 메인)
+  @@index([sport, category, createdAt]) // 종목+카테고리 탭 필터
   @@map("posts")
 }
 
@@ -349,6 +357,7 @@ model Review {
 
   @@index([sellerId])
   @@index([buyerId])
+  @@index([sellerId, createdAt]) // 판매자 리뷰 최신순
   @@map("reviews")
 }
 
@@ -506,6 +515,7 @@ model SkiShop {
   @@index([userId])
   @@index([area])
   @@index([approved])
+  @@index([approved, isPremium, createdAt]) // 승인 + 프리미엄 + 최신순 (목록)
   @@map("ski_shops")
 }
 
@@ -534,6 +544,7 @@ model RepairShop {
   @@index([userId])
   @@index([area])
   @@index([approved])
+  @@index([approved, isPremium, createdAt])
   @@map("repair_shops")
 }
 

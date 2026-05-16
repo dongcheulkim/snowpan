@@ -70,7 +70,9 @@ router.post('/', upload.array('images', 5), async (req: Request, res: Response) 
         resource_type: isVideo ? 'video' : 'image',
       };
       if (!isVideo) {
-        uploadOptions.transformation = [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }];
+        // 업로드 시 미리 리사이즈 + 자동 포맷 (WebP/AVIF) + 적응형 품질.
+        // eager=true 로 즉시 변환 완료 후 URL 반환 (cold cache 페널티 제거).
+        uploadOptions.transformation = [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }];
       }
       const result = await new Promise<any>((resolve, reject) => {
         cloudinary.uploader.upload_stream(

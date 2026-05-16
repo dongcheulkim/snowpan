@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -26,10 +26,11 @@ if (!JWT_SECRET || JWT_SECRET.length < 32 || WEAK_SECRETS.some(w => JWT_SECRET.t
 // 형식 검증 후에만 init — 잘못된 DSN 으로 init 시 'Invalid Sentry Dsn' 노이즈 방지.
 const SENTRY_DSN = process.env.SENTRY_DSN_BACKEND;
 if (SENTRY_DSN && /^https?:\/\/[^@]+@[^/]+\/\d+/.test(SENTRY_DSN)) {
+  // production 2% (5K DAU × 백엔드 RPS 감안 quota 보호), dev 100%.
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
-    tracesSampleRate: 0.1,
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.02 : 1.0,
   });
   console.log('🔍 Sentry 활성화됨');
 } else if (SENTRY_DSN) {
@@ -185,17 +186,30 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   immutable: true,
 }));
 
-// Cache headers for banner API (5 minutes)
-app.use('/api/banners', (req, res, next) => {
-  if (req.method === 'GET') res.set('Cache-Control', 'public, max-age=300');
+// 캐시 정책 — 5,000 DAU 시즌 피크 대비.
+// 공개 read-only endpoint 에 Cache-Control 부여. Vercel edge / 브라우저 캐시 활용해 백엔드 부하 ↓.
+// s-maxage = CDN 캐시 시간 (응답이 더 신선해야 하면 stale-while-revalidate 로 점진 갱신).
+//
+// 인증 endpoint 는 캐시 X (Authorization 헤더 있으면 Cache-Control 우회).
+const publicCache = (maxAge: number, sMaxAge?: number) => (req: Request, res: Response, next: NextFunction) => {
+  if (req.method !== 'GET') { next(); return; }
+  // 로그인 유저는 개인화된 데이터 가능성 — 캐시 안 함
+  if (req.headers.authorization) { next(); return; }
+  const s = sMaxAge ?? maxAge * 2;
+  res.set('Cache-Control', `public, max-age=${maxAge}, s-maxage=${s}, stale-while-revalidate=${s * 2}`);
   next();
-});
+};
 
-// Cache headers for product listings (30 seconds)
-app.use('/api/products', (req, res, next) => {
-  if (req.method === 'GET') res.set('Cache-Control', 'public, max-age=30');
-  next();
-});
+app.use('/api/banners', publicCache(300));            // 배너 — 5분
+app.use('/api/products', publicCache(30, 60));         // 매물 목록/상세 — 30s (목록 회전 빠름)
+app.use('/api/rentals', publicCache(120));             // 렌탈 — 2분
+app.use('/api/lessons', publicCache(120));             // 레슨 — 2분
+app.use('/api/accommodations', publicCache(120));      // 숙소 — 2분
+app.use('/api/ski-shops', publicCache(300));           // 스키샵 — 5분 (자주 안 바뀜)
+app.use('/api/repair-shops', publicCache(300));        // 정비샵 — 5분
+app.use('/api/webcams', publicCache(600));             // 웹캠 메타 — 10분 (스트림 자체는 라이브)
+app.use('/api/resorts', publicCache(3600));            // 리조트 목록 — 1시간 (거의 안 바뀜)
+app.use('/api/community', publicCache(20, 60));        // 커뮤니티 — 20s (실시간성 ↑)
 
 app.get('/', (req, res) => {
   res.json({ message: '스노우프라이스 API 서버입니다.' });

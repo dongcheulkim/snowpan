@@ -38,11 +38,15 @@ try {
     // unhandled promise rejection 으로 Sentry 가 자기 자신 로드 실패를 보고하는
     // 무한 루프 방지.
     import('@sentry/react').then((S) => {
+      // 5,000 DAU 시즌 피크 기준 Sentry quota 보호:
+      // 10% traces × 5,000명 × 20 PV = 10K traces/day = ~300K/month → 무료 quota (5K/month) 폭주.
+      // production 2% (~60K/month, Team 플랜 $26 한도 내), dev 100% (디버깅 편의).
+      // 에러는 항상 100% 캡처 — quota 영향 크지 않음.
       S.init({
         dsn,
         environment: import.meta.env.MODE,
         release: import.meta.env.VITE_RELEASE || undefined,
-        tracesSampleRate: 0.1,
+        tracesSampleRate: import.meta.env.MODE === 'production' ? 0.02 : 1.0,
         replaysSessionSampleRate: 0,
         replaysOnErrorSampleRate: 1.0,
         beforeSend(event) {

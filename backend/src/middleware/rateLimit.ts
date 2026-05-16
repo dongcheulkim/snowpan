@@ -64,29 +64,32 @@ function createRateLimiter(maxRequests: number, windowMs: number = 60_000) {
   };
 }
 
-// Default: 500 requests per minute per IP
-export const generalLimiter = createRateLimiter(500, 60_000);
+// 5,000 DAU 시즌 피크 대비 한도 — 한국 통신사 CGN (carrier NAT) 으로 여러 사용자가
+// 같은 외부 IP 공유 가능성 감안하여 IP 기반 한도는 여유 있게.
+// 악용 방지는 createUserLimiter (userId 기반) 가 1차로 잡고, IP 한도는 봇/스크래퍼 차단용.
 
-// Auth routes (broad): 300 per minute — covers /auth/profile polling from RequireAdmin
-// and anything else under /api/auth that isn't sensitive
-export const authLimiter = createRateLimiter(300, 60_000);
+// 일반 요청: 800/min/IP (페이지 로딩 시 동시 10+ API 호출 × 학교/카페 공유 IP × 동시 사용자)
+export const generalLimiter = createRateLimiter(800, 60_000);
 
-// Sensitive auth endpoints (login/register/password reset/phone verify): 10 per minute
+// Auth 라우트 (광범위): 400/min — /auth/profile 폴링 + 일반 인증 흐름
+export const authLimiter = createRateLimiter(400, 60_000);
+
+// 민감 auth (로그인/가입/비번재설정/전화인증): 10/min — 무차별 대입 방어 우선, 변경 X
 export const sensitiveAuthLimiter = createRateLimiter(10, 60_000);
 
-// Write operations (POST/PUT/DELETE): 200 per minute
+// 쓰기 작업 (POST/PUT/DELETE): 300/min/IP
 export const writeLimiter = (req: Request, res: Response, next: NextFunction): void => {
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-    return createRateLimiter(200, 60_000)(req, res, next);
+    return createRateLimiter(300, 60_000)(req, res, next);
   }
   next();
 };
 
-// Strict: only apply to POST; abuse-prone endpoints (reviews, reports, comments, ad creation)
-// 10 per minute per IP
+// Strict POST (리뷰/신고/댓글/광고 신청): 30/min/IP (공유 IP 사용자 다수 고려).
+// userId 기반 limiter (postCreateLimiter 등) 가 개인 단위 추가 차단.
 export const strictWriteLimiter = (req: Request, res: Response, next: NextFunction): void => {
   if (req.method === 'POST') {
-    return createRateLimiter(10, 60_000)(req, res, next);
+    return createRateLimiter(30, 60_000)(req, res, next);
   }
   next();
 };
