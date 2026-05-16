@@ -95,6 +95,30 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // URL 프로토콜 검증 — javascript:/data: 등으로 XSS 방어. 상대경로 또는 https://만 허용.
+    if (typeof url !== 'string' || url.length > 2048) {
+      res.status(400).json({ error: 'URL 형식이 올바르지 않습니다.' });
+      return;
+    }
+    const urlTrimmed = url.trim();
+    if (urlTrimmed.startsWith('/')) {
+      // 사이트 내부 경로 — OK
+    } else if (/^https?:\/\//i.test(urlTrimmed)) {
+      try {
+        const parsed = new URL(urlTrimmed);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          res.status(400).json({ error: 'http/https URL 만 허용됩니다.' });
+          return;
+        }
+      } catch {
+        res.status(400).json({ error: 'URL 형식이 올바르지 않습니다.' });
+        return;
+      }
+    } else {
+      res.status(400).json({ error: 'URL 은 / 로 시작하거나 https:// 로 시작해야 합니다.' });
+      return;
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (start > end) {

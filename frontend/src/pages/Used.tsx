@@ -8,6 +8,7 @@ import EmptyState from '../components/EmptyState';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
+import { toastError } from '../components/Toast';
 
 interface Product {
   id: string;
@@ -104,9 +105,10 @@ const Used = () => {
         const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
         setProducts(data.products);
         setTotalCount(data.totalCount);
-      } catch {
+      } catch (err) {
         setProducts([]);
         setTotalCount(0);
+        toastError(err instanceof Error ? err.message : '매물 목록을 불러오지 못했습니다');
       } finally {
         setLoading(false);
       }

@@ -373,9 +373,13 @@ export const sendPhoneVerification = async (
       },
     });
 
-    // SMS 발송 (환경변수 미설정 시 콘솔 로그)
+    // SMS 발송 (개발환경에서 env 미설정 시만 콘솔에 코드 노출 — 프로덕션 로그에 인증번호 노출 금지)
     const sent = await sendSMS(phone, `[스노우판] 인증번호: ${code}`);
-    if (!sent) console.log(`[인증번호] ${phone}: ${code}`);
+    if (!sent && process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV 인증번호] ${phone}: ${code}`);
+    } else if (!sent) {
+      console.error(`[ALERT] SMS 발송 실패 (phone=${phone.slice(0, 3)}***) — SMS 서비스 환경변수 점검 필요`);
+    }
 
     res.json({
       message: '인증번호가 발송되었습니다.',
@@ -543,7 +547,11 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
     });
 
     const sent = await sendEmail(emailNormalized, '[스노우판] 비밀번호 재설정 인증번호', verificationEmailHtml(code));
-    if (!sent) console.log(`[비밀번호 재설정] ${emailNormalized}: ${code}`);
+    if (!sent && process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV 비번재설정] ${emailNormalized}: ${code}`);
+    } else if (!sent) {
+      console.error(`[ALERT] 이메일 발송 실패 (email=${emailNormalized.split('@')[0].slice(0, 2)}***@${emailNormalized.split('@')[1]}) — 이메일 서비스 환경변수 점검 필요`);
+    }
 
     res.json({ message: GENERIC_MSG });
   } catch (error) {

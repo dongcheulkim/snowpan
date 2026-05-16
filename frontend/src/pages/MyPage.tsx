@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api';
 import { CameraIcon, UserIcon } from '../components/Icons';
 import ReferralCard from '../components/ReferralCard';
+import { toastSuccess, toastError } from '../components/Toast';
 import { t, onLangChange, getLang, setLang } from '../i18n';
 
 interface BadgeRequest {
@@ -239,7 +240,10 @@ const MyPage = () => {
                         await api('/auth/profile', { method: 'PUT', body: { activeBadge: newBadge } });
                         setUser((prev: any) => prev ? { ...prev, activeBadge: newBadge } : prev);
                         saveUser({ ...user, activeBadge: newBadge });
-                      } catch {}
+                        toastSuccess(isActive ? '뱃지 노출을 해제했습니다' : '뱃지를 노출합니다');
+                      } catch (err) {
+                        toastError(err instanceof Error ? err.message : '뱃지 설정에 실패했습니다');
+                      }
                     }}
                     className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                   >

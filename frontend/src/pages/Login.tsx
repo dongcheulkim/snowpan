@@ -70,7 +70,7 @@ const Login = () => {
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">{t('login.email')}</label>
-            <input type="email" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
+            <input type="email" inputMode="email" autoComplete="username" placeholder={t('login.emailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-2">{t('login.password')}</label>

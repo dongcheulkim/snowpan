@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { toastError } from '../components/Toast';
 
 interface RentalItem {
   id: string;
@@ -46,9 +47,10 @@ const Rental = () => {
         const data = await api<{ items: RentalItem[]; totalCount: number }>(`/rentals?${params}`);
         setRentalItems(data.items);
         setTotalCount(data.totalCount);
-      } catch {
+      } catch (err) {
         setRentalItems([]);
         setTotalCount(0);
+        toastError(err instanceof Error ? err.message : '렌탈샵 목록을 불러오지 못했습니다');
       } finally {
         setLoading(false);
       }

@@ -5,6 +5,7 @@ import { MaintenanceIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { toastError } from '../components/Toast';
 
 interface Shop {
   id: string;
@@ -39,7 +40,7 @@ export default function RepairShop() {
     if (selectedArea !== 'all') params.set('area', selectedArea);
     api<Shop[]>(`/repair-shops?${params}`)
       .then(data => setShops(Array.isArray(data) ? data : []))
-      .catch(() => setShops([]))
+      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '정비샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
   }, [selectedArea]);
 

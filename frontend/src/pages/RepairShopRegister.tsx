@@ -132,7 +132,7 @@ export default function RepairShopRegister() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>전화번호</label>
-              <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="02-1234-5678" className={inputClass} />
+              <input type="tel" inputMode="tel" autoComplete="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="02-1234-5678" className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>인스타그램</label>

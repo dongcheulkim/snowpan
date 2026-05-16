@@ -5,6 +5,7 @@ import { SkiShopIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { toastError } from '../components/Toast';
 
 interface Shop {
   id: string;
@@ -48,7 +49,7 @@ export default function NewEquipment() {
     if (selectedResort !== 'all') params.set('resort', selectedResort);
     api<Shop[]>(`/ski-shops?${params}`)
       .then(data => setShops(Array.isArray(data) ? data : []))
-      .catch(() => setShops([]))
+      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
   }, [selectedArea, selectedResort]);
 

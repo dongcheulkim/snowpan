@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { toastError } from '../components/Toast';
 
 interface AccommodationItem {
   id: string;
@@ -61,9 +62,10 @@ const Accommodation = () => {
         const data = await api<{ items: AccommodationItem[]; totalCount: number }>(`/accommodations?${params}`);
         setAccommodations(data.items);
         setTotalCount(data.totalCount);
-      } catch {
+      } catch (err) {
         setAccommodations([]);
         setTotalCount(0);
+        toastError(err instanceof Error ? err.message : '숙소 목록을 불러오지 못했습니다');
       } finally {
         setLoading(false);
       }

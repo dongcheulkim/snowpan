@@ -151,7 +151,7 @@ const AccommodationRegister = () => {
         </div>
         <div>
           <label className={labelClass}>최대 인원</label>
-          <input type="number" value={form.maxGuests} onChange={e => setForm({...form, maxGuests: e.target.value})} placeholder="4" className={inputClass} />
+          <input type="number" inputMode="numeric" min="1" max="50" value={form.maxGuests} onChange={e => setForm({...form, maxGuests: e.target.value})} placeholder="4" className={inputClass} />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import { toastError } from '../components/Toast';
 
 interface LessonItem {
   id: string;
@@ -63,9 +64,10 @@ const Lesson = () => {
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
         setLessonItems(data.items);
         setTotalCount(data.totalCount);
-      } catch {
+      } catch (err) {
         setLessonItems([]);
         setTotalCount(0);
+        toastError(err instanceof Error ? err.message : '레슨 목록을 불러오지 못했습니다');
       } finally {
         setLoading(false);
       }

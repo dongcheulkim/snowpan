@@ -84,7 +84,7 @@ export default function SearchBar() {
   return (
     <div ref={containerRef} className="relative">
       {!open ? (
-        <button onClick={() => setOpen(true)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+        <button onClick={() => setOpen(true)} aria-label="검색" className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
           <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -107,7 +107,7 @@ export default function SearchBar() {
                   className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
                 />
                 {query && (
-                  <button onClick={() => setQuery('')} aria-label="지우기" className="text-gray-500 hover:text-gray-500"><CloseIcon size={14} /></button>
+                  <button onClick={() => setQuery('')} aria-label="지우기" className="w-9 h-9 -mr-2 flex items-center justify-center text-gray-500 hover:text-gray-700"><CloseIcon size={14} /></button>
                 )}
               </div>
 
