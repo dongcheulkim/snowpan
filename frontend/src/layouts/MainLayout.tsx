@@ -9,7 +9,6 @@ import ReviewPromptModal from '../components/ReviewPromptModal';
 import CookieConsent from '../components/CookieConsent';
 import InstallPrompt from '../components/InstallPrompt';
 import PullToRefresh from '../components/PullToRefresh';
-import NewsletterSubscribe from '../components/NewsletterSubscribe';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
 
 const SITE_URL = 'https://snowpan.vercel.app';
@@ -63,21 +62,18 @@ const MainLayout = () => {
       </main>
       <footer className="hidden md:block border-t border-gray-200 bg-snow">
         <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <NewsletterSubscribe source="footer" className="md:max-w-md" />
-            <div className="flex flex-col items-start md:items-end gap-3 text-xs">
-              <p className="font-bold text-gray-700">SNOW PAN</p>
-              <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2 md:justify-end">
-                <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
-                <Link to="/help" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">도움말</Link>
-                <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
-                <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
-                <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>
-                <Link to="/mypage/support" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">고객센터</Link>
-              </nav>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="font-bold text-gray-700">SNOW PAN</p>
+            <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2">
+              <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
+              <Link to="/help" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">도움말</Link>
+              <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
+              <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
+              <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>
+              <Link to="/mypage/support" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">고객센터</Link>
+            </nav>
           </div>
-          <p className="leading-relaxed text-gray-500 border-t border-gray-200 pt-4">
+          <p className="mt-4 leading-relaxed text-gray-500">
             © {new Date().getFullYear()} 스노우판 · 본 서비스는 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래에 대한 책임을 지지 않습니다.
           </p>
         </div>

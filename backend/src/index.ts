@@ -59,7 +59,6 @@ import repairShopRoutes from './routes/repairShopRoutes';
 import searchRoutes from './routes/searchRoutes';
 import contactRoutes from './routes/contactRoutes';
 import sitemapRoutes from './routes/sitemapRoutes';
-import newsletterRoutes from './routes/newsletterRoutes';
 import referralRoutes from './routes/referralRoutes';
 import webcamRoutes from './routes/webcamRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
@@ -262,7 +261,6 @@ app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
-app.use('/api/newsletter', strictWriteLimiter, newsletterRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/webcams', webcamRoutes);
 
