@@ -1,6 +1,12 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
+import { createUserLimiter } from '../middleware/rateLimit';
+
+// 사용자별 업로드 한도 — Cloudinary 스토리지 abuse 방지.
+// 분당 30장, 시간당 300장. 정상 사용자에겐 충분, 봇/자동화는 차단.
+const uploadLimitPerMin = createUserLimiter(30, 60_000);
+const uploadLimitPerHour = createUserLimiter(300, 60 * 60_000);
 
 // 매직 바이트 검증 — 클라이언트가 보낸 mime 헤더는 위조 가능하므로
 // 실제 파일 첫 바이트로 형식 확인. 악성 스크립트를 image/jpeg 로 가장하는 공격 차단.
@@ -41,7 +47,7 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/', upload.array('images', 5), async (req: Request, res: Response) => {
+router.post('/', uploadLimitPerMin, uploadLimitPerHour, upload.array('images', 5), async (req: Request, res: Response) => {
   const files = req.files as Express.Multer.File[];
   if (!files || files.length === 0) {
     res.status(400).json({ error: '파일이 없습니다.' });

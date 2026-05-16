@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { toastSuccess, toastError } from './Toast';
@@ -38,6 +38,8 @@ export default function ReviewPromptModal() {
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!getUser()) return;
@@ -53,6 +55,26 @@ export default function ReviewPromptModal() {
     }, 6000);
     return () => { cancelled = true; clearTimeout(timer); };
   }, []);
+
+  // ESC 닫기 + 열릴 때 첫 인터랙티브 요소로 포커스 이동 + 닫을 때 이전 포커스 복원
+  useEffect(() => {
+    if (!target) return;
+    prevFocusRef.current = document.activeElement as HTMLElement | null;
+    const focusable = dialogRef.current?.querySelector<HTMLElement>('button, textarea, [href]');
+    focusable?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !submitting) {
+        e.preventDefault();
+        handleDismiss();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      prevFocusRef.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.productId, submitting]);
 
   if (!target || !target.seller) return null;
 
@@ -89,12 +111,12 @@ export default function ReviewPromptModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !submitting && handleDismiss()} />
-      <div className="relative bg-snow rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="review-prompt-title">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !submitting && handleDismiss()} aria-hidden="true" />
+      <div ref={dialogRef} className="relative bg-snow rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
         <div className="px-5 pt-5 pb-3 border-b border-gray-100">
           <p className="text-[11px] font-bold text-accent tracking-wider">DEAL FEEDBACK</p>
-          <h3 className="text-lg font-bold text-gray-900 mt-0.5">거래 어떠셨나요?</h3>
+          <h3 id="review-prompt-title" className="text-lg font-bold text-gray-900 mt-0.5">거래 어떠셨나요?</h3>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">
             <Link to={`/profile/${target.sellerId}`} className="text-accent font-bold">{sellerName}</Link>님과의 거래에 대해 짧게 후기를 남겨주세요. 다른 사용자에게 큰 도움이 됩니다.
           </p>

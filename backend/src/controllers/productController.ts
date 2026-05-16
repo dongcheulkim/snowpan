@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
@@ -12,15 +13,27 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
   try {
     const { category, subcategory, userId, status, search, limit, offset, sort } = req.query;
 
-    // Cache key based on query params
-    const cacheKey = `products:${JSON.stringify({ category, subcategory, userId, status, search, limit, offset, sort })}`;
+    // 캐시 키 정규화 — 파라미터 정렬 + null/undefined 제거. 같은 쿼리가
+    // URL 파라미터 순서만 다른 경우에도 캐시 히트.
+    const keyParts: Record<string, string> = {};
+    if (category) keyParts.category = String(category);
+    if (subcategory) keyParts.subcategory = String(subcategory);
+    if (userId) keyParts.userId = String(userId);
+    if (status) keyParts.status = String(status);
+    if (search) keyParts.search = String(search);
+    if (limit) keyParts.limit = String(limit);
+    if (offset) keyParts.offset = String(offset);
+    if (sort) keyParts.sort = String(sort);
+    const sortedKey = Object.keys(keyParts).sort().map(k => `${k}=${keyParts[k]}`).join('&');
+    const cacheKey = `products:${sortedKey}`;
+
     const cached = cacheGet<{ products: unknown[]; totalCount: number }>(cacheKey);
     if (cached) {
       res.json(cached);
       return;
     }
 
-    const where: any = {};
+    const where: Prisma.ProductWhereInput = {};
     if (category) where.category = category as string;
     if (subcategory) where.subcategory = subcategory as string;
     if (userId) where.userId = userId as string;
