@@ -42,8 +42,8 @@ export default function PanHub() {
                   aria-hidden
                 />
                 <div className="relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl" aria-hidden>{v.emoji}</span>
+                  <div className="flex items-center justify-between mb-2 min-h-[28px]">
+                    <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">{v.slug.toUpperCase()}</span>
                     {!isActive && (
                       <span className="text-[10px] font-bold tracking-wider bg-gray-900 text-white px-2 py-0.5 rounded-full">
                         COMING SOON

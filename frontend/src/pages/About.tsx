@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { useMeta } from '../hooks/useMeta';
 
 const VALUES = [
-  { icon: '🎿', title: '솔직한 시세', body: '플랫폼 자체 거래 데이터 기반 시세 — 외부 비교 사이트가 아니라 실제로 거래되는 가격을 보여드려요.' },
-  { icon: '🤝', title: '안전한 만남', body: '통신판매중개자로서 직거래 안전을 돕는 가이드와 신고 채널을 운영해요. 거래 당사자는 회원이며, 분쟁은 양측 협의를 우선합니다.' },
-  { icon: '⛷️', title: '스키어를 위한', body: '스키·보드 한 종목만 깊게. 장비·렌탈·레슨·숙소까지 한 곳에서 — 검색하느라 시간 보내지 마세요.' },
+  { title: '솔직한 시세', body: '플랫폼 자체 거래 데이터 기반 시세 — 외부 비교 사이트가 아니라 실제로 거래되는 가격을 보여드려요.' },
+  { title: '안전한 만남', body: '통신판매중개자로서 직거래 안전을 돕는 가이드와 신고 채널을 운영해요. 거래 당사자는 회원이며, 분쟁은 양측 협의를 우선합니다.' },
+  { title: '스키어를 위한', body: '스키·보드 한 종목만 깊게. 장비·렌탈·레슨·숙소까지 한 곳에서 — 검색하느라 시간 보내지 마세요.' },
 ];
 
 const FEATURES = [
@@ -66,7 +66,6 @@ export default function About() {
       <section className="grid sm:grid-cols-3 gap-3">
         {VALUES.map(v => (
           <div key={v.title} className="card p-5">
-            <div className="text-2xl mb-2" aria-hidden>{v.icon}</div>
             <h3 className="text-sm font-bold text-gray-900 mb-1.5">{v.title}</h3>
             <p className="text-xs text-gray-600 leading-relaxed">{v.body}</p>
           </div>

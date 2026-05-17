@@ -45,7 +45,7 @@ export default function ReferralCard() {
   return (
     <div className="card p-5 bg-gradient-to-br from-sky-50 to-emerald-50 border-sky-200">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5">🎁 친구 초대</h2>
+        <h2 className="text-sm font-bold text-gray-900">친구 초대</h2>
         <span className="text-[10px] text-gray-600">초대한 친구 <strong className="text-sky-700">{count}명</strong></span>
       </div>
       <p className="text-xs text-gray-600 leading-relaxed mb-3">

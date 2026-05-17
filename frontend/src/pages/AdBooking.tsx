@@ -286,7 +286,7 @@ export default function AdBooking() {
                   : 'bg-gray-100 text-gray-600'
               }`}
             >
-              {s < step ? '✓' : s}
+              {s}
             </div>
             {s < 4 && (
               <div className={`flex-1 h-0.5 mx-1 ${s < step ? 'bg-sky-400' : 'bg-gray-200'}`} />

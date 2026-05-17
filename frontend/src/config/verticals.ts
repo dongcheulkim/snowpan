@@ -16,7 +16,6 @@ export interface Vertical {
   status: VerticalStatus;
   basePath: string;      // 진입 시 이동할 경로 (현재 snow 만 '/')
   // 시각 메타 — Hub 카드에 사용
-  emoji: string;
   toneFrom: string;      // gradient 시작 색
   toneTo: string;        // gradient 끝 색
   description: string;
@@ -29,7 +28,6 @@ export const VERTICALS: Vertical[] = [
     tagline: '스키 · 보드',
     status: 'active',
     basePath: '/',
-    emoji: '⛷️',
     toneFrom: '#e0f2fe',
     toneTo: '#bae6fd',
     description: '중고거래 · 렌탈 · 레슨 · 숙소를 한 곳에. 시즌의 모든 것.',
@@ -40,7 +38,6 @@ export const VERTICALS: Vertical[] = [
     tagline: '자전거 · MTB · 로드',
     status: 'coming_soon',
     basePath: '/bike',
-    emoji: '🚴',
     toneFrom: '#fef3c7',
     toneTo: '#fde68a',
     description: '라이딩 장비 · 코스 · 동행. 페달의 모든 것 (준비 중).',
@@ -51,7 +48,6 @@ export const VERTICALS: Vertical[] = [
     tagline: '러닝 · 마라톤 · 트레일',
     status: 'coming_soon',
     basePath: '/run',
-    emoji: '🏃',
     toneFrom: '#dcfce7',
     toneTo: '#bbf7d0',
     description: '러너 장비 · 대회 · 페이스메이커. 한 발 한 발의 모든 것 (준비 중).',

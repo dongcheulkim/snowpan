@@ -6,11 +6,11 @@ import { useMeta } from '../hooks/useMeta';
 // Support.tsx (1:1 문의) 와 분리하여 깊이 있는 정적 콘텐츠로 운영.
 
 interface FAQ { q: string; a: string }
-interface Category { id: string; label: string; icon: string; faqs: FAQ[] }
+interface Category { id: string; label: string; faqs: FAQ[] }
 
 const CATEGORIES: Category[] = [
   {
-    id: 'account', label: '계정·로그인', icon: '👤',
+    id: 'account', label: '계정·로그인',
     faqs: [
       { q: '비밀번호를 잊어버렸어요.', a: '로그인 페이지의 "비밀번호 찾기"를 누르세요. 가입한 이메일로 재설정 링크가 발송됩니다.' },
       { q: '소셜 로그인 (카카오·네이버) 가능한가요?', a: '카카오 로그인을 지원합니다. 로그인 페이지에서 "카카오로 시작하기" 버튼을 누르면 됩니다.' },
@@ -20,7 +20,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'trade', label: '중고 거래', icon: '🎿',
+    id: 'trade', label: '중고 거래',
     faqs: [
       { q: '중고 장비는 어떻게 구매하나요?', a: '중고 메뉴에서 마음에 드는 매물을 누르고 "채팅하기"로 판매자와 직접 대화하세요. 가격·만남 장소·결제는 양 당사자가 합의합니다.' },
       { q: '시세 비교 배지는 어떻게 계산되나요?', a: '본 플랫폼에 등록된 같은 카테고리·브랜드 매물의 최근 6개월 거래 데이터(중앙값) 기준입니다. 외부 시세 사이트가 아닌 스노우판 자체 데이터를 사용해요.' },
@@ -31,7 +31,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'register', label: '등록·판매', icon: '📤',
+    id: 'register', label: '등록·판매',
     faqs: [
       { q: '매물 등록은 어떻게 하나요?', a: '중고 메뉴의 "+ 등록" 버튼을 누르고 사진(최대 5장), 카테고리, 가격, 상태 등을 입력하세요. 사진은 자동으로 압축됩니다.' },
       { q: '렌탈샵/레슨/숙소를 등록하고 싶어요.', a: '각 메뉴 상단의 "+ 등록" 버튼으로 신청하세요. 관리자 승인(보통 1~2일) 후 노출됩니다. 베타 기간 등록비 없이 무료입니다.' },
@@ -41,7 +41,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'safety', label: '안전·신고', icon: '🛡️',
+    id: 'safety', label: '안전·신고',
     faqs: [
       { q: '사기/부적절한 사용자를 신고하고 싶어요.', a: '매물·게시글·프로필 페이지의 메뉴(⋯) 또는 "신고하기" 버튼으로 신고하세요. 운영자가 24시간 이내 검토합니다.' },
       { q: '도용된 제 사진/글이 올라왔어요.', a: '해당 페이지에서 신고하시거나 1:1 문의로 알려주세요. 권리 침해가 확인되면 즉시 비공개 처리됩니다.' },
@@ -49,7 +49,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'service', label: '서비스 운영', icon: '⚙️',
+    id: 'service', label: '서비스 운영',
     faqs: [
       { q: '왜 베타라고 표시되어 있나요?', a: '실제 사용자 피드백을 받으며 개선 중인 단계입니다. 일부 기능이 추가/변경될 수 있고, 등록비·중개수수료 없이 운영합니다.' },
       { q: '앱은 언제 나오나요?', a: '현재는 PWA(웹 앱)로 제공됩니다. iOS Safari → 공유 → "홈 화면에 추가", Android Chrome → "앱 설치" 로 앱처럼 사용할 수 있어요.' },
@@ -139,7 +139,6 @@ export default function Help() {
                   aria-expanded={isOpen}
                 >
                   <span className="inline-flex items-center gap-2 text-sm font-bold text-gray-900">
-                    <span className="text-xl" aria-hidden>{cat.icon}</span>
                     {cat.label}
                     <span className="text-[10px] text-gray-500 font-normal">({cat.faqs.length})</span>
                   </span>

@@ -58,7 +58,6 @@ export default function PanTopBar() {
                 }`;
                 const inner = (
                   <>
-                    <span className="text-lg" aria-hidden>{v.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold leading-tight">{v.name}</div>
                       <div className="text-[10px] text-gray-500 leading-tight">{v.tagline}</div>

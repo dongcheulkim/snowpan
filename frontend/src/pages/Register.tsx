@@ -142,7 +142,7 @@ const Register = () => {
               autoCapitalize="characters"
             />
             {referrerName && (
-              <p className="text-[11px] text-emerald-600 mt-1">✓ {referrerName}님의 추천으로 가입합니다</p>
+              <p className="text-[11px] text-emerald-600 mt-1">{referrerName}님의 추천으로 가입합니다</p>
             )}
           </div>
 

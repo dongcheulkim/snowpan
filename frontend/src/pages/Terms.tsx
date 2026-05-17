@@ -257,7 +257,7 @@ const Terms = () => {
 
       {/* 베타 서비스 안내 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-        <p className="text-xs font-bold text-amber-800 mb-1">🚧 베타 서비스 안내</p>
+        <p className="text-xs font-bold text-amber-800 mb-1">[BETA] 베타 서비스 안내</p>
         <p className="text-[11px] text-amber-700 leading-relaxed">
           본 서비스는 <span className="font-bold">2026년 11월 정식 출시 전</span> 베타 기간으로 운영됩니다. 베타 기간 중에는 유료 결제 기능이 활성화되지 않으며, 광고 게재 등 일부 유료 서비스는 <span className="font-bold">무료 체험</span>으로 제공됩니다.
           정식 출시 시점에 결제 시스템 및 유료 서비스 정책이 별도 안내됩니다.

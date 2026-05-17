@@ -61,35 +61,30 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
   let toneText: string;
   let toneBorder: string;
   let toneAccent: string;
-  let icon: string;
   if (ratio <= 0.85) {
     label = '시세 대비 저렴해요';
     toneBg = 'bg-emerald-50';
     toneText = 'text-emerald-700';
     toneBorder = 'border-emerald-200';
     toneAccent = 'text-emerald-600';
-    icon = '🔥';
   } else if (ratio <= 1.15) {
     label = '시세 적정 수준';
     toneBg = 'bg-sky-50';
     toneText = 'text-sky-700';
     toneBorder = 'border-sky-200';
     toneAccent = 'text-sky-600';
-    icon = '💡';
   } else if (ratio <= 1.35) {
     label = '시세 대비 비싸요';
     toneBg = 'bg-amber-50';
     toneText = 'text-amber-700';
     toneBorder = 'border-amber-200';
     toneAccent = 'text-amber-600';
-    icon = '⚠️';
   } else {
     label = '시세보다 많이 비싸요';
     toneBg = 'bg-rose-50';
     toneText = 'text-rose-700';
     toneBorder = 'border-rose-200';
     toneAccent = 'text-rose-600';
-    icon = '⚠️';
   }
 
   const diffPct = Math.round((ratio - 1) * 100);
@@ -105,7 +100,6 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
     return (
       <div className={`mt-2 rounded-xl border-2 ${toneBorder} ${toneBg} px-4 py-3`} title={sourceTitle}>
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-base" aria-hidden>{icon}</span>
           <span className={`text-sm font-bold ${toneText}`}>{label}</span>
           <span className={`ml-auto text-base font-black ${toneAccent} font-mono`}>{diffText}</span>
         </div>
@@ -123,7 +117,6 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
   // 'badge' — UsedDetail 가격 옆. 컴팩트하지만 % 와 라벨은 충분히 큼.
   return (
     <div className={`inline-flex items-center gap-2 rounded-xl border-2 ${toneBorder} ${toneBg} px-3 py-2`} title={sourceTitle}>
-      <span className="text-base leading-none" aria-hidden>{icon}</span>
       <div className="flex flex-col gap-0">
         <div className="flex items-baseline gap-1.5">
           <span className={`text-sm font-bold ${toneText} leading-tight`}>{label}</span>

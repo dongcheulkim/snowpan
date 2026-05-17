@@ -166,7 +166,7 @@ const CommunityWrite = () => {
         </div>
         {looksUnsafe && (
           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5 mt-2 leading-relaxed">
-            ⚠️ HTML 태그·스크립트는 자동으로 제거됩니다. 일반 텍스트로 입력해주세요.
+            주의: HTML 태그·스크립트는 자동으로 제거됩니다. 일반 텍스트로 입력해주세요.
           </p>
         )}
       </div>

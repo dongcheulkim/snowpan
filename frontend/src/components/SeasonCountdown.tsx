@@ -45,7 +45,6 @@ export default function SeasonCountdown() {
 
   return (
     <div className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${isInSeason ? 'bg-emerald-50 border-emerald-200' : 'bg-sky-50 border-sky-200'}`}>
-      <span className="text-2xl" aria-hidden>{isInSeason ? '⛷️' : '🗓️'}</span>
       <div className="flex-1 min-w-0">
         <div className={`text-[10px] font-bold tracking-wider ${isInSeason ? 'text-emerald-700' : 'text-sky-700'}`}>
           {state.seasonLabel} 시즌

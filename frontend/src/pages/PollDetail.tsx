@@ -223,7 +223,7 @@ const PollDetail = () => {
                 )}
                 <div className="relative flex items-center justify-between px-4 h-full">
                   <span className={`text-sm ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-700'}`}>
-                    {isSelected && '✓ '}{opt.label}
+                    {opt.label}
                   </span>
                   {voted && (
                     <span className={`text-sm ${isSelected ? 'font-bold text-primary-dark' : 'text-gray-500'}`}>

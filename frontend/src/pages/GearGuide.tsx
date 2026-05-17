@@ -174,7 +174,7 @@ export default function GearGuide() {
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">🎿 장비 추천 가이드</h1>
+        <h1 className="text-xl font-bold text-gray-900">장비 추천 가이드</h1>
         <Link to="/" className="text-sm text-gray-500">← 홈</Link>
       </div>
 
@@ -186,13 +186,13 @@ export default function GearGuide() {
           onClick={() => setSport('ski')}
           className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'ski' ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
-          ⛷️ 스키
+          스키
         </button>
         <button
           onClick={() => setSport('board')}
           className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${sport === 'board' ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'}`}
         >
-          🏂 스노보드
+          스노보드
         </button>
       </div>
 
@@ -258,7 +258,7 @@ export default function GearGuide() {
       {/* 중고 매물 연결 */}
       {user && (
         <Link to="/used" className="block text-center py-3 bg-primary/10 text-primary-dark rounded-xl font-bold text-sm hover:bg-primary/20 transition-colors">
-          🏷️ 중고장터에서 장비 찾아보기
+          중고장터에서 장비 찾아보기 →
         </Link>
       )}
     </div>
