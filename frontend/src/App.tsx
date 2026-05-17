@@ -110,12 +110,17 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
             <Route path="pan" element={<PanHub />} />
-            {/* 미출시 버티컬 랜딩 페이지 — slug 5종 (bike/run/surf/golf/camp) */}
+            {/* 미출시 버티컬 — 홈 + 카테고리 서브 페이지 (단일 VerticalLanding 컴포넌트가 URL 로 판별) */}
             <Route path="bike" element={<VerticalLanding />} />
+            <Route path="bike/:cat" element={<VerticalLanding />} />
             <Route path="run" element={<VerticalLanding />} />
+            <Route path="run/:cat" element={<VerticalLanding />} />
             <Route path="surf" element={<VerticalLanding />} />
+            <Route path="surf/:cat" element={<VerticalLanding />} />
             <Route path="golf" element={<VerticalLanding />} />
+            <Route path="golf/:cat" element={<VerticalLanding />} />
             <Route path="camp" element={<VerticalLanding />} />
+            <Route path="camp/:cat" element={<VerticalLanding />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />

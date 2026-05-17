@@ -23,6 +23,9 @@ export interface Vertical {
   previewCategories?: { label: string; desc: string }[];
   // 영어 슬로건 — 랜딩 hero 의 부제
   englishSlogan?: string;
+  // 홈 카테고리 그리드 — SNOWPAN 처럼 클릭 가능한 카테고리 진입점
+  // slug = 서브 라우트 (/{vertical}/{slug})
+  homeCategories?: { slug: string; label: string; desc: string }[];
 }
 
 export const VERTICALS: Vertical[] = [
@@ -59,6 +62,14 @@ export const VERTICALS: Vertical[] = [
       { label: '바이크샵', desc: '피팅 · 정비 · 매장 정보' },
       { label: '코스', desc: '명소 · GPX · 인증' },
     ],
+    homeCategories: [
+      { slug: 'used', label: '중고거래', desc: '프레임 · 휠셋 · 컴포넌트' },
+      { slug: 'shop', label: '바이크샵', desc: '피팅 · 정비 매장' },
+      { slug: 'course', label: '코스', desc: '명소 · GPX · 인증' },
+      { slug: 'community', label: '커뮤니티', desc: '라이딩 동행 · 후기' },
+      { slug: 'event', label: '대회', desc: '그란폰도 · 크리테리움' },
+      { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 추천 · 사이징' },
+    ],
   },
   {
     slug: 'run',
@@ -75,6 +86,14 @@ export const VERTICALS: Vertical[] = [
       { label: '대회 정보', desc: '마라톤 · 트레일런 · 등록' },
       { label: '코치 매칭', desc: '훈련 프로그램 · 러닝 클래스' },
       { label: '페이서', desc: '동반 러너 매칭' },
+    ],
+    homeCategories: [
+      { slug: 'used', label: '중고거래', desc: '슈즈 · 의류 · 시계' },
+      { slug: 'event', label: '대회', desc: '마라톤 · 트레일런' },
+      { slug: 'coach', label: '코치', desc: '훈련 · 러닝 클래스' },
+      { slug: 'community', label: '커뮤니티', desc: '러닝 동행 · 후기' },
+      { slug: 'course', label: '러닝 코스', desc: '한강 · 트레일 · 거리' },
+      { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 슈즈 추천' },
     ],
   },
   {
@@ -93,6 +112,14 @@ export const VERTICALS: Vertical[] = [
       { label: '라인업', desc: '파도 · 바람 · 컨디션' },
       { label: '서핑 숙소', desc: '양양 · 송정 펜션' },
     ],
+    homeCategories: [
+      { slug: 'used', label: '중고거래', desc: '보드 · 슈트 · 리쉬' },
+      { slug: 'lesson', label: '강사', desc: '입문 · 중급 · 빅웨이브' },
+      { slug: 'lineup', label: '라인업', desc: '실시간 파도 · 바람' },
+      { slug: 'accommodation', label: '서핑 숙소', desc: '양양 · 송정 펜션' },
+      { slug: 'community', label: '커뮤니티', desc: '동행 · 후기' },
+      { slug: 'gear-guide', label: '장비 가이드', desc: '보드 사이즈 · 슈트' },
+    ],
   },
   {
     slug: 'golf',
@@ -110,6 +137,14 @@ export const VERTICALS: Vertical[] = [
       { label: '스크린', desc: '스크린골프 매장 · 가격' },
       { label: '레슨', desc: '프로 매칭 · 클래스' },
     ],
+    homeCategories: [
+      { slug: 'used', label: '중고거래', desc: '클럽 · 풀세트 · 의류' },
+      { slug: 'round', label: '라운드', desc: '필드 부킹 · 동반자' },
+      { slug: 'screen', label: '스크린', desc: '매장 · 시간대 · 가격' },
+      { slug: 'lesson', label: '레슨', desc: '프로 · 클래스' },
+      { slug: 'community', label: '커뮤니티', desc: '코스 후기 · 팁' },
+      { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 클럽 추천' },
+    ],
   },
   {
     slug: 'camp',
@@ -126,6 +161,14 @@ export const VERTICALS: Vertical[] = [
       { label: '캠핑장', desc: '오토 · 글램핑 · 노지' },
       { label: '차박 코스', desc: '경치 · 화장실 · 후기' },
       { label: '동행', desc: '단독 캠핑 · 그룹 캠핑' },
+    ],
+    homeCategories: [
+      { slug: 'used', label: '중고거래', desc: '텐트 · 체어 · 코펠' },
+      { slug: 'campground', label: '캠핑장', desc: '오토 · 글램핑 · 노지' },
+      { slug: 'carcamp', label: '차박 코스', desc: '경치 · 화장실 · 후기' },
+      { slug: 'community', label: '커뮤니티', desc: '동행 · 후기' },
+      { slug: 'shop', label: '캠핑샵', desc: '리테일 · 렌탈' },
+      { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 텐트 추천' },
     ],
   },
 ];
