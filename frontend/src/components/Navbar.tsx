@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
 import { showBrowserNotification } from '../utils/pushNotification';
 import Logo from './Logo';
+import { useVertical } from '../hooks/useVertical';
 
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
@@ -26,6 +27,7 @@ const Navbar = () => {
   const location = useLocation();
   const raw = useLocalStorageUser();
   useI18nRerender();
+  const vertical = useVertical();
   void location.pathname;
 
   let user: { id: string; name: string } | null = null;
@@ -127,14 +129,19 @@ const Navbar = () => {
   }, []);
 
   // 데스크톱 헤더 카테고리 — 모바일은 홈 카테고리 그리드, 데스크톱은 상단 텍스트 링크.
+  // snow 는 루트 경로 (/used 등), 다른 vertical 은 basePath prefix 사용 (/bike/used 등)
+  const prefix = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const labels = vertical.pageLabels || {};
+  const shopPath = vertical.slug === 'snow' ? '/skishop' : `${prefix}/shop`;
   const navLinks: { label: string; to: string }[] = [
-    { label: '중고거래', to: '/used' },
-    { label: '스키샵', to: '/skishop' },
-    { label: '렌탈', to: '/rental' },
-    { label: '레슨', to: '/lesson' },
-    { label: '숙소', to: '/accommodation' },
-    { label: '커뮤니티', to: '/community' },
+    { label: labels.used || '중고거래', to: `${prefix}/used` },
+    { label: labels.shop || '스키샵', to: shopPath },
+    { label: labels.rental || '렌탈', to: `${prefix}/rental` },
+    { label: labels.lesson || '레슨', to: `${prefix}/lesson` },
+    { label: labels.accommodation || '숙소', to: `${prefix}/accommodation` },
+    { label: '커뮤니티', to: vertical.slug === 'snow' ? '/community' : `${prefix}/community` },
   ];
+  const logoLink = vertical.basePath;
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
@@ -150,7 +157,7 @@ const Navbar = () => {
               >
                 ← PAN
               </Link>
-              <Link to="/snowpan" aria-label="스노우판 홈">
+              <Link to={logoLink} aria-label={`${vertical.name} 홈`}>
                 <Logo />
               </Link>
             </div>

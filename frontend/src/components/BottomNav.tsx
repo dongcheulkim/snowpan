@@ -64,6 +64,8 @@ const BottomNav = () => {
     },
   ];
 
+  const activeColor = vertical.accentColor || undefined;
+
   return (
     <nav
       aria-label="주요 메뉴"
@@ -82,13 +84,14 @@ const BottomNav = () => {
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
               tabIndex={keyboardOpen ? -1 : 0}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? 'text-sky-500' : 'text-gray-500'}`}
+              style={active && activeColor ? { color: activeColor } : undefined}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-200 ${active ? '' : 'text-gray-500'}`}
             >
               <div aria-hidden="true" className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
                 {active && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-900 rounded-full" />}
               </div>
-              <span className={`text-[10px] font-medium ${active ? 'text-sky-500' : 'text-gray-500'}`}>{item.label}</span>
+              <span style={active && activeColor ? { color: activeColor } : undefined} className={`text-[10px] font-medium ${active ? '' : 'text-gray-500'}`}>{item.label}</span>
             </Link>
           );
         })}
