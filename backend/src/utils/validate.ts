@@ -45,7 +45,18 @@ export function normalizeEmail(raw: unknown): string | null {
 
 // 사용자 입력 이미지 URL 검증 — Cloudinary 또는 우리 도메인만 허용.
 // 임의 외부 URL 차단 — 사용자에게 보일 이미지에 추적 픽셀/피싱 URL 박는 것 방지.
-const ALLOWED_IMAGE_HOSTS = ['res.cloudinary.com', 'snowpan.vercel.app', 'snowpan.onrender.com'];
+// FRONTEND_URL env (Vercel 도메인) + ALLOWED_EXTRA_IMAGE_HOSTS (선택) 자동 포함.
+function buildAllowedImageHosts(): string[] {
+  const base = ['res.cloudinary.com', 'snowpan.vercel.app', 'snowpan.onrender.com'];
+  const frontUrl = process.env.FRONTEND_URL;
+  if (frontUrl) {
+    try { base.push(new URL(frontUrl).hostname); } catch { /* ignore */ }
+  }
+  const extra = process.env.ALLOWED_EXTRA_IMAGE_HOSTS;
+  if (extra) base.push(...extra.split(',').map(s => s.trim()).filter(Boolean));
+  return [...new Set(base)];
+}
+const ALLOWED_IMAGE_HOSTS = buildAllowedImageHosts();
 export function isAllowedImageUrl(url: unknown): boolean {
   if (!url || typeof url !== 'string') return false;
   // 상대 경로 — /uploads/, /icons/ 만 허용.

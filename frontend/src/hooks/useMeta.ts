@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE_URL, SITE_NAME } from '../config/site';
 
 interface MetaOptions {
   title?: string;
@@ -8,11 +9,9 @@ interface MetaOptions {
   type?: 'website' | 'article' | 'product';
 }
 
-const SITE_NAME = '스노우판';
-const DEFAULT_TITLE = '스노우판 - 스키/보드 중고거래 & 렌탈';
-const DEFAULT_DESC = '스키 장비부터 레슨까지, 한눈에 비교하세요';
-const DEFAULT_IMAGE = 'https://snowpan.vercel.app/icons/og-image.png';
-const SITE_URL = 'https://snowpan.vercel.app';
+const DEFAULT_TITLE = 'PAN — 운동, 모든 것의 장(場)';
+const DEFAULT_DESC = '종목별 전용 플랫폼을 한 곳에. 스키부터 자전거·러닝·서핑·골프·캠핑까지.';
+const DEFAULT_IMAGE = `${SITE_URL}/icons/og-image.png`;
 
 // tag 이름별 selector 정보
 type TagSpec = { attr: 'name' | 'property'; key: string };

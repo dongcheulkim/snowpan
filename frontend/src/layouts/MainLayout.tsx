@@ -11,8 +11,7 @@ import CookieConsent from '../components/CookieConsent';
 import InstallPrompt from '../components/InstallPrompt';
 import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
-
-const SITE_URL = 'https://snowpan.vercel.app';
+import { SITE_URL } from '../config/site';
 
 const MainLayout = () => {
   const location = useLocation();

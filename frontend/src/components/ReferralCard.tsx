@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { toastSuccess, toastError } from './Toast';
+import { SITE_URL as SITE } from '../config/site';
 
 // 친구 초대 카드 — MyPage 에 표시. 본인의 추천 코드 + 누적 추천 수 + 공유 버튼.
-
-const SITE = 'https://snowpan.vercel.app';
 
 export default function ReferralCard() {
   const [code, setCode] = useState<string | null>(null);
