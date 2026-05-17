@@ -1,84 +1,73 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { VERTICALS, getActiveVertical } from '../config/verticals';
+import { toastError } from './Toast';
 
-// PAN 우산 브랜드 스트립 — Navbar 위에 얇게 표시.
-// 좌측: "PAN" 로고 (Hub 로 이동)
-// 우측: 현재 버티컬 표시 + 다른 플랫폼 스위처 (drop-down)
+// PAN 우산 브랜드 스트립 — Navbar 위에 노출.
+// 좌측 PAN 로고 + 우측 인라인 탭 (모든 버티컬을 한눈에).
+// 현재 버티컬은 강조, coming_soon 은 클릭 시 토스트.
 //
-// PanHub 자체에서는 숨김 (이미 PAN 페이지라 중복).
+// PanHub (/pan) 페이지에서는 자동 숨김.
 
 export default function PanTopBar() {
   const location = useLocation();
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const active = getActiveVertical();
 
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, []);
-
-  // /pan 페이지에서는 숨김
   if (location.pathname === '/pan') return null;
+
+  const onComingSoon = (name: string) => toastError(`${name} 은 준비 중입니다`);
 
   return (
     <div className="bg-gray-900 text-white">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 h-7 flex items-center justify-between text-[10px] tracking-wider">
-        <Link to="/pan" className="font-black tracking-[0.2em] hover:text-gray-300 transition-colors" aria-label="PAN 플랫폼 허브">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center gap-3">
+        {/* 좌측 PAN 로고 — /pan Hub 로 이동 */}
+        <Link
+          to="/pan"
+          className="font-black tracking-[0.25em] text-[12px] flex-shrink-0 hover:text-gray-300 transition-colors"
+          aria-label="PAN 플랫폼 허브"
+        >
           PAN
         </Link>
-        <div ref={containerRef} className="relative">
-          <button
-            onClick={() => setOpen(o => !o)}
-            className="inline-flex items-center gap-1 font-bold hover:text-gray-300 transition-colors min-h-7 px-1"
-            aria-haspopup="menu"
-            aria-expanded={open}
-          >
-            <span>{active.name}</span>
-            <span aria-hidden className={`text-[8px] transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
-          </button>
-          {open && (
-            <div role="menu" className="absolute right-0 top-full mt-1 w-56 bg-white text-gray-900 rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
-              <div className="px-3 py-2 text-[10px] font-bold text-gray-500 tracking-wider border-b border-gray-100">
-                PAN 플랫폼 선택
-              </div>
-              {VERTICALS.map(v => {
-                const isCurrent = v.slug === active.slug;
-                const disabled = v.status !== 'active' && !isCurrent;
-                const cls = `flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
-                  isCurrent
-                    ? 'bg-gray-50 text-gray-900 cursor-default'
-                    : disabled
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
-                }`;
-                const inner = (
-                  <>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold leading-tight">{v.name}</div>
-                      <div className="text-[10px] text-gray-500 leading-tight">{v.tagline}</div>
-                    </div>
-                    {isCurrent && <span className="text-[9px] font-bold text-sky-600">현재</span>}
-                    {disabled && <span className="text-[9px] font-bold text-gray-400">준비중</span>}
-                  </>
-                );
-                if (isCurrent || disabled) {
-                  return <div key={v.slug} className={cls} role="menuitem" aria-disabled={disabled}>{inner}</div>;
-                }
-                return (
-                  <Link key={v.slug} to={v.basePath} className={cls} role="menuitem" onClick={() => setOpen(false)}>{inner}</Link>
-                );
-              })}
-              <Link to="/pan" onClick={() => setOpen(false)} className="block px-3 py-2 text-[11px] font-bold text-sky-600 text-center border-t border-gray-100 hover:bg-gray-50">
-                전체 보기 →
+
+        {/* 구분선 */}
+        <span aria-hidden className="text-gray-700 flex-shrink-0">|</span>
+
+        {/* 인라인 탭 — 모바일 가로 스크롤 */}
+        <nav className="flex-1 flex items-center gap-1 overflow-x-auto scrollbar-none" aria-label="PAN 플랫폼 선택">
+          {VERTICALS.map(v => {
+            const isCurrent = v.slug === active.slug;
+            const disabled = v.status !== 'active' && !isCurrent;
+            const baseCls = `flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider whitespace-nowrap transition-colors`;
+            if (isCurrent) {
+              return (
+                <span key={v.slug} className={`${baseCls} bg-white text-gray-900`} aria-current="page">
+                  {v.name}
+                </span>
+              );
+            }
+            if (disabled) {
+              return (
+                <button
+                  key={v.slug}
+                  onClick={() => onComingSoon(v.name)}
+                  className={`${baseCls} text-gray-500 hover:text-gray-300 hover:bg-gray-800`}
+                  aria-disabled="true"
+                >
+                  {v.name}<span className="ml-1 text-[8px] font-normal opacity-70">준비중</span>
+                </button>
+              );
+            }
+            return (
+              <Link
+                key={v.slug}
+                to={v.basePath}
+                className={`${baseCls} text-gray-300 hover:text-white hover:bg-gray-800`}
+              >
+                {v.name}
               </Link>
-            </div>
-          )}
-        </div>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
