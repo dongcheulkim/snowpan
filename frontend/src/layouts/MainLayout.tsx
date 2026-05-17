@@ -48,18 +48,28 @@ const MainLayout = () => {
     el.href = `${SITE_URL}${location.pathname}`;
   }, [location.pathname]);
 
+  // SNOW PAN 네비바는 SNOWPAN 플랫폼 안에서만 노출.
+  // PanHub (/, /pan) 또는 다른 vertical (/bike, /run, /surf, /golf, /camp) 페이지는 SNOW PAN 메뉴 숨김.
+  const firstSeg = location.pathname.split('/')[1] || '';
+  const nonSnowVerticals = ['bike', 'run', 'surf', 'golf', 'camp'];
+  const isPanHub = location.pathname === '/' || location.pathname === '/pan';
+  const isOtherVertical = nonSnowVerticals.includes(firstSeg);
+  const showNavbar = !isPanHub && !isOtherVertical;
+
   return (
     <div className="min-h-screen bg-snow flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
         본문 바로가기
       </a>
-      <header>
-        <Navbar />
-      </header>
+      {showNavbar && (
+        <header>
+          <Navbar />
+        </header>
+      )}
       <main id="main-content" className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
         <Outlet />
       </main>
-      <footer className="hidden md:block border-t border-gray-200 bg-snow">
+      {showNavbar && <footer className="hidden md:block border-t border-gray-200 bg-snow">
         <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="font-bold text-gray-700">SNOW PAN</p>
@@ -77,8 +87,8 @@ const MainLayout = () => {
             © {new Date().getFullYear()} 스노우판 · 본 서비스는 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래에 대한 책임을 지지 않습니다.
           </p>
         </div>
-      </footer>
-      <BottomNav />
+      </footer>}
+      {showNavbar && <BottomNav />}
       <ToastHost />
       <PushPermissionPrompt />
       <ReviewPromptModal />
