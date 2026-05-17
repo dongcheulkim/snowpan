@@ -30,6 +30,9 @@ export default function About() {
         <img src="/snowpan-wordmark.svg" alt="SNOW PAN" className="h-10 mx-auto" />
         <p className="text-base font-bold text-gray-900">설원 위의 자유, 끝없는 플레이의 장</p>
         <p className="text-xs tracking-[0.18em] text-gray-500">FREEDOM ON THE SNOW · ENDLESS PLAYGROUND</p>
+        <p className="text-[11px] text-gray-500 pt-1">
+          <Link to="/pan" className="text-sky-600 underline">PAN</Link> 우산 아래 첫 번째 플랫폼
+        </p>
       </header>
 
       {/* Story */}
@@ -43,6 +46,20 @@ export default function About() {
           스노우판은 그 흩어진 정보를 한 곳에 모았어요. 그리고 가장 중요한 건 — 시세 비교를 외부 사이트가 아닌
           <strong> 본 플랫폼에 등록된 실제 매물</strong>로 계산해요. 누군가 지어낸 가격이 아니라, 진짜 스키어들이 사고파는 가격이에요.
         </p>
+      </section>
+
+      {/* PAN 우산 */}
+      <section className="card p-6 space-y-3 bg-gradient-to-br from-gray-50 to-white border-gray-300">
+        <p className="text-[10px] font-bold tracking-widest text-gray-400">UNDER THE PAN UMBRELLA</p>
+        <h2 className="text-base font-bold text-gray-900">SNOWPAN 은 <Link to="/pan" className="text-sky-600 hover:underline">PAN</Link> 의 첫 플랫폼</h2>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          종목마다 자기만의 깊이가 있어요. 만능 마켓에선 어중간한 시세, 어중간한 커뮤니티가 되기 쉽죠.
+          PAN 은 종목별 전용 플랫폼을 따로 만들고, 우산 아래에서 계정·뱃지·신뢰 신호는 공유하는 구조입니다.
+        </p>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          첫 번째 플랫폼이 <strong>SNOWPAN</strong> (스키·보드). 다음 시즌엔 <strong>BIKEPAN</strong>·<strong>RUNPAN</strong> 이 합류할 예정이에요.
+        </p>
+        <Link to="/pan" className="inline-block mt-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">PAN 플랫폼 둘러보기 →</Link>
       </section>
 
       {/* Values */}

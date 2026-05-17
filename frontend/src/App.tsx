@@ -32,6 +32,7 @@ const GearGuide = lazy(() => import('./pages/GearGuide'));
 const SafeTradeGuide = lazy(() => import('./pages/SafeTradeGuide'));
 const About = lazy(() => import('./pages/About'));
 const Help = lazy(() => import('./pages/Help'));
+const PanHub = lazy(() => import('./pages/PanHub'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Competitions = lazy(() => import('./pages/Competitions'));
 const RepairShop = lazy(() => import('./pages/RepairShop'));
@@ -107,6 +108,7 @@ function App() {
             <Route path="safe-trade" element={<SafeTradeGuide />} />
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
+            <Route path="pan" element={<PanHub />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
+import PanTopBar from '../components/PanTopBar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
 import PushPermissionPrompt from '../components/PushPermissionPrompt';
@@ -55,6 +56,7 @@ const MainLayout = () => {
         본문 바로가기
       </a>
       <header>
+        <PanTopBar />
         <Navbar />
       </header>
       <main id="main-content" className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
@@ -65,6 +67,7 @@ const MainLayout = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="font-bold text-gray-700">SNOW PAN</p>
             <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2">
+              <Link to="/pan" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900 font-bold">PAN 플랫폼</Link>
               <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
               <Link to="/help" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">도움말</Link>
               <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
