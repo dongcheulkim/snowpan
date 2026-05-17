@@ -9,6 +9,7 @@ import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { toastError } from '../components/Toast';
+import { useVertical } from '../hooks/useVertical';
 
 interface Product {
   id: string;
@@ -66,16 +67,19 @@ const Used = () => {
     sold: { text: t('used.status.sold'), color: 'bg-gray-200 text-gray-500' },
   };
 
+  // 카테고리는 vertical-specific — config 에서 가져옴.
+  // snow 면 i18n 라벨 (스키/보드/부츠 등), 다른 vertical 은 config 의 한글 라벨 그대로.
+  const vertical = useVertical();
+  const verticalCats = vertical.usedSubcategories || [];
   const categories = [
     { id: 'all', name: t('used.cat.all') },
-    { id: 'ski', name: t('used.cat.ski') },
-    { id: 'board', name: t('used.cat.board') },
-    { id: 'boots', name: t('used.cat.boots') },
-    { id: 'binding', name: t('used.cat.binding') },
-    { id: 'helmet', name: t('used.cat.helmet') },
-    { id: 'goggles', name: t('used.cat.goggles') },
-    { id: 'wear', name: t('used.cat.wear') },
-    { id: 'etc', name: t('used.cat.etc') },
+    ...verticalCats.map(c => ({
+      id: c.id,
+      // snow vertical 의 8개 기본 카테고리는 i18n 키 매핑
+      name: vertical.slug === 'snow' && ['ski','board','boots','binding','helmet','goggles','wear','etc'].includes(c.id)
+        ? t(`used.cat.${c.id}`)
+        : c.label,
+    })),
   ];
 
   // Debounce search → URL (replace, not push, to avoid history spam)

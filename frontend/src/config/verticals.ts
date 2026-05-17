@@ -26,6 +26,10 @@ export interface Vertical {
   // 홈 카테고리 그리드 — SNOWPAN 처럼 클릭 가능한 카테고리 진입점
   // slug = 서브 라우트 (/{vertical}/{slug})
   homeCategories?: { slug: string; label: string; desc: string }[];
+  // 중고거래 (used) 의 sport-specific 서브카테고리 (ski, board, frame 등)
+  usedSubcategories?: { id: string; label: string }[];
+  // 커뮤니티 sport 탭 — snow 는 ski/board, bike 는 road/mtb 등
+  sports?: { id: string; label: string }[];
 }
 
 export const VERTICALS: Vertical[] = [
@@ -44,6 +48,20 @@ export const VERTICALS: Vertical[] = [
       { label: '렌탈', desc: '리조트별 풀세트' },
       { label: '레슨', desc: '강사 · 데몬 매칭' },
       { label: '숙소', desc: '펜션 · 콘도 · 시즌방' },
+    ],
+    usedSubcategories: [
+      { id: 'ski', label: '스키' },
+      { id: 'board', label: '보드' },
+      { id: 'boots', label: '부츠' },
+      { id: 'binding', label: '바인딩' },
+      { id: 'helmet', label: '헬멧' },
+      { id: 'goggles', label: '고글' },
+      { id: 'wear', label: '의류' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'ski', label: '스키' },
+      { id: 'board', label: '보드' },
     ],
   },
   {
@@ -70,6 +88,21 @@ export const VERTICALS: Vertical[] = [
       { slug: 'event', label: '대회', desc: '그란폰도 · 크리테리움' },
       { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 추천 · 사이징' },
     ],
+    usedSubcategories: [
+      { id: 'frame', label: '프레임' },
+      { id: 'wheel', label: '휠셋' },
+      { id: 'drivetrain', label: '구동계' },
+      { id: 'helmet', label: '헬멧' },
+      { id: 'shoes', label: '신발' },
+      { id: 'apparel', label: '의류' },
+      { id: 'accessory', label: '액세서리' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'road', label: '로드' },
+      { id: 'mtb', label: 'MTB' },
+      { id: 'gravel', label: '그래블' },
+    ],
   },
   {
     slug: 'run',
@@ -94,6 +127,19 @@ export const VERTICALS: Vertical[] = [
       { slug: 'community', label: '커뮤니티', desc: '러닝 동행 · 후기' },
       { slug: 'course', label: '러닝 코스', desc: '한강 · 트레일 · 거리' },
       { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 슈즈 추천' },
+    ],
+    usedSubcategories: [
+      { id: 'shoes', label: '러닝화' },
+      { id: 'apparel', label: '의류' },
+      { id: 'watch', label: '시계 · GPS' },
+      { id: 'pack', label: '베스트 · 가방' },
+      { id: 'accessory', label: '액세서리' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'road', label: '로드' },
+      { id: 'trail', label: '트레일' },
+      { id: 'track', label: '트랙' },
     ],
   },
   {
@@ -120,6 +166,20 @@ export const VERTICALS: Vertical[] = [
       { slug: 'community', label: '커뮤니티', desc: '동행 · 후기' },
       { slug: 'gear-guide', label: '장비 가이드', desc: '보드 사이즈 · 슈트' },
     ],
+    usedSubcategories: [
+      { id: 'board', label: '보드' },
+      { id: 'suit', label: '슈트' },
+      { id: 'leash', label: '리쉬' },
+      { id: 'fin', label: '핀' },
+      { id: 'apparel', label: '의류' },
+      { id: 'accessory', label: '액세서리' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'shortboard', label: '숏보드' },
+      { id: 'longboard', label: '롱보드' },
+      { id: 'sup', label: 'SUP' },
+    ],
   },
   {
     slug: 'golf',
@@ -145,6 +205,20 @@ export const VERTICALS: Vertical[] = [
       { slug: 'community', label: '커뮤니티', desc: '코스 후기 · 팁' },
       { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 클럽 추천' },
     ],
+    usedSubcategories: [
+      { id: 'driver', label: '드라이버' },
+      { id: 'iron', label: '아이언' },
+      { id: 'putter', label: '퍼터' },
+      { id: 'wedge', label: '웨지' },
+      { id: 'fullset', label: '풀세트' },
+      { id: 'apparel', label: '의류' },
+      { id: 'shoes', label: '신발' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'field', label: '필드' },
+      { id: 'screen', label: '스크린' },
+    ],
   },
   {
     slug: 'camp',
@@ -169,6 +243,20 @@ export const VERTICALS: Vertical[] = [
       { slug: 'community', label: '커뮤니티', desc: '동행 · 후기' },
       { slug: 'shop', label: '캠핑샵', desc: '리테일 · 렌탈' },
       { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 텐트 추천' },
+    ],
+    usedSubcategories: [
+      { id: 'tent', label: '텐트' },
+      { id: 'sleeping', label: '침낭 · 매트' },
+      { id: 'chair', label: '체어 · 테이블' },
+      { id: 'cookware', label: '코펠 · 화로' },
+      { id: 'lantern', label: '랜턴 · 조명' },
+      { id: 'apparel', label: '의류' },
+      { id: 'etc', label: '기타' },
+    ],
+    sports: [
+      { id: 'car', label: '차박' },
+      { id: 'hiking', label: '백패킹' },
+      { id: 'glamping', label: '글램핑' },
     ],
   },
 ];
