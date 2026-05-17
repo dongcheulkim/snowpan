@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -12,11 +12,13 @@ import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
 import { SITE_URL } from '../config/site';
 
+// 앱 우선 — 모든 페이지가 phone-width (max-w-md, ~448px) 로 중앙 정렬.
+// 데스크탑에선 양 옆에 빈 영역, 모바일에선 전체 폭. 추후 native app 으로 래핑 시
+// 같은 UI 그대로 동작.
+
 const MainLayout = () => {
   const location = useLocation();
 
-  // 다크모드 잔여 정리 — 이전 사용자가 'dark' 로 저장해뒀을 수 있어
-  // 한 번 더 확실히 제거.
   useEffect(() => {
     document.documentElement.classList.remove('dark');
     if (localStorage.getItem('theme') === 'dark') {
@@ -24,20 +26,13 @@ const MainLayout = () => {
     }
   }, []);
 
-  // 새 탭/새 세션에서 access 토큰 없지만 refresh 쿠키 있으면 자동 복원.
-  // persistent 유저가 사이트 다시 열었을 때 끊김없이 로그인 유지.
   useEffect(() => { restoreSession(); }, []);
-
-  // GA4 — 동의 받은 경우만 로드 (PIPA / 정보통신망법 준수)
   useEffect(() => { setupAnalytics(); }, []);
 
-  // 페이지뷰 — SPA 라우팅 변경 시마다 트래킹 (gtag 미로드 상태에선 no-op)
   useEffect(() => {
     trackPageView(location.pathname + location.search);
   }, [location.pathname, location.search]);
 
-  // 모든 페이지에 canonical link 자동 설정 — useMeta 미사용 페이지 포함.
-  // 쿼리 파라미터는 제외해서 같은 페이지의 중복 색인 방지.
   useEffect(() => {
     let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!el) {
@@ -48,53 +43,36 @@ const MainLayout = () => {
     el.href = `${SITE_URL}${location.pathname}`;
   }, [location.pathname]);
 
-  // SNOW PAN 네비바는 SNOWPAN 플랫폼 안에서만 노출.
-  // PanHub (/, /pan) 또는 다른 vertical (/bike, /run, /surf, /golf, /camp) 페이지는 SNOW PAN 메뉴 숨김.
+  // SNOW PAN 네비/BottomNav 노출 조건 — PAN 허브와 다른 vertical 페이지에서는 숨김.
   const firstSeg = location.pathname.split('/')[1] || '';
   const nonSnowVerticals = ['bike', 'run', 'surf', 'golf', 'camp'];
   const isPanHub = location.pathname === '/' || location.pathname === '/pan';
   const isOtherVertical = nonSnowVerticals.includes(firstSeg);
-  const showNavbar = !isPanHub && !isOtherVertical;
+  const showAppChrome = !isPanHub && !isOtherVertical;
 
   return (
-    <div className="min-h-screen bg-snow flex flex-col">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
-        본문 바로가기
-      </a>
-      {showNavbar && (
-        <header>
-          <Navbar />
-        </header>
-      )}
-      <main id="main-content" className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">
-        <Outlet />
-      </main>
-      {showNavbar && <footer className="hidden md:block border-t border-gray-200 bg-snow">
-        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 py-8 text-xs text-gray-500">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="font-bold text-gray-700">SNOW PAN</p>
-            <nav aria-label="푸터 메뉴" className="flex flex-wrap gap-x-2 gap-y-1 -mx-2">
-              <Link to="/pan" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900 font-bold">PAN 플랫폼</Link>
-              <Link to="/about" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">서비스 소개</Link>
-              <Link to="/help" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">도움말</Link>
-              <Link to="/terms" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">이용약관</Link>
-              <Link to="/privacy" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">개인정보처리방침</Link>
-              <Link to="/safe-trade" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">안전거래 가이드</Link>
-              <Link to="/mypage/support" className="inline-flex items-center min-h-11 px-2 hover:text-gray-900">고객센터</Link>
-            </nav>
-          </div>
-          <p className="mt-4 leading-relaxed text-gray-500">
-            © {new Date().getFullYear()} 스노우판 · 본 서비스는 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래에 대한 책임을 지지 않습니다.
-          </p>
-        </div>
-      </footer>}
-      {showNavbar && <BottomNav />}
-      <ToastHost />
-      <PushPermissionPrompt />
-      <ReviewPromptModal />
-      <CookieConsent />
-      <InstallPrompt />
-      <PullToRefresh />
+    <div className="min-h-screen bg-gray-100 flex justify-center">
+      {/* 앱 컨테이너 — 데스크탑에선 phone-width 중앙 정렬, 모바일에선 전체 폭 */}
+      <div className="relative w-full max-w-md bg-snow flex flex-col min-h-screen shadow-xl">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
+          본문 바로가기
+        </a>
+        {showAppChrome && (
+          <header>
+            <Navbar />
+          </header>
+        )}
+        <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
+          <Outlet />
+        </main>
+        {showAppChrome && <BottomNav />}
+        <ToastHost />
+        <PushPermissionPrompt />
+        <ReviewPromptModal />
+        <CookieConsent />
+        <InstallPrompt />
+        <PullToRefresh />
+      </div>
     </div>
   );
 };

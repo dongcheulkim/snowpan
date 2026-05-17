@@ -138,7 +138,7 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12">
+      <div className="px-4">
         <div className="flex justify-between h-14">
           <div className="flex items-center gap-4 sm:gap-8">
             <div className="flex items-center gap-2">

@@ -68,11 +68,11 @@ const BottomNav = () => {
     <nav
       aria-label="주요 메뉴"
       aria-hidden={keyboardOpen}
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
+      className={`absolute bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
         keyboardOpen ? 'translate-y-full pointer-events-none' : 'translate-y-0'
       }`}
     >
-      <div className="max-w-lg mx-auto flex justify-around items-center h-16 px-2">
+      <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
           const active = item.path === '/' ? path === '/' : path.startsWith(item.path);
           return (
