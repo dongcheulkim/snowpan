@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
-import PanTopBar from '../components/PanTopBar';
 import BottomNav from '../components/BottomNav';
 import ToastHost from '../components/Toast';
 import PushPermissionPrompt from '../components/PushPermissionPrompt';
@@ -55,7 +54,6 @@ const MainLayout = () => {
         본문 바로가기
       </a>
       <header>
-        <PanTopBar />
         <Navbar />
       </header>
       <main id="main-content" className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 pb-24 md:pb-6">

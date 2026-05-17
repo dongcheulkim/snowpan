@@ -34,7 +34,7 @@ export const VERTICALS: Vertical[] = [
     name: 'SNOWPAN',
     tagline: '스키 · 보드',
     status: 'active',
-    basePath: '/',
+    basePath: '/snowpan',
     toneFrom: '#e0f2fe',
     toneTo: '#bae6fd',
     description: '중고거래 · 렌탈 · 레슨 · 숙소를 한 곳에. 시즌의 모든 것.',

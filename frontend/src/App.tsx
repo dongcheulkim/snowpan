@@ -87,9 +87,9 @@ function App() {
       }>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            {/* 루트 / = SNOWPAN 홈 (직접 진입). PAN 허브는 /pan 으로 명시적 접근 시만. */}
-            <Route index element={<Home />} />
-            <Route path="snowpan" element={<Navigate to="/" replace />} />
+            {/* 루트 / = PAN 우산 허브 (모든 vertical 선택). SNOWPAN 홈은 /snowpan. */}
+            <Route index element={<PanHub />} />
+            <Route path="snowpan" element={<Home />} />
             <Route path="used" element={<Used />} />
             <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
             <Route path="used/:id" element={<UsedDetail />} />
