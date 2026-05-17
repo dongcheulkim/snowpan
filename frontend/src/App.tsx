@@ -33,6 +33,7 @@ const SafeTradeGuide = lazy(() => import('./pages/SafeTradeGuide'));
 const About = lazy(() => import('./pages/About'));
 const Help = lazy(() => import('./pages/Help'));
 const PanHub = lazy(() => import('./pages/PanHub'));
+const VerticalLanding = lazy(() => import('./pages/VerticalLanding'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Competitions = lazy(() => import('./pages/Competitions'));
 const RepairShop = lazy(() => import('./pages/RepairShop'));
@@ -109,6 +110,12 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
             <Route path="pan" element={<PanHub />} />
+            {/* 미출시 버티컬 랜딩 페이지 — slug 5종 (bike/run/surf/golf/camp) */}
+            <Route path="bike" element={<VerticalLanding />} />
+            <Route path="run" element={<VerticalLanding />} />
+            <Route path="surf" element={<VerticalLanding />} />
+            <Route path="golf" element={<VerticalLanding />} />
+            <Route path="camp" element={<VerticalLanding />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
