@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getUser } from '../api';
+import { useVertical } from '../hooks/useVertical';
 
 // 소프트 키보드 감지: Visual Viewport API 로 키보드 올라올 때 BottomNav 숨김.
 // iOS Safari / Android Chrome 둘 다 지원. 입력 폼 (Chat, UsedRegister, CommunityWrite 등) 에서
@@ -35,16 +36,22 @@ const BottomNav = () => {
   const user = getUser();
   const path = location.pathname;
   const keyboardOpen = useKeyboardOpen();
+  const vertical = useVertical();
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;
 
+  // 홈 = 현재 vertical 의 basePath (snow=/snowpan, bike=/bike, ...)
+  // 커뮤니티 = vertical 컨텍스트 안에서 (예: /bike/community)
+  const homePath = vertical.basePath;
+  const communityPath = vertical.slug === 'snow' ? '/community' : `${vertical.basePath}/community`;
+
   const items = [
     {
-      label: '홈', path: '/',
+      label: '홈', path: homePath,
       icon: (a: boolean) => <svg className="w-6 h-6" fill={a ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={a ? 0 : 2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
     },
     {
-      label: '커뮤니티', path: '/community',
+      label: '커뮤니티', path: communityPath,
       icon: (a: boolean) => <svg className="w-6 h-6" fill={a ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={a ? 0 : 2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>,
     },
     {

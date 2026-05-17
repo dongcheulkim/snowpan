@@ -79,7 +79,7 @@ export default function PanHub() {
           한 곳에서. 다음 시즌엔 BIKEPAN, RUNPAN 이 합류할 예정이에요.
         </p>
         <div className="flex flex-wrap gap-2 pt-2">
-          <Link to="/" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">SNOWPAN 들어가기</Link>
+          <Link to="/snowpan" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">SNOWPAN 들어가기</Link>
           <Link to="/about" className="inline-block px-5 py-2.5 bg-snow border border-gray-300 text-gray-700 rounded-lg font-bold text-xs">서비스 소개</Link>
         </div>
       </section>

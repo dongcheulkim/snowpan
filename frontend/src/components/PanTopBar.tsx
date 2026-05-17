@@ -11,7 +11,8 @@ export default function PanTopBar() {
   const firstSeg = location.pathname.split('/')[1] || '';
   const currentVertical = getVerticalBySlug(firstSeg) || getActiveVertical();
 
-  if (location.pathname === '/pan') return null;
+  // / 는 PAN Hub 자체 — 중복 노출 방지
+  if (location.pathname === '/' || location.pathname === '/pan') return null;
 
   return (
     <div className="bg-gray-900 text-white">

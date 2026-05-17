@@ -87,7 +87,9 @@ function App() {
       }>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Home />} />
+            {/* 루트 / = PAN 우산 허브 (모든 vertical 선택). SNOWPAN 홈은 /snowpan 으로 이동. */}
+            <Route index element={<PanHub />} />
+            <Route path="snowpan" element={<Home />} />
             <Route path="used" element={<Used />} />
             <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
             <Route path="used/:id" element={<UsedDetail />} />
@@ -109,7 +111,7 @@ function App() {
             <Route path="safe-trade" element={<SafeTradeGuide />} />
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
-            <Route path="pan" element={<PanHub />} />
+            <Route path="pan" element={<Navigate to="/" replace />} />
             {/* 미출시 버티컬 — 홈 + 매핑된 카테고리는 기존 SNOWPAN 컴포넌트 재사용,
                 매핑 없는 카테고리는 VerticalLanding fallback.
                 컴포넌트는 URL 의 vertical 을 감지해 빈 데이터 응답 받음. */}

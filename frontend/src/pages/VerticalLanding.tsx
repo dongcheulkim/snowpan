@@ -69,7 +69,7 @@ export default function VerticalLanding() {
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-4">
             <Link to={vertical.basePath} className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">{vertical.name} 홈으로</Link>
-            <Link to="/" className="inline-block px-4 py-2 bg-snow border border-gray-300 text-gray-700 rounded-lg font-bold text-xs">SNOWPAN 이용하기</Link>
+            <Link to="/snowpan" className="inline-block px-4 py-2 bg-snow border border-gray-300 text-gray-700 rounded-lg font-bold text-xs">SNOWPAN 이용하기</Link>
           </div>
         </section>
 
@@ -172,7 +172,7 @@ export default function VerticalLanding() {
         </p>
         <p className="text-sm text-gray-600 leading-relaxed mt-2">
           <strong>{vertical.name}</strong> 출시는 시장 신호와 베이스 플랫폼 안정화를 보고 결정합니다.
-          기다리는 사이, 첫 번째 플랫폼인 <Link to="/" className="text-sky-600 underline font-bold">SNOWPAN</Link> 을 이용해보세요.
+          기다리는 사이, 첫 번째 플랫폼인 <Link to="/snowpan" className="text-sky-600 underline font-bold">SNOWPAN</Link> 을 이용해보세요.
         </p>
       </section>
 

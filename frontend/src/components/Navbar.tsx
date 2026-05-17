@@ -141,7 +141,7 @@ const Navbar = () => {
       <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12">
         <div className="flex justify-between h-14">
           <div className="flex items-center gap-8">
-            <Link to="/" aria-label="스노우판 홈">
+            <Link to="/snowpan" aria-label="스노우판 홈">
               <Logo />
             </Link>
             <div className="hidden md:flex items-center gap-1">
