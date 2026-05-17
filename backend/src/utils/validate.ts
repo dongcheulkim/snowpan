@@ -47,7 +47,7 @@ export function normalizeEmail(raw: unknown): string | null {
 // 임의 외부 URL 차단 — 사용자에게 보일 이미지에 추적 픽셀/피싱 URL 박는 것 방지.
 // FRONTEND_URL env (Vercel 도메인) + ALLOWED_EXTRA_IMAGE_HOSTS (선택) 자동 포함.
 function buildAllowedImageHosts(): string[] {
-  const base = ['res.cloudinary.com', 'snowpan.vercel.app', 'snowpan.onrender.com'];
+  const base = ['res.cloudinary.com', 'pan-app.vercel.app', 'snowpan.vercel.app', 'snowpan.onrender.com'];
   const frontUrl = process.env.FRONTEND_URL;
   if (frontUrl) {
     try { base.push(new URL(frontUrl).hostname); } catch { /* ignore */ }
