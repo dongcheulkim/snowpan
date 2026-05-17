@@ -52,6 +52,36 @@ export const VERTICALS: Vertical[] = [
     toneTo: '#bbf7d0',
     description: '러너 장비 · 대회 · 페이스메이커. 한 발 한 발의 모든 것 (준비 중).',
   },
+  {
+    slug: 'surf',
+    name: 'SURFPAN',
+    tagline: '서핑 · 양양 · 송정',
+    status: 'coming_soon',
+    basePath: '/surf',
+    toneFrom: '#cffafe',
+    toneTo: '#67e8f9',
+    description: '보드 · 슈트 · 라인업 정보 · 강사. 파도의 모든 것 (준비 중).',
+  },
+  {
+    slug: 'golf',
+    name: 'GOLFPAN',
+    tagline: '골프 · 라운드 · 스크린',
+    status: 'coming_soon',
+    basePath: '/golf',
+    toneFrom: '#ecfccb',
+    toneTo: '#d9f99d',
+    description: '클럽 · 라운드 · 스크린 · 레슨. 그린의 모든 것 (준비 중).',
+  },
+  {
+    slug: 'camp',
+    name: 'CAMPPAN',
+    tagline: '캠핑 · 차박 · 백패킹',
+    status: 'coming_soon',
+    basePath: '/camp',
+    toneFrom: '#ffedd5',
+    toneTo: '#fed7aa',
+    description: '텐트 · 캠핑장 · 차박 코스 · 장비. 야영의 모든 것 (준비 중).',
+  },
 ];
 
 export const ACTIVE_VERTICAL_SLUG = 'snow';
