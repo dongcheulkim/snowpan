@@ -3,12 +3,15 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
+import { pickVertical } from '../utils/vertical';
 
 export const getAccommodations = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, type, limit, offset } = req.query;
+    const { resortId, type, limit, offset, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const where: any = { approved: true };
+    const where: any = { approved: true, vertical: verticalSlug };
     if (resortId) where.resortId = resortId as string;
     if (type) where.type = { contains: type as string };
 
@@ -69,7 +72,7 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
 export const createAccommodation = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, type, price, originalPrice, guests, features, image, resortId, businessLicense, accommodationPermit } = req.body;
+    const { name, type, price, originalPrice, guests, features, image, resortId, businessLicense, accommodationPermit, vertical } = req.body;
 
     if (!name || !type || !guests || !features || !image || !resortId || !businessLicense) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -83,6 +86,8 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
       if (!r.ok) { res.status(400).json({ error: r.error }); return; }
       originalParsed = r.value;
     }
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const accommodation = await prisma.accommodation.create({
       data: {
@@ -98,6 +103,7 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         resortId,
         userId,
         approved: false,
+        vertical: verticalSlug,
       },
       include: {
         resort: true,

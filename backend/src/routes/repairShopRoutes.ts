@@ -3,14 +3,17 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
+import { pickVertical } from '../utils/vertical';
 
 const router = Router();
 
 // 승인된 정비샵 목록 (공개)
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { area } = req.query;
-    const where: any = { approved: true };
+    const { area, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
+    const where: any = { approved: true, vertical: verticalSlug };
     if (area) where.area = area as string;
 
     const shops = await prisma.repairShop.findMany({
@@ -29,12 +32,14 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, businessLicense } = req.body;
+    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, businessLicense, vertical } = req.body;
 
     if (!name || !area || !address || !description || !businessLicense) {
       res.status(400).json({ error: '상호명, 지역, 주소, 설명, 사업자등록증은 필수입니다.' });
       return;
     }
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const shop = await prisma.repairShop.create({
       data: {
@@ -49,6 +54,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         naverMap: sanitizeText(naverMap, 300) || null,
         hours: sanitizeText(hours, 200) || null,
         image: image || null, businessLicense, userId, approved: false,
+        vertical: verticalSlug,
       },
     });
 

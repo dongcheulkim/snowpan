@@ -39,18 +39,27 @@ async function tryRefreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
-// URL 의 첫 segment 가 known vertical 이면 GET 요청에 ?vertical=X 자동 부착.
-// 컴포넌트가 vertical 을 명시적으로 안 보내도 백엔드는 올바른 vertical 데이터만 받음.
+// URL 의 첫 segment 가 known vertical 이면 vertical 자동 주입.
+// GET 은 query param, POST/PUT 은 body 에 추가. 컴포넌트가 명시 안 해도 올바른 vertical 적용.
 const VERTICAL_SLUGS = ['bike', 'run', 'surf', 'golf', 'camp'];
-function injectVertical(path: string, method: string): string {
-  if (method !== 'GET') return path;
-  // path 가 이미 vertical 파라미터 가지고 있으면 패스
-  if (path.includes('vertical=')) return path;
-  if (typeof window === 'undefined') return path;
+function currentVerticalFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
   const first = window.location.pathname.split('/')[1] || '';
-  if (!VERTICAL_SLUGS.includes(first)) return path;
+  return VERTICAL_SLUGS.includes(first) ? first : null;
+}
+function injectVerticalToPath(path: string): string {
+  if (path.includes('vertical=')) return path;
+  const slug = currentVerticalFromUrl();
+  if (!slug) return path;
   const sep = path.includes('?') ? '&' : '?';
-  return `${path}${sep}vertical=${first}`;
+  return `${path}${sep}vertical=${slug}`;
+}
+function injectVerticalToBody(body: unknown): unknown {
+  if (!body || typeof body !== 'object') return body;
+  if ((body as Record<string, unknown>).vertical) return body; // 명시적으로 지정됐으면 그대로
+  const slug = currentVerticalFromUrl();
+  if (!slug) return body;
+  return { ...(body as Record<string, unknown>), vertical: slug };
 }
 
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
@@ -64,13 +73,14 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
-  const finalPath = injectVertical(path, method);
+  const finalPath = method === 'GET' ? injectVerticalToPath(path) : path;
+  const finalBody = method !== 'GET' ? injectVerticalToBody(body) : body;
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${finalPath}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: finalBody ? JSON.stringify(finalBody) : undefined,
       // refresh 쿠키 cross-domain 전송에 필요.
       credentials: 'include',
     });

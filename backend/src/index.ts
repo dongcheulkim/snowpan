@@ -66,7 +66,6 @@ import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './m
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
-import { emptyForNonSnow } from './middleware/verticalFilter';
 import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 import { seedAdPricing } from './utils/seedAdPricing';
@@ -202,15 +201,8 @@ const publicCache = (maxAge: number, sMaxAge?: number) => (req: Request, res: Re
   next();
 };
 
-// vertical 필터 — non-snow vertical 요청은 빈 응답 즉시 반환 (DB 컬럼 미추가)
-app.use('/api/products', emptyForNonSnow);
-app.use('/api/rentals', emptyForNonSnow);
-app.use('/api/lessons', emptyForNonSnow);
-app.use('/api/accommodations', emptyForNonSnow);
-app.use('/api/community', emptyForNonSnow);
-app.use('/api/ski-shops', emptyForNonSnow);
-app.use('/api/repair-shops', emptyForNonSnow);
-app.use('/api/webcams', emptyForNonSnow);
+// vertical 필터링은 각 controller 의 where 절에서 처리 (DB 에 vertical 컬럼 있음).
+// emptyForNonSnow 미들웨어 제거됨 — 실제 vertical 별 데이터 반환.
 
 app.use('/api/banners', publicCache(300));            // 배너 — 5분
 app.use('/api/products', publicCache(30, 60));         // 매물 목록/상세 — 30s (목록 회전 빠름)

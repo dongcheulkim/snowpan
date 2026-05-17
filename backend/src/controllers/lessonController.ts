@@ -3,12 +3,15 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
+import { pickVertical } from '../utils/vertical';
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, level, limit, offset } = req.query;
+    const { resortId, level, limit, offset, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const where: any = { approved: true };
+    const where: any = { approved: true, vertical: verticalSlug };
     if (resortId) where.resortId = resortId as string;
     if (level) where.level = level as string;
 
@@ -40,7 +43,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
 export const createLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, level, maxStudents, image, resortId, instructorCert, businessLicense } = req.body;
+    const { name, price, duration, level, maxStudents, image, resortId, instructorCert, businessLicense, vertical } = req.body;
 
     if (!name || !duration || !level || !maxStudents || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -48,6 +51,8 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
     }
     const priceResult = parsePrice(price);
     if (!priceResult.ok) { res.status(400).json({ error: priceResult.error }); return; }
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const lesson = await prisma.lesson.create({
       data: {
@@ -62,6 +67,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         resortId,
         userId,
         approved: false, // 관리자 승인 대기
+        vertical: verticalSlug,
       },
       include: {
         resort: true,

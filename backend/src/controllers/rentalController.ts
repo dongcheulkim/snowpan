@@ -3,12 +3,15 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
+import { pickVertical } from '../utils/vertical';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, limit, offset } = req.query;
+    const { resortId, limit, offset, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const where: any = { approved: true };
+    const where: any = { approved: true, vertical: verticalSlug };
     if (resortId) where.resortId = resortId as string;
 
     const take = limit ? parseInt(limit as string, 10) : 50;
@@ -39,7 +42,9 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
 export const createRental = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, equipment, image, resortId, businessLicense } = req.body;
+    const { name, price, duration, equipment, image, resortId, businessLicense, vertical } = req.body;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     if (!name || !duration || !equipment || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -61,7 +66,8 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         businessLicense: businessLicense || null,
         resortId,
         userId,
-        approved: false, // 관리자 승인 대기
+        vertical: verticalSlug,
+        approved: false,
       },
       include: {
         resort: true,

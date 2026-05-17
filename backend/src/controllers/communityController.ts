@@ -5,6 +5,7 @@ import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
+import { pickVertical } from '../utils/vertical';
 import jwt from 'jsonwebtoken';
 
 // UUID v4 검증 — 'categories', 'votes' 같은 단어가 :id 자리에 들어와도
@@ -32,17 +33,18 @@ const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport, category, userId, search, limit, offset } = req.query;
+    const { sport, category, userId, search, limit, offset, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    // Cache key based on query params
-    const cacheKey = `posts:${JSON.stringify({ sport, category, userId, search, limit, offset })}`;
+    const cacheKey = `posts:${verticalSlug}:${JSON.stringify({ sport, category, userId, search, limit, offset })}`;
     const cached = cacheGet<{ posts: unknown[]; totalCount: number }>(cacheKey);
     if (cached) {
       res.json(cached);
       return;
     }
 
-    const where: any = {};
+    const where: any = { vertical: verticalSlug };
     if (sport) where.sport = sport as string;
     if (category && category !== 'all') where.category = category as string;
     if (userId) where.userId = userId as string;
@@ -90,13 +92,15 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
 // 인기 게시글 (최근 7일, 좋아요+조회수 기준 상위 10개)
 export const getPopularPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport } = req.query;
+    const { sport, vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const cacheKey = `posts:popular:${sport || 'all'}`;
+    const cacheKey = `posts:popular:${verticalSlug}:${sport || 'all'}`;
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
-    const where: any = {};
+    const where: any = { vertical: verticalSlug };
     if (sport) where.sport = sport as string;
 
     // 최근 7일 인기글 먼저, 부족하면 전체에서 채움
@@ -219,20 +223,23 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { title, content, category, sport, images } = req.body;
+    const { title, content, category, sport, images, vertical } = req.body;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     if (!title || !content || !category || !sport) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
 
-    // 카테고리 화이트리스트 — 'poll' 은 PollCreate 라우트에서만 허용.
+    // 카테고리 화이트리스트
     const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
     if (!allowedCategories.includes(category)) {
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;
     }
-    if (!['ski', 'board'].includes(sport)) {
+    // sport: snow=ski/board, bike=road/mtb, run=road/trail, etc. — vertical 안에서 자유롭게 (검증 약화)
+    if (typeof sport !== 'string' || sport.length > 20) {
       res.status(400).json({ error: '유효하지 않은 종목입니다.' });
       return;
     }
@@ -280,8 +287,8 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     const post = await prisma.post.create({
-      data: { title: cleanTitle, content: cleanContent, category, sport, userId, images: images || null },
-      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: 'snow' }, select: { badgeType: true } } } } },
+      data: { title: cleanTitle, content: cleanContent, category, sport, vertical: verticalSlug, userId, images: images || null },
+      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: verticalSlug }, select: { badgeType: true } } } } },
     });
 
     res.status(201).json(post);

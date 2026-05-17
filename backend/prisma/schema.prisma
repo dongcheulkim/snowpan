@@ -95,6 +95,8 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  vertical    String   @default("snow") // 'snow' | 'bike' | 'run' | 'surf' | 'golf' | 'camp'
+
   @@index([category])
   @@index([category, subcategory])
   @@index([category, createdAt])
@@ -102,8 +104,10 @@ model Product {
   @@index([createdAt])
   @@index([status])
   @@index([bumpedAt])
-  @@index([brand]) // 시세 통계 (subcategory + brand 필터) 가속
-  @@index([category, subcategory, brand]) // 시세 통계 핵심 — 5K DAU 시즌 피크 대비
+  @@index([brand])
+  @@index([category, subcategory, brand])
+  @@index([vertical, category, createdAt]) // 플랫폼별 최신 매물
+  @@index([vertical, category, subcategory]) // 플랫폼별 카테고리 필터
   @@map("products")
 }
 
@@ -120,12 +124,14 @@ model Rental {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
+  vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
   @@index([approved, createdAt]) // 승인된 매물 최신순 목록
+  @@index([vertical, approved, createdAt])
   @@map("rentals")
 }
 
@@ -144,12 +150,14 @@ model Lesson {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
+  vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
   @@index([approved, createdAt])
+  @@index([vertical, approved, createdAt])
   @@map("lessons")
 }
 
@@ -169,12 +177,14 @@ model Accommodation {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false)
+  vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@index([resortId])
   @@index([userId])
   @@index([approved, createdAt])
+  @@index([vertical, approved, createdAt])
   @@map("accommodations")
 }
 
@@ -232,8 +242,9 @@ model Post {
   id        String    @id @default(uuid())
   title     String
   content   String
-  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'poll'
-  sport     String    // 'ski' | 'board'
+  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'meetup' | 'poll'
+  sport     String    // snow: 'ski' | 'board' / bike: 'road' | 'mtb' / etc.
+  vertical  String    @default("snow")
   images    String?   // 콤마 구분 이미지 URLs
   likes     Int       @default(0)
   views     Int       @default(0)
@@ -248,8 +259,10 @@ model Post {
   @@index([category])
   @@index([userId])
   @@index([createdAt])
-  @@index([sport, createdAt]) // 종목별 최신순 (커뮤니티 메인)
-  @@index([sport, category, createdAt]) // 종목+카테고리 탭 필터
+  @@index([sport, createdAt])
+  @@index([sport, category, createdAt])
+  @@index([vertical, createdAt]) // 플랫폼별 최신순 커뮤니티
+  @@index([vertical, category, createdAt])
   @@map("posts")
 }
 
@@ -509,6 +522,7 @@ model SkiShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
+  vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   createdAt       DateTime @default(now())
@@ -517,7 +531,8 @@ model SkiShop {
   @@index([userId])
   @@index([area])
   @@index([approved])
-  @@index([approved, isPremium, createdAt]) // 승인 + 프리미엄 + 최신순 (목록)
+  @@index([approved, isPremium, createdAt])
+  @@index([vertical, approved, isPremium, createdAt])
   @@map("ski_shops")
 }
 
@@ -538,6 +553,7 @@ model RepairShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
+  vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   createdAt       DateTime @default(now())
@@ -547,6 +563,7 @@ model RepairShop {
   @@index([area])
   @@index([approved])
   @@index([approved, isPremium, createdAt])
+  @@index([vertical, approved, isPremium, createdAt])
   @@map("repair_shops")
 }
 
@@ -564,10 +581,12 @@ model Webcam {
   externalUrl String?  // 스트림 없을 때 공식 사이트
   active      Boolean  @default(true)
   order       Int      @default(0)
+  vertical    String   @default("snow") // snow=리조트, surf=라인업, etc.
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([active, order])
+  @@index([vertical, active, order])
   @@map("webcams")
 }
 

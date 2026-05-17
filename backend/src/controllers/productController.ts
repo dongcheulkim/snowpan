@@ -8,14 +8,16 @@ import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
+import { pickVertical } from '../utils/vertical';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, subcategory, userId, status, search, limit, offset, sort } = req.query;
+    const { category, subcategory, userId, status, search, limit, offset, sort, vertical } = req.query;
+    // ?vertical=X 없으면 'snow' default (역호환). 잘못된 값은 거절.
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    // 캐시 키 정규화 — 파라미터 정렬 + null/undefined 제거. 같은 쿼리가
-    // URL 파라미터 순서만 다른 경우에도 캐시 히트.
-    const keyParts: Record<string, string> = {};
+    const keyParts: Record<string, string> = { vertical: verticalSlug };
     if (category) keyParts.category = String(category);
     if (subcategory) keyParts.subcategory = String(subcategory);
     if (userId) keyParts.userId = String(userId);
@@ -33,7 +35,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const where: Prisma.ProductWhereInput = {};
+    const where: Prisma.ProductWhereInput = { vertical: verticalSlug };
     if (category) where.category = category as string;
     if (subcategory) where.subcategory = subcategory as string;
     if (userId) where.userId = userId as string;
@@ -197,7 +199,9 @@ export const getMarketStats = async (req: Request, res: Response): Promise<void>
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size, vertical } = req.body;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     if (!name || !image) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -244,6 +248,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         image,
         images: images || null,
         category: 'used',
+        vertical: verticalSlug,
         description: cleanDescription,
         condition: sanitizeText(condition, 20),
         length: sanitizeText(length, 30) || null,

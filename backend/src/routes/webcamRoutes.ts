@@ -1,13 +1,17 @@
 // 웹캠 — 공개 read-only API. 어드민 추가/수정은 향후 어드민 라우트에서.
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
+import { pickVertical } from '../utils/vertical';
 
 const router = Router();
 
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
+    const { vertical } = req.query;
+    const verticalSlug = pickVertical(vertical);
+    if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
     const list = await prisma.webcam.findMany({
-      where: { active: true },
+      where: { active: true, vertical: verticalSlug },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
       select: {
         id: true, slug: true, name: true, region: true,
