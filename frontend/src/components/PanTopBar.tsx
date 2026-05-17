@@ -38,15 +38,13 @@ export default function PanTopBar() {
                 </span>
               );
             }
-            const isComingSoon = v.status !== 'active';
             return (
               <Link
                 key={v.slug}
                 to={v.basePath}
-                className={`${baseCls} ${isComingSoon ? 'text-gray-500 hover:text-gray-300' : 'text-gray-300 hover:text-white'} hover:bg-gray-800`}
+                className={`${baseCls} text-gray-300 hover:text-white hover:bg-gray-800`}
               >
                 {v.name}
-                {isComingSoon && <span className="ml-1 text-[8px] font-normal opacity-70">준비중</span>}
               </Link>
             );
           })}

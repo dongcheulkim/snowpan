@@ -43,12 +43,10 @@ const MainLayout = () => {
     el.href = `${SITE_URL}${location.pathname}`;
   }, [location.pathname]);
 
-  // SNOW PAN 네비/BottomNav 노출 조건 — PAN 허브와 다른 vertical 페이지에서는 숨김.
-  const firstSeg = location.pathname.split('/')[1] || '';
-  const nonSnowVerticals = ['bike', 'run', 'surf', 'golf', 'camp'];
+  // 네비/BottomNav 노출 조건 — PAN 허브 (/, /pan) 에서만 숨김.
+  // 각 vertical 플랫폼 안에서는 모두 노출 (Navbar Logo 가 vertical-aware).
   const isPanHub = location.pathname === '/' || location.pathname === '/pan';
-  const isOtherVertical = nonSnowVerticals.includes(firstSeg);
-  const showAppChrome = !isPanHub && !isOtherVertical;
+  const showAppChrome = !isPanHub;
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">

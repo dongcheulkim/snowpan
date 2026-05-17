@@ -7,6 +7,7 @@ import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../compon
 import BrandHero from '../components/BrandHero';
 import SeasonCountdown from '../components/SeasonCountdown';
 import { communityCategoryLabel } from '../utils/communityLabels';
+import { useVertical } from '../hooks/useVertical';
 
 interface Product {
   id: string;
@@ -40,15 +41,23 @@ interface CommunityPost {
 }
 
 const Home = () => {
+  const vertical = useVertical();
+  const isSnow = vertical.slug === 'snow';
+  const verticalBase = isSnow ? '' : vertical.basePath; // '' for snow (root), '/bike' for bike etc.
+
   const [currentBanner, setCurrentBanner] = useState(0);
   const [hotDeals, setHotDeals] = useState<Product[]>([]);
-  const [communityTab, setCommunityTab] = useState<'ski' | 'board'>('ski');
+  const sportTabs = vertical.sports || [{ id: 'ski', label: '스키' }, { id: 'board', label: '보드' }];
+  const [communityTab, setCommunityTab] = useState<string>(sportTabs[0]?.id || 'ski');
   const [polls, setPolls] = useState<CommunityPost[]>([]);
-  const [skiPosts, setSkiPosts] = useState<CommunityPost[]>([]);
-  const [boardPosts, setBoardPosts] = useState<CommunityPost[]>([]);
+  const [tabPosts, setTabPosts] = useState<Record<string, CommunityPost[]>>({});
   const [, setLangTick] = useState(0);
 
-  useEffect(() => { document.title = '스노우판 - 스키/보드 중고거래 & 렌탈'; }, []);
+  useEffect(() => {
+    document.title = isSnow
+      ? '스노우판 - 스키/보드 중고거래 & 렌탈'
+      : `${vertical.name} - ${vertical.tagline} | PAN`;
+  }, [isSnow, vertical]);
 
   // Re-render on language change
   useEffect(() => {
@@ -74,17 +83,25 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [totalSlides]);
 
-  const categories: { id: keyof typeof categoryIcons; title: string; link: string }[] = [
-    { id: 'skishop', title: '스키샵', link: '/new-equipment' },
-    { id: 'repair', title: '정비', link: '/repair' },
-    { id: 'used', title: t('cat.used'), link: '/used' },
-    { id: 'rental', title: t('cat.rental'), link: '/rental' },
-    { id: 'lesson', title: t('cat.lesson'), link: '/lesson' },
-    { id: 'accommodation', title: t('cat.accommodation'), link: '/accommodation' },
-    { id: 'community', title: t('cat.community'), link: '/community' },
-    { id: 'competitions', title: '시합일정', link: '/competitions' },
-    { id: 'webcam', title: t('cat.webcam'), link: '/webcam' },
-  ];
+  // 카테고리는 vertical 별로 다름.
+  // snow 는 기존 9개 (스키 도메인 특화). 다른 vertical 은 config 의 homeCategories.
+  const categories: { id: keyof typeof categoryIcons | string; title: string; link: string }[] = isSnow
+    ? [
+        { id: 'skishop', title: '스키샵', link: '/new-equipment' },
+        { id: 'repair', title: '정비', link: '/repair' },
+        { id: 'used', title: t('cat.used'), link: '/used' },
+        { id: 'rental', title: t('cat.rental'), link: '/rental' },
+        { id: 'lesson', title: t('cat.lesson'), link: '/lesson' },
+        { id: 'accommodation', title: t('cat.accommodation'), link: '/accommodation' },
+        { id: 'community', title: t('cat.community'), link: '/community' },
+        { id: 'competitions', title: '시합일정', link: '/competitions' },
+        { id: 'webcam', title: t('cat.webcam'), link: '/webcam' },
+      ]
+    : (vertical.homeCategories || []).map(c => ({
+        id: c.slug,
+        title: c.label,
+        link: `${verticalBase}/${c.slug}`,
+      }));
 
   // 인기중고매물 독립 로딩 (경량 API, 실패 시 기존 API 폴백)
   useEffect(() => {
@@ -97,18 +114,23 @@ const Home = () => {
       });
   }, []);
 
-  // 인기 커뮤니티 게시글 + 인기 투표 로딩
+  // 인기 커뮤니티 게시글 + 인기 투표 로딩 — vertical 의 sports 별로 가져옴
   useEffect(() => {
     Promise.all([
-      api<CommunityPost[]>('/community/popular?sport=ski').catch(() => []),
-      api<CommunityPost[]>('/community/popular?sport=board').catch(() => []),
+      ...sportTabs.map(s => api<CommunityPost[]>(`/community/popular?sport=${s.id}`).catch(() => [])),
       api<{ posts: CommunityPost[]; totalCount: number }>('/community?category=poll&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
-    ]).then(([ski, board, pollRes]) => {
-      setSkiPosts(Array.isArray(ski) ? ski.slice(0, 5) : []);
-      setBoardPosts(Array.isArray(board) ? board.slice(0, 5) : []);
+    ]).then((results) => {
+      const sportResults = results.slice(0, sportTabs.length) as CommunityPost[][];
+      const pollRes = results[results.length - 1] as { posts: CommunityPost[]; totalCount: number };
+      const next: Record<string, CommunityPost[]> = {};
+      sportTabs.forEach((s, i) => {
+        next[s.id] = Array.isArray(sportResults[i]) ? sportResults[i].slice(0, 5) : [];
+      });
+      setTabPosts(next);
       setPolls(Array.isArray(pollRes) ? [] : (pollRes?.posts || []));
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vertical.slug]);
 
   return (
     <div className="min-h-screen bg-sky-50">
@@ -187,11 +209,11 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Categories — 9개 아이템: 모바일 3×3, 태블릿 5×2, 데스크톱 9×1 (균등 정렬) */}
+      {/* Categories — snow 는 9개, 다른 vertical 은 homeCategories 수만큼 */}
       <div className="px-4 pb-5 bg-snow">
-        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-y-4 gap-x-2">
+        <div className={`grid ${isSnow ? 'grid-cols-3 sm:grid-cols-5 lg:grid-cols-9' : 'grid-cols-3'} gap-y-4 gap-x-2`}>
           {categories.map((cat) => {
-            const Icon = categoryIcons[cat.id];
+            const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
             return (
               <Link
                 key={cat.id}
@@ -199,7 +221,7 @@ const Home = () => {
                 className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
               >
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-100 transition-colors">
-                  <Icon size={34} />
+                  {Icon ? <Icon size={34} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
                 </div>
                 <span className="text-xs font-semibold text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
@@ -208,10 +230,12 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 시즌 카운트다운 */}
-      <div className="px-4 pb-2 bg-snow">
-        <SeasonCountdown />
-      </div>
+      {/* 시즌 카운트다운 — snow 만 (다른 vertical 은 시즌성 다름) */}
+      {isSnow && (
+        <div className="px-4 pb-2 bg-snow">
+          <SeasonCountdown />
+        </div>
+      )}
 
       {/* Category Sections */}
       <div className="px-4 py-4 space-y-4">
@@ -220,14 +244,14 @@ const Home = () => {
         <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물</h2>
-            <Link to="/used" className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
+            <Link to={`${verticalBase}/used`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
           </div>
           {hotDeals.length > 0 ? (
             <div className="space-y-0">
               {hotDeals.map((deal, idx) => (
                 <Link
                   key={deal.id}
-                  to={`/used/${deal.id}`}
+                  to={`${verticalBase}/used/${deal.id}`}
                   className={`flex items-center py-3 ${idx !== hotDeals.length - 1 ? 'border-b border-gray-100' : ''}`}
                 >
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl overflow-hidden">
@@ -257,20 +281,21 @@ const Home = () => {
         <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><FireIcon size={18} /> 인기 커뮤니티</h2>
-            <Link to={`/community/${communityTab}`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
+            <Link to={isSnow ? `/community/${communityTab}` : `${verticalBase}/community`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
           </div>
           <div className="flex gap-1 mb-3">
-            <button onClick={() => setCommunityTab('ski')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'ski' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-              <SkiIcon size={14} /> 스키
-            </button>
-            <button onClick={() => setCommunityTab('board')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === 'board' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-              <SnowboardIcon size={14} /> 보드
-            </button>
+            {sportTabs.map(s => (
+              <button key={s.id} onClick={() => setCommunityTab(s.id)} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === s.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                {isSnow && s.id === 'ski' && <SkiIcon size={14} />}
+                {isSnow && s.id === 'board' && <SnowboardIcon size={14} />}
+                {s.label}
+              </button>
+            ))}
           </div>
-          {(communityTab === 'ski' ? skiPosts : boardPosts).length > 0 ? (
+          {(tabPosts[communityTab] || []).length > 0 ? (
             <div className="space-y-0">
-              {(communityTab === 'ski' ? skiPosts : boardPosts).map((post, idx, arr) => (
-                <Link key={post.id} to={`/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+              {(tabPosts[communityTab] || []).map((post, idx, arr) => (
+                <Link key={post.id} to={`${verticalBase}/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{communityCategoryLabel(post.category, communityTab)}</span>
                     <span className="text-sm text-gray-900 truncate">{post.title}</span>

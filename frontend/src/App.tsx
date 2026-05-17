@@ -117,7 +117,7 @@ function App() {
                 컴포넌트는 URL 의 vertical 을 감지해 빈 데이터 응답 받음. */}
             {(['bike', 'run', 'surf', 'golf', 'camp'] as const).map((v) => (
               <Route key={v} path={v}>
-                <Route index element={<VerticalLanding />} />
+                <Route index element={<Home />} />
                 <Route path="used" element={<Used />} />
                 <Route path="used/:id" element={<UsedDetail />} />
                 <Route path="community" element={<Community />} />

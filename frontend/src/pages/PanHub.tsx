@@ -27,42 +27,29 @@ export default function PanHub() {
       <section className="space-y-3">
         <h2 className="text-xs font-bold text-gray-500 tracking-widest px-1">PLATFORMS</h2>
         <div className="grid sm:grid-cols-2 gap-3">
-          {VERTICALS.map((v) => {
-            const isActive = v.status === 'active';
-            const cardClass = `relative rounded-2xl border-2 p-5 transition-all border-gray-300 hover:border-gray-900 cursor-pointer ${
-              !isActive ? 'opacity-95' : ''
-            }`;
-            return (
-              <Link key={v.slug} to={v.basePath} className={cardClass}>
-                <div
-                  className="absolute inset-0 rounded-2xl opacity-30 pointer-events-none"
-                  style={{ background: `linear-gradient(135deg, ${v.toneFrom} 0%, ${v.toneTo} 100%)` }}
-                  aria-hidden
-                />
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2 min-h-[28px]">
-                    <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">{v.slug.toUpperCase()}</span>
-                    {!isActive && (
-                      <span className="text-[10px] font-bold tracking-wider bg-gray-900 text-white px-2 py-0.5 rounded-full">
-                        COMING SOON
-                      </span>
-                    )}
-                    {v.status === 'beta' && (
-                      <span className="text-[10px] font-bold tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full">
-                        BETA
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-black text-gray-900 tracking-wider mt-3">{v.name}</h3>
-                  <p className="text-xs text-gray-700 font-medium mt-0.5">{v.tagline}</p>
-                  <p className="text-xs text-gray-600 mt-2 leading-relaxed">{v.description}</p>
-                  <p className="text-xs font-bold text-gray-900 mt-3 inline-flex items-center gap-1">
-                    {isActive ? '들어가기' : '미리보기'} <span aria-hidden>→</span>
-                  </p>
+          {VERTICALS.map((v) => (
+            <Link key={v.slug} to={v.basePath} className="relative rounded-2xl border-2 p-5 transition-all border-gray-300 hover:border-gray-900 cursor-pointer">
+              <div
+                className="absolute inset-0 rounded-2xl opacity-30 pointer-events-none"
+                style={{ background: `linear-gradient(135deg, ${v.toneFrom} 0%, ${v.toneTo} 100%)` }}
+                aria-hidden
+              />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2 min-h-[28px]">
+                  <span className="text-[10px] font-black tracking-[0.2em] text-gray-400">{v.slug.toUpperCase()}</span>
+                  {v.status === 'beta' && (
+                    <span className="text-[10px] font-bold tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full">BETA</span>
+                  )}
                 </div>
-              </Link>
-            );
-          })}
+                <h3 className="text-xl font-black text-gray-900 tracking-wider mt-3">{v.name}</h3>
+                <p className="text-xs text-gray-700 font-medium mt-0.5">{v.tagline}</p>
+                <p className="text-xs text-gray-600 mt-2 leading-relaxed">{v.description}</p>
+                <p className="text-xs font-bold text-gray-900 mt-3 inline-flex items-center gap-1">
+                  들어가기 <span aria-hidden>→</span>
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
