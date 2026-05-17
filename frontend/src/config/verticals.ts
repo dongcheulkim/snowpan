@@ -30,6 +30,11 @@ export interface Vertical {
   usedSubcategories?: { id: string; label: string }[];
   // 커뮤니티 sport 탭 — snow 는 ski/board, bike 는 road/mtb 등
   sports?: { id: string; label: string }[];
+  // 강조 색상 (브랜드 accent) — 버튼, 헤더 강조에 사용. hex.
+  accentColor?: string;
+  // 차별화 강점 (USP) — 다른 플랫폼에 없는 우리만의 강점 3-4개.
+  // PanHub 카드와 Home hero 아래 노출.
+  uniqueStrengths?: { label: string; desc: string }[];
 }
 
 export const VERTICALS: Vertical[] = [
@@ -39,10 +44,17 @@ export const VERTICALS: Vertical[] = [
     tagline: '스키 · 보드',
     status: 'active',
     basePath: '/snowpan',
-    toneFrom: '#e0f2fe',
-    toneTo: '#bae6fd',
+    toneFrom: '#dbeafe',
+    toneTo: '#93c5fd',
+    accentColor: '#2563eb', // ice blue
     description: '중고거래 · 렌탈 · 레슨 · 숙소를 한 곳에. 시즌의 모든 것.',
     englishSlogan: 'FREEDOM ON THE SNOW',
+    uniqueStrengths: [
+      { label: '실시간 시세', desc: '플랫폼 거래 데이터 기반 중고 시세 — 외부 비교 사이트 아님' },
+      { label: '리조트 웹캠', desc: '13개 리조트 실시간 슬로프 컨디션 한곳에' },
+      { label: '강사 인증', desc: '자격증 검증된 강사·데몬 매칭 (level/teaching/pro 뱃지)' },
+      { label: '시즌권 트래커', desc: '오픈/마감 알림 + 전년 대비 가격 추이' },
+    ],
     previewCategories: [
       { label: '중고거래', desc: '시세 기반 중고 장비' },
       { label: '렌탈', desc: '리조트별 풀세트' },
@@ -70,10 +82,17 @@ export const VERTICALS: Vertical[] = [
     tagline: '자전거 · MTB · 로드',
     status: 'active',
     basePath: '/bike',
-    toneFrom: '#fef3c7',
-    toneTo: '#fde68a',
+    toneFrom: '#fee2e2',
+    toneTo: '#fca5a5',
+    accentColor: '#dc2626', // racing red
     description: '로드 · MTB · 그래블. 페달의 모든 것.',
     englishSlogan: 'EVERY PEDAL COUNTS',
+    uniqueStrengths: [
+      { label: 'GPX 코스 공유', desc: 'Strava/Garmin 연동 GPX 업로드·다운로드. 라이딩 코스 라이브러리' },
+      { label: '부품 시세 추적', desc: '휠셋·구동계·프레임 모델별 가격 변동 그래프' },
+      { label: '피팅 도장', desc: '바이크샵 피팅 이력 + 사이즈 추천 (체형 기반)' },
+      { label: '동행 매칭', desc: '평균 속도·거리·코스 난이도 기반 라이딩 메이트' },
+    ],
     previewCategories: [
       { label: '중고거래', desc: '프레임 · 휠셋 · 컴포넌트' },
       { label: '라이딩 동행', desc: '코스 매칭 · 그룹 라이딩' },
@@ -110,10 +129,17 @@ export const VERTICALS: Vertical[] = [
     tagline: '러닝 · 마라톤 · 트레일',
     status: 'active',
     basePath: '/run',
-    toneFrom: '#dcfce7',
-    toneTo: '#bbf7d0',
+    toneFrom: '#ffedd5',
+    toneTo: '#fdba74',
+    accentColor: '#ea580c', // sunrise orange
     description: '한 발 한 발, 러너를 위한 플랫폼.',
     englishSlogan: 'EVERY STEP MATTERS',
+    uniqueStrengths: [
+      { label: '페이서 매칭', desc: 'sub-3, sub-4 등 목표 페이스별 동반 러너 매칭' },
+      { label: '슈즈 마일리지', desc: '슈즈별 누적 거리 추적 — 교체 시점 알림 (보통 600-800km)' },
+      { label: '대회 캘린더', desc: '국내 마라톤·트레일런 일정 + 신청 마감 알림' },
+      { label: '코스 라이브러리', desc: '한강·트레일·인증코스 거리/난이도/포토스팟' },
+    ],
     previewCategories: [
       { label: '러닝 장비', desc: '슈즈 · 의류 · 시계' },
       { label: '대회 정보', desc: '마라톤 · 트레일런 · 등록' },
@@ -149,9 +175,16 @@ export const VERTICALS: Vertical[] = [
     status: 'active',
     basePath: '/surf',
     toneFrom: '#cffafe',
-    toneTo: '#67e8f9',
+    toneTo: '#22d3ee',
+    accentColor: '#0891b2', // ocean teal
     description: '보드와 파도, 모든 라인업.',
     englishSlogan: 'RIDE THE LINEUP',
+    uniqueStrengths: [
+      { label: '실시간 라인업', desc: '양양·송정·중문 파도·바람·조수 실시간 (Surfline 연동)' },
+      { label: '카풀 매칭', desc: '서울 ↔ 양양·강원 카풀. 주말 메이트 매칭' },
+      { label: '보드 사이즈 추천', desc: '체중·실력·파도 컨디션 기반 보드 길이/볼륨 추천' },
+      { label: '강사 인증', desc: 'KSA·CISA 자격 검증된 강사. 입문/중급/빅웨이브 레벨별' },
+    ],
     previewCategories: [
       { label: '중고거래', desc: '보드 · 슈트 · 액세서리' },
       { label: '강사', desc: '입문 · 중급 · 빅웨이브' },
@@ -187,10 +220,17 @@ export const VERTICALS: Vertical[] = [
     tagline: '골프 · 라운드 · 스크린',
     status: 'active',
     basePath: '/golf',
-    toneFrom: '#ecfccb',
-    toneTo: '#d9f99d',
+    toneFrom: '#bbf7d0',
+    toneTo: '#4ade80',
+    accentColor: '#15803d', // grass green
     description: '클럽부터 라운드까지, 그린의 모든 것.',
     englishSlogan: 'OWN THE GREEN',
+    uniqueStrengths: [
+      { label: '클럽 시세', desc: '드라이버·아이언·퍼터 모델별 평균가 + 거래 트렌드' },
+      { label: '동반자 매칭', desc: '핸디캡·라운드 스타일 기반 1인 라운드 동반자' },
+      { label: '스크린 가격 비교', desc: '카카오VX·G-tour 등 매장별 시간대 가격' },
+      { label: '필드 부킹 알람', desc: '인기 골프장 빈 시간대 자동 알림' },
+    ],
     previewCategories: [
       { label: '중고거래', desc: '클럽 · 풀세트 · 의류' },
       { label: '라운드', desc: '필드 부킹 · 동반자 매칭' },
@@ -226,10 +266,17 @@ export const VERTICALS: Vertical[] = [
     tagline: '캠핑 · 차박 · 백패킹',
     status: 'active',
     basePath: '/camp',
-    toneFrom: '#ffedd5',
-    toneTo: '#fed7aa',
+    toneFrom: '#fef3c7',
+    toneTo: '#92400e',
+    accentColor: '#a16207', // campfire amber
     description: '텐트 한 동, 별 가득. 야영의 모든 것.',
     englishSlogan: 'UNDER THE STARS',
+    uniqueStrengths: [
+      { label: '캠핑장 자리 알람', desc: '인기 캠핑장 (오토캠프장) 빈자리 알림 — 예약 마감 전 푸시' },
+      { label: '차박 GPS 좌표', desc: '검증된 차박 명소 좌표 + 네비 한 번에 (화장실·물·경치)' },
+      { label: '장비 대여 매칭', desc: '동네 캠퍼 장비 P2P 대여 (텐트·매트·랜턴)' },
+      { label: '날씨·달 알람', desc: '캠핑 가는 날 비/별 잘 보이는지 예측 + 알림' },
+    ],
     previewCategories: [
       { label: '중고거래', desc: '텐트 · 체어 · 코펠' },
       { label: '캠핑장', desc: '오토 · 글램핑 · 노지' },

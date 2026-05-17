@@ -41,10 +41,20 @@ export default function PanHub() {
                     <span className="text-[10px] font-bold tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-full">BETA</span>
                   )}
                 </div>
-                <h3 className="text-xl font-black text-gray-900 tracking-wider mt-3">{v.name}</h3>
+                <h3 className="text-xl font-black tracking-wider mt-3" style={{ color: v.accentColor || '#0f172a' }}>{v.name}</h3>
                 <p className="text-xs text-gray-700 font-medium mt-0.5">{v.tagline}</p>
                 <p className="text-xs text-gray-600 mt-2 leading-relaxed">{v.description}</p>
-                <p className="text-xs font-bold text-gray-900 mt-3 inline-flex items-center gap-1">
+                {v.uniqueStrengths && v.uniqueStrengths.length > 0 && (
+                  <ul className="mt-3 space-y-1">
+                    {v.uniqueStrengths.slice(0, 3).map(s => (
+                      <li key={s.label} className="text-[10px] text-gray-700 flex items-start gap-1">
+                        <span className="font-black flex-shrink-0" style={{ color: v.accentColor || '#0f172a' }}>·</span>
+                        <span><strong className="font-bold">{s.label}</strong> — {s.desc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="text-xs font-bold mt-3 inline-flex items-center gap-1" style={{ color: v.accentColor || '#0f172a' }}>
                   들어가기 <span aria-hidden>→</span>
                 </p>
               </div>

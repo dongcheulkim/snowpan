@@ -237,11 +237,36 @@ const Home = () => {
         </div>
       )}
 
+      {/* Vertical 만의 강점 — uniqueStrengths 가 설정된 vertical 만 노출 */}
+      {vertical.uniqueStrengths && vertical.uniqueStrengths.length > 0 && (
+        <div className="px-4 pb-4 bg-snow">
+          <div
+            className="rounded-2xl p-4 border-2"
+            style={{
+              backgroundColor: vertical.toneFrom + '60',
+              borderColor: (vertical.accentColor || '#0f172a') + '40',
+            }}
+          >
+            <p className="text-[10px] font-black tracking-[0.2em] mb-2" style={{ color: vertical.accentColor || '#0f172a' }}>
+              {vertical.name} 만의 강점
+            </p>
+            <ul className="grid grid-cols-2 gap-x-3 gap-y-2">
+              {vertical.uniqueStrengths.map(s => (
+                <li key={s.label} className="text-[11px]">
+                  <div className="font-bold text-gray-900">{s.label}</div>
+                  <div className="text-gray-600 leading-tight mt-0.5">{s.desc}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Category Sections */}
       <div className="px-4 py-4 space-y-4">
 
         {/* Hot Deals */}
-        <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+        <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물</h2>
             <Link to={`${verticalBase}/used`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
@@ -278,7 +303,7 @@ const Home = () => {
         </div>
 
         {/* Community */}
-        <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+        <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><FireIcon size={18} /> 인기 커뮤니티</h2>
             <Link to={isSnow ? `/community/${communityTab}` : `${verticalBase}/community`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
@@ -314,7 +339,7 @@ const Home = () => {
 
         {/* 인기 투표 */}
         {polls.length > 0 && (
-          <div className="bg-snow border-2 border-sky-200 rounded-2xl p-4 shadow-sm">
+          <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><ChartIcon size={18} /> 인기 투표</h2>
               <Link to="/community/ski" className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
