@@ -140,10 +140,20 @@ const Navbar = () => {
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
       <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12">
         <div className="flex justify-between h-14">
-          <div className="flex items-center gap-8">
-            <Link to="/snowpan" aria-label="스노우판 홈">
-              <Logo />
-            </Link>
+          <div className="flex items-center gap-4 sm:gap-8">
+            <div className="flex items-center gap-2">
+              {/* PAN 우산 허브로 — 다른 플랫폼 둘러보거나 돌아가는 진입점 */}
+              <Link
+                to="/pan"
+                aria-label="PAN 플랫폼 허브"
+                className="text-[10px] font-black tracking-[0.25em] text-gray-400 hover:text-gray-900 transition-colors px-1.5 py-1 border border-gray-200 rounded-md hover:border-gray-900"
+              >
+                ← PAN
+              </Link>
+              <Link to="/snowpan" aria-label="스노우판 홈">
+                <Logo />
+              </Link>
+            </div>
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map((l) => {
                 const active = location.pathname === l.to || location.pathname.startsWith(l.to + '/');
