@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { MountainIcon } from '../components/Icons';
+import { useVertical } from '../hooks/useVertical';
 
 interface WebcamItem {
   id: string;
@@ -15,6 +16,7 @@ interface WebcamItem {
 }
 
 const Webcam = () => {
+  const vertical = useVertical();
   const [webcams, setWebcams] = useState<WebcamItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ const Webcam = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-gray-900">실시간 웹캠</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.webcam || '실시간 웹캠'}</h1>
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />

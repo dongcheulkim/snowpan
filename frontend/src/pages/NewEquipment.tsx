@@ -6,6 +6,7 @@ import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
+import { useVertical } from '../hooks/useVertical';
 
 interface Shop {
   id: string;
@@ -37,6 +38,7 @@ const resortList = [
 ];
 
 export default function NewEquipment() {
+  const vertical = useVertical();
   const [selectedArea, setSelectedArea] = useState('all');
   const [selectedResort, setSelectedResort] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
@@ -58,7 +60,7 @@ export default function NewEquipment() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-gray-500 text-lg">←</Link>
-          <h1 className="text-xl font-bold text-gray-900">스키샵</h1>
+          <h1 className="text-xl font-bold text-gray-900">{vertical.pageLabels?.shop || '스키샵'}</h1>
         </div>
         <RegisterCTA to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>

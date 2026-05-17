@@ -5,6 +5,7 @@ import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
+import { useVertical } from '../hooks/useVertical';
 
 interface RentalItem {
   id: string;
@@ -24,6 +25,7 @@ interface Resort {
 const PAGE_SIZE = 12;
 
 const Rental = () => {
+  const vertical = useVertical();
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -63,7 +65,7 @@ const Rental = () => {
   return (
     <div className="space-y-5">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">렌탈</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.rental || '렌탈'}</h1>
         <RegisterCTA to="/rental/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 

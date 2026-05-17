@@ -35,6 +35,17 @@ export interface Vertical {
   // 차별화 강점 (USP) — 다른 플랫폼에 없는 우리만의 강점 3-4개.
   // PanHub 카드와 Home hero 아래 노출.
   uniqueStrengths?: { label: string; desc: string }[];
+  // 페이지 별 라벨 — vertical 마다 페이지 명칭 다르게.
+  // 예: snow.shop='스키샵', bike.shop='바이크샵', golf.shop='골프샵'
+  pageLabels?: {
+    used?: string;          // 중고거래
+    shop?: string;          // 스키샵/바이크샵/골프샵 등
+    repair?: string;        // 정비/피팅 등
+    rental?: string;        // 렌탈
+    lesson?: string;        // 레슨/코치 등
+    accommodation?: string; // 숙소/펜션 등
+    webcam?: string;        // 웹캠/라인업 등
+  };
 }
 
 export const VERTICALS: Vertical[] = [
@@ -55,6 +66,10 @@ export const VERTICALS: Vertical[] = [
       { label: '강사 인증', desc: '자격증 검증된 강사·데몬 매칭 (level/teaching/pro 뱃지)' },
       { label: '시즌권 트래커', desc: '오픈/마감 알림 + 전년 대비 가격 추이' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '스키샵', repair: '정비', rental: '렌탈',
+      lesson: '레슨', accommodation: '숙소', webcam: '실시간 웹캠',
+    },
     previewCategories: [
       { label: '중고거래', desc: '시세 기반 중고 장비' },
       { label: '렌탈', desc: '리조트별 풀세트' },
@@ -93,6 +108,10 @@ export const VERTICALS: Vertical[] = [
       { label: '피팅 도장', desc: '바이크샵 피팅 이력 + 사이즈 추천 (체형 기반)' },
       { label: '동행 매칭', desc: '평균 속도·거리·코스 난이도 기반 라이딩 메이트' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '바이크샵', repair: '피팅·정비', rental: '렌탈',
+      lesson: '코치', accommodation: '숙소', webcam: '코스 라이브',
+    },
     previewCategories: [
       { label: '중고거래', desc: '프레임 · 휠셋 · 컴포넌트' },
       { label: '라이딩 동행', desc: '코스 매칭 · 그룹 라이딩' },
@@ -140,6 +159,10 @@ export const VERTICALS: Vertical[] = [
       { label: '대회 캘린더', desc: '국내 마라톤·트레일런 일정 + 신청 마감 알림' },
       { label: '코스 라이브러리', desc: '한강·트레일·인증코스 거리/난이도/포토스팟' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '러닝샵', repair: '슈즈 케어', rental: '대여',
+      lesson: '코치', accommodation: '대회 숙소', webcam: '코스 컨디션',
+    },
     previewCategories: [
       { label: '러닝 장비', desc: '슈즈 · 의류 · 시계' },
       { label: '대회 정보', desc: '마라톤 · 트레일런 · 등록' },
@@ -185,6 +208,10 @@ export const VERTICALS: Vertical[] = [
       { label: '보드 사이즈 추천', desc: '체중·실력·파도 컨디션 기반 보드 길이/볼륨 추천' },
       { label: '강사 인증', desc: 'KSA·CISA 자격 검증된 강사. 입문/중급/빅웨이브 레벨별' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '서핑샵', repair: '보드 수리', rental: '렌탈',
+      lesson: '강사', accommodation: '서핑 숙소', webcam: '실시간 라인업',
+    },
     previewCategories: [
       { label: '중고거래', desc: '보드 · 슈트 · 액세서리' },
       { label: '강사', desc: '입문 · 중급 · 빅웨이브' },
@@ -231,6 +258,10 @@ export const VERTICALS: Vertical[] = [
       { label: '스크린 가격 비교', desc: '카카오VX·G-tour 등 매장별 시간대 가격' },
       { label: '필드 부킹 알람', desc: '인기 골프장 빈 시간대 자동 알림' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '골프샵', repair: '클럽 피팅', rental: '클럽 대여',
+      lesson: '레슨', accommodation: '골프 리조트', webcam: '필드 라이브',
+    },
     previewCategories: [
       { label: '중고거래', desc: '클럽 · 풀세트 · 의류' },
       { label: '라운드', desc: '필드 부킹 · 동반자 매칭' },
@@ -277,6 +308,10 @@ export const VERTICALS: Vertical[] = [
       { label: '장비 대여 매칭', desc: '동네 캠퍼 장비 P2P 대여 (텐트·매트·랜턴)' },
       { label: '날씨·달 알람', desc: '캠핑 가는 날 비/별 잘 보이는지 예측 + 알림' },
     ],
+    pageLabels: {
+      used: '중고거래', shop: '캠핑샵', repair: '장비 수리', rental: 'P2P 대여',
+      lesson: '캠핑 클래스', accommodation: '캠핑장', webcam: '캠핑장 라이브',
+    },
     previewCategories: [
       { label: '중고거래', desc: '텐트 · 체어 · 코펠' },
       { label: '캠핑장', desc: '오토 · 글램핑 · 노지' },
