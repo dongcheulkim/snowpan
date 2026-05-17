@@ -39,6 +39,20 @@ async function tryRefreshAccessToken(): Promise<string | null> {
   return refreshPromise;
 }
 
+// URL 의 첫 segment 가 known vertical 이면 GET 요청에 ?vertical=X 자동 부착.
+// 컴포넌트가 vertical 을 명시적으로 안 보내도 백엔드는 올바른 vertical 데이터만 받음.
+const VERTICAL_SLUGS = ['bike', 'run', 'surf', 'golf', 'camp'];
+function injectVertical(path: string, method: string): string {
+  if (method !== 'GET') return path;
+  // path 가 이미 vertical 파라미터 가지고 있으면 패스
+  if (path.includes('vertical=')) return path;
+  if (typeof window === 'undefined') return path;
+  const first = window.location.pathname.split('/')[1] || '';
+  if (!VERTICAL_SLUGS.includes(first)) return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}vertical=${first}`;
+}
+
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
   const { method = 'GET', body, token, _retried } = options;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -50,9 +64,10 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
+  const finalPath = injectVertical(path, method);
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, {
+    res = await fetch(`${API_BASE}${finalPath}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
