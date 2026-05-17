@@ -9,11 +9,17 @@ interface SellerData {
   id: string;
   name: string;
   profileImage: string | null;
-  badges: string[];
+  badges: string[]; // 호환용 — snow vertical 만 평탄화 (기존 UI)
+  badgesByVertical?: Record<string, string[]>; // 신규 — vertical 별 그룹핑
   createdAt: string;
   products: { id: string; name: string; price: number; image: string; status?: string; createdAt: string }[];
   stats?: { listingCount: number; soldCount: number; postCount: number };
 }
+
+const VERTICAL_LABEL: Record<string, string> = {
+  snow: 'SNOWPAN', bike: 'BIKEPAN', run: 'RUNPAN',
+  surf: 'SURFPAN', golf: 'GOLFPAN', camp: 'CAMPPAN',
+};
 
 // 가입일 → 자연어 (예: "3개월째 활동 중", "1년 2개월째 활동 중").
 function memberDuration(createdAt: string): string {
@@ -166,8 +172,21 @@ const SellerProfile = () => {
         </div>
         <div className="flex items-center justify-center gap-2 mb-1">
           <h1 className="text-xl font-bold text-gray-900">{seller.name}</h1>
-          <UserBadges badges={seller.badges} />
         </div>
+
+        {/* Cross-vertical 뱃지 — 모든 종목의 전문성 한눈에 (프로필에서만 노출) */}
+        {seller.badgesByVertical && Object.keys(seller.badgesByVertical).length > 0 && (
+          <div className="mt-3 space-y-2 max-w-xs mx-auto">
+            {Object.entries(seller.badgesByVertical).map(([v, list]) => (
+              list.length > 0 && (
+                <div key={v} className="flex items-center justify-center gap-1.5 flex-wrap">
+                  <span className="text-[9px] font-black tracking-[0.18em] text-gray-500">{VERTICAL_LABEL[v] || v.toUpperCase()}</span>
+                  <UserBadges badges={list} />
+                </div>
+              )
+            ))}
+          </div>
+        )}
         {reviewCount > 0 && (
           <div className="flex items-center justify-center gap-1.5 mt-2">
             {renderStars(Math.round(averageRating))}

@@ -180,7 +180,8 @@ model Accommodation {
 
 model BadgeRequest {
   id        String   @id @default(uuid())
-  badgeType String   // 'level' | 'lv1' | 'lv2' | 'lv3' | 'demo' | 'teaching' | 'teaching1' | 'teaching2' | 'teaching3' | 'pro'
+  vertical  String   @default("snow") // 'snow' | 'bike' | 'run' | 'surf' | 'golf' | 'camp' — 종목별 전문성
+  badgeType String   // vertical 안에서 해석: snow.lv1, bike.coach, run.marathoner 등
   image     String?  // 자격증 사진 URL
   status    String   @default("pending") // 'pending' | 'approved' | 'rejected'
   userId    String
@@ -190,6 +191,7 @@ model BadgeRequest {
 
   @@index([status, createdAt]) // 관리자 승인 대기 목록
   @@index([userId])             // 내 뱃지 요청 조회
+  @@index([userId, vertical])   // 특정 vertical 내 뱃지 조회 (UserBadges 필터링)
   @@map("badge_requests")
 }
 

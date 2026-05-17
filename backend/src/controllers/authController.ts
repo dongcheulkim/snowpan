@@ -219,23 +219,30 @@ export const getMyBadges = async (req: AuthRequest, res: Response): Promise<void
   }
 };
 
-// 뱃지 인증 요청
+// 뱃지 인증 요청 — vertical 단위로 분리. 같은 vertical 내 pending 만 1건 제한.
+const VALID_VERTICALS = ['snow', 'bike', 'run', 'surf', 'golf', 'camp'];
 export const requestBadge = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { badgeType, image } = req.body;
+    const { badgeType, image, vertical } = req.body;
 
-    // 이미 대기 중인 요청이 있으면 중복 방지
+    if (!badgeType || typeof badgeType !== 'string') {
+      res.status(400).json({ error: '뱃지 종류를 선택해주세요.' });
+      return;
+    }
+    const verticalSlug = typeof vertical === 'string' && VALID_VERTICALS.includes(vertical) ? vertical : 'snow';
+
+    // 같은 vertical 안에서 대기 중인 요청이 있으면 중복 방지 (다른 vertical 은 별도 허용)
     const existing = await prisma.badgeRequest.findFirst({
-      where: { userId, status: 'pending' },
+      where: { userId, vertical: verticalSlug, status: 'pending' },
     });
     if (existing) {
-      res.status(400).json({ error: '이미 대기 중인 요청이 있습니다.' });
+      res.status(400).json({ error: '같은 종목에서 이미 대기 중인 요청이 있습니다.' });
       return;
     }
 
     const badge = await prisma.badgeRequest.create({
-      data: { userId, badgeType, image: image || null },
+      data: { userId, vertical: verticalSlug, badgeType, image: image || null },
     });
     res.status(201).json(badge);
   } catch (error) {
@@ -628,7 +635,7 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
         displayName: true,
         profileImage: true,
         createdAt: true,
-        badgeRequests: { where: { status: 'approved' }, select: { badgeType: true } },
+        badgeRequests: { where: { status: 'approved' }, select: { badgeType: true, vertical: true } },
       },
     });
 
@@ -651,7 +658,12 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
       id: user.id,
       name: displayName,
       profileImage: user.profileImage,
-      badges: user.badgeRequests.map(b => b.badgeType),
+      // 호환: badges = snow vertical 만 평탄화 (기존 UI 그대로). badgesByVertical = 새 구조.
+      badges: user.badgeRequests.filter(b => b.vertical === 'snow').map(b => b.badgeType),
+      badgesByVertical: user.badgeRequests.reduce<Record<string, string[]>>((acc, b) => {
+        (acc[b.vertical] = acc[b.vertical] || []).push(b.badgeType);
+        return acc;
+      }, {}),
       createdAt: user.createdAt,
       products,
       stats: {
