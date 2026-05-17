@@ -17,7 +17,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pan-app.vercel.app https://snowpan.vercel.app; connect-src 'self' https://snowpan.onrender.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'"
+          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pan.vercel.app https://snowpan.vercel.app; connect-src 'self' https://snowpan.onrender.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'"
         },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },

@@ -80,9 +80,9 @@ const httpServer = createServer(app);
 app.set('trust proxy', 1);
 
 // CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선,
-// 미설정 시 프로덕션=pan-app.vercel.app + 이전 snowpan.vercel.app (전환 기간 동안 호환), dev=localhost
+// 미설정 시 프로덕션=pan.vercel.app + 이전 snowpan.vercel.app (전환 기간 동안 호환), dev=localhost
 const DEFAULT_ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
-  ? ['https://pan-app.vercel.app', 'https://snowpan.vercel.app']
+  ? ['https://pan.vercel.app', 'https://snowpan.vercel.app']
   : ['http://localhost:5173', 'http://localhost:3000'];
 const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
@@ -104,7 +104,7 @@ const PORT = process.env.PORT || 3000;
 app.set('io', io);
 
 // === Security Headers (helmet) ===
-// CSP 는 frontend 가 별도 도메인 (pan-app.vercel.app) 이고 API 만 서빙하므로
+// CSP 는 frontend 가 별도 도메인 (pan.vercel.app) 이고 API 만 서빙하므로
 // connect-src 'self' 만으로 충분. 인라인 스크립트/스타일 없음.
 app.use(helmet({
   contentSecurityPolicy: {

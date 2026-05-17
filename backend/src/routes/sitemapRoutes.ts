@@ -3,7 +3,7 @@ import prisma from '../config/database';
 
 const router = Router();
 
-const SITE_URL = process.env.FRONTEND_URL || 'https://pan-app.vercel.app';
+const SITE_URL = process.env.FRONTEND_URL || 'https://pan.vercel.app';
 
 const STATIC_ROUTES: { path: string; priority: number; changefreq: string }[] = [
   { path: '/', priority: 1.0, changefreq: 'daily' },
