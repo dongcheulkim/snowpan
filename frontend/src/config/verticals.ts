@@ -46,6 +46,12 @@ export interface Vertical {
     accommodation?: string; // 숙소/펜션 등
     webcam?: string;        // 웹캠/라인업 등
   };
+  // 유저 호칭 — 스키어/라이더/러너/서퍼/골퍼/캠퍼.
+  // 빈 화면 카피, CTA 문구에서 사용. (예: "{audience}들을 만나보세요")
+  audience?: string;
+  // 장소/시설 단어 — 스키장/코스/트레일/라인업/필드/캠핑장.
+  // Webcam·rental 진입 카피에서 사용.
+  venue?: string;
 }
 
 export const VERTICALS: Vertical[] = [
@@ -70,6 +76,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '스키샵', repair: '정비', rental: '렌탈',
       lesson: '레슨', accommodation: '숙소', webcam: '실시간 웹캠',
     },
+    audience: '스키어',
+    venue: '스키장',
     previewCategories: [
       { label: '중고거래', desc: '시세 기반 중고 장비' },
       { label: '렌탈', desc: '리조트별 풀세트' },
@@ -112,6 +120,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '바이크샵', repair: '피팅·정비', rental: '렌탈',
       lesson: '코치', accommodation: '숙소', webcam: '코스 라이브',
     },
+    audience: '라이더',
+    venue: '코스',
     previewCategories: [
       { label: '중고거래', desc: '프레임 · 휠셋 · 컴포넌트' },
       { label: '라이딩 동행', desc: '코스 매칭 · 그룹 라이딩' },
@@ -163,6 +173,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '러닝샵', repair: '슈즈 케어', rental: '대여',
       lesson: '코치', accommodation: '대회 숙소', webcam: '코스 컨디션',
     },
+    audience: '러너',
+    venue: '코스',
     previewCategories: [
       { label: '러닝 장비', desc: '슈즈 · 의류 · 시계' },
       { label: '대회 정보', desc: '마라톤 · 트레일런 · 등록' },
@@ -212,6 +224,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '서핑샵', repair: '보드 수리', rental: '렌탈',
       lesson: '강사', accommodation: '서핑 숙소', webcam: '실시간 라인업',
     },
+    audience: '서퍼',
+    venue: '라인업',
     previewCategories: [
       { label: '중고거래', desc: '보드 · 슈트 · 액세서리' },
       { label: '강사', desc: '입문 · 중급 · 빅웨이브' },
@@ -262,6 +276,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '골프샵', repair: '클럽 피팅', rental: '클럽 대여',
       lesson: '레슨', accommodation: '골프 리조트', webcam: '필드 라이브',
     },
+    audience: '골퍼',
+    venue: '필드',
     previewCategories: [
       { label: '중고거래', desc: '클럽 · 풀세트 · 의류' },
       { label: '라운드', desc: '필드 부킹 · 동반자 매칭' },
@@ -312,6 +328,8 @@ export const VERTICALS: Vertical[] = [
       used: '중고거래', shop: '캠핑샵', repair: '장비 수리', rental: 'P2P 대여',
       lesson: '캠핑 클래스', accommodation: '캠핑장', webcam: '캠핑장 라이브',
     },
+    audience: '캠퍼',
+    venue: '캠핑장',
     previewCategories: [
       { label: '중고거래', desc: '텐트 · 체어 · 코펠' },
       { label: '캠핑장', desc: '오토 · 글램핑 · 노지' },

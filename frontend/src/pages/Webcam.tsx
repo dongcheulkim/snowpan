@@ -39,7 +39,7 @@ const Webcam = () => {
         </div>
       </div>
 
-      <p className="text-xs text-gray-500">스키장을 선택하면 실시간 웹캠을 볼 수 있습니다.</p>
+      <p className="text-xs text-gray-500">{vertical.venue || '스키장'}을 선택하면 실시간 웹캠을 볼 수 있습니다.</p>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>

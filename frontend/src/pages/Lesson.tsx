@@ -173,9 +173,9 @@ const Lesson = () => {
               <circle cx="12" cy="7" r="3"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/>
             </svg>
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 레슨이 없어요</h3>
+          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
-            강사·자격을 가진 분이라면 첫 등록자가 되어<br/>레슨생을 만나보세요. 베타 기간 등록 무료입니다.
+            자격을 가진 분이라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 베타 기간 등록 무료입니다.
           </p>
           <Link to="/lesson/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
             + 첫 레슨 등록하기

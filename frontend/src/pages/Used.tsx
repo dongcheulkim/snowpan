@@ -125,7 +125,7 @@ const Used = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">{t('used.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{vertical.slug === 'snow' ? t('used.title') : (vertical.pageLabels?.used || t('used.title'))}</h1>
         {/* 태블릿+ 에서만 헤더 우측 버튼, 모바일은 FAB 사용 */}
         <Link
           to="/used/register"
