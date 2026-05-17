@@ -11,8 +11,10 @@ export default function PanTopBar() {
   const firstSeg = location.pathname.split('/')[1] || '';
   const currentVertical = getVerticalBySlug(firstSeg) || getActiveVertical();
 
-  // / 는 PAN Hub 자체 — 중복 노출 방지
-  if (location.pathname === '/' || location.pathname === '/pan') return null;
+  // SNOWPAN 사용자에게는 PAN 바 숨김 — 깔끔한 진입 경험.
+  // /pan 페이지 또는 다른 vertical (/bike, /run, /surf, /golf, /camp) 경로에서만 노출.
+  const nonSnowVerticals = ['bike', 'run', 'surf', 'golf', 'camp'];
+  if (location.pathname === '/pan' || !nonSnowVerticals.includes(firstSeg)) return null;
 
   return (
     <div className="bg-gray-900 text-white">
