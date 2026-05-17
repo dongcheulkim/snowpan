@@ -24,7 +24,7 @@ interface Post {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', poll: '투표',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', poll: '투표',
 };
 
 const badgeColor: Record<string, string> = {
@@ -34,6 +34,7 @@ const badgeColor: Record<string, string> = {
   '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
   '장비추천': 'text-sky-500 bg-sky-50 border-sky-200',
+  '모임': 'text-emerald-600 bg-emerald-50 border-emerald-200',
   '투표': 'text-orange-500 bg-orange-50 border-orange-200',
 };
 
@@ -73,6 +74,7 @@ const Community = () => {
     { id: 'resort', name: communityCategoryLabel('resort', sport) },
     { id: 'tip', name: communityCategoryLabel('tip', sport) },
     { id: 'carpool', name: communityCategoryLabel('carpool', sport) },
+    { id: 'meetup', name: communityCategoryLabel('meetup', sport) },
     { id: 'poll', name: communityCategoryLabel('poll', sport) },
   ];
 

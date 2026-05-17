@@ -227,7 +227,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     // 카테고리 화이트리스트 — 'poll' 은 PollCreate 라우트에서만 허용.
-    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool'];
+    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
     if (!allowedCategories.includes(category)) {
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;

@@ -21,6 +21,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   resort: '리조트',
   tip: '팁',
   carpool: '카풀',
+  meetup: '모임',
   poll: '투표',
 };
 
