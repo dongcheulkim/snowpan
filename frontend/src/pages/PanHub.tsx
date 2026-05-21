@@ -12,21 +12,18 @@ export default function PanHub() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto py-10 space-y-8 animate-fade-in px-4">
-      {/* Hero */}
-      <header className="text-center space-y-2">
+    <div className="max-w-3xl mx-auto py-10 space-y-6 animate-fade-in px-4">
+      <header className="text-center">
         <img src="/pan-wordmark.svg" alt="PAN" className="h-12 mx-auto" />
-        <p className="text-xs tracking-[0.18em] text-gray-500">A PLATFORM FOR EVERY SPORT</p>
       </header>
 
-      {/* Vertical squares — 바로 선택 진입 */}
       <section>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {VERTICALS.map((v) => (
             <Link
               key={v.slug}
               to={v.basePath}
-              aria-label={`${v.name} 들어가기`}
+              aria-label={v.name}
               className="relative aspect-square rounded-2xl border-2 border-gray-200 overflow-hidden hover:border-gray-900 transition-all active:scale-[0.97]"
             >
               <div
