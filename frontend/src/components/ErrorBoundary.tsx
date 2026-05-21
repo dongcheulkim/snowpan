@@ -18,6 +18,19 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack);
+    // Stale chunk (배포 직후 흔한 케이스) — 한 번만 자동 새로고침
+    const msg = error?.message || '';
+    if (/(ChunkLoadError|Loading chunk [\w-]+ failed|Failed to fetch dynamically imported module|Importing a module script failed)/i.test(msg)) {
+      if (sessionStorage.getItem('chunkReloaded') !== '1') {
+        sessionStorage.setItem('chunkReloaded', '1');
+        if ('caches' in window) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {});
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
+        }
+        setTimeout(() => window.location.reload(), 50);
+        return;
+      }
+    }
     // Sentry가 로드되어 있으면 forward — DSN 형식 검증 후에만.
     try {
       const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
