@@ -147,14 +147,6 @@ const Navbar = () => {
         <div className="flex justify-between h-14">
           <div className="flex items-center gap-4 sm:gap-8">
             <div className="flex items-center gap-2">
-              {/* PAN 우산 허브로 — 다른 플랫폼 둘러보거나 돌아가는 진입점 */}
-              <Link
-                to="/pan"
-                aria-label="PAN 플랫폼 허브"
-                className="text-[10px] font-black tracking-[0.25em] text-gray-400 hover:text-gray-900 transition-colors px-1.5 py-1 border border-gray-200 rounded-md hover:border-gray-900"
-              >
-                ← PAN
-              </Link>
               <Link to={logoLink} aria-label={`${vertical.name} 홈`}>
                 <Logo />
               </Link>

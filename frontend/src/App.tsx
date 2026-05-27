@@ -32,8 +32,6 @@ const GearGuide = lazy(() => import('./pages/GearGuide'));
 const SafeTradeGuide = lazy(() => import('./pages/SafeTradeGuide'));
 const About = lazy(() => import('./pages/About'));
 const Help = lazy(() => import('./pages/Help'));
-const PanHub = lazy(() => import('./pages/PanHub'));
-const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Competitions = lazy(() => import('./pages/Competitions'));
 const RepairShop = lazy(() => import('./pages/RepairShop'));
@@ -87,8 +85,8 @@ function App() {
       }>
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            {/* 루트 / = PAN 우산 허브 (모든 vertical 선택). SNOWPAN 홈은 /snowpan. */}
-            <Route index element={<PanHub />} />
+            {/* 루트 / = SNOWPAN 홈 (단일 종목 운영). /snowpan 도 동일 페이지 호환. */}
+            <Route index element={<Home />} />
             <Route path="snowpan" element={<Home />} />
             <Route path="used" element={<Used />} />
             <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
@@ -111,14 +109,11 @@ function App() {
             <Route path="safe-trade" element={<SafeTradeGuide />} />
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
-            <Route path="pan" element={<PanHub />} />
-            {/* 미출시 5종목 — 모든 하위 경로는 Coming Soon 랜딩으로 일괄 처리.
-                기존 라우팅(/bike/used 등) 접근 시도 차단 + 사전 알림 신청 폼. */}
+            {/* /pan 과 5종목 (/bike, /run, /surf, /golf, /camp) 은 SNOWPAN 단일 운영으로 제거.
+                옛 링크 호환을 위해 루트로 리다이렉트. */}
+            <Route path="pan" element={<Navigate to="/" replace />} />
             {(['bike', 'run', 'surf', 'golf', 'camp'] as const).map((v) => (
-              <Route key={v} path={v}>
-                <Route index element={<ComingSoon />} />
-                <Route path="*" element={<ComingSoon />} />
-              </Route>
+              <Route key={v} path={`${v}/*`} element={<Navigate to="/" replace />} />
             ))}
             <Route path="privacy" element={<Privacy />} />
             <Route path="skishop" element={<NewEquipment />} />

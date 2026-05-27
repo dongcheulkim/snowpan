@@ -43,12 +43,9 @@ const MainLayout = () => {
     el.href = `${SITE_URL}${location.pathname}`;
   }, [location.pathname]);
 
-  // 네비/BottomNav 노출 조건 — PAN 허브와 5종목 Coming Soon 페이지에서 숨김.
-  // 미출시 vertical (bike/run/surf/golf/camp) 은 ComingSoon 자체 헤더만 사용.
-  const isPanHub = location.pathname === '/' || location.pathname === '/pan';
-  const firstSeg = (location.pathname.split('/')[1] || '').toLowerCase();
-  const isComingSoon = ['bike', 'run', 'surf', 'golf', 'camp'].includes(firstSeg);
-  const showAppChrome = !isPanHub && !isComingSoon;
+  // SNOWPAN 단일 운영 — 모든 페이지에서 Navbar/BottomNav 노출.
+  void location;
+  const showAppChrome = true;
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">
