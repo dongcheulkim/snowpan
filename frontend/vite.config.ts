@@ -27,8 +27,23 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // HTML 제외 — HTML 을 precache 하면 옛 HTML 이 새 빌드의 사라진 chunk 를
+        // 요청해 ERR_FAILED 가 됨. HTML 은 navigation 요청 NetworkFirst 로 매번
+        // 새로 받고 오프라인일 때만 fallback.
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/sw\.js/, /^\/manifest/, /^\/assets\//],
         runtimeCaching: [
+          // SPA 진입 (네비게이션) — 항상 네트워크 우선, 3초 안에 응답 없으면 캐시 사용
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'navigation-cache',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
           {
             urlPattern: /^https?:\/\/.*\/api\/banners.*/i,
             handler: 'NetworkFirst',
