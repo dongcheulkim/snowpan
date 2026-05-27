@@ -43,10 +43,12 @@ const MainLayout = () => {
     el.href = `${SITE_URL}${location.pathname}`;
   }, [location.pathname]);
 
-  // 네비/BottomNav 노출 조건 — PAN 허브 (/, /pan) 에서만 숨김.
-  // 각 vertical 플랫폼 안에서는 모두 노출 (Navbar Logo 가 vertical-aware).
+  // 네비/BottomNav 노출 조건 — PAN 허브와 5종목 Coming Soon 페이지에서 숨김.
+  // 미출시 vertical (bike/run/surf/golf/camp) 은 ComingSoon 자체 헤더만 사용.
   const isPanHub = location.pathname === '/' || location.pathname === '/pan';
-  const showAppChrome = !isPanHub;
+  const firstSeg = (location.pathname.split('/')[1] || '').toLowerCase();
+  const isComingSoon = ['bike', 'run', 'surf', 'golf', 'camp'].includes(firstSeg);
+  const showAppChrome = !isPanHub && !isComingSoon;
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">

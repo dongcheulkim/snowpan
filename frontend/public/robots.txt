@@ -7,5 +7,11 @@ Disallow: /notifications
 Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
+# 미출시 5종목 — Coming Soon 페이지 색인 차단
+Disallow: /bike
+Disallow: /run
+Disallow: /surf
+Disallow: /golf
+Disallow: /camp
 
-Sitemap: https://snowpan.vercel.app/sitemap.xml
+Sitemap: https://pansports.vercel.app/sitemap.xml

@@ -128,20 +128,18 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // 데스크톱 헤더 카테고리 — 모바일은 홈 카테고리 그리드, 데스크톱은 상단 텍스트 링크.
-  // snow 는 루트 경로 (/used 등), 다른 vertical 은 basePath prefix 사용 (/bike/used 등)
-  const prefix = vertical.slug === 'snow' ? '' : vertical.basePath;
-  const labels = vertical.pageLabels || {};
-  const shopPath = vertical.slug === 'snow' ? '/skishop' : `${prefix}/shop`;
+  // Navbar 는 SNOWPAN 안에서만 렌더링됨 (MainLayout 가 미출시 vertical 에선 숨김).
+  // 5종목 미출시 동안 단순화 — snow 고정 경로만 사용.
+  void vertical;
   const navLinks: { label: string; to: string }[] = [
-    { label: labels.used || '중고거래', to: `${prefix}/used` },
-    { label: labels.shop || '스키샵', to: shopPath },
-    { label: labels.rental || '렌탈', to: `${prefix}/rental` },
-    { label: labels.lesson || '레슨', to: `${prefix}/lesson` },
-    { label: labels.accommodation || '숙소', to: `${prefix}/accommodation` },
-    { label: '커뮤니티', to: vertical.slug === 'snow' ? '/community' : `${prefix}/community` },
+    { label: '중고거래', to: '/used' },
+    { label: '스키샵', to: '/skishop' },
+    { label: '렌탈', to: '/rental' },
+    { label: '레슨', to: '/lesson' },
+    { label: '숙소', to: '/accommodation' },
+    { label: '커뮤니티', to: '/community' },
   ];
-  const logoLink = vertical.basePath;
+  const logoLink = '/snowpan';
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>

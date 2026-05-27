@@ -52,6 +52,8 @@ export interface Vertical {
   // 장소/시설 단어 — 스키장/코스/트레일/라인업/필드/캠핑장.
   // Webcam·rental 진입 카피에서 사용.
   venue?: string;
+  // Coming Soon 페이지에서 노출할 출시 예정 시점 (예: '2026년 봄', '2026.06').
+  releaseDate?: string;
 }
 
 export const VERTICALS: Vertical[] = [
@@ -122,6 +124,7 @@ export const VERTICALS: Vertical[] = [
     },
     audience: '라이더',
     venue: '코스',
+    releaseDate: '2026년 봄',
     previewCategories: [
       { label: '중고거래', desc: '프레임 · 휠셋 · 컴포넌트' },
       { label: '라이딩 동행', desc: '코스 매칭 · 그룹 라이딩' },
@@ -175,6 +178,7 @@ export const VERTICALS: Vertical[] = [
     },
     audience: '러너',
     venue: '코스',
+    releaseDate: '2026년 12월',
     previewCategories: [
       { label: '러닝 장비', desc: '슈즈 · 의류 · 시계' },
       { label: '대회 정보', desc: '마라톤 · 트레일런 · 등록' },
@@ -226,6 +230,7 @@ export const VERTICALS: Vertical[] = [
     },
     audience: '서퍼',
     venue: '라인업',
+    releaseDate: '2026년 6월',
     previewCategories: [
       { label: '중고거래', desc: '보드 · 슈트 · 액세서리' },
       { label: '강사', desc: '입문 · 중급 · 빅웨이브' },
@@ -278,6 +283,7 @@ export const VERTICALS: Vertical[] = [
     },
     audience: '골퍼',
     venue: '필드',
+    releaseDate: '2026년 9월',
     previewCategories: [
       { label: '중고거래', desc: '클럽 · 풀세트 · 의류' },
       { label: '라운드', desc: '필드 부킹 · 동반자 매칭' },
@@ -330,6 +336,7 @@ export const VERTICALS: Vertical[] = [
     },
     audience: '캠퍼',
     venue: '캠핑장',
+    releaseDate: '2026년 9월',
     previewCategories: [
       { label: '중고거래', desc: '텐트 · 체어 · 코펠' },
       { label: '캠핑장', desc: '오토 · 글램핑 · 노지' },

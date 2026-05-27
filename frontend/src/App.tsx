@@ -33,7 +33,7 @@ const SafeTradeGuide = lazy(() => import('./pages/SafeTradeGuide'));
 const About = lazy(() => import('./pages/About'));
 const Help = lazy(() => import('./pages/Help'));
 const PanHub = lazy(() => import('./pages/PanHub'));
-const VerticalLanding = lazy(() => import('./pages/VerticalLanding'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Competitions = lazy(() => import('./pages/Competitions'));
 const RepairShop = lazy(() => import('./pages/RepairShop'));
@@ -112,36 +112,12 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
             <Route path="pan" element={<PanHub />} />
-            {/* 미출시 버티컬 — 홈 + 매핑된 카테고리는 기존 SNOWPAN 컴포넌트 재사용,
-                매핑 없는 카테고리는 VerticalLanding fallback.
-                컴포넌트는 URL 의 vertical 을 감지해 빈 데이터 응답 받음. */}
+            {/* 미출시 5종목 — 모든 하위 경로는 Coming Soon 랜딩으로 일괄 처리.
+                기존 라우팅(/bike/used 등) 접근 시도 차단 + 사전 알림 신청 폼. */}
             {(['bike', 'run', 'surf', 'golf', 'camp'] as const).map((v) => (
               <Route key={v} path={v}>
-                <Route index element={<Home />} />
-                <Route path="used" element={<Used />} />
-                <Route path="used/:id" element={<UsedDetail />} />
-                <Route path="community" element={<Community />} />
-                <Route path="community/post/:id" element={<CommunityDetail />} />
-                <Route path="rental" element={<Rental />} />
-                <Route path="rental/:id" element={<RentalDetail />} />
-                <Route path="lesson" element={<Lesson />} />
-                <Route path="lesson/:id" element={<LessonDetail />} />
-                <Route path="coach" element={<Lesson />} />
-                <Route path="round" element={<Lesson />} />
-                <Route path="accommodation" element={<Accommodation />} />
-                <Route path="accommodation/:id" element={<AccommodationDetail />} />
-                <Route path="campground" element={<Accommodation />} />
-                <Route path="shop" element={<NewEquipment />} />
-                <Route path="shop/:id" element={<SkiShopDetail />} />
-                <Route path="repair" element={<RepairShop />} />
-                <Route path="repair/:id" element={<RepairShopDetail />} />
-                <Route path="webcam" element={<Webcam />} />
-                <Route path="lineup" element={<Webcam />} />
-                <Route path="event" element={<Competitions />} />
-                <Route path="event/:id" element={<CompetitionDetail />} />
-                <Route path="gear-guide" element={<GearGuide />} />
-                {/* 매핑되지 않은 슬러그는 VerticalLanding 의 카테고리 placeholder */}
-                <Route path=":cat" element={<VerticalLanding />} />
+                <Route index element={<ComingSoon />} />
+                <Route path="*" element={<ComingSoon />} />
               </Route>
             ))}
             <Route path="privacy" element={<Privacy />} />

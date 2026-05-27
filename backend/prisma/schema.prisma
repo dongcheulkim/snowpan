@@ -590,3 +590,19 @@ model Webcam {
   @@map("webcams")
 }
 
+// 미출시 5종목 (bike/run/surf/golf/camp) 사전 가입 — Coming Soon 페이지에서 수집.
+// 마케팅 자산: 출시 시 알림 발송, 관심 기능 분석에 활용.
+model PreRegister {
+  id                 String   @id @default(uuid())
+  email              String
+  name               String?
+  sport              String   // bike, run, surf, golf, camp
+  interestedFeatures Json     @default("[]") // 선택한 기능 라벨 배열
+  ip                 String?  // rate-limit / abuse 추적용
+  userAgent          String?  // 디버깅·중복 감지 보조
+  createdAt          DateTime @default(now())
+
+  @@unique([email, sport])
+  @@index([sport, createdAt])
+  @@map("pre_registers")
+}

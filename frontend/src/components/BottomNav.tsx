@@ -40,10 +40,11 @@ const BottomNav = () => {
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;
 
-  // 홈 = 현재 vertical 의 basePath (snow=/snowpan, bike=/bike, ...)
-  // 커뮤니티 = vertical 컨텍스트 안에서 (예: /bike/community)
-  const homePath = vertical.basePath;
-  const communityPath = vertical.slug === 'snow' ? '/community' : `${vertical.basePath}/community`;
+  // BottomNav 는 SNOWPAN 안에서만 렌더링됨 (MainLayout 가 미출시 vertical 에선 숨김).
+  // 5종목 미출시 동안 단순화 — snow 고정 경로 사용.
+  void vertical;
+  const homePath = '/snowpan';
+  const communityPath = '/community';
 
   const items = [
     {
