@@ -128,46 +128,20 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Navbar 는 SNOWPAN 안에서만 렌더링됨 (MainLayout 가 미출시 vertical 에선 숨김).
-  // 5종목 미출시 동안 단순화 — snow 고정 경로만 사용.
+  // 앱 우선 — phone-width 컨테이너라 헤더엔 로고 + 검색/알림/로그인만.
+  // 카테고리 진입은 홈의 아이콘 그리드, 하단 BottomNav 사용.
   void vertical;
-  const navLinks: { label: string; to: string }[] = [
-    { label: '중고거래', to: '/used' },
-    { label: '스키샵', to: '/skishop' },
-    { label: '렌탈', to: '/rental' },
-    { label: '레슨', to: '/lesson' },
-    { label: '숙소', to: '/accommodation' },
-    { label: '커뮤니티', to: '/community' },
-  ];
-  const logoLink = '/snowpan';
+  const logoLink = '/';
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
       <div className="px-4">
-        <div className="flex justify-between h-14">
-          <div className="flex items-center gap-4 sm:gap-8">
-            <div className="flex items-center gap-2">
-              <Link to={logoLink} aria-label={`${vertical.name} 홈`}>
-                <Logo />
-              </Link>
-            </div>
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((l) => {
-                const active = location.pathname === l.to || location.pathname.startsWith(l.to + '/');
-                return (
-                  <Link
-                    key={l.to}
-                    to={l.to}
-                    className={`px-3 h-11 inline-flex items-center rounded-lg text-sm font-medium transition-colors ${active ? 'text-gray-900 bg-gray-100' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
-                  >
-                    {l.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+        <div className="flex items-center justify-between h-14">
+          <Link to={logoLink} aria-label="SNOWPAN 홈" className="flex items-center">
+            <Logo />
+          </Link>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <Link
               to="/search"
               aria-label="검색"
