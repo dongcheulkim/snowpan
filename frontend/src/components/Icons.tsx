@@ -175,9 +175,9 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski (crossed pair with curved tips)
+// 🎿 ski (single ski, tilted, with curved tip and binding)
 export const SkiIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M5 5l14 16M19 5L5 21"/><path d="M5 5c-1 0-1.6.6-1.6 1.6M19 5c1 0 1.6.6 1.6 1.6"/><path d="M10 12h4"/></svg>
+  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-35 12 12)"><path d="M12 3v18"/><path d="M12 3c0-1 .7-1.6 1.7-1.6"/><path d="M9.5 12h5"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
