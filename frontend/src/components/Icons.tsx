@@ -175,14 +175,14 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski
+// 🎿 ski (crossed pair with curved tips)
 export const SkiIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l18-18M5 19l3 3M16 5l3 3"/></svg>
+  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M5 5l14 16M19 5L5 21"/><path d="M5 5c-1 0-1.6.6-1.6 1.6M19 5c1 0 1.6.6 1.6 1.6"/><path d="M10 12h4"/></svg>
 );
 
-// 🏂 snowboard
+// 🏂 snowboard (board outline with bindings)
 export const SnowboardIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M5 19c2-3 5-5 7-7s5-5 7-7l1 1c-2 2-5 5-7 7s-5 5-7 7z"/></svg>
+  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-35 12 12)"><rect x="2.5" y="9.5" width="19" height="5" rx="2.5"/><path d="M8.5 9.5v5M15.5 9.5v5"/></g></svg>
 );
 
 // ✕ small close (for chips)
