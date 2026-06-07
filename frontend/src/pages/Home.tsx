@@ -209,21 +209,21 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Categories — snow 는 9개, 다른 vertical 은 homeCategories 수만큼 */}
+      {/* Categories — 둥근 원형 (올영 스타일 배치, 톤은 모노크롬 유지) */}
       <div className="px-4 pb-5 bg-snow">
-        <div className={`grid ${isSnow ? 'grid-cols-3 sm:grid-cols-5 lg:grid-cols-9' : 'grid-cols-3'} gap-y-4 gap-x-2`}>
+        <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-9' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
             return (
               <Link
                 key={cat.id}
                 to={cat.link}
-                className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+                className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-100 transition-colors">
-                  {Icon ? <Icon size={34} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
+                  {Icon ? <Icon size={28} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
                 </div>
-                <span className="text-xs font-semibold text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
+                <span className="text-[11px] font-medium text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
             );
           })}
@@ -240,35 +240,38 @@ const Home = () => {
       {/* Category Sections */}
       <div className="px-4 py-4 space-y-4">
 
-        {/* Hot Deals */}
+        {/* Hot Deals — 가로 스크롤 랭킹 (올영 실시간 랭킹 스타일) */}
         <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물</h2>
+            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물 랭킹</h2>
             <Link to={`${verticalBase}/used`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
           </div>
           {hotDeals.length > 0 ? (
-            <div className="space-y-0">
+            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
               {hotDeals.map((deal, idx) => (
                 <Link
                   key={deal.id}
                   to={`${verticalBase}/used/${deal.id}`}
-                  className={`flex items-center py-3 ${idx !== hotDeals.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  className="flex-shrink-0 w-[120px] snap-start"
                 >
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl overflow-hidden">
+                  <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
                     {deal.image.startsWith('/') || deal.image.startsWith('http') ? (
-                      <img src={imageUrl(deal.image, 200)} alt={deal.name} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={imageUrl(deal.image, 240)} alt={deal.name} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
-                      <span>{deal.image}</span>
+                      <span className="absolute inset-0 flex items-center justify-center text-3xl">{deal.image}</span>
+                    )}
+                    <span className={`absolute top-1 left-1 min-w-6 h-6 px-1.5 inline-flex items-center justify-center text-[11px] font-black rounded ${idx < 3 ? 'bg-gray-900 text-white' : 'bg-white/90 text-gray-700'}`}>
+                      {idx + 1}
+                    </span>
+                    {deal.status === 'reserved' && (
+                      <span className="absolute bottom-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-yellow-500 text-white">예약중</span>
+                    )}
+                    {deal.status === 'sold' && (
+                      <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold">판매완료</span>
                     )}
                   </div>
-                  <div className="ml-3 flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-900 truncate">{deal.name}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[14px] font-bold text-gray-900">{deal.price.toLocaleString()}원</span>
-                      {deal.status === 'reserved' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">예약중</span>}
-                      {deal.status === 'sold' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-200 text-gray-500">판매완료</span>}
-                    </div>
-                  </div>
+                  <p className="mt-2 text-[12px] text-gray-900 line-clamp-2 leading-tight">{deal.name}</p>
+                  <p className="text-[13px] font-bold text-gray-900 mt-0.5">{deal.price.toLocaleString()}원</p>
                 </Link>
               ))}
             </div>
