@@ -5,7 +5,6 @@ import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import BrandHero from '../components/BrandHero';
-import SeasonCountdown from '../components/SeasonCountdown';
 import { communityCategoryLabel } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
 
@@ -132,40 +131,9 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vertical.slug]);
 
-  // 올영 스타일 상단 GNB 탭. snow vertical 에서만 노출.
-  const homeTabs = isSnow
-    ? [
-        { id: 'home', label: '홈', to: '/', active: true },
-        { id: 'new', label: '신상', to: '/new-equipment' },
-        { id: 'rank', label: '랭킹', to: '/used' },
-        { id: 'rental', label: '렌탈', to: '/rental' },
-        { id: 'community', label: '커뮤니티', to: '/community' },
-        { id: 'competitions', label: '시합', to: '/competitions' },
-      ]
-    : [];
-
   return (
     <div className="min-h-screen bg-sky-50">
       <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
-
-      {/* GNB 탭바 — 빠른 이동 (올영 홈/오특/랭킹 자리) */}
-      {homeTabs.length > 0 && (
-        <nav aria-label="홈 빠른 이동" className="bg-snow border-b border-gray-100">
-          <div className="flex gap-5 overflow-x-auto px-4 py-2.5" style={{ scrollbarWidth: 'none' }}>
-            {homeTabs.map(tab => (
-              <Link
-                key={tab.id}
-                to={tab.to}
-                className={`flex-shrink-0 text-[14px] font-bold pb-1 border-b-2 transition-colors ${
-                  tab.active ? 'text-gray-900 border-gray-900' : 'text-gray-500 border-transparent hover:text-gray-900'
-                }`}
-              >
-                {tab.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      )}
 
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
@@ -267,13 +235,6 @@ const Home = () => {
           })}
         </div>
       </div>
-
-      {/* 시즌 카운트다운 — snow 만 (다른 vertical 은 시즌성 다름) */}
-      {isSnow && (
-        <div className="px-4 pb-2 bg-snow">
-          <SeasonCountdown />
-        </div>
-      )}
 
       {/* Category Sections */}
       <div className="px-4 py-4 space-y-4">
