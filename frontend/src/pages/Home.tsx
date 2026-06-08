@@ -132,15 +132,48 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vertical.slug]);
 
+  // 올영 스타일 상단 GNB 탭. snow vertical 에서만 노출.
+  const homeTabs = isSnow
+    ? [
+        { id: 'home', label: '홈', to: '/', active: true },
+        { id: 'new', label: '신상', to: '/new-equipment' },
+        { id: 'rank', label: '랭킹', to: '/used' },
+        { id: 'rental', label: '렌탈', to: '/rental' },
+        { id: 'community', label: '커뮤니티', to: '/community' },
+        { id: 'competitions', label: '시합', to: '/competitions' },
+      ]
+    : [];
+
   return (
     <div className="min-h-screen bg-sky-50">
       <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
+
+      {/* GNB 탭바 — 빠른 이동 (올영 홈/오특/랭킹 자리) */}
+      {homeTabs.length > 0 && (
+        <nav aria-label="홈 빠른 이동" className="bg-snow border-b border-gray-100">
+          <div className="flex gap-5 overflow-x-auto px-4 py-2.5" style={{ scrollbarWidth: 'none' }}>
+            {homeTabs.map(tab => (
+              <Link
+                key={tab.id}
+                to={tab.to}
+                className={`flex-shrink-0 text-[14px] font-bold pb-1 border-b-2 transition-colors ${
+                  tab.active ? 'text-gray-900 border-gray-900' : 'text-gray-500 border-transparent hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
+
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
-          어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피. */}
+          어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피.
+          모바일에서 임팩트 위해 정사각형 가까운 비율(5/4), 데스크탑은 슬림 유지. */}
       <div className="px-4 pt-3 pb-5 bg-snow">
         <div
-          className="relative overflow-hidden rounded-2xl border aspect-[3.5/1] md:aspect-[6/1] lg:aspect-[8/1] max-h-44"
+          className="relative overflow-hidden rounded-2xl border aspect-[5/4] sm:aspect-[3/1] lg:aspect-[6/1] sm:max-h-44"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
         >
           {/* Slide #0: 브랜드 소개 — translate-only 슬라이드 (opacity 페이드 제거 → 두 슬라이드 동시 노출 버그 해소) */}
@@ -209,19 +242,24 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Categories — 둥근 원형 (올영 스타일 배치, 톤은 모노크롬 유지) */}
+      {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
       <div className="px-4 pb-5 bg-snow">
         <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-9' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
+            // 신규/핫 카테고리에 빨간 점 (전환 유도). 임시 룰: 중고/렌탈/시합.
+            const showNew = ['used', 'rental', 'competitions'].includes(cat.id as string);
             return (
               <Link
                 key={cat.id}
                 to={cat.link}
                 className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
-                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
-                  {Icon ? <Icon size={28} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
+                <div className="relative w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
+                  {Icon ? <Icon size={32} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
+                  {showNew && (
+                    <span className="absolute top-1 right-1 w-4 h-4 inline-flex items-center justify-center text-[8px] font-black text-white bg-coral rounded-full">N</span>
+                  )}
                 </div>
                 <span className="text-[11px] font-medium text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
