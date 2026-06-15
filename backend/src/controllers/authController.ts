@@ -9,6 +9,19 @@ import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshTok
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
 import { normalizeEmail } from '../utils/validate';
 
+// 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
+const BCRYPT_COST = 12;
+
+// 휴대폰 인증 무한 시도 방어 — phone 별 실패 카운터 (인메모리, 10분 윈도우).
+// 6자리 코드 + IP 레이트리밋만으로는 phone 한 개에 백만 번 시도 가능.
+const phoneVerifyAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_PHONE_VERIFY_ATTEMPTS = 5;
+const PHONE_VERIFY_WINDOW_MS = 10 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of phoneVerifyAttempts) if (now >= v.resetAt) phoneVerifyAttempts.delete(k);
+}, 5 * 60 * 1000);
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name, nickname, phone, referralCode } = req.body;
@@ -73,7 +86,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
 
     // 추천 코드 검증 — 잘못된 코드는 무시하고 가입 진행 (UX 우선).
     let referredById: string | undefined;
@@ -271,7 +284,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_COST);
     await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
     // 모든 기존 토큰 무효화 — 비번 변경 후 옛 토큰으로 접근 차단.
     invalidateUserTokens(userId);
@@ -401,6 +414,23 @@ export const verifyPhone = async (req: Request, res: Response): Promise<void> =>
   try {
     const { phone, code } = req.body;
 
+    if (typeof phone !== 'string' || typeof code !== 'string') {
+      res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
+      return;
+    }
+
+    // phone 별 실패 카운터 — 6자리 코드 무한 시도(brute force) 차단.
+    const now = Date.now();
+    let bucket = phoneVerifyAttempts.get(phone);
+    if (!bucket || now >= bucket.resetAt) {
+      bucket = { count: 0, resetAt: now + PHONE_VERIFY_WINDOW_MS };
+      phoneVerifyAttempts.set(phone, bucket);
+    }
+    if (bucket.count >= MAX_PHONE_VERIFY_ATTEMPTS) {
+      res.status(429).json({ error: '인증 시도 한도를 초과했습니다. 잠시 후 다시 시도해주세요.' });
+      return;
+    }
+
     const verification = await prisma.phoneVerification.findFirst({
       where: {
         phone,
@@ -416,9 +446,13 @@ export const verifyPhone = async (req: Request, res: Response): Promise<void> =>
     });
 
     if (!verification) {
+      bucket.count++;
       res.status(400).json({ error: '인증번호가 올바르지 않거나 만료되었습니다.' });
       return;
     }
+
+    // 성공 시 카운터 초기화 — 다음 인증 시 깨끗한 상태에서 시작.
+    phoneVerifyAttempts.delete(phone);
 
     await prisma.phoneVerification.update({
       where: { id: verification.id },
@@ -470,7 +504,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     const stamp = Date.now();
     const anonEmail = `deleted_${userId}@snowpan.local`;
     const anonPhone = `deleted_${stamp}_${userId.slice(0, 8)}`;
-    const lockedPasswordHash = await bcrypt.hash(`__deleted__${stamp}__${Math.random()}`, 10);
+    const lockedPasswordHash = await bcrypt.hash(`__deleted__${stamp}__${Math.random()}`, BCRYPT_COST);
 
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
@@ -605,7 +639,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_COST);
     await prisma.$transaction([
       prisma.user.update({ where: { email: emailNormalized }, data: { password: hashedPassword } }),
       // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화

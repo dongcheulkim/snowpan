@@ -339,7 +339,27 @@ io.on('connection', (socket) => {
   const userId = socket.data.userId;
   socket.join(`user:${userId}`);
 
+  // 소켓 이벤트 레이트리밋 — HTTP writeLimiter 우회 방지.
+  // send_message: 10초당 10회 (사람 입력 속도 충분 + 봇 차단).
+  // join_room: 1분당 30회 (정상 사용은 한 자리수).
+  const buckets = {
+    send: { count: 0, resetAt: 0 },
+    join: { count: 0, resetAt: 0 },
+  };
+  const takeToken = (key: 'send' | 'join', limit: number, windowMs: number): boolean => {
+    const now = Date.now();
+    const b = buckets[key];
+    if (now >= b.resetAt) { b.count = 1; b.resetAt = now + windowMs; return true; }
+    if (b.count >= limit) return false;
+    b.count++;
+    return true;
+  };
+
   socket.on('join_room', async (roomId: string) => {
+    if (!takeToken('join', 30, 60_000)) {
+      socket.emit('room_error', { roomId, error: '요청이 너무 잦습니다. 잠시 후 다시 시도하세요.' });
+      return;
+    }
     try {
       const room = await prisma.chatRoom.findFirst({
         where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
@@ -356,6 +376,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', async (data: { roomId: string; content: string; imageUrl?: string; type?: string }) => {
+    if (!takeToken('send', 10, 10_000)) {
+      socket.emit('rate_limited', { error: '메시지를 너무 빠르게 보내고 있습니다.' });
+      return;
+    }
     try {
       // 채팅방 멤버인지 확인
       const room = await prisma.chatRoom.findFirst({

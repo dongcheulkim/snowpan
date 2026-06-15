@@ -13,11 +13,16 @@ const REFRESH_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 const SESSION_TTL_MS = undefined;
 
 // 두 secret 분리 — access 누출돼도 refresh 위조 불가.
+// 프로덕션에서는 JWT_REFRESH_SECRET 필수. 누락 시 access 시크릿에서 파생되면
+// access 키 한 번 새는 사고가 refresh 위조까지 직결됨.
 function getSecrets(): { access: string; refresh: string } {
   const access = process.env.JWT_SECRET;
   if (!access) throw new Error('JWT_SECRET 미설정');
-  // refresh secret 별도 — env 있으면 사용, 없으면 access secret 의 변형.
-  const refresh = process.env.JWT_REFRESH_SECRET || `${access}::refresh`;
+  const explicitRefresh = process.env.JWT_REFRESH_SECRET;
+  if (!explicitRefresh && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_REFRESH_SECRET 미설정 — 프로덕션에서 access 시크릿과 분리 필수 (openssl rand -hex 32)');
+  }
+  const refresh = explicitRefresh || `${access}::refresh`;
   return { access, refresh };
 }
 
