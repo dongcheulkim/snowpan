@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
-import { ChartIcon, ChatIcon, FireIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import BrandHero from '../components/BrandHero';
-import { communityCategoryLabel } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
 
 interface Product {
@@ -16,6 +14,9 @@ interface Product {
   status: string;
   createdAt: string;
 }
+
+// 한 번에 불러올 매물 수. 번개장터 스타일 무한스크롤.
+const FEED_PAGE_SIZE = 20;
 
 interface BannerData {
   id: string;
@@ -28,28 +29,18 @@ interface BannerData {
   textAlign?: string | null;
 }
 
-interface CommunityPost {
-  id: string;
-  title: string;
-  category: string;
-  likes: number;
-  views: number;
-  commentCount: number;
-  user: { name: string };
-  createdAt: string;
-}
-
 const Home = () => {
   const vertical = useVertical();
   const isSnow = vertical.slug === 'snow';
   const verticalBase = isSnow ? '' : vertical.basePath; // '' for snow (root), '/bike' for bike etc.
 
   const [currentBanner, setCurrentBanner] = useState(0);
-  const [hotDeals, setHotDeals] = useState<Product[]>([]);
-  const sportTabs = vertical.sports || [{ id: 'ski', label: '스키' }, { id: 'board', label: '보드' }];
-  const [communityTab, setCommunityTab] = useState<string>(sportTabs[0]?.id || 'ski');
-  const [polls, setPolls] = useState<CommunityPost[]>([]);
-  const [tabPosts, setTabPosts] = useState<Record<string, CommunityPost[]>>({});
+  // 번개장터 스타일 무한스크롤 — 카테고리 아래 중고매물 그리드.
+  const [feed, setFeed] = useState<Product[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedHasMore, setFeedHasMore] = useState(true);
+  const [feedOffset, setFeedOffset] = useState(0);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -103,34 +94,50 @@ const Home = () => {
         link: `${verticalBase}/${c.slug}`,
       }));
 
-  // 인기중고매물 독립 로딩 (경량 API, 실패 시 기존 API 폴백)
-  useEffect(() => {
-    api<Product[]>('/home/hot-deals')
-      .then(setHotDeals)
-      .catch(() => {
-        api<{ products: Product[] }>('/products?category=used&limit=3')
-          .then(res => setHotDeals(res.products))
-          .catch(() => {});
-      });
-  }, []);
+  // 무한스크롤 피드 — 중고매물 페이지네이션 로드.
+  const loadMoreFeed = useCallback(async () => {
+    if (feedLoading || !feedHasMore) return;
+    setFeedLoading(true);
+    try {
+      const res = await api<{ products: Product[]; totalCount?: number } | Product[]>(
+        `/products?category=used&limit=${FEED_PAGE_SIZE}&offset=${feedOffset}`
+      );
+      const items = Array.isArray(res) ? res : (res.products || []);
+      setFeed((prev) => [...prev, ...items]);
+      setFeedOffset((prev) => prev + items.length);
+      if (items.length < FEED_PAGE_SIZE) setFeedHasMore(false);
+    } catch {
+      setFeedHasMore(false);
+    } finally {
+      setFeedLoading(false);
+    }
+  }, [feedLoading, feedHasMore, feedOffset]);
 
-  // 인기 커뮤니티 게시글 + 인기 투표 로딩 — vertical 의 sports 별로 가져옴
+  // 첫 로드 + vertical 바뀌면 리셋.
   useEffect(() => {
-    Promise.all([
-      ...sportTabs.map(s => api<CommunityPost[]>(`/community/popular?sport=${s.id}`).catch(() => [])),
-      api<{ posts: CommunityPost[]; totalCount: number }>('/community?category=poll&limit=3').catch(() => ({ posts: [], totalCount: 0 })),
-    ]).then((results) => {
-      const sportResults = results.slice(0, sportTabs.length) as CommunityPost[][];
-      const pollRes = results[results.length - 1] as { posts: CommunityPost[]; totalCount: number };
-      const next: Record<string, CommunityPost[]> = {};
-      sportTabs.forEach((s, i) => {
-        next[s.id] = Array.isArray(sportResults[i]) ? sportResults[i].slice(0, 5) : [];
-      });
-      setTabPosts(next);
-      setPolls(Array.isArray(pollRes) ? [] : (pollRes?.posts || []));
-    });
+    setFeed([]);
+    setFeedOffset(0);
+    setFeedHasMore(true);
+    setFeedLoading(false);
+    // 다음 tick 에서 첫 페이지 로드 (state 리셋 반영 후).
+    const t = setTimeout(() => loadMoreFeed(), 0);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vertical.slug]);
+
+  // IntersectionObserver — 센티넬이 보이면 다음 페이지 로드.
+  useEffect(() => {
+    if (!sentinelRef.current || !feedHasMore) return;
+    const el = sentinelRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMoreFeed();
+      },
+      { rootMargin: '300px' } // 300px 미리 트리거 → 끊김 없는 스크롤
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [feedHasMore, loadMoreFeed]);
 
   return (
     <div className="min-h-screen bg-sky-50">
@@ -257,110 +264,58 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Category Sections */}
-      <div className="px-4 py-4 space-y-4">
-
-        {/* Hot Deals — 가로 스크롤 랭킹 (올영 실시간 랭킹 스타일) */}
-        <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={18} /> 중고 인기매물 랭킹</h2>
-            <Link to={`${verticalBase}/used`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
-          </div>
-          {hotDeals.length > 0 ? (
-            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
-              {hotDeals.map((deal, idx) => (
-                <Link
-                  key={deal.id}
-                  to={`${verticalBase}/used/${deal.id}`}
-                  className="flex-shrink-0 w-[120px] snap-start"
-                >
-                  <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    {deal.image.startsWith('/') || deal.image.startsWith('http') ? (
-                      <img src={imageUrl(deal.image, 240)} alt={deal.name} loading="lazy" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="absolute inset-0 flex items-center justify-center text-3xl">{deal.image}</span>
-                    )}
-                    <span className={`absolute top-1 left-1 min-w-6 h-6 px-1.5 inline-flex items-center justify-center text-[11px] font-black rounded ${idx < 3 ? 'bg-gray-900 text-white' : 'bg-white/90 text-gray-700'}`}>
-                      {idx + 1}
-                    </span>
-                    {deal.status === 'reserved' && (
-                      <span className="absolute bottom-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-yellow-500 text-white">예약중</span>
-                    )}
-                    {deal.status === 'sold' && (
-                      <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold">판매완료</span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-[12px] text-gray-900 line-clamp-2 leading-tight">{deal.name}</p>
-                  <p className="text-[13px] font-bold text-gray-900 mt-0.5">{deal.price.toLocaleString()}원</p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-4">아직 등록된 매물이 없습니다.</p>
-          )}
+      {/* 번개장터 스타일 무한스크롤 중고매물 그리드 */}
+      <div className="px-4 pt-2 pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5">
+            <SecondHandIcon size={18} /> {t('cat.used')}
+          </h2>
+          <Link to={`${verticalBase}/used`} className="text-xs text-gray-500">전체 보기 &gt;</Link>
         </div>
 
-        {/* Community */}
-        <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><FireIcon size={18} /> 인기 커뮤니티</h2>
-            <Link to={isSnow ? `/community/${communityTab}` : `${verticalBase}/community`} className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
-          </div>
-          <div className="flex gap-1 mb-3">
-            {sportTabs.map(s => (
-              <button key={s.id} onClick={() => setCommunityTab(s.id)} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 ${communityTab === s.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                {isSnow && s.id === 'ski' && <SkiIcon size={14} />}
-                {isSnow && s.id === 'board' && <SnowboardIcon size={14} />}
-                {s.label}
-              </button>
+        {feed.length === 0 && !feedLoading ? (
+          <p className="text-sm text-gray-500 text-center py-10">아직 등록된 매물이 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+            {feed.map((p) => (
+              <Link
+                key={p.id}
+                to={`${verticalBase}/used/${p.id}`}
+                className="flex flex-col active:opacity-80 transition-opacity"
+              >
+                <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                  {p.image && (p.image.startsWith('/') || p.image.startsWith('http')) ? (
+                    <img
+                      src={imageUrl(p.image, 480)}
+                      alt={p.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center text-4xl">{p.image || '🎿'}</span>
+                  )}
+                  {p.status === 'reserved' && (
+                    <span className="absolute top-2 left-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500 text-white">예약중</span>
+                  )}
+                  {p.status === 'sold' && (
+                    <span className="absolute inset-0 bg-black/45 flex items-center justify-center text-white text-sm font-bold">판매완료</span>
+                  )}
+                </div>
+                <p className="mt-2 text-[13px] text-gray-900 line-clamp-2 leading-snug">{p.name}</p>
+                <p className="mt-1 text-[15px] font-bold text-gray-900">{p.price.toLocaleString()}원</p>
+              </Link>
             ))}
-          </div>
-          {(tabPosts[communityTab] || []).length > 0 ? (
-            <div className="space-y-0">
-              {(tabPosts[communityTab] || []).map((post, idx, arr) => (
-                <Link key={post.id} to={`${verticalBase}/community/post/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">{communityCategoryLabel(post.category, communityTab)}</span>
-                    <span className="text-sm text-gray-900 truncate">{post.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
-                    <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
-                    <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-4">아직 게시글이 없습니다.</p>
-          )}
-        </div>
-
-        {/* 인기 투표 */}
-        {polls.length > 0 && (
-          <div className="bg-snow border-2 rounded-2xl p-4 shadow-sm" style={{ borderColor: (vertical.accentColor || '#0ea5e9') + '40' }}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5"><ChartIcon size={18} /> 인기 투표</h2>
-              <Link to="/community/ski" className="inline-flex items-center min-h-11 px-2 -mx-2 text-xs text-primary-dark font-medium hover:underline">더보기 &gt;</Link>
-            </div>
-            <div className="space-y-0">
-              {polls.map((post, idx) => (
-                <Link key={post.id} to={`/poll/${post.id}`} className={`flex items-center justify-between py-2.5 ${idx !== polls.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200 flex-shrink-0">투표</span>
-                    <span className="text-sm text-gray-900 truncate">{post.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
-                    <span className="text-coral inline-flex items-center gap-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9.5C.6 7.5 3 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 3.5 0 5.9 3.5 4 7.5C19 16.5 12 21 12 21z"/></svg>{post.likes}</span>
-                    <span className="inline-flex items-center gap-0.5"><ChatIcon size={10} />{post.commentCount}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
           </div>
         )}
 
+        {/* 로딩 인디케이터 + 무한스크롤 센티넬 */}
+        <div ref={sentinelRef} className="h-12 flex items-center justify-center">
+          {feedLoading && <span className="text-[11px] text-gray-400">불러오는 중…</span>}
+          {!feedLoading && !feedHasMore && feed.length > 0 && (
+            <span className="text-[11px] text-gray-400">마지막 매물입니다</span>
+          )}
+        </div>
       </div>
-
     </div>
   );
 };
