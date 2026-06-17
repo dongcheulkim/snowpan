@@ -10,6 +10,9 @@ import { useNavigation } from '@react-navigation/native';
 import { api } from '../utils/api';
 import { showRewardedAd } from '../utils/admob';
 
+// 사업자 등록 전이라 광고 OFF. 켜려면 EXPO_PUBLIC_ADS_ENABLED=1 빌드 시 주입.
+const ADS_ENABLED = process.env.EXPO_PUBLIC_ADS_ENABLED === '1';
+
 interface Coupon {
   id: string;
   title: string;
@@ -66,22 +69,37 @@ export default function CouponShopScreen() {
       Alert.alert('포인트 부족', `보유 ${balance.toLocaleString()}P · 필요 ${c.pointsCost.toLocaleString()}P`);
       return;
     }
-    setConfirmTarget(c);
+    // 광고 ON 이면 모달로 안내, OFF 면 바로 결제 확인.
+    if (ADS_ENABLED) {
+      setConfirmTarget(c);
+    } else {
+      Alert.alert(
+        '쿠폰 구매',
+        `${c.title}\n${c.pointsCost.toLocaleString()}P 차감됩니다. 진행할까요?`,
+        [
+          { text: '취소', style: 'cancel' },
+          { text: '구매', onPress: () => doPurchase(c) },
+        ]
+      );
+    }
   };
 
-  const doPurchase = async () => {
-    if (!confirmTarget) return;
+  const doPurchase = async (target?: Coupon) => {
+    const c = target || confirmTarget;
+    if (!c) return;
     setBuying(true);
     try {
-      // 1) 광고 시청.
-      const adResult = await showRewardedAd('coupon_purchase');
-      if (!adResult.ok) {
-        Alert.alert('광고 시청 필요', adResult.reason);
-        return;
+      // 광고가 ON 일 때만 시청 — OFF 면 바로 구매 API.
+      if (ADS_ENABLED) {
+        const adResult = await showRewardedAd('coupon_purchase');
+        if (!adResult.ok) {
+          Alert.alert('광고 시청 필요', adResult.reason);
+          return;
+        }
       }
 
-      // 2) 구매 (백엔드가 최근 AdView consume).
-      await api(`/coupons/${confirmTarget.id}/purchase`, { method: 'POST' });
+      // 백엔드: ADS_ENABLED OFF 일 땐 AD_GATE_DISABLED=1 환경변수 셋 필수.
+      await api(`/coupons/${c.id}/purchase`, { method: 'POST' });
       Alert.alert('구매 완료', '쿠폰이 발급되었습니다. "내 쿠폰"에서 확인하세요.');
       setConfirmTarget(null);
       await loadBalance();
@@ -181,7 +199,7 @@ export default function CouponShopScreen() {
               <TouchableOpacity style={st.modalCancel} onPress={() => setConfirmTarget(null)} disabled={buying}>
                 <Text style={st.modalCancelText}>취소</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={st.modalConfirm} onPress={doPurchase} disabled={buying}>
+              <TouchableOpacity style={st.modalConfirm} onPress={() => doPurchase()} disabled={buying}>
                 {buying ? <ActivityIndicator color="#fff" /> : <Text style={st.modalConfirmText}>광고 보고 구매</Text>}
               </TouchableOpacity>
             </View>
