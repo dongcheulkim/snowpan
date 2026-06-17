@@ -24,6 +24,7 @@ interface Tracked {
   lastLng: number | null;
   lastAlt: number | null;
   hasAltitude: boolean;
+  samplePoints: { lat: number; lng: number }[]; // 지오펜스 검증용 (최대 30개)
 }
 
 const initialTracked = (): Tracked => ({
@@ -36,6 +37,7 @@ const initialTracked = (): Tracked => ({
   lastLng: null,
   lastAlt: null,
   hasAltitude: false,
+  samplePoints: [],
 });
 
 const SnowRunRecord = () => {
@@ -111,6 +113,15 @@ const SnowRunRecord = () => {
           const speedKmh = speed != null && speed >= 0 ? speed * 3.6 : 0;
           const nextMaxSpeed = Math.max(prev.maxSpeedKmh, speedKmh);
 
+          // 지오펜스 검증용 — 최대 30개까지만 유지 (균등 샘플링).
+          let nextSamples = prev.samplePoints;
+          if (nextSamples.length < 30) {
+            nextSamples = [...nextSamples, { lat: latitude, lng: longitude }];
+          } else {
+            // 30개 채워지면 절반 솎아내고 새 점 추가 — 시간 축 따라 균등.
+            nextSamples = nextSamples.filter((_, i) => i % 2 === 0).concat({ lat: latitude, lng: longitude });
+          }
+
           return {
             ...prev,
             distanceM: nextDistance,
@@ -121,6 +132,7 @@ const SnowRunRecord = () => {
             lastLng: longitude,
             lastAlt,
             hasAltitude: hasAlt,
+            samplePoints: nextSamples,
           };
         });
       },
@@ -176,6 +188,7 @@ const SnowRunRecord = () => {
           maxSpeedKmh: trackedRef.current.maxSpeedKmh,
           avgSpeedKmh,
           source: 'web_gps',
+          samplePoints: trackedRef.current.samplePoints,
         },
       });
       alert(

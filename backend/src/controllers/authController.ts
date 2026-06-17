@@ -10,8 +10,10 @@ import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail
 import { normalizeEmail } from '../utils/validate';
 import { awardPoints } from '../utils/points';
 
-// 가입 보너스 (회원가입 시 1회 지급). 추천인 보너스는 별도(추후 추가).
+// 가입 보너스 + 추천인 보너스 (양쪽 지급).
 const SIGNUP_BONUS_POINTS = 1000;
+const REFERRAL_BONUS_REFERRER = 500;  // 추천한 사람
+const REFERRAL_BONUS_REFERRED = 200;  // 추천받아 가입한 사람 (가입 보너스 위에 추가)
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -121,6 +123,25 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         source: 'signup_bonus',
         description: '회원가입 축하 보너스',
       });
+
+      // 추천인이 있으면 양쪽 다 보너스. 추천인은 무한 보너스 가능하지만
+      // 추천 코드가 유니크 + 가입은 phone 인증 필수라 자기 자신 farming 어려움.
+      if (referredById) {
+        await awardPoints(prisma, {
+          userId: user.id,
+          amount: REFERRAL_BONUS_REFERRED,
+          source: 'referral_bonus',
+          refId: referredById,
+          description: '추천 코드로 가입 보너스',
+        });
+        await awardPoints(prisma, {
+          userId: referredById,
+          amount: REFERRAL_BONUS_REFERRER,
+          source: 'referral_bonus',
+          refId: user.id,
+          description: '친구 가입 보너스',
+        });
+      }
     } catch (e) {
       console.error('Signup bonus award failed:', e);
     }

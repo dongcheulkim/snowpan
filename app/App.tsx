@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native';
 import { registerPushToken, addNotificationResponseListener } from './src/utils/push';
+// 백그라운드 위치 작업 등록 — 모듈 import 만으로 TaskManager.defineTask 실행.
+import './src/utils/snowRunTracker';
 
 // 탭 화면
 import HomeScreen from './src/screens/HomeScreen';
@@ -35,6 +37,7 @@ import EditProfileScreen from './src/screens/EditProfileScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import SellerProfileScreen from './src/screens/SellerProfileScreen';
 import AdBookingScreen from './src/screens/AdBookingScreen';
+import SnowRunScreen from './src/screens/SnowRunScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -105,6 +108,7 @@ export default function App() {
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="SellerProfile" component={SellerProfileScreen} />
         <Stack.Screen name="AdBooking" component={AdBookingScreen} />
+        <Stack.Screen name="SnowRun" component={SnowRunScreen} options={{ headerShown: true, title: '스노우런' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

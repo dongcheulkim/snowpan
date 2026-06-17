@@ -5,6 +5,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { awardPoints } from '../utils/points';
+import { findResortContaining } from '../data/skiResortGeofences';
 
 // Phase 0 검증 한계치 — 너무 빡빡하면 정상 유저가 막힘, 너무 헐겁면 부정 사용 통과.
 const LIMITS = {
@@ -29,6 +30,12 @@ interface SubmitRunBody {
   maxSpeedKmh?: number;
   avgSpeedKmh?: number;
   source?: 'web_gps' | 'app_gps' | 'manual';
+  // 지오펜스 검증용 — 런이 어디서 일어났는지. 둘 중 하나 이상 필요:
+  // (a) samplePoints: 트래킹 중 샘플링된 점들 (반드시 3개 이상 권장)
+  // (b) centerLat/centerLng: 트래킹 평균 점 (앱이 미리 계산)
+  samplePoints?: { lat: number; lng: number }[];
+  centerLat?: number;
+  centerLng?: number;
 }
 
 export const submitRun = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -83,6 +90,34 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
     });
     if (overlapping) reasons.push('동일 시간대 런 기록 존재');
 
+    // 지오펜스 검증 — 등록된 스키장 영역 안에서 일어난 런만 인정.
+    // samplePoints 가 있으면 대다수가 같은 리조트 안에 있어야 함 (≥60%),
+    // centerLat/Lng 만 있으면 중심점이 리조트 안에 있어야 함.
+    // 둘 다 없으면 manual 외엔 거부.
+    let detectedResortId: string | null = null;
+    if (body.samplePoints && body.samplePoints.length >= 3) {
+      const counts = new Map<string, number>();
+      for (const p of body.samplePoints) {
+        const r = findResortContaining(p.lat, p.lng);
+        if (r) counts.set(r.id, (counts.get(r.id) || 0) + 1);
+      }
+      let bestId: string | null = null;
+      let bestCount = 0;
+      for (const [id, c] of counts) {
+        if (c > bestCount) { bestId = id; bestCount = c; }
+      }
+      const ratio = bestCount / body.samplePoints.length;
+      if (ratio >= 0.6 && bestId) detectedResortId = bestId;
+      else reasons.push('등록된 스키장 영역 밖');
+    } else if (typeof body.centerLat === 'number' && typeof body.centerLng === 'number') {
+      const r = findResortContaining(body.centerLat, body.centerLng);
+      if (r) detectedResortId = r.id;
+      else reasons.push('등록된 스키장 영역 밖');
+    } else if (source !== 'manual') {
+      // 좌표 정보 없는 자동 제출은 거절.
+      reasons.push('위치 정보 누락');
+    }
+
     const validated = reasons.length === 0;
 
     // 일일 캡 — 자정 기준 user 의 validated 런 수.
@@ -113,6 +148,7 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
           source,
           validated,
           pointsAwarded: pointsToAward,
+          resortId: detectedResortId,
         },
       });
 
