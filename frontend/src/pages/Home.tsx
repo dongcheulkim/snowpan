@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -15,8 +15,8 @@ interface Product {
   createdAt: string;
 }
 
-// 한 번에 불러올 매물 수. 번개장터 스타일 무한스크롤.
-const FEED_PAGE_SIZE = 20;
+// 한 번에 보여줄 매물 수. 새로고침 누르면 랜덤 다른 30개로 교체.
+const FEED_PAGE_SIZE = 30;
 
 interface BannerData {
   id: string;
@@ -35,12 +35,10 @@ const Home = () => {
   const verticalBase = isSnow ? '' : vertical.basePath; // '' for snow (root), '/bike' for bike etc.
 
   const [currentBanner, setCurrentBanner] = useState(0);
-  // 번개장터 스타일 무한스크롤 — 카테고리 아래 중고매물 그리드.
+  // 매물 30개 노출 + "다른 매물 보기" 새로고침으로 랜덤 오프셋 30개 다시 받음.
   const [feed, setFeed] = useState<Product[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
-  const [feedHasMore, setFeedHasMore] = useState(true);
-  const [feedOffset, setFeedOffset] = useState(0);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [feedTotal, setFeedTotal] = useState<number | null>(null);
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -94,50 +92,40 @@ const Home = () => {
         link: `${verticalBase}/${c.slug}`,
       }));
 
-  // 무한스크롤 피드 — 중고매물 페이지네이션 로드.
-  const loadMoreFeed = useCallback(async () => {
-    if (feedLoading || !feedHasMore) return;
+  // 매물 피드 로드 — randomize=true 면 totalCount 기준 랜덤 오프셋으로 다른 30개.
+  const loadFeed = useCallback(async (randomize: boolean) => {
     setFeedLoading(true);
     try {
+      // 랜덤이면 totalCount 알아야 유효 오프셋 계산. 첫 로드시도 알 수 있음.
+      let offset = 0;
+      const knownTotal = feedTotal;
+      if (randomize && knownTotal && knownTotal > FEED_PAGE_SIZE) {
+        const maxOffset = Math.max(0, knownTotal - FEED_PAGE_SIZE);
+        offset = Math.floor(Math.random() * (maxOffset + 1));
+      }
       const res = await api<{ products: Product[]; totalCount?: number } | Product[]>(
-        `/products?category=used&limit=${FEED_PAGE_SIZE}&offset=${feedOffset}`
+        `/products?category=used&limit=${FEED_PAGE_SIZE}&offset=${offset}`
       );
       const items = Array.isArray(res) ? res : (res.products || []);
-      setFeed((prev) => [...prev, ...items]);
-      setFeedOffset((prev) => prev + items.length);
-      if (items.length < FEED_PAGE_SIZE) setFeedHasMore(false);
+      const total = Array.isArray(res) ? null : (res.totalCount ?? null);
+      setFeed(items);
+      if (total !== null) setFeedTotal(total);
+      // 페이지 상단으로 부드럽게 스크롤 (새로고침 클릭 시).
+      if (randomize) window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
-      setFeedHasMore(false);
+      // 실패 시 그대로 유지.
     } finally {
       setFeedLoading(false);
     }
-  }, [feedLoading, feedHasMore, feedOffset]);
+  }, [feedTotal]);
 
   // 첫 로드 + vertical 바뀌면 리셋.
   useEffect(() => {
     setFeed([]);
-    setFeedOffset(0);
-    setFeedHasMore(true);
-    setFeedLoading(false);
-    // 다음 tick 에서 첫 페이지 로드 (state 리셋 반영 후).
-    const t = setTimeout(() => loadMoreFeed(), 0);
-    return () => clearTimeout(t);
+    setFeedTotal(null);
+    loadFeed(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vertical.slug]);
-
-  // IntersectionObserver — 센티넬이 보이면 다음 페이지 로드.
-  useEffect(() => {
-    if (!sentinelRef.current || !feedHasMore) return;
-    const el = sentinelRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) loadMoreFeed();
-      },
-      { rootMargin: '300px' } // 300px 미리 트리거 → 끊김 없는 스크롤
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [feedHasMore, loadMoreFeed]);
 
   return (
     <div className="min-h-screen bg-sky-50">
@@ -264,11 +252,14 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 번개장터 스타일 무한스크롤 중고매물 그리드 */}
+      {/* 중고매물 30개 노출 + "다른 매물 보기" 새로고침으로 랜덤 30개 교체 */}
       <div className="px-4 pt-2 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5">
             <SecondHandIcon size={18} /> {t('cat.used')}
+            {feedTotal !== null && (
+              <span className="text-[11px] font-medium text-gray-500 ml-1">({feedTotal.toLocaleString()})</span>
+            )}
           </h2>
           <Link to={`${verticalBase}/used`} className="text-xs text-gray-500">전체 보기 &gt;</Link>
         </div>
@@ -308,13 +299,37 @@ const Home = () => {
           </div>
         )}
 
-        {/* 로딩 인디케이터 + 무한스크롤 센티넬 */}
-        <div ref={sentinelRef} className="h-12 flex items-center justify-center">
-          {feedLoading && <span className="text-[11px] text-gray-400">불러오는 중…</span>}
-          {!feedLoading && !feedHasMore && feed.length > 0 && (
-            <span className="text-[11px] text-gray-400">마지막 매물입니다</span>
-          )}
-        </div>
+        {/* 다른 매물 보기 — 랜덤 오프셋으로 30개 새로 받아 교체 */}
+        {feed.length > 0 && (
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <button
+              onClick={() => loadFeed(true)}
+              disabled={feedLoading || (feedTotal !== null && feedTotal <= FEED_PAGE_SIZE)}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 text-white text-sm font-bold rounded-full active:scale-95 transition-transform disabled:opacity-40 disabled:active:scale-100"
+            >
+              <svg
+                className={`w-4 h-4 ${feedLoading ? 'animate-spin' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                <polyline points="21 3 21 8 16 8" />
+                <polyline points="3 21 3 16 8 16" />
+              </svg>
+              {feedLoading ? '불러오는 중…' : '🔄 다른 매물 보기'}
+            </button>
+            {feedTotal !== null && feedTotal > FEED_PAGE_SIZE && (
+              <p className="text-[11px] text-gray-500">
+                전체 {feedTotal.toLocaleString()}건 중 30개 노출 중
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
