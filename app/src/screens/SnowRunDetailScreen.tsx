@@ -160,6 +160,14 @@ export default function SnowRunDetailScreen() {
             <Text style={st.resortText}>감지된 스키장: {run.resortId}</Text>
           )}
         </View>
+
+        {/* 공유 카드 버튼 */}
+        <TouchableOpacity
+          style={st.shareBtn}
+          onPress={() => navigation.navigate('SnowRunShare', { id: run.id })}
+        >
+          <Text style={st.shareBtnText}>📷 공유 카드 만들기</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -188,4 +196,6 @@ const st = StyleSheet.create({
   pointsOk: { color: '#059669' },
   pointsDim: { color: '#9CA3AF' },
   resortText: { fontSize: 11, color: '#6B7280', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  shareBtn: { backgroundColor: '#0F172A', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 12 },
+  shareBtnText: { color: '#fff', fontSize: 14, fontWeight: '800' },
 });

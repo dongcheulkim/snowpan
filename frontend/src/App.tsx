@@ -74,6 +74,7 @@ const MyCoupons = lazy(() => import('./pages/MyCoupons'));
 const SnowRun = lazy(() => import('./pages/SnowRun'));
 const SnowRunRecord = lazy(() => import('./pages/SnowRunRecord'));
 const SnowRunDetail = lazy(() => import('./pages/SnowRunDetail'));
+const SnowRunShare = lazy(() => import('./pages/SnowRunShare'));
 
 function App() {
   return (
@@ -168,6 +169,7 @@ function App() {
             <Route path="snow-run" element={<RequireAuth><SnowRun /></RequireAuth>} />
             <Route path="snow-run/record" element={<RequireAuth><SnowRunRecord /></RequireAuth>} />
             <Route path="snow-run/:id" element={<RequireAuth><SnowRunDetail /></RequireAuth>} />
+            <Route path="snow-run/:id/share" element={<RequireAuth><SnowRunShare /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="marketplace" element={<Navigate to="/used" replace />} />
             <Route path="marketplace/*" element={<Navigate to="/used" replace />} />
