@@ -93,6 +93,16 @@ export const LivecamIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
+// 10. 쿠폰샵 — 쿠폰 모양 (양 끝 노치 + 점선)
+export const CouponIcon = ({ size = 32, className }: IconProps) => (
+  <svg {...baseProps(size, className)}>
+    <path
+      fillRule="evenodd"
+      d="M6 18 a 4 4 0 0 1 4 -4 L 54 14 a 4 4 0 0 1 4 4 L 58 24 a 4 4 0 0 0 0 8 L 58 38 a 4 4 0 0 1 -4 4 L 10 42 a 4 4 0 0 1 -4 -4 L 6 32 a 4 4 0 0 0 0 -8 Z M 22 22 L 22 26 L 18 26 L 18 22 Z M 30 22 L 30 26 L 26 26 L 26 22 Z M 38 22 L 38 26 L 34 26 L 34 22 Z M 46 22 L 46 26 L 42 26 L 42 22 Z M 22 30 L 22 34 L 18 34 L 18 30 Z M 30 30 L 30 34 L 26 34 L 26 30 Z M 38 30 L 38 34 L 34 34 L 34 30 Z M 46 30 L 46 34 L 42 34 L 42 30 Z"
+    />
+  </svg>
+);
+
 export const categoryIcons = {
   skishop: SkiShopIcon,
   repair: MaintenanceIcon,
@@ -103,4 +113,5 @@ export const categoryIcons = {
   community: CommunityIcon,
   competitions: ScheduleIcon,
   webcam: LivecamIcon,
+  coupon: CouponIcon,
 };

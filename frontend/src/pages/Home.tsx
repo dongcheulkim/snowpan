@@ -95,6 +95,7 @@ const Home = () => {
         { id: 'community', title: t('cat.community'), link: '/community' },
         { id: 'competitions', title: '시합일정', link: '/competitions' },
         { id: 'webcam', title: t('cat.webcam'), link: '/webcam' },
+        { id: 'coupon', title: '쿠폰샵', link: '/coupons' },
       ]
     : (vertical.homeCategories || []).map(c => ({
         id: c.slug,
@@ -212,11 +213,11 @@ const Home = () => {
 
       {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
       <div className="px-4 pb-5 bg-snow">
-        <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-9' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
+        <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-10' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
-            // 신규/핫 카테고리에 빨간 점 (전환 유도). 임시 룰: 중고/렌탈/시합.
-            const showNew = ['used', 'rental', 'competitions'].includes(cat.id as string);
+            // 신규/핫 카테고리에 빨간 점 (전환 유도). 쿠폰샵은 NEW 강조.
+            const showNew = ['used', 'rental', 'competitions', 'coupon'].includes(cat.id as string);
             return (
               <Link
                 key={cat.id}

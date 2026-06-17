@@ -21,6 +21,7 @@ model User {
   role          String   @default("user") // 'user' | 'admin'
   activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
   fcmToken      String?  // Firebase Cloud Messaging token
+  points        Int      @default(0) // 캐시된 포인트 잔액. 진실은 PointTransaction 누적합 — 트랜잭션 안에서만 갱신.
   referralCode  String?  @unique // 본인의 추천 코드 (lazy 생성)
   referredById  String?  // 누구의 추천으로 가입했는지
   referredBy    User?    @relation("referrals", fields: [referredById], references: [id])
@@ -48,8 +49,68 @@ model User {
   adBookings       AdBooking[]
   skiShops         SkiShop[]
   repairShops      RepairShop[]
+  pointTransactions PointTransaction[]
+  userCoupons      UserCoupon[]
 
   @@map("users")
+}
+
+// 포인트 적립/사용 이력. 모든 변화를 감사 가능하도록 기록.
+// 잔액 변경은 반드시 prisma.$transaction 안에서 User.points 와 함께 갱신.
+model PointTransaction {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  amount       Int      // +적립, -사용
+  balanceAfter Int      // 거래 직후 잔액 (감사용 — User.points 와 비교해 정합성 확인 가능)
+  source       String   // 'signup_bonus' | 'referral_bonus' | 'snow_run' | 'review' | 'daily_checkin' | 'coupon_purchase' | 'admin_grant' | 'admin_deduct' | 'expire'
+  refId        String?  // 관련 엔티티 id (쿠폰구매면 UserCoupon.id, 런이면 SnowRun.id 등)
+  description  String?  // 노출용 설명 ("회원가입 축하 보너스", "쿠폰 구매: 렌탈 10% 할인")
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("point_transactions")
+}
+
+// 쿠폰 카탈로그 — 운영자가 발행. partnerId 가 null 이면 스노우판 자체 쿠폰.
+model Coupon {
+  id            String   @id @default(uuid())
+  title         String   // "스키 렌탈 10% 할인"
+  description   String?
+  pointsCost    Int      // 필요 포인트
+  partnerType   String   // 'rental' | 'lesson' | 'skishop' | 'accommodation' | 'repair' | 'general'
+  partnerId     String?  // 특정 매장 한정이면 그 매장 id
+  discountType  String   // 'percent' | 'flat'
+  discountValue Int      // percent=10 → 10%, flat=10000 → 10,000원 할인
+  image         String?
+  validDays     Int      @default(30) // 구매 후 N일 동안 사용 가능
+  stock         Int?     // null = 무제한, 0 이면 매진
+  active        Boolean  @default(true)
+  vertical      String   @default("snow")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userCoupons  UserCoupon[]
+
+  @@index([vertical, active])
+  @@map("coupons")
+}
+
+// 사용자가 포인트로 구매한 쿠폰. code 는 매장에서 사용 확인용.
+model UserCoupon {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  couponId    String
+  coupon      Coupon   @relation(fields: [couponId], references: [id])
+  code        String   @unique // 8자리 영숫자 — 매장 확인용
+  status      String   @default("active") // 'active' | 'used' | 'expired'
+  expiresAt   DateTime
+  usedAt      DateTime?
+  purchasedAt DateTime @default(now())
+
+  @@index([userId, status])
+  @@map("user_coupons")
 }
 
 model SkiResort {

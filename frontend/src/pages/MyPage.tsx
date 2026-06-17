@@ -135,6 +135,8 @@ const MyPage = () => {
 
   const menuItems = [
     { label: t('mypage.editProfile'), link: '/mypage/edit' },
+    { label: '내 포인트', link: '/points' },
+    { label: '내 쿠폰', link: '/mypage/coupons' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },

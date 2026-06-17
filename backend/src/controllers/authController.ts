@@ -8,6 +8,10 @@ import { sendSMS } from '../utils/sms';
 import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
 import { normalizeEmail } from '../utils/validate';
+import { awardPoints } from '../utils/points';
+
+// 가입 보너스 (회원가입 시 1회 지급). 추천인 보너스는 별도(추후 추가).
+const SIGNUP_BONUS_POINTS = 1000;
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -108,6 +112,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         referredById: referredById,
       },
     });
+
+    // 가입 축하 보너스 — 1000P. 실패해도 가입은 성공으로 처리 (포인트는 부수효과).
+    try {
+      await awardPoints(prisma, {
+        userId: user.id,
+        amount: SIGNUP_BONUS_POINTS,
+        source: 'signup_bonus',
+        description: '회원가입 축하 보너스',
+      });
+    } catch (e) {
+      console.error('Signup bonus award failed:', e);
+    }
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d (HttpOnly 쿠키).
     const token = signAccessToken(user);
