@@ -278,6 +278,12 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         }
         chatRoomId = room.id;
 
+        // 신청자 가입정보 — 관리자가 입금 확인할 때 매칭용.
+        const applicant = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true, nickname: true, phone: true, email: true },
+        });
+
         // 입금 안내 양식. env 에 계좌 정보 있으면 자동 채움, 없으면 placeholder.
         const bank = process.env.AD_DEPOSIT_BANK;
         const account = process.env.AD_DEPOSIT_ACCOUNT;
@@ -286,6 +292,13 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         const accountBlock = (bank && account && holder)
           ? `🏦 입금 계좌\n  • 은행: ${bank}\n  • 계좌: ${account}\n  • 예금주: ${holder}`
           : `🏦 입금 계좌는 곧 안내드리겠습니다.`;
+        const applicantBlock = applicant
+          ? `👤 신청자 정보\n` +
+            `  • 성함: ${applicant.name || '-'}${applicant.nickname ? ` (${applicant.nickname})` : ''}\n` +
+            `  • 연락처: ${applicant.phone || '-'}\n` +
+            `  • 이메일: ${applicant.email || '-'}\n` +
+            `\n`
+          : '';
         const depositMsg =
           `📢 광고 신청이 접수되었습니다.\n` +
           `\n` +
@@ -295,6 +308,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           `  • 금액: ${booking.totalPrice.toLocaleString()}원\n` +
           `  • 예약번호: ${booking.id.slice(0, 8)}\n` +
           `\n` +
+          applicantBlock +
           `${accountBlock}\n` +
           `\n` +
           `입금자명을 신청자 성함으로 해주시면 빠른 확인이 가능합니다.\n` +
