@@ -1,7 +1,6 @@
-// 카테고리 아이콘 9종 — 전부 solid fill silhouette 으로 통일.
-// 브랜드북의 모노크롬 한 벌 톤. stroke 기반이나 혼합(stroke+fill) 없음.
-// fill="currentColor" 라 부모의 text-* 색상을 따라감.
-// viewBox 64×64 통일, props 로 size 만 받음.
+// 카테고리 아이콘 — 디테일 강화 벡터 (fill + stroke 혼합).
+// 모노크롬 currentColor 톤은 유지, 형태만 더 사실적/구분 가능하게.
+// viewBox 64×64 통일.
 
 interface IconProps { size?: number; className?: string; }
 
@@ -15,98 +14,228 @@ const baseProps = (size: number, className?: string) => ({
   'aria-hidden': true as const,
 });
 
-// 1. 스키샵 — 박공지붕 + 본체 + 출입구 (기존)
+// 음각 디테일용 stroke 공통 속성 (배경 같은 색을 stroke 로 빼서 안쪽 라인 표현).
+const inkLine = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2.2,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+// 1. 스키샵 — 건물 + 차양 + 쇼윈도 + 진열된 스키
 export const SkiShopIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path d="M6 22 L32 8 L58 22 L58 28 L52 28 L52 54 L38 54 L38 38 L26 38 L26 54 L12 54 L12 28 L6 28 Z" />
+    {/* 건물 + 지붕 (한 덩어리) */}
+    <path d="M6 26 L 32 10 L 58 26 L 58 32 L 54 32 L 54 56 L 10 56 L 10 32 L 6 32 Z" />
+    {/* 차양 띠 (음각) */}
+    <rect x="11" y="32" width="42" height="3" fill="#fff" />
+    {/* 쇼윈도 외곽 */}
+    <rect x="14" y="38" width="20" height="14" rx="1" fill="#fff" />
+    {/* 쇼윈도 안 진열된 스키 (대각선 막대 2개) */}
+    <path {...inkLine} d="M17 50 L 30 41 M 19 50 L 32 41" strokeWidth="1.6" />
+    {/* 출입문 */}
+    <rect x="38" y="38" width="12" height="18" fill="#fff" />
+    <rect x="40" y="40" width="8" height="14" />
+    {/* 손잡이 */}
+    <circle cx="45.5" cy="48" r="0.9" fill="#fff" />
   </svg>
 );
 
-// 2. 정비 — 렌치 (기존)
+// 2. 정비 — 렌치 + 십자 드라이버 교차
 export const MaintenanceIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path d="M44 6 a 14 14 0 0 0 -14 14 c 0 2 0.4 4 1 5.7 L8 47.7 a 4 4 0 0 0 0 5.7 l 2.6 2.6 a 4 4 0 0 0 5.7 0 L 38.3 33 c 1.7 0.6 3.7 1 5.7 1 a 14 14 0 0 0 14 -14 c 0 -2 -0.4 -4 -1.1 -5.8 L 49 22.1 a 4 4 0 0 1 -5.7 0 l -1.4 -1.4 a 4 4 0 0 1 0 -5.7 L 49.8 7 C 48 6.4 46 6 44 6 Z" />
+    {/* 렌치 (왼쪽 위 → 오른쪽 아래) */}
+    <g transform="rotate(-45 32 32)">
+      {/* 손잡이 */}
+      <rect x="29" y="20" width="6" height="28" rx="1.5" />
+      {/* 입(헤드) */}
+      <path d="M22 12 L 30 12 L 30 18 L 26 22 L 30 22 L 30 28 L 22 28 Z" />
+      <path d="M42 12 L 34 12 L 34 18 L 38 22 L 34 22 L 34 28 L 42 28 Z" />
+    </g>
+    {/* 드라이버 (오른쪽 위 → 왼쪽 아래) */}
+    <g transform="rotate(45 32 32)">
+      {/* 손잡이 (그립) */}
+      <rect x="30" y="34" width="4" height="18" rx="1.5" />
+      {/* 손잡이 그립 라인 */}
+      <path {...inkLine} d="M31 37 L 33 37 M 31 41 L 33 41 M 31 45 L 33 45 M 31 49 L 33 49" strokeWidth="1.2" />
+      {/* 샤프트 */}
+      <rect x="31" y="14" width="2" height="20" />
+      {/* 십자 헤드 */}
+      <path d="M28 12 L 36 12 L 36 16 L 28 16 Z" />
+      <path d="M30 10 L 34 10 L 34 18 L 30 18 Z" />
+    </g>
   </svg>
 );
 
-// 3. 중고거래 — 가격 태그 (기존)
+// 3. 중고거래 — 순환 화살표 2개 (재사용/거래)
 export const SecondHandIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path d="M30 6 L 56 6 L 56 32 L 32 56 a 4 4 0 0 1 -5.7 0 L 6 35.7 a 4 4 0 0 1 0 -5.7 L 30 6 Z M 47 13 a 4 4 0 1 0 0 8 a 4 4 0 0 0 0 -8 Z" fillRule="evenodd" />
+    {/* 위쪽 화살표 (왼→오, 시계방향) */}
+    <path d="M14 22 a 18 18 0 0 1 30 -7 L 49 12 L 49 24 L 37 24 L 41 19 a 13 13 0 0 0 -22 5 Z" />
+    {/* 아래쪽 화살표 (오→왼, 시계방향) */}
+    <path d="M50 42 a 18 18 0 0 1 -30 7 L 15 52 L 15 40 L 27 40 L 23 45 a 13 13 0 0 0 22 -5 Z" />
+    {/* 중앙 코인 + ₩ */}
+    <circle cx="32" cy="32" r="5.5" />
+    <path d="M30 29 L 32 31.5 L 34 29 M 28.8 32.5 L 35.2 32.5 M 28.8 34 L 35.2 34" {...inkLine} stroke="#fff" strokeWidth="1.5" />
   </svg>
 );
 
-// 4. 렌탈 — 크로스 스키 (solid fill 로 재작성)
+// 4. 렌탈 — 부츠 + 스키 + 폴 묶음 (장비 더미)
 export const RentalIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path fillRule="evenodd" d="M11.6 8.8 L 18.4 2 L 62 45.6 L 55.2 52.4 Z M 2 45.6 L 45.6 2 L 52.4 8.8 L 8.8 52.4 Z M 10 56 a 4 4 0 1 0 0 8 a 4 4 0 0 0 0 -8 Z M 54 56 a 4 4 0 1 0 0 8 a 4 4 0 0 0 0 -8 Z" />
+    {/* 스키 한 짝 (왼쪽 비스듬) */}
+    <path d="M12 12 L 18 8 L 30 56 L 24 60 Z" />
+    {/* 폴 (오른쪽 비스듬) */}
+    <rect x="38" y="8" width="3" height="44" rx="1" transform="rotate(15 39.5 30)" />
+    {/* 폴 손잡이 */}
+    <path d="M42 8 a 3 3 0 0 1 3 3 L 45 16 L 39 16 L 39 11 a 3 3 0 0 1 3 -3 Z" transform="rotate(15 42 12)" />
+    {/* 폴 바스켓 */}
+    <circle cx="48" cy="52" r="4" />
+    {/* 부츠 (아래 정면) */}
+    <path d="M30 44 L 36 44 L 38 50 L 38 56 L 24 56 L 24 50 Z" />
+    {/* 부츠 버클 라인 */}
+    <path d="M27 48 L 35 48 M 27 51 L 35 51" {...inkLine} stroke="#fff" strokeWidth="1.5" />
   </svg>
 );
 
-// 5. 레슨 — 스키타는 사람 (solid silhouette 으로 재작성)
+// 5. 레슨 — 다이내믹 스키어 + 눈가루
 export const LessonIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
     {/* 머리 */}
-    <circle cx="42" cy="10" r="5" />
-    {/* 몸통 (앞으로 숙인 자세) */}
-    <path d="M38 18 C 34 18 31 21 30 25 L 25 36 C 24 38 25 41 27 42 L 37 46 C 39 47 42 46 43 44 L 50 30 C 51 28 50 25 48 24 L 42 19 C 41 18 40 18 38 18 Z" />
-    {/* 다리 (뒤로 차는) */}
-    <path d="M27 40 L 15 52 C 14 53 14 55 15 56 L 16 57 C 17 58 19 58 20 57 L 34 44 Z" />
-    {/* 스키 (긴 실루엣) */}
-    <path d="M6 52 L 58 52 L 58 56 L 6 56 Z" />
-    {/* 폴 (손에서 아래로) */}
-    <path d="M48 26 L 51 24 L 58 50 L 55 52 Z" />
+    <circle cx="44" cy="12" r="5" />
+    {/* 헬멧 라인 */}
+    <path d="M39 12 a 5 5 0 0 1 10 0" {...inkLine} stroke="#fff" strokeWidth="1.5" />
+    {/* 몸통 (앞 숙임) */}
+    <path d="M40 19 C 35 19 31 23 30 28 L 26 38 C 25 40 26 43 28 44 L 38 47 C 41 48 44 47 45 44 L 51 30 C 52 27 50 24 47 23 L 43 20 C 42 19 41 19 40 19 Z" />
+    {/* 팔 (앞으로 뻗음) */}
+    <path d="M48 28 L 56 24 L 58 27 L 50 32 Z" />
+    {/* 다리 (뒤로) */}
+    <path d="M28 42 L 14 52 C 13 53 13 55 15 56 L 17 57 C 18 58 20 58 21 57 L 33 47 Z" />
+    {/* 스키 1 */}
+    <path d="M4 53 L 60 53 L 60 56 L 4 56 Z" />
+    {/* 스키 2 (살짝 위) */}
+    <path d="M6 48 L 32 48 L 32 51 L 6 51 Z" />
+    {/* 폴 */}
+    <path d="M50 24 L 53 22 L 60 48 L 57 50 Z" />
+    {/* 눈가루 (뒤쪽 스플래시) */}
+    <circle cx="8" cy="44" r="1.5" />
+    <circle cx="12" cy="40" r="1.2" />
+    <circle cx="16" cy="46" r="1" />
   </svg>
 );
 
-// 6. 숙소 — 박공지붕 집 + 굴뚝 (기존)
+// 6. 숙소 — 산장 (눈 쌓인 지붕 + 굴뚝 연기 + 따뜻한 창문)
 export const AccommodationIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path d="M32 8 L 8 28 L 8 56 L 24 56 L 24 40 L 40 40 L 40 56 L 56 56 L 56 28 Z M 44 12 L 50 12 L 50 22 L 44 18 Z" />
+    {/* 본체 */}
+    <rect x="10" y="30" width="44" height="26" />
+    {/* 박공지붕 */}
+    <path d="M6 32 L 32 10 L 58 32 Z" />
+    {/* 지붕 위 눈 (음각 라인) */}
+    <path d="M11 28 Q 20 25 32 13 Q 44 25 53 28" {...inkLine} stroke="#fff" strokeWidth="2.5" />
+    {/* 굴뚝 */}
+    <rect x="44" y="16" width="6" height="12" />
+    {/* 연기 (작은 동글) */}
+    <circle cx="47" cy="12" r="2" />
+    <circle cx="51" cy="8" r="1.5" />
+    {/* 따뜻한 창 1 (음각) */}
+    <rect x="16" y="36" width="8" height="8" fill="#fff" />
+    <path d="M20 36 L 20 44 M 16 40 L 24 40" {...inkLine} strokeWidth="1.4" />
+    {/* 따뜻한 창 2 (음각) */}
+    <rect x="40" y="36" width="8" height="8" fill="#fff" />
+    <path d="M44 36 L 44 44 M 40 40 L 48 40" {...inkLine} strokeWidth="1.4" />
+    {/* 문 (음각) */}
+    <path d="M28 56 L 28 44 a 4 4 0 0 1 8 0 L 36 56 Z" fill="#fff" />
+    <circle cx="34" cy="50" r="1" />
   </svg>
 );
 
-// 7. 커뮤니티 — 말풍선 (solid, 안쪽 점 3개도 solid 처리)
+// 7. 커뮤니티 — 겹친 말풍선 2개
 export const CommunityIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path
-      fillRule="evenodd"
-      d="M8 10 a 4 4 0 0 1 4 -4 L 52 6 a 4 4 0 0 1 4 4 L 56 38 a 4 4 0 0 1 -4 4 L 28 42 L 18 54 a 1 1 0 0 1 -2 -1 L 16 42 L 12 42 a 4 4 0 0 1 -4 -4 Z M 22 27 a 3 3 0 1 0 0 -6 a 3 3 0 0 0 0 6 Z M 32 27 a 3 3 0 1 0 0 -6 a 3 3 0 0 0 0 6 Z M 42 27 a 3 3 0 1 0 0 -6 a 3 3 0 0 0 0 6 Z"
-    />
+    {/* 뒷 말풍선 (작음, 오른쪽 위) */}
+    <path d="M30 6 L 56 6 a 4 4 0 0 1 4 4 L 60 26 a 4 4 0 0 1 -4 4 L 52 30 L 52 36 L 46 30 L 34 30 a 4 4 0 0 1 -4 -4 Z" />
+    {/* 앞 말풍선 (큼, 왼쪽 아래) */}
+    <path d="M4 24 a 4 4 0 0 1 4 -4 L 36 20 a 4 4 0 0 1 4 4 L 40 46 a 4 4 0 0 1 -4 4 L 22 50 L 14 58 L 14 50 L 8 50 a 4 4 0 0 1 -4 -4 Z" />
+    {/* 앞 말풍선 안 점 3개 (음각) */}
+    <circle cx="14" cy="35" r="2" fill="#fff" />
+    <circle cx="22" cy="35" r="2" fill="#fff" />
+    <circle cx="30" cy="35" r="2" fill="#fff" />
   </svg>
 );
 
-// 8. 시합일정 — 캘린더 (solid outline with subtracted cells via evenodd)
+// 8. 시합일정 — 캘린더 + 트로피 마크
 export const ScheduleIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path
-      fillRule="evenodd"
-      d="M18 6 a 2 2 0 0 1 2 -2 a 2 2 0 0 1 2 2 L 22 10 L 42 10 L 42 6 a 2 2 0 0 1 2 -2 a 2 2 0 0 1 2 2 L 46 10 L 52 10 a 6 6 0 0 1 6 6 L 58 54 a 4 4 0 0 1 -4 4 L 10 58 a 4 4 0 0 1 -4 -4 L 6 16 a 6 6 0 0 1 6 -6 L 18 10 Z M 12 28 L 12 34 L 20 34 L 20 28 Z M 24 28 L 24 34 L 32 34 L 32 28 Z M 36 28 L 36 34 L 44 34 L 44 28 Z M 48 28 L 48 34 L 56 34 L 56 28 Z M 12 40 L 12 46 L 20 46 L 20 40 Z M 24 40 L 24 46 L 32 46 L 32 40 Z M 36 40 L 36 46 L 44 46 L 44 40 Z M 48 40 L 48 46 L 56 46 L 56 40 Z"
-    />
+    {/* 캘린더 본체 */}
+    <rect x="6" y="12" width="52" height="46" rx="4" />
+    {/* 상단 띠 (음각) */}
+    <rect x="6" y="18" width="52" height="6" fill="#fff" />
+    {/* 위쪽 고리 */}
+    <rect x="16" y="6" width="4" height="12" rx="2" />
+    <rect x="44" y="6" width="4" height="12" rx="2" />
+    {/* 날짜 칸 음각 — 3x4 그리드 */}
+    <g fill="#fff">
+      <rect x="11" y="28" width="8" height="6" />
+      <rect x="22" y="28" width="8" height="6" />
+      <rect x="33" y="28" width="8" height="6" />
+      <rect x="44" y="28" width="8" height="6" />
+      <rect x="11" y="38" width="8" height="6" />
+      <rect x="22" y="38" width="8" height="6" />
+      {/* 강조된 시합 날 (음각 제거 → solid 채움) */}
+      <rect x="11" y="48" width="8" height="6" />
+      <rect x="22" y="48" width="8" height="6" />
+    </g>
+    {/* 강조 날 위에 별 (트로피 대신 작은 상징) */}
+    <path d="M37 39 L 38.2 42.3 L 41.6 42.3 L 38.8 44.4 L 39.9 47.7 L 37 45.6 L 34.1 47.7 L 35.2 44.4 L 32.4 42.3 L 35.8 42.3 Z" />
+    <path d="M48 39 L 49.2 42.3 L 52.6 42.3 L 49.8 44.4 L 50.9 47.7 L 48 45.6 L 45.1 47.7 L 46.2 44.4 L 43.4 42.3 L 46.8 42.3 Z" />
   </svg>
 );
 
-// 9. 실시간캠 — 비디오카메라 (기존, 이미 solid)
+// 9. 실시간웹캠 — 카메라 + 송출 시그널
 export const LivecamIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path d="M10 20 a 4 4 0 0 0 -4 4 L 6 40 a 4 4 0 0 0 4 4 L 40 44 a 4 4 0 0 0 4 -4 L 44 24 a 4 4 0 0 0 -4 -4 Z M 48 26 L 58 18 a 1 1 0 0 1 1.7 0.7 L 59.7 45.3 a 1 1 0 0 1 -1.7 0.7 L 48 38 Z" />
+    {/* 카메라 본체 */}
+    <path d="M8 22 a 4 4 0 0 0 -4 4 L 4 44 a 4 4 0 0 0 4 4 L 38 48 a 4 4 0 0 0 4 -4 L 42 26 a 4 4 0 0 0 -4 -4 Z" />
+    {/* 렌즈 */}
+    <circle cx="23" cy="35" r="8" fill="#fff" />
+    <circle cx="23" cy="35" r="5" />
+    {/* 작은 LED */}
+    <circle cx="36" cy="28" r="1.5" fill="#fff" />
+    {/* 뷰파인더 (오른쪽 튀어나옴) */}
+    <path d="M46 30 L 56 22 a 1 1 0 0 1 1.7 0.7 L 57.7 47.3 a 1 1 0 0 1 -1.7 0.7 L 46 40 Z" />
+    {/* 송출 시그널 호 (음각) */}
+    <path d="M50 12 a 12 12 0 0 1 4 8" {...inkLine} strokeWidth="2.5" />
+    <path d="M54 8 a 18 18 0 0 1 6 12" {...inkLine} strokeWidth="2.5" />
+    {/* LIVE 도트 */}
+    <circle cx="14" cy="28" r="2" fill="#fff" />
   </svg>
 );
 
-// 11. 스노우런 — 번개 (속도/트래킹 상징)
-export const SnowRunIcon = ({ size = 32, className }: IconProps) => (
-  <svg {...baseProps(size, className)}>
-    <path d="M40 4 L 14 34 L 28 34 L 24 60 L 50 30 L 36 30 Z" />
-  </svg>
-);
-
-// 10. 쿠폰샵 — 쿠폰 모양 (양 끝 노치 + 점선)
+// 10. 쿠폰샵 — 디테일 강화 티켓 (별 + 점선)
 export const CouponIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    <path
-      fillRule="evenodd"
-      d="M6 18 a 4 4 0 0 1 4 -4 L 54 14 a 4 4 0 0 1 4 4 L 58 24 a 4 4 0 0 0 0 8 L 58 38 a 4 4 0 0 1 -4 4 L 10 42 a 4 4 0 0 1 -4 -4 L 6 32 a 4 4 0 0 0 0 -8 Z M 22 22 L 22 26 L 18 26 L 18 22 Z M 30 22 L 30 26 L 26 26 L 26 22 Z M 38 22 L 38 26 L 34 26 L 34 22 Z M 46 22 L 46 26 L 42 26 L 42 22 Z M 22 30 L 22 34 L 18 34 L 18 30 Z M 30 30 L 30 34 L 26 34 L 26 30 Z M 38 30 L 38 34 L 34 34 L 34 30 Z M 46 30 L 46 34 L 42 34 L 42 30 Z"
-    />
+    {/* 티켓 본체 (양쪽 노치) */}
+    <path d="M6 18 a 4 4 0 0 1 4 -4 L 54 14 a 4 4 0 0 1 4 4 L 58 24 a 4 4 0 0 0 0 8 L 58 38 a 4 4 0 0 1 -4 4 L 10 42 a 4 4 0 0 1 -4 -4 L 6 32 a 4 4 0 0 0 0 -8 Z" />
+    {/* 중앙 점선 (음각) — 절취선 */}
+    <path d="M32 18 L 32 22 M 32 26 L 32 30 M 32 34 L 32 38" {...inkLine} stroke="#fff" strokeWidth="2.2" />
+    {/* 왼쪽 별 */}
+    <path d="M18 23 L 19.7 27.1 L 24 27.1 L 20.6 29.6 L 21.9 33.8 L 18 31.3 L 14.1 33.8 L 15.4 29.6 L 12 27.1 L 16.3 27.1 Z" fill="#fff" />
+    {/* 오른쪽 % */}
+    <circle cx="42" cy="24" r="2.5" fill="#fff" />
+    <circle cx="50" cy="34" r="2.5" fill="#fff" />
+    <path d="M40 36 L 52 22" {...inkLine} stroke="#fff" strokeWidth="2.5" />
+  </svg>
+);
+
+// 11. 스노우런 — 번개 + 속도선
+export const SnowRunIcon = ({ size = 32, className }: IconProps) => (
+  <svg {...baseProps(size, className)}>
+    {/* 번개 */}
+    <path d="M40 4 L 14 34 L 28 34 L 22 60 L 50 30 L 36 30 Z" />
+    {/* 속도선 (오른쪽 잔상) */}
+    <path d="M52 10 L 60 10 M 50 18 L 58 18 M 54 26 L 62 26" {...inkLine} strokeWidth="2.5" />
   </svg>
 );
 
