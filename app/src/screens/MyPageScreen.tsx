@@ -21,6 +21,8 @@ export default function MyPageScreen({ navigation }: any) {
 
   const menuItems = [
     { label: '프로필 수정', screen: 'EditProfile' },
+    { label: '내 포인트', screen: 'Points' },
+    { label: '내 쿠폰', screen: 'MyCoupons' },
     { label: '판매 내역', screen: 'MySales' },
     { label: '찜 목록', screen: 'MyWishlist' },
     { label: '내 스키샵/정비샵', screen: 'MyShops' },

@@ -40,6 +40,9 @@ import AdBookingScreen from './src/screens/AdBookingScreen';
 import SnowRunScreen from './src/screens/SnowRunScreen';
 import SnowRunDetailScreen from './src/screens/SnowRunDetailScreen';
 import SnowRunShareScreen from './src/screens/SnowRunShareScreen';
+import PointsScreen from './src/screens/PointsScreen';
+import CouponShopScreen from './src/screens/CouponShopScreen';
+import MyCouponsScreen from './src/screens/MyCouponsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -113,6 +116,9 @@ export default function App() {
         <Stack.Screen name="SnowRun" component={SnowRunScreen} options={{ headerShown: true, title: '스노우런' }} />
         <Stack.Screen name="SnowRunDetail" component={SnowRunDetailScreen} options={{ headerShown: true, title: '런 상세' }} />
         <Stack.Screen name="SnowRunShare" component={SnowRunShareScreen} options={{ headerShown: true, title: '공유 카드' }} />
+        <Stack.Screen name="Points" component={PointsScreen} options={{ headerShown: true, title: '내 포인트' }} />
+        <Stack.Screen name="CouponShop" component={CouponShopScreen} options={{ headerShown: true, title: '쿠폰샵' }} />
+        <Stack.Screen name="MyCoupons" component={MyCouponsScreen} options={{ headerShown: true, title: '내 쿠폰' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

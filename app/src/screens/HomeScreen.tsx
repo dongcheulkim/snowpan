@@ -16,13 +16,13 @@ interface Banner {
 
 const categories = [
   { id: 'snowrun', title: '스노우런', icon: '⚡', screen: 'SnowRun' },
+  { id: 'coupon', title: '쿠폰샵', icon: '🎟️', screen: 'CouponShop' },
   { id: 'skishop', title: '스키샵', icon: '🏪', screen: 'SkiShop' },
   { id: 'repair', title: '정비', icon: '🔧', screen: 'Repair' },
   { id: 'used', title: '중고거래', icon: '🏷️', screen: 'Used' },
   { id: 'rental', title: '렌탈', icon: '⛷️', screen: 'Rental' },
   { id: 'lesson', title: '레슨', icon: '🎿', screen: 'Lesson' },
   { id: 'accommodation', title: '숙소', icon: '🏨', screen: 'Accommodation' },
-  { id: 'competitions', title: '시합일정', icon: '🏆', screen: 'Competitions' },
 ];
 
 export default function HomeScreen() {
