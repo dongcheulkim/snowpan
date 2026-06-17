@@ -175,9 +175,10 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski — 길쭉한 스키 본체 + 가로 바인딩 (보드와 같은 -25° 기울기, 명료한 윤곽)
-export const SkiIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-25 12 12)"><rect x="10.5" y="2" width="3" height="20" rx="1.5"/><rect x="9" y="11" width="6" height="2" rx="0.5"/></g></svg>
+// 🎿 ski — 한 덩어리 실루엣 (둥근 위쪽 팁 + 옆으로 튀어나온 바인딩 윙)
+// 단순 막대처럼 안 보이게 팁의 곡선이 핵심. 보드와 동일 기울기 -25°.
+export const SkiIcon = ({ size = 20, className }: IconProps) => (
+  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(-25 12 12)"><path d="M10.5 3 Q 10.5 2 12 2 Q 13.5 2 13.5 3 L 13.5 11 L 15 11 L 15 13 L 13.5 13 L 13.5 21.5 Q 13.5 22.5 12.5 22.5 L 11.5 22.5 Q 10.5 22.5 10.5 21.5 L 10.5 13 L 9 13 L 9 11 L 10.5 11 Z"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
