@@ -175,9 +175,9 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski (single ski, tilted, with curved tip and binding)
+// 🎿 ski — 길쭉한 스키 본체 + 가로 바인딩 (보드와 같은 -25° 기울기, 명료한 윤곽)
 export const SkiIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-35 12 12)"><path d="M12 3v18"/><path d="M12 3c0-1 .7-1.6 1.7-1.6"/><path d="M9.5 12h5"/></g></svg>
+  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-25 12 12)"><rect x="10.5" y="2" width="3" height="20" rx="1.5"/><rect x="9" y="11" width="6" height="2" rx="0.5"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
