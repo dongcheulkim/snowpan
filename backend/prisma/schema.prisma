@@ -51,8 +51,33 @@ model User {
   repairShops      RepairShop[]
   pointTransactions PointTransaction[]
   userCoupons      UserCoupon[]
+  snowRuns         SnowRun[]
 
   @@map("users")
+}
+
+// 스노우런 1회 = 슬로프 한 번 내려옴. GPS 클라이언트가 측정해 서버에 제출.
+// 서버는 거리/낙차/시간이 합리적 범위 안에 있을 때만 validated=true + 포인트 지급.
+// 부정 사용(차/케이블카/가짜 GPS)은 차후 폴리곤 매칭으로 검증 강화 예정.
+model SnowRun {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  startedAt     DateTime
+  endedAt       DateTime
+  durationSec   Int      // 끝 - 시작 (초)
+  distanceM     Int      // 누적 수평 거리 (m)
+  verticalDropM Int      // 누적 낙차 (m) — 음의 고도 변화 합
+  maxSpeedKmh   Float?   // 최고 속도 (km/h)
+  avgSpeedKmh   Float?   // 평균 속도 (km/h)
+  resortId      String?  // 리조트 매칭 (Phase 1 폴리곤 매칭 후)
+  source        String   @default("web_gps") // 'web_gps' | 'app_gps' | 'manual'
+  validated     Boolean  @default(false) // 검증 통과 → 포인트 지급
+  pointsAwarded Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("snow_runs")
 }
 
 // 포인트 적립/사용 이력. 모든 변화를 감사 가능하도록 기록.

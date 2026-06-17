@@ -65,6 +65,7 @@ import webcamRoutes from './routes/webcamRoutes';
 import preRegisterRoutes from './routes/preRegisterRoutes';
 import pointsRoutes from './routes/pointsRoutes';
 import couponRoutes from './routes/couponRoutes';
+import snowRunRoutes from './routes/snowRunRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { sendPushToUser } from './utils/push';
@@ -287,6 +288,7 @@ app.use('/api/webcams', webcamRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/points', pointsRoutes);
 app.use('/api/coupons', publicCache(60), couponRoutes);
+app.use('/api/snow-runs', snowRunRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
 app.use('/', sitemapRoutes);

@@ -93,6 +93,13 @@ export const LivecamIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
+// 11. 스노우런 — 번개 (속도/트래킹 상징)
+export const SnowRunIcon = ({ size = 32, className }: IconProps) => (
+  <svg {...baseProps(size, className)}>
+    <path d="M40 4 L 14 34 L 28 34 L 24 60 L 50 30 L 36 30 Z" />
+  </svg>
+);
+
 // 10. 쿠폰샵 — 쿠폰 모양 (양 끝 노치 + 점선)
 export const CouponIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
@@ -114,4 +121,5 @@ export const categoryIcons = {
   competitions: ScheduleIcon,
   webcam: LivecamIcon,
   coupon: CouponIcon,
+  snowrun: SnowRunIcon,
 };

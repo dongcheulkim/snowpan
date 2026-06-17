@@ -211,6 +211,26 @@ const Home = () => {
         </div>
       </div>
 
+      {/* 스노우런 프로모 — 킬러 기능 강조 (배너 바로 아래) */}
+      {isSnow && (
+        <div className="px-4 pb-3 bg-snow">
+          <Link
+            to="/snow-run"
+            className="block bg-gray-900 text-white rounded-2xl p-4 active:scale-[0.98] transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">⚡</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-gray-300">스노우런 트래킹</p>
+                <p className="text-base font-black mt-0.5">탈 때마다 100P 적립</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">1일 최대 1,000P · 쿠폰으로 사용</p>
+              </div>
+              <span className="text-lg text-gray-400 flex-shrink-0">›</span>
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
       <div className="px-4 pb-5 bg-snow">
         <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-10' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
