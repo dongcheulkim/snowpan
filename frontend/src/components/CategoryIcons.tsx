@@ -42,13 +42,28 @@ export const SkiShopIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
-// 2. 정비 — 굵직한 단일 렌치 (대각선 자세, 명확한 입 + 손잡이)
+// 2. 정비 — 왁싱 다리미가 스키 베이스 위에서 작동 (스키 정비 특화)
+// 일반 옷 다리미와 다른 점: 직사각형 본체 (옷 다리미는 코가 뾰족).
 export const MaintenanceIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    {/* 손잡이 (대각선) */}
-    <path d="M44 6 a 14 14 0 0 0 -14 14 c 0 2 0.4 4 1 5.7 L8 47.7 a 4 4 0 0 0 0 5.7 l 2.6 2.6 a 4 4 0 0 0 5.7 0 L 38.3 33 c 1.7 0.6 3.7 1 5.7 1 a 14 14 0 0 0 14 -14 c 0 -2 -0.4 -4 -1.1 -5.8 L 49 22.1 a 4 4 0 0 1 -5.7 0 l -1.4 -1.4 a 4 4 0 0 1 0 -5.7 L 49.8 7 C 48 6.4 46 6 44 6 Z" />
-    {/* 손잡이 그립 라인 */}
-    <path d="M16 40 L 22 46 M 22 34 L 28 40" {...inkLine} stroke="#fff" strokeWidth="2.5" />
+    {/* 손잡이 D자 고리 (다리미 위) */}
+    <path d="M22 22 a 10 10 0 0 1 20 0" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+    {/* 본체 — 직사각형 (스키 왁싱 다리미 특징) */}
+    <rect x="12" y="22" width="40" height="14" rx="1.5" />
+    {/* 핫 플레이트 (본체 아래 두꺼운 띠) */}
+    <rect x="10" y="35" width="44" height="5" rx="1.5" />
+    {/* 온도 다이얼 (음각 동그라미) */}
+    <circle cx="40" cy="29" r="2.5" fill="#fff" />
+    <path d="M40 27.5 L 40 29" {...inkLine} stroke="#fff" strokeWidth="1.5" />
+    {/* 스키 — 다리미 바로 아래 길쭉한 베이스 */}
+    <path d="M2 44 L 60 44 L 60 50 L 4 50 Q 2 50 2 48 Z" />
+    {/* 스키 팁 (오른쪽 살짝 위로 휨) */}
+    <path d="M58 44 Q 62 41 62 38" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    {/* 녹은 왁스 방울 — 다리미와 스키 사이 (음각 동그라미) */}
+    <circle cx="20" cy="42" r="1.5" fill="#fff" />
+    <circle cx="32" cy="42" r="1.5" fill="#fff" />
+    {/* 열 표시 (다리미 본체 위쪽 작은 물결 2개) */}
+    <path d="M16 8 q 2 3 0 6 M 26 8 q 2 3 0 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
