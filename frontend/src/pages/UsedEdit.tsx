@@ -202,11 +202,16 @@ const UsedEdit = () => {
               <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
                 <option value="ski">스키</option>
                 <option value="board">보드</option>
-                <option value="boots">부츠</option>
+                <option value="ski_boots">스키부츠</option>
+                <option value="board_boots">보드부츠</option>
                 <option value="binding">바인딩</option>
+                <option value="wear">스키복</option>
+                <option value="pole">폴</option>
                 <option value="helmet">헬멧</option>
                 <option value="goggles">고글</option>
-                <option value="wear">의류</option>
+                <option value="gloves">장갑</option>
+                <option value="bag">가방</option>
+                <option value="accessory">악세사리</option>
                 <option value="etc">기타</option>
               </select>
             </div>

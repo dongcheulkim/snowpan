@@ -76,7 +76,7 @@ const Used = () => {
     ...verticalCats.map(c => ({
       id: c.id,
       // snow vertical 의 8개 기본 카테고리는 i18n 키 매핑
-      name: vertical.slug === 'snow' && ['ski','board','boots','binding','helmet','goggles','wear','etc'].includes(c.id)
+      name: vertical.slug === 'snow' && ['ski','board','boots','ski_boots','board_boots','binding','wear','pole','helmet','goggles','gloves','bag','accessory','etc'].includes(c.id)
         ? t(`used.cat.${c.id}`)
         : c.label,
     })),

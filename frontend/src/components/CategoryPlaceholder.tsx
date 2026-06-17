@@ -7,21 +7,29 @@ interface Props {
 }
 
 const TONE: Record<string, { from: string; to: string; ink: string }> = {
-  ski:     { from: '#e0f2fe', to: '#bae6fd', ink: '#0369a1' },
-  board:   { from: '#fce7f3', to: '#fbcfe8', ink: '#be185d' },
-  boots:   { from: '#fef3c7', to: '#fde68a', ink: '#b45309' },
-  binding: { from: '#e9d5ff', to: '#d8b4fe', ink: '#6b21a8' },
-  helmet:  { from: '#dcfce7', to: '#bbf7d0', ink: '#15803d' },
-  goggles: { from: '#cffafe', to: '#a5f3fc', ink: '#0e7490' },
-  wear:    { from: '#ffe4e6', to: '#fecdd3', ink: '#be123c' },
-  etc:     { from: '#f1f5f9', to: '#e2e8f0', ink: '#475569' },
+  ski:         { from: '#e0f2fe', to: '#bae6fd', ink: '#0369a1' },
+  board:       { from: '#fce7f3', to: '#fbcfe8', ink: '#be185d' },
+  boots:       { from: '#fef3c7', to: '#fde68a', ink: '#b45309' }, // 레거시 (스키부츠/보드부츠 분리 전)
+  ski_boots:   { from: '#fef3c7', to: '#fde68a', ink: '#b45309' },
+  board_boots: { from: '#fef0d9', to: '#fed7aa', ink: '#9a3412' },
+  binding:     { from: '#e9d5ff', to: '#d8b4fe', ink: '#6b21a8' },
+  wear:        { from: '#ffe4e6', to: '#fecdd3', ink: '#be123c' },
+  pole:        { from: '#e2e8f0', to: '#cbd5e1', ink: '#334155' },
+  helmet:      { from: '#dcfce7', to: '#bbf7d0', ink: '#15803d' },
+  goggles:     { from: '#cffafe', to: '#a5f3fc', ink: '#0e7490' },
+  gloves:      { from: '#ede9fe', to: '#ddd6fe', ink: '#5b21b6' },
+  bag:         { from: '#dbeafe', to: '#bfdbfe', ink: '#1e40af' },
+  accessory:   { from: '#fef3c7', to: '#fce7f3', ink: '#7c3aed' },
+  etc:         { from: '#f1f5f9', to: '#e2e8f0', ink: '#475569' },
 };
 
 function Illustration({ subcategory, ink }: { subcategory: string; ink: string }) {
   const stroke = ink;
   const sw = 4.5;
   const common = { fill: 'none', stroke, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  switch (subcategory) {
+  // 신규/구분 카테고리를 기존 일러스트에 매핑.
+  const key = subcategory === 'ski_boots' || subcategory === 'board_boots' ? 'boots' : subcategory;
+  switch (key) {
     case 'ski':
       return (
         <g {...common}>
@@ -102,6 +110,62 @@ function Illustration({ subcategory, ink }: { subcategory: string; ink: string }
           <line x1="75" y1="55" x2="75" y2="120" strokeWidth={sw - 1} />
           {/* 칼라 */}
           <path d="M58 45 Q75 60 92 45" strokeWidth={sw - 1} />
+        </g>
+      );
+    case 'pole':
+      return (
+        <g {...common}>
+          {/* 두 개의 폴이 X 자로 살짝 교차 */}
+          <path d="M50 30 L100 125" />
+          <path d="M100 30 L50 125" />
+          {/* 위쪽 손잡이 (스트랩 고리) */}
+          <path d="M50 30 L46 22 L54 22 Z" fill={stroke} stroke="none" />
+          <path d="M100 30 L96 22 L104 22 Z" fill={stroke} stroke="none" />
+          {/* 아래쪽 바스켓 (눈에 빠지지 않게 하는 원형) */}
+          <circle cx="100" cy="125" r="7" fill={stroke} stroke="none" />
+          <circle cx="50" cy="125" r="7" fill={stroke} stroke="none" />
+        </g>
+      );
+    case 'gloves':
+      return (
+        <g {...common}>
+          {/* 손모양 미튼 */}
+          <path d="M55 60 Q55 38 75 38 Q95 38 95 60 L100 80 Q102 100 95 115 L55 115 Q48 100 50 80 Z" />
+          {/* 엄지 */}
+          <path d="M95 75 Q108 78 105 95" />
+          {/* 손목 밴드 */}
+          <line x1="55" y1="115" x2="95" y2="115" strokeWidth={sw + 1} />
+          <line x1="55" y1="120" x2="95" y2="120" />
+        </g>
+      );
+    case 'bag':
+      return (
+        <g {...common}>
+          {/* 배낭 본체 */}
+          <path d="M45 60 Q45 50 55 50 L95 50 Q105 50 105 60 L110 120 Q110 130 100 130 L50 130 Q40 130 40 120 Z" />
+          {/* 손잡이 */}
+          <path d="M60 50 Q60 35 75 35 Q90 35 90 50" strokeWidth={sw - 1} />
+          {/* 앞주머니 */}
+          <rect x="58" y="80" width="34" height="28" rx="3" />
+          {/* 어깨끈 (위쪽) */}
+          <line x1="48" y1="60" x2="40" y2="55" />
+          <line x1="102" y1="60" x2="110" y2="55" />
+        </g>
+      );
+    case 'accessory':
+      return (
+        <g {...common}>
+          {/* 네크워머 + 워치 같은 작은 잡화 모음 */}
+          {/* 네크워머 (원형 튜브) */}
+          <ellipse cx="75" cy="55" rx="22" ry="10" />
+          <path d="M53 55 L53 75 Q53 82 75 82 Q97 82 97 75 L97 55" />
+          {/* 손목시계 */}
+          <rect x="55" y="95" width="40" height="22" rx="4" />
+          <line x1="55" y1="100" x2="40" y2="100" strokeWidth={sw - 1.5} />
+          <line x1="55" y1="112" x2="40" y2="112" strokeWidth={sw - 1.5} />
+          <line x1="95" y1="100" x2="110" y2="100" strokeWidth={sw - 1.5} />
+          <line x1="95" y1="112" x2="110" y2="112" strokeWidth={sw - 1.5} />
+          <circle cx="75" cy="106" r="3" fill={stroke} stroke="none" />
         </g>
       );
     case 'etc':

@@ -245,11 +245,16 @@ const UsedRegister = () => {
               >
                 <option value="ski" className="bg-snow">스키</option>
                 <option value="board" className="bg-snow">보드</option>
-                <option value="boots" className="bg-snow">부츠</option>
+                <option value="ski_boots" className="bg-snow">스키부츠</option>
+                <option value="board_boots" className="bg-snow">보드부츠</option>
                 <option value="binding" className="bg-snow">바인딩</option>
+                <option value="wear" className="bg-snow">스키복</option>
+                <option value="pole" className="bg-snow">폴</option>
                 <option value="helmet" className="bg-snow">헬멧</option>
                 <option value="goggles" className="bg-snow">고글</option>
-                <option value="wear" className="bg-snow">의류</option>
+                <option value="gloves" className="bg-snow">장갑</option>
+                <option value="bag" className="bg-snow">가방</option>
+                <option value="accessory" className="bg-snow">악세사리</option>
                 <option value="etc" className="bg-snow">기타</option>
               </select>
             </div>
@@ -271,8 +276,24 @@ const UsedRegister = () => {
           {/* 스펙 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{['ski', 'board'].includes(form.subcategory) ? '사이즈/길이' : form.subcategory === 'binding' ? '바인딩 강도' : '사이즈'}</label>
-              <input type="text" name="size" value={form.size} onChange={handleChange} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170cm' : form.subcategory === 'binding' ? '예: 16' : form.subcategory === 'boots' ? '예: 265mm' : '예: L'} className={inputClass} />
+              <label className={labelClass}>
+                {['ski', 'board', 'pole'].includes(form.subcategory) ? '사이즈/길이' :
+                 form.subcategory === 'binding' ? '바인딩 강도' : '사이즈'}
+              </label>
+              <input
+                type="text"
+                name="size"
+                value={form.size}
+                onChange={handleChange}
+                placeholder={
+                  ['ski', 'board'].includes(form.subcategory) ? '예: 170cm' :
+                  form.subcategory === 'pole' ? '예: 120cm' :
+                  form.subcategory === 'binding' ? '예: 16' :
+                  ['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) ? '예: 265mm' :
+                  '예: L'
+                }
+                className={inputClass}
+              />
             </div>
             {form.subcategory === 'ski' && (
               <div>
@@ -280,7 +301,7 @@ const UsedRegister = () => {
                 <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 18m" className={inputClass} />
               </div>
             )}
-            {form.subcategory === 'boots' && (
+            {['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) && (
               <div>
                 <label className={labelClass}>플렉스</label>
                 <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 130" className={inputClass} />

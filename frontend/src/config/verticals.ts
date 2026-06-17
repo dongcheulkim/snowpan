@@ -89,11 +89,16 @@ export const VERTICALS: Vertical[] = [
     usedSubcategories: [
       { id: 'ski', label: '스키' },
       { id: 'board', label: '보드' },
-      { id: 'boots', label: '부츠' },
+      { id: 'ski_boots', label: '스키부츠' },
+      { id: 'board_boots', label: '보드부츠' },
       { id: 'binding', label: '바인딩' },
+      { id: 'wear', label: '스키복' },
+      { id: 'pole', label: '폴' },
       { id: 'helmet', label: '헬멧' },
       { id: 'goggles', label: '고글' },
-      { id: 'wear', label: '의류' },
+      { id: 'gloves', label: '장갑' },
+      { id: 'bag', label: '가방' },
+      { id: 'accessory', label: '악세사리' },
       { id: 'etc', label: '기타' },
     ],
     sports: [
