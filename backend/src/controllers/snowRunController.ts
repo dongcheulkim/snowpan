@@ -7,16 +7,19 @@ import prisma from '../config/database';
 import { awardPoints } from '../utils/points';
 import { findResortContaining } from '../data/skiResortGeofences';
 
-// Phase 0 검증 한계치 — 너무 빡빡하면 정상 유저가 막힘, 너무 헐겁면 부정 사용 통과.
+// 자동 감지 모델 기준 검증. 고도가 메인 신호라 상한은 풀고 하한만.
+// 가족과 천천히 1시간 탄 런도, 직활강 10초도 OK. 단 노이즈/평지 이동은 차단.
 const LIMITS = {
-  minDurationSec: 30,        // 30초 미만은 런으로 보지 않음
-  maxDurationSec: 30 * 60,   // 30분 초과는 한 런이 아닌 묶음 — 거부
-  minVerticalDropM: 20,      // 낙차 20m 미만은 무효 (평지 이동)
-  maxVerticalDropM: 1500,    // 세계 최장 슬로프도 약 1300m — 그 이상은 GPS 오류/부정
-  minDistanceM: 100,         // 100m 미만은 무효
-  maxDistanceM: 15000,       // 15km 초과 한 런은 비현실적
-  maxAvgSpeedKmh: 120,       // 슬로프 평균 속도 한계 (월드컵 다운힐 평균 ~120km/h)
-  maxMaxSpeedKmh: 200,       // 최고 속도 한계 (월드 레코드 보호)
+  minDurationSec: 15,        // 점프/노이즈 차단
+  minVerticalDropM: 20,      // 평지 이동 차단
+  minDistanceM: 100,         // 제자리 측정 차단
+  // 상한은 부정 사용 명확한 케이스만 (GPS 글리치 등). 정상 사용은 다 통과.
+  maxDurationSec: 60 * 60,   // 1시간 초과는 한 런 아님 (감지 알고리즘 버그)
+  maxVerticalDropM: 2500,    // 세계 최장(~2000m) 여유 + 다단 슬로프 합산
+  maxDistanceM: 30000,       // 30km 초과는 데이터 오류
+  // 속도 상한은 GPS 오류 보호용 (월드 레코드 ~250km/h).
+  maxAvgSpeedKmh: 200,
+  maxMaxSpeedKmh: 300,
 };
 
 const POINTS_PER_RUN = 100;
