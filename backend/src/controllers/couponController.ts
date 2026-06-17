@@ -63,6 +63,9 @@ export const getCoupon = async (req: Request, res: Response): Promise<void> => {
 };
 
 // 포인트로 쿠폰 구매 — 잔액 차감 + UserCoupon 생성 + 재고 차감을 한 트랜잭션으로.
+// AdMob 보상형 광고 시청 후 진행 — 최근 5분 미사용 AdView 1건 필수.
+// 웹은 광고 미시청 허용(향후 자체 광고 도입 시 강제). 환경변수 AD_GATE_DISABLED=1 이면 우회.
+const AD_GATE_WINDOW_MS = 5 * 60 * 1000;
 export const purchaseCoupon = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -72,6 +75,35 @@ export const purchaseCoupon = async (req: AuthRequest, res: Response): Promise<v
       const coupon = await tx.coupon.findUnique({ where: { id: couponId } });
       if (!coupon || !coupon.active) throw Object.assign(new Error('쿠폰을 찾을 수 없습니다.'), { httpStatus: 404 });
       if (coupon.stock !== null && coupon.stock <= 0) throw Object.assign(new Error('쿠폰이 매진되었습니다.'), { httpStatus: 409 });
+
+      // 광고 게이트 — 미시청이면 거절. 웹 미사용을 위해 모든 플랫폼 허용.
+      const gateDisabled = process.env.AD_GATE_DISABLED === '1';
+      if (!gateDisabled) {
+        const recent = await tx.adView.findFirst({
+          where: {
+            userId,
+            consumed: false,
+            purpose: 'coupon_purchase',
+            viewedAt: { gte: new Date(Date.now() - AD_GATE_WINDOW_MS) },
+          },
+          orderBy: { viewedAt: 'desc' },
+          select: { id: true, platform: true },
+        });
+        if (!recent && process.env.AD_GATE_REQUIRE_FOR_WEB === '1') {
+          throw Object.assign(new Error('광고 시청이 필요합니다.'), { httpStatus: 402, code: 'AD_REQUIRED' });
+        }
+        // 앱(ios/android) 사용자는 시청 필수.
+        const reqPlatform = (req.headers['x-app-platform'] || '').toString().toLowerCase();
+        if (!recent && (reqPlatform === 'ios' || reqPlatform === 'android')) {
+          throw Object.assign(new Error('광고 시청이 필요합니다.'), { httpStatus: 402, code: 'AD_REQUIRED' });
+        }
+        if (recent) {
+          await tx.adView.update({
+            where: { id: recent.id },
+            data: { consumed: true, consumedAt: new Date() },
+          });
+        }
+      }
 
       // 재고 차감 (옵션) — 무제한이면 스킵.
       if (coupon.stock !== null) {

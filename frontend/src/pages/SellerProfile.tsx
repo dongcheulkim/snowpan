@@ -48,6 +48,17 @@ interface ReviewsResponse {
   totalCount: number;
 }
 
+interface CommunityPost {
+  id: string;
+  title: string;
+  category: string;
+  sport: string;
+  likes: number;
+  views: number;
+  commentCount: number;
+  createdAt: string;
+}
+
 const SellerProfile = () => {
   const { sellerId } = useParams();
   const [seller, setSeller] = useState<SellerData | null>(null);
@@ -61,6 +72,8 @@ const SellerProfile = () => {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [eligibleProducts, setEligibleProducts] = useState<{ id: string; name: string; price: number }[]>([]);
   const [reviewProductId, setReviewProductId] = useState('');
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [postTotalCount, setPostTotalCount] = useState(0);
   const user = getUser();
   const [, setLangTick] = useState(0);
 
@@ -80,6 +93,14 @@ const SellerProfile = () => {
         setReviews(data.reviews);
         setAverageRating(data.averageRating);
         setReviewCount(data.totalCount);
+      })
+      .catch(() => {});
+
+    // 셀러가 쓴 커뮤니티 글 (최신 10개).
+    api<{ posts: CommunityPost[]; totalCount: number }>(`/community?userId=${sellerId}&limit=10`)
+      .then(data => {
+        setPosts(data.posts || []);
+        setPostTotalCount(data.totalCount || 0);
       })
       .catch(() => {});
   }, [sellerId]);
@@ -276,6 +297,35 @@ const SellerProfile = () => {
                 </div>
                 <p className="text-sm text-gray-600">{review.content}</p>
               </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 커뮤니티 글 */}
+      <div className="card rounded-2xl p-5">
+        <h3 className="text-sm font-bold text-gray-900 mb-3">커뮤니티 글 ({postTotalCount})</h3>
+        {posts.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-6">아직 작성한 글이 없습니다.</p>
+        ) : (
+          <div className="space-y-0">
+            {posts.map((p, idx) => (
+              <Link
+                key={p.id}
+                to={`/community/post/${p.id}`}
+                className={`flex items-center justify-between py-2.5 ${idx !== posts.length - 1 ? 'border-b border-gray-100' : ''}`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900 truncate">{p.title}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    {p.sport === 'board' ? '보드' : p.sport === 'ski' ? '스키' : p.sport} · {formatTime(p.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
+                  <span className="text-coral">♥ {p.likes}</span>
+                  <span>💬 {p.commentCount}</span>
+                </div>
+              </Link>
             ))}
           </div>
         )}

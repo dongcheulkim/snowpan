@@ -24,6 +24,7 @@
     "expo-task-manager": "~14.0.7",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-google-mobile-ads": "^15.4.0",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.24.0",
     "react-native-view-shot": "4.0.3",

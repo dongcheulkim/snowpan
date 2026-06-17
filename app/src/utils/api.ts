@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 const API_BASE = 'https://snowpan.onrender.com/api';
 export const SERVER_URL = 'https://snowpan.onrender.com';
@@ -10,7 +11,11 @@ interface ApiOptions {
 
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
   const { method = 'GET', body } = options;
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    // 백엔드가 앱 플랫폼 식별 (광고 게이트 등 정책 분기용).
+    'X-App-Platform': Platform.OS,
+  };
 
   const token = await SecureStore.getItemAsync('token');
   if (token) headers['Authorization'] = `Bearer ${token}`;

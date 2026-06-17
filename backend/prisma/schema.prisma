@@ -52,8 +52,26 @@ model User {
   pointTransactions PointTransaction[]
   userCoupons      UserCoupon[]
   snowRuns         SnowRun[]
+  adViews          AdView[]
 
   @@map("users")
+}
+
+// 보상형 광고 시청 기록 — 쿠폰 구매 시 최근 5분 내 미사용 시청 기록이 있어야 통과.
+// source: 'admob' (앱 보상형) | 'web_inhouse' (자체 노출) | 'test'.
+model AdView {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  source      String
+  platform    String   // 'ios' | 'android' | 'web'
+  purpose     String   @default("coupon_purchase") // 어디서 쓰려고 시청했는지
+  consumed    Boolean  @default(false) // 구매 시 true 로 마킹
+  consumedAt  DateTime?
+  viewedAt    DateTime @default(now())
+
+  @@index([userId, consumed, viewedAt])
+  @@map("ad_views")
 }
 
 // 스노우런 1회 = 슬로프 한 번 내려옴. GPS 클라이언트가 측정해 서버에 제출.
