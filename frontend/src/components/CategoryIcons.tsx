@@ -42,29 +42,13 @@ export const SkiShopIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
-// 2. 정비 — 렌치 + 십자 드라이버 교차
+// 2. 정비 — 굵직한 단일 렌치 (대각선 자세, 명확한 입 + 손잡이)
 export const MaintenanceIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    {/* 렌치 (왼쪽 위 → 오른쪽 아래) */}
-    <g transform="rotate(-45 32 32)">
-      {/* 손잡이 */}
-      <rect x="29" y="20" width="6" height="28" rx="1.5" />
-      {/* 입(헤드) */}
-      <path d="M22 12 L 30 12 L 30 18 L 26 22 L 30 22 L 30 28 L 22 28 Z" />
-      <path d="M42 12 L 34 12 L 34 18 L 38 22 L 34 22 L 34 28 L 42 28 Z" />
-    </g>
-    {/* 드라이버 (오른쪽 위 → 왼쪽 아래) */}
-    <g transform="rotate(45 32 32)">
-      {/* 손잡이 (그립) */}
-      <rect x="30" y="34" width="4" height="18" rx="1.5" />
-      {/* 손잡이 그립 라인 */}
-      <path {...inkLine} d="M31 37 L 33 37 M 31 41 L 33 41 M 31 45 L 33 45 M 31 49 L 33 49" strokeWidth="1.2" />
-      {/* 샤프트 */}
-      <rect x="31" y="14" width="2" height="20" />
-      {/* 십자 헤드 */}
-      <path d="M28 12 L 36 12 L 36 16 L 28 16 Z" />
-      <path d="M30 10 L 34 10 L 34 18 L 30 18 Z" />
-    </g>
+    {/* 손잡이 (대각선) */}
+    <path d="M44 6 a 14 14 0 0 0 -14 14 c 0 2 0.4 4 1 5.7 L8 47.7 a 4 4 0 0 0 0 5.7 l 2.6 2.6 a 4 4 0 0 0 5.7 0 L 38.3 33 c 1.7 0.6 3.7 1 5.7 1 a 14 14 0 0 0 14 -14 c 0 -2 -0.4 -4 -1.1 -5.8 L 49 22.1 a 4 4 0 0 1 -5.7 0 l -1.4 -1.4 a 4 4 0 0 1 0 -5.7 L 49.8 7 C 48 6.4 46 6 44 6 Z" />
+    {/* 손잡이 그립 라인 */}
+    <path d="M16 40 L 22 46 M 22 34 L 28 40" {...inkLine} stroke="#fff" strokeWidth="2.5" />
   </svg>
 );
 
@@ -81,21 +65,25 @@ export const SecondHandIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
-// 4. 렌탈 — 부츠 + 스키 + 폴 묶음 (장비 더미)
+// 4. 렌탈 — 스키부츠 (옆모습) + 매달린 가격표 (대여용 장비 명확)
 export const RentalIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
-    {/* 스키 한 짝 (왼쪽 비스듬) */}
-    <path d="M12 12 L 18 8 L 30 56 L 24 60 Z" />
-    {/* 폴 (오른쪽 비스듬) */}
-    <rect x="38" y="8" width="3" height="44" rx="1" transform="rotate(15 39.5 30)" />
-    {/* 폴 손잡이 */}
-    <path d="M42 8 a 3 3 0 0 1 3 3 L 45 16 L 39 16 L 39 11 a 3 3 0 0 1 3 -3 Z" transform="rotate(15 42 12)" />
-    {/* 폴 바스켓 */}
-    <circle cx="48" cy="52" r="4" />
-    {/* 부츠 (아래 정면) */}
-    <path d="M30 44 L 36 44 L 38 50 L 38 56 L 24 56 L 24 50 Z" />
-    {/* 부츠 버클 라인 */}
-    <path d="M27 48 L 35 48 M 27 51 L 35 51" {...inkLine} stroke="#fff" strokeWidth="1.5" />
+    {/* 부츠 본체 (옆모습 — 굵직하고 알아보기 쉬운 사이드뷰) */}
+    <path d="M14 22 L 14 42 L 12 48 L 12 54 a 2 2 0 0 0 2 2 L 50 56 a 2 2 0 0 0 2 -2 L 52 48 L 44 42 L 42 36 L 42 22 Q 42 18 38 18 L 18 18 Q 14 18 14 22 Z" />
+    {/* 부츠 음각 — 발등 라인 */}
+    <path d="M14 30 L 42 30 M 14 36 L 42 36" {...inkLine} stroke="#fff" strokeWidth="2" />
+    {/* 버클 3개 (음각 사각) */}
+    <rect x="18" y="32" width="3" height="2" fill="#fff" />
+    <rect x="25" y="32" width="3" height="2" fill="#fff" />
+    <rect x="32" y="32" width="3" height="2" fill="#fff" />
+    {/* 매달린 가격표 — 끈 */}
+    <path d="M48 6 L 48 18" {...inkLine} strokeWidth="2.2" />
+    {/* 가격표 본체 */}
+    <path d="M42 6 L 56 6 L 60 12 L 56 18 L 42 18 Z" />
+    {/* 가격표 구멍 */}
+    <circle cx="48" cy="12" r="1.6" fill="#fff" />
+    {/* ₩ (가격표 글자) */}
+    <path d="M51 11 L 53 13 L 55 11 M 50.5 14 L 55.5 14" {...inkLine} stroke="#fff" strokeWidth="1.3" />
   </svg>
 );
 
