@@ -185,14 +185,13 @@ const Used = () => {
         </div>
       )}
 
-      {/* Categories */}
-      <div className="relative">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x">
+      {/* Categories — 2줄 자동 래핑 그리드. 13개 모두 한눈에. */}
+      <div className="flex flex-wrap gap-1.5">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 snap-start ${
+            className={`px-3 py-1.5 rounded-full font-medium text-xs whitespace-nowrap transition-all ${
               selectedCategory === cat.id
                 ? 'bg-accent text-white'
                 : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
@@ -201,8 +200,6 @@ const Used = () => {
             {cat.name}
           </button>
         ))}
-        </div>
-        <div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-50 to-transparent" />
       </div>
 
       {loading ? (
