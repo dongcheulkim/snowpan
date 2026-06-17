@@ -90,18 +90,21 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { slotType, category, title, description, url, image, textColor, textAlign, startDate, endDate, payMethod } = req.body;
 
-    if (!slotType || !title || !description || !url || !startDate || !endDate) {
+    if (!slotType || !title || !description || !startDate || !endDate) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
 
-    // URL 프로토콜 검증 — javascript:/data: 등으로 XSS 방어. 상대경로 또는 https://만 허용.
+    // URL 은 선택. 빈 문자열 = "URL 없음" (광고 클릭해도 이동 X).
+    // 있을 때만 프로토콜 검증 (javascript:/data: 등 차단).
     if (typeof url !== 'string' || url.length > 2048) {
       res.status(400).json({ error: 'URL 형식이 올바르지 않습니다.' });
       return;
     }
     const urlTrimmed = url.trim();
-    if (urlTrimmed.startsWith('/')) {
+    if (urlTrimmed === '') {
+      // URL 없음 — OK
+    } else if (urlTrimmed.startsWith('/')) {
       // 사이트 내부 경로 — OK
     } else if (/^https?:\/\//i.test(urlTrimmed)) {
       try {
@@ -253,10 +256,64 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 
     await notifyAdmins('system', '새 광고 신청', `"${title}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
 
+    // 관리자와 채팅방 자동 생성 + 입금 안내 메시지 자동 발송. 실패해도 예약은 성공.
+    let chatRoomId: string | null = null;
+    try {
+      const admin = await prisma.user.findFirst({
+        where: { role: 'admin' },
+        select: { id: true },
+        orderBy: { createdAt: 'asc' },
+      });
+      if (admin && admin.id !== userId) {
+        const [u1, u2] = [userId, admin.id].sort();
+        let room = await prisma.chatRoom.findUnique({
+          where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+          select: { id: true },
+        });
+        if (!room) {
+          room = await prisma.chatRoom.create({
+            data: { user1Id: u1, user2Id: u2 },
+            select: { id: true },
+          });
+        }
+        chatRoomId = room.id;
+
+        // 입금 안내 양식. env 에 계좌 정보 있으면 자동 채움, 없으면 placeholder.
+        const bank = process.env.AD_DEPOSIT_BANK;
+        const account = process.env.AD_DEPOSIT_ACCOUNT;
+        const holder = process.env.AD_DEPOSIT_HOLDER;
+        const fmt = (d: Date) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+        const accountBlock = (bank && account && holder)
+          ? `🏦 입금 계좌\n  • 은행: ${bank}\n  • 계좌: ${account}\n  • 예금주: ${holder}`
+          : `🏦 입금 계좌는 곧 안내드리겠습니다.`;
+        const depositMsg =
+          `📢 광고 신청이 접수되었습니다.\n` +
+          `\n` +
+          `📋 신청 내역\n` +
+          `  • 광고: ${title}\n` +
+          `  • 기간: ${fmt(new Date(startDate))} ~ ${fmt(new Date(endDate))} (${booking.totalDays}일)\n` +
+          `  • 금액: ${booking.totalPrice.toLocaleString()}원\n` +
+          `  • 예약번호: ${booking.id.slice(0, 8)}\n` +
+          `\n` +
+          `${accountBlock}\n` +
+          `\n` +
+          `입금자명을 신청자 성함으로 해주시면 빠른 확인이 가능합니다.\n` +
+          `입금 확인 후 관리자가 승인하면 광고가 노출됩니다. 문의는 이 채팅방으로 주세요.`;
+
+        await prisma.message.create({
+          data: { roomId: room.id, senderId: admin.id, content: depositMsg, type: 'text' },
+        });
+        await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
+      }
+    } catch (e) {
+      console.error('Auto deposit chat message failed:', e);
+    }
+
     res.status(201).json({
       bookingId: booking.id,
       totalPrice: booking.totalPrice,
       totalDays: booking.totalDays,
+      chatRoomId,
     });
   } catch (error: any) {
     if (error.message?.includes('슬롯이 없습니다')) {

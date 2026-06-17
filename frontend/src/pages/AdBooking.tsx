@@ -107,6 +107,7 @@ export default function AdBooking() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
+  const [noUrl, setNoUrl] = useState(false); // URL 없음 체크 — 광고 클릭해도 이동 없음
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [textColor, setTextColor] = useState('#1e293b');
@@ -201,7 +202,10 @@ export default function AdBooking() {
 
   const canProceedStep1 = selectedSlot === 'main_banner' || (selectedSlot && selectedCategory);
   const canProceedStep2 = startDate && endDate;
-  const canProceedStep3 = title.trim() && description.trim() && url.trim();
+  // 프리미엄은 url 이 등록물에서 자동 채워지므로 별도 noUrl 체크 불필요.
+  // 일반 슬롯은 noUrl 체크 시 url 비어도 통과.
+  const urlOk = selectedSlot === 'premium' ? !!url.trim() : (noUrl || !!url.trim());
+  const canProceedStep3 = title.trim() && description.trim() && urlOk;
 
   const handlePayment = async () => {
     if (paying) return;
@@ -216,15 +220,16 @@ export default function AdBooking() {
         imageUrl = urls[0];
       }
 
-      // 2. 예약 생성
-      await api<{ bookingId: string; totalPrice: number }>('/ad-booking/create', {
+      // 2. 예약 생성 — 백엔드가 관리자 채팅방에 입금 안내 메시지 자동 발송.
+      const result = await api<{ bookingId: string; totalPrice: number; chatRoomId: string | null }>('/ad-booking/create', {
         method: 'POST',
         body: {
           slotType: selectedSlot,
           category: selectedSlot === 'main_banner' ? 'none' : selectedCategory,
           title,
           description,
-          url,
+          // noUrl 체크면 빈 문자열로 전송 — 표시는 되지만 클릭 시 이동 없음.
+          url: selectedSlot !== 'premium' && noUrl ? '' : url,
           image: imageUrl,
           textColor: selectedSlot !== 'premium' ? textColor : undefined,
           textAlign: selectedSlot !== 'premium' ? textAlign : undefined,
@@ -234,18 +239,13 @@ export default function AdBooking() {
         },
       });
 
-      // 시작일이 오늘이면 바로 노출됨
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const start = new Date(startDate!);
-      const isImmediate = start <= today;
-
-      if (isImmediate) {
-        alert('광고가 바로 노출되었습니다!\n아래 계좌로 입금해주세요.');
+      alert('광고 신청이 완료되었습니다!\n관리자 채팅방에 입금 안내가 전송되었습니다.');
+      // 채팅방 자동 생성됐으면 바로 이동, 아니면 채팅 목록으로.
+      if (result.chatRoomId) {
+        navigate(`/chat/${result.chatRoomId}`);
       } else {
-        alert('광고 신청이 완료되었습니다!\n아래 계좌로 입금 후 관리자 승인을 기다려주세요.');
+        navigate('/chat/rooms');
       }
-      navigate('/mypage');
     } catch (err: any) {
       setError(err.message || '광고 신청 중 오류가 발생했습니다.');
     } finally {
@@ -531,13 +531,28 @@ export default function AdBooking() {
                 )}
               </div>
             ) : (
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://example.com"
-                className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
-              />
+              <>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com"
+                  disabled={noUrl}
+                  className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                />
+                <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={noUrl}
+                    onChange={(e) => {
+                      setNoUrl(e.target.checked);
+                      if (e.target.checked) setUrl('');
+                    }}
+                    className="w-4 h-4 accent-gray-900"
+                  />
+                  연결 URL 없음 (클릭해도 이동 없는 노출용 광고)
+                </label>
+              </>
             )}
           </div>
 
@@ -675,15 +690,15 @@ export default function AdBooking() {
             const holder = import.meta.env.VITE_AD_DEPOSIT_HOLDER;
             if (!bank || !account || !holder) {
               return (
-                <div className="bg-yellow-50 rounded-xl p-4">
+                <div className="bg-sky-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-1">
                     <BankIcon size={18} className="text-gray-700" />
-                    <span className="text-sm font-bold text-yellow-800">입금 계좌 안내</span>
+                    <span className="text-sm font-bold text-sky-800">입금 계좌 안내</span>
                   </div>
-                  <p className="text-xs text-yellow-700 mt-2">
-                    계좌 정보를 관리자에게 문의해주세요. (1:1 문의로 입금 계좌를 안내해드립니다.)
+                  <p className="text-xs text-sky-700 mt-2 leading-relaxed">
+                    아래 <span className="font-bold">"광고 신청하기"</span> 버튼을 누르면 관리자와의 채팅방이 자동 생성되고
+                    예약 내역 + 입금 계좌 정보가 안내됩니다.
                   </p>
-                  <Link to="/mypage/support" className="inline-block mt-2 px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-bold">1:1 문의하기</Link>
                 </div>
               );
             }
@@ -738,12 +753,12 @@ export default function AdBooking() {
                 처리 중...
               </>
             ) : (
-              '입금 완료 · 광고 신청하기'
+              '광고 신청하기'
             )}
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            입금 확인 후 관리자가 승인하면 광고가 바로 노출됩니다.
+            신청 후 채팅방으로 입금 안내가 전송됩니다. 입금 확인 후 관리자가 승인하면 광고가 노출됩니다.
           </p>
         </div>
       )}
