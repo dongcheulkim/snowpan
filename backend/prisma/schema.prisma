@@ -74,6 +74,9 @@ model SnowRun {
   source        String   @default("web_gps") // 'web_gps' | 'app_gps' | 'manual'
   validated     Boolean  @default(false) // 검증 통과 → 포인트 지급
   pointsAwarded Int      @default(0)
+  // 지도 표시용 전체 GPS 경로. 형식: [{lat, lng, alt?, t?}, ...]
+  // ~1800포인트 (30분) ≈ 50KB. PostgreSQL JSONB.
+  trackJson     Json?
   createdAt     DateTime @default(now())
 
   @@index([userId, createdAt])

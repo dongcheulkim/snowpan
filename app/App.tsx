@@ -38,6 +38,7 @@ import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 import SellerProfileScreen from './src/screens/SellerProfileScreen';
 import AdBookingScreen from './src/screens/AdBookingScreen';
 import SnowRunScreen from './src/screens/SnowRunScreen';
+import SnowRunDetailScreen from './src/screens/SnowRunDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -109,6 +110,7 @@ export default function App() {
         <Stack.Screen name="SellerProfile" component={SellerProfileScreen} />
         <Stack.Screen name="AdBooking" component={AdBookingScreen} />
         <Stack.Screen name="SnowRun" component={SnowRunScreen} options={{ headerShown: true, title: '스노우런' }} />
+        <Stack.Screen name="SnowRunDetail" component={SnowRunDetailScreen} options={{ headerShown: true, title: '런 상세' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

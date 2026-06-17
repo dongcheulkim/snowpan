@@ -39,6 +39,17 @@ interface SubmitRunBody {
   samplePoints?: { lat: number; lng: number }[];
   centerLat?: number;
   centerLng?: number;
+  // 지도 표시용 전체 GPS 경로. [{lat, lng, alt?, t?}, ...]
+  // 너무 큰 트랙은 서버에서 다운샘플링 (최대 500포인트).
+  trackJson?: { lat: number; lng: number; alt?: number | null; t?: number }[];
+}
+
+const MAX_TRACK_POINTS = 500; // 한 런 트랙 최대 점 수 (저장/전송 비용 보호)
+
+function downsampleTrack(track: SubmitRunBody['trackJson']): SubmitRunBody['trackJson'] {
+  if (!track || track.length <= MAX_TRACK_POINTS) return track;
+  const step = Math.ceil(track.length / MAX_TRACK_POINTS);
+  return track.filter((_, i) => i % step === 0 || i === track.length - 1);
 }
 
 export const submitRun = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -138,6 +149,7 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
 
     // SnowRun 기록 + 포인트 지급을 한 트랜잭션으로.
     const result = await prisma.$transaction(async (tx) => {
+      const compactTrack = downsampleTrack(body.trackJson);
       const run = await tx.snowRun.create({
         data: {
           userId,
@@ -152,6 +164,7 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
           validated,
           pointsAwarded: pointsToAward,
           resortId: detectedResortId,
+          trackJson: compactTrack && compactTrack.length > 1 ? (compactTrack as object) : undefined,
         },
       });
 
@@ -185,6 +198,23 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
   } catch (err) {
     console.error('Submit run error:', err);
     res.status(500).json({ error: '런 기록 중 오류가 발생했습니다.' });
+  }
+};
+
+export const getRun = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const run = await prisma.snowRun.findFirst({
+      where: { id: req.params.id, userId },
+    });
+    if (!run) {
+      res.status(404).json({ error: '런을 찾을 수 없습니다.' });
+      return;
+    }
+    res.json(run);
+  } catch (err) {
+    console.error('Get run error:', err);
+    res.status(500).json({ error: '런 조회 중 오류가 발생했습니다.' });
   }
 };
 

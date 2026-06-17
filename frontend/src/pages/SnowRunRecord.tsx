@@ -37,6 +37,7 @@ interface DescentBuffer {
   maxSpeedKmh: number;
   startAlt: number;
   samplePoints: { lat: number; lng: number }[];
+  fullTrack: { lat: number; lng: number; alt: number | null; t: number }[];
 }
 
 interface SessionUI {
@@ -127,6 +128,7 @@ const SnowRunRecord = () => {
           avgSpeedKmh,
           source: 'web_gps',
           samplePoints: d.samplePoints,
+          trackJson: d.fullTrack,
         },
       });
       sessionRef.current.pointsAwardedThisSession += result.pointsAwarded;
@@ -141,7 +143,7 @@ const SnowRunRecord = () => {
     sessionRef.current.currentDescent = {
       startedAt: now, endedAt: now,
       distanceM: 0, verticalDropM: 0, maxSpeedKmh: 0,
-      startAlt: alt, samplePoints: [],
+      startAlt: alt, samplePoints: [], fullTrack: [],
     };
   };
 
@@ -201,6 +203,11 @@ const SnowRunRecord = () => {
       if (speedKmh > d.maxSpeedKmh) d.maxSpeedKmh = speedKmh;
       if (d.samplePoints.length < 30) d.samplePoints.push({ lat: latitude, lng: longitude });
       else d.samplePoints = d.samplePoints.filter((_, i) => i % 2 === 0).concat({ lat: latitude, lng: longitude });
+      // 전체 트랙 (지도용) — 5m 이상 또는 2초 이상 간격에서만 추가.
+      const lastT = d.fullTrack[d.fullTrack.length - 1];
+      if (!lastT || segM >= 5 || now - lastT.t >= 2000) {
+        d.fullTrack.push({ lat: latitude, lng: longitude, alt: altitude ?? null, t: now });
+      }
     }
 
     if (smoothAlt == null || ratePerSec == null) return;

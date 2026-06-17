@@ -40,7 +40,8 @@ export interface DescentBuffer {
   maxSpeedKmh: number;
   startAlt: number;
   endAlt: number;
-  samplePoints: { lat: number; lng: number }[];
+  samplePoints: { lat: number; lng: number }[]; // 지오펜스 검증용 (최대 30)
+  fullTrack: { lat: number; lng: number; alt: number | null; t: number }[]; // 지도 표시용 전체 경로
 }
 
 export interface SessionState {
@@ -130,6 +131,7 @@ async function submitDescent(d: DescentBuffer): Promise<{ pointsAwarded: number;
           avgSpeedKmh,
           source: 'app_gps',
           samplePoints: d.samplePoints,
+          trackJson: d.fullTrack,
         },
       }
     );
@@ -151,6 +153,7 @@ function startDescent(now: number, alt: number) {
     startAlt: alt,
     endAlt: alt,
     samplePoints: [],
+    fullTrack: [],
   };
 }
 
@@ -233,6 +236,13 @@ function processLocation(loc: Location.LocationObject): void {
       d.samplePoints.push({ lat: latitude, lng: longitude });
     } else {
       d.samplePoints = d.samplePoints.filter((_, i) => i % 2 === 0).concat({ lat: latitude, lng: longitude });
+    }
+    // 전체 트랙 (지도용) — 1초당 1점이면 30분이 1800점, 5초마다면 360점.
+    // 마지막 점과 5m 이상 떨어졌거나 2초 지났을 때만 추가.
+    const lastTrack = d.fullTrack[d.fullTrack.length - 1];
+    const shouldAdd = !lastTrack || segM >= 5 || (now - lastTrack.t) >= 2000;
+    if (shouldAdd) {
+      d.fullTrack.push({ lat: latitude, lng: longitude, alt: altitude ?? null, t: now });
     }
   }
 

@@ -143,35 +143,35 @@ const SnowRun = () => {
           ) : (
             <ul className="space-y-0">
               {runs.map((r, idx) => (
-                <li
-                  key={r.id}
-                  className={`flex items-start justify-between py-3 ${
-                    idx !== runs.length - 1 ? 'border-b border-gray-100' : ''
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-gray-900">
-                        {(r.distanceM / 1000).toFixed(2)} km
-                      </span>
-                      <span className="text-[10px] text-gray-500">·</span>
-                      <span className="text-[11px] text-gray-600">낙차 {r.verticalDropM}m</span>
-                      <span className="text-[10px] text-gray-500">·</span>
-                      <span className="text-[11px] text-gray-600">{formatDuration(r.durationSec)}</span>
+                <li key={r.id} className={idx !== runs.length - 1 ? 'border-b border-gray-100' : ''}>
+                  <Link
+                    to={`/snow-run/${r.id}`}
+                    className="flex items-start justify-between py-3 hover:bg-gray-50 -mx-2 px-2 rounded"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-gray-900">
+                          {(r.distanceM / 1000).toFixed(2)} km
+                        </span>
+                        <span className="text-[10px] text-gray-500">·</span>
+                        <span className="text-[11px] text-gray-600">낙차 {r.verticalDropM}m</span>
+                        <span className="text-[10px] text-gray-500">·</span>
+                        <span className="text-[11px] text-gray-600">{formatDuration(r.durationSec)}</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {new Date(r.startedAt).toLocaleString('ko-KR', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        {!r.validated && <span className="ml-2 text-coral">미검증</span>}
+                      </p>
                     </div>
-                    <p className="text-[11px] text-gray-500 mt-0.5">
-                      {new Date(r.startedAt).toLocaleString('ko-KR', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      {!r.validated && <span className="ml-2 text-coral">미검증</span>}
-                    </p>
-                  </div>
-                  <span className={`text-sm font-bold ml-3 flex-shrink-0 ${r.pointsAwarded > 0 ? 'text-mint' : 'text-gray-400'}`}>
-                    {r.pointsAwarded > 0 ? `+${r.pointsAwarded}P` : '—'}
-                  </span>
+                    <span className={`text-sm font-bold ml-3 flex-shrink-0 ${r.pointsAwarded > 0 ? 'text-mint' : 'text-gray-400'}`}>
+                      {r.pointsAwarded > 0 ? `+${r.pointsAwarded}P` : '—'}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>

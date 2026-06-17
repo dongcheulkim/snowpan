@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { api } from '../utils/api';
 import {
   startSession,
@@ -37,6 +38,7 @@ const fmtHM = (sec: number) => {
 };
 
 export default function SnowRunScreen() {
+  const nav = useNavigation<{ navigate: (name: string, params?: object) => void }>();
   const [active, setActive] = useState(false);
   const [, setTick] = useState(0);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -228,7 +230,11 @@ export default function SnowRunScreen() {
           <Text style={st.empty}>아직 기록이 없습니다.</Text>
         ) : (
           runs.map((r, idx) => (
-            <View key={r.id} style={[st.runItem, idx !== runs.length - 1 && st.runItemBorder]}>
+            <TouchableOpacity
+              key={r.id}
+              onPress={() => nav.navigate('SnowRunDetail', { id: r.id })}
+              style={[st.runItem, idx !== runs.length - 1 && st.runItemBorder]}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={st.runTitle}>
                   {(r.distanceM / 1000).toFixed(2)} km · 낙차 {r.verticalDropM}m · {fmtSec(r.durationSec)}
@@ -243,7 +249,7 @@ export default function SnowRunScreen() {
               <Text style={r.pointsAwarded > 0 ? st.runPoints : st.runPointsDim}>
                 {r.pointsAwarded > 0 ? `+${r.pointsAwarded}P` : '—'}
               </Text>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </View>
