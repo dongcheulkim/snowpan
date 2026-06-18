@@ -138,3 +138,8 @@ export const postCreateLimiterHourly = createUserLimiter(20, 60 * 60_000);
 // 댓글: 1분에 5건, 1시간에 60건.
 export const commentCreateLimiter = createUserLimiter(5, 60_000);
 export const commentCreateLimiterHourly = createUserLimiter(60, 60 * 60_000);
+
+// 매물 등록 (중고/신상): 1분에 5건, 1시간에 30건 (userId 기준).
+// 단일 계정으로 수백 건 자동 도배되는 것을 차단. 정상 판매자에겐 충분한 한도.
+export const listingCreateLimiter = createUserLimiter(5, 60_000);
+export const listingCreateLimiterHourly = createUserLimiter(30, 60 * 60_000);

@@ -48,8 +48,26 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       ];
     }
 
-    const take = limit ? parseInt(limit as string, 10) : 50;
-    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    // limit/offset 검증 — 잘못된 값(예: ?limit=abc)이 parseInt→NaN→Prisma 예외→500 나는 것 방지.
+    // 유효하지 않으면 400, 유효하면 take 는 1~100 으로 clamp (과도한 take 로 인한 DB 부하 차단).
+    let take = 50;
+    if (limit !== undefined) {
+      const n = Number(limit);
+      if (!Number.isInteger(n) || n < 1) {
+        res.status(400).json({ error: 'limit 은 1 이상의 정수여야 합니다.' });
+        return;
+      }
+      take = Math.min(n, 100);
+    }
+    let skip: number | undefined = undefined;
+    if (offset !== undefined) {
+      const n = Number(offset);
+      if (!Number.isInteger(n) || n < 0) {
+        res.status(400).json({ error: 'offset 은 0 이상의 정수여야 합니다.' });
+        return;
+      }
+      skip = n;
+    }
 
     const primary = [
       { isPremium: { sort: 'desc' as const, nulls: 'last' as const } },

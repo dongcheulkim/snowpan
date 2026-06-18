@@ -6,6 +6,8 @@ interface ApiOptions {
   token?: string;
   // 내부용: refresh 후 재시도 시 무한 루프 방지.
   _retried?: boolean;
+  // 내부용: GET 일시 실패(네트워크/429/5xx) 백오프 재시도 횟수.
+  _attempt?: number;
 }
 
 // access 토큰이 1h 로 짧아져서 자주 만료됨.
@@ -62,8 +64,14 @@ function injectVerticalToBody(body: unknown): unknown {
   return { ...(body as Record<string, unknown>), vertical: slug };
 }
 
+// GET(idempotent) 한정 일시 실패 백오프 재시도. 짧은 Cloudflare 엣지 스로틀/순간 5xx 를
+// 사용자에게 에러로 노출하지 않고 흡수. 쓰기(POST/PUT/DELETE)는 중복 위험으로 재시도 안 함.
+const MAX_GET_RETRIES = 2;
+const RETRY_BACKOFF_MS = [300, 800];
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
-  const { method = 'GET', body, token, _retried } = options;
+  const { method = 'GET', body, token, _retried, _attempt = 0 } = options;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (token) {
@@ -88,6 +96,11 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       throw new Error('인터넷 연결이 끊어졌습니다. 네트워크를 확인해주세요.');
     }
+    // GET 은 idempotent → 일시적 네트워크/엣지(Cloudflare) 차단 시 백오프 후 재시도.
+    if (method === 'GET' && _attempt < MAX_GET_RETRIES) {
+      await sleep(RETRY_BACKOFF_MS[_attempt]);
+      return api<T>(path, { ...options, _attempt: _attempt + 1 });
+    }
     throw new Error('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
   }
 
@@ -108,9 +121,19 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     }
     if (res.status === 429) {
       const retry = res.headers.get('Retry-After');
+      // GET 한정: Retry-After(최대 3s) 또는 백오프만큼 대기 후 재시도.
+      if (method === 'GET' && _attempt < MAX_GET_RETRIES) {
+        const waitMs = retry ? Math.min(Number(retry) * 1000, 3000) : RETRY_BACKOFF_MS[_attempt];
+        await sleep(waitMs);
+        return api<T>(path, { ...options, _attempt: _attempt + 1 });
+      }
       throw new Error(data.error || `요청이 너무 많습니다. ${retry ? retry + '초 후 ' : '잠시 후 '}다시 시도해주세요.`);
     }
     if (res.status >= 500) {
+      if (method === 'GET' && _attempt < MAX_GET_RETRIES) {
+        await sleep(RETRY_BACKOFF_MS[_attempt]);
+        return api<T>(path, { ...options, _attempt: _attempt + 1 });
+      }
       throw new Error(data.error || '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
     if (res.status === 403) throw new Error(data.error || '권한이 없습니다.');

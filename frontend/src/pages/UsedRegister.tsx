@@ -44,17 +44,17 @@ const UsedRegister = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) {
-      alert('중고거래 주의사항에 동의해주세요.');
+      toastError('중고거래 주의사항에 동의해주세요.');
       return;
     }
     if (imageFiles.length === 0) {
-      alert('상품 사진을 최소 1장 업로드해주세요.');
+      toastError('상품 사진을 최소 1장 업로드해주세요.');
       return;
     }
 
     const user = getUser();
     if (!user) {
-      alert('로그인이 필요합니다.');
+      toastError('로그인이 필요합니다.');
       navigate('/login');
       return;
     }
@@ -172,11 +172,11 @@ const UsedRegister = () => {
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
                 const remaining = 5 - images.length;
-                if (remaining <= 0) { alert('사진은 최대 5장까지 가능합니다.'); return; }
+                if (remaining <= 0) { toastError('사진은 최대 5장까지 가능합니다.'); return; }
                 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
                 const tooBig = files.filter(f => f.size > MAX_SIZE);
                 if (tooBig.length > 0) {
-                  alert(`다음 파일이 5MB를 초과합니다:\n${tooBig.map(f => `• ${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join('\n')}\n\n이미지 크기를 줄여서 다시 시도해주세요.`);
+                  toastError(`다음 파일이 5MB를 초과합니다: ${tooBig.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(', ')}. 이미지 크기를 줄여서 다시 시도해주세요.`);
                   e.target.value = '';
                   return;
                 }

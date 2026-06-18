@@ -3,6 +3,11 @@ services:
     name: snowpan-backend
     runtime: node
     rootDir: backend
+    # 헬스체크 — 유료 인스턴스에서 무중단(zero-downtime) 배포 활성화.
+    healthCheckPath: /api/health
+    # ▼ 인스턴스 업그레이드: 아래 줄 주석 해제(starter 또는 standard) 후 Blueprint 동기화하면 적용.
+    #   또는 Render 대시보드 → snowpan-backend → Settings → Instance Type 에서 직접 변경.
+    # plan: starter
     buildCommand: npm install && npm run build
     # seed-test-images.ts 는 1회성이라 체인에서 제거 — 필요 시 수동으로 npx tsx prisma/seed-test-images.ts 실행.
     startCommand: npx tsx prisma/merge-chatrooms.ts && npx prisma db push --skip-generate && node dist/index.js
@@ -23,7 +28,7 @@ services:
         sync: false
       - key: PORT
         value: 3000
-      # 부하테스트 rate-limit bypass 키 (load-tests/ 가 이 값을 헤더로 전송).
-      # 일반 사용자는 이 키를 모르므로 영향 없음. 교체하려면 render.yaml + load-tests/flows.js 동시 변경.
+      # 부하테스트 rate-limit bypass 키. 값은 절대 커밋하지 말고 Render 대시보드에서만 설정.
+      # (이전에 평문 커밋되어 노출 → 반드시 새 값으로 회전할 것)
       - key: LOADTEST_BYPASS_KEY
-        value: 570aa05b333d6fbf7dfa5de40842f8477139f4a2b4e4f0af
+        sync: false

@@ -30,7 +30,7 @@ function fakeIp() {
 }
 
 // 서버 rate limit 을 우회해서 순수 용량만 측정. 키는 render.yaml 과 동기화.
-const LOADTEST_BYPASS_KEY = __ENV.LOADTEST_BYPASS_KEY || '570aa05b333d6fbf7dfa5de40842f8477139f4a2b4e4f0af';
+const LOADTEST_BYPASS_KEY = __ENV.LOADTEST_BYPASS_KEY || ''; // 키는 환경변수로 전달: k6 run -e LOADTEST_BYPASS_KEY=xxx
 
 function defaultHeaders() {
   return {
