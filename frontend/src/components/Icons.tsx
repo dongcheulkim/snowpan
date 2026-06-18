@@ -175,10 +175,10 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski — 흑백 SVG: 두 스키가 X자 교차, 위쪽 휘어진 팁 명시.
-// 부츠/폴/바인딩 없이 순수 스키 두 짝만 (currentColor 단색).
+// 🎿 ski — 이모지 형태 흑백 SVG: X자 교차 두 스키 + 두 개의 폴(스틱).
+// 부츠/바인딩만 빠지고 폴은 포함 (이모지 실루엣 유지). currentColor 단색.
 export const SkiIcon = ({ size = 20, className }: IconProps) => (
-  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(35 12 12)"><path d="M 11 22 L 11 4 Q 11 1 13 1.5 Q 14 2 14 3 Q 14 4 13 4 L 13 22 Z"/></g><g transform="rotate(-35 12 12)"><path d="M 11 22 L 11 4 Q 11 1 13 1.5 Q 14 2 14 3 Q 14 4 13 4 L 13 22 Z"/></g></svg>
+  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(10 12 12)"><rect x="11.5" y="2" width="1" height="20"/><circle cx="12" cy="22" r="1.2"/></g><g transform="rotate(-10 12 12)"><rect x="11.5" y="2" width="1" height="20"/><circle cx="12" cy="22" r="1.2"/></g><g transform="rotate(35 12 12)"><path d="M 10.5 22 L 10.5 5 Q 10.5 1 13 1 Q 14 1.5 13.5 3 Q 12.5 3 12.5 5 L 12.5 22 Z"/></g><g transform="rotate(-35 12 12)"><path d="M 10.5 22 L 10.5 5 Q 10.5 1 13 1 Q 14 1.5 13.5 3 Q 12.5 3 12.5 5 L 12.5 22 Z"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
