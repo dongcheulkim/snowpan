@@ -175,9 +175,19 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski — 이모지 스타일: X자로 교차된 두 스키 (부츠/바인딩 없이 순수 두 짝)
+// 🎿 ski — OS 네이티브 이모지 그대로 사용. 부츠/폴 포함 컬러 렌더링.
 export const SkiIcon = ({ size = 20, className }: IconProps) => (
-  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(45 12 12)"><rect x="11" y="2" width="2" height="20" rx="1"/></g><g transform="rotate(-45 12 12)"><rect x="11" y="2" width="2" height="20" rx="1"/></g></svg>
+  <span
+    aria-hidden
+    className={className}
+    style={{
+      fontSize: size,
+      lineHeight: 1,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >🎿</span>
 );
 
 // 🏂 snowboard (board outline with bindings)
