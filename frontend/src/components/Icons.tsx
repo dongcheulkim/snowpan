@@ -175,19 +175,10 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski — OS 네이티브 이모지 그대로 사용. 부츠/폴 포함 컬러 렌더링.
+// 🎿 ski — 흑백 SVG: 두 스키가 X자 교차, 위쪽 휘어진 팁 명시.
+// 부츠/폴/바인딩 없이 순수 스키 두 짝만 (currentColor 단색).
 export const SkiIcon = ({ size = 20, className }: IconProps) => (
-  <span
-    aria-hidden
-    className={className}
-    style={{
-      fontSize: size,
-      lineHeight: 1,
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-  >🎿</span>
+  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(35 12 12)"><path d="M 11 22 L 11 4 Q 11 1 13 1.5 Q 14 2 14 3 Q 14 4 13 4 L 13 22 Z"/></g><g transform="rotate(-35 12 12)"><path d="M 11 22 L 11 4 Q 11 1 13 1.5 Q 14 2 14 3 Q 14 4 13 4 L 13 22 Z"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
