@@ -175,10 +175,9 @@ export const SadIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) 
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 16s1-2 3-2 3 2 3 2"/></svg>
 );
 
-// 🎿 ski — 한 쌍의 평행 스키. 두 길쭉한 알약 모양, 위쪽 둥근 팁.
-// 단일 스키는 작은 사이즈에서 막대/단검과 구분 안 됨 → 두 짝으로 직관성 ↑
+// 🎿 ski — 이모지 스타일: X자로 교차된 두 스키 (부츠/바인딩 없이 순수 두 짝)
 export const SkiIcon = ({ size = 20, className }: IconProps) => (
-  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(-15 12 12)"><path d="M8 4 Q 8 2 9 2 Q 10 2 10 4 L 10 22 L 8 22 Z"/><path d="M14 4 Q 14 2 15 2 Q 16 2 16 4 L 16 22 L 14 22 Z"/></g></svg>
+  <svg {...base(size, className)} fill="currentColor"><g transform="rotate(45 12 12)"><rect x="11" y="2" width="2" height="20" rx="1"/></g><g transform="rotate(-45 12 12)"><rect x="11" y="2" width="2" height="20" rx="1"/></g></svg>
 );
 
 // 🏂 snowboard (board outline with bindings)
