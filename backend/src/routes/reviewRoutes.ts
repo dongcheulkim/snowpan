@@ -4,15 +4,10 @@ import prisma from '../config/database';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
-import { awardPoints } from '../utils/points';
 
 const router = Router();
 
-// 거래 후 리뷰 작성 시 양쪽 모두에게 포인트.
-// 구매자: 리뷰 작성 보상 200P (한 거래당 1회 — 중복 리뷰 차단으로 보장).
-// 판매자: 좋은 리뷰 받은 보상 100P (별점 4 이상일 때만).
-const REVIEW_AUTHOR_BONUS = 200;
-const REVIEW_RECIPIENT_BONUS = 100;
+// 리뷰 작성에 대한 포인트 보상은 정책 변경으로 제거 (가입 1000P, 일일 출석 500P 만 유지).
 
 // 리뷰 생성
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
@@ -90,28 +85,6 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
     const link = `/profile/${sellerId}`;
     await createNotification(sellerId, 'system', title, body, link);
     sendPushToUser(sellerId, title, body, link);
-
-    // 리뷰 보너스 — 부수효과로 실패해도 리뷰 등록은 성공 처리.
-    try {
-      await awardPoints(prisma, {
-        userId: buyerId,
-        amount: REVIEW_AUTHOR_BONUS,
-        source: 'review',
-        refId: review.id,
-        description: '리뷰 작성 보너스',
-      });
-      if (review.rating >= 4) {
-        await awardPoints(prisma, {
-          userId: sellerId,
-          amount: REVIEW_RECIPIENT_BONUS,
-          source: 'review',
-          refId: review.id,
-          description: `좋은 리뷰 받기 (${review.rating}점)`,
-        });
-      }
-    } catch (e) {
-      console.error('Review bonus award failed:', e);
-    }
 
     res.status(201).json(review);
   } catch (error) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { toastError, toastSuccess } from '../components/Toast';
 
 interface Transaction {
   id: string;
@@ -9,6 +10,11 @@ interface Transaction {
   source: string;
   description: string | null;
   createdAt: string;
+}
+
+interface CheckinStatus {
+  checkedToday: boolean;
+  dailyPoints: number;
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -28,20 +34,37 @@ const Points = () => {
   const [balance, setBalance] = useState<number | null>(null);
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkin, setCheckin] = useState<CheckinStatus | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const refresh = () => Promise.all([
+    api<{ balance: number }>('/points/balance'),
+    api<{ items: Transaction[] }>('/points/history?limit=30'),
+    api<CheckinStatus>('/points/checkin'),
+  ]).then(([b, h, c]) => {
+    setBalance(b.balance);
+    setItems(h.items);
+    setCheckin(c);
+  });
 
   useEffect(() => {
     document.title = '내 포인트 - 스노우판';
-    Promise.all([
-      api<{ balance: number }>('/points/balance'),
-      api<{ items: Transaction[] }>('/points/history?limit=30'),
-    ])
-      .then(([b, h]) => {
-        setBalance(b.balance);
-        setItems(h.items);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    refresh().catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  const handleCheckin = async () => {
+    if (checkingIn || checkin?.checkedToday) return;
+    setCheckingIn(true);
+    try {
+      const res = await api<{ message: string; amount: number; balance: number }>('/points/checkin', { method: 'POST' });
+      toastSuccess(res.message);
+      await refresh();
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '출석체크 실패');
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-sky-50 pb-10">
@@ -69,14 +92,31 @@ const Points = () => {
           </div>
         </div>
 
+        {/* 일일 출석체크 */}
+        <button
+          onClick={handleCheckin}
+          disabled={checkingIn || !checkin || checkin.checkedToday}
+          className={`w-full mt-4 px-5 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-between ${
+            checkin?.checkedToday
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+              : 'bg-sky-500 text-white shadow-sm hover:bg-sky-600'
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-lg">{checkin?.checkedToday ? '✓' : '🎁'}</span>
+            <span>{checkin?.checkedToday ? '오늘 출석 완료' : '오늘 출석체크 받기'}</span>
+          </span>
+          <span className="text-xs font-black tracking-wide">
+            +{(checkin?.dailyPoints ?? 500).toLocaleString()}P
+          </span>
+        </button>
+
         {/* 적립 안내 */}
         <div className="mt-4 bg-snow border-2 border-gray-200 rounded-2xl p-4">
           <h2 className="text-sm font-bold text-gray-900 mb-2">포인트 적립하기</h2>
           <ul className="text-xs text-gray-600 space-y-1.5">
-            <li>• 회원가입 보너스 1,000P (1회)</li>
-            <li>• 추천인 등록 시 500P (예정)</li>
-            <li>• 스노우런 1회 적립 100P (예정)</li>
-            <li>• 거래 후 리뷰 작성 200P (예정)</li>
+            <li>• 일일 출석체크 +500P (하루 1회)</li>
+            <li>• 회원가입 보너스 +1,000P (1회)</li>
           </ul>
         </div>
 
