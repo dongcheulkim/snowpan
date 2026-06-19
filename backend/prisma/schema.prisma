@@ -124,10 +124,14 @@ model Coupon {
   title         String   // "스키 렌탈 10% 할인"
   description   String?
   pointsCost    Int      // 필요 포인트
-  partnerType   String   // 'rental' | 'lesson' | 'skishop' | 'accommodation' | 'repair' | 'general'
+  partnerType   String   // 'rental' | 'lesson' | 'skishop' | 'accommodation' | 'repair' | 'general' | 'platform'
   partnerId     String?  // 특정 매장 한정이면 그 매장 id
-  discountType  String   // 'percent' | 'flat'
-  discountValue Int      // percent=10 → 10%, flat=10000 → 10,000원 할인
+  discountType  String   // 'percent' | 'flat' | 'none'  (platform 효과형은 'none')
+  discountValue Int      // percent=10 → 10%, flat=10000 → 10,000원 할인, none 이면 0
+  // 플랫폼 자체 발급 쿠폰 효과. null 이면 파트너 발급 (오프라인 사용).
+  // 'product_bump' = 매물 끌어올리기 (bumpedAt=now), effectValue 만큼 사용 가능 횟수.
+  effect        String?
+  effectValue   Int?
   image         String?
   validDays     Int      @default(30) // 구매 후 N일 동안 사용 가능
   stock         Int?     // null = 무제한, 0 이면 매진
@@ -151,6 +155,9 @@ model UserCoupon {
   coupon      Coupon   @relation(fields: [couponId], references: [id])
   code        String   @unique // 8자리 영숫자 — 매장 확인용
   status      String   @default("active") // 'active' | 'used' | 'expired'
+  // 다회권 (예: 끌어올리기 5회 묶음) 남은 횟수. 단회 쿠폰은 1, 5회 묶음은 5 로 시작.
+  // 0 이 되면 status='used'.
+  usesLeft    Int      @default(1)
   expiresAt   DateTime
   usedAt      DateTime?
   purchasedAt DateTime @default(now())

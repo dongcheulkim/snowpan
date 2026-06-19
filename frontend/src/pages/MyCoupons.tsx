@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, getUser, imageUrl } from '../api';
+import { toastError, toastSuccess } from '../components/Toast';
 
 interface UserCoupon {
   id: string;
   code: string;
   status: 'active' | 'used' | 'expired';
+  usesLeft: number;
   expiresAt: string;
   usedAt: string | null;
   purchasedAt: string;
@@ -13,10 +15,20 @@ interface UserCoupon {
     title: string;
     description: string | null;
     partnerType: string;
-    discountType: 'percent' | 'flat';
+    discountType: 'percent' | 'flat' | 'none';
     discountValue: number;
+    effect: string | null;
+    effectValue: number | null;
     image: string | null;
   };
+}
+
+interface MyProduct {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  status: string;
 }
 
 const STATUS_TABS: { id: 'active' | 'used' | 'expired'; label: string }[] = [
@@ -32,37 +44,90 @@ const TYPE_LABEL: Record<string, string> = {
   accommodation: '숙소',
   repair: '정비',
   general: '전체',
+  platform: '플랫폼',
+};
+
+const EFFECT_LABEL: Record<string, string> = {
+  product_bump: '매물 끌어올리기',
 };
 
 const MyCoupons = () => {
   const [status, setStatus] = useState<'active' | 'used' | 'expired'>('active');
   const [items, setItems] = useState<UserCoupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bumpTarget, setBumpTarget] = useState<UserCoupon | null>(null);
+  const [myProducts, setMyProducts] = useState<MyProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
     document.title = '내 쿠폰 - 스노우판';
   }, []);
 
+  const refresh = () =>
+    api<{ items: UserCoupon[] }>(`/coupons/my?status=${status}`).then((r) => setItems(r.items));
+
   useEffect(() => {
     setLoading(true);
-    api<{ items: UserCoupon[] }>(`/coupons/my?status=${status}`)
-      .then((r) => setItems(r.items))
-      .finally(() => setLoading(false));
+    refresh().finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
-  const discountLabel = (c: UserCoupon['coupon']) =>
-    c.discountType === 'percent' ? `${c.discountValue}% 할인` : `${c.discountValue.toLocaleString()}원 할인`;
+  const benefitLabel = (c: UserCoupon['coupon']) => {
+    if (c.effect && EFFECT_LABEL[c.effect]) {
+      return c.effectValue && c.effectValue > 1 ? `${EFFECT_LABEL[c.effect]} ${c.effectValue}회` : EFFECT_LABEL[c.effect];
+    }
+    return c.discountType === 'percent'
+      ? `${c.discountValue}% 할인`
+      : `${c.discountValue.toLocaleString()}원 할인`;
+  };
 
-  const onUse = async (id: string) => {
-    if (!confirm('이 쿠폰을 사용 처리하시겠습니까? 사용 후 되돌릴 수 없습니다.')) return;
+  const openBumpPicker = async (uc: UserCoupon) => {
+    setBumpTarget(uc);
+    setLoadingProducts(true);
     try {
-      await api(`/coupons/my/${id}/use`, { method: 'POST' });
-      alert('쿠폰을 사용 처리했습니다.');
-      const r = await api<{ items: UserCoupon[] }>(`/coupons/my?status=${status}`);
-      setItems(r.items);
+      const user = getUser();
+      if (!user) { toastError('로그인이 필요해요.'); setBumpTarget(null); return; }
+      const data = await api<{ products: MyProduct[] }>(
+        `/products?userId=${encodeURIComponent(user.id)}&status=selling&limit=50`
+      );
+      setMyProducts(data.products);
     } catch (e) {
-      const msg = (e as Error).message || '사용 처리에 실패했습니다.';
-      alert(msg);
+      toastError(e instanceof Error ? e.message : '내 매물을 불러오지 못했어요.');
+      setBumpTarget(null);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const applyBump = async (productId: string) => {
+    if (!bumpTarget) return;
+    try {
+      const res = await api<{ message: string; usesLeft: number }>(
+        `/coupons/my/${bumpTarget.id}/use`,
+        { method: 'POST', body: { productId } }
+      );
+      toastSuccess(res.message);
+      setBumpTarget(null);
+      await refresh();
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '사용 실패');
+    }
+  };
+
+  const onUse = async (uc: UserCoupon) => {
+    // 플랫폼 효과 쿠폰: 매물 선택 시트 띄움
+    if (uc.coupon.effect === 'product_bump') {
+      openBumpPicker(uc);
+      return;
+    }
+    // 그 외 (파트너 쿠폰): 매장에서 코드 보여준 뒤 사용 처리
+    if (!confirm('이 쿠폰을 사용 처리할까요? 사용 후 되돌릴 수 없어요.')) return;
+    try {
+      await api(`/coupons/my/${uc.id}/use`, { method: 'POST' });
+      toastSuccess('쿠폰을 사용 처리했어요.');
+      await refresh();
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '사용 처리 실패');
     }
   };
 
@@ -115,7 +180,12 @@ const MyCoupons = () => {
                   <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
                     {TYPE_LABEL[it.coupon.partnerType] || it.coupon.partnerType}
                   </span>
-                  <span className="text-[10px] font-bold text-mint">{discountLabel(it.coupon)}</span>
+                  <span className="text-[10px] font-bold text-mint">{benefitLabel(it.coupon)}</span>
+                  {it.coupon.effect && it.usesLeft > 0 && it.status === 'active' && (
+                    <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded">
+                      남은 {it.usesLeft}회
+                    </span>
+                  )}
                   {it.status === 'used' && (
                     <span className="ml-auto text-[10px] font-bold text-gray-400">사용 완료</span>
                   )}
@@ -135,10 +205,10 @@ const MyCoupons = () => {
                   </div>
                   {it.status === 'active' && (
                     <button
-                      onClick={() => onUse(it.id)}
+                      onClick={() => onUse(it)}
                       className="text-xs font-bold bg-gray-900 text-white px-3 py-2 rounded-lg active:scale-95 transition-transform"
                     >
-                      사용 처리
+                      {it.coupon.effect === 'product_bump' ? '매물에 사용' : '사용 처리'}
                     </button>
                   )}
                 </div>
@@ -153,6 +223,57 @@ const MyCoupons = () => {
           )}
         </div>
       </div>
+
+      {/* 매물 선택 시트 (끌어올리기 쿠폰 사용 시) */}
+      {bumpTarget && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={() => setBumpTarget(null)}>
+          <div
+            className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-5 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-gray-900">끌어올릴 매물 선택</h2>
+              <button onClick={() => setBumpTarget(null)} className="text-gray-500 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              선택한 매물이 최신순 정렬 상단으로 다시 노출돼요.
+              {bumpTarget.usesLeft > 1 && ` (사용 후 남은 ${bumpTarget.usesLeft - 1}회)`}
+            </p>
+            {loadingProducts ? (
+              <p className="text-sm text-gray-500 text-center py-8">불러오는 중...</p>
+            ) : myProducts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-500 mb-3">판매중인 내 매물이 없어요.</p>
+                <Link to="/used/register" className="inline-block text-xs font-bold bg-gray-900 text-white px-4 py-2 rounded-lg">
+                  + 매물 등록하기
+                </Link>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {myProducts.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      onClick={() => applyBump(p.id)}
+                      className="w-full flex items-center gap-3 p-2 bg-snow border border-gray-200 rounded-xl active:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                        {p.image && (p.image.startsWith('/') || p.image.startsWith('http')) ? (
+                          <img src={imageUrl(p.image, 200)} alt={p.name} className="w-full h-full object-cover" />
+                        ) : null}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{p.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{p.price.toLocaleString()}원</p>
+                      </div>
+                      <span className="text-xs font-bold text-gray-900">↑ 끌어올리기</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

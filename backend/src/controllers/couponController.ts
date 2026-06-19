@@ -34,6 +34,8 @@ export const listCoupons = async (req: Request, res: Response): Promise<void> =>
         partnerId: true,
         discountType: true,
         discountValue: true,
+        effect: true,
+        effectValue: true,
         image: true,
         validDays: true,
         stock: true,
@@ -121,15 +123,17 @@ export const purchaseCoupon = async (req: AuthRequest, res: Response): Promise<v
         description: `쿠폰 구매: ${coupon.title}`,
       });
 
-      // 쿠폰 발급.
+      // 쿠폰 발급. 다회권은 effectValue 만큼 usesLeft 세팅.
       const code = generateCouponCode();
       const expiresAt = new Date(Date.now() + coupon.validDays * 24 * 60 * 60 * 1000);
+      const uses = coupon.effectValue && coupon.effectValue > 1 ? coupon.effectValue : 1;
       const userCoupon = await tx.userCoupon.create({
         data: {
           userId,
           couponId,
           code,
           expiresAt,
+          usesLeft: uses,
         },
         include: { coupon: true },
       });
@@ -179,6 +183,8 @@ export const myCoupons = async (req: AuthRequest, res: Response): Promise<void> 
             partnerType: true,
             discountType: true,
             discountValue: true,
+            effect: true,
+            effectValue: true,
             image: true,
           },
         },
@@ -191,24 +197,84 @@ export const myCoupons = async (req: AuthRequest, res: Response): Promise<void> 
   }
 };
 
-// 쿠폰 사용 처리 — 매장에서 코드 입력 시 호출 (MVP 단계: 사용자가 직접 누름).
+// 쿠폰 사용 처리 — 두 종류:
+//  1) 파트너 발급 (effect=null): 매장에서 코드 보여줄 때 사용자가 직접 누름. usesLeft=1.
+//  2) 플랫폼 효과형 (effect='product_bump' 등): productId 받아 효과 적용. 다회권 (usesLeft>1) 지원.
 export const useCoupon = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const id = req.params.id;
+    const { productId } = req.body ?? {};
 
-    const updated = await prisma.userCoupon.updateMany({
-      where: { id, userId, status: 'active', expiresAt: { gte: new Date() } },
-      data: { status: 'used', usedAt: new Date() },
+    const result = await prisma.$transaction(async (tx) => {
+      const uc = await tx.userCoupon.findUnique({
+        where: { id },
+        include: { coupon: { select: { effect: true, title: true } } },
+      });
+      if (!uc || uc.userId !== userId) {
+        throw Object.assign(new Error('쿠폰을 찾을 수 없습니다.'), { httpStatus: 404 });
+      }
+      if (uc.status !== 'active') {
+        throw Object.assign(new Error('이미 사용/만료된 쿠폰이에요.'), { httpStatus: 409 });
+      }
+      if (uc.expiresAt < new Date()) {
+        await tx.userCoupon.update({ where: { id }, data: { status: 'expired' } });
+        throw Object.assign(new Error('만료된 쿠폰이에요.'), { httpStatus: 409 });
+      }
+      if (uc.usesLeft <= 0) {
+        await tx.userCoupon.update({ where: { id }, data: { status: 'used' } });
+        throw Object.assign(new Error('남은 사용 횟수가 없어요.'), { httpStatus: 409 });
+      }
+
+      // 플랫폼 효과 적용
+      if (uc.coupon.effect === 'product_bump') {
+        if (typeof productId !== 'string' || !productId) {
+          throw Object.assign(new Error('내 매물을 선택해주세요.'), { httpStatus: 400 });
+        }
+        const product = await tx.product.findUnique({
+          where: { id: productId },
+          select: { id: true, userId: true, status: true },
+        });
+        if (!product || product.userId !== userId) {
+          throw Object.assign(new Error('본인 매물에만 사용할 수 있어요.'), { httpStatus: 403 });
+        }
+        if (product.status !== 'selling') {
+          throw Object.assign(new Error('판매중인 매물에만 사용할 수 있어요.'), { httpStatus: 400 });
+        }
+        await tx.product.update({
+          where: { id: productId },
+          data: { bumpedAt: new Date() },
+        });
+      } else if (uc.coupon.effect) {
+        // 기타 효과는 아직 미구현
+        throw Object.assign(new Error('이 쿠폰은 아직 사용할 수 없어요.'), { httpStatus: 400 });
+      }
+
+      // 사용 횟수 차감
+      const nextUses = uc.usesLeft - 1;
+      const done = nextUses <= 0;
+      const updated = await tx.userCoupon.update({
+        where: { id },
+        data: {
+          usesLeft: nextUses,
+          ...(done ? { status: 'used', usedAt: new Date() } : {}),
+        },
+      });
+
+      return { updated, effect: uc.coupon.effect, productId };
     });
 
-    if (updated.count === 0) {
-      res.status(409).json({ error: '사용할 수 없는 쿠폰입니다 (이미 사용/만료).' });
+    res.json({
+      message: result.effect === 'product_bump' ? '매물을 끌어올렸어요!' : '쿠폰이 사용 처리되었어요.',
+      usesLeft: result.updated.usesLeft,
+      status: result.updated.status,
+    });
+  } catch (err) {
+    const e = err as Error & { httpStatus?: number };
+    if (e.httpStatus) {
+      res.status(e.httpStatus).json({ error: e.message });
       return;
     }
-
-    res.json({ message: '쿠폰이 사용 처리되었습니다.' });
-  } catch (err) {
     console.error('Use coupon error:', err);
     res.status(500).json({ error: '쿠폰 사용 처리 중 오류가 발생했습니다.' });
   }
