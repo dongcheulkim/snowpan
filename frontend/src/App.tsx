@@ -14,6 +14,8 @@ import UsedDetail from './pages/UsedDetail';
 const Login = lazy(() => import('./pages/Login'));
 const MyPage = lazy(() => import('./pages/MyPage'));
 const Search = lazy(() => import('./pages/Search'));
+const PreviewA = lazy(() => import('./pages/PreviewA'));
+const PreviewC = lazy(() => import('./pages/PreviewC'));
 const Community = lazy(() => import('./pages/Community'));
 
 // lazy 로딩 — Suspense fallback 보임.
@@ -95,6 +97,9 @@ function App() {
             {/* 루트 / = SNOWPAN 홈 (단일 종목 운영). /snowpan 도 동일 페이지 호환. */}
             <Route index element={<Home />} />
             <Route path="snowpan" element={<Home />} />
+            {/* 임시 — 홈 시안 비교용. 결정 후 PreviewA/PreviewC 와 라우트 삭제. */}
+            <Route path="preview-a" element={<PreviewA />} />
+            <Route path="preview-c" element={<PreviewC />} />
             <Route path="used" element={<Used />} />
             <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
             <Route path="used/:id" element={<UsedDetail />} />
