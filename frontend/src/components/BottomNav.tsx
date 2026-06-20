@@ -71,7 +71,7 @@ const BottomNav = () => {
     <nav
       aria-label="주요 메뉴"
       aria-hidden={keyboardOpen}
-      className={`absolute bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
+      className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 safe-area-bottom transition-transform duration-200 ${
         keyboardOpen ? 'translate-y-full pointer-events-none' : 'translate-y-0'
       }`}
     >
