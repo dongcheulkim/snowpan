@@ -219,11 +219,11 @@ const UsedDetail = () => {
         &larr; {t('usedDetail.backToUsed')}
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Image */}
         <div>
           <div
-            className="card aspect-[4/3] sm:aspect-square max-h-[480px] flex items-center justify-center overflow-hidden cursor-pointer"
+            className="card aspect-[4/3] max-h-[480px] flex items-center justify-center overflow-hidden cursor-pointer"
             style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)' }}
             onClick={() => hasImages && !imgError && setShowFullImage(true)}
           >

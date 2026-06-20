@@ -129,7 +129,7 @@ const Used = () => {
         {/* 태블릿+ 에서만 헤더 우측 버튼, 모바일은 FAB 사용 */}
         <Link
           to="/used/register"
-          className="hidden sm:inline-block px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
+          className="hidden px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           {t('used.register')}
         </Link>
@@ -139,7 +139,7 @@ const Used = () => {
       <Link
         to="/used/register"
         aria-label="장비 등록"
-        className="sm:hidden fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
+        className="fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </Link>
@@ -188,7 +188,7 @@ const Used = () => {
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {products.map((product) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             return (

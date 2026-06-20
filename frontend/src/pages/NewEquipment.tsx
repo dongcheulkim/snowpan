@@ -109,7 +109,7 @@ export default function NewEquipment() {
           </RegisterCTA>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {shops.map((shop) => (
             <Link to={`/skishop/${shop.id}`} key={shop.id} className={`card p-5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && (

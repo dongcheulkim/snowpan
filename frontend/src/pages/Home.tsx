@@ -137,7 +137,7 @@ const Home = () => {
           모바일에서 임팩트 위해 정사각형 가까운 비율(5/4), 데스크탑은 슬림 유지. */}
       <div className="px-4 pt-3 pb-5 bg-snow">
         <div
-          className="relative overflow-hidden rounded-2xl border aspect-[5/4] sm:aspect-[3/1] lg:aspect-[6/1] sm:max-h-44"
+          className="relative overflow-hidden rounded-2xl border aspect-[5/4]"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
         >
           {/* Slide #0: 브랜드 소개 — translate-only 슬라이드 (opacity 페이드 제거 → 두 슬라이드 동시 노출 버그 해소) */}
@@ -228,7 +228,7 @@ const Home = () => {
 
       {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
       <div className="px-4 pb-5 bg-snow">
-        <div className={`grid ${isSnow ? 'grid-cols-5 lg:grid-cols-10' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
+        <div className={`grid ${isSnow ? 'grid-cols-5' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
             // 신규/핫 카테고리에 빨간 점 (전환 유도). 쿠폰샵은 NEW 강조.

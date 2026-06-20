@@ -124,7 +124,7 @@ const Accommodation = () => {
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {accommodations.map((item) => (
             <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
               <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
