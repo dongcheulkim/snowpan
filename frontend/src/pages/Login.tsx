@@ -140,9 +140,14 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="mt-4 text-center space-y-2">
-          <Link to="/forgot-password" className="text-xs text-gray-500 hover:underline block">{t('login.forgotPassword')}</Link>
-          <Link to="/register" className="text-xs text-primary-dark hover:underline block">{t('login.noAccount')}</Link>
+        <div className="mt-6 text-center space-y-3">
+          <Link to="/forgot-password" className="inline-block text-sm font-medium text-gray-700 underline underline-offset-4 hover:text-gray-900">
+            {t('login.forgotPassword')}
+          </Link>
+          <div className="h-px bg-gray-100" />
+          <Link to="/register" className="block text-sm font-bold text-primary-dark hover:underline">
+            {t('login.noAccount')}
+          </Link>
         </div>
       </div>
     </div>
