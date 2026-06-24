@@ -8,14 +8,35 @@ const Register = () => {
   // ?ref=CODE — 추천 링크로 들어왔을 때 자동 채움
   const refFromUrl = searchParams.get('ref') || '';
   const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', nickname: '', phone: '', referralCode: refFromUrl });
+  // 추천 코드 검증 상태: idle(입력 전) | checking | valid | invalid | format
+  const [refStatus, setRefStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid' | 'format'>('idle');
   const [referrerName, setReferrerName] = useState<string | null>(null);
 
+  // 추천 코드 라이브 검증 — 300ms 디바운스. 빈 값이면 idle.
+  // 양쪽 500P 보너스 정책에 맞춰 잘못된 코드는 가입 단계 전에 알려줌.
   useEffect(() => {
-    if (!refFromUrl) return;
-    api<{ referrerName?: string }>(`/referral/lookup/${encodeURIComponent(refFromUrl)}`)
-      .then(d => setReferrerName(d.referrerName || null))
-      .catch(() => setReferrerName(null));
-  }, [refFromUrl]);
+    const raw = form.referralCode.trim();
+    if (!raw) { setRefStatus('idle'); setReferrerName(null); return; }
+    const code = raw.toUpperCase();
+    if (!/^[A-Z0-9]{4,12}$/.test(code)) {
+      setRefStatus('format'); setReferrerName(null); return;
+    }
+    setRefStatus('checking');
+    const t = setTimeout(() => {
+      api<{ referrerName?: string }>(`/referral/lookup/${encodeURIComponent(code)}`)
+        .then(d => {
+          if (d?.referrerName) {
+            setRefStatus('valid');
+            setReferrerName(d.referrerName);
+          } else {
+            setRefStatus('invalid');
+            setReferrerName(null);
+          }
+        })
+        .catch(() => { setRefStatus('invalid'); setReferrerName(null); });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [form.referralCode]);
   const [agree, setAgree] = useState({ all: false, terms: false, privacy: false, marketing: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,6 +79,18 @@ const Register = () => {
     const phoneClean = form.phone.replace(/[-\s]/g, '');
     if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
       setError('올바른 휴대폰 번호 형식이 아닙니다. (예: 01012345678)');
+      return;
+    }
+
+    // 추천 코드 입력했는데 유효 안 하면 가입 차단 (양쪽 500P 정책 — 실제 가입자만 인정).
+    if (form.referralCode.trim() && refStatus !== 'valid') {
+      if (refStatus === 'checking') {
+        setError('추천 코드 확인 중이에요. 잠시만 기다려주세요.');
+      } else if (refStatus === 'format') {
+        setError('추천 코드는 영문/숫자 4~12자만 입력 가능해요.');
+      } else {
+        setError('존재하지 않는 추천 코드예요. 정확한 코드를 입력하거나 비워두세요.');
+      }
       return;
     }
 
@@ -126,7 +159,7 @@ const Register = () => {
             <input id="reg-password-confirm" type="password" name="passwordConfirm" autoComplete="new-password" placeholder="비밀번호를 다시 입력하세요" minLength={8} value={form.passwordConfirm} onChange={handleChange} required className={inputClass} />
           </div>
 
-          {/* 추천 코드 (선택) */}
+          {/* 추천 코드 (선택) — 입력 시 양쪽 500P 보너스 */}
           <div>
             <label htmlFor="reg-ref" className="block text-sm font-medium text-gray-500 mb-2">
               추천 코드 <span className="text-xs text-gray-500">(선택)</span>
@@ -135,14 +168,34 @@ const Register = () => {
               id="reg-ref"
               type="text"
               name="referralCode"
-              placeholder="추천인 코드 (있는 경우)"
+              placeholder="실제 가입자 코드 입력"
               value={form.referralCode}
               onChange={handleChange}
-              className={inputClass}
+              className={`${inputClass} ${
+                refStatus === 'invalid' || refStatus === 'format' ? 'border-coral focus:border-coral' :
+                refStatus === 'valid' ? 'border-emerald-500 focus:border-emerald-500' : ''
+              }`}
               autoCapitalize="characters"
+              aria-invalid={refStatus === 'invalid' || refStatus === 'format'}
             />
-            {referrerName && (
-              <p className="text-[11px] text-emerald-600 mt-1">{referrerName}님의 추천으로 가입합니다</p>
+            {/* 안내 — 양쪽 500P */}
+            <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+              입력하면 <strong className="text-gray-900">나와 추천인 양쪽에 500P씩</strong> 적립돼요 (실제 가입자 코드만 인정).
+            </p>
+            {/* 라이브 검증 상태 */}
+            {refStatus === 'checking' && (
+              <p className="text-[11px] text-gray-500 mt-1">확인 중…</p>
+            )}
+            {refStatus === 'valid' && referrerName && (
+              <p className="text-[11px] text-emerald-600 mt-1 font-medium">
+                ✓ {referrerName}님의 추천 — 가입 시 +500P 추가
+              </p>
+            )}
+            {refStatus === 'invalid' && (
+              <p className="text-[11px] text-coral mt-1">존재하지 않는 추천 코드예요.</p>
+            )}
+            {refStatus === 'format' && (
+              <p className="text-[11px] text-coral mt-1">영문/숫자 4~12자만 가능해요.</p>
             )}
           </div>
 

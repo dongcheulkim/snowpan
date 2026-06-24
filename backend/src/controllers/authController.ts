@@ -12,8 +12,9 @@ import { awardPoints } from '../utils/points';
 
 // 가입 보너스 + 추천인 보너스 (양쪽 지급).
 const SIGNUP_BONUS_POINTS = 1000;
+// 추천 코드 양쪽 동일 500P (정책 변경).
 const REFERRAL_BONUS_REFERRER = 500;  // 추천한 사람
-const REFERRAL_BONUS_REFERRED = 200;  // 추천받아 가입한 사람 (가입 보너스 위에 추가)
+const REFERRAL_BONUS_REFERRED = 500;  // 추천받아 가입한 사람 (가입 보너스 1,000P 위에 추가)
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -94,14 +95,21 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
 
-    // 추천 코드 검증 — 잘못된 코드는 무시하고 가입 진행 (UX 우선).
+    // 추천 코드 검증 — 입력했는데 잘못된 코드면 400 (정책: 있는 아이디만 허용).
+    // 빈 값은 그대로 진행 (선택 입력).
     let referredById: string | undefined;
     if (typeof referralCode === 'string' && referralCode.trim()) {
       const code = referralCode.trim().toUpperCase();
-      if (/^[A-Z0-9]{4,12}$/.test(code)) {
-        const referrer = await prisma.user.findUnique({ where: { referralCode: code }, select: { id: true } });
-        if (referrer) referredById = referrer.id;
+      if (!/^[A-Z0-9]{4,12}$/.test(code)) {
+        res.status(400).json({ error: '추천 코드 형식이 올바르지 않아요 (영문/숫자 4~12자).' });
+        return;
       }
+      const referrer = await prisma.user.findUnique({ where: { referralCode: code }, select: { id: true } });
+      if (!referrer) {
+        res.status(400).json({ error: '존재하지 않는 추천 코드예요. 정확한 코드를 입력해주세요.' });
+        return;
+      }
+      referredById = referrer.id;
     }
 
     const user = await prisma.user.create({
