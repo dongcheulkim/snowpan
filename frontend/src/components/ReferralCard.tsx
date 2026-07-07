@@ -20,7 +20,7 @@ export default function ReferralCard() {
   if (loading || !code) return null;
 
   const link = `${SITE}/register?ref=${code}`;
-  const shareText = `스키·보드 한 곳에서 — 스노우판 추천 링크\n${link}`;
+  const shareText = `스노우판 초대 — 이 링크로 가입하면 우리 둘 다 500P 받아요! (가입 보너스 1,000P 별도)\n${link}`;
 
   const copyLink = async () => {
     try {
@@ -45,10 +45,11 @@ export default function ReferralCard() {
     <div className="card p-5 bg-gradient-to-br from-sky-50 to-emerald-50 border-sky-200">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-bold text-gray-900">친구 초대</h2>
-        <span className="text-[10px] text-gray-600">초대한 친구 <strong className="text-sky-700">{count}명</strong></span>
+        <span className="text-[10px] text-gray-600">초대한 친구 <strong className="text-sky-700">{count}명</strong> · +{(count * 500).toLocaleString()}P 적립</span>
       </div>
-      <p className="text-xs text-gray-600 leading-relaxed mb-3">
-        친구가 가입하면 함께 시즌권 추첨·할인 혜택을 받아요. 베타 기간 한정.
+      <p className="text-xs text-gray-700 leading-relaxed mb-3">
+        내 코드로 친구가 가입하면 <strong className="text-emerald-700">나와 친구 양쪽 각각 500P</strong> 적립돼요.
+        <span className="block text-[11px] text-gray-500 mt-0.5">친구는 가입 보너스 1,000P + 추천 500P = 총 1,500P</span>
       </p>
       <div className="flex items-center gap-2 mb-3">
         <code className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-mono font-bold text-gray-900 tracking-wider text-center">
