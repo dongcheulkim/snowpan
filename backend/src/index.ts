@@ -187,8 +187,11 @@ app.use(cors({
 app.use(express.json({ limit: '200kb' }));
 // HttpOnly 쿠키 (refresh token) 파싱.
 app.use(cookieParser());
+// 업로드 이미지는 파일명에 uuid/해시 포함되어 있어 사실상 immutable.
+// 1년 캐싱 + immutable → Vercel edge / 브라우저에서 재요청 안 함 (Cache-Control 1년).
+// 이미지 변경 시엔 반드시 새 파일명으로 저장 필요 (기존 코드가 그렇게 동작).
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
-  maxAge: '7d',
+  maxAge: '365d',
   immutable: true,
 }));
 

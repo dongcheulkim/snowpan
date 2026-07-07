@@ -171,7 +171,7 @@ const Home = () => {
                 }`}
               >
                 {banner.image && (
-                  <img src={imageUrl(banner.image)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                  <img src={imageUrl(banner.image, 900)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                 )}
                 <div className={`flex-1 relative z-10 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : 'text-left'}`}>
                   <div className={`flex items-center gap-2 mb-1 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
@@ -277,7 +277,7 @@ const Home = () => {
                 <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
                   {p.image && (p.image.startsWith('/') || p.image.startsWith('http')) ? (
                     <img
-                      src={imageUrl(p.image, 480)}
+                      src={imageUrl(p.image, 400)}
                       alt={p.name}
                       loading="lazy"
                       className="w-full h-full object-cover"

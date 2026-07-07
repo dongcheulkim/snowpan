@@ -247,8 +247,8 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
       resolve(file);
       return;
     }
-    // Skip if smaller than 1MB
-    if (file.size <= 1024 * 1024) {
+    // 300KB 미만은 스킵 (기존 1MB 였음 — 당근/번개 패턴 참고해 임계값 낮춤).
+    if (file.size <= 300 * 1024) {
       resolve(file);
       return;
     }
@@ -269,11 +269,17 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
       if (!ctx) { resolve(file); return; }
       ctx.drawImage(img, 0, 0, width, height);
 
-      const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      // WebP 우선 (Safari 14+, Chrome/Firefox 지원 광범위). PNG 는 알파채널 보존 위해 유지.
+      // Cloudinary 가 서빙 시 다시 AVIF 로 재변환할 수도 있지만 업로드 시점 대역폭은 이걸로 이미 절감.
+      const outputType = file.type === 'image/png' ? 'image/png' : 'image/webp';
+      const ext = outputType === 'image/png' ? '.png' : '.webp';
+      // 확장자 교체 — .jpg/.jpeg → .webp
+      const nameBase = file.name.replace(/\.(jpe?g|png|webp|avif|heic|heif)$/i, '');
+      const finalName = `${nameBase}${ext}`;
       canvas.toBlob(
         (blob) => {
           if (!blob) { resolve(file); return; }
-          const compressed = new File([blob], file.name, { type: outputType, lastModified: Date.now() });
+          const compressed = new File([blob], finalName, { type: outputType, lastModified: Date.now() });
           resolve(compressed);
         },
         outputType,
@@ -291,7 +297,9 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
 export async function uploadImages(files: File[]): Promise<string[]> {
   // Compress images before uploading (max 1200px width, 0.8 quality for JPEG)
   const compressed = await Promise.all(
-    files.map((f) => compressImage(f, 1200, 0.8))
+    // 1000px 이상 넘길 이유 없음 (모바일 폰 폭 448, 상세 페이지에서도 x2 retina = 896px).
+    // WebP 0.82 는 육안 무손실에 가까우면서 JPEG 대비 30% 작음.
+    files.map((f) => compressImage(f, 1000, 0.82))
   );
 
   const formData = new FormData();

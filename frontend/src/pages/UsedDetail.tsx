@@ -204,9 +204,10 @@ const UsedDetail = () => {
   }
 
   const isUrl = (s: string) => s.startsWith('http') || s.startsWith('/');
+  // 상세 페이지 이미지 — 900px 이면 retina 폰 (448×2) 대응 + 트래픽 절감.
   const allImages = product.images
-    ? product.images.split(',').filter(s => s && isUrl(s)).map(u => imageUrl(u))
-    : isUrl(product.image) ? [imageUrl(product.image)] : [];
+    ? product.images.split(',').filter(s => s && isUrl(s)).map(u => imageUrl(u, 900))
+    : isUrl(product.image) ? [imageUrl(product.image, 900)] : [];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[selectedImage] || '';
   const sellerName = product.user?.name || '판매자';
