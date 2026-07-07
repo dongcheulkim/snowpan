@@ -1,4 +1,6 @@
-type Lang = 'ko' | 'en';
+// 다국어 지원 제거 — 한국어만. 페이지들이 이미 t() 호출 중이라
+// 함수는 유지하되 항상 ko 반환. 언어 전환 UI 는 없음.
+type Lang = 'ko';
 
 const translations: Record<Lang, Record<string, string>> = {
   ko: {
@@ -228,238 +230,25 @@ const translations: Record<Lang, Record<string, string>> = {
     'general.back': '뒤로',
     'general.backToList': '목록으로 돌아가기',
   },
-  en: {
-    'nav.title': 'SNOWPAN',
-    'nav.chat': 'Chat',
-    'nav.notifications': 'Notifications',
-    'nav.mypage': 'My Page',
-    'nav.login': 'Login',
-
-    'cat.used': 'Used Gear',
-    'cat.rental': 'Rental',
-    'cat.lesson': 'Lessons',
-    'cat.accommodation': 'Stay',
-    'cat.community': 'Community',
-    'cat.webcam': 'Live Webcam',
-
-    'home.hotDeals': 'Hot Used Deals',
-    'home.community': 'Community',
-    'home.youtube': 'Hot YouTube Videos!',
-    'home.more': 'More >',
-    'home.noProducts': 'No products listed yet.',
-    'home.noPosts': 'No posts yet.',
-    'home.ski': 'Ski',
-    'home.board': 'Board',
-    'home.prev': '← Prev',
-    'home.next': 'Next →',
-
-    'btn.register': 'Register',
-    'btn.cancel': 'Cancel',
-    'btn.delete': 'Delete',
-    'btn.login': 'Login',
-    'btn.logout': 'Logout',
-    'btn.save': 'Save',
-    'btn.edit': 'Edit',
-    'btn.confirm': 'Confirm',
-    'btn.submit': 'Submit',
-    'btn.search': 'Search',
-
-    'used.title': 'Used Gear',
-    'used.register': '+ List Gear',
-    'used.search': 'Search by name, brand...',
-    'used.noItems': 'No used gear matching your filters.',
-    'used.loading': 'Loading...',
-    'used.cat.all': 'All',
-    'used.cat.ski': 'Ski',
-    'used.cat.board': 'Board',
-    'used.cat.boots': 'Boots',
-    'used.cat.ski_boots': 'Ski Boots',
-    'used.cat.board_boots': 'Snowboard Boots',
-    'used.cat.binding': 'Binding',
-    'used.cat.wear': 'Ski Suit',
-    'used.cat.pole': 'Poles',
-    'used.cat.helmet': 'Helmet',
-    'used.cat.goggles': 'Goggles',
-    'used.cat.gloves': 'Gloves',
-    'used.cat.bag': 'Bag',
-    'used.cat.accessory': 'Accessory',
-    'used.cat.etc': 'Other',
-    'used.status.selling': 'For Sale',
-    'used.status.reserved': 'Reserved',
-    'used.status.sold': 'Sold',
-
-    'usedDetail.productInfo': 'Product Info',
-    'usedDetail.condition': 'Condition',
-    'usedDetail.year': 'Year',
-    'usedDetail.description': 'Description',
-    'usedDetail.viewProfile': 'View Profile',
-    'usedDetail.startChat': 'Start Chat',
-    'usedDetail.delete': 'Delete',
-    'usedDetail.soldItem': 'This item has been sold',
-    'usedDetail.share': 'Share',
-    'usedDetail.report': 'Report',
-    'usedDetail.notFound': 'Product not found',
-    'usedDetail.backToList': 'Back to list',
-    'usedDetail.backToUsed': 'Used Gear List',
-    'usedDetail.noImage': 'Image not available',
-
-    'mypage.settings': 'Settings',
-    'mypage.language': 'Language',
-    'mypage.darkMode': 'Dark Mode',
-    'mypage.editProfile': 'Edit Profile',
-    'mypage.mySales': 'My Listings',
-    'mypage.wishlist': 'Wishlist',
-    'mypage.recentlyViewed': 'Recently Viewed',
-    'mypage.chatList': 'Chat List',
-    'mypage.notifications': 'Notifications',
-    'mypage.terms': 'Terms of Service',
-    'mypage.support': 'Help Center',
-    'mypage.logout': 'Logout',
-    'mypage.certBadge': 'Certification Badges',
-    'mypage.verify': 'Verify',
-    'mypage.joinDate': 'Joined',
-    'mypage.badges': 'Badges',
-    'mypage.langLabel': 'Language',
-    'mypage.noBadges': 'No verified badges yet. Get your certifications verified!',
-    'mypage.verified': 'Verified',
-    'mypage.pendingApproval': 'Pending Approval',
-    'mypage.certVerification': 'Certification Verification',
-    'mypage.selectCert': 'Select a certification to verify',
-    'mypage.allBadgesApplied': 'All badges have been applied for!',
-    'mypage.uploadCertPhoto': 'Please upload a photo of your certification',
-    'mypage.selectPhoto': 'Select Photo',
-    'mypage.requesting': 'Requesting...',
-    'mypage.verifyRequest': 'Request Verification',
-    'mypage.adminApproval': 'Admin Approvals',
-    'mypage.adminDashboard': 'Admin Dashboard',
-
-    'community.title': 'Community',
-    'community.free': 'General',
-    'community.review': 'Gear Reviews',
-    'community.resort': 'Resorts',
-    'community.tip': 'Beginner Tips',
-    'community.carpool': 'Carpool',
-    'community.meetup': 'Meetups',
-    'community.write': 'Write Post',
-    'community.searchPlaceholder': 'Search by title or content',
-    'community.noResults': 'No search results found.',
-    'community.noPosts': 'No posts yet. Be the first to write one!',
-    'community.all': 'All',
-
-    'communityDetail.comments': 'Comments',
-    'communityDetail.commentPlaceholder': 'Write a comment...',
-    'communityDetail.submit': 'Post',
-    'communityDetail.loginToComment': 'Log in to write comments',
-    'communityDetail.notFound': 'Post not found',
-    'communityDetail.backToCommunity': 'Back to community',
-    'communityDetail.back': 'Community',
-    'communityDetail.reportPost': 'Report Post',
-    'communityDetail.selectReason': 'Select a reason for reporting',
-    'communityDetail.processing': 'Processing...',
-
-    'chat.inputPlaceholder': 'Type a message...',
-    'chat.send': 'Send',
-    'chat.online': 'Online',
-    'chat.connecting': 'Connecting...',
-    'chat.priceOffer': 'Price Offer',
-    'chat.viewProduct': 'View Item',
-    'chat.loginRequired': 'Please log in.',
-    'chat.loginLink': 'Log in',
-    'chat.safetyNotice': 'Transactions are handled directly between parties. Please use safe trading methods.',
-    'chat.enterPrice': 'Enter your offer price',
-    'chat.offer': 'Make Offer',
-    'chat.sentPhoto': 'Sent a photo.',
-    'chat.sentVideo': 'Sent a video.',
-
-    'login.title': 'Login',
-    'login.welcome': 'Welcome to SNOWPAN',
-    'login.email': 'Email',
-    'login.emailPlaceholder': 'Enter your email',
-    'login.password': 'Password',
-    'login.passwordPlaceholder': 'Enter your password',
-    'login.saveEmail': 'Remember email',
-    'login.autoLogin': 'Auto login',
-    'login.loggingIn': 'Logging in...',
-    'login.submit': 'Login',
-    'login.socialLogin': 'Social Login',
-    'login.kakao': 'Kakao Login',
-    'login.naver': 'Naver Login',
-    'login.forgotPassword': 'Forgot password?',
-    'login.register': 'Sign Up',
-    'login.noAccount': "Don't have an account? Sign up",
-
-    'notifications.title': 'Notifications',
-    'notifications.markAllRead': 'Mark all read',
-    'notifications.deleteAll': 'Delete all',
-    'notifications.confirmDeleteAll': 'Delete all notifications?',
-    'notifications.empty': 'No notifications yet.',
-    'notifications.loginRequired': 'Please log in.',
-
-    'mySales.title': 'My Listings',
-    'mySales.bump': 'Bump',
-    'mySales.edit': 'Edit',
-    'mySales.delete': 'Delete',
-    'mySales.toSelling': 'Set as For Sale',
-    'mySales.toReserved': 'Set as Reserved',
-    'mySales.toSold': 'Set as Sold',
-    'mySales.loading': 'Loading...',
-    'mySales.empty': 'No listings yet.',
-    'mySales.bumpSuccess': 'Bumped! Your item will appear at the top of the list.',
-
-    'myChatList.title': 'Chats',
-    'myChatList.empty': 'No chat history.',
-    'myChatList.startChat': 'Start a conversation',
-
-    'sellerProfile.sales': 'Listings',
-    'sellerProfile.joinDate': 'Joined',
-    'sellerProfile.avgRating': 'Avg. Rating',
-    'sellerProfile.reviews': 'Reviews',
-    'sellerProfile.writeReview': 'Write Review',
-    'sellerProfile.notFound': 'Seller not found',
-    'sellerProfile.back': 'Back',
-    'sellerProfile.backToList': 'Back to list',
-    'sellerProfile.noReviews': 'No reviews yet.',
-    'sellerProfile.productsForSale': 'Products for Sale',
-    'sellerProfile.noProducts': 'No products listed.',
-    'sellerProfile.rating': 'Rating',
-    'sellerProfile.reviewPlaceholder': 'Write your review',
-    'sellerProfile.submitting': 'Posting...',
-
-    'myWishlist.title': 'Wishlist',
-    'myWishlist.loading': 'Loading...',
-    'myWishlist.empty': 'No items in your wishlist.',
-
-    'recentlyViewed.title': 'Recently Viewed',
-    'recentlyViewed.deleteAll': 'Clear All',
-    'recentlyViewed.empty': 'No recently viewed items.',
-
-    'general.loading': 'Loading...',
-    'general.back': 'Back',
-    'general.backToList': 'Back to list',
-  },
 };
 
-let currentLang: Lang = (localStorage.getItem('lang') as Lang) || 'ko';
-const listeners: Array<() => void> = [];
+// 옛 lang localStorage 정리 (사용자가 en 상태로 남아 있어도 무해).
+try { if (localStorage.getItem('lang') !== 'ko') localStorage.removeItem('lang'); } catch { /* noop */ }
 
 export function t(key: string): string {
-  return translations[currentLang][key] || translations['ko'][key] || key;
+  return translations['ko'][key] || key;
 }
 
 export function getLang(): Lang {
-  return currentLang;
+  return 'ko';
 }
 
-export function setLang(lang: Lang): void {
-  currentLang = lang;
-  localStorage.setItem('lang', lang);
-  listeners.forEach((cb) => cb());
+// setLang / onLangChange 는 한국어 고정이라 no-op 이지만 기존 호출부(MyPage,
+// Home, Community 등) 호환 위해 시그니처 유지.
+export function setLang(_lang: Lang): void {
+  /* noop — 한국어만 지원 */
 }
 
-export function onLangChange(cb: () => void): () => void {
-  listeners.push(cb);
-  return () => {
-    const idx = listeners.indexOf(cb);
-    if (idx >= 0) listeners.splice(idx, 1);
-  };
+export function onLangChange(_cb: () => void): () => void {
+  return () => { /* noop */ };
 }

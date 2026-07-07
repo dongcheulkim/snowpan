@@ -4,7 +4,7 @@ import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api'
 import { CameraIcon, UserIcon } from '../components/Icons';
 import ReferralCard from '../components/ReferralCard';
 import { toastSuccess, toastError } from '../components/Toast';
-import { t, onLangChange, getLang, setLang } from '../i18n';
+import { t } from '../i18n';
 
 interface BadgeRequest {
   id: string;
@@ -35,16 +35,9 @@ const MyPage = () => {
 
   const [badgeImage, setBadgeImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [lang, setLangState] = useState<'ko' | 'en'>(getLang);
-  const [, setLangTick] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
-
-
-  useEffect(() => {
-    return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
-  }, []);
 
   useEffect(() => {
     const stored = getUser();
@@ -145,12 +138,6 @@ const MyPage = () => {
     { label: t('mypage.notifications'), link: '/notifications' },
   ];
 
-
-  const toggleLang = () => {
-    const next = lang === 'ko' ? 'en' : 'ko';
-    setLangState(next);
-    setLang(next);
-  };
 
   const settings = [
     { label: t('mypage.terms'), link: '/mypage/terms' },
@@ -299,19 +286,6 @@ const MyPage = () => {
           </Link>
         </div>
       )}
-
-      {/* Language */}
-      <div className="card overflow-hidden">
-        <div className="w-full flex items-center justify-between px-5 py-4">
-          <span className="text-sm font-medium text-gray-900">{t('mypage.langLabel')}</span>
-          <button
-            onClick={toggleLang}
-            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs hover:bg-gray-200 transition-colors"
-          >
-            {lang === 'ko' ? 'English' : '한국어'}
-          </button>
-        </div>
-      </div>
 
       {/* Settings */}
       <div className="card overflow-hidden">
