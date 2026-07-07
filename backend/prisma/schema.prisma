@@ -115,6 +115,7 @@ model PointTransaction {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+  @@index([userId, source, createdAt]) // 일일 출석체크 idempotency 조회 최적화
   @@map("point_transactions")
 }
 
@@ -143,6 +144,7 @@ model Coupon {
   userCoupons  UserCoupon[]
 
   @@index([vertical, active])
+  @@index([vertical, active, partnerType]) // 쿠폰샵 partnerType 필터 조회 최적화
   @@map("coupons")
 }
 

@@ -126,6 +126,10 @@ export default defineConfig({
           if (id.includes('node_modules/react/')) return 'vendor';
           if (id.includes('socket.io-client')) return 'socket';
           if (id.includes('hls.js')) return 'hls';
+          if (id.includes('node_modules/leaflet')) return 'leaflet';
+          // Sentry (프론트 에러 트래킹) 은 조건부 dynamic import 라 자연 분리되지만
+          // 명시적으로 청크 이름 부여 → 캐시 효율 ↑
+          if (id.includes('@sentry')) return 'sentry';
         },
       },
     },
