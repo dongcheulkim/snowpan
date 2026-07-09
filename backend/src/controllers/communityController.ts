@@ -435,10 +435,25 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
     if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { title, content, category } = req.body;
-    const updated = await prisma.post.update({
-      where: { id },
-      data: { ...(title && { title }), ...(content && { content }), ...(category && { category }) },
-    });
+    // create 와 동일한 검증 — sanitize + 길이 제한 + 카테고리 화이트리스트.
+    // (이전엔 update 만 검증 누락되어 저장형 XSS/남용 경로였음)
+    const data: { title?: string; content?: string; category?: string } = {};
+    if (title !== undefined) {
+      const clean = sanitizeText(title, 50);
+      if (!clean) { res.status(400).json({ error: '제목을 입력해주세요.' }); return; }
+      data.title = clean;
+    }
+    if (content !== undefined) {
+      const clean = sanitizeText(content, 5000);
+      if (!clean) { res.status(400).json({ error: '내용을 입력해주세요.' }); return; }
+      data.content = clean;
+    }
+    if (category !== undefined) {
+      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
+      if (!allowedCategories.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
+      data.category = category;
+    }
+    const updated = await prisma.post.update({ where: { id }, data });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };

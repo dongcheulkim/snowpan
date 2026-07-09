@@ -11,7 +11,7 @@ export async function sendPushToUser(userId: string, title: string, body: string
     const token = user.fcmToken;
 
     if (token.startsWith('ExponentPushToken')) {
-      await fetch('https://exp.host/--/api/v2/push/send', {
+      const res = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -22,6 +22,13 @@ export async function sendPushToUser(userId: string, title: string, body: string
           data: { link: link || '/' },
         }),
       });
+      // 무효 토큰 (앱 삭제 등) 은 DB 에서 비워 죽은 토큰으로의 영구 재시도 방지.
+      try {
+        const data = await res.json() as { data?: { status?: string; details?: { error?: string } } };
+        if (data?.data?.status === 'error' && data.data.details?.error === 'DeviceNotRegistered') {
+          await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } });
+        }
+      } catch { /* 응답 파싱 실패는 무시 */ }
     }
     // 다른 토큰 형식 (구 FCM) 은 무시 — 레거시 FCM HTTP API 는 2024-06 deprecated.
   } catch (error) {

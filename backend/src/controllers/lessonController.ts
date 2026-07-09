@@ -23,7 +23,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
         where,
         include: {
           resort: true,
-          user: { select: { name: true, nickname: true, phone: true } },
+          user: { select: { id: true, name: true, nickname: true } },
         },
         orderBy: { createdAt: 'desc' },
         take,
@@ -74,7 +74,6 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         user: {
           select: {
             name: true,
-            phone: true,
           },
         },
       },
@@ -99,7 +98,7 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
       where: { id },
       include: {
         resort: true,
-        user: { select: { name: true, nickname: true, phone: true } },
+        user: { select: { id: true, name: true, nickname: true } },
       },
     });
 

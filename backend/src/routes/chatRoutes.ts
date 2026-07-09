@@ -131,17 +131,18 @@ router.post('/rooms', async (req: any, res: Response) => {
 
     const [u1, u2] = [userId, targetUserId].sort();
 
-    let room = await prisma.chatRoom.findUnique({
+    // upsert — "채팅하기" 더블탭 등 동시 요청 2건이 둘 다 create 를 타서
+    // 두 번째가 unique 위반 500 나던 race 차단. 원자적으로 기존 방 반환.
+    const existing = await prisma.chatRoom.findUnique({
       where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+      select: { id: true },
     });
-
-    let isNewRoom = false;
-    if (!room) {
-      room = await prisma.chatRoom.create({
-        data: { user1Id: u1, user2Id: u2 },
-      });
-      isNewRoom = true;
-    }
+    const isNewRoom = !existing;
+    const room = await prisma.chatRoom.upsert({
+      where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+      create: { user1Id: u1, user2Id: u2 },
+      update: {},
+    });
 
     // 관리자 채팅방 새로 생성 시 관리자 자동 인사 (위에서 이미 fetch 한 target 재사용).
     if (isNewRoom && !productName && target.role === 'admin') {

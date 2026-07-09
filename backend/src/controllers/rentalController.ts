@@ -22,7 +22,7 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
         where,
         include: {
           resort: true,
-          user: { select: { name: true, nickname: true, phone: true } },
+          user: { select: { id: true, name: true, nickname: true } },
         },
         orderBy: { createdAt: 'desc' },
         take,
@@ -74,7 +74,6 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         user: {
           select: {
             name: true,
-            phone: true,
           },
         },
       },
@@ -99,7 +98,7 @@ export const getRentalById = async (req: Request, res: Response): Promise<void> 
       where: { id },
       include: {
         resort: true,
-        user: { select: { name: true, nickname: true, phone: true } },
+        user: { select: { id: true, name: true, nickname: true } },
       },
     });
 

@@ -19,7 +19,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
     const shops = await prisma.skiShop.findMany({
       where,
-      include: { user: { select: { name: true, phone: true } } },
+      include: { user: { select: { id: true, name: true } } },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });
     res.json(shops);
@@ -87,7 +87,7 @@ router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
     const shops = await prisma.skiShop.findMany({
       where: { approved: false },
-      include: { user: { select: { name: true, email: true, phone: true } } },
+      include: { user: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
     res.json(shops);
@@ -112,7 +112,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const shop = await prisma.skiShop.findFirst({
       where: { id: req.params.id, approved: true },
-      include: { user: { select: { id: true, name: true, nickname: true, phone: true } } },
+      include: { user: { select: { id: true, name: true, nickname: true } } },
     });
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
     res.json(shop);

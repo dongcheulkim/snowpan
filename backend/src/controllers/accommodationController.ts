@@ -23,7 +23,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
         where,
         include: {
           resort: true,
-          user: { select: { name: true, nickname: true, phone: true } },
+          user: { select: { id: true, name: true, nickname: true } },
         },
         orderBy: { createdAt: 'desc' },
         take,
@@ -51,7 +51,6 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
           select: {
             id: true,
             name: true,
-            phone: true,
           },
         },
       },
@@ -110,7 +109,6 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         user: {
           select: {
             name: true,
-            phone: true,
           },
         },
       },

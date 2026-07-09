@@ -85,10 +85,6 @@ const RentalDetail = () => {
               <span className="text-xs text-gray-500">이름</span>
               <span className="text-sm text-gray-900">{item.user.name}</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-500">연락처</span>
-              <span className="text-sm text-gray-900">{item.user.phone}</span>
-            </div>
             {item.resort?.location && (
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
                 <span className="text-xs text-gray-500">위치</span>

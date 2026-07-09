@@ -175,8 +175,11 @@ export const banUser = async (req: AuthRequest, res: Response): Promise<void> =>
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
+    if (id === req.user!.id) { res.status(400).json({ error: '본인 계정은 정지할 수 없습니다.' }); return; }
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+    // 관리자 계정은 정지 대상에서 제외 (해제 시 user 로 강등되어 권한 소실되는 문제 포함).
+    if (target.role === 'admin') { res.status(400).json({ error: '관리자 계정은 정지할 수 없습니다.' }); return; }
     const newRole = target.role === 'banned' ? 'user' : 'banned';
     const user = await prisma.user.update({ where: { id }, data: { role: newRole } });
     if (newRole === 'banned') invalidateUserTokens(id);

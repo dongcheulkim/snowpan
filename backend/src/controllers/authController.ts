@@ -6,8 +6,9 @@ import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
 import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, invalidateUserTokens } from '../utils/tokens';
-import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail } from '../utils/loginGuard';
-import { normalizeEmail } from '../utils/validate';
+import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
+import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
+import { sanitizeText } from '../utils/sanitize';
 import { awardPoints } from '../utils/points';
 
 // 가입 보너스 + 추천인 보너스 (양쪽 지급).
@@ -348,27 +349,39 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { nickname, profileImage, activeBadge } = req.body;
 
-    if (nickname !== undefined && nickname !== null && nickname !== '') {
-      const trimmed = String(nickname).trim();
-      if (trimmed.length < 2 || trimmed.length > 20) {
-        res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
-        return;
+    // 닉네임 — sanitize (XSS 방어) 후 검증.
+    let cleanNickname: string | null | undefined = undefined;
+    if (nickname !== undefined) {
+      if (nickname === null || nickname === '') {
+        cleanNickname = null;
+      } else {
+        cleanNickname = sanitizeText(nickname, 20) || null;
+        if (!cleanNickname || cleanNickname.length < 2) {
+          res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
+          return;
+        }
+        const duplicate = await prisma.user.findFirst({
+          where: { nickname: cleanNickname, NOT: { id: userId } },
+          select: { id: true },
+        });
+        if (duplicate) {
+          res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
+          return;
+        }
       }
-      const duplicate = await prisma.user.findFirst({
-        where: { nickname: trimmed, NOT: { id: userId } },
-        select: { id: true },
-      });
-      if (duplicate) {
-        res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
-        return;
-      }
+    }
+
+    // 프로필 이미지 — 허용 도메인 URL 만 (javascript:, 외부 피싱 URL 차단).
+    if (profileImage !== undefined && profileImage !== null && profileImage !== '' && !isAllowedImageUrl(profileImage)) {
+      res.status(400).json({ error: '허용되지 않은 이미지 URL 입니다.' });
+      return;
     }
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(nickname !== undefined && { nickname: nickname ? String(nickname).trim() : null }),
-        ...(profileImage !== undefined && { profileImage }),
+        ...(cleanNickname !== undefined && { nickname: cleanNickname }),
+        ...(profileImage !== undefined && { profileImage: profileImage || null }),
         ...(activeBadge !== undefined && { activeBadge: activeBadge || null }),
       },
     });
@@ -668,6 +681,14 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     const emailNormalized = normalizeEmail(email) || email.trim().toLowerCase();
 
+    // 코드 무차별 대입 방어 — email 당 시도 카운터. IP rate limit 은 IP 회전으로
+    // 우회 가능하므로 email 기준으로 5회 초과 시 잠금.
+    const rl = recordResetAttempt(emailNormalized);
+    if (!rl.ok) {
+      res.status(429).json({ error: '시도가 너무 많습니다. 잠시 후 다시 시도해주세요.' });
+      return;
+    }
+
     const verification = await prisma.emailVerification.findFirst({
       where: { email: emailNormalized, code, purpose: 'password_reset', expiresAt: { gte: new Date() } },
       orderBy: { createdAt: 'desc' },
@@ -690,6 +711,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       // 사용된 인증코드 즉시 삭제 + 같은 이메일의 남은 미사용 코드도 무효화
       prisma.emailVerification.deleteMany({ where: { email: emailNormalized } }),
     ]);
+    clearResetAttempts(emailNormalized);
     // 모든 기존 토큰 무효화 — 비번 재설정 후 옛 토큰으로 접근 차단.
     invalidateUserTokens(user.id);
     clearRefreshCookie(res);
