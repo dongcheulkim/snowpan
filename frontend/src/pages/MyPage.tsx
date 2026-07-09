@@ -59,15 +59,15 @@ const MyPage = () => {
   const handleLogout = () => { logout(); navigate('/'); };
 
   const handleDeleteAccount = async () => {
-    if (!deletePassword) { alert('비밀번호를 입력해주세요.'); return; }
+    if (!deletePassword) { toastError('비밀번호를 입력해주세요.'); return; }
     setDeleting(true);
     try {
       await api('/auth/account', { method: 'DELETE', body: { password: deletePassword } });
       logout();
-      alert('탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
+      toastSuccess('탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
       navigate('/');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '탈퇴 처리에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '탈퇴 처리에 실패했습니다.');
     } finally {
       setDeleting(false);
     }
@@ -86,7 +86,7 @@ const MyPage = () => {
       saveUser(updated);
       setUser(prev => prev ? { ...prev, profileImage: urls[0] } : prev);
     } catch {
-      alert('사진 업로드에 실패했습니다.');
+      toastError('사진 업로드에 실패했습니다.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -110,9 +110,9 @@ const MyPage = () => {
       setBadges(updated);
       setShowBadgeModal(false);
       setBadgeImage(null);
-      alert('인증 요청이 완료되었습니다. 관리자가 확인 후 적절한 뱃지를 부여합니다.');
+      toastSuccess('인증 요청이 완료되었습니다. 관리자가 확인 후 뱃지를 부여합니다.');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '요청에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '요청에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, getUser } from '../api';
+import { toastError, toastSuccess } from '../components/Toast';
 
 interface Coupon {
   id: string;
@@ -8,7 +9,7 @@ interface Coupon {
   description: string | null;
   pointsCost: number;
   partnerType: string;
-  discountType: 'percent' | 'flat';
+  discountType: 'percent' | 'flat' | 'none';
   discountValue: number;
   image: string | null;
   validDays: number;
@@ -56,32 +57,35 @@ const CouponShop = () => {
     const qs = partnerType ? `?partnerType=${partnerType}` : '';
     api<{ coupons: Coupon[] }>(`/coupons${qs}`)
       .then((r) => setCoupons(r.coupons))
+      .catch(() => setCoupons([]))
       .finally(() => setLoading(false));
   }, [partnerType]);
 
-  const discountLabel = (c: Coupon) =>
-    c.discountType === 'percent' ? `${c.discountValue}% 할인` : `${c.discountValue.toLocaleString()}원 할인`;
+  const discountLabel = (c: Coupon) => {
+    // 'none' (효과형 등) 은 "0원 할인" 대신 일반 문구.
+    if (c.discountType === 'none' || !c.discountValue) return '특별 혜택';
+    return c.discountType === 'percent' ? `${c.discountValue}% 할인` : `${c.discountValue.toLocaleString()}원 할인`;
+  };
 
   const onBuy = async (c: Coupon) => {
-    if (balance === null) {
-      alert('로그인 후 이용 가능합니다.');
+    // 로그인 여부는 getUser 로 판별 — balance null (조회 실패) 과 미로그인을 혼동하지 않게.
+    if (!getUser()) {
+      toastError('로그인 후 이용 가능합니다.');
       return;
     }
-    if (balance < c.pointsCost) {
-      alert(`포인트가 부족합니다. (보유 ${balance.toLocaleString()}P / 필요 ${c.pointsCost.toLocaleString()}P)`);
+    if (balance !== null && balance < c.pointsCost) {
+      toastError(`포인트가 부족합니다. (보유 ${balance.toLocaleString()}P / 필요 ${c.pointsCost.toLocaleString()}P)`);
       return;
     }
     if (!confirm(`${c.pointsCost.toLocaleString()}P로 "${c.title}" 쿠폰을 구매하시겠습니까?`)) return;
     setBuying(c.id);
     try {
       await api(`/coupons/${c.id}/purchase`, { method: 'POST' });
-      alert('쿠폰이 발급되었습니다. 내 쿠폰에서 확인하세요.');
-      // 잔액 갱신
+      toastSuccess('쿠폰이 발급되었습니다. 내 쿠폰에서 확인하세요.');
       const b = await api<{ balance: number }>('/points/balance');
       setBalance(b.balance);
     } catch (e) {
-      const msg = (e as Error).message || '구매에 실패했습니다.';
-      alert(msg);
+      toastError((e as Error).message || '구매에 실패했습니다.');
     } finally {
       setBuying(null);
     }
