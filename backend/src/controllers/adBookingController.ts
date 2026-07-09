@@ -631,23 +631,29 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    // paid → active로 바로 전환
-    await prisma.adBooking.update({ where: { id }, data: { status: 'active' } });
     await prisma.adPayment.update({
       where: { bookingId: id },
       data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
     });
 
-    // slotType 별 활성화 분기:
-    // - premium: 대상 상품/샵 isPremium=true (배너 X)
-    // - main_banner: 홈 Banner 레코드 생성 (홈 rotator 노출)
-    // - category: adBooking 레코드 자체로 카테고리 페이지에서 직접 조회 (Banner 레코드 X — 홈 오염 방지)
-    if (booking.slotType === 'premium') {
-      await applyPremiumFromBooking(booking);
-    } else if (booking.slotType === 'main_banner') {
-      await createBannerFromBooking(booking);
+    // 시작일이 미래면 즉시 노출하지 않고 paid 로만 — 스케줄러가 startDate 도래 시 활성화.
+    // (이전엔 미래 광고도 승인 즉시 active + 배너 생성되어 광고비 기간 전 무료 노출)
+    const startsInFuture = new Date(booking.startDate) > new Date();
+    if (startsInFuture) {
+      await prisma.adBooking.update({ where: { id }, data: { status: 'paid' } });
+    } else {
+      await prisma.adBooking.update({ where: { id }, data: { status: 'active' } });
+      // slotType 별 활성화 분기:
+      // - premium: 대상 상품/샵 isPremium=true (배너 X)
+      // - main_banner: 홈 Banner 레코드 생성 (홈 rotator 노출)
+      // - category: adBooking 레코드 자체로 카테고리 페이지에서 직접 조회
+      if (booking.slotType === 'premium') {
+        await applyPremiumFromBooking(booking);
+      } else if (booking.slotType === 'main_banner') {
+        await createBannerFromBooking(booking);
+      }
+      cacheDel('banners:public');
     }
-    cacheDel('banners:public');
 
     await prisma.notification.create({
       data: {
@@ -675,19 +681,25 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
     const booking = await prisma.adBooking.findUnique({ where: { id } });
     if (!booking) { res.status(404).json({ error: '예약을 찾을 수 없습니다.' }); return; }
 
-    await prisma.adBooking.update({ where: { id }, data: { status: 'active', totalPrice: 0, adminNote: '무료 승인' } });
     await prisma.adPayment.upsert({
       where: { bookingId: id },
       update: { status: 'paid', amount: 0, payMethod: 'free', paidAt: new Date() },
       create: { bookingId: id, paymentId: `free_${id}`, merchantUid: `free_${id}`, payMethod: 'free', amount: 0, status: 'paid', paidAt: new Date() },
     });
 
-    if (booking.slotType === 'premium') {
-      await applyPremiumFromBooking(booking);
-    } else if (booking.slotType === 'main_banner') {
-      await createBannerFromBooking(booking);
+    // 미래 시작일이면 paid 로만 (스케줄러가 활성화). 즉시 시작이면 바로 active + 노출.
+    const startsInFuture = new Date(booking.startDate) > new Date();
+    if (startsInFuture) {
+      await prisma.adBooking.update({ where: { id }, data: { status: 'paid', totalPrice: 0, adminNote: '무료 승인' } });
+    } else {
+      await prisma.adBooking.update({ where: { id }, data: { status: 'active', totalPrice: 0, adminNote: '무료 승인' } });
+      if (booking.slotType === 'premium') {
+        await applyPremiumFromBooking(booking);
+      } else if (booking.slotType === 'main_banner') {
+        await createBannerFromBooking(booking);
+      }
+      cacheDel('banners:public');
     }
-    cacheDel('banners:public');
 
     await prisma.notification.create({
       data: {

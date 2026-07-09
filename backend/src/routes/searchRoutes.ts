@@ -50,10 +50,12 @@ function score(opts: {
 
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q } = req.query;
-    if (!q || (q as string).length < 1) { res.json({ products: [], posts: [], shops: [] }); return; }
-
-    const query = (q as string).trim();
+    // ?q=a&q=b 로 오면 q 가 배열 → (q as string).trim() 에서 500. 문자열만 허용.
+    const raw = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
+    if (typeof raw !== 'string') { res.json({ products: [], posts: [], shops: [] }); return; }
+    const query = raw.trim();
+    // 최소 2글자 — 1글자 ILIKE 풀스캔 부하 방지.
+    if (query.length < 2) { res.json({ products: [], posts: [], shops: [] }); return; }
     const search = { contains: query, mode: 'insensitive' as const };
 
     // 더 큰 후보 풀을 가져와 클라이언트 사이드 (Node) 에서 점수 매기고 상위 N 반환.

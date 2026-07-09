@@ -279,7 +279,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       include: { user: { select: { id: true, name: true, nickname: true } } },
     });
 
-    cacheDelPrefix('products:');
+    cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
     res.status(201).json(product);
   } catch (error) {
@@ -311,7 +311,7 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
       },
     });
 
-    cacheDelPrefix('products:');
+    cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
     res.status(201).json(product);
   } catch (error) {
@@ -495,7 +495,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
-    cacheDelPrefix('products:');
+    cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
     res.json(updated);
   } catch (error) {
@@ -513,7 +513,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.product.delete({ where: { id } });
-    cacheDelPrefix('products:');
+    cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
     res.json({ message: '상품이 삭제되었습니다.' });
   } catch (error) {
@@ -535,17 +535,22 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const existing = await prisma.wishlist.findUnique({
-      where: { userId_productId: { userId, productId: id } },
+    // 원자 토글 — deleteMany 로 삭제 시도, 지운 게 없으면 create.
+    // 더블클릭 동시 요청 시 create 충돌 (P2002) 을 잡아 idempotent 처리.
+    const deleted = await prisma.wishlist.deleteMany({
+      where: { userId, productId: id },
     });
-
-    if (existing) {
-      await prisma.wishlist.delete({ where: { id: existing.id } });
+    if (deleted.count > 0) {
       res.json({ wishlisted: false });
-    } else {
-      await prisma.wishlist.create({ data: { userId, productId: id } });
-      res.json({ wishlisted: true });
+      return;
     }
+    try {
+      await prisma.wishlist.create({ data: { userId, productId: id } });
+    } catch (e) {
+      // 동시 요청이 이미 만들었으면 (P2002) 찜 상태로 간주.
+      if ((e as { code?: string })?.code !== 'P2002') throw e;
+    }
+    res.json({ wishlisted: true });
   } catch (error) {
     console.error('Toggle wishlist error:', error);
     res.status(500).json({ error: '찜 처리 중 오류가 발생했습니다.' });
@@ -570,11 +575,20 @@ export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void
       }
     }
 
-    const updated = await prisma.product.update({
-      where: { id },
+    // 조건부 원자 업데이트 — 동시 요청이 둘 다 쿨다운 통과하는 race 차단.
+    // 24시간 전 bumpedAt (또는 null) 일 때만 갱신. count=0 이면 방금 다른 요청이 처리한 것.
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const bumped = await prisma.product.updateMany({
+      where: { id, userId, OR: [{ bumpedAt: null }, { bumpedAt: { lt: cutoff } }] },
       data: { bumpedAt: new Date() },
     });
+    if (bumped.count === 0) {
+      res.status(429).json({ error: '끌어올리기는 24시간에 한 번만 가능합니다.' });
+      return;
+    }
+    const updated = await prisma.product.findUnique({ where: { id } });
     cacheDelPrefix('products:');
+    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
     res.json(updated);
   } catch (error) {

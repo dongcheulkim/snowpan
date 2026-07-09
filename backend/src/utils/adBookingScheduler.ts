@@ -21,7 +21,13 @@ export async function updateAdBookingStatuses(): Promise<void> {
       where: { status: 'paid', startDate: { lte: now } },
     });
     for (const booking of toActivate) {
-      await prisma.adBooking.update({ where: { id: booking.id }, data: { status: 'active' } });
+      // 원자적 CAS — status='paid' 인 경우에만 active 로. 다중 인스턴스/중복 실행 시
+      // 실제로 상태를 바꾼 (count=1) 인스턴스만 배너/프리미엄 생성 → 배너 중복 생성 방지.
+      const claimed = await prisma.adBooking.updateMany({
+        where: { id: booking.id, status: 'paid' },
+        data: { status: 'active' },
+      });
+      if (claimed.count === 0) continue; // 다른 인스턴스가 이미 처리
       if (booking.slotType === 'premium') {
         await applyPremiumFromBooking(booking);
       } else if (booking.slotType === 'main_banner') {

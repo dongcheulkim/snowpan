@@ -91,6 +91,12 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
     if (distanceM > LIMITS.maxDistanceM) reasons.push(`거리 ${LIMITS.maxDistanceM}m 초과`);
     if (avgSpeedKmh !== null && avgSpeedKmh > LIMITS.maxAvgSpeedKmh) reasons.push('평균 속도 비현실적');
     if (maxSpeedKmh !== null && maxSpeedKmh > LIMITS.maxMaxSpeedKmh) reasons.push('최고 속도 비현실적');
+    // 서버측 속도 재계산 — 클라가 속도 필드를 생략해 상한 검사를 우회하는 파밍 차단.
+    // distance/duration 으로 실제 평균 속도를 구해 비현실적이면 거부.
+    if (durationSec > 0) {
+      const computedAvgKmh = (distanceM / durationSec) * 3.6;
+      if (computedAvgKmh > LIMITS.maxAvgSpeedKmh) reasons.push('거리·시간 대비 속도 비현실적');
+    }
 
     // 같은 시간대 중복 제출 차단 (같은 런을 두 번 보내는 경우).
     const overlapping = await prisma.snowRun.findFirst({
@@ -109,6 +115,10 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
     // centerLat/Lng 만 있으면 중심점이 리조트 안에 있어야 함.
     // 둘 다 없으면 manual 외엔 거부.
     let detectedResortId: string | null = null;
+    // samplePoints 개수 상한 — 폴리곤 스캔 CPU 폭탄 방지. 초과분은 앞 2000개만.
+    if (body.samplePoints && body.samplePoints.length > 2000) {
+      body.samplePoints = body.samplePoints.slice(0, 2000);
+    }
     if (body.samplePoints && body.samplePoints.length >= 3) {
       const counts = new Map<string, number>();
       for (const p of body.samplePoints) {
@@ -134,21 +144,24 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
 
     const validated = reasons.length === 0;
 
-    // 일일 캡 — 자정 기준 user 의 validated 런 수.
-    let pointsToAward = 0;
-    if (validated) {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const todayCount = await prisma.snowRun.count({
-        where: { userId, validated: true, createdAt: { gte: startOfDay } },
-      });
-      if (todayCount < DAILY_RUN_REWARD_CAP) {
-        pointsToAward = POINTS_PER_RUN;
-      }
-    }
-
-    // SnowRun 기록 + 포인트 지급을 한 트랜잭션으로.
+    // SnowRun 기록 + 캡 판정 + 포인트 지급을 한 트랜잭션 안에서 (유저 행 락 선점).
+    // 캡 조회를 트랜잭션 밖에서 하면 동시 제출 여러 건이 모두 캡 통과 → 초과 지급.
+    // FOR UPDATE 로 동시 제출을 직렬화해 일일 캡을 정확히 강제.
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
     const result = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
+
+      let pointsToAward = 0;
+      if (validated) {
+        const todayCount = await tx.snowRun.count({
+          where: { userId, validated: true, createdAt: { gte: startOfDay } },
+        });
+        if (todayCount < DAILY_RUN_REWARD_CAP) {
+          pointsToAward = POINTS_PER_RUN;
+        }
+      }
+
       const compactTrack = downsampleTrack(body.trackJson);
       const run = await tx.snowRun.create({
         data: {
@@ -180,8 +193,9 @@ export const submitRun = async (req: AuthRequest, res: Response): Promise<void> 
         newBalance = r.balance;
       }
 
-      return { run, newBalance };
+      return { run, newBalance, pointsToAward };
     });
+    const pointsToAward = result.pointsToAward;
 
     res.status(201).json({
       run: result.run,
