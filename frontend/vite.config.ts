@@ -13,7 +13,7 @@ export default defineConfig({
         short_name: '스노우판',
         description: '스키 장비부터 레슨까지, 한눈에 비교하세요',
         theme_color: '#0ea5e9',
-        background_color: '#f3f4f6',
+        background_color: '#f0f9ff',
         display: 'standalone',
         start_url: '/',
         icons: [

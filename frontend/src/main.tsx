@@ -91,4 +91,20 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
-)
+);
+
+// 첫 로딩 스플래시 제거 — React 마운트 후 최소 노출시간(400ms) 보장하고 페이드아웃.
+// 너무 빨리 사라지면 깜빡임처럼 보여서 최소 시간을 둠.
+(() => {
+  const splash = document.getElementById('app-splash');
+  if (!splash) return;
+  const start = performance.now();
+  const MIN_MS = 400;
+  requestAnimationFrame(() => {
+    const wait = Math.max(0, MIN_MS - (performance.now() - start));
+    setTimeout(() => {
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 500);
+    }, wait);
+  });
+})();
