@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+function readStored(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem('notificationSettings');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {}; // 손상된 값이면 기본값으로 (크래시 방지)
+  }
+}
+
 const NotificationSettings = () => {
-  const stored = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+  const stored = readStored();
   const [settings, setSettings] = useState({
     chat: stored.chat ?? true,
     community: stored.community ?? true,

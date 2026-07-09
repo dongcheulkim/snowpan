@@ -119,6 +119,12 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
         setTimeout(() => { window.location.href = '/login'; }, 0);
       }
     }
+    // refresh 후 재시도했는데도 401 이면 (새 토큰도 거부됨) 로그아웃 유도.
+    // 이전엔 이 경로가 generic 에러만 던져 사용자가 로그인 화면으로 못 가던 버그.
+    if (res.status === 401 && _retried && getToken() && !window.location.pathname.includes('/login')) {
+      logout();
+      setTimeout(() => { window.location.href = '/login'; }, 0);
+    }
     if (res.status === 429) {
       const retry = res.headers.get('Retry-After');
       // GET 한정: Retry-After(최대 3s) 또는 백오프만큼 대기 후 재시도.
@@ -241,7 +247,7 @@ export function imageUrl(src: string, width?: number): string {
 }
 
 function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Skip compression for videos
     if (file.type.startsWith('video/')) {
       resolve(file);
@@ -288,7 +294,9 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('이미지 압축 실패'));
+      // 브라우저가 디코드 못 하는 포맷 (예: 안드로이드 크롬의 HEIC) 은 압축 스킵하고
+      // 원본 그대로 업로드 — reject 하면 Promise.all 이 배치 전체를 실패시킴.
+      resolve(file);
     };
     img.src = url;
   });

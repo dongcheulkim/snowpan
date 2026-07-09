@@ -31,7 +31,7 @@ const MyPosts = () => {
   const user = getUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; } // 무한 스피너 방지
     api<{ posts: Post[]; totalCount: number }>(`/community?userId=${user.id}`)
       .then(data => setPosts(data.posts))
       .catch(() => setPosts([]))

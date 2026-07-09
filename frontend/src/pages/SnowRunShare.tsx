@@ -56,6 +56,13 @@ const SnowRunShare = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photoUrl, run]);
 
+  // 언마운트 시 남은 blob URL 해제 (누수 방지).
+  useEffect(() => () => {
+    if (photoUrl) URL.revokeObjectURL(photoUrl);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const composeImage = async (photo: string, r: RunDetail) => {
     setBusy(true);
     try {
@@ -160,7 +167,10 @@ const SnowRunShare = () => {
   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    setPhotoUrl(URL.createObjectURL(f));
+    setPhotoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev); // 이전 blob URL 해제 (누수 방지)
+      return URL.createObjectURL(f);
+    });
   };
 
   const onDownload = () => {

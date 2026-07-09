@@ -118,7 +118,7 @@ export default function ReviewPromptModal() {
           <p className="text-[11px] font-bold text-accent tracking-wider">DEAL FEEDBACK</p>
           <h3 id="review-prompt-title" className="text-lg font-bold text-gray-900 mt-0.5">거래 어떠셨나요?</h3>
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            <Link to={`/profile/${target.sellerId}`} className="text-accent font-bold">{sellerName}</Link>님과의 거래에 대해 짧게 후기를 남겨주세요. 다른 사용자에게 큰 도움이 됩니다.
+            <Link to={`/seller/${target.sellerId}`} className="text-accent font-bold">{sellerName}</Link>님과의 거래에 대해 짧게 후기를 남겨주세요. 다른 사용자에게 큰 도움이 됩니다.
           </p>
         </div>
 

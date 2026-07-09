@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
+import { toastError } from '../components/Toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 
 interface Message {
@@ -86,7 +87,10 @@ const Chat = () => {
     });
     socket.on('new_message', (msg: Message) => {
       setMessages(prev => [...prev, msg]);
-      markAsRead(id);
+      // 탭이 실제로 보일 때만 읽음 처리 — 백그라운드/다른 탭이면 미읽음 유지.
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        markAsRead(id);
+      }
     });
     socket.on('room_read', (data: { roomId: string; userId: string; readAt: string }) => {
       if (data.roomId !== id || !user) return;
@@ -100,6 +104,11 @@ const Chat = () => {
     const token = getToken();
     if (!token) return;
 
+    // 언마운트 후 async resolve 로 생성된 소켓이 cleanup 에 안 잡혀 유령 소켓으로
+    // 잔존하던 누수 차단. cancelled 면 connectToRoom 을 아예 스킵.
+    let cancelled = false;
+    const safeConnect = (roomId: string) => { if (!cancelled) connectToRoom(roomId); };
+
     if (state?.isAdmin) setIsAdminChat(true);
 
     if (state?.sellerId) {
@@ -107,19 +116,21 @@ const Chat = () => {
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
         body: { targetUserId: state.sellerId, productName: state.productName || undefined, productPath: state.productPath || undefined },
-      }).then(room => connectToRoom(room.id)).catch(() => {
-        alert('채팅방 연결에 실패했습니다.');
+      }).then(room => safeConnect(room.id)).catch(() => {
+        if (!cancelled) toastError('채팅방 연결에 실패했습니다.');
       });
     } else if (chatId) {
       // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
-      connectToRoom(chatId);
+      safeConnect(chatId);
       api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
+        if (cancelled) return;
         const other = room.user1.id === user.id ? room.user2 : room.user1;
         setOtherName(other.name);
       }).catch(() => {});
     }
 
     return () => {
+      cancelled = true;
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;

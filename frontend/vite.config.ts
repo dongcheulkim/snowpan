@@ -32,7 +32,7 @@ export default defineConfig({
         // 새로 받고 오프라인일 때만 fallback.
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/sw\.js/, /^\/manifest/, /^\/assets\//],
+        navigateFallbackDenylist: [/^\/api/, /^\/sw\.js/, /^\/manifest/, /^\/assets\//, /^\/uploads\//, /^\/icons\//],
         runtimeCaching: [
           // SPA 진입 (네비게이션) — 항상 네트워크 우선, 3초 안에 응답 없으면 캐시 사용
           {

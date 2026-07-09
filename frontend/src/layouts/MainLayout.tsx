@@ -33,6 +33,12 @@ const MainLayout = () => {
     trackPageView(location.pathname + location.search);
   }, [location.pathname, location.search]);
 
+  // 라우트 변경 시 스크롤 최상단 — 목록에서 스크롤 후 상세 진입 시 중간부터
+  // 보이던 문제 해결. (같은 경로 내 쿼리 변경은 유지)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   useEffect(() => {
     let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!el) {

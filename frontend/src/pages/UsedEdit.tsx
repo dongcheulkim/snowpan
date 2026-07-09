@@ -15,9 +15,11 @@ interface Product {
   usageCount: string | null;
 }
 
+// 백엔드는 '상/중/하' 3단계만 사용 (UsedRegister 와 동일). '상중' 은 미지원 —
+// 이전 Edit 매핑이 '거의 새 거'→'상중' 으로 저장해 데이터·라벨 손상시키던 것 수정.
 const conditionOptions = ['새상품', '거의 새 거', '사용감 적음', '사용감 많음'];
-const conditionToCode: Record<string, string> = { '새상품': '상', '거의 새 거': '상중', '사용감 적음': '중', '사용감 많음': '하' };
-const codeToCondition: Record<string, string> = { '상': '새상품', '상중': '거의 새 거', '중': '사용감 적음', '하': '사용감 많음' };
+const conditionToCode: Record<string, string> = { '새상품': '상', '거의 새 거': '상', '사용감 적음': '중', '사용감 많음': '하' };
+const codeToCondition: Record<string, string> = { '상': '새상품', '중': '사용감 적음', '하': '사용감 많음' };
 
 const UsedEdit = () => {
   const { id } = useParams();
@@ -74,14 +76,15 @@ const UsedEdit = () => {
         return;
       }
 
-      let imageUrl = existingImages[0] || '';
       let allImageUrls = existingImages.join(',');
-
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
-        imageUrl = urls[0];
         allImageUrls = [...existingImages, ...urls].join(',');
       }
+      // 대표 이미지 = 갤러리 첫 장 (기존이 있으면 기존, 없으면 새로 올린 첫 장).
+      // 이전엔 새 파일 추가 시 무조건 urls[0] 이라 썸네일≠갤러리첫장 불일치.
+      const allList = allImageUrls.split(',').filter(Boolean);
+      const imageUrl = allList[0] || '';
 
       await api(`/products/${id}`, {
         method: 'PUT',

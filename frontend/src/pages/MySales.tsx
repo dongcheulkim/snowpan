@@ -26,7 +26,7 @@ const MySales = () => {
   }, []);
 
   const loadProducts = () => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; } // 무한 스피너 방지
     api<{ products: Product[]; totalCount: number }>(`/products?userId=${user.id}&category=used`)
       .then(data => setProducts(data.products))
       .catch(() => setProducts([]))
