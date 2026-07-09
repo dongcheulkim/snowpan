@@ -53,6 +53,7 @@ model User {
   userCoupons      UserCoupon[]
   snowRuns         SnowRun[]
   adViews          AdView[]
+  shopPosts        ShopPost[]
 
   @@map("users")
 }
@@ -721,4 +722,27 @@ model PreRegister {
   @@unique([email, sport])
   @@index([sport, createdAt])
   @@map("pre_registers")
+}
+
+// 매장 소식(포스트) — 스키샵/정비/렌탈/레슨/숙소 매니저가 매장 상세 페이지에 올리는
+// 자체 홍보 콘텐츠. 인스타/블로그 스타일. 여러 사진 + 자유 텍스트.
+// polymorphic ref (shopType + shopId) — 모델 통합 관리 편의성 우선.
+model ShopPost {
+  id         String   @id @default(uuid())
+  shopType   String   // 'skishop' | 'repair' | 'rental' | 'lesson' | 'accommodation'
+  shopId     String   // 각 shop 테이블의 id
+  userId     String   // 작성자 (shop 소유자만 가능)
+  user       User     @relation(fields: [userId], references: [id])
+  title      String
+  content    String   @db.Text
+  images     String?  // 콤마 구분 이미지 URL (최대 5장)
+  postType   String   @default("general") // 'promo' | 'notice' | 'event' | 'general'
+  pinned     Boolean  @default(false)
+  viewCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([shopType, shopId, pinned, createdAt])
+  @@index([userId, createdAt])
+  @@map("shop_posts")
 }

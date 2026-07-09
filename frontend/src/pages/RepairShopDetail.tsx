@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
+import ShopPostsFeed from '../components/ShopPostsFeed';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 
 interface Shop {
@@ -95,6 +96,8 @@ export default function RepairShopDetail() {
           </div>
         </div>
       )}
+
+      <ShopPostsFeed shopType="repair" shopId={shop.id} ownerId={shop.user.id} />
     </div>
   );
 }

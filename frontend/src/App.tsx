@@ -13,6 +13,8 @@ const UsedDetail = lazy(() => import('./pages/UsedDetail'));
 const Login = lazy(() => import('./pages/Login'));
 const MyPage = lazy(() => import('./pages/MyPage'));
 const Search = lazy(() => import('./pages/Search'));
+const ShopPostEditor = lazy(() => import('./pages/ShopPostEditor'));
+const ShopPostDetail = lazy(() => import('./pages/ShopPostDetail'));
 const Community = lazy(() => import('./pages/Community'));
 
 // lazy 로딩 — Suspense fallback 보임.
@@ -115,6 +117,10 @@ function App() {
             <Route path="safe-trade" element={<SafeTradeGuide />} />
             <Route path="about" element={<About />} />
             <Route path="help" element={<Help />} />
+            {/* 매장 소식 (ShopPost) */}
+            <Route path="shop-post/:id" element={<ShopPostDetail />} />
+            <Route path="shop-post/:id/edit" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
+            <Route path="shop/:shopType/:shopId/post/new" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
             {/* /pan 과 5종목 (/bike, /run, /surf, /golf, /camp) 은 SNOWPAN 단일 운영으로 제거.
                 옛 링크 호환을 위해 루트로 리다이렉트. */}
             <Route path="pan" element={<Navigate to="/" replace />} />

@@ -4,6 +4,7 @@ import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
 import { SadIcon } from '../components/Icons';
+import ShopPostsFeed from '../components/ShopPostsFeed';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
 
@@ -159,6 +160,8 @@ const AccommodationDetail = () => {
       {!user && (
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
       )}
+
+      {item.userId && <ShopPostsFeed shopType="accommodation" shopId={item.id} ownerId={item.userId} />}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
+import ShopPostsFeed from '../components/ShopPostsFeed';
 
 interface Shop {
   id: string;
@@ -90,6 +91,8 @@ export default function SkiShopDetail() {
           </div>
         </div>
       )}
+
+      <ShopPostsFeed shopType="skishop" shopId={shop.id} ownerId={shop.user.id} />
     </div>
   );
 }

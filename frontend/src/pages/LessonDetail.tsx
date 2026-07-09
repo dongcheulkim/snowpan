@@ -4,6 +4,7 @@ import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
 import { SadIcon } from '../components/Icons';
+import ShopPostsFeed from '../components/ShopPostsFeed';
 
 interface LessonData {
   id: string;
@@ -128,6 +129,8 @@ const LessonDetail = () => {
       {!user && (
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
       )}
+
+      {item.userId && <ShopPostsFeed shopType="lesson" shopId={item.id} ownerId={item.userId} />}
     </div>
   );
 };

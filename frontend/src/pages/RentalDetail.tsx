@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { SadIcon } from '../components/Icons';
+import ShopPostsFeed from '../components/ShopPostsFeed';
 
 interface RentalData {
   id: string;
@@ -112,6 +113,8 @@ const RentalDetail = () => {
       {!user && (
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
       )}
+
+      {item.userId && <ShopPostsFeed shopType="rental" shopId={item.id} ownerId={item.userId} />}
     </div>
   );
 };
