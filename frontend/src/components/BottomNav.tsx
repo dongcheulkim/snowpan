@@ -40,10 +40,10 @@ const BottomNav = () => {
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;
 
-  // BottomNav 는 SNOWPAN 안에서만 렌더링됨 (MainLayout 가 미출시 vertical 에선 숨김).
   // 5종목 미출시 동안 단순화 — snow 고정 경로 사용.
+  // 홈은 '/' (index 라우트) — /snowpan 도 같은 페이지지만 로고/네비 모두 '/' 사용.
   void vertical;
-  const homePath = '/snowpan';
+  const homePath = '/';
   const communityPath = '/community';
 
   const items = [
@@ -77,7 +77,10 @@ const BottomNav = () => {
     >
       <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
-          const active = item.path === '/' ? path === '/' : path.startsWith(item.path);
+          // 홈은 '/' 와 '/snowpan' 둘 다 활성 처리 (같은 페이지).
+          const active = item.path === '/'
+            ? path === '/' || path.startsWith('/snowpan')
+            : path.startsWith(item.path);
           return (
             <Link
               key={item.path}

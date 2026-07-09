@@ -87,7 +87,7 @@ export default function ShopPostDetail() {
 
   const label = POST_TYPE_LABEL[post.postType] || POST_TYPE_LABEL.general;
   const shopLink = SHOP_LINK[post.shopType]?.(post.shopId) || '/';
-  const author = post.user.nickname || post.user.name;
+  const author = post.user?.nickname || post.user?.name || '매장';
 
   return (
     <div className="min-h-screen bg-white pb-10">
@@ -162,7 +162,7 @@ export default function ShopPostDetail() {
           <h1 className="text-xl font-black text-gray-900 leading-snug">{post.title}</h1>
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
             <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-              {post.user.profileImage && (
+              {post.user?.profileImage && (
                 <img src={imageUrl(post.user.profileImage, 100)} alt="" className="w-full h-full object-cover" />
               )}
             </div>

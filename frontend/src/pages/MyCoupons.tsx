@@ -76,6 +76,8 @@ const MyCoupons = () => {
     if (c.effect && EFFECT_LABEL[c.effect]) {
       return c.effectValue && c.effectValue > 1 ? `${EFFECT_LABEL[c.effect]} ${c.effectValue}회` : EFFECT_LABEL[c.effect];
     }
+    // discountType 'none' (효과형인데 라벨 미등록 등) 은 "0원 할인" 대신 일반 문구.
+    if (c.discountType === 'none' || !c.discountValue) return '특별 혜택';
     return c.discountType === 'percent'
       ? `${c.discountValue}% 할인`
       : `${c.discountValue.toLocaleString()}원 할인`;

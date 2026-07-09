@@ -20,8 +20,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    if (rating < 1 || rating > 5) {
-      res.status(400).json({ error: '별점은 1~5 사이여야 합니다.' });
+    // 정수 타입 가드 — "abc" 같은 값이 NaN 비교 (NaN<1 false) 로 검증을 우회해
+    // Prisma Int 저장 시 500 나는 것 방지.
+    const ratingNum = Number(rating);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      res.status(400).json({ error: '별점은 1~5 사이 정수여야 합니다.' });
       return;
     }
 
@@ -69,7 +72,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 
     const review = await prisma.review.create({
       data: {
-        rating: parseInt(String(rating)),
+        rating: ratingNum,
         content: cleanContent,
         sellerId,
         buyerId,

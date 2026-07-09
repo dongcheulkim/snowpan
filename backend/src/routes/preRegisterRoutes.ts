@@ -61,16 +61,26 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    await prisma.preRegister.create({
-      data: {
-        email: normalizedEmail,
-        name: name?.trim() || null,
-        sport,
-        interestedFeatures: features as unknown as object,
-        ip,
-        userAgent,
-      },
-    });
+    try {
+      await prisma.preRegister.create({
+        data: {
+          email: normalizedEmail,
+          name: name?.trim() || null,
+          sport,
+          interestedFeatures: features as unknown as object,
+          ip,
+          userAgent,
+        },
+      });
+    } catch (e) {
+      // 동시 중복 신청 (unique 위반 P2002) — 위 findUnique 를 둘 다 통과한 케이스.
+      // 500 대신 친절한 응답으로.
+      if ((e as { code?: string })?.code === 'P2002') {
+        res.status(200).json({ message: '이미 신청하셨어요. 출시 시 알려드릴게요!' });
+        return;
+      }
+      throw e;
+    }
 
     res.status(201).json({ message: '신청 완료. 출시 시 가장 먼저 알려드릴게요!' });
   } catch (error) {

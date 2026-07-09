@@ -108,11 +108,16 @@ export const purchaseCoupon = async (req: AuthRequest, res: Response): Promise<v
       }
 
       // 재고 차감 (옵션) — 무제한이면 스킵.
+      // 조건부 원자 업데이트: UPDATE 가 행 락을 잡으므로 Read Committed 에서도
+      // 마지막 1개를 두 명이 동시에 사는 oversell 이 차단됨 (두 번째는 count=0).
       if (coupon.stock !== null) {
-        await tx.coupon.update({
-          where: { id: couponId },
+        const dec = await tx.coupon.updateMany({
+          where: { id: couponId, stock: { gt: 0 } },
           data: { stock: { decrement: 1 } },
         });
+        if (dec.count === 0) {
+          throw Object.assign(new Error('쿠폰이 매진되었습니다.'), { httpStatus: 409 });
+        }
       }
 
       // 포인트 차감 (잔액 부족 시 throw).
@@ -226,7 +231,18 @@ export const useCoupon = async (req: AuthRequest, res: Response): Promise<void> 
         throw Object.assign(new Error('남은 사용 횟수가 없어요.'), { httpStatus: 409 });
       }
 
-      // 플랫폼 효과 적용
+      // 원자 차감 가드 — 더블탭/멀티 디바이스 동시 사용 차단.
+      // UPDATE 가 행 락을 잡아 Read Committed 에서도 두 번째 요청은
+      // usesLeft 조건 불충족 (count=0) 으로 거부됨.
+      const dec = await tx.userCoupon.updateMany({
+        where: { id, userId, status: 'active', usesLeft: { gt: 0 }, expiresAt: { gte: new Date() } },
+        data: { usesLeft: { decrement: 1 } },
+      });
+      if (dec.count === 0) {
+        throw Object.assign(new Error('이미 처리됐거나 사용할 수 없는 쿠폰이에요.'), { httpStatus: 409 });
+      }
+
+      // 플랫폼 효과 적용 — 실패 시 throw → 트랜잭션 롤백으로 위 차감도 취소.
       if (uc.coupon.effect === 'product_bump') {
         if (typeof productId !== 'string' || !productId) {
           throw Object.assign(new Error('내 매물을 선택해주세요.'), { httpStatus: 400 });
@@ -250,16 +266,14 @@ export const useCoupon = async (req: AuthRequest, res: Response): Promise<void> 
         throw Object.assign(new Error('이 쿠폰은 아직 사용할 수 없어요.'), { httpStatus: 400 });
       }
 
-      // 사용 횟수 차감
-      const nextUses = uc.usesLeft - 1;
-      const done = nextUses <= 0;
-      const updated = await tx.userCoupon.update({
-        where: { id },
-        data: {
-          usesLeft: nextUses,
-          ...(done ? { status: 'used', usedAt: new Date() } : {}),
-        },
-      });
+      // 차감 후 상태 확정 — 0 이 되면 used 마킹.
+      let updated = await tx.userCoupon.findUniqueOrThrow({ where: { id } });
+      if (updated.usesLeft <= 0 && updated.status === 'active') {
+        updated = await tx.userCoupon.update({
+          where: { id },
+          data: { status: 'used', usedAt: new Date() },
+        });
+      }
 
       return { updated, effect: uc.coupon.effect, productId };
     });

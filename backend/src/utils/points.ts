@@ -63,22 +63,22 @@ export async function awardPoints(db: Db, args: AwardArgs): Promise<{ balance: n
 export async function spendPoints(db: Db, args: SpendArgs): Promise<{ balance: number; transactionId: string }> {
   if (args.amount <= 0) throw new Error('차감 금액은 양수여야 합니다.');
 
-  // 잔액 확인 후 차감 — 동시성: SELECT 후 UPDATE 사이에 다른 트랜잭션이
-  // 차감했을 가능성이 있으므로 호출자는 반드시 prisma.$transaction 으로 감쌀 것.
-  const before = await db.user.findUnique({
-    where: { id: args.userId },
-    select: { points: true },
+  // 조건부 원자 차감 — UPDATE 가 행 락을 잡으므로 Read Committed 에서도
+  // 동시 차감으로 잔액이 음수가 되는 것을 차단 (두 번째 요청은 조건 불충족 → count=0).
+  const dec = await db.user.updateMany({
+    where: { id: args.userId, points: { gte: args.amount } },
+    data: { points: { decrement: args.amount } },
   });
-  if (!before) throw new Error('사용자를 찾을 수 없습니다.');
-  if (before.points < args.amount) {
+  if (dec.count === 0) {
+    const exists = await db.user.findUnique({ where: { id: args.userId }, select: { id: true } });
+    if (!exists) throw new Error('사용자를 찾을 수 없습니다.');
     const err = new Error('포인트가 부족합니다.');
     (err as Error & { code?: string }).code = 'INSUFFICIENT_POINTS';
     throw err;
   }
 
-  const user = await db.user.update({
+  const user = await db.user.findUniqueOrThrow({
     where: { id: args.userId },
-    data: { points: { decrement: args.amount } },
     select: { points: true },
   });
 

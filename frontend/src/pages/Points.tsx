@@ -97,7 +97,7 @@ const Points = () => {
           onClick={handleCheckin}
           disabled={checkingIn || !checkin || checkin.checkedToday}
           className={`w-full mt-4 px-5 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-between ${
-            checkin?.checkedToday
+            !checkin || checkin.checkedToday
               ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
               : 'bg-sky-500 text-white shadow-sm hover:bg-sky-600'
           }`}

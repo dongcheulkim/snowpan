@@ -35,6 +35,10 @@ export const checkin = async (req: AuthRequest, res: Response): Promise<void> =>
     todayStart.setHours(0, 0, 0, 0);
 
     const result = await prisma.$transaction(async (tx) => {
+      // 유저 행 락 선점 (SELECT ... FOR UPDATE) — Read Committed 에서 동시 체크인 직렬화.
+      // 두 요청이 동시에 와도 두 번째는 여기서 대기 → 첫 번째 커밋 후 아래 findFirst 가
+      // 커밋된 적립 기록을 보게 되어 중복 적립 차단.
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
       const existing = await tx.pointTransaction.findFirst({
         where: { userId, source: 'daily_checkin', createdAt: { gte: todayStart } },
         select: { id: true },
