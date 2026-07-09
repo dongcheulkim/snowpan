@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../api';
+import { toastError } from '../components/Toast';
 
 const PollCreate = () => {
   const navigate = useNavigate();
@@ -7,6 +9,7 @@ const PollCreate = () => {
   const [options, setOptions] = useState(['', '']);
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const addOption = () => {
     if (options.length >= 6) return;
@@ -24,38 +27,26 @@ const PollCreate = () => {
     setOptions(updated);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const trimmedTitle = title.trim();
     const validOptions = options.map((o) => o.trim()).filter((o) => o.length > 0);
 
-    if (!trimmedTitle) {
-      alert('투표 제목을 입력해주세요.');
-      return;
-    }
-    if (validOptions.length < 2) {
-      alert('선택지를 최소 2개 입력해주세요.');
-      return;
-    }
-    if (!agreed) {
-      alert('커뮤니티 이용규칙에 동의해주세요.');
-      return;
-    }
+    if (!trimmedTitle) { toastError('투표 제목을 입력해주세요.'); return; }
+    if (validOptions.length < 2) { toastError('선택지를 최소 2개 입력해주세요.'); return; }
+    if (!agreed) { toastError('커뮤니티 이용규칙에 동의해주세요.'); return; }
 
-    const existing = JSON.parse(localStorage.getItem('userPolls') || '[]');
-    const newPoll = {
-      id: `poll_${Date.now()}`,
-      title: trimmedTitle,
-      type: 'poll',
-      options: validOptions.map((label) => ({ label, votes: 0, pct: 0 })),
-      totalVotes: 0,
-      views: 0,
-      likes: 0,
-      author: '나',
-      createdAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem('userPolls', JSON.stringify([newPoll, ...existing]));
-    navigate(-1);
+    setSubmitting(true);
+    try {
+      const poll = await api<{ id: string }>('/polls', {
+        method: 'POST',
+        body: { title: trimmedTitle, options: validOptions },
+      });
+      navigate(`/poll/${poll.id}`, { replace: true });
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '투표 생성 실패');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -157,13 +148,14 @@ const PollCreate = () => {
 
       <button
         onClick={handleSubmit}
+        disabled={!agreed || submitting}
         className={`w-full py-3.5 font-bold rounded-xl text-sm transition-colors ${
-          agreed
+          agreed && !submitting
             ? 'bg-primary text-white active:bg-primary-dark'
             : 'bg-gray-200 text-gray-500 cursor-not-allowed'
         }`}
       >
-        투표 올리기
+        {submitting ? '올리는 중…' : '투표 올리기'}
       </button>
     </div>
   );

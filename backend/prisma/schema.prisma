@@ -54,6 +54,7 @@ model User {
   snowRuns         SnowRun[]
   adViews          AdView[]
   shopPosts        ShopPost[]
+  polls            Poll[]
 
   @@map("users")
 }
@@ -745,4 +746,49 @@ model ShopPost {
   @@index([shopType, shopId, pinned, createdAt])
   @@index([userId, createdAt])
   @@map("shop_posts")
+}
+
+// 투표 — 커뮤니티 투표 기능. 이전엔 100% localStorage 라 유저 간 공유 안 되고
+// 조작 가능했음. 서버화: 1인 1표 (PollVote unique) 강제, 집계 서버 계산.
+model Poll {
+  id        String       @id @default(uuid())
+  title     String
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  options   PollOption[]
+  votes     PollVote[]
+  likes     Int          @default(0)
+  views     Int          @default(0)
+  vertical  String       @default("snow")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([vertical, createdAt])
+  @@map("polls")
+}
+
+model PollOption {
+  id     String     @id @default(uuid())
+  pollId String
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label  String
+  order  Int        @default(0)
+  votes  PollVote[]
+
+  @@index([pollId, order])
+  @@map("poll_options")
+}
+
+model PollVote {
+  id       String     @id @default(uuid())
+  pollId   String
+  poll     Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  optionId String
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+  createdAt DateTime  @default(now())
+
+  @@unique([pollId, userId]) // 1인 1표
+  @@index([optionId])
+  @@map("poll_votes")
 }

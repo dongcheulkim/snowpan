@@ -23,6 +23,17 @@ interface Post {
   createdAt: string;
 }
 
+interface PollItem {
+  id: string;
+  title: string;
+  author: string;
+  totalVotes: number;
+  views: number;
+  likes: number;
+  options: { id: string; label: string; votes: number; pct: number }[];
+  createdAt: string;
+}
+
 const badgeMap: Record<string, string> = {
   free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', poll: '투표',
 };
@@ -48,6 +59,7 @@ const Community = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
+  const [polls, setPolls] = useState<PollItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -95,9 +107,19 @@ const Community = () => {
       .finally(() => setLoading(false));
   }, [sport, selectedTab]);
 
-  // 일반 게시글 로딩
+  // 투표 탭 — 서버화된 Poll 목록 로딩 (커뮤니티 글이 아닌 별도 Poll 시스템).
   useEffect(() => {
-    if (selectedTab === 'popular') return;
+    if (selectedTab !== 'poll') return;
+    setTimeout(() => setLoading(true), 0);
+    api<{ items: PollItem[] }>(`/polls?limit=${PAGE_SIZE}`)
+      .then(data => setPolls(data.items || []))
+      .catch(() => setPolls([]))
+      .finally(() => setLoading(false));
+  }, [selectedTab]);
+
+  // 일반 게시글 로딩 (poll/popular 제외)
+  useEffect(() => {
+    if (selectedTab === 'popular' || selectedTab === 'poll') return;
     setTimeout(() => setLoading(true), 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
@@ -164,7 +186,45 @@ const Community = () => {
         </div>
       )}
 
-      {loading ? (
+      {/* 투표 탭 — Poll 카드 목록 */}
+      {selectedTab === 'poll' && !loading && (
+        polls.length === 0 ? (
+          <EmptyState
+            icon={<ChatIcon size={48} strokeWidth={1.4} />}
+            title="아직 진행 중인 투표가 없어요"
+            description={"첫 투표를 만들어\n다른 스키어들의 의견을 모아보세요."}
+            ctaLabel="+ 투표 만들기"
+            ctaTo="/poll/create"
+          />
+        ) : (
+          <div className="space-y-2">
+            {polls.map((poll) => (
+              <Link to={`/poll/${poll.id}`} key={poll.id} className="card p-4 block card-hover">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded border text-orange-500 bg-orange-50 border-orange-200">투표</span>
+                  <span className="text-[10px] text-gray-500">{formatTime(poll.createdAt)}</span>
+                </div>
+                <h3 className="text-sm font-bold text-gray-900 mb-2">{poll.title}</h3>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {poll.options.slice(0, 4).map((o) => (
+                    <span key={o.id} className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5">{o.label}</span>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-gray-500">{poll.author}</span>
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                    <span>{poll.totalVotes.toLocaleString()}명 참여</span>
+                    <span>조회 {poll.views}</span>
+                    <span className="text-coral inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {poll.likes}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )
+      )}
+
+      {selectedTab !== 'poll' && (loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">{t('general.loading')}</div>
       ) : (
         <div className="space-y-2">
@@ -207,9 +267,9 @@ const Community = () => {
             );
           })}
         </div>
-      )}
+      ))}
 
-      {!loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
+      {selectedTab !== 'poll' && !loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
         selectedTab === 'popular' ? (
           <EmptyState
             icon={<FireIcon size={48} />}
@@ -234,7 +294,7 @@ const Community = () => {
         )
       )}
 
-      {selectedTab !== 'popular' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+      {selectedTab !== 'popular' && selectedTab !== 'poll' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
     </div>
   );
 };
