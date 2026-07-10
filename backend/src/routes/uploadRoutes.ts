@@ -1,7 +1,46 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
+import crypto from 'crypto';
 import { createUserLimiter } from '../middleware/rateLimit';
+
+// Bunny.net Storage — 이미지·영상 저장. 싱가포르 스토리지, snowpankr CDN 배포.
+// 환경변수:
+//   BUNNY_STORAGE_ZONE   = 'snowman'
+//   BUNNY_STORAGE_KEY    = 스토리지 Password (Render 대시보드에서 설정, 커밋 금지)
+//   BUNNY_STORAGE_HOST   = 'sg.storage.bunnycdn.com' (싱가포르)
+//   BUNNY_CDN_HOST       = 'snowpankr.b-cdn.net'
+const BUNNY_ZONE = process.env.BUNNY_STORAGE_ZONE || 'snowman';
+const BUNNY_KEY = process.env.BUNNY_STORAGE_KEY || '';
+const BUNNY_STORAGE_HOST = process.env.BUNNY_STORAGE_HOST || 'sg.storage.bunnycdn.com';
+const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'snowpankr.b-cdn.net';
+
+const EXT_BY_MIME: Record<string, string> = {
+  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+  'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm',
+};
+
+// Bunny Storage 에 buffer 업로드 → CDN URL 반환.
+async function uploadToBunny(buffer: Buffer, mime: string): Promise<string> {
+  const ext = EXT_BY_MIME[mime] || 'bin';
+  // 날짜 폴더 + 랜덤 파일명 (충돌 방지, 예측 불가).
+  const now = new Date();
+  const datePath = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+  const name = `${crypto.randomBytes(16).toString('hex')}.${ext}`;
+  const objectPath = `snowpan/${datePath}/${name}`;
+
+  const res = await fetch(`https://${BUNNY_STORAGE_HOST}/${BUNNY_ZONE}/${objectPath}`, {
+    method: 'PUT',
+    headers: {
+      AccessKey: BUNNY_KEY,
+      'Content-Type': mime,
+    },
+    body: buffer,
+  });
+  if (!res.ok) {
+    throw new Error(`Bunny upload failed: ${res.status}`);
+  }
+  return `https://${BUNNY_CDN_HOST}/${objectPath}`;
+}
 
 // 사용자별 업로드 한도 — Cloudinary 스토리지 abuse 방지.
 // 분당 30장, 시간당 300장. 정상 사용자에겐 충분, 봇/자동화는 차단.
@@ -28,12 +67,6 @@ function detectFileType(buf: Buffer): string | null {
   if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return 'video/webm';
   return null;
 }
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -67,26 +100,19 @@ router.post('/', uploadLimitPerMin, uploadLimitPerHour, upload.array('images', 5
     }
   }
 
+  if (!BUNNY_KEY) {
+    console.error('BUNNY_STORAGE_KEY 미설정 — 업로드 불가.');
+    res.status(500).json({ error: '이미지 업로드 설정 오류입니다. 관리자에게 문의하세요.' });
+    return;
+  }
+
   try {
+    // 프론트에서 이미 리사이즈+WebP 압축을 마치고 보내므로 (api.ts compressImage)
+    // 서버는 그대로 Bunny 에 저장. Bunny CDN 이 배포 담당.
     const urls: string[] = [];
     for (const file of files) {
-      const isVideo = file.mimetype.startsWith('video/');
-      const uploadOptions: Record<string, unknown> = {
-        folder: 'snowpan',
-        resource_type: isVideo ? 'video' : 'image',
-      };
-      if (!isVideo) {
-        // 업로드 시 미리 리사이즈 + 자동 포맷 (WebP/AVIF) + 적응형 품질.
-        // eager=true 로 즉시 변환 완료 후 URL 반환 (cold cache 페널티 제거).
-        uploadOptions.transformation = [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }];
-      }
-      const result = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          uploadOptions,
-          (err, result) => (err ? reject(err) : resolve(result))
-        ).end(file.buffer);
-      });
-      urls.push(result.secure_url);
+      const url = await uploadToBunny(file.buffer, file.mimetype);
+      urls.push(url);
     }
     res.json({ urls });
   } catch (error) {

@@ -220,11 +220,17 @@ export function logout() {
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
-// Cloudinary 자동 최적화: f_auto (WebP/AVIF 자동), q_auto (적응형 품질), 옵셔널 width 리사이즈.
-// res.cloudinary.com/<cloud>/image/upload/... 형태에서만 삽입. 다른 CDN / picsum 은 원본 그대로.
+// Bunny CDN Optimizer — URL 뒤 ?width= 로 자동 리사이즈 + WebP/AVIF 변환.
+// (Bunny 대시보드에서 Optimizer 켜져 있어야 동작; 안 켜도 원본은 정상 서빙)
+function transformBunny(url: string, width?: number): string {
+  if (!url.includes('.b-cdn.net')) return url;
+  if (url.includes('?')) return url; // 이미 파라미터 있으면 그대로
+  return width ? `${url}?width=${width}` : url;
+}
+
+// Cloudinary 자동 최적화 (옛 이미지 호환) — f_auto/q_auto + 옵셔널 width.
 function transformCloudinary(url: string, width?: number): string {
   if (!url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) return url;
-  // 이미 변환이 들어있으면 그대로 반환
   if (/\/image\/upload\/[^/]*(f_auto|q_auto|w_\d+)/.test(url)) return url;
   const params = ['f_auto', 'q_auto'];
   if (width) params.push(`w_${width}`, 'c_limit');
@@ -238,6 +244,7 @@ const LOCAL_PLACEHOLDER = '/icons/placeholder-card.svg';
 export function imageUrl(src: string, width?: number): string {
   if (!src) return src;
   if (src.includes('picsum.photos')) return LOCAL_PLACEHOLDER;
+  if (src.includes('.b-cdn.net')) return transformBunny(src, width);
   if (src.startsWith('http')) return transformCloudinary(src, width);
   if (src.startsWith('/')) {
     if (src.startsWith('/icons/') || src.startsWith('/uploads/')) return src;
