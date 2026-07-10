@@ -166,8 +166,23 @@ const UsedDetail = () => {
     try {
       await api(`/products/${id}`, { method: 'PUT', body: { status: newStatus } });
       setProduct({ ...product, status: newStatus });
+      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : newStatus === 'sold' ? '판매완료로 변경했어요' : '판매중으로 변경했어요');
     } catch {
-      alert('상태 변경에 실패했습니다.');
+      toastError('상태 변경에 실패했습니다.');
+    }
+  };
+
+  const [bumping, setBumping] = useState(false);
+  const handleBump = async () => {
+    if (!id || bumping) return;
+    setBumping(true);
+    try {
+      await api(`/products/${id}/bump`, { method: 'PUT' });
+      toastSuccess('맨 위로 끌어올렸어요!');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '끌어올리기에 실패했습니다.');
+    } finally {
+      setBumping(false);
     }
   };
 
@@ -263,15 +278,27 @@ const UsedDetail = () => {
                 <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
                 <MarketPriceBadge subcategory={product.subcategory} brand={product.brand} price={product.price} variant="badge" />
                 {isMyProduct ? (
-                  <select
-                    value={product.status}
-                    onChange={e => handleStatusChange(e.target.value)}
-                    className={`text-xs font-bold px-2 py-1 rounded border-0 cursor-pointer outline-none ${(statusLabel[product.status] || statusLabel.selling).color}`}
-                  >
-                    <option value="selling">판매중</option>
-                    <option value="reserved">예약중</option>
-                    <option value="sold">판매완료</option>
-                  </select>
+                  <>
+                    <select
+                      value={product.status}
+                      onChange={e => handleStatusChange(e.target.value)}
+                      className={`text-xs font-bold px-2 py-1 rounded border-0 cursor-pointer outline-none ${(statusLabel[product.status] || statusLabel.selling).color}`}
+                    >
+                      <option value="selling">판매중</option>
+                      <option value="reserved">예약중</option>
+                      <option value="sold">판매완료</option>
+                    </select>
+                    {product.status !== 'sold' && (
+                      <button
+                        onClick={handleBump}
+                        disabled={bumping}
+                        className="text-xs font-bold px-2.5 py-1 rounded bg-gray-900 text-white active:scale-95 transition-transform disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        {bumping ? '처리중' : '끌어올리기'}
+                      </button>
+                    )}
+                  </>
                 ) : product.status !== 'selling' && (
                   <span className={`text-xs font-bold px-2 py-1 rounded ${(statusLabel[product.status] || statusLabel.selling).color}`}>
                     {(statusLabel[product.status] || statusLabel.selling).text}

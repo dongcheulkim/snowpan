@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
-import { toastError } from '../components/Toast';
+import { toastError, toastSuccess } from '../components/Toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 
 interface Message {
@@ -55,12 +55,56 @@ const Chat = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [, setLangTick] = useState(0);
   const [isAdminChat, setIsAdminChat] = useState(false);
+  // 이 대화의 거래 상품 — 내가 판매자면 상태(예약중 등) 변경 가능.
+  const [dealProduct, setDealProduct] = useState<{ id: string; status: string; name: string; userId: string } | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
   const hasProductInfo = !!(state?.productName && state?.productPrice && state?.productImage);
+
+  // 대화의 거래 상품 파악 — state.productPath (구매자 진입) 또는 상품 카드 메시지에서
+  // productPath 추출 → /used/<id> 에서 id 뽑아 조회. 판매자에게 상태 변경 UI 노출용.
+  useEffect(() => {
+    let path = state?.productPath as string | undefined;
+    if (!path) {
+      // 대화 안 상품 카드 메시지에서 최신 productPath 찾기 (판매자는 목록에서 진입해 state 없음)
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const m = messages[i];
+        if (m.type === 'product_inquiry') {
+          try {
+            const parsed = JSON.parse(m.content);
+            if (parsed?.productPath) { path = parsed.productPath; break; }
+          } catch { /* ignore */ }
+        }
+      }
+    }
+    const match = path && /\/used\/([A-Za-z0-9-]+)/.exec(path);
+    const pid = match?.[1];
+    if (!pid) return;
+    if (dealProduct?.id === pid) return; // 이미 조회함
+    api<{ id: string; status: string; name: string; userId?: string }>(`/products/${pid}`)
+      .then(p => { if (p?.userId) setDealProduct({ id: p.id, status: p.status, name: p.name, userId: p.userId }); })
+      .catch(() => {});
+  }, [messages, state, dealProduct?.id]);
+
+  const iAmSeller = !!(user && dealProduct && dealProduct.userId === user.id);
+
+  const handleDealStatus = async (newStatus: string) => {
+    if (!dealProduct || updatingStatus) return;
+    setUpdatingStatus(true);
+    try {
+      await api(`/products/${dealProduct.id}`, { method: 'PUT', body: { status: newStatus } });
+      setDealProduct({ ...dealProduct, status: newStatus });
+      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : newStatus === 'sold' ? '거래완료로 변경했어요' : '판매중으로 변경했어요');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '상태 변경 실패');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
   const backPath = state?.backTo || '/chat/rooms';
 
   const markAsRead = (id: string) => {
@@ -266,6 +310,33 @@ const Chat = () => {
               <svg className="w-4 h-4 text-gray-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6" /></svg>
             </div>
           </Link>
+        )}
+
+        {/* 판매자 전용 — 이 대화의 거래 상품 상태 변경 (약속 잡으면 예약중으로) */}
+        {iAmSeller && dealProduct && (
+          <div className="border-t border-gray-100 bg-white">
+            <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-2">
+              <span className="text-[11px] text-gray-500 flex-shrink-0">내 매물</span>
+              {(['selling', 'reserved', 'sold'] as const).map((s) => {
+                const label = s === 'selling' ? '판매중' : s === 'reserved' ? '예약중' : '거래완료';
+                const active = dealProduct.status === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => handleDealStatus(s)}
+                    disabled={updatingStatus || active}
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
+                      active
+                        ? (s === 'reserved' ? 'bg-yellow-400 text-white' : s === 'sold' ? 'bg-gray-400 text-white' : 'bg-mint text-white')
+                        : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </header>
 
