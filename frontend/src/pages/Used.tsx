@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { api, imageUrl, getUser } from '../api';
+import WishlistButton from '../components/WishlistButton';
 import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
 import { ProductGridSkeleton } from '../components/Skeleton';
@@ -37,7 +38,19 @@ const Used = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [wishedIds, setWishedIds] = useState<Set<string>>(new Set());
   const [, setLangTick] = useState(0);
+
+  // 로그인 상태면 내 찜 목록 id 집합 로드 (하트 초기 상태 표시용).
+  useEffect(() => {
+    if (!getUser()) return;
+    api<{ id: string }[] | { products?: { id: string }[]; items?: { id: string }[] }>('/products/wishlist')
+      .then((d) => {
+        const arr = Array.isArray(d) ? d : (d.products || d.items || []);
+        setWishedIds(new Set(arr.map((p) => p.id)));
+      })
+      .catch(() => {});
+  }, []);
 
   const updateParam = (key: string, value: string | null, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
@@ -216,11 +229,12 @@ const Used = () => {
                     <CategoryPlaceholder subcategory={product.subcategory} />
                   </div>
                   {product.isPremium && (
-                    <span className="absolute top-1 right-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
+                    <span className="absolute top-1 left-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
                   )}
                   {product.status !== 'selling' && (
-                    <span className={`absolute top-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>
+                    <span className={`absolute bottom-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>
                   )}
+                  <WishlistButton productId={product.id} initial={wishedIds.has(product.id)} />
                 </div>
                 <div className="p-3">
                   <div className="flex items-center gap-1.5 mb-1">

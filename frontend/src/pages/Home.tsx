@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { api, imageUrl, getUser } from '../api';
+import WishlistButton from '../components/WishlistButton';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
@@ -39,6 +40,7 @@ const Home = () => {
   const [feed, setFeed] = useState<Product[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedTotal, setFeedTotal] = useState<number | null>(null);
+  const [wishedIds, setWishedIds] = useState<Set<string>>(new Set());
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -53,6 +55,14 @@ const Home = () => {
   }, []);
 
   const [banners, setBanners] = useState<BannerData[]>([]);
+
+  // 로그인 시 내 찜 id 집합 로드 (하트 초기 상태).
+  useEffect(() => {
+    if (!getUser()) return;
+    api<{ id: string }[]>('/products/wishlist')
+      .then((d) => setWishedIds(new Set((Array.isArray(d) ? d : []).map((p) => p.id))))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     api<BannerData[]>('/banners')
@@ -291,6 +301,7 @@ const Home = () => {
                   {p.status === 'sold' && (
                     <span className="absolute inset-0 bg-black/45 flex items-center justify-center text-white text-sm font-bold">판매완료</span>
                   )}
+                  <WishlistButton productId={p.id} initial={wishedIds.has(p.id)} />
                 </div>
                 <p className="mt-2 text-[13px] text-gray-900 line-clamp-2 leading-snug">{p.name}</p>
                 <p className="mt-1 text-[15px] font-bold text-gray-900">{p.price.toLocaleString()}원</p>

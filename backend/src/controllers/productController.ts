@@ -73,35 +73,54 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       { isPremium: { sort: 'desc' as const, nulls: 'last' as const } },
       { bumpedAt: { sort: 'desc' as const, nulls: 'last' as const } },
     ];
-    const orderBy =
-      sort === 'price_asc' ? [...primary, { price: 'asc' as const }]
-      : sort === 'price_desc' ? [...primary, { price: 'desc' as const }]
-      : [...primary, { createdAt: 'desc' as const }];
+    const tail =
+      sort === 'price_asc' ? { price: 'asc' as const }
+      : sort === 'price_desc' ? { price: 'desc' as const }
+      : { createdAt: 'desc' as const };
+    const orderBy = [...primary, tail];
 
-    const [products, totalCount] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        orderBy,
-        take,
-        ...(skip && { skip }),
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          image: true,
-          brand: true,
-          subcategory: true,
-          status: true,
-          isPremium: true,
-          bumpedAt: true,
-          createdAt: true,
-          category: true,
-          length: true,
-          size: true,
-        },
-      }),
-      prisma.product.count({ where }),
-    ]);
+    const productSelect = {
+      id: true, name: true, price: true, image: true, brand: true,
+      subcategory: true, status: true, isPremium: true, bumpedAt: true,
+      createdAt: true, category: true, length: true, size: true,
+    };
+
+    const skipN = skip || 0;
+    let products: unknown[];
+    let totalCount: number;
+
+    // status 를 명시 필터하면 그대로 (예: 판매완료만 보기). 아니면 판매완료를 맨 뒤로.
+    if (status) {
+      [products, totalCount] = await Promise.all([
+        prisma.product.findMany({ where, orderBy, take, skip: skipN, select: productSelect }),
+        prisma.product.count({ where }),
+      ]);
+    } else {
+      // 활성(판매중·예약중) 먼저, 판매완료(sold) 나중 — 두 그룹으로 나눠 offset 페이징 안전하게.
+      const activeWhere = { ...where, status: { not: 'sold' } };
+      const soldWhere = { ...where, status: 'sold' };
+      const [activeCount, soldCount] = await Promise.all([
+        prisma.product.count({ where: activeWhere }),
+        prisma.product.count({ where: soldWhere }),
+      ]);
+      totalCount = activeCount + soldCount;
+
+      const rows: unknown[] = [];
+      if (skipN < activeCount) {
+        // 이 페이지가 활성 구간에서 시작. 활성에서 채우고 모자라면 판매완료로 이어붙임.
+        const activeRows = await prisma.product.findMany({ where: activeWhere, orderBy, take, skip: skipN, select: productSelect });
+        rows.push(...activeRows);
+        if (rows.length < take) {
+          const soldRows = await prisma.product.findMany({ where: soldWhere, orderBy, take: take - rows.length, skip: 0, select: productSelect });
+          rows.push(...soldRows);
+        }
+      } else {
+        // 활성 구간을 이미 지남 → 판매완료 구간에서 조회.
+        const soldRows = await prisma.product.findMany({ where: soldWhere, orderBy, take, skip: skipN - activeCount, select: productSelect });
+        rows.push(...soldRows);
+      }
+      products = rows;
+    }
 
     const result = { products, totalCount };
     cacheSet(cacheKey, result, 10); // Cache for 10 seconds
