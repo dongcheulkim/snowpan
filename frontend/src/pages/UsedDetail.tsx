@@ -328,22 +328,6 @@ const UsedDetail = () => {
                     신고
                   </button>
                 )}
-                {/* Wishlist button — hidden for own products */}
-                {user && product.userId !== user.id && (
-                  <button
-                    aria-label={wishlisted ? '찜 해제' : '찜하기'}
-                    onClick={async () => {
-                      try {
-                        const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
-                        setWishlisted(res.wishlisted);
-                        toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
-                      } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
-                    }}
-                    className={`transition-transform active:scale-125 ${wishlisted ? 'text-coral' : 'text-gray-500 hover:text-coral/50'}`}
-                  >
-                    {wishlisted ? <HeartFilledIcon size={26} /> : <HeartOutlineIcon size={26} />}
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -390,16 +374,32 @@ const UsedDetail = () => {
             )}
           </div>
 
-          {/* Chat Button */}
+          {/* Chat + Wishlist Button — 찜 하트를 크게 노출 (내 매물이 아닐 때) */}
           {!isMyProduct && product.status !== 'sold' && (
-            <button
-              onClick={() => navigate(`/chat/new`, {
-                state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}`, productPath: `/used/${product.id}` }
-              })}
-              className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
-            >
-              {t('usedDetail.startChat')}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  if (!user) { navigate('/login'); return; }
+                  try {
+                    const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
+                    setWishlisted(res.wishlisted);
+                    toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
+                  } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+                }}
+                aria-label={wishlisted ? '찜 해제' : '찜하기'}
+                className={`w-14 flex-shrink-0 py-3.5 rounded-xl border-2 flex items-center justify-center active:scale-95 transition-transform ${wishlisted ? 'border-coral text-coral bg-coral/5' : 'border-gray-200 text-gray-500'}`}
+              >
+                {wishlisted ? <HeartFilledIcon size={24} /> : <HeartOutlineIcon size={24} />}
+              </button>
+              <button
+                onClick={() => navigate(`/chat/new`, {
+                  state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}`, productPath: `/used/${product.id}` }
+                })}
+                className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
+              >
+                {t('usedDetail.startChat')}
+              </button>
+            </div>
           )}
           {product.status === 'sold' && !isMyProduct && (
             <div className="w-full py-3.5 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm text-center">{t('usedDetail.soldItem')}</div>
