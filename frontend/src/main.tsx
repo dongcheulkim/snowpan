@@ -99,7 +99,7 @@ createRoot(document.getElementById('root')!).render(
   const splash = document.getElementById('app-splash');
   if (!splash) return;
   const start = performance.now();
-  const MIN_MS = 650; // 눈 내리는 연출이 보이도록 최소 노출 시간
+  const MIN_MS = 2000; // 눈 펑펑 내리는 연출 노출 시간
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {
