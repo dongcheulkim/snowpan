@@ -91,7 +91,11 @@
         <span class="flake">❄</span><span class="flake">❅</span><span class="flake">❆</span><span class="flake">❄</span><span class="flake">❅</span>
         <span class="flake">❆</span><span class="flake">❄</span><span class="flake">❅</span><span class="flake">❆</span><span class="flake">❄</span>
       </div>
-      <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
+      <div id="app-splash-brand">
+        <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
+        <p id="app-splash-tagline">설원 위의 자유, 끝없는 플레이의 장</p>
+        <p id="app-splash-slogan">FREEDOM ON THE SNOW</p>
+      </div>
     </div>
     <style>
       #app-splash {
@@ -102,10 +106,27 @@
         overflow: hidden;
       }
       #app-splash.hide { opacity: 0; pointer-events: none; }
-      #app-splash-logo {
+      #app-splash-brand {
         position: relative; z-index: 2;
+        display: flex; flex-direction: column; align-items: center; gap: 14px;
+      }
+      #app-splash-logo {
         width: min(58vw, 250px); height: auto;
         animation: splashLogo 1s cubic-bezier(.16,.84,.28,1) both;
+      }
+      #app-splash-tagline {
+        margin: 0; font-family: 'Noto Sans KR', system-ui, sans-serif;
+        font-size: 14px; font-weight: 700; color: #1e3a5f; letter-spacing: -0.2px;
+        animation: splashText .8s ease-out .5s both;
+      }
+      #app-splash-slogan {
+        margin: -8px 0 0; font-family: system-ui, sans-serif;
+        font-size: 9.5px; font-weight: 700; letter-spacing: 3px; color: #7ba7d4;
+        animation: splashText .8s ease-out .7s both;
+      }
+      @keyframes splashText {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: none; }
       }
       /* 눈송이 컨테이너 */
       #app-splash-snow { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
@@ -171,7 +192,7 @@
       }
       @media (prefers-reduced-motion: reduce) {
         #app-splash-snow { display: none; } /* 모션 최소화 설정 시 눈 숨김 */
-        #app-splash-logo { animation: none; }
+        #app-splash-logo, #app-splash-tagline, #app-splash-slogan { animation: none; }
       }
     </style>
     <div id="root"></div>
