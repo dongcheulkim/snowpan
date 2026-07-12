@@ -14,6 +14,8 @@ interface Product {
   image: string;
   status: string;
   createdAt: string;
+  viewCount?: number;
+  wishlistCount?: number;
 }
 
 // 한 번에 보여줄 매물 수. 새로고침 누르면 랜덤 다른 30개로 교체.
@@ -305,6 +307,18 @@ const Home = () => {
                 </div>
                 <p className="mt-2 text-[13px] text-gray-900 line-clamp-2 leading-snug">{p.name}</p>
                 <p className="mt-1 text-[15px] font-bold text-gray-900">{p.price.toLocaleString()}원</p>
+                {((p.viewCount ?? 0) > 0 || (p.wishlistCount ?? 0) > 0) && (
+                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-400">
+                    <span className="inline-flex items-center gap-0.5">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      {(p.viewCount ?? 0).toLocaleString()}
+                    </span>
+                    <span className="inline-flex items-center gap-0.5">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                      {(p.wishlistCount ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
               </Link>
             ))}
           </div>

@@ -83,6 +83,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       id: true, name: true, price: true, image: true, brand: true,
       subcategory: true, status: true, isPremium: true, bumpedAt: true,
       createdAt: true, category: true, length: true, size: true,
+      viewCount: true,
+      _count: { select: { wishlists: true } }, // 찜 개수
     };
 
     const skipN = skip || 0;
@@ -122,7 +124,13 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       products = rows;
     }
 
-    const result = { products, totalCount };
+    // _count.wishlists → wishlistCount 로 정형화 (프론트 사용 편의).
+    const shaped = (products as Array<Record<string, unknown> & { _count?: { wishlists: number } }>).map((p) => {
+      const { _count, ...rest } = p;
+      return { ...rest, wishlistCount: _count?.wishlists ?? 0 };
+    });
+
+    const result = { products: shaped, totalCount };
     cacheSet(cacheKey, result, 10); // Cache for 10 seconds
     res.json(result);
   } catch (error) {
