@@ -197,6 +197,7 @@ model Product {
   description String?
   rating      Float?
   reviewCount Int?
+  viewCount   Int      @default(0) // 상세 페이지 조회수
   condition   String?  // For used items: '상', '중', '하'
   usageCount  String?  // For used items
   length      String?  // 길이 (cm) - 스키/보드

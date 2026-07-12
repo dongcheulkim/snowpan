@@ -22,6 +22,8 @@ interface Product {
   usageCount: string | null;
   status: string;
   wishlisted: boolean;
+  viewCount?: number;
+  wishlistCount?: number;
   userId: string | null;
   user: { id: string; name: string } | null;
   createdAt: string;
@@ -268,7 +270,19 @@ const UsedDetail = () => {
               {product.brand && <span className="uppercase">{product.brand}</span>}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            <div className="text-xs text-gray-500">{formatDate(product.createdAt)}</div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>{formatDate(product.createdAt)}</span>
+              <span className="text-gray-300">·</span>
+              <span className="inline-flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                조회 {(product.viewCount ?? 0).toLocaleString()}
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="inline-flex items-center gap-1">
+                <HeartFilledIcon size={12} className="text-coral" />
+                찜 {(product.wishlistCount ?? 0).toLocaleString()}
+              </span>
+            </div>
           </div>
 
           {/* Price + Status + Wishlist + Share + Report */}
@@ -383,6 +397,7 @@ const UsedDetail = () => {
                   try {
                     const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
                     setWishlisted(res.wishlisted);
+                    setProduct(p => p ? { ...p, wishlistCount: Math.max(0, (p.wishlistCount ?? 0) + (res.wishlisted ? 1 : -1)) } : p);
                     toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
                   } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
                 }}

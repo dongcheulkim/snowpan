@@ -358,12 +358,23 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { user: { select: { id: true, name: true, nickname: true } } },
+      include: {
+        user: { select: { id: true, name: true, nickname: true } },
+        _count: { select: { wishlists: true } }, // 찜 개수
+      },
     });
 
     if (!product) {
       res.status(404).json({ error: '상품을 찾을 수 없습니다.' });
       return;
+    }
+
+    // 조회수 증가 — 본인 매물 조회는 제외 (자기 조회로 카운트 부풀리지 않게).
+    // 응답엔 증가 후 값을 반영해서 보여줌.
+    let viewCount = product.viewCount;
+    if (currentUserId !== product.userId) {
+      viewCount = product.viewCount + 1;
+      prisma.product.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
     }
 
     let wishlisted = false;
@@ -374,7 +385,8 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
       wishlisted = !!existing;
     }
 
-    res.json({ ...product, wishlisted });
+    const { _count, ...rest } = product;
+    res.json({ ...rest, viewCount, wishlistCount: _count.wishlists, wishlisted });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });
