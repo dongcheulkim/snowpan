@@ -49,7 +49,7 @@ const sections = [
 
 • Vercel Inc. (미국): 웹사이트 프론트엔드 호스팅
 • Render Services, Inc. (미국): 서버 및 데이터베이스 호스팅
-• Cloudinary Ltd. (이스라엘/미국): 사용자 업로드 이미지·동영상 저장
+• BunnyWay d.o.o. (Bunny.net, 슬로베니아): 사용자 업로드 이미지·동영상 저장 및 CDN 배포
 • Functional Software, Inc. (Sentry, 미국): 에러 모니터링 및 성능 분석
 • Cloudflare, Inc. (미국): CDN 및 보안 (DDoS 방어)
 • 이메일 발송 서비스 (Gmail SMTP / 별도 SMTP 제공자)

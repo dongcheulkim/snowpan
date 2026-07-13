@@ -260,7 +260,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       return;
     }
     if (!isAllowedImageUrl(image)) {
-      res.status(400).json({ error: '이미지는 사이트 업로드 또는 Cloudinary 만 허용됩니다.' });
+      res.status(400).json({ error: '허용되지 않은 이미지 주소입니다. 사이트에서 업로드한 이미지만 사용 가능합니다.' });
       return;
     }
     // images 콤마 구분 문자열 각 URL 도 검증 — 저장형 XSS 방지.
@@ -428,7 +428,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     }
     // 업데이트 시에도 이미지 URL 검증 (저장형 XSS 방지)
     if (image && !isAllowedImageUrl(image)) {
-      res.status(400).json({ error: '이미지는 사이트 업로드 또는 Cloudinary 만 허용됩니다.' });
+      res.status(400).json({ error: '허용되지 않은 이미지 주소입니다. 사이트에서 업로드한 이미지만 사용 가능합니다.' });
       return;
     }
     if (images !== undefined && images !== null && images !== '') {

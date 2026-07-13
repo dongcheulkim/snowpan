@@ -42,7 +42,7 @@ async function uploadToBunny(buffer: Buffer, mime: string): Promise<string> {
   return `https://${BUNNY_CDN_HOST}/${objectPath}`;
 }
 
-// 사용자별 업로드 한도 — Cloudinary 스토리지 abuse 방지.
+// 사용자별 업로드 한도 — 스토리지 abuse 방지.
 // 분당 30장, 시간당 300장. 정상 사용자에겐 충분, 봇/자동화는 차단.
 const uploadLimitPerMin = createUserLimiter(30, 60_000);
 const uploadLimitPerHour = createUserLimiter(300, 60 * 60_000);

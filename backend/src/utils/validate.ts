@@ -43,7 +43,7 @@ export function normalizeEmail(raw: unknown): string | null {
   return trimmed;
 }
 
-// 사용자 입력 이미지 URL 검증 — Cloudinary 또는 우리 도메인만 허용.
+// 사용자 입력 이미지 URL 검증 — Bunny CDN / Cloudinary(레거시) / 우리 도메인만 허용.
 // 임의 외부 URL 차단 — 사용자에게 보일 이미지에 추적 픽셀/피싱 URL 박는 것 방지.
 // FRONTEND_URL env (Vercel 도메인) + ALLOWED_EXTRA_IMAGE_HOSTS (선택) 자동 포함.
 function buildAllowedImageHosts(): string[] {
