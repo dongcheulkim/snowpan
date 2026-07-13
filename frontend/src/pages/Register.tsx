@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api, setAuth } from '../api';
+import LegalSheet from '../components/LegalSheet';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Register = () => {
   const [form, setForm] = useState({ email: '', password: '', passwordConfirm: '', name: '', nickname: '', phone: '', referralCode: refFromUrl });
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [legalSheet, setLegalSheet] = useState<'terms' | 'privacy' | null>(null);
   // 추천 코드 검증 상태: idle(입력 전) | checking | valid | invalid | format
   const [refStatus, setRefStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid' | 'format'>('idle');
   const [referrerName, setReferrerName] = useState<string | null>(null);
@@ -243,7 +245,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 이용약관 동의</span>
               </div>
-              <Link to="/terms" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-gray-500 hover:underline flex-shrink-0 underline">보기</Link>
+              <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLegalSheet('terms'); }} className="text-[10px] text-gray-500 underline flex-shrink-0">보기</button>
             </label>
 
             {/* 개인정보처리방침 */}
@@ -257,7 +259,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 개인정보처리방침 동의</span>
               </div>
-              <Link to="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-gray-500 hover:underline flex-shrink-0 underline">보기</Link>
+              <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLegalSheet('privacy'); }} className="text-[10px] text-gray-500 underline flex-shrink-0">보기</button>
             </label>
 
             {/* 마케팅 수신 */}
@@ -289,6 +291,8 @@ const Register = () => {
           <Link to="/login" className="text-xs text-primary-dark hover:underline">이미 계정이 있으신가요? 로그인</Link>
         </div>
       </div>
+
+      <LegalSheet type={legalSheet} onClose={() => setLegalSheet(null)} />
     </div>
   );
 };

@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Terms = () => {
-  const [openSection, setOpenSection] = useState<number | null>(null);
-
-  const toggle = (idx: number) => setOpenSection(openSection === idx ? null : idx);
-
-  const sections = [
+// 모달(LegalSheet) 재사용을 위해 export.
+export const termsSections = [
     {
       title: '제1조 (목적)',
       content: `본 약관은 스노우판(이하 "회사")이 운영하는 온라인 플랫폼(이하 "플랫폼")에서 제공하는 통신판매중개 서비스(이하 "서비스")의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.
@@ -240,13 +236,19 @@ const Terms = () => {
     },
   ];
 
-  const lawBasis = [
-    { law: '전자상거래 등에서의 소비자보호에 관한 법률', articles: '제20조(통신판매중개자의 의무), 제20조의2(책임), 제20조의3(중요업무 수행 시 책임), 제17조(청약철회)' },
-    { law: '정보통신망 이용촉진 및 정보보호 등에 관한 법률', articles: '제44조(권리보호), 제44조의2(삭제요청), 제44조의7(불법정보 삭제)' },
-    { law: '개인정보 보호법', articles: '제15조(수집·이용), 제17조(제3자 제공), 제22조(동의 방법), 제30조(처리방침 공개)' },
-    { law: '약관의 규제에 관한 법률', articles: '제6조(일반원칙 - 불공정 약관 무효), 제7조(면책조항 제한)' },
-    { law: '관광진흥법 / 공중위생관리법', articles: '숙소 제공자의 사업 허가·등록 요건' },
-  ];
+export const termsLawBasis = [
+  { law: '전자상거래 등에서의 소비자보호에 관한 법률', articles: '제20조(통신판매중개자의 의무), 제20조의2(책임), 제20조의3(중요업무 수행 시 책임), 제17조(청약철회)' },
+  { law: '정보통신망 이용촉진 및 정보보호 등에 관한 법률', articles: '제44조(권리보호), 제44조의2(삭제요청), 제44조의7(불법정보 삭제)' },
+  { law: '개인정보 보호법', articles: '제15조(수집·이용), 제17조(제3자 제공), 제22조(동의 방법), 제30조(처리방침 공개)' },
+  { law: '약관의 규제에 관한 법률', articles: '제6조(일반원칙 - 불공정 약관 무효), 제7조(면책조항 제한)' },
+  { law: '관광진흥법 / 공중위생관리법', articles: '숙소 제공자의 사업 허가·등록 요건' },
+];
+
+const Terms = () => {
+  const [openSection, setOpenSection] = useState<number | null>(null);
+  const toggle = (idx: number) => setOpenSection(openSection === idx ? null : idx);
+  const sections = termsSections;
+  const lawBasis = termsLawBasis;
 
   return (
     <div className="space-y-4 animate-fade-in">

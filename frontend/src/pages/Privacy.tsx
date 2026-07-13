@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
-const sections = [
+// 모달(LegalSheet) 재사용을 위해 export.
+export const privacySections = [
   {
     title: '1. 개인정보의 수집 및 이용 목적',
     content: `스노우판(이하 "회사")은 다음 목적으로 개인정보를 수집·이용합니다.
@@ -117,6 +118,7 @@ const sections = [
 ];
 
 export default function Privacy() {
+  const sections = privacySections;
   return (
     <div className="max-w-2xl mx-auto space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
