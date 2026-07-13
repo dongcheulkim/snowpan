@@ -229,8 +229,8 @@ const Home = () => {
               <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">⚡</div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-gray-300">스노우런 트래킹</p>
-                <p className="text-base font-black mt-0.5">탈 때마다 100P 적립</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">1일 최대 1,000P · 쿠폰으로 사용</p>
+                <p className="text-base font-black mt-0.5">탈 때마다 50P 적립</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">1일 최대 500P · 쿠폰으로 사용</p>
               </div>
               <span className="text-lg text-gray-400 flex-shrink-0">›</span>
             </div>

@@ -384,7 +384,7 @@ const SnowRunRecord = () => {
           </button>
         )}
         <p className="text-[10px] text-gray-500 text-center mt-2">
-          {active ? '슬로프 탈 때마다 자동 카운트 · 1런 100P · 1일 10회 캡' : '시작 1번 누르면 슬로프마다 자동 카운트'}
+          {active ? '슬로프 탈 때마다 자동 카운트 · 1런 50P · 1일 10회 캡' : '시작 1번 누르면 슬로프마다 자동 카운트'}
         </p>
       </div>
     </div>

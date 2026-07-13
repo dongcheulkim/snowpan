@@ -22,8 +22,8 @@ const LIMITS = {
   maxMaxSpeedKmh: 300,
 };
 
-const POINTS_PER_RUN = 100;
-const DAILY_RUN_REWARD_CAP = 10; // 하루 10회까지만 포인트 지급 (이후 기록만)
+const POINTS_PER_RUN = 50;
+const DAILY_RUN_REWARD_CAP = 10; // 하루 10회까지만 포인트 지급 (이후 기록만) — 일 최대 500P
 
 interface SubmitRunBody {
   startedAt: string;

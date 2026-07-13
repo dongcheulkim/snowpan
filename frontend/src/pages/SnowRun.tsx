@@ -100,7 +100,7 @@ const SnowRun = () => {
             ▶ 런 시작
           </Link>
           <p className="text-[11px] text-gray-400 text-center mt-2">
-            오늘 적립 가능 {stats?.today.remainingRewardable ?? 10}회 남음 (1런 100P)
+            오늘 적립 가능 {stats?.today.remainingRewardable ?? 10}회 남음 (1런 50P)
           </p>
         </div>
 
