@@ -12,6 +12,8 @@ export default defineConfig({
         name: '스노우판',
         short_name: '스노우판',
         description: '스키 장비부터 레슨까지, 한눈에 비교하세요',
+        lang: 'ko',
+        dir: 'ltr',
         theme_color: '#0ea5e9',
         background_color: '#f0f9ff',
         display: 'standalone',

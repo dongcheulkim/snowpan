@@ -497,13 +497,17 @@ httpServer.listen(PORT, async () => {
     console.error('광고 가격 시드 실패:', err);
   }
 
-  // Keep-alive: 5분마다 자기 자신에게 핑 (Render 슬립 방지)
+  // Keep-alive: 14분마다 자기 자신에게 핑.
+  // ⚠️ 무료(Free) 인스턴스에선 외부 트래픽 없이 슬립되며 슬립 시 이 setInterval 도
+  //    멈추므로 자기 핑만으론 슬립 방지 불가 → 오픈 시 UptimeRobot 등 외부 핑 또는
+  //    Starter 플랜($7) 필요. 유료 인스턴스에선 이 핑이 유휴 재시작을 예방.
+  //    (Free 슬립 임계 15분 → 14분 주기로 여유 둠)
   const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
   if (RENDER_URL) {
     setInterval(() => {
       fetch(`${RENDER_URL}/api/health`).catch((err) => {
         console.warn('Keep-alive ping 실패:', err?.message || err);
       });
-    }, 5 * 60 * 1000);
+    }, 14 * 60 * 1000);
   }
 });
