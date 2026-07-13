@@ -136,6 +136,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       // 추천인이 있으면 양쪽 다 보너스. 추천인은 무한 보너스 가능하지만
       // 추천 코드가 유니크 + 가입은 phone 인증 필수라 자기 자신 farming 어려움.
       if (referredById) {
+        // 추천인이 초대 2배 쿠폰을 사용 중(referralBoostUntil > now)이면 추천인 보너스 2배.
+        const referrer = await prisma.user.findUnique({ where: { id: referredById }, select: { referralBoostUntil: true } });
+        const boosted = !!(referrer?.referralBoostUntil && referrer.referralBoostUntil > new Date());
+        const referrerBonus = boosted ? REFERRAL_BONUS_REFERRER * 2 : REFERRAL_BONUS_REFERRER;
         await awardPoints(prisma, {
           userId: user.id,
           amount: REFERRAL_BONUS_REFERRED,
@@ -145,10 +149,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         });
         await awardPoints(prisma, {
           userId: referredById,
-          amount: REFERRAL_BONUS_REFERRER,
+          amount: referrerBonus,
           source: 'referral_bonus',
           refId: user.id,
-          description: '친구 가입 보너스',
+          description: boosted ? '친구 가입 보너스 (2배 이벤트)' : '친구 가입 보너스',
         });
       }
     } catch (e) {
@@ -736,6 +740,7 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
         displayName: true,
         profileImage: true,
         createdAt: true,
+        profileHighlightUntil: true,
         badgeRequests: { where: { status: 'approved' }, select: { badgeType: true, vertical: true } },
       },
     });
@@ -759,6 +764,7 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
       id: user.id,
       name: displayName,
       profileImage: user.profileImage,
+      highlighted: !!(user.profileHighlightUntil && user.profileHighlightUntil > new Date()),
       // 호환: badges = snow vertical 만 평탄화 (기존 UI 그대로). badgesByVertical = 새 구조.
       badges: user.badgeRequests.filter(b => b.vertical === 'snow').map(b => b.badgeType),
       badgesByVertical: user.badgeRequests.reduce<Record<string, string[]>>((acc, b) => {

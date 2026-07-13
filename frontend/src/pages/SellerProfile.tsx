@@ -9,6 +9,7 @@ interface SellerData {
   id: string;
   name: string;
   profileImage: string | null;
+  highlighted?: boolean; // 프로필 강조 쿠폰 활성 여부
   badges: string[]; // 호환용 — snow vertical 만 평탄화 (기존 UI)
   badgesByVertical?: Record<string, string[]>; // 신규 — vertical 별 그룹핑
   createdAt: string;
@@ -184,14 +185,15 @@ const SellerProfile = () => {
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
       <Link to="/used" className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('sellerProfile.back')}</Link>
 
-      {/* Profile Card */}
-      <div className="card rounded-2xl p-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 mx-auto mb-4 overflow-hidden">
+      {/* Profile Card — 강조 쿠폰 활성 시 배경·테두리 강조 */}
+      <div className={`card rounded-2xl p-6 text-center ${seller.highlighted ? 'ring-2 ring-amber-300 bg-gradient-to-b from-amber-50/60 to-white' : ''}`}>
+        <div className={`w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 mx-auto mb-4 overflow-hidden ${seller.highlighted ? 'ring-2 ring-amber-400' : 'border border-gray-200'}`}>
           {seller.profileImage ? (
             <img src={seller.profileImage} alt="" className="w-full h-full object-cover" />
           ) : <UserIcon size={36} />}
         </div>
-        <div className="flex items-center justify-center gap-2 mb-1">
+        <div className="flex items-center justify-center gap-1.5 mb-1">
+          {seller.highlighted && <span className="text-amber-500" title="강조 판매자">★</span>}
           <h1 className="text-xl font-bold text-gray-900">{seller.name}</h1>
         </div>
 

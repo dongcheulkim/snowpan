@@ -565,10 +565,11 @@ export const rejectAccommodation = async (req: AuthRequest, res: Response): Prom
 export const getPendingBadges = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    // 신속처리(priority) 쿠폰 사용자 요청을 상단으로.
     const items = await prisma.badgeRequest.findMany({
       where: { status: 'pending' },
       include: { user: { select: { id: true, name: true, phone: true, email: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
     res.json(items);
   } catch (error) {

@@ -22,6 +22,9 @@ model User {
   activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
   fcmToken      String?  // Firebase Cloud Messaging token
   points        Int      @default(0) // 캐시된 포인트 잔액. 진실은 PointTransaction 누적합 — 트랜잭션 안에서만 갱신.
+  // 쿠폰 효과 — 기간제. 만료 시각 지나면 효과 없음.
+  referralBoostUntil  DateTime? // 초대 2배 쿠폰: 이 시각까지 추천 보너스 2배
+  profileHighlightUntil DateTime? // 프로필 강조 쿠폰: 이 시각까지 프로필/이름 강조
   referralCode  String?  @unique // 본인의 추천 코드 (lazy 생성)
   referredById  String?  // 누구의 추천으로 가입했는지
   referredBy    User?    @relation("referrals", fields: [referredById], references: [id])
@@ -313,6 +316,7 @@ model BadgeRequest {
   badgeType String   // vertical 안에서 해석: snow.lv1, bike.coach, run.marathoner 등
   image     String?  // 자격증 사진 URL
   status    String   @default("pending") // 'pending' | 'approved' | 'rejected'
+  priority  Boolean  @default(false) // 뱃지 신속처리 쿠폰: 승인 대기열 상단 노출
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

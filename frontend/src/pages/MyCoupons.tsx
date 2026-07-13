@@ -49,6 +49,9 @@ const TYPE_LABEL: Record<string, string> = {
 
 const EFFECT_LABEL: Record<string, string> = {
   product_bump: '매물 끌어올리기',
+  referral_boost: '초대 2배',
+  profile_highlight: '프로필 강조',
+  badge_fasttrack: '뱃지 신속처리',
 };
 
 const MyCoupons = () => {
@@ -117,16 +120,21 @@ const MyCoupons = () => {
   };
 
   const onUse = async (uc: UserCoupon) => {
-    // 플랫폼 효과 쿠폰: 매물 선택 시트 띄움
+    // 끌어올리기: 매물 선택 시트 띄움 (productId 필요)
     if (uc.coupon.effect === 'product_bump') {
       openBumpPicker(uc);
       return;
     }
-    // 그 외 (파트너 쿠폰): 매장에서 코드 보여준 뒤 사용 처리
-    if (!confirm('이 쿠폰을 사용 처리할까요? 사용 후 되돌릴 수 없어요.')) return;
+    // 기간제 효과(초대2배·프로필강조) + 뱃지신속 + 파트너 쿠폰: 바로 사용 처리.
+    const confirmMsg =
+      uc.coupon.effect === 'referral_boost' ? '초대 2배 효과를 지금 시작할까요? (7일간 적용)'
+      : uc.coupon.effect === 'profile_highlight' ? '프로필 강조를 지금 시작할까요? (7일간 적용)'
+      : uc.coupon.effect === 'badge_fasttrack' ? '뱃지 인증 신속처리를 사용할까요?'
+      : '이 쿠폰을 사용 처리할까요? 사용 후 되돌릴 수 없어요.';
+    if (!confirm(confirmMsg)) return;
     try {
-      await api(`/coupons/my/${uc.id}/use`, { method: 'POST' });
-      toastSuccess('쿠폰을 사용 처리했어요.');
+      const res = await api<{ message?: string }>(`/coupons/my/${uc.id}/use`, { method: 'POST' });
+      toastSuccess(res?.message || '쿠폰을 사용 처리했어요.');
       await refresh();
     } catch (e) {
       toastError(e instanceof Error ? e.message : '사용 처리 실패');

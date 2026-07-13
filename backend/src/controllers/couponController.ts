@@ -261,8 +261,31 @@ export const useCoupon = async (req: AuthRequest, res: Response): Promise<void> 
           where: { id: productId },
           data: { bumpedAt: new Date() },
         });
+      } else if (uc.coupon.effect === 'referral_boost') {
+        // 초대 2배 — 7일간 추천 보너스 2배. 기존 잔여 기간이 있으면 이어붙임.
+        const cur = await tx.user.findUnique({ where: { id: userId }, select: { referralBoostUntil: true } });
+        const from = cur?.referralBoostUntil && cur.referralBoostUntil > new Date() ? cur.referralBoostUntil : new Date();
+        const until = new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000);
+        await tx.user.update({ where: { id: userId }, data: { referralBoostUntil: until } });
+      } else if (uc.coupon.effect === 'profile_highlight') {
+        // 프로필 강조 — 7일.
+        const cur = await tx.user.findUnique({ where: { id: userId }, select: { profileHighlightUntil: true } });
+        const from = cur?.profileHighlightUntil && cur.profileHighlightUntil > new Date() ? cur.profileHighlightUntil : new Date();
+        const until = new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000);
+        await tx.user.update({ where: { id: userId }, data: { profileHighlightUntil: until } });
+      } else if (uc.coupon.effect === 'badge_fasttrack') {
+        // 뱃지 신속처리 — 내 대기중 뱃지 요청을 우선순위로.
+        const pending = await tx.badgeRequest.findFirst({
+          where: { userId, status: 'pending' },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true },
+        });
+        if (!pending) {
+          throw Object.assign(new Error('대기중인 뱃지 인증 요청이 없어요. 먼저 인증을 신청해주세요.'), { httpStatus: 400 });
+        }
+        await tx.badgeRequest.update({ where: { id: pending.id }, data: { priority: true } });
       } else if (uc.coupon.effect) {
-        // 기타 효과는 아직 미구현
+        // 알 수 없는 효과
         throw Object.assign(new Error('이 쿠폰은 아직 사용할 수 없어요.'), { httpStatus: 400 });
       }
 
@@ -278,8 +301,14 @@ export const useCoupon = async (req: AuthRequest, res: Response): Promise<void> 
       return { updated, effect: uc.coupon.effect, productId };
     });
 
+    const effectMsg: Record<string, string> = {
+      product_bump: '매물을 끌어올렸어요!',
+      referral_boost: '7일간 초대 보너스가 2배로 적용돼요!',
+      profile_highlight: '7일간 프로필이 강조돼요!',
+      badge_fasttrack: '뱃지 인증이 우선 처리 대기열로 이동했어요!',
+    };
     res.json({
-      message: result.effect === 'product_bump' ? '매물을 끌어올렸어요!' : '쿠폰이 사용 처리되었어요.',
+      message: (result.effect && effectMsg[result.effect]) || '쿠폰이 사용 처리되었어요.',
       usesLeft: result.updated.usesLeft,
       status: result.updated.status,
     });

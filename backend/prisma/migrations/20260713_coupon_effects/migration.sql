@@ -1,0 +1,3 @@
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "referralBoostUntil" TIMESTAMP(3);
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profileHighlightUntil" TIMESTAMP(3);
+ALTER TABLE "badge_requests" ADD COLUMN IF NOT EXISTS "priority" BOOLEAN NOT NULL DEFAULT false;
