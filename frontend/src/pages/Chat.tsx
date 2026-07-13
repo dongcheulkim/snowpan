@@ -206,7 +206,8 @@ const Chat = () => {
     try {
       const urls = await uploadImages(files);
       for (const url of urls) {
-        const isVideo = url.includes('/video/');
+        // Bunny URL 은 확장자로 판별 (.mp4/.mov/.webm). 옛 Cloudinary /video/ 도 호환.
+        const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(url) || url.includes('/video/');
         socketRef.current.emit('send_message', {
           roomId,
           content: isVideo ? t('chat.sentVideo') : t('chat.sentPhoto'),
@@ -214,7 +215,7 @@ const Chat = () => {
         });
       }
     } catch {
-      alert('파일 업로드에 실패했습니다.');
+      toastError('파일 업로드에 실패했습니다.');
     } finally {
       setUploading(false);
     }
@@ -473,7 +474,7 @@ const Chat = () => {
                   <div className="max-w-[72%]">
                     {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
                     {msg.imageUrl && (
-                      msg.imageUrl.includes('/video/') ? (
+                      (/\.(mp4|mov|webm)(\?|$)/i.test(msg.imageUrl) || msg.imageUrl.includes('/video/')) ? (
                         <video src={msg.imageUrl} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 280 }} />
                       ) : (
                         <img
