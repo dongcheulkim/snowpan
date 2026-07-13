@@ -178,6 +178,7 @@ const Used = () => {
           className="px-3 py-2.5 bg-snow border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-accent/50 transition-all"
         >
           <option value="newest">최신순</option>
+          <option value="popular">인기순</option>
           <option value="price_asc">가격↑</option>
           <option value="price_desc">가격↓</option>
         </select>

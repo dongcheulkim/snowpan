@@ -69,15 +69,22 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       skip = n;
     }
 
-    const primary = [
-      { isPremium: { sort: 'desc' as const, nulls: 'last' as const } },
-      { bumpedAt: { sort: 'desc' as const, nulls: 'last' as const } },
-    ];
-    const tail =
-      sort === 'price_asc' ? { price: 'asc' as const }
-      : sort === 'price_desc' ? { price: 'desc' as const }
-      : { createdAt: 'desc' as const };
-    const orderBy = [...primary, tail];
+    // 인기순은 찜(강한 구매 의도) → 조회수 순. 그 외 정렬은 premium+bump 우선.
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] =
+      sort === 'popular'
+        ? [
+            { isPremium: { sort: 'desc', nulls: 'last' } },
+            { wishlists: { _count: 'desc' } },
+            { viewCount: 'desc' },
+            { createdAt: 'desc' },
+          ]
+        : [
+            { isPremium: { sort: 'desc', nulls: 'last' } },
+            { bumpedAt: { sort: 'desc', nulls: 'last' } },
+            sort === 'price_asc' ? { price: 'asc' }
+            : sort === 'price_desc' ? { price: 'desc' }
+            : { createdAt: 'desc' },
+          ];
 
     const productSelect = {
       id: true, name: true, price: true, image: true, brand: true,
