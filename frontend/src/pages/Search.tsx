@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
 import { MaintenanceIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
@@ -13,16 +13,29 @@ interface SearchResult {
 
 export default function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState('');
-  const [debounced, setDebounced] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // URL 의 ?q= 를 초기값으로 — 공유 링크·구글 SearchAction 유입 시 바로 검색.
+  const initialQ = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQ);
+  const [debounced, setDebounced] = useState(initialQ);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(query), 300);
+    const t = setTimeout(() => {
+      setDebounced(query);
+      // 입력 → URL 동기화 (공유·뒤로가기 대응). replace 로 히스토리 오염 방지.
+      const cur = searchParams.get('q') || '';
+      if (cur !== query) {
+        const next = new URLSearchParams(searchParams);
+        if (query) next.set('q', query); else next.delete('q');
+        setSearchParams(next, { replace: true });
+      }
+    }, 300);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   useEffect(() => {

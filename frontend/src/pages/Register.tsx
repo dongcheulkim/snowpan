@@ -243,7 +243,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 이용약관 동의</span>
               </div>
-              <Link to="/terms" target="_blank" className="text-[10px] text-gray-500 hover:underline flex-shrink-0">보기</Link>
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-gray-500 hover:underline flex-shrink-0 underline">보기</Link>
             </label>
 
             {/* 개인정보처리방침 */}
@@ -257,7 +257,7 @@ const Register = () => {
                 />
                 <span className="text-xs text-gray-700">[필수] 개인정보처리방침 동의</span>
               </div>
-              <Link to="/privacy" target="_blank" className="text-[10px] text-gray-500 hover:underline flex-shrink-0">보기</Link>
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-gray-500 hover:underline flex-shrink-0 underline">보기</Link>
             </label>
 
             {/* 마케팅 수신 */}
