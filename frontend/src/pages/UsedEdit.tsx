@@ -133,14 +133,22 @@ const UsedEdit = () => {
               <label className={labelClass}>현재 이미지</label>
               <div className="flex gap-2 flex-wrap">
                 {existingImages.map((src, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-sky-200 group">
+                  <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-sky-200">
                     <img src={src} alt="" className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setExistingImages(existingImages.filter((_, i) => i !== idx))}
-                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
                     >×</button>
-                    {idx === 0 && <div className="absolute bottom-0 left-0 right-0 bg-sky-400 text-white text-[9px] text-center py-0.5">대표</div>}
+                    <div className="absolute bottom-0 inset-x-0 flex justify-between px-0.5 pb-0.5">
+                      {idx > 0 ? (
+                        <button type="button" onClick={() => setExistingImages(a => { const b = [...a]; [b[idx-1], b[idx]] = [b[idx], b[idx-1]]; return b; })} className="w-5 h-5 bg-black/55 text-white rounded-full text-[11px] flex items-center justify-center" aria-label="왼쪽으로">‹</button>
+                      ) : <span />}
+                      {idx < existingImages.length - 1 ? (
+                        <button type="button" onClick={() => setExistingImages(a => { const b = [...a]; [b[idx+1], b[idx]] = [b[idx], b[idx+1]]; return b; })} className="w-5 h-5 bg-black/55 text-white rounded-full text-[11px] flex items-center justify-center" aria-label="오른쪽으로">›</button>
+                      ) : <span />}
+                    </div>
+                    {idx === 0 && <div className="absolute top-0 left-0 bg-sky-400 text-white text-[9px] px-1 py-0.5 rounded-br">대표</div>}
                   </div>
                 ))}
               </div>

@@ -12,6 +12,15 @@ const UsedRegister = () => {
   const [showRules, setShowRules] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+
+  // 사진 순서 이동 — images 와 imageFiles 를 함께 스왑 (첫 장이 대표 이미지).
+  const moveImage = (idx: number, dir: -1 | 1) => {
+    const to = idx + dir;
+    if (to < 0 || to >= images.length) return;
+    const swap = <T,>(arr: T[]) => { const a = [...arr]; [a[idx], a[to]] = [a[to], a[idx]]; return a; };
+    setImages(prev => swap(prev));
+    setImageFiles(prev => swap(prev));
+  };
   const [form, setForm] = useState({
     name: '',
     subcategory: 'ski',
@@ -198,14 +207,23 @@ const UsedRegister = () => {
             {images.length > 0 && (
               <div className="flex gap-2 mb-2 flex-wrap">
                 {images.map((src, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-300 group">
+                  <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-300">
                     <img src={src} alt={`미리보기 ${idx + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => { setImages(images.filter((_, i) => i !== idx)); setImageFiles(imageFiles.filter((_, i) => i !== idx)); }}
-                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
                     >×</button>
-                    {idx === 0 && <div className="absolute bottom-0 left-0 right-0 bg-accent text-white text-[9px] text-center py-0.5">대표</div>}
+                    {/* 순서 이동 — 모바일에서 드래그 대신 좌우 버튼 */}
+                    <div className="absolute bottom-0 inset-x-0 flex justify-between px-0.5 pb-0.5">
+                      {idx > 0 ? (
+                        <button type="button" onClick={() => moveImage(idx, -1)} className="w-5 h-5 bg-black/55 text-white rounded-full text-[11px] flex items-center justify-center" aria-label="왼쪽으로">‹</button>
+                      ) : <span />}
+                      {idx < images.length - 1 ? (
+                        <button type="button" onClick={() => moveImage(idx, 1)} className="w-5 h-5 bg-black/55 text-white rounded-full text-[11px] flex items-center justify-center" aria-label="오른쪽으로">›</button>
+                      ) : <span />}
+                    </div>
+                    {idx === 0 && <div className="absolute top-0 left-0 bg-accent text-white text-[9px] px-1 py-0.5 rounded-br">대표</div>}
                   </div>
                 ))}
               </div>
