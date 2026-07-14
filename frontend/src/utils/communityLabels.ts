@@ -12,6 +12,7 @@ const BASE: Record<string, { ski: string; board: string }> = {
   carpool: { ski: '카풀',     board: '카풀' },
   meetup:  { ski: '모임',     board: '모임' },
   poll:    { ski: '투표',     board: '투표' },
+  notice:  { ski: '공지',     board: '공지' },
 };
 
 export function communityCategoryLabel(id: string, sport?: Sport): string {

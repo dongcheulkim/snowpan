@@ -45,7 +45,8 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     }
 
     const where: any = { vertical: verticalSlug };
-    if (sport) where.sport = sport as string;
+    // sport 필터 시 공용(sport='all', 공지) 글도 함께 노출 — 스키·보드 양쪽에 뜨게.
+    if (sport) where.sport = { in: [sport as string, 'all'] };
     if (category && category !== 'all') where.category = category as string;
     if (userId) where.userId = userId as string;
     if (search) {
@@ -67,7 +68,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
           user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: 'snow' }, select: { badgeType: true } } } },
           _count: { select: { comments: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }], // 공지(pinned) 상단 고정
       }),
       prisma.post.count({ where }),
     ]);
@@ -232,12 +233,20 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // 카테고리 화이트리스트
-    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
+    // 카테고리 화이트리스트. 'notice'(공지)는 관리자 전용.
+    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'notice'];
     if (!allowedCategories.includes(category)) {
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;
     }
+    const isNotice = category === 'notice';
+    if (isNotice && req.user!.role !== 'admin') {
+      res.status(403).json({ error: '공지사항은 관리자만 작성할 수 있습니다.' });
+      return;
+    }
+    // 공지는 스키·보드 공용(sport='all')으로 저장하고 상단 고정.
+    const finalSport = isNotice ? 'all' : sport;
+    const finalPinned = isNotice;
     // sport: snow=ski/board, bike=road/mtb, run=road/trail, etc. — vertical 안에서 자유롭게 (검증 약화)
     if (typeof sport !== 'string' || sport.length > 20) {
       res.status(400).json({ error: '유효하지 않은 종목입니다.' });
@@ -287,7 +296,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     const post = await prisma.post.create({
-      data: { title: cleanTitle, content: cleanContent, category, sport, vertical: verticalSlug, userId, images: images || null },
+      data: { title: cleanTitle, content: cleanContent, category, sport: finalSport, pinned: finalPinned, vertical: verticalSlug, userId, images: images || null },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: verticalSlug }, select: { badgeType: true } } } } },
     });
 
@@ -449,8 +458,9 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       data.content = clean;
     }
     if (category !== undefined) {
-      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
+      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'notice'];
       if (!allowedCategories.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
+      if (category === 'notice' && req.user!.role !== 'admin') { res.status(403).json({ error: '공지사항은 관리자만 지정할 수 있습니다.' }); return; }
       data.category = category;
     }
     const updated = await prisma.post.update({ where: { id }, data });

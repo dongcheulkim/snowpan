@@ -15,6 +15,7 @@ interface Post {
   content: string;
   category: string;
   sport: string;
+  pinned?: boolean;
   images?: string | null;
   likes: number;
   views: number;
@@ -35,7 +36,7 @@ interface PollItem {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', poll: '투표',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', poll: '투표', notice: '공지',
 };
 
 const badgeColor: Record<string, string> = {
@@ -47,6 +48,7 @@ const badgeColor: Record<string, string> = {
   '장비추천': 'text-sky-500 bg-sky-50 border-sky-200',
   '모임': 'text-emerald-600 bg-emerald-50 border-emerald-200',
   '투표': 'text-orange-500 bg-orange-50 border-orange-200',
+  '공지': 'text-red-600 bg-red-50 border-red-200 font-bold',
 };
 
 const PAGE_SIZE = 20;
@@ -246,7 +248,7 @@ const Community = () => {
                     </span>
                     <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.title}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.pinned && <span className="text-red-500 mr-1">📌</span>}{post.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-gray-500 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>

@@ -366,10 +366,11 @@ model Post {
   id        String    @id @default(uuid())
   title     String
   content   String
-  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'meetup' | 'poll'
-  sport     String    // snow: 'ski' | 'board' / bike: 'road' | 'mtb' / etc.
+  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'meetup' | 'poll' | 'notice'
+  sport     String    // snow: 'ski' | 'board' / bike: 'road' | 'mtb' / 'all'=공용(공지)
   vertical  String    @default("snow")
   images    String?   // 콤마 구분 이미지 URLs
+  pinned    Boolean   @default(false) // 공지 상단 고정 (관리자만)
   likes     Int       @default(0)
   views     Int       @default(0)
   userId    String
