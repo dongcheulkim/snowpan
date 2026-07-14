@@ -7,6 +7,8 @@ interface MetaOptions {
   image?: string;
   url?: string;
   type?: 'website' | 'article' | 'product';
+  // 페이지별 구조화 데이터(JSON-LD). 검색결과 리치스니펫용 (Product, LocalBusiness 등).
+  jsonLd?: Record<string, unknown> | null;
 }
 
 const DEFAULT_TITLE = '스노우판 — 스키·보드 중고거래·렌탈·레슨·숙소';
@@ -49,7 +51,20 @@ function setCanonical(url: string) {
   el.href = url;
 }
 
-export function useMeta({ title, description, image, url, type = 'website' }: MetaOptions) {
+const JSONLD_ID = 'page-jsonld';
+
+function setJsonLd(data: Record<string, unknown> | null | undefined) {
+  const existing = document.getElementById(JSONLD_ID);
+  if (existing) existing.remove();
+  if (!data) return;
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = JSONLD_ID;
+  el.textContent = JSON.stringify(data);
+  document.head.appendChild(el);
+}
+
+export function useMeta({ title, description, image, url, type = 'website', jsonLd }: MetaOptions) {
   useEffect(() => {
     const finalTitle = title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE;
     const finalDesc = description || DEFAULT_DESC;
@@ -69,9 +84,13 @@ export function useMeta({ title, description, image, url, type = 'website' }: Me
     setMeta('twitter:description', finalDesc);
     setMeta('twitter:image', finalImage);
     setCanonical(finalUrl);
+    setJsonLd(jsonLd);
 
     return () => {
       document.title = prevTitle;
+      setJsonLd(null);
     };
-  }, [title, description, image, url, type]);
+  // jsonLd 는 객체라 매 렌더 새 참조 → 문자열로 비교해 불필요한 재실행 방지.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description, image, url, type, jsonLd ? JSON.stringify(jsonLd) : '']);
 }

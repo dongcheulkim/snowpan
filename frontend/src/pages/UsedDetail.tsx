@@ -61,6 +61,21 @@ const UsedDetail = () => {
     description: product ? (product.description?.slice(0, 150) || `${product.name} 중고 스키/보드 장비 - 스노우판에서 안전하게 거래하세요.`) : undefined,
     image: product?.image ? (product.image.startsWith('http') ? product.image : imageUrl(product.image)) : undefined,
     type: 'product',
+    jsonLd: product ? {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
+      ...(product.image ? { image: product.image.startsWith('http') ? product.image : imageUrl(product.image) } : {}),
+      ...(product.description ? { description: product.description.slice(0, 300) } : {}),
+      offers: {
+        '@type': 'Offer',
+        price: product.price,
+        priceCurrency: 'KRW',
+        availability: product.status === 'sold' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/UsedCondition',
+      },
+    } : null,
   });
 
   useEffect(() => {

@@ -20,6 +20,13 @@ const STATIC_ROUTES: { path: string; priority: number; changefreq: string }[] = 
   { path: '/competitions', priority: 0.5, changefreq: 'weekly' },
 ];
 
+// 리조트별 랜딩 — "용평리조트 스키샵/렌탈" 등 검색 유입용. 프론트 /resort/:name 라우트.
+const RESORTS = [
+  '용평리조트', '웰리힐리파크', '하이원리조트', '휘닉스평창',
+  '곤지암리조트', '비발디파크', '엘리시안강촌', '지산리조트',
+  '오크밸리', '무주덕유산', '에덴밸리', '오투리조트', '알펜시아',
+];
+
 function xmlEscape(s: string): string {
   return s.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]!));
 }
@@ -43,6 +50,11 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     for (const r of STATIC_ROUTES) {
       parts.push(urlEntry(`${SITE_URL}${r.path}`, undefined, r.changefreq, r.priority));
+    }
+
+    // 리조트별 랜딩 페이지
+    for (const name of RESORTS) {
+      parts.push(urlEntry(`${SITE_URL}/resort/${encodeURIComponent(name)}`, undefined, 'weekly', 0.7));
     }
 
     // 중고매물 (판매중만)
@@ -113,7 +125,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
       take: 2000,
     });
     for (const p of posts) {
-      parts.push(urlEntry(`${SITE_URL}/community/${p.id}`, p.updatedAt, 'weekly', 0.4));
+      parts.push(urlEntry(`${SITE_URL}/community/post/${p.id}`, p.updatedAt, 'weekly', 0.4));
     }
 
     parts.push('</urlset>');

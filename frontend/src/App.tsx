@@ -40,6 +40,7 @@ const CompetitionDetail = lazy(() => import('./pages/CompetitionDetail'));
 const MyAds = lazy(() => import('./pages/MyAds'));
 const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const SkiShopEdit = lazy(() => import('./pages/SkiShopEdit'));
+const ResortLanding = lazy(() => import('./pages/ResortLanding'));
 const SkiShopDetail = lazy(() => import('./pages/SkiShopDetail'));
 const RepairShopDetail = lazy(() => import('./pages/RepairShopDetail'));
 const RepairShopEdit = lazy(() => import('./pages/RepairShopEdit'));
@@ -130,6 +131,7 @@ function App() {
               <Route key={v} path={`${v}/*`} element={<Navigate to="/" replace />} />
             ))}
             <Route path="privacy" element={<Privacy />} />
+            <Route path="resort/:name" element={<ResortLanding />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />
             <Route path="skishop/:id/edit" element={<RequireAuth><SkiShopEdit /></RequireAuth>} />

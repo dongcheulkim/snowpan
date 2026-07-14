@@ -47,6 +47,16 @@ export default function RepairShopDetail() {
     title: shop ? `${shop.name}${shop.area ? ` · ${shop.area}` : ''}` : undefined,
     description: shop ? (shop.description?.slice(0, 150) || `${shop.name} 스키/보드 정비샵 정보 - 스노우판`) : undefined,
     image: shop?.image ? (shop.image.startsWith('http') ? shop.image : imageUrl(shop.image)) : undefined,
+    jsonLd: shop ? {
+      '@context': 'https://schema.org',
+      '@type': 'AutoRepair',
+      name: shop.name,
+      ...(shop.description ? { description: shop.description.slice(0, 300) } : {}),
+      ...(shop.image ? { image: shop.image.startsWith('http') ? shop.image : imageUrl(shop.image) } : {}),
+      ...(shop.address ? { address: { '@type': 'PostalAddress', streetAddress: shop.address, addressCountry: 'KR' } } : {}),
+      ...(shop.phone ? { telephone: shop.phone } : {}),
+      ...(shop.website ? { url: shop.website } : {}),
+    } : null,
   });
 
   useEffect(() => {

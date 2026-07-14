@@ -76,6 +76,10 @@ const SellerProfile = () => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [postTotalCount, setPostTotalCount] = useState(0);
   const user = getUser();
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -142,6 +146,27 @@ const SellerProfile = () => {
       alert(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다.');
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+  const reportReasons = ['사기 의심', '허위 정보', '욕설·비방', '부적절한 행동', '스팸·광고', '기타'];
+
+  const handleReportUser = async () => {
+    if (!reportReason || !sellerId) return;
+    setReportSubmitting(true);
+    try {
+      await api('/reports', {
+        method: 'POST',
+        body: { type: 'user', targetId: sellerId, reason: reportReason, description: reportDesc || undefined },
+      });
+      alert('신고가 접수되었습니다.');
+      setShowReport(false);
+      setReportReason('');
+      setReportDesc('');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -218,6 +243,9 @@ const SellerProfile = () => {
           </div>
         )}
         <p className="text-[11px] text-gray-500 mt-1">{memberDuration(seller.createdAt)}</p>
+        {user && user.id !== sellerId && (
+          <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-400 hover:text-coral transition-colors mt-1.5">🚩 이 사용자 신고</button>
+        )}
         <div className="grid grid-cols-4 gap-2 mt-4">
           <div className="py-2.5 bg-snow rounded-xl border border-gray-200">
             <div className="text-sm font-bold text-gray-900">{seller.stats?.listingCount ?? seller.products.length}</div>
@@ -361,6 +389,31 @@ const SellerProfile = () => {
           </div>
         )}
       </div>
+
+      {/* 유저 신고 모달 */}
+      {showReport && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45" onClick={() => setShowReport(false)}>
+          <div className="w-full max-w-md bg-white rounded-t-2xl p-5 space-y-3 animate-[slideUp_.25s_ease-out]" onClick={e => e.stopPropagation()}>
+            <style>{`@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}`}</style>
+            <h3 className="text-sm font-bold text-gray-900">사용자 신고</h3>
+            <div className="space-y-1.5">
+              {reportReasons.map(r => (
+                <label key={r} className="flex items-center gap-2 py-1.5 cursor-pointer">
+                  <input type="radio" name="report-reason" checked={reportReason === r} onChange={() => setReportReason(r)} className="accent-coral" />
+                  <span className="text-sm text-gray-700">{r}</span>
+                </label>
+              ))}
+            </div>
+            <textarea value={reportDesc} onChange={e => setReportDesc(e.target.value)} rows={2} placeholder="상세 내용 (선택)" className="w-full px-3 py-2 rounded-lg text-sm bg-snow border border-gray-200 text-gray-900 placeholder-gray-400 resize-none" />
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setShowReport(false)} className="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium border border-gray-200">취소</button>
+              <button onClick={handleReportUser} disabled={!reportReason || reportSubmitting} className="flex-1 py-2.5 bg-coral text-white rounded-lg text-sm font-bold disabled:opacity-30">
+                {reportSubmitting ? '접수 중...' : '신고하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
