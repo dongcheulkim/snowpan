@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { MaintenanceIcon, SkiShopIcon } from '../components/CategoryIcons';
 
@@ -12,6 +12,7 @@ interface Shop {
 }
 
 export default function MyShops() {
+  const navigate = useNavigate();
   const [skiShops, setSkiShops] = useState<Shop[]>([]);
   const [repairShops, setRepairShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,18 +27,35 @@ export default function MyShops() {
     }).finally(() => setLoading(false));
   }, []);
 
+  const handleDelete = async (type: string, shop: Shop) => {
+    if (!confirm(`"${shop.name}" 매장을 삭제하시겠습니까?`)) return;
+    try {
+      await api(`/${type === 'ski' ? 'ski-shops' : 'repair-shops'}/${shop.id}`, { method: 'DELETE' });
+      if (type === 'ski') setSkiShops(prev => prev.filter(s => s.id !== shop.id));
+      else setRepairShops(prev => prev.filter(s => s.id !== shop.id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '삭제 실패');
+    }
+  };
+
   const ShopCard = ({ shop, type }: { shop: Shop; type: string }) => (
-    <div className="flex items-center justify-between p-3 bg-snow rounded-lg border border-gray-200">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
-          <p className="text-[10px] text-gray-500">{shop.area}</p>
+    <div className="p-3 bg-snow rounded-lg border border-gray-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
+            <p className="text-[10px] text-gray-500">{shop.area}</p>
+          </div>
         </div>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+          {shop.approved ? '승인됨' : '대기중'}
+        </span>
       </div>
-      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-        {shop.approved ? '승인됨' : '대기중'}
-      </span>
+      <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
+        <button onClick={() => navigate(`/${type === 'ski' ? 'skishop' : 'repair'}/${shop.id}/edit`)} className="flex-1 py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
+        <button onClick={() => handleDelete(type, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
+      </div>
     </div>
   );
 

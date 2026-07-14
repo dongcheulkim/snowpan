@@ -110,10 +110,41 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 관리자: 거절
+// 소유자 본인 또는 관리자: 매장 정보 수정
+router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const shop = await prisma.repairShop.findUnique({ where: { id: req.params.id } });
+    if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
+    if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+
+    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image } = req.body;
+    const data: any = {};
+    if (name !== undefined) data.name = sanitizeText(name, 100) || name;
+    if (area !== undefined) data.area = sanitizeText(area, 40) || area;
+    if (address !== undefined) data.address = sanitizeText(address, 200) || address;
+    if (description !== undefined) data.description = sanitizeText(description, 2000) || description;
+    if (services !== undefined) data.services = services ? (sanitizeText(services, 500) || services) : null;
+    if (phone !== undefined) data.phone = phone ? (sanitizeText(phone, 40) || phone) : null;
+    if (instagram !== undefined) data.instagram = instagram ? (sanitizeText(instagram, 60) || instagram) : null;
+    if (website !== undefined) data.website = website ? (sanitizeText(website, 300) || website) : null;
+    if (naverMap !== undefined) data.naverMap = naverMap ? (sanitizeText(naverMap, 300) || naverMap) : null;
+    if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
+    if (image !== undefined) data.image = image || null;
+
+    const updated = await prisma.repairShop.update({ where: { id: req.params.id }, data });
+    res.json(updated);
+  } catch (error) {
+    console.error('Update repair shop error:', error);
+    res.status(500).json({ error: '정비샵 수정 실패' });
+  }
+});
+
+// 소유자 본인 또는 관리자: 삭제
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
+    const shop = await prisma.repairShop.findUnique({ where: { id: req.params.id } });
+    if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
+    if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
     await prisma.repairShop.delete({ where: { id: req.params.id } });
     res.json({ message: '삭제 완료' });
   } catch (error) { res.status(500).json({ error: '삭제 실패' }); }
