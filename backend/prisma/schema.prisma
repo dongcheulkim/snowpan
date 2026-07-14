@@ -516,6 +516,24 @@ model Report {
   @@map("reports")
 }
 
+// 매장 소유권 이전 요청 — 우리가 등록한 매장을 실제 사장이 "내 매장" 으로 가져가기.
+// 관리자가 사업자등록증 확인 후 승인하면 매장 userId 가 요청자에게 넘어감.
+model ShopClaim {
+  id              String   @id @default(uuid())
+  shopType        String   // 'skishop' | 'repair'
+  shopId          String
+  userId          String   // 요청자 (승인 시 이 사람이 매장 소유자가 됨)
+  businessLicense String   // 사업자등록증 이미지 URL (본인 확인용)
+  message         String?
+  status          String   @default("pending") // 'pending' | 'approved' | 'rejected'
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([userId])
+  @@index([shopType, shopId])
+  @@map("shop_claims")
+}
+
 // 키워드 알림 — 등록한 키워드가 포함된 중고매물이 올라오면 푸시/알림.
 model SavedSearch {
   id        String   @id @default(uuid())
