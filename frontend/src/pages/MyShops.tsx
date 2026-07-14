@@ -8,6 +8,7 @@ interface Shop {
   name: string;
   area: string;
   approved: boolean;
+  viewCount?: number;
   createdAt: string;
 }
 
@@ -45,7 +46,7 @@ export default function MyShops() {
           <span className="text-gray-700">{type === 'ski' ? <SkiShopIcon size={20} /> : <MaintenanceIcon size={20} />}</span>
           <div className="min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
-            <p className="text-[10px] text-gray-500">{shop.area}</p>
+            <p className="text-[10px] text-gray-500">{shop.area} · 조회 {(shop.viewCount ?? 0).toLocaleString()}</p>
           </div>
         </div>
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
@@ -61,12 +62,28 @@ export default function MyShops() {
 
   if (loading) return <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>;
 
+  const totalShops = skiShops.length + repairShops.length;
+  const totalViews = [...skiShops, ...repairShops].reduce((n, s) => n + (s.viewCount ?? 0), 0);
+
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
-        <h1 className="text-xl font-bold text-gray-900">내 스키샵/정비샵</h1>
+        <h1 className="text-xl font-bold text-gray-900">사장님 대시보드</h1>
       </div>
+
+      {totalShops > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="card p-4 text-center">
+            <div className="text-2xl font-bold text-gray-900">{totalShops}</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">등록 매장</div>
+          </div>
+          <div className="card p-4 text-center">
+            <div className="text-2xl font-bold text-sky-600">{totalViews.toLocaleString()}</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">총 조회수</div>
+          </div>
+        </div>
+      )}
 
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">

@@ -9,7 +9,7 @@ import EmptyState from '../components/EmptyState';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
-import { toastError } from '../components/Toast';
+import { toastError, toastSuccess } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 
 interface Product {
@@ -183,6 +183,21 @@ const Used = () => {
           <option value="price_desc">가격↓</option>
         </select>
       </div>
+
+      {/* 현재 검색어 키워드 알림 등록 — 로그인 + 검색어 있을 때만 */}
+      {getUser() && debouncedSearch.trim().length >= 2 && (
+        <button
+          onClick={async () => {
+            try {
+              await api('/saved-searches', { method: 'POST', body: { keyword: debouncedSearch.trim() } });
+              toastSuccess(`"${debouncedSearch.trim()}" 키워드 알림 등록! 새 매물 올라오면 알려드려요.`);
+            } catch (e) { toastError(e instanceof Error ? e.message : '등록 실패'); }
+          }}
+          className="w-full py-2 bg-sky-50 text-sky-600 rounded-xl text-xs font-bold border border-sky-100 hover:bg-sky-100 transition-colors"
+        >
+          🔔 "{debouncedSearch.trim()}" 새 매물 알림받기
+        </button>
+      )}
 
       {/* Categories — 2줄 자동 래핑 그리드. 13개 모두 한눈에. */}
       <div className="flex flex-wrap gap-1.5">

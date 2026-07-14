@@ -115,6 +115,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       include: { user: { select: { id: true, name: true, nickname: true } } },
     });
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
+    // 조회수 증가 (fire-and-forget) — 응답 지연 없이.
+    prisma.skiShop.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
     res.json(shop);
   } catch (error) {
     res.status(500).json({ error: '스키샵 조회 실패' });

@@ -48,6 +48,7 @@ model User {
   reviewsGiven     Review[]   @relation("reviewBuyer")
   reviewsReceived  Review[]   @relation("reviewSeller")
   reports          Report[]
+  savedSearches    SavedSearch[]
   adRequests       AdRequest[]
   adBookings       AdBooking[]
   skiShops         SkiShop[]
@@ -515,6 +516,19 @@ model Report {
   @@map("reports")
 }
 
+// 키워드 알림 — 등록한 키워드가 포함된 중고매물이 올라오면 푸시/알림.
+model SavedSearch {
+  id        String   @id @default(uuid())
+  keyword   String   // 소문자 정규화해 저장 (매칭용)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, keyword])
+  @@index([userId])
+  @@map("saved_searches")
+}
+
 model Banner {
   id          String   @id @default(uuid())
   title       String
@@ -645,6 +659,7 @@ model SkiShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
+  viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])
@@ -676,6 +691,7 @@ model RepairShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
+  viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])

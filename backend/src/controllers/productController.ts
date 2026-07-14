@@ -9,6 +9,7 @@ import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
+import { notifyKeywordMatches } from '../utils/keywordAlert';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -315,6 +316,8 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
 
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDel('home:hotdeals');
+    // 키워드 알림 — 관심 키워드에 맞는 사용자에게 푸시 (fire-and-forget, 응답 지연 없이).
+    notifyKeywordMatches({ id: product.id, name: product.name, brand: product.brand, userId }).catch(() => {});
     res.status(201).json(product);
   } catch (error) {
     console.error('Create used product error:', error);

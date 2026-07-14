@@ -132,6 +132,7 @@ const MyPage = () => {
     { label: '내 쿠폰', link: '/mypage/coupons' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
+    { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
