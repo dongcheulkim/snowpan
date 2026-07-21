@@ -88,9 +88,9 @@ const httpServer = createServer(app);
 app.set('trust proxy', 1);
 
 // CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선,
-// 미설정 시 프로덕션=snowpan.vercel.app + 이전 snowpan.vercel.app (전환 기간 동안 호환), dev=localhost
+// 미설정 시 프로덕션=snowpan.kr(신규 대표) + www + 이전 snowpan.vercel.app(전환 호환), dev=localhost
 const DEFAULT_ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
-  ? ['https://snowpan.vercel.app', 'https://snowpan.vercel.app']
+  ? ['https://snowpan.kr', 'https://www.snowpan.kr', 'https://snowpan.vercel.app']
   : ['http://localhost:5173', 'http://localhost:3000'];
 const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)

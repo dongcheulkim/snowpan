@@ -2,10 +2,10 @@
 //
 // 우선순위:
 //   1. VITE_SITE_URL (Vercel 환경변수) — 커스텀 도메인 사용 시
-//   2. 기본: snowpan.vercel.app (2026-05-27 SNOWPAN 단일 운영 복귀)
+//   2. 기본: snowpan.kr (2026-07-21 커스텀 도메인 연결)
 
 export const SITE_URL: string =
-  (import.meta.env.VITE_SITE_URL as string | undefined) || 'https://snowpan.vercel.app';
+  (import.meta.env.VITE_SITE_URL as string | undefined) || 'https://snowpan.kr';
 
 export const SITE_NAME = '스노우판';
 export const SITE_DESCRIPTION = '스키·보드 중고거래·렌탈·레슨·숙소를 한 곳에. 시즌의 모든 것.';
