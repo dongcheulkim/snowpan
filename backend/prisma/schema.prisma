@@ -679,6 +679,9 @@ model SkiShop {
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
+  aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)
+  aiVerified      Boolean  @default(false) // 네이버 지역검색 대조 통과 여부
+  aiNote          String?  // AI 검증 결과 메모 (관리자 표시용)
   vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])
@@ -711,6 +714,9 @@ model RepairShop {
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
+  aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)
+  aiVerified      Boolean  @default(false) // 네이버 지역검색 대조 통과 여부
+  aiNote          String?  // AI 검증 결과 메모 (관리자 표시용)
   vertical        String   @default("snow")
   userId          String
   user            User     @relation(fields: [userId], references: [id])

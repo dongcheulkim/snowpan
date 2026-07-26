@@ -32,6 +32,23 @@ interface PendingItem {
   requesterEmail?: string;
   message?: string | null;
   shopType?: string;
+  // AI 직원 네이버 더블체크 결과
+  aiVerified?: boolean;
+  aiNote?: string | null;
+  aiReviewedAt?: string | null;
+}
+
+// AI 직원 검증 결과 배지 — 관리자가 한눈에 신뢰도 파악.
+function AiBadge({ item }: { item: PendingItem }) {
+  if (!item.aiReviewedAt) {
+    return <div className="mt-2 text-[11px] text-gray-400">🤖 AI 검증 대기 중…</div>;
+  }
+  const ok = item.aiVerified;
+  return (
+    <div className={`mt-2 text-[11px] px-2 py-1.5 rounded-lg border ${ok ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
+      {item.aiNote || (ok ? '네이버 확인됨' : '네이버 미확인')}
+    </div>
+  );
 }
 
 type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair' | 'claim';
@@ -218,6 +235,7 @@ const AdminApproval = () => {
                   <img src={imageUrl(item.businessLicense)} alt="사업자등록증" className="w-full max-w-xs object-contain rounded-lg border border-gray-200" />
                 </a>
               )}
+              <AiBadge item={item} />
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
@@ -246,6 +264,7 @@ const AdminApproval = () => {
                   <span className="text-[10px] text-sky-500 mt-1 block">사업자등록증 확인</span>
                 </a>
               )}
+              <AiBadge item={item} />
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">

@@ -77,6 +77,7 @@ import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
+import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { seedAdPricing } from './utils/seedAdPricing';
 
 const app = express();
@@ -493,6 +494,12 @@ httpServer.listen(PORT, async () => {
     startAdBookingScheduler();
   } catch (err) {
     console.error('광고 스케줄러 시작 실패:', err);
+  }
+
+  try {
+    startShopVerifyScheduler(); // AI 직원 — 매장 네이버 더블체크
+  } catch (err) {
+    console.error('AI 직원 스케줄러 시작 실패:', err);
   }
 
   try {
