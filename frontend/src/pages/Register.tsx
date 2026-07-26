@@ -245,9 +245,12 @@ const Register = () => {
                 </div>
                 <button type="button" onClick={(e) => { e.preventDefault(); setLegalSheet('privacy'); }} className="text-[10px] text-gray-500 underline">보기</button>
               </label>
-              <label className="flex items-center gap-3 px-4 py-3 cursor-pointer">
-                <input type="checkbox" checked={agree.marketing} onChange={(e) => handleAgreeItem('marketing', e.target.checked)} className="w-4 h-4 accent-sky-500" />
-                <span className="text-xs text-gray-500">[선택] 마케팅 수신 동의 (이벤트·혜택 알림)</span>
+              <label className="flex items-start gap-3 px-4 py-3 cursor-pointer">
+                <input type="checkbox" checked={agree.marketing} onChange={(e) => handleAgreeItem('marketing', e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+                <span>
+                  <span className="text-xs text-gray-500">[선택] 마케팅 수신 동의 (이벤트·혜택 알림)</span>
+                  <span className="block text-[11px] text-sky-500 mt-0.5">쓸데없는 광고는 안 보내요. 진짜 좋은 이벤트·혜택만 딱 알려드려요 🎁</span>
+                </span>
               </label>
             </div>
           )}
