@@ -379,6 +379,8 @@ const AdminApproval = () => {
           </div>
         )}
 
+        {(activeTab === 'rental' || activeTab === 'lesson' || activeTab === 'accommodation') && <AiBadge item={item} />}
+
         <div className="flex gap-2 pt-3 border-t border-gray-50">
           <button onClick={() => handleReject(activeTab, item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
           <button onClick={() => handleApprove(activeTab, item.id)} className="flex-1 py-2.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors">승인</button>

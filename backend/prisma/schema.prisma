@@ -247,6 +247,9 @@ model Rental {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
+  aiReviewedAt          DateTime? // AI 직원 네이버 검증 시각
+  aiVerified            Boolean   @default(false)
+  aiNote                String?
   vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -273,6 +276,9 @@ model Lesson {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
+  aiReviewedAt          DateTime? // AI 직원 네이버 검증 시각
+  aiVerified            Boolean   @default(false)
+  aiNote                String?
   vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -300,6 +306,9 @@ model Accommodation {
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false)
+  aiReviewedAt          DateTime? // AI 직원 네이버 검증 시각
+  aiVerified            Boolean   @default(false)
+  aiNote                String?
   vertical              String    @default("snow")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

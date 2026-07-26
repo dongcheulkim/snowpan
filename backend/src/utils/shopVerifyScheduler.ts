@@ -38,6 +38,17 @@ async function processOne(
   }
 }
 
+// 렌탈/레슨/숙소 — 주소·전화가 없고 이름만 있음. 상호+리조트명으로 네이버 검색 후 이름 대조.
+// 신뢰도가 매장(스키샵/정비샵)보다 약해 자동승인은 하지 않고 검증 결과만 표시·알림.
+async function processNameOnly(delegate: any, label: string, item: { id: string; name: string; resort?: { name: string } | null }): Promise<void> {
+  const region = item.resort?.name || '';
+  const places = await naverLocalSearch(region ? `${item.name} ${region}` : item.name);
+  const result = matchShopWithNaver({ name: item.name, phone: null, address: null }, places);
+  await delegate.update({ where: { id: item.id }, data: { aiReviewedAt: new Date(), aiVerified: result.verified, aiNote: result.note } });
+  const title = result.verified ? `AI 직원: ${label} 검증 완료 (승인 대기)` : `AI 직원: ${label} 수동 확인 필요`;
+  await notifyAdmins('system', title, `"${item.name}" — ${result.note}`, '/admin-approval').catch(() => {});
+}
+
 export async function verifyPendingShops(): Promise<void> {
   if (!naverConfigured()) return; // 네이버 키 미설정 → 조용히 스킵
 
@@ -56,6 +67,21 @@ export async function verifyPendingShops(): Promise<void> {
       take: BATCH,
     });
     for (const s of repairShops) await processOne('repair', s, autoApprove);
+
+    // 렌탈·레슨·숙소 (이름 기반 검증)
+    const nameTypes: { delegate: any; label: string }[] = [
+      { delegate: prisma.rental, label: '렌탈' },
+      { delegate: prisma.lesson, label: '레슨' },
+      { delegate: prisma.accommodation, label: '숙소' },
+    ];
+    for (const nt of nameTypes) {
+      const items = await nt.delegate.findMany({
+        where: { approved: false, aiReviewedAt: null },
+        select: { id: true, name: true, resort: { select: { name: true } } },
+        take: BATCH,
+      });
+      for (const it of items) await processNameOnly(nt.delegate, nt.label, it);
+    }
   } catch (err) {
     console.error('AI 직원 검증 에러:', err);
   }

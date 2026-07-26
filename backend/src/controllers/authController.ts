@@ -8,6 +8,7 @@ import { sendSMS } from '../utils/sms';
 import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
 import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
+import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
 import { awardPoints } from '../utils/points';
 
@@ -307,6 +308,7 @@ export const requestBadge = async (req: AuthRequest, res: Response): Promise<voi
     const badge = await prisma.badgeRequest.create({
       data: { userId, vertical: verticalSlug, badgeType, image: image || null },
     });
+    await notifyAdmins('system', '새 자격증 인증 요청', `${badgeType} 자격증 인증이 신청되었습니다.`, '/admin-approval').catch(() => {});
     res.status(201).json(badge);
   } catch (error) {
     console.error('Request badge error:', error);

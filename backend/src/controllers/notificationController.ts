@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { sendDiscord } from '../utils/discord';
 
 export const getNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -77,7 +78,7 @@ export const deleteAllNotifications = async (req: AuthRequest, res: Response): P
   }
 };
 
-// 관리자 전체에게 알림 보내기
+// 관리자 전체에게 알림 보내기 (+ 디스코드 웹훅 — 모든 관리자 이벤트가 디스코드로 띠링)
 export const notifyAdmins = async (type: string, title: string, message: string, link?: string) => {
   try {
     const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
@@ -87,6 +88,8 @@ export const notifyAdmins = async (type: string, title: string, message: string,
   } catch (error) {
     console.error('Notify admins error:', error);
   }
+  // 디스코드 알림 (fire-and-forget) — DB 알림과 별개로, 실패해도 무시.
+  sendDiscord(title, message, link).catch(() => {});
 };
 
 // 알림 생성 헬퍼 (다른 컨트롤러에서 호출)
