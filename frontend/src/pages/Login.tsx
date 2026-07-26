@@ -143,7 +143,7 @@ const Login = () => {
           <div className="flex gap-3 mt-4">
             <button
               onClick={() => {
-                alert('카카오 로그인은 API 키 설정 후 사용 가능합니다.\n관리자에게 KAKAO_CLIENT_ID 설정을 요청하세요.');
+                alert('카카오 간편 로그인은 아직 준비 중이에요!\n조금만 기다려주세요.');
               }}
               className="flex-1 py-3 rounded-lg font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#FEE500', color: '#000000' }}
@@ -155,7 +155,7 @@ const Login = () => {
             </button>
             <button
               onClick={() => {
-                alert('네이버 로그인은 API 키 설정 후 사용 가능합니다.\n관리자에게 NAVER_CLIENT_ID 설정을 요청하세요.');
+                alert('네이버 간편 로그인은 아직 준비 중이에요!\n조금만 기다려주세요.');
               }}
               className="flex-1 py-3 rounded-lg font-bold text-sm text-white transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#03C75A' }}
