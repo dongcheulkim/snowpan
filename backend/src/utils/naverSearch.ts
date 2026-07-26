@@ -85,10 +85,10 @@ export function matchShopWithNaver(
 
   const cleanTitle = best.place.title.replace(/<[^>]+>/g, '');
   if (best.conf === 'high') {
-    return { verified: true, confidence: 'high', note: `✅ 네이버 일치: ${cleanTitle} · ${best.place.roadAddress || best.place.address}` };
+    return { verified: true, confidence: 'high', note: `네이버 일치: ${cleanTitle} · ${best.place.roadAddress || best.place.address}` };
   }
   if (best.conf === 'medium') {
-    return { verified: true, confidence: 'medium', note: `🟡 네이버 유사: ${cleanTitle} · ${best.place.roadAddress || best.place.address} (부분 일치)` };
+    return { verified: true, confidence: 'medium', note: `네이버 유사(부분 일치): ${cleanTitle} · ${best.place.roadAddress || best.place.address}` };
   }
-  return { verified: false, confidence: 'none', note: `⚠️ 네이버 결과와 불일치 (검색 상위: ${cleanTitle}) — 수동 확인 필요` };
+  return { verified: false, confidence: 'none', note: `네이버 결과와 불일치 (검색 상위: ${cleanTitle}) — 수동 확인 필요` };
 }

@@ -220,7 +220,7 @@ const Register = () => {
                 className={`${inputClass} ${refStatus === 'invalid' || refStatus === 'format' ? 'border-coral' : refStatus === 'valid' ? 'border-emerald-500' : ''}`}
               />
               {refStatus === 'checking' && <p className="text-[11px] text-gray-500 mt-1.5">확인 중…</p>}
-              {refStatus === 'valid' && referrerName && <p className="text-[11px] text-emerald-600 mt-1.5 font-medium">✓ {referrerName}님의 추천 — 가입 시 +500P</p>}
+              {refStatus === 'valid' && referrerName && <p className="text-[11px] text-emerald-600 mt-1.5 font-medium">{referrerName}님의 추천 — 가입 시 +500P</p>}
               {refStatus === 'invalid' && <p className="text-[11px] text-coral mt-1.5">존재하지 않는 추천 코드예요.</p>}
               {refStatus === 'format' && <p className="text-[11px] text-coral mt-1.5">영문/숫자 4~12자만 가능해요.</p>}
             </div>
@@ -249,7 +249,7 @@ const Register = () => {
                 <input type="checkbox" checked={agree.marketing} onChange={(e) => handleAgreeItem('marketing', e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
                 <span>
                   <span className="text-xs text-gray-500">[선택] 마케팅 수신 동의 (이벤트·혜택 알림)</span>
-                  <span className="block text-[11px] text-sky-500 mt-0.5">쓸데없는 광고는 안 보내요. 진짜 좋은 이벤트·혜택만 딱 알려드려요 🎁</span>
+                  <span className="block text-[11px] text-sky-500 mt-0.5">쓸데없는 광고는 안 보내요. 진짜 좋은 이벤트·혜택만 딱 알려드려요</span>
                 </span>
               </label>
             </div>

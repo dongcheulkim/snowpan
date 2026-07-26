@@ -41,7 +41,7 @@ interface PendingItem {
 // AI 직원 검증 결과 배지 — 관리자가 한눈에 신뢰도 파악.
 function AiBadge({ item }: { item: PendingItem }) {
   if (!item.aiReviewedAt) {
-    return <div className="mt-2 text-[11px] text-gray-400">🤖 AI 검증 대기 중…</div>;
+    return <div className="mt-2 text-[11px] text-gray-400">AI 검증 대기 중…</div>;
   }
   const ok = item.aiVerified;
   return (

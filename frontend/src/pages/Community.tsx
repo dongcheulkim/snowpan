@@ -248,7 +248,7 @@ const Community = () => {
                     </span>
                     <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.pinned && <span className="text-red-500 mr-1">📌</span>}{post.title}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.pinned && <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 rounded px-1 py-0.5 mr-1.5 align-middle">공지</span>}{post.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-gray-500 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>

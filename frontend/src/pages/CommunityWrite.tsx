@@ -28,7 +28,7 @@ const CommunityWrite = () => {
   const isAdmin = getUser()?.role === 'admin';
   // 공지(notice)는 관리자만. 선택 시 스키·보드 양쪽 상단 고정으로 저장됨.
   const categories = isAdmin
-    ? [...communityCategories(sport), { id: 'notice', name: '📢 공지' }]
+    ? [...communityCategories(sport), { id: 'notice', name: '공지' }]
     : communityCategories(sport);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +118,7 @@ const CommunityWrite = () => {
           ))}
         </div>
         {category === 'notice' && (
-          <p className="text-[11px] text-sky-600 mt-2 font-medium">📢 공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
+          <p className="text-[11px] text-sky-600 mt-2 font-medium">공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
         )}
         <p className="text-[11px] text-gray-500 mt-2">
           투표 글은 별도로 작성합니다.{' '}

@@ -30,11 +30,11 @@ async function processOne(
 
   const label = type === 'skishop' ? '스키샵' : '정비샵';
   if (willApprove) {
-    await notifyAdmins('system', `🤖 AI 직원: ${label} 자동 승인`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
+    await notifyAdmins('system', `AI 직원: ${label} 자동 승인`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
   } else if (result.verified) {
-    await notifyAdmins('system', `🤖 AI 직원: ${label} 검증 완료 (승인 대기)`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
+    await notifyAdmins('system', `AI 직원: ${label} 검증 완료 (승인 대기)`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
   } else {
-    await notifyAdmins('system', `🤖 AI 직원: ${label} 수동 확인 필요`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
+    await notifyAdmins('system', `AI 직원: ${label} 수동 확인 필요`, `"${shop.name}" — ${result.note}`, '/admin-approval').catch(() => {});
   }
 }
 

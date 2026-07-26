@@ -42,12 +42,12 @@ export default function ResortLanding() {
 
   if (loading) return <div className="text-center py-20 text-sm text-gray-500">로딩 중...</div>;
 
-  const sections: { title: string; items: MiniItem[]; to: (i: MiniItem) => string; listTo: string; emoji: string }[] = data ? [
-    { title: '스키샵', items: data.skiShops, to: i => `/skishop/${i.id}`, listTo: '/skishop', emoji: '🏂' },
-    { title: '렌탈샵', items: data.rentals, to: i => `/rental/${i.id}`, listTo: '/rental', emoji: '🎿' },
-    { title: '레슨', items: data.lessons, to: i => `/lesson/${i.id}`, listTo: '/lesson', emoji: '🧑‍🏫' },
-    { title: '숙소', items: data.accommodations, to: i => `/accommodation/${i.id}`, listTo: '/accommodation', emoji: '🏨' },
-    { title: '정비샵', items: data.repairShops, to: i => `/repair/${i.id}`, listTo: '/repair', emoji: '🔧' },
+  const sections: { title: string; items: MiniItem[]; to: (i: MiniItem) => string; listTo: string }[] = data ? [
+    { title: '스키샵', items: data.skiShops, to: i => `/skishop/${i.id}`, listTo: '/skishop' },
+    { title: '렌탈샵', items: data.rentals, to: i => `/rental/${i.id}`, listTo: '/rental' },
+    { title: '레슨', items: data.lessons, to: i => `/lesson/${i.id}`, listTo: '/lesson' },
+    { title: '숙소', items: data.accommodations, to: i => `/accommodation/${i.id}`, listTo: '/accommodation' },
+    { title: '정비샵', items: data.repairShops, to: i => `/repair/${i.id}`, listTo: '/repair' },
   ] : [];
 
   const totalCount = sections.reduce((n, s) => n + s.items.length, 0);
@@ -75,14 +75,14 @@ export default function ResortLanding() {
         sections.filter(s => s.items.length > 0).map(section => (
           <div key={section.title} className="card p-5">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-gray-900">{section.emoji} {section.title} ({section.items.length})</h2>
+              <h2 className="text-sm font-bold text-gray-900">{section.title} ({section.items.length})</h2>
               <Link to={section.listTo} className="text-xs text-sky-600 font-bold">전체 →</Link>
             </div>
             <div className="space-y-2">
               {section.items.map(item => (
                 <Link key={item.id} to={section.to(item)} className="flex items-center gap-3 p-2.5 bg-snow rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
                   <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-gray-300">
-                    {item.image ? <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" /> : section.emoji}
+                    {item.image && <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>

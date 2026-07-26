@@ -195,7 +195,7 @@ const Used = () => {
           }}
           className="w-full py-2 bg-sky-50 text-sky-600 rounded-xl text-xs font-bold border border-sky-100 hover:bg-sky-100 transition-colors"
         >
-          🔔 "{debouncedSearch.trim()}" 새 매물 알림받기
+          "{debouncedSearch.trim()}" 새 매물 알림받기
         </button>
       )}
 
