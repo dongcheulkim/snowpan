@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
-import BookingCalendar from '../components/BookingCalendar';
 import { BankIcon, CloseIcon, MountainIcon, StarIcon } from '../components/Icons';
 import type { ComponentType } from 'react';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
@@ -15,11 +14,12 @@ interface SlotPricing {
   description: string | null;
 }
 
-interface AvailabilityResponse {
-  unavailableDates: string[];
-  maxConcurrent: number;
-  pricePerDay: number;
-}
+// 기간제 — 백엔드 PERIOD_DAYS/PERIOD_DISCOUNT 와 동일해야 함.
+const PERIOD_OPTIONS: { months: number; days: number; discount: number; label: string }[] = [
+  { months: 1, days: 30, discount: 0, label: '1개월' },
+  { months: 6, days: 180, discount: 0.05, label: '6개월' },
+  { months: 12, days: 360, discount: 0.1, label: '12개월' },
+];
 
 const SLOT_LABELS: Record<string, string> = {
   main_banner: '메인 배너',
@@ -77,12 +77,6 @@ function formatDate(dateStr: string): string {
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
 }
 
-function calcDays(start: string, end: string): number {
-  const s = new Date(start);
-  const e = new Date(end);
-  return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-}
-
 export default function AdBooking() {
   const navigate = useNavigate();
   getUser(); // auth check
@@ -94,14 +88,9 @@ export default function AdBooking() {
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  // Step 2: 날짜 선택
-  const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
-  const [viewMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  // Step 2: 기간 선택 (1/6/12개월) + 희망 시작일 (선택 — 비우면 입금 확인 즉시 시작)
+  const [periodMonths, setPeriodMonths] = useState<number | null>(null);
+  const [desiredStart, setDesiredStart] = useState('');
 
   // Step 3: 광고 내용
   const [title, setTitle] = useState('');
@@ -146,19 +135,6 @@ export default function AdBooking() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 날짜 가용성 조회
-  useEffect(() => {
-    if (!selectedSlot) return;
-    const cat = selectedSlot === 'category' || selectedSlot === 'premium' ? selectedCategory : '';
-    if ((selectedSlot === 'category' || selectedSlot === 'premium') && !cat) return;
-
-    api<AvailabilityResponse>(
-      `/ad-booking/availability?slotType=${selectedSlot}&category=${cat}&month=${viewMonth}`
-    )
-      .then((data) => setUnavailableDates(data.unavailableDates))
-      .catch(() => {});
-  }, [selectedSlot, selectedCategory, viewMonth]);
-
   const currentPricing = pricings.find(
     (p) =>
       p.slotType === selectedSlot &&
@@ -167,29 +143,21 @@ export default function AdBooking() {
         : p.category === selectedCategory)
   );
 
-  const totalDays = startDate && endDate ? calcDays(startDate, endDate) : 0;
+  const selectedPeriod = PERIOD_OPTIONS.find((p) => p.months === periodMonths) || null;
+  const totalDays = selectedPeriod?.days || 0;
   const originalPrice = currentPricing ? totalDays * currentPricing.pricePerDay : 0;
-  const isTransfer = payMethod === 'TRANSFER';
-  const discountRate = isTransfer ? 0.05 : 0;
-  const discountAmount = Math.round(originalPrice * discountRate);
+  const discountAmount = selectedPeriod ? Math.round(originalPrice * selectedPeriod.discount) : 0;
   const totalPrice = originalPrice - discountAmount;
 
   const handleSlotSelect = (slotType: string) => {
     setSelectedSlot(slotType);
     setSelectedCategory('');
-    setStartDate(null);
-    setEndDate(null);
+    setPeriodMonths(null);
   };
 
   const handleCategorySelect = (cat: string) => {
     setSelectedCategory(cat);
-    setStartDate(null);
-    setEndDate(null);
-  };
-
-  const handleDateSelect = (start: string, end: string | null) => {
-    setStartDate(start);
-    setEndDate(end);
+    setPeriodMonths(null);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +169,7 @@ export default function AdBooking() {
   };
 
   const canProceedStep1 = selectedSlot === 'main_banner' || (selectedSlot && selectedCategory);
-  const canProceedStep2 = startDate && endDate;
+  const canProceedStep2 = periodMonths !== null;
   // 프리미엄은 url 이 등록물에서 자동 채워지므로 별도 noUrl 체크 불필요.
   // 일반 슬롯은 noUrl 체크 시 url 비어도 통과.
   const urlOk = selectedSlot === 'premium' ? !!url.trim() : (noUrl || !!url.trim());
@@ -233,8 +201,8 @@ export default function AdBooking() {
           image: imageUrl,
           textColor: selectedSlot !== 'premium' ? textColor : undefined,
           textAlign: selectedSlot !== 'premium' ? textAlign : undefined,
-          startDate,
-          endDate,
+          periodMonths,
+          desiredStart: desiredStart || undefined,
           payMethod: 'TRANSFER',
         },
       });
@@ -377,78 +345,73 @@ export default function AdBooking() {
         </div>
       )}
 
-      {/* Step 2: 날짜 선택 */}
+      {/* Step 2: 기간 선택 (1/6/12개월) */}
       {step === 2 && (
         <div className="space-y-4">
           <h2 className="text-lg font-bold mb-2">광고 기간 선택</h2>
 
-          {/* 빠른 선택 */}
-          <div className="flex gap-2">
-            {(selectedSlot === 'premium' ? [
-              { label: '1일', days: 1 },
-              { label: '7일', days: 7 },
-              { label: '30일', days: 30 },
-            ] : [
-              { label: '1개월', days: 30 },
-              { label: '2개월', days: 60 },
-              { label: '3개월', days: 90 },
-            ]).map(({ label, days }) => (
-              <button
-                key={days}
-                onClick={() => {
-                  const tomorrow = new Date();
-                  tomorrow.setDate(tomorrow.getDate() + 1);
-                  const start = tomorrow.toISOString().split('T')[0];
-                  const end = new Date(tomorrow.getTime() + (days - 1) * 86400000)
-                    .toISOString()
-                    .split('T')[0];
-                  handleDateSelect(start, end);
-                }}
-                className="flex-1 py-2 px-3 rounded-lg border border-gray-200 text-sm font-medium hover:border-sky-400 hover:text-sky-600 transition-all"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* 캘린더 */}
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <BookingCalendar
-              unavailableDates={unavailableDates}
-              selectedStart={startDate}
-              selectedEnd={endDate}
-              onSelectRange={handleDateSelect}
-            />
-          </div>
-
-          {/* 선택된 기간 표시 */}
-          {startDate && (
-            <div className="bg-sky-50 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm text-gray-500">시작일</span>
-                  <div className="font-bold text-sky-700">{formatDate(startDate)}</div>
-                </div>
-                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-                <div className="text-right">
-                  <span className="text-sm text-gray-500">종료일</span>
-                  <div className="font-bold text-sky-700">
-                    {endDate ? formatDate(endDate) : '선택해주세요'}
+          <div className="grid gap-3">
+            {PERIOD_OPTIONS.map((opt) => {
+              const base = currentPricing ? opt.days * currentPricing.pricePerDay : 0;
+              const dc = Math.round(base * opt.discount);
+              const price = base - dc;
+              const selected = periodMonths === opt.months;
+              return (
+                <button
+                  key={opt.months}
+                  onClick={() => setPeriodMonths(opt.months)}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    selected ? 'border-sky-500 bg-sky-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-800">{opt.label}</span>
+                        {opt.discount > 0 && (
+                          <span className="text-[11px] font-bold text-red-500 bg-red-50 border border-red-100 rounded px-1.5 py-0.5">
+                            {Math.round(opt.discount * 100)}% 할인
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">{opt.days}일 노출</div>
+                    </div>
+                    <div className="text-right">
+                      {dc > 0 && (
+                        <div className="text-xs text-gray-400 line-through">{formatPrice(base)}원</div>
+                      )}
+                      <div className="text-sky-600 font-bold text-lg">{formatPrice(price)}원</div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              {endDate && currentPricing && (
-                <div className="mt-3 pt-3 border-t border-sky-200 flex justify-between">
-                  <span className="text-sm text-gray-600">
-                    {totalDays}일 × {formatPrice(currentPricing.pricePerDay)}원
-                  </span>
-                  <span className="font-bold text-sky-700">
-                    {formatPrice(totalPrice)}원
-                  </span>
-                </div>
-              )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 희망 시작일 (선택) */}
+          <div className="bg-white rounded-xl p-4 border border-gray-100">
+            <label className="text-sm font-medium text-gray-600">시작일 <span className="text-xs text-gray-400">(선택)</span></label>
+            <input
+              type="date"
+              value={desiredStart}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={(e) => setDesiredStart(e.target.value)}
+              className="w-full mt-2 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+              {desiredStart
+                ? `${formatDate(desiredStart)}부터 ${selectedPeriod ? selectedPeriod.label : ''} 동안 노출됩니다.`
+                : '비워두면 입금 확인 즉시 광고가 시작돼요. 특정 날짜부터 시작하려면 선택하세요.'}
+            </p>
+          </div>
+
+          {selectedPeriod && currentPricing && (
+            <div className="bg-sky-50 rounded-xl p-4 flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                {selectedPeriod.label} ({totalDays}일) × {formatPrice(currentPricing.pricePerDay)}원
+                {discountAmount > 0 && ` − 할인 ${formatPrice(discountAmount)}원`}
+              </span>
+              <span className="font-bold text-sky-700 text-lg">{formatPrice(totalPrice)}원</span>
             </div>
           )}
 
@@ -660,14 +623,22 @@ export default function AdBooking() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">광고 기간</span>
-              <span className="font-medium">
-                {startDate && formatDate(startDate)} ~ {endDate && formatDate(endDate)} ({totalDays}일)
-              </span>
+              <span className="font-medium">{selectedPeriod?.label} ({totalDays}일)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">시작일</span>
+              <span className="font-medium">{desiredStart ? formatDate(desiredStart) : '입금 확인 즉시'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">단가</span>
               <span className="font-medium">{currentPricing && formatPrice(currentPricing.pricePerDay)}원/일</span>
             </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">장기 할인 ({selectedPeriod && Math.round(selectedPeriod.discount * 100)}%)</span>
+                <span className="font-medium text-red-500">−{formatPrice(discountAmount)}원</span>
+              </div>
+            )}
             {imagePreview && (
               <div>
                 <span className="text-gray-500 text-sm">광고 이미지</span>

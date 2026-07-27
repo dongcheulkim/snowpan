@@ -232,22 +232,40 @@ const AdminDashboard = () => {
     }
   };
 
+  // 승인 시 시작일 지정 (선택) — 비우면 즉시 시작, YYYY-MM-DD 입력 시 그 날부터 노출.
+  // (예: 11/27 에 입금 확인하면서 12/1 시작으로 예약)
+  const promptStartDate = (): { cancelled: boolean; startDate?: string } => {
+    const input = prompt('광고 시작일 (YYYY-MM-DD)\n비워두면 지금 즉시 시작됩니다.', '');
+    if (input === null) return { cancelled: true };
+    const trimmed = input.trim();
+    if (!trimmed) return { cancelled: false };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed) || isNaN(new Date(trimmed).getTime())) {
+      alert('날짜 형식이 올바르지 않습니다. (예: 2026-12-01)');
+      return { cancelled: true };
+    }
+    return { cancelled: false, startDate: trimmed };
+  };
+
   const handleAdBookingApprove = async (id: string) => {
-    if (!confirm('입금 확인하고 광고를 바로 노출하시겠습니까?')) return;
+    const { cancelled, startDate } = promptStartDate();
+    if (cancelled) return;
     try {
-      await api(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST' });
-      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'active' } : b)));
-      alert('입금 확인 완료! 광고가 노출됩니다.');
+      const r = await api<{ message?: string }>(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST', body: startDate ? { startDate } : {} });
+      const future = !!startDate && new Date(startDate) > new Date();
+      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active' } : b)));
+      alert(r.message || '입금 확인 완료! 광고가 노출됩니다.');
     } catch (err) {
       alert(err instanceof Error ? err.message : '승인 실패');
     }
   };
 
   const handleAdBookingFree = async (id: string) => {
-    if (!confirm('이 광고를 무료로 승인하시겠습니까?')) return;
+    const { cancelled, startDate } = promptStartDate();
+    if (cancelled) return;
     try {
-      await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST' });
-      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'active', totalPrice: 0 } : b)));
+      await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST', body: startDate ? { startDate } : {} });
+      const future = !!startDate && new Date(startDate) > new Date();
+      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active', totalPrice: 0 } : b)));
       alert('무료 승인 완료!');
     } catch (err) {
       alert(err instanceof Error ? err.message : '승인 실패');

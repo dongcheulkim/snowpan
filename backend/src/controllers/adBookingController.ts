@@ -85,10 +85,34 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
 };
 
 // 광고 예약 생성 (결제 대기 상태)
+// 기간제 옵션: 1/6/12개월 (고정 일수로 가격 예측 가능). 장기 계약 할인 5%/10%.
+const PERIOD_DAYS: Record<number, number> = { 1: 30, 6: 180, 12: 360 };
+const PERIOD_DISCOUNT: Record<number, number> = { 1: 0, 6: 0.05, 12: 0.1 };
+
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { slotType, category, title, description, url, image, textColor, textAlign, startDate, endDate, payMethod } = req.body;
+    const { slotType, category, title, description, url, image, textColor, textAlign, payMethod, periodMonths, desiredStart } = req.body;
+    let { startDate, endDate } = req.body;
+
+    // 기간제 신청 (신규 방식): periodMonths 로 시작/종료일 계산.
+    // desiredStart 미지정 시 오늘 기준으로 잡되, 실제 노출 시작은 관리자 입금 확인 시점에 재조정됨.
+    const months = Number(periodMonths);
+    if (periodMonths !== undefined) {
+      if (!PERIOD_DAYS[months]) {
+        res.status(400).json({ error: '기간은 1개월/6개월/12개월 중에서 선택해주세요.' });
+        return;
+      }
+      const base = desiredStart ? new Date(String(desiredStart)) : new Date();
+      if (isNaN(base.getTime())) {
+        res.status(400).json({ error: '시작일 형식이 올바르지 않습니다.' });
+        return;
+      }
+      base.setHours(0, 0, 0, 0);
+      const endBase = new Date(base.getTime() + (PERIOD_DAYS[months] - 1) * 86400000);
+      startDate = base.toISOString();
+      endDate = endBase.toISOString();
+    }
 
     if (!slotType || !title || !description || !startDate || !endDate) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -216,9 +240,10 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 
       const totalDays = days;
       const basePrice = totalDays * pricing.pricePerDay;
-      // 계좌이체 5% 할인
-      const isTransfer = payMethod === 'TRANSFER';
-      const discountAmount = isTransfer ? Math.round(basePrice * 0.05) : 0;
+      // 할인: 기간제(6개월 5%, 12개월 10%)가 우선. 구버전(날짜 직접 선택)은 기존 이체 5% 유지.
+      const periodRate = PERIOD_DISCOUNT[months] ?? null;
+      const discountRate = periodRate !== null ? periodRate : (payMethod === 'TRANSFER' ? 0.05 : 0);
+      const discountAmount = Math.round(basePrice * discountRate);
       const totalPrice = basePrice - discountAmount;
       const merchantUid = `snowpan_ad_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -615,6 +640,25 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
 };
 
 // 관리자: 입금 확인 → 바로 active + 배너 생성
+// 승인 시점의 광고 기간 재조정 — 관리자 지정 시작일 > 유저 희망 시작일(미래) > 오늘(승인 즉시) 순.
+// 기간(totalDays)은 그대로 유지되어 입금 확인이 늦어도 광고주가 기간 손해를 안 봄.
+function resolveApprovedDates(booking: { startDate: Date; totalDays: number }, startDateOverride?: unknown): { start: Date; end: Date } | null {
+  let start: Date;
+  if (startDateOverride) {
+    const d = new Date(String(startDateOverride));
+    if (isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    start = d;
+  } else if (new Date(booking.startDate) > new Date()) {
+    start = new Date(booking.startDate);
+  } else {
+    start = new Date();
+    start.setHours(0, 0, 0, 0);
+  }
+  const end = new Date(start.getTime() + (Math.max(1, booking.totalDays) - 1) * 86400000);
+  return { start, end };
+}
+
 export const adminApproveBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
@@ -631,6 +675,9 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
+    const dates = resolveApprovedDates(booking, req.body?.startDate);
+    if (!dates) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다. (YYYY-MM-DD)' }); return; }
+
     await prisma.adPayment.update({
       where: { bookingId: id },
       data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
@@ -638,34 +685,38 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
 
     // 시작일이 미래면 즉시 노출하지 않고 paid 로만 — 스케줄러가 startDate 도래 시 활성화.
     // (이전엔 미래 광고도 승인 즉시 active + 배너 생성되어 광고비 기간 전 무료 노출)
-    const startsInFuture = new Date(booking.startDate) > new Date();
-    if (startsInFuture) {
-      await prisma.adBooking.update({ where: { id }, data: { status: 'paid' } });
-    } else {
-      await prisma.adBooking.update({ where: { id }, data: { status: 'active' } });
+    const startsInFuture = dates.start > new Date();
+    const updated = await prisma.adBooking.update({
+      where: { id },
+      data: { status: startsInFuture ? 'paid' : 'active', startDate: dates.start, endDate: dates.end },
+    });
+    if (!startsInFuture) {
       // slotType 별 활성화 분기:
       // - premium: 대상 상품/샵 isPremium=true (배너 X)
       // - main_banner: 홈 Banner 레코드 생성 (홈 rotator 노출)
       // - category: adBooking 레코드 자체로 카테고리 페이지에서 직접 조회
-      if (booking.slotType === 'premium') {
-        await applyPremiumFromBooking(booking);
-      } else if (booking.slotType === 'main_banner') {
-        await createBannerFromBooking(booking);
+      if (updated.slotType === 'premium') {
+        await applyPremiumFromBooking(updated);
+      } else if (updated.slotType === 'main_banner') {
+        await createBannerFromBooking(updated);
       }
       cacheDel('banners:public');
     }
 
+    const startLabel = `${dates.start.getFullYear()}.${dates.start.getMonth() + 1}.${dates.start.getDate()}`;
     await prisma.notification.create({
       data: {
         type: 'system',
         title: '광고 입금 확인',
-        message: `"${booking.title}" 광고 입금이 확인되었습니다. 바로 노출됩니다!`,
+        message: startsInFuture
+          ? `"${booking.title}" 광고 입금이 확인되었습니다. ${startLabel}부터 노출됩니다.`
+          : `"${booking.title}" 광고 입금이 확인되었습니다. 바로 노출됩니다!`,
         link: '/mypage',
         userId: booking.userId,
       },
     });
 
-    res.json({ success: true, message: '입금 확인 완료, 광고 노출 시작' });
+    res.json({ success: true, message: startsInFuture ? `입금 확인 완료, ${startLabel}부터 노출` : '입금 확인 완료, 광고 노출 시작' });
   } catch (error) {
     console.error('관리자 입금 확인 오류:', error);
     res.status(500).json({ error: '입금 확인 실패' });
@@ -681,6 +732,9 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
     const booking = await prisma.adBooking.findUnique({ where: { id } });
     if (!booking) { res.status(404).json({ error: '예약을 찾을 수 없습니다.' }); return; }
 
+    const dates = resolveApprovedDates(booking, req.body?.startDate);
+    if (!dates) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다. (YYYY-MM-DD)' }); return; }
+
     await prisma.adPayment.upsert({
       where: { bookingId: id },
       update: { status: 'paid', amount: 0, payMethod: 'free', paidAt: new Date() },
@@ -688,15 +742,16 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
     });
 
     // 미래 시작일이면 paid 로만 (스케줄러가 활성화). 즉시 시작이면 바로 active + 노출.
-    const startsInFuture = new Date(booking.startDate) > new Date();
-    if (startsInFuture) {
-      await prisma.adBooking.update({ where: { id }, data: { status: 'paid', totalPrice: 0, adminNote: '무료 승인' } });
-    } else {
-      await prisma.adBooking.update({ where: { id }, data: { status: 'active', totalPrice: 0, adminNote: '무료 승인' } });
-      if (booking.slotType === 'premium') {
-        await applyPremiumFromBooking(booking);
-      } else if (booking.slotType === 'main_banner') {
-        await createBannerFromBooking(booking);
+    const startsInFuture = dates.start > new Date();
+    const updated = await prisma.adBooking.update({
+      where: { id },
+      data: { status: startsInFuture ? 'paid' : 'active', totalPrice: 0, adminNote: '무료 승인', startDate: dates.start, endDate: dates.end },
+    });
+    if (!startsInFuture) {
+      if (updated.slotType === 'premium') {
+        await applyPremiumFromBooking(updated);
+      } else if (updated.slotType === 'main_banner') {
+        await createBannerFromBooking(updated);
       }
       cacheDel('banners:public');
     }
