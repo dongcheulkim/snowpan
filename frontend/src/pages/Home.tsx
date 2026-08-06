@@ -72,8 +72,8 @@ const Home = () => {
       .catch(() => {});
   }, []);
 
-  // 브랜드 슬라이드 1 + 광고 N = 총 슬라이드 수. 브랜드 혼자면 회전 안 함.
-  const totalSlides = 1 + banners.length;
+  // 브랜드 1 + 광고 N + 광고모집 1 = 총 슬라이드 수. 모집 슬라이드가 항상 있어 상시 회전.
+  const totalSlides = 2 + banners.length;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
@@ -195,6 +195,34 @@ const Home = () => {
               </a>
             );
           })}
+
+          {/* 마지막 슬라이드: 광고 모집 (상시) — 눌리면 광고 신청으로 */}
+          {(() => {
+            const slideIdx = banners.length + 1;
+            const inactive = slideIdx !== currentBanner;
+            return (
+              <Link
+                to="/ad-booking"
+                aria-hidden={inactive}
+                tabIndex={inactive ? -1 : 0}
+                className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out cursor-pointer ${
+                  slideIdx === currentBanner
+                    ? 'translate-x-0'
+                    : slideIdx < currentBanner
+                    ? '-translate-x-full pointer-events-none'
+                    : 'translate-x-full pointer-events-none'
+                }`}
+                style={{ background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 60%, #7dd3fc 100%)' }}
+              >
+                <div className="relative z-10">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 mb-1.5">AD SPACE</p>
+                  <p className="text-xl font-bold text-white leading-snug">이 자리에<br />광고하세요</p>
+                  <p className="text-sm text-white/85 mt-1.5">스키어·보더에게 내 샵을 알릴 기회</p>
+                  <span className="inline-block mt-3.5 px-4 py-2 bg-white text-sky-600 rounded-lg text-xs font-bold">광고 신청하기 →</span>
+                </div>
+              </Link>
+            );
+          })()}
 
           {/* 인디케이터 — 슬라이드 2개 이상일 때만 */}
           {totalSlides > 1 && (
