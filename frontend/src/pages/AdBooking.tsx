@@ -103,7 +103,6 @@ export default function AdBooking() {
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
 
   // Step 4: 결제
-  const payMethod = 'TRANSFER';
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
