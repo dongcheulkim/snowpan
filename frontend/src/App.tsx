@@ -26,6 +26,7 @@ const Accommodation = lazy(() => import('./pages/Accommodation'));
 const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const CommunitySelect = lazy(() => import('./pages/CommunitySelect'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const Chat = lazy(() => import('./pages/Chat'));
 const MyChatList = lazy(() => import('./pages/MyChatList'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -125,10 +126,25 @@ function App() {
             <Route path="shop-post/:id" element={<ShopPostDetail />} />
             <Route path="shop-post/:id/edit" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
             <Route path="shop/:shopType/:shopId/post/new" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
-            {/* /pan 과 5종목 (/bike, /run, /surf, /golf, /camp) 은 SNOWPAN 단일 운영으로 제거.
-                옛 링크 호환을 위해 루트로 리다이렉트. */}
+            {/* RUNPAN (/run) — 활성. 동일 컴포넌트 재사용, useVertical 이 경로 prefix 로 판 감지. */}
+            <Route path="run" element={<Home />} />
+            <Route path="run/used" element={<Used />} />
+            <Route path="run/used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
+            <Route path="run/used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
+            <Route path="run/used/:id" element={<UsedDetail />} />
+            <Route path="run/community" element={<CommunitySelect />} />
+            <Route path="run/community/post/:id" element={<CommunityDetail />} />
+            <Route path="run/community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
+            <Route path="run/community/:sport" element={<Community />} />
+            {/* run 전용 메뉴 중 미구현 — 준비중 페이지 */}
+            <Route path="run/event" element={<ComingSoon />} />
+            <Route path="run/coach" element={<ComingSoon />} />
+            <Route path="run/course" element={<ComingSoon />} />
+            <Route path="run/gear-guide" element={<ComingSoon />} />
+            <Route path="run/*" element={<Navigate to="/run" replace />} />
+            {/* 나머지 미출시 판은 루트로 리다이렉트 (옛 링크 호환) */}
             <Route path="pan" element={<Navigate to="/" replace />} />
-            {(['bike', 'run', 'surf', 'golf', 'camp'] as const).map((v) => (
+            {(['bike', 'surf', 'golf', 'camp'] as const).map((v) => (
               <Route key={v} path={`${v}/*`} element={<Navigate to="/" replace />} />
             ))}
             <Route path="privacy" element={<Privacy />} />

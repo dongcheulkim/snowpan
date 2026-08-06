@@ -8,6 +8,7 @@ import { ChatIcon, FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import EmptyState from '../components/EmptyState';
 import { communityCategoryLabel } from '../utils/communityLabels';
+import { useVertical } from '../hooks/useVertical';
 
 interface Post {
   id: string;
@@ -71,10 +72,15 @@ const Community = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
+  // 판(vertical)별 종목 라벨 — snow 는 스키/보드 아이콘, run 등은 config 의 sports 라벨.
+  const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const sportConf = vertical.sports?.find((s) => s.id === sport);
   const SportLabel = () => (
     <span className="inline-flex items-center gap-1.5">
-      {sport === 'ski' ? <SkiIcon size={16} /> : <SnowboardIcon size={16} />}
-      {sport === 'ski' ? t('used.cat.ski') : t('used.cat.board')}
+      {sport === 'ski' && <SkiIcon size={16} />}
+      {sport === 'board' && <SnowboardIcon size={16} />}
+      {sport === 'ski' ? t('used.cat.ski') : sport === 'board' ? t('used.cat.board') : (sportConf?.label || sport)}
     </span>
   );
 
@@ -150,7 +156,7 @@ const Community = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/community')} className="text-gray-500 text-lg">←</button>
+          <button onClick={() => navigate(`${vbase}/community` || '/community')} className="text-gray-500 text-lg">←</button>
           <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {t('community.title')}</h1>
         </div>
         <div className="flex gap-2">
@@ -159,7 +165,7 @@ const Community = () => {
               + 투표
             </Link>
           )}
-          <Link to={`/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
+          <Link to={`${vbase}/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
             + {t('community.write')}
           </Link>
         </div>
@@ -234,7 +240,7 @@ const Community = () => {
             const firstImage = post.images ? post.images.split(',')[0]?.trim() : null;
             const rank = selectedTab === 'popular' ? idx + 1 : 0;
             return (
-            <Link to={`/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
+            <Link to={`${vbase}/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex gap-3">
                 {rank > 0 && (
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>

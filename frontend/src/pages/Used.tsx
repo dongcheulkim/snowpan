@@ -85,6 +85,7 @@ const Used = () => {
   // 카테고리는 vertical-specific — config 에서 가져옴.
   // snow 면 i18n 라벨 (스키/보드/부츠 등), 다른 vertical 은 config 의 한글 라벨 그대로.
   const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath; // 링크 prefix (예: '/run')
   const verticalCats = vertical.usedSubcategories || [];
   const categories = [
     { id: 'all', name: t('used.cat.all') },
@@ -143,7 +144,7 @@ const Used = () => {
         <h1 className="text-2xl font-bold text-gray-900">{vertical.slug === 'snow' ? t('used.title') : (vertical.pageLabels?.used || t('used.title'))}</h1>
         {/* 태블릿+ 에서만 헤더 우측 버튼, 모바일은 FAB 사용 */}
         <Link
-          to="/used/register"
+          to={`${vbase}/used/register`}
           className="hidden px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           {t('used.register')}
@@ -152,7 +153,7 @@ const Used = () => {
 
       {/* 모바일 FAB — 엄지로 쉽게 닿는 우하단 */}
       <Link
-        to="/used/register"
+        to={`${vbase}/used/register`}
         aria-label="장비 등록"
         className="fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
       >
@@ -223,7 +224,7 @@ const Used = () => {
           {products.map((product) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             return (
-              <Link to={`/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
+              <Link to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/used/${product.id}`} key={product.id} className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}>
                 <div className="relative h-28 flex items-center justify-center text-4xl overflow-hidden bg-gray-100">
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img
@@ -286,7 +287,7 @@ const Used = () => {
           title={t('used.noItems')}
           description="다른 키워드로 검색하거나 직접 장비를 등록해보세요."
           ctaLabel="+ 내 장비 등록하기"
-          ctaTo="/used/register"
+          ctaTo={`${vbase}/used/register`}
         />
       )}
 

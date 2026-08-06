@@ -4,9 +4,14 @@ import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../components/Toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
+import { useVertical } from '../hooks/useVertical';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
+  // 카테고리는 판(vertical)별 — snow 는 스키/보드 13종, run 은 러닝화/시계 등.
+  const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const subcategories = vertical.usedSubcategories || [];
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -23,7 +28,7 @@ const UsedRegister = () => {
   };
   const [form, setForm] = useState({
     name: '',
-    subcategory: 'ski',
+    subcategory: subcategories[0]?.id || 'ski',
     brand: '',
     size: '',
     length: '',
@@ -103,7 +108,7 @@ const UsedRegister = () => {
         },
       });
       toastSuccess('장비가 등록되었습니다!');
-      navigate('/used');
+      navigate(`${vbase}/used`);
     } catch (err) {
       toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {
@@ -261,19 +266,9 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="ski" className="bg-snow">스키</option>
-                <option value="board" className="bg-snow">보드</option>
-                <option value="ski_boots" className="bg-snow">스키부츠</option>
-                <option value="board_boots" className="bg-snow">보드부츠</option>
-                <option value="binding" className="bg-snow">바인딩</option>
-                <option value="wear" className="bg-snow">스키복</option>
-                <option value="pole" className="bg-snow">폴</option>
-                <option value="helmet" className="bg-snow">헬멧</option>
-                <option value="goggles" className="bg-snow">고글</option>
-                <option value="gloves" className="bg-snow">장갑</option>
-                <option value="bag" className="bg-snow">가방</option>
-                <option value="accessory" className="bg-snow">악세사리</option>
-                <option value="etc" className="bg-snow">기타</option>
+                {subcategories.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-snow">{c.label}</option>
+                ))}
               </select>
             </div>
 

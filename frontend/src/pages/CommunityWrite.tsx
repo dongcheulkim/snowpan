@@ -4,6 +4,7 @@ import { api, getUser, uploadImages } from '../api';
 import { CloseIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import { communityCategories } from '../utils/communityLabels';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
+import { useVertical } from '../hooks/useVertical';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
@@ -18,10 +19,14 @@ const CommunityWrite = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const sportConf = vertical.sports?.find((s) => s.id === sport);
   const SportLabel = () => (
     <span className="inline-flex items-center gap-1.5">
-      {sport === 'ski' ? <SkiIcon size={14} /> : <SnowboardIcon size={14} />}
-      {sport === 'ski' ? '스키' : '보드'}
+      {sport === 'ski' && <SkiIcon size={14} />}
+      {sport === 'board' && <SnowboardIcon size={14} />}
+      {sport === 'ski' ? '스키' : sport === 'board' ? '보드' : (sportConf?.label || sport)}
     </span>
   );
 
@@ -83,7 +88,7 @@ const CommunityWrite = () => {
         method: 'POST',
         body: { title: title.trim(), content: content.trim(), category, sport, images },
       });
-      navigate(`/community/${sport}`);
+      navigate(`${vbase}/community/${sport}`);
     } catch (err) {
       alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {

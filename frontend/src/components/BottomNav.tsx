@@ -40,11 +40,10 @@ const BottomNav = () => {
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;
 
-  // 5종목 미출시 동안 단순화 — snow 고정 경로 사용.
-  // 홈은 '/' (index 라우트) — /snowpan 도 같은 페이지지만 로고/네비 모두 '/' 사용.
-  void vertical;
-  const homePath = '/';
-  const communityPath = '/community';
+  // 홈/커뮤니티는 현재 판(vertical) 기준 — snow 는 루트, run 등은 /run 하위.
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const homePath = vbase || '/';
+  const communityPath = `${vbase}/community`;
 
   const items = [
     {

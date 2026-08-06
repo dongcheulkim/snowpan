@@ -146,7 +146,13 @@ const Navbar = () => {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [panMenuOpen]);
 
-  const COMING_PANS = ['바이크판', '골프판', '런닝판'];
+  // 런닝판은 개발 중 — dev 빌드에서만 클릭 이동 가능, 프로덕션은 준비중 표시 유지.
+  const PAN_ITEMS: { label: string; to: string | null; slug: string }[] = [
+    { label: '스노우판', to: '/', slug: 'snow' },
+    { label: '런닝판', to: import.meta.env.DEV ? '/run' : null, slug: 'run' },
+    { label: '바이크판', to: null, slug: 'bike' },
+    { label: '골프판', to: null, slug: 'golf' },
+  ];
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
@@ -168,20 +174,35 @@ const Navbar = () => {
 
             {panMenuOpen && (
               <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 z-50">
-                <Link
-                  to="/"
-                  onClick={() => setPanMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-2.5 hover:bg-sky-50 transition-colors"
-                >
-                  <span className="text-sm font-bold text-gray-900">스노우판</span>
-                  <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 rounded px-1.5 py-0.5">이용 중</span>
-                </Link>
-                {COMING_PANS.map((name) => (
-                  <div key={name} className="flex items-center justify-between px-4 py-2.5 cursor-default select-none">
-                    <span className="text-sm font-medium text-gray-300">{name}</span>
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">준비중이에요</span>
-                  </div>
-                ))}
+                {PAN_ITEMS.map((pan) => {
+                  const isCurrent = vertical.slug === pan.slug;
+                  if (pan.to && !isCurrent) {
+                    return (
+                      <Link
+                        key={pan.slug}
+                        to={pan.to}
+                        onClick={() => setPanMenuOpen(false)}
+                        className="flex items-center justify-between px-4 py-2.5 hover:bg-sky-50 transition-colors"
+                      >
+                        <span className="text-sm font-bold text-gray-900">{pan.label}</span>
+                      </Link>
+                    );
+                  }
+                  if (isCurrent) {
+                    return (
+                      <div key={pan.slug} className="flex items-center justify-between px-4 py-2.5 cursor-default select-none">
+                        <span className="text-sm font-bold text-gray-900">{pan.label}</span>
+                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 rounded px-1.5 py-0.5">이용 중</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={pan.slug} className="flex items-center justify-between px-4 py-2.5 cursor-default select-none">
+                      <span className="text-sm font-medium text-gray-300">{pan.label}</span>
+                      <span className="text-[10px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">준비중이에요</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

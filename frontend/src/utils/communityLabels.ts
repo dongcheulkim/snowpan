@@ -15,7 +15,18 @@ const BASE: Record<string, { ski: string; board: string }> = {
   notice:  { ski: '공지',     board: '공지' },
 };
 
+// run 판 종목 (road/trail/track) 전용 라벨 오버라이드 — 나머지는 ski 라벨 재사용.
+const RUN_SPORTS = ['road', 'trail', 'track'];
+const RUN_OVERRIDES: Record<string, string> = {
+  resort: '코스 후기',
+  carpool: '동행',
+  meetup: '러닝 크루',
+};
+
 export function communityCategoryLabel(id: string, sport?: Sport): string {
+  if (sport && RUN_SPORTS.includes(sport)) {
+    return RUN_OVERRIDES[id] ?? BASE[id]?.ski ?? id;
+  }
   const entry = BASE[id];
   if (!entry) return id;
   return sport === 'board' ? entry.board : entry.ski;
