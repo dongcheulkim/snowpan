@@ -4,6 +4,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import { HeartFilledIcon, UserIcon } from '../components/Icons';
+import { useVertical } from '../hooks/useVertical';
 
 interface Comment {
   id: string;
@@ -52,6 +53,8 @@ const reportReasons = [
 
 const CommunityDetail = () => {
   const { id } = useParams();
+  const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
   const navigate = useNavigate();
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +79,7 @@ const CommunityDetail = () => {
         setPost(data);
         setLikeCount(data.likes);
         if (data.liked) setLiked(true);
-        document.title = `${data.title} - 스노우판`;
+        document.title = `${data.title} - ${vertical.slug === 'snow' ? '스노우판' : vertical.name}`;
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -111,7 +114,7 @@ const CommunityDetail = () => {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const title = post?.title || '스노우판 게시글';
+    const title = post?.title || '게시글';
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
@@ -171,7 +174,7 @@ const CommunityDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to={`/community/${post.sport}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
+      <Link to={`${vbase}/community/${post.sport}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -225,7 +228,7 @@ const CommunityDetail = () => {
       </div>
 
       {user && (post.userId === user.id || user.role === 'admin') && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); window.location.href = `/community/${post.sport}`; } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); window.location.href = `${vbase}/community/${post.sport}`; } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
       )}
 
       <div className="card p-5">

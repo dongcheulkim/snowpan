@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
+import { useVertical } from '../hooks/useVertical';
 
 interface AdItem {
   title: string;
@@ -21,9 +22,12 @@ interface RawAd {
 // 카테고리 페이지 상단 광고 배너 — slotType=category, category=<key> 활성 광고를 회전.
 // 광고 없으면 "광고 자리 모집 중" placeholder 로 영역 유지 (레이아웃 일관성 + 광고 판매 유도).
 export default function CategoryAdBanner({ category }: { category: string }) {
+  const vertical = useVertical();
   const [banners, setBanners] = useState<AdItem[]>([]);
   const [current, setCurrent] = useState(0);
   const user = getUser();
+  // 광고 시스템은 snow 전용 — 다른 판에선 표시 안 함 (스노우 광고 누수 방지).
+  const isSnow = vertical.slug === 'snow';
   // 비로그인 시 /login?next=/ad-booking 로 안내해도 되지만 일단 /ad-booking 으로 통일.
   const adLink = user ? '/ad-booking' : '/login?next=/ad-booking';
 
@@ -50,6 +54,8 @@ export default function CategoryAdBanner({ category }: { category: string }) {
     const t = setInterval(() => setCurrent((p) => (p + 1) % banners.length), 4000);
     return () => clearInterval(t);
   }, [banners.length]);
+
+  if (!isSnow) return null;
 
   // 광고 0건 → "여기 광고 모집 중" placeholder.
   if (banners.length === 0) {

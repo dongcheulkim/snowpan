@@ -209,7 +209,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-1">
             <Link
-              to="/search"
+              to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/search`}
               aria-label="검색"
               className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
             >

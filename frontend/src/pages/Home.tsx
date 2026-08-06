@@ -67,13 +67,14 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    if (!isSnow) return; // 배너 광고는 snow 전용 — 다른 판은 브랜드 슬라이드만.
     api<BannerData[]>('/banners')
       .then((data) => setBanners(data))
       .catch(() => {});
-  }, []);
+  }, [isSnow]);
 
-  // 브랜드 1 + 광고 N + 광고모집 1 = 총 슬라이드 수. 모집 슬라이드가 항상 있어 상시 회전.
-  const totalSlides = 2 + banners.length;
+  // snow: 브랜드 1 + 광고 N + 광고모집 1 (상시 회전). 다른 판: 브랜드 슬라이드만.
+  const totalSlides = isSnow ? 2 + banners.length : 1;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
@@ -141,7 +142,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
-      <h1 className="sr-only">스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에</h1>
+      <h1 className="sr-only">{isSnow ? '스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에' : `${vertical.name} — ${vertical.tagline}`}</h1>
 
       {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
@@ -196,8 +197,8 @@ const Home = () => {
             );
           })}
 
-          {/* 마지막 슬라이드: 광고 모집 (상시) — 눌리면 광고 신청으로 */}
-          {(() => {
+          {/* 마지막 슬라이드: 광고 모집 (snow 전용, 상시) — 눌리면 광고 신청으로 */}
+          {isSnow && (() => {
             const slideIdx = banners.length + 1;
             const inactive = slideIdx !== currentBanner;
             return (

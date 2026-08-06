@@ -192,11 +192,13 @@ export const VERTICALS: Vertical[] = [
     ],
     homeCategories: [
       { slug: 'used', label: '중고거래', desc: '슈즈 · 의류 · 시계' },
-      { slug: 'event', label: '대회', desc: '마라톤 · 트레일런' },
+      { slug: 'shop', label: '런닝샵', desc: '러닝 전문 매장' },
+      { slug: 'event', label: '대회 정보', desc: '마라톤 · 트레일런' },
+      { slug: 'course', label: '러닝 코스', desc: '추천 코스 · 한강 · 트레일' },
+      { slug: 'crew', label: '런닝 크루', desc: '동아리 · 함께 달리기' },
+      { slug: 'community', label: '커뮤니티', desc: '자유 · 후기 · 동행' },
+      { slug: 'gear', label: '장비 추천', desc: '러닝화 · 시계 · 용품' },
       { slug: 'coach', label: '코치', desc: '훈련 · 러닝 클래스' },
-      { slug: 'community', label: '커뮤니티', desc: '러닝 동행 · 후기' },
-      { slug: 'course', label: '러닝 코스', desc: '한강 · 트레일 · 거리' },
-      { slug: 'gear-guide', label: '장비 가이드', desc: '입문자 슈즈 추천' },
     ],
     usedSubcategories: [
       { id: 'shoes', label: '러닝화' },

@@ -12,6 +12,7 @@ const UsedRegister = () => {
   const vertical = useVertical();
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
   const subcategories = vertical.usedSubcategories || [];
+  const isSnow = vertical.slug === 'snow';
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -250,7 +251,7 @@ const UsedRegister = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="예: 로시뇰 소울 7 (2022)"
+              placeholder={isSnow ? '예: 로시뇰 소울 7 (2022)' : '예: 나이키 베이퍼플라이 3'}
               required
               className={inputClass}
             />
@@ -280,7 +281,7 @@ const UsedRegister = () => {
                 name="brand"
                 value={form.brand}
                 onChange={handleChange}
-                placeholder={form.subcategory === 'helmet' || form.subcategory === 'goggles' ? '예: 오클리' : form.subcategory === 'board' ? '예: SG' : '예: 피셔'}
+                placeholder={!isSnow ? '예: 나이키' : form.subcategory === 'helmet' || form.subcategory === 'goggles' ? '예: 오클리' : form.subcategory === 'board' ? '예: SG' : '예: 피셔'}
                 className={inputClass}
               />
             </div>
@@ -299,6 +300,7 @@ const UsedRegister = () => {
                 value={form.size}
                 onChange={handleChange}
                 placeholder={
+                  !isSnow ? (form.subcategory === 'shoes' ? '예: 270' : '예: L') :
                   ['ski', 'board'].includes(form.subcategory) ? '예: 170cm' :
                   form.subcategory === 'pole' ? '예: 120cm' :
                   form.subcategory === 'binding' ? '예: 16' :
@@ -332,7 +334,7 @@ const UsedRegister = () => {
                 name="year"
                 value={form.year}
                 onChange={handleChange}
-                placeholder="예: 25-26"
+                placeholder={isSnow ? '예: 25-26' : '예: 2024'}
                 className={inputClass}
               />
             </div>

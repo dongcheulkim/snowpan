@@ -7,6 +7,7 @@ import { toastSuccess, toastError } from '../components/Toast';
 import { CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
+import { useVertical } from '../hooks/useVertical';
 
 interface Product {
   id: string;
@@ -42,6 +43,9 @@ const reportReasons = [
 
 const UsedDetail = () => {
   const { id } = useParams();
+  const vertical = useVertical();
+  const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
+  const gearLabel = vertical.slug === 'snow' ? '스키/보드 장비' : `${vertical.tagline.split(' ')[0]} 장비`;
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +62,7 @@ const UsedDetail = () => {
 
   useMeta({
     title: product ? `${product.name}${product.brand ? ` · ${product.brand}` : ''} ${product.price.toLocaleString()}원` : undefined,
-    description: product ? (product.description?.slice(0, 150) || `${product.name} 중고 스키/보드 장비 - 스노우판에서 안전하게 거래하세요.`) : undefined,
+    description: product ? (product.description?.slice(0, 150) || `${product.name} 중고 ${gearLabel} - 안전하게 거래하세요.`) : undefined,
     image: product?.image ? (product.image.startsWith('http') ? product.image : imageUrl(product.image)) : undefined,
     type: 'product',
     jsonLd: product ? {
@@ -103,7 +107,7 @@ const UsedDetail = () => {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      description: product.description || `${product.name} — 스노우판 중고 스키/보드 장비`,
+      description: product.description || `${product.name} — 중고 ${gearLabel}`,
       brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
       image: productImage,
       itemCondition: product.condition ? conditionMap[product.condition] : 'https://schema.org/UsedCondition',
@@ -165,7 +169,7 @@ const UsedDetail = () => {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const title = product?.name || '스노우판 상품';
+    const title = product?.name || '상품';
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
@@ -230,7 +234,7 @@ const UsedDetail = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <h2 className="text-xl font-bold text-gray-900 mb-2">{t('usedDetail.notFound')}</h2>
-        <Link to="/used" className="text-gray-500 hover:text-gray-900 text-sm">&larr; {t('usedDetail.backToList')}</Link>
+        <Link to={`${vbase}/used`} className="text-gray-500 hover:text-gray-900 text-sm">&larr; {t('usedDetail.backToList')}</Link>
       </div>
     );
   }
@@ -248,7 +252,7 @@ const UsedDetail = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <Link to="/used" className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">
+      <Link to={`${vbase}/used`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">
         &larr; {t('usedDetail.backToUsed')}
       </Link>
 

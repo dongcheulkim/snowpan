@@ -27,6 +27,9 @@ const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const CommunitySelect = lazy(() => import('./pages/CommunitySelect'));
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
+const RunEvents = lazy(() => import('./pages/RunEvents'));
+const RunCourses = lazy(() => import('./pages/RunCourses'));
+const RunGear = lazy(() => import('./pages/RunGear'));
 const Chat = lazy(() => import('./pages/Chat'));
 const MyChatList = lazy(() => import('./pages/MyChatList'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -136,11 +139,15 @@ function App() {
             <Route path="run/community/post/:id" element={<CommunityDetail />} />
             <Route path="run/community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="run/community/:sport" element={<Community />} />
-            {/* run 전용 메뉴 중 미구현 — 준비중 페이지 */}
-            <Route path="run/event" element={<ComingSoon />} />
+            {/* run 전용 페이지 */}
+            <Route path="run/search" element={<Search />} />
+            <Route path="run/event" element={<RunEvents />} />
+            <Route path="run/course" element={<RunCourses />} />
+            <Route path="run/gear" element={<RunGear />} />
+            <Route path="run/gear-guide" element={<Navigate to="/run/gear" replace />} />
+            <Route path="run/crew" element={<Navigate to="/run/community" replace />} />
+            <Route path="run/shop" element={<ComingSoon />} />
             <Route path="run/coach" element={<ComingSoon />} />
-            <Route path="run/course" element={<ComingSoon />} />
-            <Route path="run/gear-guide" element={<ComingSoon />} />
             <Route path="run/*" element={<Navigate to="/run" replace />} />
             {/* 나머지 미출시 판은 루트로 리다이렉트 (옛 링크 호환) */}
             <Route path="pan" element={<Navigate to="/" replace />} />
