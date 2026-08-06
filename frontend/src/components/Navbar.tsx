@@ -146,7 +146,7 @@ const Navbar = () => {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [panMenuOpen]);
 
-  const COMING_PANS = ['바이크판', '골프판', '캠핑판'];
+  const COMING_PANS = ['바이크판', '골프판', '런닝판'];
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
