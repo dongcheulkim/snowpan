@@ -28,9 +28,9 @@ const SLOT_LABELS: Record<string, string> = {
 };
 
 const SLOT_DESCRIPTIONS: Record<string, string> = {
-  main_banner: '홈 화면 상단 배너 (1개월 단위)',
-  category: '카테고리 페이지 상단 배너 (1개월 단위)',
-  premium: '상품 리스트 최상단 고정 (카테고리당 3개 한정, 1,000원/일)',
+  main_banner: '홈 화면 최상단 회전 배너 — 가장 많이 노출',
+  category: '카테고리 페이지 상단 배너',
+  premium: '내 상품/샵을 리스트 최상단에 고정 노출',
 };
 
 const SLOT_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
@@ -106,6 +106,24 @@ export default function AdBooking() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [inquiring, setInquiring] = useState(false);
+
+  // 신청이 부담스러운 사장님용 — 관리자 1:1 채팅으로 바로 연결 (고객센터와 동일 패턴).
+  const handleInquiry = async () => {
+    const u = getUser();
+    if (!u) { navigate('/login'); return; }
+    setInquiring(true);
+    try {
+      const admin = await api<{ id: string; name: string }>('/contact/admin-id');
+      if (admin.id === u.id) { alert('관리자 계정입니다.'); return; }
+      const room = await api<{ id: string }>('/chat/rooms', { method: 'POST', body: { targetUserId: admin.id } });
+      navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id, isAdmin: true } });
+    } catch {
+      alert('관리자 연결에 실패했습니다.');
+    } finally {
+      setInquiring(false);
+    }
+  };
 
   // 프리미엄 슬롯: 자기 등록물 dropdown 데이터.
   const [myListings, setMyListings] = useState<MyListing[]>([]);
@@ -340,6 +358,15 @@ export default function AdBooking() {
             className="w-full mt-4 py-3 rounded-xl bg-sky-500 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-600 transition-colors"
           >
             다음
+          </button>
+
+          <button
+            type="button"
+            onClick={handleInquiry}
+            disabled={inquiring}
+            className="w-full py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:border-sky-300 hover:text-sky-600 transition-colors disabled:opacity-50"
+          >
+            {inquiring ? '연결 중...' : '고민되시나요? 채팅으로 편하게 문의하기'}
           </button>
         </div>
       )}
