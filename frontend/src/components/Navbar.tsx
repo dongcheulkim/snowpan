@@ -146,12 +146,12 @@ const Navbar = () => {
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [panMenuOpen]);
 
-  // 런닝판은 개발 중 — dev 빌드에서만 클릭 이동 가능, 프로덕션은 준비중 표시 유지.
+  // 런닝/바이크/골프판은 개발 중 — dev 빌드에서만 클릭 이동, 프로덕션은 준비중 표시 유지.
   const PAN_ITEMS: { label: string; to: string | null; slug: string }[] = [
     { label: '스노우판', to: '/', slug: 'snow' },
     { label: '런닝판', to: import.meta.env.DEV ? '/run' : null, slug: 'run' },
-    { label: '바이크판', to: null, slug: 'bike' },
-    { label: '골프판', to: null, slug: 'golf' },
+    { label: '바이크판', to: import.meta.env.DEV ? '/bike' : null, slug: 'bike' },
+    { label: '골프판', to: import.meta.env.DEV ? '/golf' : null, slug: 'golf' },
   ];
 
   return (

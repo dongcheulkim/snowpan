@@ -15,17 +15,21 @@ const BASE: Record<string, { ski: string; board: string }> = {
   notice:  { ski: '공지',     board: '공지' },
 };
 
-// run 판 종목 (road/trail/track) 전용 라벨 오버라이드 — 나머지는 ski 라벨 재사용.
-const RUN_SPORTS = ['road', 'trail', 'track'];
-const RUN_OVERRIDES: Record<string, string> = {
-  resort: '코스 후기',
-  carpool: '동행',
-  meetup: '러닝 크루',
+// 다른 판 종목별 라벨 오버라이드 — 명시 안 된 카테고리는 ski 라벨(범용) 재사용.
+// road 는 run/bike 공용이라 중립 라벨 사용.
+const SPORT_OVERRIDES: Record<string, Record<string, string>> = {
+  road:   { resort: '코스 후기', carpool: '동행', meetup: '크루 · 모임' },
+  trail:  { resort: '코스 후기', carpool: '동행', meetup: '러닝 크루' },
+  track:  { resort: '코스 후기', carpool: '동행', meetup: '러닝 크루' },
+  mtb:    { resort: '코스 후기', carpool: '동행', meetup: '라이딩 크루' },
+  gravel: { resort: '코스 후기', carpool: '동행', meetup: '라이딩 크루' },
+  field:  { resort: '골프장 후기', carpool: '조인 · 동행', meetup: '라운드 모임' },
+  screen: { resort: '매장 후기', carpool: '조인 · 동행', meetup: '스크린 모임' },
 };
 
 export function communityCategoryLabel(id: string, sport?: Sport): string {
-  if (sport && RUN_SPORTS.includes(sport)) {
-    return RUN_OVERRIDES[id] ?? BASE[id]?.ski ?? id;
+  if (sport && SPORT_OVERRIDES[sport]) {
+    return SPORT_OVERRIDES[sport][id] ?? BASE[id]?.ski ?? id;
   }
   const entry = BASE[id];
   if (!entry) return id;
