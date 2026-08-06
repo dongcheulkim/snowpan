@@ -212,13 +212,13 @@ const Home = () => {
                     ? '-translate-x-full pointer-events-none'
                     : 'translate-x-full pointer-events-none'
                 }`}
-                style={{ background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 60%, #7dd3fc 100%)' }}
+                style={{ backgroundColor: '#ffffff' }}
               >
                 <div className="relative z-10">
-                  <p className="text-[10px] font-bold tracking-[0.2em] text-white/70 mb-1.5">AD SPACE</p>
-                  <p className="text-xl font-bold text-white leading-snug">이 자리에<br />광고하세요</p>
-                  <p className="text-sm text-white/85 mt-1.5">스키어·보더에게 내 샵을 알릴 기회</p>
-                  <span className="inline-block mt-3.5 px-4 py-2 bg-white text-sky-600 rounded-lg text-xs font-bold">광고 신청하기 →</span>
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-sky-500 mb-1.5">AD SPACE</p>
+                  <p className="text-xl font-bold text-gray-900 leading-snug">이 자리에<br />광고하세요</p>
+                  <p className="text-sm text-gray-500 mt-1.5">스키어·보더에게 내 샵을 알릴 기회</p>
+                  <span className="inline-block mt-3.5 px-4 py-2 bg-sky-500 text-white rounded-lg text-xs font-bold">광고 신청하기 →</span>
                 </div>
               </Link>
             );

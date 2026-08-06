@@ -22,8 +22,8 @@ const SEEDS: Array<{
     slotType: 'main_banner',
     category: 'none',
     pricePerDay: 100_000,
-    maxConcurrent: 3,
-    description: '홈 화면 상단 배너 (최대 3개 회전)',
+    maxConcurrent: 5,
+    description: '홈 화면 상단 배너 (최대 5개 회전)',
   },
   // 카테고리 배너
   ...BANNER_CATEGORIES.map((category) => ({
