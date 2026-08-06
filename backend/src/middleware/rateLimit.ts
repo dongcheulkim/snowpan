@@ -7,14 +7,11 @@ interface RateLimitEntry {
 
 const ipMap = new Map<string, RateLimitEntry>();
 
-// 실제 클라이언트 IP 추출: Render 는 Cloudflare → Render LB → Express 2홉 체인이라
-// trust proxy 만으로는 부족. Cloudflare 가 원본 IP를 CF-Connecting-IP 헤더에 실어 보냄.
-// 우선순위: CF-Connecting-IP → X-Real-IP → req.ip → socket.
+// 실제 클라이언트 IP: req.ip 만 신뢰 (trust proxy 1 + Render LB 가 XFF 세팅).
+// ⚠️ CF-Connecting-IP / X-Real-IP 는 신뢰하지 않음 — API 호스트(snowpan.onrender.com)는
+// Cloudflare 뒤에 있지 않아 이 헤더들은 클라이언트가 임의 조작 가능했고,
+// 조작 시 레이트리밋·로그인 잠금이 통째로 우회되던 취약점 수정 (2026-08).
 function getClientIp(req: Request): string {
-  const cf = req.header('cf-connecting-ip');
-  if (cf) return cf.trim();
-  const xReal = req.header('x-real-ip');
-  if (xReal) return xReal.trim();
   return req.ip || req.socket.remoteAddress || 'unknown';
 }
 

@@ -20,6 +20,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       res.status(400).json({ error: '잘못된 신고 유형입니다.' });
       return;
     }
+    // 길이 제한 — 무의미한 대용량 신고로 관리자 큐 오염 방지.
+    if (typeof reason !== 'string' || reason.length > 100 || (description && (typeof description !== 'string' || description.length > 1000))) {
+      res.status(400).json({ error: '신고 사유는 100자, 상세 내용은 1000자 이내여야 합니다.' });
+      return;
+    }
 
     // 셀프 신고 차단 — 본인을 신고하거나 본인의 글/상품을 신고하는 행위.
     if (type === 'user' && targetId === reporterId) {

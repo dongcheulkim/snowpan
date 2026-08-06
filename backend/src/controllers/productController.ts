@@ -148,9 +148,10 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 };
 
 // 홈 인기중고매물 (경량 API - count 쿼리 없음, 캐시 60초)
-export const getHotDeals = async (_req: Request, res: Response): Promise<void> => {
+export const getHotDeals = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cacheKey = 'home:hotdeals';
+    const verticalSlug = pickVertical(req.query.vertical) || 'snow';
+    const cacheKey = `home:hotdeals:${verticalSlug}`;
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) {
       res.json(cached);
@@ -158,7 +159,7 @@ export const getHotDeals = async (_req: Request, res: Response): Promise<void> =
     }
 
     const products = await prisma.product.findMany({
-      where: { category: 'used' },
+      where: { category: 'used', vertical: verticalSlug, status: 'selling' },
       orderBy: [{ isPremium: { sort: 'desc', nulls: 'last' } }, { bumpedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
       take: 3,
       select: {
@@ -189,7 +190,9 @@ export const getMarketStats = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const cacheKey = `market:${subcategory}:${brand || ''}`;
+    // 판별 시세 분리 — bike 헬멧이 스키 헬멧 시세와 섞이지 않게.
+    const verticalSlug = pickVertical(req.query.vertical) || 'snow';
+    const cacheKey = `market:${verticalSlug}:${subcategory}:${brand || ''}`;
     const cached = cacheGet<any>(cacheKey);
     if (cached) {
       res.json(cached);
@@ -201,6 +204,7 @@ export const getMarketStats = async (req: Request, res: Response): Promise<void>
 
     const where: any = {
       category: 'used',
+      vertical: verticalSlug,
       subcategory,
       createdAt: { gte: sixMonthsAgo },
     };
@@ -252,7 +256,7 @@ export const getMarketStats = async (req: Request, res: Response): Promise<void>
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size, vertical } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size, vertical, tradeMethod, location } = req.body;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -309,15 +313,17 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         flex: sanitizeText(flex, 30) || null,
         size: sanitizeText(size, 30) || null,
         usageCount: sanitizeText(usageCount, 30),
+        tradeMethod: sanitizeText(tradeMethod, 20) || null,
+        location: sanitizeText(location, 60) || null,
         userId,
       },
       include: { user: { select: { id: true, name: true, nickname: true } } },
     });
 
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
-    cacheDel('home:hotdeals');
+    cacheDelPrefix('home:hotdeals');
     // 키워드 알림 — 관심 키워드에 맞는 사용자에게 푸시 (fire-and-forget, 응답 지연 없이).
-    notifyKeywordMatches({ id: product.id, name: product.name, brand: product.brand, userId }).catch(() => {});
+    notifyKeywordMatches({ id: product.id, name: product.name, brand: product.brand, userId, vertical: product.vertical }).catch(() => {});
     res.status(201).json(product);
   } catch (error) {
     console.error('Create used product error:', error);
@@ -349,7 +355,7 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
     });
 
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
-    cacheDel('home:hotdeals');
+    cacheDelPrefix('home:hotdeals');
     res.status(201).json(product);
   } catch (error) {
     console.error('Create new product error:', error);
@@ -545,7 +551,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
-    cacheDel('home:hotdeals');
+    cacheDelPrefix('home:hotdeals');
     res.json(updated);
   } catch (error) {
     console.error('Update product error:', error);
@@ -563,7 +569,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
 
     await prisma.product.delete({ where: { id } });
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
-    cacheDel('home:hotdeals');
+    cacheDelPrefix('home:hotdeals');
     res.json({ message: '상품이 삭제되었습니다.' });
   } catch (error) {
     console.error('Delete product error:', error);
@@ -638,7 +644,7 @@ export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void
     const updated = await prisma.product.findUnique({ where: { id } });
     cacheDelPrefix('products:');
     cacheDelPrefix('market:');
-    cacheDel('home:hotdeals');
+    cacheDelPrefix('home:hotdeals');
     res.json(updated);
   } catch (error) {
     console.error('Bump product error:', error);

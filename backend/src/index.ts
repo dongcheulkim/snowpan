@@ -288,7 +288,7 @@ app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', strictWriteLimiter, reviewRoutes);
 app.use('/api/reports', strictWriteLimiter, reportRoutes);
 app.use('/api/saved-searches', savedSearchRoutes);
-app.use('/api/shop-claims', shopClaimRoutes);
+app.use('/api/shop-claims', strictWriteLimiter, shopClaimRoutes);
 app.use('/api/ad-booking', adBookingRoutes);
 app.use('/api/ski-shops', skiShopRoutes);
 app.use('/api/repair-shops', repairShopRoutes);

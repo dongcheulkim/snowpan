@@ -2,7 +2,7 @@
 // 목록 카드는 <Link> 안에 있으므로 클릭 시 preventDefault 로 상세 이동 막음.
 // 비로그인 시 로그인 페이지로. 초기 찜 여부는 optional (모르면 흰 하트로 시작).
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { HeartFilledIcon, HeartOutlineIcon } from './Icons';
@@ -20,6 +20,10 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
   const navigate = useNavigate();
   const [wished, setWished] = useState(initial);
   const [busy, setBusy] = useState(false);
+
+  // 찜 목록이 매물 목록보다 늦게 로드되면 initial 이 나중에 바뀜 — 동기화 안 하면
+  // 이미 찜한 매물이 빈 하트로 보이고, 탭 시 찜이 해제되는 역효과 발생.
+  useEffect(() => { setWished(initial); }, [initial]);
 
   const toggle = async (e: React.MouseEvent) => {
     e.preventDefault();

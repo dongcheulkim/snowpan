@@ -107,6 +107,23 @@ export async function applyPremiumFromBooking(booking: {
   }
 }
 
+// 프리미엄 광고 취소/환불 시 대상 상품·샵의 프리미엄 즉시 해제.
+// (기존엔 premiumUntil 만료까지 프리미엄이 유지되어 "결제→활성화→즉시 환불" 악용 가능했음)
+export async function revokePremiumFromBooking(booking: { slotType: string; url: string }): Promise<void> {
+  if (booking.slotType !== 'premium' || !booking.url) return;
+  const match = booking.url.match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
+  if (!match) return;
+  const [, kind, targetId] = match;
+  const data = { isPremium: false, premiumUntil: null };
+  try {
+    if (kind === 'used') await prisma.product.update({ where: { id: targetId }, data });
+    else if (kind === 'skishop') await prisma.skiShop.update({ where: { id: targetId }, data });
+    else if (kind === 'repair') await prisma.repairShop.update({ where: { id: targetId }, data });
+  } catch (error) {
+    console.error(`프리미엄 해제 실패 (${kind}/${targetId}):`, error);
+  }
+}
+
 // 광고 예약 → 배너 생성
 export async function createBannerFromBooking(booking: { id: string; title: string; description: string; url: string; image: string | null; textColor?: string | null; textAlign?: string | null }) {
   try {

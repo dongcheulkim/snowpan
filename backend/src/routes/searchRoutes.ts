@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
+import { pickVertical } from '../utils/vertical';
 
 const router = Router();
 
@@ -57,27 +58,29 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     // 최소 2글자 — 1글자 ILIKE 풀스캔 부하 방지.
     if (query.length < 2) { res.json({ products: [], posts: [], shops: [] }); return; }
     const search = { contains: query, mode: 'insensitive' as const };
+    // 판(vertical) 스코프 — run 매물/글이 snow 검색결과에 섞이지 않게.
+    const verticalSlug = pickVertical(req.query.vertical) || 'snow';
 
     // 더 큰 후보 풀을 가져와 클라이언트 사이드 (Node) 에서 점수 매기고 상위 N 반환.
     // Postgres FTS / Elasticsearch 없이도 의미 있는 랭킹.
     const [products, posts, skiShops, repairShops] = await Promise.all([
       prisma.product.findMany({
-        where: { category: 'used', OR: [{ name: search }, { brand: search }, { description: search }] },
+        where: { category: 'used', vertical: verticalSlug, OR: [{ name: search }, { brand: search }, { description: search }] },
         select: { id: true, name: true, price: true, image: true, brand: true, description: true, status: true, createdAt: true, bumpedAt: true },
         take: 40,
       }),
       prisma.post.findMany({
-        where: { OR: [{ title: search }, { content: search }] },
+        where: { vertical: verticalSlug, OR: [{ title: search }, { content: search }] },
         select: { id: true, title: true, content: true, category: true, sport: true, createdAt: true, likes: true, views: true },
         take: 40,
       }),
       prisma.skiShop.findMany({
-        where: { approved: true, OR: [{ name: search }, { address: search }, { brands: search }] },
+        where: { approved: true, vertical: verticalSlug, OR: [{ name: search }, { address: search }, { brands: search }] },
         select: { id: true, name: true, area: true, address: true, brands: true, createdAt: true, isPremium: true },
         take: 20,
       }),
       prisma.repairShop.findMany({
-        where: { approved: true, OR: [{ name: search }, { address: search }, { services: search }] },
+        where: { approved: true, vertical: verticalSlug, OR: [{ name: search }, { address: search }, { services: search }] },
         select: { id: true, name: true, area: true, address: true, services: true, createdAt: true, isPremium: true },
         take: 20,
       }),

@@ -76,9 +76,10 @@ const BottomNav = () => {
     >
       <div className="flex justify-around items-center h-16 px-2">
         {items.map((item) => {
-          // 홈은 '/' 와 '/snowpan' 둘 다 활성 처리 (같은 페이지).
-          const active = item.path === '/'
-            ? path === '/' || path.startsWith('/snowpan')
+          // 홈은 정확 일치만 (snow: '/'·'/snowpan', run: '/run') — startsWith 면
+          // /run 하위 모든 페이지에서 홈 탭이 활성으로 표시되는 버그.
+          const active = item.path === homePath
+            ? path === homePath || (homePath === '/' && path.startsWith('/snowpan'))
             : path.startsWith(item.path);
           return (
             <Link

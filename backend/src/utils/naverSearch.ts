@@ -23,6 +23,8 @@ export async function naverLocalSearch(query: string): Promise<NaverPlace[]> {
         'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID!,
         'X-Naver-Client-Secret': process.env.NAVER_CLIENT_SECRET!,
       },
+      // 응답 지연 시 스케줄러 tick 이 무한정 걸리지 않게 10초 제한.
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
       console.warn('네이버 검색 실패:', res.status);

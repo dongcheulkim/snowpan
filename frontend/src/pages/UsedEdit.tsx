@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
+import { useVertical } from '../hooks/useVertical';
 
 interface Product {
   id: string;
@@ -24,6 +25,12 @@ const codeToCondition: Record<string, string> = { '상': '새상품', '중': '�
 const UsedEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  // 판(vertical)별 카테고리·링크 — run 매물 수정 시 스키 카테고리로 덮어쓰는 버그 방지.
+  const vertical = useVertical();
+  const isSnow = vertical.slug === 'snow';
+  const vbase = isSnow ? '' : vertical.basePath;
+  const backTo = isSnow ? '/mypage/sales' : `${vbase}/used`;
+  const subcategories = vertical.usedSubcategories || [];
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [images, setImages] = useState<string[]>([]);
@@ -31,7 +38,7 @@ const UsedEdit = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: '',
-    subcategory: 'ski',
+    subcategory: '',
     brand: '',
     price: '',
     condition: '사용감 적음',
@@ -45,7 +52,7 @@ const UsedEdit = () => {
       .then(p => {
         setForm({
           name: p.name,
-          subcategory: p.subcategory || 'ski',
+          subcategory: p.subcategory || (subcategories[0]?.id ?? 'ski'),
           brand: p.brand || '',
           price: String(p.price),
           condition: codeToCondition[p.condition || '중'] || '사용감 적음',
@@ -54,10 +61,10 @@ const UsedEdit = () => {
         });
         const imgs = p.images
           ? p.images.split(',').filter(Boolean)
-          : p.image?.startsWith('http') ? [p.image] : [];
+          : (p.image && (p.image.startsWith('http') || p.image.startsWith('/'))) ? [p.image] : [];
         setExistingImages(imgs);
       })
-      .catch(() => navigate('/mypage/sales'))
+      .catch(() => navigate(backTo))
       .finally(() => setFetching(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -101,7 +108,7 @@ const UsedEdit = () => {
         },
       });
       alert('수정되었습니다!');
-      navigate('/mypage/sales');
+      navigate(backTo);
     } catch (err) {
       alert(err instanceof Error ? err.message : '수정에 실패했습니다.');
     } finally {
@@ -116,7 +123,7 @@ const UsedEdit = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/mypage/sales" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors mb-6">
+      <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors mb-6">
         ← 판매 내역으로
       </Link>
 
@@ -211,19 +218,9 @@ const UsedEdit = () => {
             <div>
               <label className={labelClass}>카테고리</label>
               <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
-                <option value="ski">스키</option>
-                <option value="board">보드</option>
-                <option value="ski_boots">스키부츠</option>
-                <option value="board_boots">보드부츠</option>
-                <option value="binding">바인딩</option>
-                <option value="wear">스키복</option>
-                <option value="pole">폴</option>
-                <option value="helmet">헬멧</option>
-                <option value="goggles">고글</option>
-                <option value="gloves">장갑</option>
-                <option value="bag">가방</option>
-                <option value="accessory">악세사리</option>
-                <option value="etc">기타</option>
+                {subcategories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                ))}
               </select>
             </div>
 
@@ -261,7 +258,7 @@ const UsedEdit = () => {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Link to="/mypage/sales" className="flex-1 py-3.5 text-center bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-sky-200 hover:bg-gray-200 transition-colors">
+            <Link to={backTo} className="flex-1 py-3.5 text-center bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-sky-200 hover:bg-gray-200 transition-colors">
               취소
             </Link>
             <button type="submit" disabled={loading} className="flex-1 py-3.5 bg-sky-400 text-white rounded-lg font-bold text-sm hover:bg-sky-500 transition-colors active:scale-[0.98] disabled:opacity-50">

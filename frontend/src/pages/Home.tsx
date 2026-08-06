@@ -324,7 +324,7 @@ const Home = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="absolute inset-0 flex items-center justify-center text-4xl">{p.image || '🎿'}</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-4xl">{p.image || (isSnow ? '🎿' : '')}</span>
                   )}
                   {p.status === 'reserved' && (
                     <span className="absolute top-2 left-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500 text-white">예약중</span>

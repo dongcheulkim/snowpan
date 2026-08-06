@@ -101,6 +101,8 @@ const UsedRegister = () => {
           images: allImageUrls || undefined,
           description: form.description,
           condition: conditionMap[form.condition] || '중',
+          tradeMethod: form.tradeMethod || undefined,
+          location: form.location || undefined,
           usageCount: form.year ? `${form.year}년식` : undefined,
           length: form.length || undefined,
           radius: form.radius || undefined,

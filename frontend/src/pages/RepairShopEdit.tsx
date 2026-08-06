@@ -29,8 +29,11 @@ export default function RepairShopEdit() {
   useEffect(() => {
     if (!id) return;
     api<Shop[]>('/repair-shops/my')
-      .then(shops => {
-        const s = shops.find(x => x.id === id);
+      .then(async shops => {
+        let s = shops.find(x => x.id === id);
+        if (!s) {
+          try { s = await api<Shop>(`/repair-shops/${id}`); } catch { /* 아래에서 처리 */ }
+        }
         if (!s) { navigate('/mypage/shops'); return; }
         setForm({
           name: s.name || '', area: s.area || '서울', address: s.address || '',

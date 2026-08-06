@@ -86,7 +86,7 @@ const MySales = () => {
               <div key={item.id} className="card p-4">
                 <div className="flex items-center gap-3">
                   <div className="cursor-pointer" onClick={() => navigate(`/used/${item.id}`)}>
-                    {item.image?.startsWith('http') ? (
+                    {(item.image?.startsWith('http') || item.image?.startsWith('/')) ? (
                       <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
                     ) : (
                       <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500"><PackageIcon size={20} /></div>

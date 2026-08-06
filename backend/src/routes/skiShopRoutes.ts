@@ -17,9 +17,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (area) where.area = area as string;
     if (resort) where.resort = resort as string;
 
+    // select 로 공개 필드만 — businessLicense(사업자등록증 이미지) 등 비공개 유지.
     const shops = await prisma.skiShop.findMany({
       where,
-      include: { user: { select: { id: true, name: true } } },
+      select: {
+        id: true, name: true, area: true, resort: true, address: true, description: true,
+        brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
+        image: true, isPremium: true, viewCount: true, createdAt: true,
+        user: { select: { id: true, name: true } },
+      },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });
     res.json(shops);
@@ -112,7 +118,12 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const shop = await prisma.skiShop.findFirst({
       where: { id: req.params.id, approved: true },
-      include: { user: { select: { id: true, name: true, nickname: true } } },
+      select: {
+        id: true, name: true, area: true, resort: true, address: true, description: true,
+        brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
+        image: true, isPremium: true, viewCount: true, createdAt: true,
+        user: { select: { id: true, name: true, nickname: true } },
+      },
     });
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
     // 조회수 증가 (fire-and-forget) — 응답 지연 없이.

@@ -203,6 +203,8 @@ model Product {
   reviewCount Int?
   viewCount   Int      @default(0) // 상세 페이지 조회수
   condition   String?  // For used items: '상', '중', '하'
+  tradeMethod String?  // '직거래' | '택배' | '둘 다 가능' — 등록폼에서 받지만 저장 안 되던 것 추가
+  location    String?  // 직거래 지역 (예: '서울 강남구')
   usageCount  String?  // For used items
   length      String?  // 길이 (cm) - 스키/보드
   radius      String?  // 회전반경 (m) - 스키

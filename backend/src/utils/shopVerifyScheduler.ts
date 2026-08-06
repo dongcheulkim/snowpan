@@ -16,13 +16,14 @@ async function processOne(
   shop: { id: string; name: string; phone: string | null; address: string; resort?: string | null },
   autoApprove: boolean,
 ): Promise<void> {
-  // 상호 + (있으면) 지역으로 검색 정확도 향상.
-  const query = shop.resort ? `${shop.name}` : shop.name;
+  // 상호 + (있으면) 리조트명으로 검색 정확도 향상.
+  const query = shop.resort ? `${shop.name} ${shop.resort}` : shop.name;
   const places = await naverLocalSearch(query);
   const result = matchShopWithNaver(shop, places);
 
   const data: any = { aiReviewedAt: new Date(), aiVerified: result.verified, aiNote: result.note };
-  const willApprove = result.verified && autoApprove;
+  // 자동승인은 high(전화/주소까지 일치)만 — 이름만 겹친 medium 자동승인 방지.
+  const willApprove = result.verified && result.confidence === 'high' && autoApprove;
   if (willApprove) data.approved = true;
 
   if (type === 'skishop') await prisma.skiShop.update({ where: { id: shop.id }, data });
@@ -49,8 +50,20 @@ async function processNameOnly(delegate: any, label: string, item: { id: string;
   await notifyAdmins('system', title, `"${item.name}" — ${result.note}`, '/admin-approval').catch(() => {});
 }
 
+let verifyRunning = false;
+
 export async function verifyPendingShops(): Promise<void> {
   if (!naverConfigured()) return; // 네이버 키 미설정 → 조용히 스킵
+  if (verifyRunning) return; // 이전 tick 이 아직 진행 중이면 스킵 (중복 처리·알림 방지)
+  verifyRunning = true;
+  try {
+    await verifyPendingShopsInner();
+  } finally {
+    verifyRunning = false;
+  }
+}
+
+async function verifyPendingShopsInner(): Promise<void> {
 
   const autoApprove = process.env.AI_SHOP_AUTOAPPROVE === 'true';
   try {

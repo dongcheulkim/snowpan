@@ -11,11 +11,13 @@ export async function sendDiscord(title: string, message: string, link?: string)
   try {
     const site = process.env.FRONTEND_URL || 'https://snowpan.kr';
     const content = `**[${title}]**\n${message}${link ? `\n${site}${link}` : ''}`;
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: content.slice(0, 1900) }),
+      signal: AbortSignal.timeout(10_000),
     });
+    if (!res.ok) console.warn(`디스코드 알림 실패: HTTP ${res.status} (rate limit 등)`);
   } catch (err) {
     console.warn('디스코드 알림 실패:', (err as Error).message);
   }

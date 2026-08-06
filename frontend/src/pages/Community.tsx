@@ -95,7 +95,8 @@ const Community = () => {
     { id: 'tip', name: communityCategoryLabel('tip', sport) },
     { id: 'carpool', name: communityCategoryLabel('carpool', sport) },
     { id: 'meetup', name: communityCategoryLabel('meetup', sport) },
-    { id: 'poll', name: communityCategoryLabel('poll', sport) },
+    // 투표는 판 구분 없는 snow 시스템 — 다른 판에선 탭 미노출.
+    ...(vertical.slug === 'snow' ? [{ id: 'poll', name: communityCategoryLabel('poll', sport) }] : []),
   ];
 
   useEffect(() => {
@@ -284,7 +285,7 @@ const Community = () => {
             title="최근 7일간 인기 게시글이 없어요"
             description={"좋아요·조회수가 누적되면 TOP 10이 표시됩니다.\n첫 게시글을 남겨 인기글에 도전해보세요."}
             ctaLabel="글쓰기"
-            ctaTo={`/community/${sport}/write`}
+            ctaTo={`${vbase}/community/${sport}/write`}
           />
         ) : debouncedSearch ? (
           <EmptyState
@@ -295,9 +296,9 @@ const Community = () => {
           <EmptyState
             icon={<ChatIcon size={48} strokeWidth={1.4} />}
             title={t('community.noPosts')}
-            description={"첫 글을 남겨\n다른 스키어들과 이야기를 시작해보세요."}
+            description={`첫 글을 남겨\n다른 ${vertical.slug === 'snow' ? '스키어' : vertical.audience}들과 이야기를 시작해보세요.`}
             ctaLabel="첫 글 쓰기"
-            ctaTo={`/community/${sport}/write`}
+            ctaTo={`${vbase}/community/${sport}/write`}
           />
         )
       )}

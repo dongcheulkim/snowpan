@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
+import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
 export const getAccommodations = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -32,7 +33,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
       prisma.accommodation.count({ where }),
     ]);
 
-    res.json({ items: accommodations, totalCount });
+    res.json({ items: stripPrivateAll(accommodations as any), totalCount });
   } catch (error) {
     console.error('Get accommodations error:', error);
     res.status(500).json({ error: '숙소 조회 중 오류가 발생했습니다.' });
@@ -61,7 +62,7 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
       return;
     }
 
-    res.json(accommodation);
+    res.json(stripPrivate(accommodation as any));
   } catch (error) {
     console.error('Get accommodation error:', error);
     res.status(500).json({ error: '숙소 조회 중 오류가 발생했습니다.' });

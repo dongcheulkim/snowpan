@@ -16,9 +16,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const where: any = { approved: true, vertical: verticalSlug };
     if (area) where.area = area as string;
 
+    // select 로 공개 필드만 — businessLicense 비공개 유지.
     const shops = await prisma.repairShop.findMany({
       where,
-      include: { user: { select: { id: true, name: true } } },
+      select: {
+        id: true, name: true, area: true, address: true, description: true, services: true,
+        phone: true, instagram: true, website: true, naverMap: true, hours: true,
+        image: true, isPremium: true, viewCount: true, createdAt: true,
+        user: { select: { id: true, name: true } },
+      },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });
     res.json(shops);
@@ -101,7 +107,12 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const shop = await prisma.repairShop.findFirst({
       where: { id: req.params.id, approved: true },
-      include: { user: { select: { id: true, name: true, nickname: true } } },
+      select: {
+        id: true, name: true, area: true, address: true, description: true, services: true,
+        phone: true, instagram: true, website: true, naverMap: true, hours: true,
+        image: true, isPremium: true, viewCount: true, createdAt: true,
+        user: { select: { id: true, name: true, nickname: true } },
+      },
     });
     if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
     prisma.repairShop.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});

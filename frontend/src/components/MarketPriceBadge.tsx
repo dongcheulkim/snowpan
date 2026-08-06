@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { useVertical } from '../hooks/useVertical';
 
 interface MarketStats {
   available: boolean;
@@ -28,6 +29,9 @@ const subcatLabels: Record<string, string> = {
 
 // 스노우판 핵심 차별화 — '시세 대비 가격' 비교는 가장 강력한 셀링 포인트라 시각적으로 충분히 강조.
 export default function MarketPriceBadge({ subcategory, brand, price, variant = 'badge' }: Props) {
+  // 시세 DB 는 판별 분리돼 있지만 문구·데이터가 스노우 기준 — 비snow 판에선 미표시.
+  const vertical = useVertical();
+  if (vertical.slug !== 'snow') return null;
   const [stats, setStats] = useState<MarketStats | null>(null);
 
   useEffect(() => {

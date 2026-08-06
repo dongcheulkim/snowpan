@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
+import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -31,7 +32,7 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
       prisma.rental.count({ where }),
     ]);
 
-    res.json({ items: rentals, totalCount });
+    res.json({ items: stripPrivateAll(rentals as any), totalCount });
   } catch (error) {
     console.error('Get rentals error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });
@@ -107,7 +108,7 @@ export const getRentalById = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    res.json(rental);
+    res.json(stripPrivate(rental as any));
   } catch (error) {
     console.error('Get rental error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { createBannerFromBooking, applyPremiumFromBooking } from '../utils/adBookingScheduler';
+import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins } from './notificationController';
 
@@ -110,6 +110,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       }
       base.setHours(0, 0, 0, 0);
       const endBase = new Date(base.getTime() + (PERIOD_DAYS[months] - 1) * 86400000);
+      endBase.setHours(23, 59, 59, 999); // 마지막 날 끝까지 노출 (off-by-one 방지)
       startDate = base.toISOString();
       endDate = endBase.toISOString();
     }
@@ -227,6 +228,10 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 
       // 각 날짜 체크
       const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      // 기간 상한 — 비정상 입력(수십 년 등)으로 인한 루프 부하·터무니없는 금액 차단.
+      if (days > 370) {
+        throw new Error('광고 기간은 최대 12개월까지 가능합니다.');
+      }
       for (let i = 0; i < days; i++) {
         const checkDate = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
         let count = 0;
@@ -472,8 +477,9 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         }),
       ]);
 
-      // 배너 삭제
+      // 배너 삭제 + 프리미엄 즉시 해제
       await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });
+      await revokePremiumFromBooking(booking);
       cacheDel('banners:public');
 
       res.json({ success: true, message: '환불이 처리되었습니다.', refundAmount: Math.round(refundAmount) });
@@ -655,7 +661,13 @@ function resolveApprovedDates(booking: { startDate: Date; totalDays: number }, s
     start = new Date();
     start.setHours(0, 0, 0, 0);
   }
+  // 과거 시작일 지정은 거부 (광고 백데이트 방지) — 오늘 00:00 이전이면 무효.
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  if (startDateOverride && start < todayStart) return null;
+  // 종료일 = 마지막 날의 끝(23:59:59.999) — 결제한 마지막 날 하루가 통째로 누락되던 off-by-one 수정.
   const end = new Date(start.getTime() + (Math.max(1, booking.totalDays) - 1) * 86400000);
+  end.setHours(23, 59, 59, 999);
   return { start, end };
 }
 
@@ -731,6 +743,11 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
 
     const booking = await prisma.adBooking.findUnique({ where: { id } });
     if (!booking) { res.status(404).json({ error: '예약을 찾을 수 없습니다.' }); return; }
+    // pending_payment 만 무료 승인 가능 — 재클릭/취소건 부활로 인한 배너 중복 생성 방지.
+    if (booking.status !== 'pending_payment') {
+      res.status(400).json({ error: '입금 대기 상태의 예약만 무료 승인할 수 있습니다.' });
+      return;
+    }
 
     const dates = resolveApprovedDates(booking, req.body?.startDate);
     if (!dates) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다. (YYYY-MM-DD)' }); return; }
@@ -818,8 +835,9 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
       }),
     ]);
 
-    // 배너 삭제
+    // 배너 삭제 + 프리미엄 즉시 해제
     await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });
+    await revokePremiumFromBooking(booking);
     cacheDel('banners:public');
 
     res.json({ success: true });

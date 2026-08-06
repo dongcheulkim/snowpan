@@ -170,11 +170,16 @@ export default function AdBooking() {
     setSelectedSlot(slotType);
     setSelectedCategory('');
     setPeriodMonths(null);
+    // 슬롯 바꾸면 이전 선택 URL 초기화 — 남은 URL 로 잘못된(가격 불일치) 프리미엄 예약 방지.
+    setUrl('');
+    setNoUrl(false);
   };
 
   const handleCategorySelect = (cat: string) => {
     setSelectedCategory(cat);
     setPeriodMonths(null);
+    setUrl('');
+    setNoUrl(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,7 +191,7 @@ export default function AdBooking() {
   };
 
   const canProceedStep1 = selectedSlot === 'main_banner' || (selectedSlot && selectedCategory);
-  const canProceedStep2 = periodMonths !== null;
+  const canProceedStep2 = periodMonths !== null && !!currentPricing;
   // 프리미엄은 url 이 등록물에서 자동 채워지므로 별도 noUrl 체크 불필요.
   // 일반 슬롯은 noUrl 체크 시 url 비어도 통과.
   const urlOk = selectedSlot === 'premium' ? !!url.trim() : (noUrl || !!url.trim());
@@ -420,7 +425,7 @@ export default function AdBooking() {
             <input
               type="date"
               value={desiredStart}
-              min={new Date().toISOString().split('T')[0]}
+              min={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
               onChange={(e) => setDesiredStart(e.target.value)}
               className="w-full mt-2 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
             />
@@ -499,7 +504,7 @@ export default function AdBooking() {
                 ) : (
                   <>
                     <select
-                      value={url}
+                      value={url ? url.split('/').pop() || '' : ''}
                       onChange={(e) => {
                         const id = e.target.value;
                         setUrl(id ? `${URL_PREFIX[selectedCategory]}${id}` : '');

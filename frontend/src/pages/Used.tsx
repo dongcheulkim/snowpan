@@ -186,7 +186,7 @@ const Used = () => {
       </div>
 
       {/* 현재 검색어 키워드 알림 등록 — 로그인 + 검색어 있을 때만 */}
-      {getUser() && debouncedSearch.trim().length >= 2 && (
+      {vertical.slug === 'snow' && getUser() && debouncedSearch.trim().length >= 2 && (
         <button
           onClick={async () => {
             try {

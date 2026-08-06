@@ -243,6 +243,14 @@ const AdminDashboard = () => {
       alert('날짜 형식이 올바르지 않습니다. (예: 2026-12-01)');
       return { cancelled: true };
     }
+    // 과거 날짜 거부 (백데이트 방지 — 백엔드도 거부함)
+    const [y, m, d] = trimmed.split('-').map(Number);
+    const picked = new Date(y, m - 1, d);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (picked < today) {
+      alert('과거 날짜는 지정할 수 없습니다.');
+      return { cancelled: true };
+    }
     return { cancelled: false, startDate: trimmed };
   };
 
@@ -251,7 +259,7 @@ const AdminDashboard = () => {
     if (cancelled) return;
     try {
       const r = await api<{ message?: string }>(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST', body: startDate ? { startDate } : {} });
-      const future = !!startDate && new Date(startDate) > new Date();
+      const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
       setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active' } : b)));
       alert(r.message || '입금 확인 완료! 광고가 노출됩니다.');
     } catch (err) {
@@ -264,7 +272,7 @@ const AdminDashboard = () => {
     if (cancelled) return;
     try {
       await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST', body: startDate ? { startDate } : {} });
-      const future = !!startDate && new Date(startDate) > new Date();
+      const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
       setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active', totalPrice: 0 } : b)));
       alert('무료 승인 완료!');
     } catch (err) {

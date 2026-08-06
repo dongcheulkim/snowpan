@@ -45,14 +45,19 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     }
 
     const where: any = { vertical: verticalSlug };
+    // 배열 파라미터(?sport=a&sport=b) 는 문자열만 통과 — Prisma 예외로 500 나는 것 방지.
+    const sportStr = typeof sport === 'string' ? sport : undefined;
+    const categoryStr = typeof category === 'string' ? category : undefined;
+    const userIdStr = typeof userId === 'string' ? userId : undefined;
+    const searchStr = typeof search === 'string' ? search : undefined;
     // sport 필터 시 공용(sport='all', 공지) 글도 함께 노출 — 스키·보드 양쪽에 뜨게.
-    if (sport) where.sport = { in: [sport as string, 'all'] };
-    if (category && category !== 'all') where.category = category as string;
-    if (userId) where.userId = userId as string;
-    if (search) {
+    if (sportStr) where.sport = { in: [sportStr, 'all'] };
+    if (categoryStr && categoryStr !== 'all') where.category = categoryStr;
+    if (userIdStr) where.userId = userIdStr;
+    if (searchStr) {
       where.OR = [
-        { title: { contains: search as string, mode: 'insensitive' } },
-        { content: { contains: search as string, mode: 'insensitive' } },
+        { title: { contains: searchStr, mode: 'insensitive' } },
+        { content: { contains: searchStr, mode: 'insensitive' } },
       ];
     }
 
@@ -462,6 +467,9 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       if (!allowedCategories.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
       if (category === 'notice' && req.user!.role !== 'admin') { res.status(403).json({ error: '공지사항은 관리자만 지정할 수 있습니다.' }); return; }
       data.category = category;
+      // 공지 지정/해제 시 고정·공용 상태 동기화 (공지 해제됐는데 상단 고정 남는 것 방지).
+      if (category === 'notice') { (data as any).pinned = true; (data as any).sport = 'all'; }
+      else if (post.category === 'notice') { (data as any).pinned = false; }
     }
     const updated = await prisma.post.update({ where: { id }, data });
     res.json(updated);

@@ -34,9 +34,13 @@ export default function SkiShopEdit() {
   useEffect(() => {
     if (!id) return;
     // 내 매장 목록에서 찾기 — 미승인 매장도 편집 가능(공개 GET 은 승인된 것만 반환).
+    // 소유자는 /my 로, 관리자는 (남의 매장이라 /my 에 없음) 공개 상세로 폴백해 로드.
     api<Shop[]>('/ski-shops/my')
-      .then(shops => {
-        const s = shops.find(x => x.id === id);
+      .then(async shops => {
+        let s = shops.find(x => x.id === id);
+        if (!s) {
+          try { s = await api<Shop>(`/ski-shops/${id}`); } catch { /* 아래에서 처리 */ }
+        }
         if (!s) { navigate('/mypage/shops'); return; }
         setForm({
           name: s.name || '', area: s.area || '강원', resort: s.resort || '',

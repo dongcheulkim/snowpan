@@ -4,8 +4,11 @@ import { sendPushToUser } from './push';
 
 // 새 중고매물이 등록되면, 매물명·브랜드에 저장 키워드가 포함된 사용자에게 알림.
 // 판매자 본인은 제외. 실패해도 매물 등록 흐름을 막지 않게 호출부에서 await 없이 fire-and-forget.
-export async function notifyKeywordMatches(product: { id: string; name: string; brand?: string | null; userId: string }): Promise<void> {
+export async function notifyKeywordMatches(product: { id: string; name: string; brand?: string | null; userId: string; vertical?: string }): Promise<void> {
   try {
+    // 키워드 알림은 현재 snow 전용 (키워드 관리 UI 가 스노우판에만 있음) —
+    // run/bike/golf 매물이 스노우 유저에게 잘못 알림 가는 것 방지.
+    if (product.vertical && product.vertical !== 'snow') return;
     const haystack = `${product.name || ''} ${product.brand || ''}`.toLowerCase();
     if (!haystack.trim()) return;
 

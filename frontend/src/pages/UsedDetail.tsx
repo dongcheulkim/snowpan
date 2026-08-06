@@ -52,6 +52,8 @@ const UsedDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
+  // 이미지 한 장 깨져도 다른 썸네일 선택 시 다시 시도 (한 번 실패로 갤러리 전체 placeholder 되는 것 방지).
+  useEffect(() => { setImgError(false); }, [selectedImage]);
   const [wishlisted, setWishlisted] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -134,10 +136,10 @@ const UsedDetail = () => {
     sold: { text: t('used.status.sold'), color: 'bg-gray-200 text-gray-500' },
   };
 
-  const subcategoryLabels: Record<string, string> = {
-    ski: t('used.cat.ski'), board: t('used.cat.board'), boots: t('used.cat.boots'), binding: t('used.cat.binding'),
-    helmet: t('used.cat.helmet'), goggles: t('used.cat.goggles'), wear: t('used.cat.wear'), etc: t('used.cat.etc'),
-  };
+  // 카테고리 라벨 — 판(vertical) 설정 기반 (raw id 노출 방지: ski_boots, shoes 등 전부 커버).
+  const subcategoryLabels: Record<string, string> = Object.fromEntries(
+    (vertical.usedSubcategories || []).map((c) => [c.id, c.label])
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -426,9 +428,13 @@ const UsedDetail = () => {
                 {wishlisted ? <HeartFilledIcon size={24} /> : <HeartOutlineIcon size={24} />}
               </button>
               <button
-                onClick={() => navigate(`/chat/new`, {
-                  state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `/used/${product.id}`, productPath: `/used/${product.id}` }
-                })}
+                onClick={() => {
+                  // 탈퇴한 판매자 매물 — sellerId 없이 채팅방 열면 죽은 방이 생김.
+                  if (!sellerId) { toastError('판매자가 탈퇴하여 채팅할 수 없습니다.'); return; }
+                  navigate(`/chat/new`, {
+                    state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `${vbase}/used/${product.id}`, productPath: `${vbase}/used/${product.id}` }
+                  });
+                }}
                 className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
               >
                 {t('usedDetail.startChat')}
@@ -449,7 +455,7 @@ const UsedDetail = () => {
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
                     alert('삭제되었습니다.');
-                    window.location.href = '/used';
+                    window.location.href = `${vbase}/used` || '/used';
                   } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
@@ -466,7 +472,7 @@ const UsedDetail = () => {
         <Link to="/safe-trade" className="inline-flex items-center gap-1 text-xs text-gray-900 hover:underline">
           <ShieldIcon size={12} /> 안전거래 가이드 확인하기
         </Link>
-        <p className="text-[9px] text-gray-500 px-4">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
+        <p className="text-[9px] text-gray-500 px-4">{vertical.slug === 'snow' ? '스노우판' : vertical.name}은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
       </div>
 
       {/* Full Image Viewer */}

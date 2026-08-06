@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
 import { parsePrice } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
+import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -32,7 +33,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
       prisma.lesson.count({ where }),
     ]);
 
-    res.json({ items: lessons, totalCount });
+    res.json({ items: stripPrivateAll(lessons as any), totalCount });
   } catch (error) {
     console.error('Get lessons error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });
@@ -107,7 +108,7 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    res.json(lesson);
+    res.json(stripPrivate(lesson as any));
   } catch (error) {
     console.error('Get lesson error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });

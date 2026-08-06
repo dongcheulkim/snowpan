@@ -59,7 +59,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 중고매물 (판매중만)
     const products = await prisma.product.findMany({
-      where: { status: 'selling', category: 'used' },
+      where: { status: 'selling', category: 'used', vertical: 'snow' },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 5000,
@@ -70,6 +70,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 숙소
     const accommodations = await prisma.accommodation.findMany({
+      where: { approved: true },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 2000,
@@ -80,6 +81,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 레슨
     const lessons = await prisma.lesson.findMany({
+      where: { approved: true },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 2000,
@@ -90,6 +92,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 렌탈
     const rentals = await prisma.rental.findMany({
+      where: { approved: true },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 2000,
@@ -100,6 +103,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 스키샵
     const skiShops = await prisma.skiShop.findMany({
+      where: { approved: true },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 1000,
@@ -110,6 +114,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 정비샵
     const repairShops = await prisma.repairShop.findMany({
+      where: { approved: true },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 1000,
@@ -120,6 +125,7 @@ router.get('/sitemap.xml', async (_req: Request, res: Response) => {
 
     // 커뮤니티 게시글
     const posts = await prisma.post.findMany({
+      where: { vertical: 'snow' },
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 2000,
