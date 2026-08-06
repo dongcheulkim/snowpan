@@ -131,15 +131,60 @@ const Navbar = () => {
   // 앱 우선 — phone-width 컨테이너라 헤더엔 로고 + 검색/알림/로그인만.
   // 카테고리 진입은 홈의 아이콘 그리드, 하단 BottomNav 사용.
   void vertical;
-  const logoLink = '/';
+
+  // 판 선택 드롭다운 — 로고 클릭 시. 다른 판(바이크/골프/캠핑)은 준비중 티저.
+  const [panMenuOpen, setPanMenuOpen] = useState(false);
+  const panMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!panMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (panMenuRef.current && !panMenuRef.current.contains(e.target as Node)) setPanMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPanMenuOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [panMenuOpen]);
+
+  const COMING_PANS = ['바이크판', '골프판', '캠핑판'];
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
-          <Link to={logoLink} aria-label="SNOWPAN 홈" className="flex items-center">
-            <Logo />
-          </Link>
+          <div className="relative" ref={panMenuRef}>
+            <button
+              type="button"
+              onClick={() => setPanMenuOpen(v => !v)}
+              aria-label="판 선택"
+              aria-expanded={panMenuOpen}
+              className="flex items-center gap-1"
+            >
+              <Logo />
+              <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${panMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {panMenuOpen && (
+              <div className="absolute left-0 top-full mt-2 w-44 bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 z-50">
+                <Link
+                  to="/"
+                  onClick={() => setPanMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-2.5 hover:bg-sky-50 transition-colors"
+                >
+                  <span className="text-sm font-bold text-gray-900">스노우판</span>
+                  <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 rounded px-1.5 py-0.5">이용 중</span>
+                </Link>
+                {COMING_PANS.map((name) => (
+                  <div key={name} className="flex items-center justify-between px-4 py-2.5 cursor-default select-none">
+                    <span className="text-sm font-medium text-gray-300">{name}</span>
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">준비중이에요</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-1">
             <Link
