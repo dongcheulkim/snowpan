@@ -79,6 +79,23 @@ export default function Competitions() {
         </button>
       </div>
 
+      {/* 라이브타이밍 안내 — 대회 기록/결과 조회 외부 서비스 */}
+      <a
+        href="https://www.livetiming.co.kr/app/main/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors"
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <TrophyIcon size={16} className="text-amber-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <span className="block text-sm font-bold text-white">대회 기록 조회는 라이브타이밍에서</span>
+            <span className="block text-[11px] text-gray-400 truncate">실시간 경기 기록·순위 확인 — livetiming.co.kr</span>
+          </div>
+        </div>
+        <span className="flex-shrink-0 text-[11px] font-bold text-gray-900 bg-white rounded-lg px-2.5 py-1.5">바로가기</span>
+      </a>
+
       <div className="flex gap-2">
         {([
           { id: 'all', label: '전체', icon: null },
