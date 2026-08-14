@@ -103,7 +103,7 @@ export const privacySections = [
     title: '10. 개인정보 보호 책임자',
     content: `개인정보 관련 문의는 아래로 연락주시기 바랍니다.
 
-• 이메일: snowpan.help@gmail.com
+• 이메일: help.snowpan@gmail.com
 • 운영시간: 평일 10:00 ~ 18:00
 
 기타 개인정보 침해 신고:
