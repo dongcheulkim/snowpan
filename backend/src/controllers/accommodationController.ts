@@ -74,7 +74,8 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
     const userId = req.user!.id;
     const { name, type, price, originalPrice, guests, features, image, resortId, businessLicense, accommodationPermit, vertical } = req.body;
 
-    if (!name || !type || !guests || !features || !image || !resortId || !businessLicense) {
+    // businessLicense 는 선택 — 개인 시즌방 등도 등록 가능 (등록자 법령 준수 책임은 약관/동의로 이전).
+    if (!name || !type || !guests || !features || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
@@ -98,7 +99,7 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         guests,
         features,
         image,
-        businessLicense,
+        businessLicense: businessLicense || null,
         accommodationPermit: accommodationPermit || null,
         resortId,
         userId,

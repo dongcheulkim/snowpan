@@ -16,6 +16,7 @@ const AccommodationRegister = () => {
   const [permitFile, setPermitFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreeLiability, setAgreeLiability] = useState(false); // 숙소 제공자 법령 준수·책임 동의
   const [form, setForm] = useState({
     name: '',
     resortId: '',
@@ -63,8 +64,8 @@ const AccommodationRegister = () => {
       alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
       return;
     }
-    if (!bizLicenseFile) {
-      alert('숙소 등록 시 사업자등록증은 필수입니다.');
+    if (!agreeLiability) {
+      alert('숙소 제공자 책임 사항에 동의해주세요.');
       return;
     }
     setSubmitting(true);
@@ -74,7 +75,9 @@ const AccommodationRegister = () => {
         const urls = await uploadImages(imageFiles);
         image = urls[0];
       }
-      const bizUrls = await uploadImages([bizLicenseFile]);
+      // 사업자등록증은 선택 — 개인 시즌방 등도 등록 가능 (있으면 첨부).
+      let bizUrl = '';
+      if (bizLicenseFile) { const bizUrls = await uploadImages([bizLicenseFile]); bizUrl = bizUrls[0]; }
       let accommodationPermit = '';
       if (permitFile) {
         const permitUrls = await uploadImages([permitFile]);
@@ -90,7 +93,7 @@ const AccommodationRegister = () => {
           guests: `${form.maxGuests}인`,
           features: form.features.join(','),
           image,
-          businessLicense: bizUrls[0],
+          businessLicense: bizUrl || undefined,
           accommodationPermit: accommodationPermit || undefined,
           resortId: form.resortId,
         },
@@ -175,11 +178,12 @@ const AccommodationRegister = () => {
       </div>
 
       <div>
-        <label className={labelClass}>사업자등록증 <span className="text-coral text-xs">*필수</span></label>
+        <label className={labelClass}>사업자등록증 <span className="text-gray-500 font-normal">(선택)</span></label>
         <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${bizLicenseFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-500 hover:border-primary/50'}`}>
           {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진 업로드'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
         </label>
+        <p className="text-[10px] text-gray-500 mt-1">사업자가 있으면 첨부해주세요. 개인 시즌방 등도 등록 가능하나, 등록자가 관련 법령 준수 책임을 집니다.</p>
       </div>
 
       <div>
@@ -191,6 +195,15 @@ const AccommodationRegister = () => {
         <p className="text-[10px] text-gray-500 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
       </div>
 
+      {/* 숙소 제공자 책임·면책 동의 (필수) — 숙박은 미신고 영업 등 법적 리스크가 있어 판매자 책임 명시 */}
+      <label className="flex items-start gap-2 py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <input type="checkbox" checked={agreeLiability} onChange={e => setAgreeLiability(e.target.checked)} className="w-4 h-4 accent-amber-500 mt-0.5" />
+        <span className="text-[11px] text-amber-800 leading-relaxed">
+          본인은 숙박업·농어촌민박 신고 등 관련 법령 준수 책임이 <strong>등록자 본인</strong>에게 있음을 확인하며,
+          스노우판은 거래를 중개하는 플랫폼으로서 숙소의 적법성·상태·거래에 대해 책임지지 않음에 동의합니다.
+        </span>
+      </label>
+
       <label className="flex items-start gap-2 py-2">
         <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
         <span className="text-xs text-gray-500">
@@ -198,7 +211,7 @@ const AccommodationRegister = () => {
         </span>
       </label>
 
-      <button onClick={handleSubmit} disabled={submitting || !agreeTerms} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+      <button onClick={handleSubmit} disabled={submitting || !agreeTerms || !agreeLiability} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
         {submitting ? '등록 중...' : '등록 신청하기'}
       </button>
     </div>
