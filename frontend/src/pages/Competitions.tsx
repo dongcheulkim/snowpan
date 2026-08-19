@@ -26,9 +26,20 @@ function getMonthLabel(dateStr: string) {
   return `${new Date(dateStr).getMonth() + 1}월`;
 }
 
+// 'YYYY-MM-DD' 키 생성 (로컬 기준, timezone 안전).
+function dayKey(y: number, m0: number, d: number) {
+  return `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 export default function Competitions() {
   const [filter, setFilter] = useState<'all' | 'ski' | 'board'>('all');
   const [chatLoading, setChatLoading] = useState(false);
+  // 캘린더: 보고 있는 연/월(0-11), 선택한 날짜(null=전체).
+  const [view, setView] = useState(() => {
+    const first = competitions[0]?.date ? new Date(competitions[0].date) : new Date();
+    return { y: first.getFullYear(), m: first.getMonth() };
+  });
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleAdminInquiry = async () => {
@@ -53,8 +64,37 @@ export default function Competitions() {
 
   const filtered = competitions.filter(c => filter === 'all' || c.sport === filter || c.sport === 'both');
 
-  const grouped: Record<string, typeof competitions> = {};
+  // 날짜별 대회 매핑 — 기간 대회(date~endDate)는 모든 날짜에 표시.
+  const dayMap: Record<string, typeof competitions> = {};
   for (const c of filtered) {
+    const start = new Date(`${c.date}T00:00:00`);
+    const end = new Date(`${c.endDate || c.date}T00:00:00`);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = dayKey(d.getFullYear(), d.getMonth(), d.getDate());
+      (dayMap[key] ||= []).push(c);
+    }
+  }
+
+  // 캘린더 셀 (앞 빈칸 + 1~말일).
+  const firstWeekday = new Date(view.y, view.m, 1).getDay();
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+  const cells: (number | null)[] = [
+    ...Array(firstWeekday).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  const todayKey = dayKey(now.getFullYear(), now.getMonth(), now.getDate());
+  const moveMonth = (delta: number) => {
+    setSelectedDay(null);
+    setView(v => {
+      const d = new Date(v.y, v.m + delta, 1);
+      return { y: d.getFullYear(), m: d.getMonth() };
+    });
+  };
+
+  // 선택한 날 있으면 그날 대회만, 없으면 전체를 월별 그룹.
+  const listSource = selectedDay ? (dayMap[selectedDay] || []) : filtered;
+  const grouped: Record<string, typeof competitions> = {};
+  for (const c of listSource) {
     const month = getMonthLabel(c.date);
     if (!grouped[month]) grouped[month] = [];
     grouped[month].push(c);
@@ -112,6 +152,49 @@ export default function Competitions() {
             {icon}{label}
           </button>
         ))}
+      </div>
+
+      {/* 월 캘린더 — 대회 있는 날에 점 표시, 탭하면 그날 대회만 필터 */}
+      <div className="card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={() => moveMonth(-1)} aria-label="이전 달" className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 rounded-lg">‹</button>
+          <span className="text-sm font-bold text-gray-900">{view.y}년 {view.m + 1}월</span>
+          <button onClick={() => moveMonth(1)} aria-label="다음 달" className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 rounded-lg">›</button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {['일', '월', '화', '수', '목', '금', '토'].map((w, i) => (
+            <div key={w} className={`text-[10px] font-bold py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-sky-400' : 'text-gray-400'}`}>{w}</div>
+          ))}
+          {cells.map((day, idx) => {
+            if (day === null) return <div key={`e${idx}`} />;
+            const key = dayKey(view.y, view.m, day);
+            const has = !!dayMap[key];
+            const isToday = key === todayKey;
+            const isSelected = key === selectedDay;
+            const weekday = idx % 7;
+            return (
+              <button
+                key={key}
+                onClick={() => has && setSelectedDay(isSelected ? null : key)}
+                disabled={!has}
+                className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-xs transition-colors ${
+                  isSelected ? 'bg-sky-500 text-white font-bold'
+                  : has ? 'bg-sky-50 text-sky-700 font-bold hover:bg-sky-100 cursor-pointer'
+                  : isToday ? 'ring-1 ring-sky-300 text-gray-700'
+                  : weekday === 0 ? 'text-red-300' : weekday === 6 ? 'text-sky-300' : 'text-gray-400'
+                }`}
+              >
+                {day}
+                {has && !isSelected && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-sky-500" />}
+              </button>
+            );
+          })}
+        </div>
+        {selectedDay && (
+          <button onClick={() => setSelectedDay(null)} className="mt-3 w-full py-1.5 text-[11px] font-medium text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+            {new Date(selectedDay + 'T00:00:00').getMonth() + 1}월 {new Date(selectedDay + 'T00:00:00').getDate()}일 대회만 보는 중 · 전체 보기
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 && (
