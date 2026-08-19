@@ -193,10 +193,11 @@ export default function Competitions() {
                 <span className={has && !isSelected ? 'text-gray-900 font-bold' : ''}>{day}</span>
                 {has && (
                   <span className="flex flex-col items-center gap-px mt-0.5 leading-none">
-                    {skiN > 0 && (
+                    {/* 필터가 '보드'가 아니면 스키 배지, '스키'가 아니면 보드 배지 — 선택 종목만 표시 */}
+                    {filter !== 'board' && skiN > 0 && (
                       <span className={`text-[8px] font-bold px-1 rounded ${isSelected ? 'bg-white/25 text-white' : 'bg-sky-500 text-white'}`}>스키 {skiN}</span>
                     )}
-                    {boardN > 0 && (
+                    {filter !== 'ski' && boardN > 0 && (
                       <span className={`text-[8px] font-bold px-1 rounded ${isSelected ? 'bg-white/25 text-white' : 'bg-emerald-500 text-white'}`}>보드 {boardN}</span>
                     )}
                   </span>
