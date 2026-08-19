@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import competitions from '../data/competitions';
 import { api, getUser } from '../api';
-import { ChatIcon, LocationIcon, SkiIcon, SnowboardIcon, TrophyIcon } from '../components/Icons';
+import { ChatIcon, SkiIcon, SnowboardIcon, TrophyIcon } from '../components/Icons';
 
 const levelColor: Record<string, string> = {
   '전체': 'bg-green-100 text-green-700',
@@ -40,6 +40,8 @@ export default function Competitions() {
     return { y: first.getFullYear(), m: first.getMonth() };
   });
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // 월별 아코디언 열림 상태 (명시 안 된 달은 아래 monthOrder[0] 기본 열림).
+  const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
 
   const handleAdminInquiry = async () => {
@@ -218,54 +220,56 @@ export default function Competitions() {
         </div>
       )}
 
-      {Object.entries(grouped).map(([month, items]) => (
-        <div key={month}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-bold text-gray-900">{month}</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-          <div className="space-y-2">
-            {items.map((comp) => {
-              const isPast = new Date(comp.endDate || comp.date) < now;
-              const isToday = comp.date === now.toISOString().split('T')[0];
-
-              return (
-                <Link
-                  key={comp.id}
-                  to={`/competitions/${comp.id}`}
-                  className={`card p-4 block card-hover ${isPast ? 'opacity-50' : ''} ${isToday ? 'ring-2 ring-sky-400' : ''}`}
-                >
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 text-center w-14">
-                      <div className={`text-lg font-black ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>
-                        {formatDate(comp.date)}
-                      </div>
-                      <div className="text-[10px] text-gray-500">
-                        ({formatDay(comp.date)})
-                        {comp.endDate && <> ~ {formatDate(comp.endDate)}</>}
-                      </div>
-                      {isToday && <div className="text-[9px] font-bold text-sky-500 mt-0.5">TODAY</div>}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${levelColor[comp.level] || 'bg-gray-100 text-gray-600'}`}>{comp.level}</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">{comp.title}</h3>
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                        <span className="inline-flex items-center gap-1"><LocationIcon size={11} /> {comp.location}</span>
-                        <span>· {comp.organizer}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center text-gray-500 flex-shrink-0">→</div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      {/* 월별 아코디언 — 헤더 탭으로 펼침/접힘, 각 대회는 한 줄 컴팩트 */}
+      {(() => {
+        const monthOrder = Object.keys(grouped);
+        return monthOrder.map((month, mi) => {
+          const items = grouped[month];
+          const open = openMonths[month] ?? (mi === 0); // 첫 달 기본 펼침
+          return (
+            <div key={month} className="card overflow-hidden">
+              <button
+                onClick={() => setOpenMonths(prev => ({ ...prev, [month]: !open }))}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm font-bold text-gray-900">{month} <span className="text-gray-400 font-medium">({items.length})</span></span>
+                <svg className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {open && (
+                <div className="divide-y divide-gray-100 border-t border-gray-100">
+                  {items.map((comp) => {
+                    const isPast = new Date(comp.endDate || comp.date) < now;
+                    const isToday = comp.date === now.toISOString().split('T')[0];
+                    const sportDot = comp.sport === 'board' ? 'bg-emerald-500' : comp.sport === 'both' ? 'bg-purple-400' : 'bg-sky-500';
+                    return (
+                      <Link
+                        key={comp.id}
+                        to={`/competitions/${comp.id}`}
+                        className={`flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors ${isPast ? 'opacity-50' : ''}`}
+                      >
+                        <div className="flex-shrink-0 w-12 text-center">
+                          <div className={`text-sm font-black ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>{formatDate(comp.date)}</div>
+                          <div className="text-[9px] text-gray-400">({formatDay(comp.date)}){comp.endDate && `~${formatDate(comp.endDate)}`}</div>
+                        </div>
+                        <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${sportDot}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-gray-900 truncate">{comp.title}</span>
+                            {isToday && <span className="flex-shrink-0 text-[9px] font-bold text-sky-500">TODAY</span>}
+                          </div>
+                          <div className="text-[11px] text-gray-500 truncate">{comp.location} · {comp.organizer}</div>
+                        </div>
+                        <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${levelColor[comp.level] || 'bg-gray-100 text-gray-600'}`}>{comp.level}</span>
+                        <span className="flex-shrink-0 text-gray-300 text-xs">›</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        });
+      })()}
     </div>
   );
 }
