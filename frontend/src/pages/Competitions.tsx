@@ -168,7 +168,11 @@ export default function Competitions() {
           {cells.map((day, idx) => {
             if (day === null) return <div key={`e${idx}`} />;
             const key = dayKey(view.y, view.m, day);
-            const has = !!dayMap[key];
+            const comps = dayMap[key];
+            const has = !!comps;
+            // 종목별 건수 (both 은 스키·보드 양쪽 카운트).
+            const skiN = comps ? comps.filter(c => c.sport === 'ski' || c.sport === 'both').length : 0;
+            const boardN = comps ? comps.filter(c => c.sport === 'board' || c.sport === 'both').length : 0;
             const isToday = key === todayKey;
             const isSelected = key === selectedDay;
             const weekday = idx % 7;
@@ -177,15 +181,24 @@ export default function Competitions() {
                 key={key}
                 onClick={() => has && setSelectedDay(isSelected ? null : key)}
                 disabled={!has}
-                className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-xs transition-colors ${
+                className={`relative min-h-[3.2rem] flex flex-col items-center pt-1 rounded-lg text-xs transition-colors ${
                   isSelected ? 'bg-sky-500 text-white font-bold'
-                  : has ? 'bg-sky-50 text-sky-700 font-bold hover:bg-sky-100 cursor-pointer'
+                  : has ? 'bg-sky-50 hover:bg-sky-100 cursor-pointer'
                   : isToday ? 'ring-1 ring-sky-300 text-gray-700'
                   : weekday === 0 ? 'text-red-300' : weekday === 6 ? 'text-sky-300' : 'text-gray-400'
                 }`}
               >
-                {day}
-                {has && !isSelected && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-sky-500" />}
+                <span className={has && !isSelected ? 'text-gray-900 font-bold' : ''}>{day}</span>
+                {has && (
+                  <span className="flex flex-col items-center gap-px mt-0.5 leading-none">
+                    {skiN > 0 && (
+                      <span className={`text-[8px] font-bold px-1 rounded ${isSelected ? 'bg-white/25 text-white' : 'bg-sky-500 text-white'}`}>스키 {skiN}</span>
+                    )}
+                    {boardN > 0 && (
+                      <span className={`text-[8px] font-bold px-1 rounded ${isSelected ? 'bg-white/25 text-white' : 'bg-emerald-500 text-white'}`}>보드 {boardN}</span>
+                    )}
+                  </span>
+                )}
               </button>
             );
           })}
