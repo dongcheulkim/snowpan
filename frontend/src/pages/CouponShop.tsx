@@ -127,45 +127,44 @@ const CouponShop = () => {
           ))}
         </div>
 
-        {/* 쿠폰 그리드 */}
-        <div className="mt-4 space-y-3">
-          {loading ? (
-            <p className="text-sm text-gray-500 text-center py-10">불러오는 중...</p>
-          ) : coupons.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-10">조건에 맞는 쿠폰이 없습니다.</p>
-          ) : (
-            coupons.map((c) => {
+        {/* 쿠폰 그리드 (2열 박스) */}
+        {loading ? (
+          <p className="text-sm text-gray-500 text-center py-10">불러오는 중...</p>
+        ) : coupons.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-10">조건에 맞는 쿠폰이 없습니다.</p>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {coupons.map((c) => {
               const insufficient = balance !== null && balance < c.pointsCost;
               const soldOut = c.stock !== null && c.stock <= 0;
               return (
-                <div
-                  key={c.id}
-                  className="bg-snow border-2 border-gray-200 rounded-2xl p-4 flex gap-3"
-                >
-                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl">
+                <div key={c.id} className="bg-snow border-2 border-gray-200 rounded-2xl overflow-hidden flex flex-col">
+                  {/* 이미지 (위) */}
+                  <div className="h-24 bg-gray-100 flex items-center justify-center">
                     {c.image ? (
-                      <img src={c.image} alt={c.title} className="w-full h-full object-cover rounded-lg" />
+                      <img src={c.image} alt={c.title} className="w-full h-full object-cover" />
                     ) : (
-                      <span>🎟️</span>
+                      <span className="text-[11px] font-black tracking-widest text-gray-300">COUPON</span>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+                  {/* 정보 (아래) */}
+                  <div className="p-3 flex flex-col flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
                         {TYPE_LABEL[c.partnerType] || c.partnerType}
                       </span>
                       <span className="text-[10px] font-bold text-mint">{discountLabel(c)}</span>
                     </div>
-                    <p className="text-sm font-bold text-gray-900 mt-1 line-clamp-1">{c.title}</p>
+                    <p className="text-sm font-bold text-gray-900 mt-1 line-clamp-2">{c.title}</p>
                     {c.description && (
                       <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{c.description}</p>
                     )}
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm font-black text-gray-900">{c.pointsCost.toLocaleString()}P</p>
+                    <div className="mt-auto pt-2.5">
+                      <p className="text-sm font-black text-gray-900 mb-1.5">{c.pointsCost.toLocaleString()}P</p>
                       <button
                         onClick={() => onBuy(c)}
                         disabled={buying === c.id || soldOut || insufficient}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg ${
+                        className={`w-full text-xs font-bold py-2 rounded-lg ${
                           soldOut
                             ? 'bg-gray-200 text-gray-400'
                             : insufficient
@@ -179,9 +178,9 @@ const CouponShop = () => {
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
