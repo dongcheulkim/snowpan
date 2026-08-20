@@ -170,6 +170,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'login.socialLogin': '간편 로그인',
     'login.kakao': '카카오 로그인',
     'login.naver': '네이버 로그인',
+    'login.lastUsed': '최근 로그인',
     'login.forgotPassword': '비밀번호를 잊으셨나요?',
     'login.register': '회원가입',
     'login.noAccount': '계정이 없으신가요? 회원가입',

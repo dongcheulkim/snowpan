@@ -58,6 +58,7 @@ const AccommodationRegister = lazy(() => import('./pages/AccommodationRegister')
 const CommunityWrite = lazy(() => import('./pages/CommunityWrite'));
 const SellerProfile = lazy(() => import('./pages/SellerProfile'));
 const Register = lazy(() => import('./pages/Register'));
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 const AdminApproval = lazy(() => import('./pages/AdminApproval'));
 const EditProfile = lazy(() => import('./pages/EditProfile'));
 const MySales = lazy(() => import('./pages/MySales'));
@@ -182,6 +183,7 @@ function App() {
             <Route path="seller/:sellerId" element={<SellerProfile />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="oauth/callback" element={<OAuthCallback />} />
             <Route path="signup" element={<Navigate to="/register" replace />} />
             <Route path="admin-approval" element={<RequireAdmin><AdminApproval /></RequireAdmin>} />
             <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />

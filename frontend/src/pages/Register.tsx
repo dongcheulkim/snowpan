@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { api, setAuth } from '../api';
+import { api, setAuth, oauthStartUrl } from '../api';
 import LegalSheet from '../components/LegalSheet';
 
 // 한 질문씩 밀어내기(대화형) 회원가입. 이전 답은 위에 요약으로 쌓이고, 탭하면 수정.
@@ -267,7 +267,7 @@ const Register = () => {
           </div>
         </form>
 
-        {/* 간편 회원가입 (아직 준비중) */}
+        {/* 간편 회원가입 */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
@@ -276,7 +276,7 @@ const Register = () => {
           <div className="flex gap-3 mt-4">
             <button
               type="button"
-              onClick={() => alert('카카오 간편 회원가입은 아직 준비 중이에요!\n조금만 기다려주세요.')}
+              onClick={() => { window.location.href = oauthStartUrl('kakao'); }}
               className="flex-1 py-3 rounded-lg font-bold text-sm active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#FEE500', color: '#000000' }}
             >
@@ -285,7 +285,7 @@ const Register = () => {
             </button>
             <button
               type="button"
-              onClick={() => alert('네이버 간편 회원가입은 아직 준비 중이에요!\n조금만 기다려주세요.')}
+              onClick={() => { window.location.href = oauthStartUrl('naver'); }}
               className="flex-1 py-3 rounded-lg font-bold text-sm text-white active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#03C75A' }}
             >

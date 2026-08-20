@@ -11,12 +11,14 @@ datasource db {
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
-  password      String
+  password      String?  // 소셜 로그인 유저는 비밀번호 없음
   name          String
   nickname      String?
   displayName   String   @default("name") // 'name' | 'nickname'
-  phone         String   @unique
+  phone         String?  @unique // 소셜 유저는 전화번호 없이 가입 (본인인증 도입 시 채움)
   phoneVerified Boolean  @default(false)
+  provider      String?  // 'kakao' | 'naver' | null(이메일 가입)
+  providerId    String?  // 소셜 제공자의 유저 고유 id
   profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
   activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
@@ -60,6 +62,7 @@ model User {
   shopPosts        ShopPost[]
   polls            Poll[]
 
+  @@unique([provider, providerId]) // 소셜 (제공자, id) 조합 유일 — 이메일 가입은 둘 다 null 이라 무관
   @@map("users")
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { api, setAuth, isPersistentLogin } from '../api';
+import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, oauthStartUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
@@ -15,6 +15,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [, setLangTick] = useState(0);
+  const [lastLogin] = useState(() => getLastLogin());
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -29,6 +30,21 @@ const Login = () => {
     if (isPersistentLogin()) setAutoLogin(true);
   }, []);
 
+  // 소셜 로그인 콜백 실패 시 백엔드가 ?social_error= 로 되돌려보냄.
+  useEffect(() => {
+    const se = searchParams.get('social_error');
+    if (se) setError(se);
+  }, [searchParams]);
+
+  // 소셜 로그인 시작 — 로그인 후 돌아올 경로 저장 후 백엔드 OAuth 로 이동.
+  const startSocial = (provider: 'kakao' | 'naver') => {
+    try {
+      const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
+      if (safeNext) sessionStorage.setItem('snowpan.oauthNext', safeNext);
+    } catch { /* ignore */ }
+    window.location.href = oauthStartUrl(provider);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -41,6 +57,7 @@ const Login = () => {
       });
 
       setAuth(data.token, data.user, autoLogin);
+      markLastLogin('email');
 
       if (saveEmail) {
         localStorage.setItem('savedEmail', email);
@@ -59,6 +76,13 @@ const Login = () => {
   };
 
   const inputClass = "w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
+
+  // "최근 로그인" 배지 — 마지막에 사용한 로그인 방식 버튼 위에 표시.
+  const LastBadge = () => (
+    <span className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-accent text-white text-[10px] font-bold shadow-sm whitespace-nowrap pointer-events-none">
+      {t('login.lastUsed')}
+    </span>
+  );
 
   return (
     <div className="max-w-md mx-auto animate-fade-in">
@@ -123,8 +147,9 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2 disabled:opacity-50"
+            className="relative w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] mt-2 disabled:opacity-50"
           >
+            {lastLogin === 'email' && <LastBadge />}
             {loading ? t('login.loggingIn') : t('login.submit')}
           </button>
         </form>
@@ -142,24 +167,22 @@ const Login = () => {
 
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => {
-                alert('카카오 간편 로그인은 아직 준비 중이에요!\n조금만 기다려주세요.');
-              }}
-              className="flex-1 py-3 rounded-lg font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
+              onClick={() => startSocial('kakao')}
+              className="relative flex-1 py-3 rounded-lg font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#FEE500', color: '#000000' }}
             >
+              {lastLogin === 'kakao' && <LastBadge />}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3c-5.088 0-9.2 3.272-9.2 7.313 0 2.604 1.716 4.9 4.318 6.195-.19.71-.69 2.577-.79 2.975-.124.496.18.49.38.355.157-.105 2.5-1.7 3.533-2.392.572.083 1.158.126 1.759.126 5.088 0 9.2-3.272 9.2-7.313S17.088 3 12 3z"/>
               </svg>
               {t('login.kakao')}
             </button>
             <button
-              onClick={() => {
-                alert('네이버 간편 로그인은 아직 준비 중이에요!\n조금만 기다려주세요.');
-              }}
-              className="flex-1 py-3 rounded-lg font-bold text-sm text-white transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
+              onClick={() => startSocial('naver')}
+              className="relative flex-1 py-3 rounded-lg font-bold text-sm text-white transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
               style={{ backgroundColor: '#03C75A' }}
             >
+              {lastLogin === 'naver' && <LastBadge />}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z" transform="scale(0.75) translate(4,4)"/>
               </svg>

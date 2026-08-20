@@ -331,6 +331,12 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
 
+    // 소셜 전용 계정은 비밀번호가 없음 — 비밀번호 변경 불가.
+    if (!user.password) {
+      res.status(400).json({ error: '소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.' });
+      return;
+    }
+
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       res.status(400).json({ error: '현재 비밀번호가 일치하지 않습니다.' });
@@ -551,19 +557,22 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     const userId = req.user!.id;
     const { password } = req.body as { password?: string };
 
-    if (!password) {
-      res.status(400).json({ error: '비밀번호를 입력해주세요.' });
-      return;
-    }
-
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
     if (user.role === 'deleted') { res.status(400).json({ error: '이미 탈퇴한 계정입니다.' }); return; }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.status(400).json({ error: '비밀번호가 일치하지 않습니다.' });
-      return;
+    // 소셜 전용 계정(비밀번호 없음)은 이미 JWT 로 본인 인증됨 — 비번 확인 생략.
+    // 이메일 가입 계정은 비밀번호 재확인 필수.
+    if (user.password) {
+      if (!password) {
+        res.status(400).json({ error: '비밀번호를 입력해주세요.' });
+        return;
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        res.status(400).json({ error: '비밀번호가 일치하지 않습니다.' });
+        return;
+      }
     }
 
     const stamp = Date.now();

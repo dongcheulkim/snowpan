@@ -220,6 +220,26 @@ export function logout() {
 
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
+// ===== 소셜 로그인 =====
+export type LoginMethod = 'email' | 'kakao' | 'naver';
+
+// 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
+export function oauthStartUrl(provider: 'kakao' | 'naver'): string {
+  return `${API_BASE}/auth/${provider}`;
+}
+
+// 마지막으로 성공한 로그인 방식 기록 (로그인 화면 "최근 로그인" 배지용).
+export function markLastLogin(method: LoginMethod): void {
+  try { localStorage.setItem('snowpan.lastLogin', method); } catch { /* private mode */ }
+}
+
+export function getLastLogin(): LoginMethod | null {
+  try {
+    const v = localStorage.getItem('snowpan.lastLogin');
+    return v === 'email' || v === 'kakao' || v === 'naver' ? v : null;
+  } catch { return null; }
+}
+
 // Bunny CDN Optimizer — URL 뒤 ?width= 로 자동 리사이즈 + WebP/AVIF 변환.
 // (Bunny 대시보드에서 Optimizer 켜져 있어야 동작; 안 켜도 원본은 정상 서빙)
 function transformBunny(url: string, width?: number): string {
