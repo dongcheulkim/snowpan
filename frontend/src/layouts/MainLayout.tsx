@@ -76,6 +76,8 @@ const MainLayout = () => {
             <p className="mt-1.5">
               <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
               <span className="mx-1.5">·</span>
+              <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-600">광고안내</Link>
+              <span className="mx-1.5">·</span>
               <Link to="/safe-trade" className="underline underline-offset-2 hover:text-gray-600">안전거래</Link>
               <span className="mx-1.5">·</span>
               <Link to="/help" className="underline underline-offset-2 hover:text-gray-600">고객센터</Link>

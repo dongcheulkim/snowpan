@@ -78,6 +78,7 @@ const RecentlyViewed = lazy(() => import('./pages/RecentlyViewed'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
+const Advertise = lazy(() => import('./pages/Advertise'));
 const Points = lazy(() => import('./pages/Points'));
 const CouponShop = lazy(() => import('./pages/CouponShop'));
 const MyCoupons = lazy(() => import('./pages/MyCoupons'));
@@ -208,6 +209,7 @@ function App() {
             <Route path="webcam" element={<Webcam />} />
             <Route path="webcam/:id" element={<WebcamDetail />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="advertise" element={<Advertise />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="points" element={<RequireAuth><Points /></RequireAuth>} />
             <Route path="coupons" element={<CouponShop />} />
