@@ -180,7 +180,11 @@ const MyPage = () => {
                 );
               })}
             </div>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <p className="text-sm text-gray-500">
+              {user.email.endsWith('@social.local')
+                ? (user.email.startsWith('naver_') ? '네이버 계정' : '카카오 계정')
+                : user.email}
+            </p>
           </div>
         </div>
 
