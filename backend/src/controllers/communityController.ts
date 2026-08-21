@@ -177,7 +177,7 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
     // 조회수 어뷰징 방지 — 같은 (userId|IP) 가 같은 글을 30분 내 재조회 시 카운트 X.
     // 본인 새로고침 도배 / 봇 자동조회 차단. 메모리 캐시 (재시작 시 초기화 OK).
     // 존재하지 않는 글이면 update 가 P2025 throw 하므로 catch 해서 무시 (findUnique 에서 404 처리).
-    const viewerKey = currentUserId || req.header('cf-connecting-ip') || req.header('x-real-ip') || req.ip || 'anon';
+    const viewerKey = currentUserId || req.ip || 'anon'; // 위조 가능한 IP 헤더 대신 req.ip 만 사용
     const dedupKey = `view:${id}:${viewerKey}`;
     if (!recentViews.has(dedupKey)) {
       recentViews.set(dedupKey, Date.now());

@@ -211,6 +211,10 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     // 트랜잭션으로 동시 예약 방지
     const booking = await prisma.$transaction(async (tx) => {
 
+      // 동시 예약 write-skew 차단 — 이 슬롯 가격 행에 배타 락(FOR UPDATE).
+      // 같은 슬롯/기간 동시 요청을 직렬화해 maxConcurrent 초과판매 방지 (plain 트랜잭션만으론 못 막음).
+      await tx.$queryRaw`SELECT id FROM ad_slot_pricings WHERE id = ${pricing.id} FOR UPDATE`;
+
       // 기간 내 각 날짜에 대해 최대 동시 예약 수 체크
       const existingBookings = await tx.adBooking.findMany({
         where: {
@@ -457,7 +461,9 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         refundAmount = remaining > 0 ? remaining * (booking.totalPrice / booking.totalDays) : 0;
       }
 
-      if (refundAmount <= 0) {
+      // 무료승인 광고(totalPrice=0)는 환불액 0이 정상 — 취소 자체는 허용해야 함(배너/프리미엄 내려감).
+      // 유료 광고인데 남은 환불액이 0이면(전 기간 소진) 거절.
+      if (booking.totalPrice > 0 && refundAmount <= 0) {
         res.status(400).json({ error: '환불 가능한 금액이 없습니다.' });
         return;
       }

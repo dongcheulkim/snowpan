@@ -20,10 +20,7 @@ function shouldSkip(path: string): boolean {
 }
 
 function getClientIp(req: Request): string {
-  const cf = req.header('cf-connecting-ip');
-  if (cf) return cf.trim();
-  const xReal = req.header('x-real-ip');
-  if (xReal) return xReal.trim();
+  // trust proxy 설정된 req.ip 만 신뢰 — cf-connecting-ip/x-real-ip 는 클라가 위조 가능(rateLimit 과 동일 정책).
   return req.ip || req.socket.remoteAddress || 'unknown';
 }
 

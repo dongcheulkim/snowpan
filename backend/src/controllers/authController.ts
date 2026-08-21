@@ -889,8 +889,8 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // jti 재사용 감지 — 토큰이 두 번째 쓰이면 도난 의심 → family 무효화.
-    if (!consumeJti(payload.jti)) {
+    // jti 재사용 감지 — 도난(replay)이면 family 무효화. 단 10초 내 재사용은 멀티탭 동시 갱신으로 보고 허용(grace).
+    if (consumeJti(payload.jti) === 'replay') {
       revokeFamily(payload.fam);
       clearRefreshCookie(res);
       res.status(401).json({ error: '비정상 접근이 감지되어 로그아웃되었습니다. 다시 로그인해주세요.' });

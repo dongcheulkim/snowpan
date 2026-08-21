@@ -69,11 +69,16 @@ export function revokeFamily(fam: string): void {
   revokedFamilies.set(fam, Date.now());
 }
 
-// jti 가 처음 사용되면 등록하고 OK 반환. 이미 사용된 적이 있으면 false (replay).
-export function consumeJti(jti: string): boolean {
-  if (usedJtis.has(jti)) return false;
-  usedJtis.set(jti, Date.now());
-  return true;
+// jti 소비 결과: 'ok'(첫 사용) | 'grace'(짧은 시간 내 재사용 = 멀티탭 동시 갱신, 도난 아님) | 'replay'(도난 의심).
+// 여러 탭이 같은 refresh 쿠키로 동시에 갱신하면 같은 jti 를 거의 동시에 쓰는데, 이를 도난으로 오판해
+// 양쪽 다 강제 로그아웃하던 문제를 유예창(10초)으로 방지.
+const JTI_GRACE_MS = 10_000;
+export function consumeJti(jti: string): 'ok' | 'grace' | 'replay' {
+  const now = Date.now();
+  const prev = usedJtis.get(jti);
+  if (prev === undefined) { usedJtis.set(jti, now); return 'ok'; }
+  if (now - prev < JTI_GRACE_MS) return 'grace';
+  return 'replay';
 }
 
 // 사용자 단위 토큰 무효화 — 비밀번호 변경/탈퇴/정지 시 호출.
