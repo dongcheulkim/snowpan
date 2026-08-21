@@ -147,7 +147,7 @@ router.post('/rooms', async (req: any, res: Response) => {
     // 관리자 채팅방 새로 생성 시 관리자 자동 인사 (위에서 이미 fetch 한 target 재사용).
     if (isNewRoom && !productName && target.role === 'admin') {
       await prisma.message.create({
-        data: { roomId: room.id, senderId: targetUserId, content: '안녕하세요! 무엇을 도와드릴까요? 😊', type: 'text' },
+        data: { roomId: room.id, senderId: targetUserId, content: '안녕하세요! 무엇을 도와드릴까요?', type: 'text' },
       });
       await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
     }

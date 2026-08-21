@@ -123,7 +123,8 @@ const Chat = () => {
     }).catch(() => {});
     markAsRead(id);
 
-    const socket = io(SERVER_URL, { auth: { token } });
+    // 재연결 시에도 최신 토큰을 읽도록 함수형 auth — 1시간 만료 후 끊겼다 붙어도 인증 유지.
+    const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
     socketRef.current = socket;
     socket.on('connect', () => {
       setConnected(true);
@@ -190,8 +191,12 @@ const Chat = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sendMessage = () => {
-    if (!input.trim() || !roomId || !socketRef.current) return;
-    socketRef.current.emit('send_message', { roomId, content: input.trim() });
+    const text = input.trim();
+    if (!text || !roomId || !socketRef.current) return;
+    if (text.length > 2000) { toastError('메시지가 너무 길어요. (최대 2000자)'); return; }
+    // 끊긴 상태면 전송 안 하고 입력 유지 — 유실 방지.
+    if (!socketRef.current.connected) { toastError('연결이 끊겼어요. 잠시 후 다시 시도해주세요.'); return; }
+    socketRef.current.emit('send_message', { roomId, content: text });
     setInput('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';

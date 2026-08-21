@@ -52,6 +52,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import adminRoutes from './routes/adminRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
+import { displayName } from './utils/displayName';
 import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import savedSearchRoutes from './routes/savedSearchRoutes';
@@ -401,6 +402,16 @@ io.on('connection', (socket) => {
       return;
     }
     try {
+      // 입력 검증 — content 문자열/길이(최대 2000자), type 화이트리스트. 빈 메시지(이미지도 없음) 무시.
+      const content = typeof data.content === 'string' ? data.content.trim() : '';
+      const imageUrl = typeof data.imageUrl === 'string' && data.imageUrl ? data.imageUrl : null;
+      if (!content && !imageUrl) return;
+      if (content.length > 2000) {
+        socket.emit('rate_limited', { error: '메시지가 너무 깁니다. (최대 2000자)' });
+        return;
+      }
+      const type = data.type === 'image' ? 'image' : 'text';
+
       // 채팅방 멤버인지 확인
       const room = await prisma.chatRoom.findFirst({
         where: { id: data.roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
@@ -408,7 +419,7 @@ io.on('connection', (socket) => {
       if (!room) return;
 
       const message = await prisma.message.create({
-        data: { roomId: data.roomId, senderId: userId, content: data.content, imageUrl: data.imageUrl || null, type: data.type || 'text' },
+        data: { roomId: data.roomId, senderId: userId, content, imageUrl, type },
         include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
@@ -418,9 +429,10 @@ io.on('connection', (socket) => {
       const chatRoom = await prisma.chatRoom.findUnique({ where: { id: data.roomId } });
       if (chatRoom) {
         const recipientId = chatRoom.user1Id === userId ? chatRoom.user2Id : chatRoom.user1Id;
-        const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-        const senderName = sender?.name || '알 수 없음';
-        const preview = data.content.length > 30 ? data.content.slice(0, 30) + '...' : data.content;
+        // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
+        const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
+        const senderName = sender ? displayName(sender) : '알 수 없음';
+        const preview = content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
         await createNotification(recipientId, 'chat', `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
         io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: `${senderName}님의 메시지`, message: preview });
         sendPushToUser(recipientId, `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
