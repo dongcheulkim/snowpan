@@ -16,8 +16,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [, setLangTick] = useState(0);
   const [lastLogin] = useState(() => getLastLogin());
-  // 소셜(간편)로그인이 메인. 이메일 로그인은 관리자·기존 가입자용으로 숨김 — 마지막 로그인이 이메일이면 자동 펼침.
-  const [showEmail, setShowEmail] = useState(() => getLastLogin() === 'email');
+  // 카카오 로그인이 메인. 이메일 로그인은 접어두고 하단 링크로만 펼침(관리자·기존 이메일 유저용).
+  const [showEmail, setShowEmail] = useState(false);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
@@ -107,20 +107,9 @@ const Login = () => {
             </svg>
             카카오로 시작하기
           </button>
-          <button
-            onClick={() => startSocial('naver')}
-            className="relative w-full py-3.5 rounded-lg font-bold text-sm text-white transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
-            style={{ backgroundColor: '#03C75A' }}
-          >
-            {lastLogin === 'naver' && <LastBadge />}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z" transform="scale(0.75) translate(4,4)"/>
-            </svg>
-            네이버로 시작하기
-          </button>
         </div>
 
-        <p className="mt-4 text-center text-xs text-gray-400">처음이신가요? 위 버튼으로 바로 가입돼요.</p>
+        <p className="mt-4 text-center text-xs text-gray-400">처음이신가요? 카카오로 바로 가입돼요.</p>
 
         {error && !showEmail && (
           <div className="mt-4 text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
