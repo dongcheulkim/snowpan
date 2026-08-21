@@ -15,6 +15,7 @@ const OAuthCallback = () => {
       const token = params.get('token');
       const userRaw = params.get('user');
       const provider = params.get('provider');
+      const isNew = params.get('isNew') === '1';
 
       if (!token || !userRaw) {
         setError('로그인 정보를 받지 못했어요. 다시 시도해주세요.');
@@ -28,6 +29,12 @@ const OAuthCallback = () => {
       // 소셜 로그인은 지속 로그인(자동 로그인) 처리.
       setAuth(token, user, true);
       if (provider === 'kakao' || provider === 'naver') markLastLogin(provider);
+
+      // 신규 가입자 or 닉네임 미설정 → 온보딩(/welcome)으로. (oauthNext 는 Welcome 이 소비)
+      if (isNew || !user?.nickname) {
+        navigate('/welcome', { replace: true });
+        return;
+      }
 
       // 로그인 전 가려던 경로 복원 (Login 에서 저장), 없으면 홈.
       let dest = '/';

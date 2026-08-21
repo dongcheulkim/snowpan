@@ -63,7 +63,8 @@ async function completeLogin(res: Response, profile: SocialProfile): Promise<voi
   setRefreshCookie(res, user.id, true);
   const minimal = { id: user.id, email: user.email, name: user.name, nickname: user.nickname, role: user.role, phone: user.phone, profileImage: user.profileImage, provider: user.provider };
   const payload = Buffer.from(JSON.stringify(minimal)).toString('base64url');
-  res.redirect(`${FRONTEND()}/oauth/callback#token=${encodeURIComponent(token)}&user=${payload}&provider=${profile.provider}`);
+  // isNew=1 이면 프론트가 온보딩(/welcome)으로 보냄 — 닉네임·약관 미완료 신규 소셜 유저.
+  res.redirect(`${FRONTEND()}/oauth/callback#token=${encodeURIComponent(token)}&user=${payload}&provider=${profile.provider}&isNew=${isNew ? 1 : 0}`);
 }
 
 function fail(res: Response, msg: string): void {
