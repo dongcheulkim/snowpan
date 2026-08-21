@@ -390,6 +390,18 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // 배지 — 본인이 "승인" 받은 배지만 표시 가능 (공인강사 등 신뢰배지 사칭 차단).
+    if (activeBadge !== undefined && activeBadge !== null && activeBadge !== '') {
+      const owned = await prisma.badgeRequest.findFirst({
+        where: { userId, badgeType: String(activeBadge), status: 'approved' },
+        select: { id: true },
+      });
+      if (!owned) {
+        res.status(403).json({ error: '보유하지 않은 배지입니다.' });
+        return;
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -451,6 +463,21 @@ export const sendPhoneVerification = async (
   try {
     const { phone } = req.body;
 
+    // 형식 검증 — 임의 문자열/객체가 SMS 발송에 그대로 넘어가던 것 차단 (register 와 동일 규칙).
+    const phoneClean = typeof phone === 'string' ? phone.replace(/[^0-9]/g, '') : '';
+    if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
+      res.status(400).json({ error: '올바른 휴대폰 번호를 입력해주세요.' });
+      return;
+    }
+
+    // per-phone 캡 — 같은 번호로 24시간 5회 초과 발송 차단 (SMS 폭탄/비용 남용 방지).
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentCount = await prisma.phoneVerification.count({ where: { phone: phoneClean, createdAt: { gte: since } } });
+    if (recentCount >= 5) {
+      res.status(429).json({ error: '인증번호 요청이 너무 많습니다. 24시간 후 다시 시도해주세요.' });
+      return;
+    }
+
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     const expiresAt = new Date();
@@ -458,18 +485,18 @@ export const sendPhoneVerification = async (
 
     await prisma.phoneVerification.create({
       data: {
-        phone,
+        phone: phoneClean,
         code,
         expiresAt,
       },
     });
 
     // SMS 발송 (개발환경에서 env 미설정 시만 콘솔에 코드 노출 — 프로덕션 로그에 인증번호 노출 금지)
-    const sent = await sendSMS(phone, `[스노우판] 인증번호: ${code}`);
+    const sent = await sendSMS(phoneClean, `[스노우판] 인증번호: ${code}`);
     if (!sent && process.env.NODE_ENV !== 'production') {
-      console.log(`[DEV 인증번호] ${phone}: ${code}`);
+      console.log(`[DEV 인증번호] ${phoneClean}: ${code}`);
     } else if (!sent) {
-      console.error(`[ALERT] SMS 발송 실패 (phone=${phone.slice(0, 3)}***) — SMS 서비스 환경변수 점검 필요`);
+      console.error(`[ALERT] SMS 발송 실패 (phone=${phoneClean.slice(0, 3)}***) — SMS 서비스 환경변수 점검 필요`);
     }
 
     res.json({
@@ -594,6 +621,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           phoneVerified: false,
           password: lockedPasswordHash,
           role: 'deleted',
+          // 소셜 연결 해제 — 안 지우면 같은 카카오/네이버로 재로그인 시 탈퇴 계정이 부활함.
+          provider: null,
+          providerId: null,
         },
       });
       // 판매중 매물은 자동으로 거두기 (예약/판매완료 매물은 거래 기록 유지)

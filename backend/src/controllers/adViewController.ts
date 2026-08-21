@@ -5,7 +5,10 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 
-const VALID_SOURCES = new Set(['admob', 'web_inhouse', 'test']);
+// 'test' 는 개발환경에서만 허용 — 프로덕션에서 리워드광고 게이트(쿠폰 구매)를 위조로 우회하던 구멍 차단.
+const VALID_SOURCES = new Set(
+  process.env.NODE_ENV === 'production' ? ['admob', 'web_inhouse'] : ['admob', 'web_inhouse', 'test']
+);
 const VALID_PLATFORMS = new Set(['ios', 'android', 'web']);
 const VALID_PURPOSES = new Set(['coupon_purchase']);
 

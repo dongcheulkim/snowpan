@@ -52,10 +52,11 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       try {
         const token = auth.replace('Bearer ', '');
         const jwt = await import('jsonwebtoken');
-        const payload = jwt.default.verify(token, process.env.JWT_SECRET!) as { id?: string };
-        if (payload?.id) {
+        // 토큰 클레임은 userId (id 아님) + HS256 고정. 이전엔 payload.id 를 읽어 myVote 가 항상 null 이었음.
+        const payload = jwt.default.verify(token, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as { userId?: string; type?: string };
+        if (payload?.userId && (!payload.type || payload.type === 'access')) {
           const v = await prisma.pollVote.findUnique({
-            where: { pollId_userId: { pollId: poll.id, userId: payload.id } },
+            where: { pollId_userId: { pollId: poll.id, userId: payload.userId } },
             select: { optionId: true },
           });
           myVote = v?.optionId || null;
@@ -150,6 +151,7 @@ router.post('/:id/like', authenticateToken, async (req: AuthRequest, res: Respon
     });
     res.json({ likes: poll.likes });
   } catch (err) {
+    if ((err as { code?: string })?.code === 'P2025') { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
     res.status(500).json({ error: '좋아요 처리 실패' });
   }
 });

@@ -61,7 +61,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         price: priceResult.value,
         duration,
         level,
-        maxStudents: Number(maxStudents) || 1,
+        maxStudents: Math.max(1, Number(maxStudents) || 1),
         image,
         instructorCert: instructorCert || null,
         businessLicense: businessLicense || null,
@@ -95,8 +95,9 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
 
-    const lesson = await prisma.lesson.findUnique({
-      where: { id },
+    // 승인된 항목만 공개 — 미승인(심사 대기) 레슨이 ID 로 노출되던 승인 게이트 우회 차단.
+    const lesson = await prisma.lesson.findFirst({
+      where: { id, approved: true },
       include: {
         resort: true,
         user: { select: { id: true, name: true, nickname: true } },
@@ -131,7 +132,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     }
     const updated = await prisma.lesson.update({
       where: { id },
-      data: { ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(level && { level }), ...(maxStudents && !isNaN(Number(maxStudents)) && { maxStudents: Number(maxStudents) }), ...(image && { image }) },
+      data: { ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(level && { level }), ...(maxStudents !== undefined && Number(maxStudents) > 0 && { maxStudents: Number(maxStudents) }), ...(image && { image }) },
     });
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }

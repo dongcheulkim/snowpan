@@ -53,6 +53,8 @@ import adminRoutes from './routes/adminRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
+import { isTokenIatStale } from './utils/tokens';
+import { isAllowedImageUrl } from './utils/validate';
 import reviewRoutes from './routes/reviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import savedSearchRoutes from './routes/savedSearchRoutes';
@@ -347,10 +349,18 @@ io.use((socket, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as { userId: string; type?: string };
+    }) as { userId: string; type?: string; iat?: number };
     if (decoded.type && decoded.type !== 'access') return next(new Error('잘못된 토큰 타입'));
-    socket.data.userId = decoded.userId;
-    next();
+    // HTTP authMiddleware 와 동일한 게이트 — 세션무효화/차단/탈퇴/존재확인. 소켓만 우회하던 구멍 차단.
+    if (isTokenIatStale(decoded.userId, decoded.iat)) return next(new Error('세션 만료'));
+    prisma.user.findUnique({ where: { id: decoded.userId }, select: { id: true, role: true } })
+      .then((user) => {
+        if (!user) return next(new Error('존재하지 않는 사용자'));
+        if (user.role === 'banned' || user.role === 'deleted') return next(new Error('이용이 제한된 계정'));
+        socket.data.userId = user.id;
+        next();
+      })
+      .catch(() => next(new Error('인증 실패')));
   } catch {
     next(new Error('인증 실패'));
   }
@@ -404,7 +414,8 @@ io.on('connection', (socket) => {
     try {
       // 입력 검증 — content 문자열/길이(최대 2000자), type 화이트리스트. 빈 메시지(이미지도 없음) 무시.
       const content = typeof data.content === 'string' ? data.content.trim() : '';
-      const imageUrl = typeof data.imageUrl === 'string' && data.imageUrl ? data.imageUrl : null;
+      // imageUrl 은 허용된 업로드 도메인만 — 임의 외부 URL(추적 픽셀/IP 로깅) 상대방 클라에 심는 것 차단.
+      const imageUrl = typeof data.imageUrl === 'string' && data.imageUrl && isAllowedImageUrl(data.imageUrl) ? data.imageUrl : null;
       if (!content && !imageUrl) return;
       if (content.length > 2000) {
         socket.emit('rate_limited', { error: '메시지가 너무 깁니다. (최대 2000자)' });

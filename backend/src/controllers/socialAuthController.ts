@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { signAccessToken, setRefreshCookie } from '../utils/tokens';
 import { awardPoints } from '../utils/points';
+import { normalizeEmail } from '../utils/validate';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
 // 키: KAKAO_CLIENT_ID (+옵션 KAKAO_CLIENT_SECRET), NAVER_LOGIN_CLIENT_ID/SECRET.
@@ -16,30 +17,37 @@ interface SocialProfile {
   provider: 'kakao' | 'naver';
   providerId: string;
   email?: string | null;
+  emailVerified?: boolean; // 제공자가 이메일 인증됨을 보증하는가 (카카오 is_email_verified / 네이버는 true)
   name?: string | null;
   profileImage?: string | null;
 }
 
 // 소셜 프로필 → 유저 조회/생성 후 우리 토큰 발급 + 리다이렉트.
 async function completeLogin(res: Response, profile: SocialProfile): Promise<void> {
+  // 인증된 이메일만 신뢰 — 미인증 이메일로 기존 계정에 붙는 탈취 차단. 정규화(소문자/trim)해서 이메일가입과 동일 규칙.
+  const verifiedEmail = profile.emailVerified && profile.email ? normalizeEmail(profile.email) : null;
+
   // 1) (provider, providerId) 로 기존 소셜 유저 조회.
   let user = await prisma.user.findFirst({ where: { provider: profile.provider, providerId: profile.providerId } });
 
-  // 2) 없으면 이메일로 기존 계정 연결 (소셜 이메일은 인증된 값).
-  if (!user && profile.email) {
-    const byEmail = await prisma.user.findUnique({ where: { email: profile.email } });
-    if (byEmail) {
+  // 2) 없으면 "인증된" 이메일로만 기존 계정 연결. 그 계정이 이미 다른 소셜에 연결돼 있으면 덮지 않음.
+  if (!user && verifiedEmail) {
+    const byEmail = await prisma.user.findUnique({ where: { email: verifiedEmail } });
+    if (byEmail && !byEmail.provider) {
       user = await prisma.user.update({
         where: { id: byEmail.id },
         data: { provider: profile.provider, providerId: profile.providerId, profileImage: byEmail.profileImage || profile.profileImage || null },
       });
+    } else if (byEmail) {
+      // 이미 다른 provider 연결된 계정 — 자동 병합 안 함(안전).
+      user = byEmail;
     }
   }
 
-  // 3) 그래도 없으면 신규 생성. 이메일 없으면 placeholder (@<provider>.local) — unique 보장.
+  // 3) 그래도 없으면 신규 생성. 인증 이메일 없으면 placeholder (@social.local) — unique 보장.
   let isNew = false;
   if (!user) {
-    const email = profile.email || `${profile.provider}_${profile.providerId}@social.local`;
+    const email = verifiedEmail || `${profile.provider}_${profile.providerId}@social.local`;
     user = await prisma.user.create({
       data: {
         email,
@@ -52,6 +60,11 @@ async function completeLogin(res: Response, profile: SocialProfile): Promise<voi
       },
     });
     isNew = true;
+  }
+
+  // 탈퇴/차단 계정은 소셜로도 재로그인 불가 — 토큰 발급 전 차단.
+  if (user.role === 'deleted' || user.role === 'banned') {
+    return fail(res, '이용이 제한된 계정입니다.');
   }
 
   if (isNew) {
@@ -110,7 +123,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
     const meRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
-    const me = await meRes.json() as { id?: number; msg?: string; code?: number; kakao_account?: { email?: string; profile?: { nickname?: string; profile_image_url?: string } } };
+    const me = await meRes.json() as { id?: number; msg?: string; code?: number; kakao_account?: { email?: string; is_email_verified?: boolean; profile?: { nickname?: string; profile_image_url?: string } } };
     if (!me.id) {
       console.error('카카오 프로필 조회 실패:', me);
       return fail(res, `카카오 프로필 조회 실패: ${me.msg || '알 수 없음'}`);
@@ -120,6 +133,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
       provider: 'kakao',
       providerId: String(me.id),
       email: me.kakao_account?.email || null,
+      emailVerified: me.kakao_account?.is_email_verified === true,
       name: me.kakao_account?.profile?.nickname || null,
       profileImage: me.kakao_account?.profile?.profile_image_url || null,
     });
@@ -165,6 +179,7 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
       provider: 'naver',
       providerId: r.id,
       email: r.email || null,
+      emailVerified: !!r.email, // 네이버 로그인 이메일은 인증된 값
       name: r.name || r.nickname || null,
       profileImage: r.profile_image || null,
     });

@@ -95,8 +95,9 @@ export const getRentalById = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
 
-    const rental = await prisma.rental.findUnique({
-      where: { id },
+    // 승인된 항목만 공개 — 미승인(심사 대기) 렌탈이 ID 로 노출되던 승인 게이트 우회 차단.
+    const rental = await prisma.rental.findFirst({
+      where: { id, approved: true },
       include: {
         resort: true,
         user: { select: { id: true, name: true, nickname: true } },

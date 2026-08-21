@@ -249,14 +249,19 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       res.status(403).json({ error: '공지사항은 관리자만 작성할 수 있습니다.' });
       return;
     }
-    // 공지는 스키·보드 공용(sport='all')으로 저장하고 상단 고정.
-    const finalSport = isNotice ? 'all' : sport;
-    const finalPinned = isNotice;
     // sport: snow=ski/board, bike=road/mtb, run=road/trail, etc. — vertical 안에서 자유롭게 (검증 약화)
     if (typeof sport !== 'string' || sport.length > 20) {
       res.status(400).json({ error: '유효하지 않은 종목입니다.' });
       return;
     }
+    // 'all'(모든 필터에 노출)은 관리자 공지 전용 — 일반 유저가 sport='all'로 전 필터 도배하는 것 차단.
+    if (!isNotice && sport === 'all') {
+      res.status(400).json({ error: '종목을 선택해주세요.' });
+      return;
+    }
+    // 공지는 스키·보드 공용(sport='all')으로 저장하고 상단 고정.
+    const finalSport = isNotice ? 'all' : sport;
+    const finalPinned = isNotice;
 
     // 클라이언트와 한도 일치: 제목 50자, 본문 5000자.
     // sanitize 전 원본 길이 검증 — 사용자가 의도적으로 큰 입력 보낸 경우 truncate 대신 거절.

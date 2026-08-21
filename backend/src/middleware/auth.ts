@@ -64,7 +64,7 @@ export const authMiddleware = async (
       return;
     }
 
-    if (user.role === 'banned') {
+    if (user.role === 'banned' || user.role === 'deleted') {
       res.status(403).json({ error: '이용이 제한된 계정입니다.' });
       return;
     }

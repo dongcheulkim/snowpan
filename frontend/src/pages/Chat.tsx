@@ -142,6 +142,9 @@ const Chat = () => {
       if (data.userId !== user.id) setOtherLastReadAt(data.readAt);
     });
     socket.on('disconnect', () => setConnected(false));
+    // 서버가 메시지를 드롭(레이트리밋)하거나 방 입장 거부 시 사용자에게 알림 — 조용한 유실 방지.
+    socket.on('rate_limited', (d: { error?: string }) => toastError(d?.error || '메시지를 너무 빠르게 보내고 있어요.'));
+    socket.on('room_error', (d: { error?: string }) => toastError(d?.error || '채팅방에 접근할 수 없어요.'));
   };
 
   useEffect(() => {
@@ -403,6 +406,9 @@ const Chat = () => {
             if (isProductInquiry) {
               let parsed: { productName?: string; productPath?: string } = {};
               try { parsed = JSON.parse(msg.content); } catch { parsed = { productName: msg.content }; }
+              // 내부 경로만 링크로 — 옛 메시지/조작된 외부 URL(오픈리다이렉트) 방어.
+              const safePath = typeof parsed.productPath === 'string' && parsed.productPath.startsWith('/') && !parsed.productPath.startsWith('//') && !parsed.productPath.includes(':')
+                ? parsed.productPath : null;
               const inner = (
                 <div className={`rounded-2xl px-4 py-3 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
                   <div className={`flex items-center gap-1.5 mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>
@@ -412,7 +418,7 @@ const Chat = () => {
                   <p className="text-sm font-semibold leading-snug">
                     "{parsed.productName}"
                   </p>
-                  {parsed.productPath && (
+                  {safePath && (
                     <p className={`text-[10px] mt-1.5 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>탭하여 상품 보기 →</p>
                   )}
                 </div>
@@ -423,8 +429,8 @@ const Chat = () => {
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
                       {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
-                      {parsed.productPath ? (
-                        <Link to={parsed.productPath} className="block active:opacity-70 transition-opacity">{inner}</Link>
+                      {safePath ? (
+                        <Link to={safePath} className="block active:opacity-70 transition-opacity">{inner}</Link>
                       ) : inner}
                       <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                         {showRead && <span className="text-gray-900 font-medium">읽음</span>}

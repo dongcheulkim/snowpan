@@ -154,13 +154,18 @@ router.post('/rooms', async (req: any, res: Response) => {
 
     // 상품명이 있으면 안내 메시지 자동 전송
     if (productName) {
+      // productName 은 길이 제한, productPath 는 내부 경로만 허용 — 상대방 채팅에 외부 링크(오픈리다이렉트/피싱) 심는 것 차단.
+      const safeName = typeof productName === 'string' ? productName.slice(0, 100) : '';
+      const safePath = typeof productPath === 'string' && productPath.startsWith('/') && !productPath.startsWith('//') && !productPath.includes(':')
+        ? productPath.slice(0, 300)
+        : null;
       const lastMsg = await prisma.message.findFirst({
         where: { roomId: room.id },
         orderBy: { createdAt: 'desc' },
       });
-      const noticeContent = JSON.stringify({ productName, productPath: productPath || null });
+      const noticeContent = JSON.stringify({ productName: safeName, productPath: safePath });
       let isAlreadySent = false;
-      try { isAlreadySent = lastMsg?.type === 'product_inquiry' && JSON.parse(lastMsg.content || '{}').productName === productName; } catch {}
+      try { isAlreadySent = lastMsg?.type === 'product_inquiry' && JSON.parse(lastMsg.content || '{}').productName === safeName; } catch {}
       if (!isAlreadySent) {
         await prisma.message.create({
           data: { roomId: room.id, senderId: userId, content: noticeContent, type: 'product_inquiry' },

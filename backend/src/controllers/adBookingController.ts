@@ -226,8 +226,11 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         select: { startDate: true, endDate: true },
       });
 
-      // 각 날짜 체크
-      const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      // 각 날짜 체크 — 시작·종료를 자정 기준으로 정규화 후 포함 일수 계산.
+      // (기간 경로는 종료가 23:59:59라 기존 ceil+1 이 하루를 이중계산해 30일→31일 과금·게시되던 버그 수정)
+      const sMid = new Date(start.getTime()); sMid.setHours(0, 0, 0, 0);
+      const eMid = new Date(end.getTime()); eMid.setHours(0, 0, 0, 0);
+      const days = Math.round((eMid.getTime() - sMid.getTime()) / 86400000) + 1;
       // 기간 상한 — 비정상 입력(수십 년 등)으로 인한 루프 부하·터무니없는 금액 차단.
       if (days > 370) {
         throw new Error('광고 기간은 최대 12개월까지 가능합니다.');
@@ -590,8 +593,8 @@ export const adminUpsertPricing = async (req: AuthRequest, res: Response): Promi
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { slotType, category, pricePerDay, maxConcurrent, description, active } = req.body;
 
-    if (!slotType || !pricePerDay) {
-      res.status(400).json({ error: 'slotType, pricePerDay는 필수입니다.' });
+    if (!slotType || pricePerDay === undefined || pricePerDay === null || Number(pricePerDay) <= 0) {
+      res.status(400).json({ error: 'slotType, pricePerDay(0보다 큰 값)는 필수입니다.' });
       return;
     }
 
@@ -628,6 +631,11 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
     const { pricePerDay, maxConcurrent, description, active } = req.body;
+
+    if (pricePerDay !== undefined && Number(pricePerDay) <= 0) {
+      res.status(400).json({ error: 'pricePerDay는 0보다 커야 합니다.' });
+      return;
+    }
 
     const pricing = await prisma.adSlotPricing.update({
       where: { id },

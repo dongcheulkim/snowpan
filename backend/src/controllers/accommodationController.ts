@@ -44,8 +44,9 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
   try {
     const { id } = req.params;
 
-    const accommodation = await prisma.accommodation.findUnique({
-      where: { id },
+    // 승인된 항목만 공개 — 미승인(심사 대기) 숙소가 ID 로 노출되던 승인 게이트 우회 차단.
+    const accommodation = await prisma.accommodation.findFirst({
+      where: { id, approved: true },
       include: {
         resort: true,
         user: {
