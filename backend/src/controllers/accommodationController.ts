@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
-import { parsePrice } from '../utils/validate';
+import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
@@ -80,6 +80,10 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
+    if (!isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
+      return;
+    }
     const priceResult = parsePrice(price);
     if (!priceResult.ok) { res.status(400).json({ error: priceResult.error }); return; }
     let originalParsed = priceResult.value;
@@ -147,6 +151,9 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
       const r = parsePrice(originalPrice);
       if (!r.ok) { res.status(400).json({ error: r.error }); return; }
       originalUpdate = r.value;
+    }
+    if (image !== undefined && image !== null && image !== '' && !isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return;
     }
     const updated = await prisma.accommodation.update({
       where: { id },

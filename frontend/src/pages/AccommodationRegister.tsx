@@ -70,7 +70,7 @@ const AccommodationRegister = () => {
     }
     setSubmitting(true);
     try {
-      let image = 'https://picsum.photos/seed/pan-accommodation/800/500';
+      let image = '/icons/placeholder-card.svg'; // 사진 미첨부 시 로컬 기본(허용 자산)
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         image = urls[0];

@@ -122,6 +122,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         nickname: trimmedNickname || null,
         phone: phoneClean,
         referredById: referredById,
+        // 이메일 가입은 약관·개인정보 동의 필수(프론트) → 동의 시각 기록.
+        termsAgreedAt: new Date(),
+        privacyAgreedAt: new Date(),
       },
     });
 
@@ -360,7 +363,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { nickname, profileImage, activeBadge } = req.body;
+    const { nickname, profileImage, activeBadge, agreeTerms, agreePrivacy } = req.body;
 
     // 닉네임 — sanitize (XSS 방어) 후 검증.
     let cleanNickname: string | null | undefined = undefined;
@@ -402,14 +405,27 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...(cleanNickname !== undefined && { nickname: cleanNickname }),
-        ...(profileImage !== undefined && { profileImage: profileImage || null }),
-        ...(activeBadge !== undefined && { activeBadge: activeBadge || null }),
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(cleanNickname !== undefined && { nickname: cleanNickname }),
+          ...(profileImage !== undefined && { profileImage: profileImage || null }),
+          ...(activeBadge !== undefined && { activeBadge: activeBadge || null }),
+          // 온보딩 동의 기록 (Welcome 에서 전달) — 최초 동의 시각 저장.
+          ...(agreeTerms === true && { termsAgreedAt: new Date() }),
+          ...(agreePrivacy === true && { privacyAgreedAt: new Date() }),
+        },
+      });
+    } catch (e) {
+      // 닉네임 DB 유니크 경합 — 사전 체크를 통과한 동시 요청 2건이 같은 닉을 쓰면 여기서 P2002.
+      if ((e as { code?: string })?.code === 'P2002') {
+        res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
+        return;
+      }
+      throw e;
+    }
 
     res.json({
       id: user.id,

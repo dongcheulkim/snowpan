@@ -3,6 +3,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
+import { isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 
 const router = Router();
@@ -48,6 +49,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
+    if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     const shop = await prisma.skiShop.create({
       data: {
         name: sanitizeText(name, 100) || name,
@@ -154,6 +156,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (website !== undefined) data.website = website ? (sanitizeText(website, 300) || website) : null;
     if (naverMap !== undefined) data.naverMap = naverMap ? (sanitizeText(naverMap, 300) || naverMap) : null;
     if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
+    if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     if (image !== undefined) data.image = image || null;
 
     const updated = await prisma.skiShop.update({ where: { id: req.params.id }, data });

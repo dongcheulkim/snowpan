@@ -13,7 +13,7 @@ model User {
   email         String   @unique
   password      String?  // 소셜 로그인 유저는 비밀번호 없음
   name          String
-  nickname      String?
+  nickname      String?  @unique // 앱 검증 + DB 유니크로 경합 시 중복 차단(P2002)
   displayName   String   @default("name") // 'name' | 'nickname'
   phone         String?  @unique // 소셜 유저는 전화번호 없이 가입 (본인인증 도입 시 채움)
   phoneVerified Boolean  @default(false)
@@ -31,6 +31,9 @@ model User {
   referredById  String?  // 누구의 추천으로 가입했는지
   referredBy    User?    @relation("referrals", fields: [referredById], references: [id])
   referrals     User[]   @relation("referrals")
+  // 약관·개인정보 동의 시각 (온보딩/가입 시 기록 — 전자상거래법·개인정보보호법 동의 이력)
+  termsAgreedAt   DateTime?
+  privacyAgreedAt DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

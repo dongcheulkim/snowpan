@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
-import { parsePrice } from '../utils/validate';
+import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
@@ -49,6 +49,10 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
 
     if (!name || !duration || !equipment || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    if (!isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
       return;
     }
     const priceResult = parsePrice(price);
@@ -129,6 +133,9 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
       const r = parsePrice(price);
       if (!r.ok) { res.status(400).json({ error: r.error }); return; }
       priceUpdate = r.value;
+    }
+    if (image !== undefined && image !== null && image !== '' && !isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return;
     }
     const updated = await prisma.rental.update({
       where: { id },

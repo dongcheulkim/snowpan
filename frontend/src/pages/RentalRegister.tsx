@@ -59,9 +59,7 @@ const RentalRegister = () => {
 
     setLoading(true);
     try {
-      let image = form.equipment.includes('보드')
-      ? 'https://picsum.photos/seed/pan-rental-board/600/400'
-      : 'https://picsum.photos/seed/pan-rental-ski/600/400';
+      let image = '/icons/placeholder-card.svg'; // 사진 미첨부 시 로컬 기본(허용 자산)
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
         image = urls[0];

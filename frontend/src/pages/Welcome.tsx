@@ -33,7 +33,7 @@ const Welcome = () => {
     try {
       const updated = await api<Record<string, unknown>>('/auth/profile', {
         method: 'PUT',
-        body: { nickname: trimmed },
+        body: { nickname: trimmed, agreeTerms, agreePrivacy },
       });
       setUser(updated);
 
