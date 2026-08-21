@@ -98,15 +98,22 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
         ...(process.env.KAKAO_CLIENT_SECRET ? { client_secret: process.env.KAKAO_CLIENT_SECRET } : {}),
       }),
     });
-    const tokenData = await tokenRes.json() as { access_token?: string };
-    if (!tokenData.access_token) return fail(res, '카카오 토큰 발급 실패');
+    const tokenData = await tokenRes.json() as { access_token?: string; error?: string; error_code?: string; error_description?: string };
+    if (!tokenData.access_token) {
+      console.error('카카오 토큰 발급 실패:', tokenData);
+      const detail = tokenData.error_description || tokenData.error_code || tokenData.error || '알 수 없음';
+      return fail(res, `카카오 토큰 발급 실패: ${detail}`);
+    }
 
     // 프로필 조회
     const meRes = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
-    const me = await meRes.json() as { id?: number; kakao_account?: { email?: string; profile?: { nickname?: string; profile_image_url?: string } } };
-    if (!me.id) return fail(res, '카카오 프로필 조회 실패');
+    const me = await meRes.json() as { id?: number; msg?: string; code?: number; kakao_account?: { email?: string; profile?: { nickname?: string; profile_image_url?: string } } };
+    if (!me.id) {
+      console.error('카카오 프로필 조회 실패:', me);
+      return fail(res, `카카오 프로필 조회 실패: ${me.msg || '알 수 없음'}`);
+    }
 
     await completeLogin(res, {
       provider: 'kakao',
@@ -140,8 +147,11 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
     const redirectUri = `${API_BASE()}/api/auth/naver/callback`;
 
     const tokenRes = await fetch(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&client_secret=${process.env.NAVER_LOGIN_CLIENT_SECRET}&code=${code}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`);
-    const tokenData = await tokenRes.json() as { access_token?: string };
-    if (!tokenData.access_token) return fail(res, '네이버 토큰 발급 실패');
+    const tokenData = await tokenRes.json() as { access_token?: string; error?: string; error_description?: string };
+    if (!tokenData.access_token) {
+      console.error('네이버 토큰 발급 실패:', tokenData);
+      return fail(res, `네이버 토큰 발급 실패: ${tokenData.error_description || tokenData.error || '알 수 없음'}`);
+    }
 
     const meRes = await fetch('https://openapi.naver.com/v1/nid/me', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
