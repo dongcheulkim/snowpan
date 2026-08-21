@@ -74,6 +74,7 @@ const LessonRegister = () => {
           duration: form.duration,
           level: form.level,
           maxStudents: Number(form.maxStudents),
+          description: form.description?.trim() || undefined,
           image,
           instructorCert: certUrls[0],
           businessLicense: businessLicense || undefined,

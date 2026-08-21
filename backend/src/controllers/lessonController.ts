@@ -44,7 +44,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
 export const createLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, level, maxStudents, image, resortId, instructorCert, businessLicense, vertical } = req.body;
+    const { name, price, duration, level, maxStudents, description, image, resortId, instructorCert, businessLicense, vertical } = req.body;
 
     if (!name || !duration || !level || !maxStudents || !image || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
@@ -66,6 +66,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         duration,
         level,
         maxStudents: Math.max(1, Number(maxStudents) || 1),
+        description: typeof description === 'string' ? description.slice(0, 2000) : null,
         image,
         instructorCert: instructorCert || null,
         businessLicense: businessLicense || null,
@@ -137,10 +138,18 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     if (image !== undefined && image !== null && image !== '' && !isAllowedImageUrl(image)) {
       res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return;
     }
+    const { description } = req.body;
+    const ownerEdit = req.user!.role !== 'admin';
     const updated = await prisma.lesson.update({
       where: { id },
-      data: { ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(level && { level }), ...(maxStudents !== undefined && Number(maxStudents) > 0 && { maxStudents: Number(maxStudents) }), ...(image && { image }) },
+      data: {
+        ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(level && { level }),
+        ...(maxStudents !== undefined && Number(maxStudents) > 0 && { maxStudents: Number(maxStudents) }),
+        ...(description !== undefined && { description: typeof description === 'string' ? description.slice(0, 2000) : null }),
+        ...(image && { image }), ...(ownerEdit && { approved: false }),
+      },
     });
+    if (ownerEdit) notifyAdmins('system', '레슨 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };

@@ -248,6 +248,7 @@ model Rental {
   price                 Int
   duration              String
   equipment             String
+  description           String?   // 상세 설명 (장비 상태·브랜드 등)
   image                 String
   businessLicense       String?   // 사업자등록증 이미지 URL
   resortId              String
@@ -276,6 +277,7 @@ model Lesson {
   duration              String
   level                 String    // 'beginner' | 'intermediate' | 'advanced'
   maxStudents           Int
+  description           String?   // 상세 설명 (강사 경력·레슨 내용 등)
   image                 String
   instructorCert        String?   // 강사 자격증 이미지 URL
   businessLicense       String?   // 사업자등록증 이미지 URL

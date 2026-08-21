@@ -158,8 +158,12 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     if (image !== undefined) data.image = image || null;
+    // 소유자 수정은 재심사 — 승인 후 콘텐츠 바꿔치기 차단. 관리자 수정은 승인 유지.
+    const ownerEdit = req.user!.role !== 'admin';
+    if (ownerEdit) data.approved = false;
 
     const updated = await prisma.skiShop.update({ where: { id: req.params.id }, data });
+    if (ownerEdit) notifyAdmins('system', '스키샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update ski shop error:', error);

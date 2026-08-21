@@ -14,9 +14,13 @@ interface Product {
   createdAt: string;
 }
 
+const PAGE = 30;
+
 const MySales = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
   const user = getUser();
   const [, setLangTick] = useState(0);
@@ -25,12 +29,18 @@ const MySales = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
-  const loadProducts = () => {
+  // reset=true 는 처음부터, false 는 다음 페이지 이어붙이기 (50개 넘는 판매내역도 다 관리 가능).
+  const loadProducts = (reset = true) => {
     if (!user) { setLoading(false); return; } // 무한 스피너 방지
-    api<{ products: Product[]; totalCount: number }>(`/products?userId=${user.id}&category=used`)
-      .then(data => setProducts(data.products))
-      .catch(() => setProducts([]))
-      .finally(() => setLoading(false));
+    const offset = reset ? 0 : products.length;
+    if (reset) setLoading(true); else setLoadingMore(true);
+    api<{ products: Product[]; totalCount: number }>(`/products?userId=${user.id}&category=used&limit=${PAGE}&offset=${offset}`)
+      .then(data => {
+        setProducts(prev => reset ? data.products : [...prev, ...data.products]);
+        setTotal(data.totalCount);
+      })
+      .catch(() => { if (reset) setProducts([]); })
+      .finally(() => { setLoading(false); setLoadingMore(false); });
   };
 
   useEffect(() => {
@@ -128,6 +138,16 @@ const MySales = () => {
             );
           })}
         </div>
+      )}
+
+      {!loading && products.length < total && (
+        <button
+          onClick={() => loadProducts(false)}
+          disabled={loadingMore}
+          className="w-full py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+        >
+          {loadingMore ? '불러오는 중...' : `더 보기 (${products.length}/${total})`}
+        </button>
       )}
     </div>
   );

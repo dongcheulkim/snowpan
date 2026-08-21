@@ -155,10 +155,16 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     if (image !== undefined && image !== null && image !== '' && !isAllowedImageUrl(image)) {
       res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return;
     }
+    const ownerEdit = req.user!.role !== 'admin';
     const updated = await prisma.accommodation.update({
       where: { id },
-      data: { ...(name && { name }), ...(type && { type }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests }), ...(features && { features }), ...(image && { image }) },
+      data: {
+        ...(name && { name }), ...(type && { type }), ...(priceUpdate !== undefined && { price: priceUpdate }),
+        ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests }), ...(features && { features }),
+        ...(image && { image }), ...(ownerEdit && { approved: false }),
+      },
     });
+    if (ownerEdit) notifyAdmins('system', '숙소 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };

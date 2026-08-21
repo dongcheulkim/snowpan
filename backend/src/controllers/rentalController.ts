@@ -43,7 +43,7 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
 export const createRental = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, price, duration, equipment, image, resortId, businessLicense, vertical } = req.body;
+    const { name, price, duration, equipment, description, image, resortId, businessLicense, vertical } = req.body;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -67,6 +67,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         price: priceResult.value,
         duration,
         equipment,
+        description: typeof description === 'string' ? description.slice(0, 2000) : null,
         image,
         businessLicense: businessLicense || null,
         resortId,
@@ -127,7 +128,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (!item) { res.status(404).json({ error: '렌탈을 찾을 수 없습니다.' }); return; }
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, price, duration, equipment, image } = req.body;
+    const { name, price, duration, equipment, description, image } = req.body;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const r = parsePrice(price);
@@ -137,10 +138,17 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (image !== undefined && image !== null && image !== '' && !isAllowedImageUrl(image)) {
       res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return;
     }
+    // 소유자가 수정하면 재심사(approved=false) — 승인 후 콘텐츠 바꿔치기 차단. 관리자 수정은 승인 유지.
+    const ownerEdit = req.user!.role !== 'admin';
     const updated = await prisma.rental.update({
       where: { id },
-      data: { ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }), ...(equipment && { equipment }), ...(image && { image }) },
+      data: {
+        ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }),
+        ...(equipment && { equipment }), ...(description !== undefined && { description: typeof description === 'string' ? description.slice(0, 2000) : null }),
+        ...(image && { image }), ...(ownerEdit && { approved: false }),
+      },
     });
+    if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };

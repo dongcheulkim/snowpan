@@ -77,6 +77,7 @@ const RentalRegister = () => {
           price: Number(form.price),
           duration: form.duration,
           equipment: form.equipment.join(', '),
+          description: form.description?.trim() || undefined,
           image,
           businessLicense: businessLicense || undefined,
         },

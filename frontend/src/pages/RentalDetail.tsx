@@ -11,6 +11,7 @@ interface RentalData {
   price: number;
   duration: string;
   equipment: string;
+  description?: string;
   image: string;
   resort?: { id: string; name: string; location: string };
   user?: { id?: string; name: string; phone: string };
@@ -76,6 +77,13 @@ const RentalDetail = () => {
           ))}
         </div>
       </div>
+
+      {item.description && (
+        <div className="card rounded-2xl p-5">
+          <h3 className="text-sm font-bold text-gray-900 mb-3">상세 설명</h3>
+          <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{item.description}</p>
+        </div>
+      )}
 
       {item.user && (
         <div className="card rounded-2xl p-5">
