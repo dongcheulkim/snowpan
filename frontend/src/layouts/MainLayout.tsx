@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -67,6 +67,22 @@ const MainLayout = () => {
         )}
         <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
           <Outlet />
+          {/* 사업자 정보 푸터 — 전자상거래법상 표시 의무 + 결제대행 심사 요건 */}
+          <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-400">
+            <p className="font-bold text-gray-500">스노우판</p>
+            <p>대표 김동철 · 사업자등록번호 333-12-03287</p>
+            <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
+            <p>고객센터 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-600">help.snowpan@gmail.com</a> · 010-6710-0656</p>
+            <p className="mt-1.5">
+              <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
+              <span className="mx-1.5">·</span>
+              <Link to="/safe-trade" className="underline underline-offset-2 hover:text-gray-600">안전거래</Link>
+              <span className="mx-1.5">·</span>
+              <Link to="/help" className="underline underline-offset-2 hover:text-gray-600">고객센터</Link>
+            </p>
+            <p className="mt-2 text-gray-300">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
+            <p className="text-gray-300">© 2026 스노우판</p>
+          </footer>
         </main>
         {showAppChrome && <BottomNav />}
         <ToastHost />

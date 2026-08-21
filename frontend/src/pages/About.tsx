@@ -91,27 +91,27 @@ export default function About() {
         </div>
         <dl className="grid grid-cols-3 gap-y-2 text-xs">
           <dt className="col-span-1 text-gray-500">상호</dt>
-          <dd className="col-span-2 text-gray-900 font-medium">스노우메타</dd>
+          <dd className="col-span-2 text-gray-900 font-medium">스노우판</dd>
 
           <dt className="col-span-1 text-gray-500">대표자</dt>
           <dd className="col-span-2 text-gray-900 font-medium">김동철</dd>
 
           <dt className="col-span-1 text-gray-500">사업자등록번호</dt>
-          <dd className="col-span-2 text-gray-400">등록 후 기입 예정</dd>
+          <dd className="col-span-2 text-gray-900 font-medium">333-12-03287</dd>
 
           <dt className="col-span-1 text-gray-500">통신판매업 신고번호</dt>
           <dd className="col-span-2 text-gray-400">신고 후 기입 예정</dd>
 
           <dt className="col-span-1 text-gray-500">사업장 주소</dt>
-          <dd className="col-span-2 text-gray-400">등록 후 기입 예정</dd>
+          <dd className="col-span-2 text-gray-900 font-medium">강원특별자치도 평창군 대관령면 가시머리길 4, 2층</dd>
 
           <dt className="col-span-1 text-gray-500">대표 이메일</dt>
           <dd className="col-span-2 text-gray-900 font-medium">
-            <a href="mailto:dongcheul97@naver.com" className="hover:underline">dongcheul97@naver.com</a>
+            <a href="mailto:help.snowpan@gmail.com" className="hover:underline">help.snowpan@gmail.com</a>
           </dd>
 
           <dt className="col-span-1 text-gray-500">대표 전화</dt>
-          <dd className="col-span-2 text-gray-400">등록 후 기입 예정</dd>
+          <dd className="col-span-2 text-gray-900 font-medium">010-6710-0656</dd>
 
           <dt className="col-span-1 text-gray-500">호스팅 서비스</dt>
           <dd className="col-span-2 text-gray-900 font-medium">Vercel · Render</dd>
