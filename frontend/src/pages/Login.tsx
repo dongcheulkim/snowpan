@@ -38,6 +38,14 @@ const Login = () => {
     if (se) setError(se);
   }, [searchParams]);
 
+  // 초대 링크(/login?ref=코드)로 진입 시 추천 코드 보관 — 소셜 로그인 리다이렉트 후 온보딩에서 적용.
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      try { sessionStorage.setItem('snowpan.ref', ref); } catch { /* private mode */ }
+    }
+  }, [searchParams]);
+
   // 소셜 로그인 시작 — 로그인 후 돌아올 경로 저장 후 백엔드 OAuth 로 이동.
   const startSocial = (provider: 'kakao' | 'naver') => {
     try {

@@ -19,7 +19,7 @@ export default function ReferralCard() {
 
   if (loading || !code) return null;
 
-  const link = `${SITE}/register?ref=${code}`;
+  const link = `${SITE}/login?ref=${code}`;
   const shareText = `스노우판 초대 — 이 링크로 가입하면 우리 둘 다 500P 받아요! (가입 보너스 1,000P 별도)\n${link}`;
 
   const copyLink = async () => {

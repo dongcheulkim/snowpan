@@ -18,6 +18,7 @@ import {
   deleteAccount,
   refreshAccessToken,
   logout,
+  applyReferral,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
@@ -29,6 +30,7 @@ router.post('/register', sensitiveAuthLimiter, register);
 router.post('/login', sensitiveAuthLimiter, login);
 router.post('/refresh', refreshAccessToken);
 router.post('/logout', logout);
+router.post('/apply-referral', authenticateToken, sensitiveAuthLimiter, applyReferral);
 router.post('/phone/send', sensitiveAuthLimiter, sendPhoneVerification);
 router.post('/phone/verify', sensitiveAuthLimiter, verifyPhone);
 router.post('/reset-password-request', sensitiveAuthLimiter, resetPasswordRequest);

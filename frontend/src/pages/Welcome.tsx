@@ -37,6 +37,15 @@ const Welcome = () => {
       });
       setUser(updated);
 
+      // 초대 링크로 들어왔으면 추천 코드 적용 (실패해도 가입은 유지 — 부수효과).
+      try {
+        const ref = sessionStorage.getItem('snowpan.ref');
+        if (ref) {
+          await api('/auth/apply-referral', { method: 'POST', body: { code: ref } }).catch(() => {});
+          sessionStorage.removeItem('snowpan.ref');
+        }
+      } catch { /* ignore */ }
+
       // 로그인 전 가려던 경로 복원, 없으면 홈.
       let dest = '/';
       try {

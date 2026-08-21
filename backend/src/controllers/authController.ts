@@ -81,6 +81,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // 휴대폰 본인인증 필수 — 최근 1시간 내 인증완료된 번호만 가입 허용.
+    // (형식만 맞으면 통과하던 구멍으로 가짜 번호 계정 양산 → 가입/추천 포인트 파밍하던 것 차단)
+    const verifiedPhone = await prisma.phoneVerification.findFirst({
+      where: { phone: phoneClean, verified: true, createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+    if (!verifiedPhone) {
+      res.status(403).json({ error: '휴대폰 본인인증이 필요합니다.' });
+      return;
+    }
+
     // 닉네임 중복 사전 차단 — Prisma unique constraint 가 던지는 모호한 500 대신 친절한 409 반환.
     const trimmedNickname = nickname ? String(nickname).trim() : '';
     if (trimmedNickname) {
@@ -959,4 +971,40 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 export const logout = (_req: Request, res: Response): void => {
   clearRefreshCookie(res);
   res.json({ message: '로그아웃되었습니다.' });
+};
+
+// 추천 코드 적용 — 소셜 가입은 register 를 안 거치므로 온보딩(Welcome)에서 호출.
+// 가입 직후(24h)·미적용·본인아님일 때만 1회 지급. 소셜 계정은 카카오/네이버 실명 기반이라 sybil 저항.
+export const applyReferral = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { code } = req.body as { code?: string };
+    if (!code || typeof code !== 'string') { res.status(400).json({ error: '추천 코드가 없습니다.' }); return; }
+
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { referredById: true, createdAt: true } });
+    if (!me) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
+    if (me.referredById) { res.status(400).json({ error: '이미 추천이 적용된 계정입니다.' }); return; }
+    // 가입 직후에만 — 오래된 계정이 뒤늦게 코드 넣어 파밍하는 것 차단.
+    if (Date.now() - me.createdAt.getTime() > 24 * 60 * 60 * 1000) {
+      res.status(400).json({ error: '추천 코드는 가입 직후에만 입력할 수 있어요.' }); return;
+    }
+
+    const referrer = await prisma.user.findUnique({ where: { referralCode: code.trim() }, select: { id: true, referralBoostUntil: true, role: true } });
+    if (!referrer || referrer.role === 'deleted') { res.status(400).json({ error: '유효하지 않은 추천 코드입니다.' }); return; }
+    if (referrer.id === userId) { res.status(400).json({ error: '본인 추천 코드는 사용할 수 없어요.' }); return; }
+
+    // referredById 를 원자적으로 선점 — 동시 요청 2건이 둘 다 지급하는 것 차단.
+    const claim = await prisma.user.updateMany({ where: { id: userId, referredById: null }, data: { referredById: referrer.id } });
+    if (claim.count === 0) { res.status(400).json({ error: '이미 추천이 적용된 계정입니다.' }); return; }
+
+    const boosted = !!(referrer.referralBoostUntil && referrer.referralBoostUntil > new Date());
+    const referrerBonus = boosted ? REFERRAL_BONUS_REFERRER * 2 : REFERRAL_BONUS_REFERRER;
+    await awardPoints(prisma, { userId, amount: REFERRAL_BONUS_REFERRED, source: 'referral_bonus', refId: referrer.id, description: '추천 코드로 가입 보너스' }).catch(() => {});
+    await awardPoints(prisma, { userId: referrer.id, amount: referrerBonus, source: 'referral_bonus', refId: userId, description: boosted ? '친구 가입 보너스 (2배 이벤트)' : '친구 가입 보너스' }).catch(() => {});
+
+    res.json({ message: '추천 보너스가 지급되었어요!', bonus: REFERRAL_BONUS_REFERRED });
+  } catch (error) {
+    console.error('Apply referral error:', error);
+    res.status(500).json({ error: '추천 적용 중 오류가 발생했습니다.' });
+  }
 };
