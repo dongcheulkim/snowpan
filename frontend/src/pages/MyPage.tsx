@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, setUser as saveUser, uploadImages, logout } from '../api';
+import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl } from '../api';
 import { CameraIcon, UserIcon } from '../components/Icons';
 import ReferralCard from '../components/ReferralCard';
 import { toastSuccess, toastError } from '../components/Toast';
@@ -99,12 +99,11 @@ const MyPage = () => {
     if (!badgeImage) return;
     setSubmitting(true);
     try {
-      let imageUrl = '';
       const urls = await uploadImages([badgeImage]);
-      imageUrl = urls[0];
+      const certUrl = urls[0];
       await api('/auth/badge-request', {
         method: 'POST',
-        body: { badgeType: 'cert', image: imageUrl },
+        body: { badgeType: 'cert', image: certUrl },
       });
       const updated = await api<BadgeRequest[]>('/auth/my-badges');
       setBadges(updated);
@@ -157,7 +156,7 @@ const MyPage = () => {
               {uploadingPhoto ? (
                 <span className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
               ) : user.profileImage ? (
-                <img src={user.profileImage} alt="" className="w-full h-full object-cover" />
+                <img src={imageUrl(user.profileImage)} alt="" className="w-full h-full object-cover" />
               ) : (
                 <UserIcon size={28} />
               )}

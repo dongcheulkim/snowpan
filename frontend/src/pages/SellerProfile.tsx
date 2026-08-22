@@ -214,7 +214,7 @@ const SellerProfile = () => {
       <div className={`card rounded-2xl p-6 text-center ${seller.highlighted ? 'ring-2 ring-amber-300 bg-gradient-to-b from-amber-50/60 to-white' : ''}`}>
         <div className={`w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 mx-auto mb-4 overflow-hidden ${seller.highlighted ? 'ring-2 ring-amber-400' : 'border border-gray-200'}`}>
           {seller.profileImage ? (
-            <img src={seller.profileImage} alt="" className="w-full h-full object-cover" />
+            <img src={imageUrl(seller.profileImage)} alt="" className="w-full h-full object-cover" />
           ) : <UserIcon size={36} />}
         </div>
         <div className="flex items-center justify-center gap-1.5 mb-1">
@@ -315,7 +315,7 @@ const SellerProfile = () => {
               <div key={review.id} className="p-3 bg-snow rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
-                    {review.buyer.profileImage ? <img src={review.buyer.profileImage} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
+                    {review.buyer.profileImage ? <img src={imageUrl(review.buyer.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
                   </div>
                   <span className="text-xs font-bold text-gray-900">{review.buyer.name}</span>
                   <div className="flex gap-0.5">

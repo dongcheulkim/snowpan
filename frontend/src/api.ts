@@ -263,6 +263,8 @@ const LOCAL_PLACEHOLDER = '/icons/placeholder-card.svg';
 
 export function imageUrl(src: string, width?: number): string {
   if (!src) return src;
+  // 외부 http 이미지 → https (https 페이지에서 mixed-content 로 차단되는 것 방지, 예: 카카오 프로필 http URL)
+  if (src.startsWith('http://') && !src.includes('localhost')) src = 'https://' + src.slice('http://'.length);
   if (src.includes('picsum.photos')) return LOCAL_PLACEHOLDER;
   if (src.includes('.b-cdn.net')) return transformBunny(src, width);
   if (src.startsWith('http')) return transformCloudinary(src, width);
