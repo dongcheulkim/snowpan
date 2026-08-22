@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { imageUrl, openExternal } from '../api';
 
 export interface Agency {
@@ -40,7 +41,7 @@ export default function AgencyCard({ agency }: { agency: Agency }) {
       </div>
       {agency.description && <p className="text-[11px] text-gray-600 mt-2 line-clamp-2 leading-snug">{agency.description}</p>}
       <div className="flex gap-2 mt-2.5">
-        <button onClick={() => openExternal(agency.website)} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold active:scale-95 transition-transform">홈페이지 · 예약</button>
+        <Link to={`/agency/${agency.id}`} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold text-center active:scale-95 transition-transform">여행사 보기</Link>
         {kakaoUrl && <button onClick={() => openExternal(kakaoUrl)} className="px-3 py-2 bg-yellow-300 text-gray-900 rounded-lg text-xs font-bold">카카오</button>}
         {agency.phone && <a href={`tel:${agency.phone}`} className="px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold flex items-center">전화</a>}
       </div>

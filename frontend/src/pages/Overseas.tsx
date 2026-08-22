@@ -53,8 +53,8 @@ export default function Overseas() {
     <div className="min-h-screen bg-sky-50 pb-10">
       {/* 헤더 */}
       <div className="px-4 pt-5 pb-3">
-        <h1 className="text-xl font-bold text-gray-900">해외 스키 여행</h1>
-        <p className="text-xs text-gray-500 mt-0.5">일본 파우더부터 알프스까지 — 스키어를 위한 해외 스키장 가이드</p>
+        <h1 className="text-xl font-bold text-gray-900">해외 여행</h1>
+        <p className="text-xs text-gray-500 mt-0.5">일본 파우더부터 알프스까지 — 스키어를 위한 해외 스키 여행 가이드</p>
       </div>
 
       {/* 광고 배너 */}

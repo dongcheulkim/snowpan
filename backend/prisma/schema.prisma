@@ -950,6 +950,7 @@ model TravelAgency {
   businessLicense String   // 사업자등록증 이미지 (필수)
   countries       String?  // 취급 국가 콤마 (일본,프랑스)
   resortSlugs     String?  // 취급 리조트 slug 콤마 (niseko,hakuba) — 상세 매칭용
+  pageBlocks      Json?    // 직접 꾸민 페이지 콘텐츠 (블록 배열: 글/사진 + 글꼴)
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   premiumUntil    DateTime?

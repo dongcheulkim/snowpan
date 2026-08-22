@@ -88,6 +88,8 @@ const AdminOverseas = lazy(() => import('./pages/AdminOverseas'));
 const AgencyRegister = lazy(() => import('./pages/AgencyRegister'));
 const AgencyManage = lazy(() => import('./pages/AgencyManage'));
 const AgencyPayResult = lazy(() => import('./pages/AgencyPayResult'));
+const AgencyPageEditor = lazy(() => import('./pages/AgencyPageEditor'));
+const AgencyPage = lazy(() => import('./pages/AgencyPage'));
 
 function App() {
   return (
@@ -220,6 +222,8 @@ function App() {
             <Route path="overseas/agency/manage" element={<RequireAuth><AgencyManage /></RequireAuth>} />
             <Route path="overseas/agency/pay/success" element={<RequireAuth><AgencyPayResult mode="success" /></RequireAuth>} />
             <Route path="overseas/agency/pay/fail" element={<RequireAuth><AgencyPayResult mode="fail" /></RequireAuth>} />
+            <Route path="overseas/agency/design" element={<RequireAuth><AgencyPageEditor /></RequireAuth>} />
+            <Route path="agency/:id" element={<AgencyPage />} />
             <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />

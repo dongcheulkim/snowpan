@@ -48,6 +48,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   lesson: SHARED_CATEGORY_LABELS.lesson,
   accommodation: SHARED_CATEGORY_LABELS.accommodation,
   community: SHARED_CATEGORY_LABELS.community,
+  overseas: SHARED_CATEGORY_LABELS.overseas,
 };
 
 // 프리미엄 노출이 가능한 카테고리 — Product/SkiShop/RepairShop 모델만 isPremium 지원.

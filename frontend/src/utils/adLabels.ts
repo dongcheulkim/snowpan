@@ -21,6 +21,7 @@ export const AD_CATEGORY_LABELS: Record<string, string> = {
   skishop: '스키샵',
   repair: '정비',
   community: '커뮤니티',
+  overseas: '해외 여행',
   none: '전체',
 };
 

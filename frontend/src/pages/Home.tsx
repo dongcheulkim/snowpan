@@ -97,7 +97,7 @@ const Home = () => {
         { id: 'community', title: t('cat.community'), link: '/community' },
         { id: 'competitions', title: '시합일정', link: '/competitions' },
         { id: 'webcam', title: t('cat.webcam'), link: '/webcam' },
-        { id: 'overseas', title: '해외 스키', link: '/overseas' },
+        { id: 'overseas', title: '해외 여행', link: '/overseas' },
       ]
     : (vertical.homeCategories || []).map(c => ({
         id: c.slug,

@@ -1,10 +1,12 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { notifyAdmins } from '../controllers/notificationController';
 import { isAgencyActive, agencyActiveWhere, AGENCY_BETA_FREE } from '../utils/agencyActive';
+import { confirmTossPayment } from '../utils/toss';
 
 // 여행사 — 해외 스키 여행 파트너. 등록→관리자 승인→노출. 승인되면 스스로 딜 등록 가능.
 const router = Router();
@@ -19,30 +21,7 @@ function tokens(csv?: string | null): string[] {
 // 구독 요금 (env 로 조정). 가입비=최초 1회, 월요금=매월. 토스페이먼츠 결제.
 // 베타 기간(AGENCY_BETA_FREE=기본 true)엔 무료 — 결제 없이 승인만으로 노출.
 const SIGNUP_FEE = Number(process.env.AGENCY_SIGNUP_FEE || 100000);
-const MONTHLY_FEE = Number(process.env.AGENCY_MONTHLY_FEE || 55000);
-
-// 토스페이먼츠 결제 승인 — successUrl 로 돌아온 paymentKey/orderId/amount 를 서버에서 확정.
-async function confirmTossPayment(paymentKey: string, orderId: string, amount: number): Promise<{ ok: boolean; error?: string }> {
-  const secret = process.env.TOSS_SECRET_KEY;
-  if (!secret) return { ok: false, error: '결제 설정이 완료되지 않았습니다. (TOSS_SECRET_KEY)' };
-  try {
-    const resp = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ paymentKey, orderId, amount }),
-    });
-    const data = await resp.json() as { status?: string; message?: string };
-    if (!resp.ok || (data.status && data.status !== 'DONE')) {
-      return { ok: false, error: data.message || '결제 승인에 실패했습니다.' };
-    }
-    return { ok: true };
-  } catch {
-    return { ok: false, error: '결제 승인 중 오류가 발생했습니다.' };
-  }
-}
+const MONTHLY_FEE = Number(process.env.AGENCY_MONTHLY_FEE || 40000);
 
 const PUBLIC_AGENCY_SELECT = {
   id: true, name: true, description: true, image: true, phone: true, website: true, kakao: true,
@@ -172,6 +151,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       where: { id: req.params.id, ...agencyActiveWhere() },
       select: {
         ...PUBLIC_AGENCY_SELECT,
+        pageBlocks: true,
         deals: {
           where: { active: true },
           select: { id: true, title: true, partner: true, price: true, originalPrice: true, description: true, image: true, link: true, badge: true, resort: { select: { slug: true, name: true } } },
@@ -240,6 +220,22 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (b.kakao !== undefined) data.kakao = b.kakao ? (sanitizeText(b.kakao, 200) || b.kakao) : null;
     if (b.countries !== undefined) data.countries = b.countries ? (sanitizeText(b.countries, 200) || b.countries) : null;
     if (b.resortSlugs !== undefined) data.resortSlugs = b.resortSlugs ? (sanitizeText(b.resortSlugs, 400) || b.resortSlugs) : null;
+    if (b.pageBlocks !== undefined) {
+      // 블록 배열만 허용 — 최대 60개, 직렬화 60KB 이내. 각 블록 텍스트/이미지 정리.
+      if (b.pageBlocks !== null && !Array.isArray(b.pageBlocks)) { res.status(400).json({ error: '페이지 형식이 올바르지 않습니다.' }); return; }
+      const arr = Array.isArray(b.pageBlocks) ? b.pageBlocks.slice(0, 60) : null;
+      if (arr && JSON.stringify(arr).length > 60000) { res.status(400).json({ error: '페이지 내용이 너무 깁니다.' }); return; }
+      const clean = arr ? arr.map((blk: Record<string, unknown>) => ({
+        type: blk.type === 'image' ? 'image' : 'text',
+        text: typeof blk.text === 'string' ? sanitizeText(blk.text, 4000) : '',
+        image: typeof blk.image === 'string' && (/^https?:\/\//i.test(blk.image) || blk.image.startsWith('/')) ? blk.image : '',
+        font: typeof blk.font === 'string' ? blk.font.slice(0, 20) : 'sans',
+        size: typeof blk.size === 'string' ? blk.size.slice(0, 10) : 'base',
+        align: blk.align === 'center' || blk.align === 'right' ? blk.align : 'left',
+        bold: !!blk.bold,
+      })) : null;
+      data.pageBlocks = clean === null ? Prisma.DbNull : clean;
+    }
     const updated = await prisma.travelAgency.update({ where: { id: req.params.id }, data });
     res.json(updated);
   } catch (error) {

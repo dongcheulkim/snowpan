@@ -7,7 +7,7 @@ import prisma from '../config/database';
 // 카테고리 배너: 7개 (used/skishop/repair/rental/lesson/accommodation/community).
 // 프리미엄: 3개만 (Product/SkiShop/RepairShop 모델만 isPremium 필드 보유).
 //   → rental/lesson/accommodation/community 는 "최상단 고정" 의미가 약하고 모델도 미지원.
-const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community'];
+const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
 const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
 
 const SEEDS: Array<{

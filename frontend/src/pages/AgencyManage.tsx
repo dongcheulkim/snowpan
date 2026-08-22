@@ -177,6 +177,12 @@ export default function AgencyManage() {
             )}
           </div>
 
+          {/* 페이지 꾸미기 / 보기 */}
+          <div className="flex gap-2">
+            <Link to="/overseas/agency/design" className="flex-1 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold text-center">페이지 꾸미기</Link>
+            {active && <Link to={`/agency/${sel.id}`} className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold text-center">내 페이지 보기</Link>}
+          </div>
+
           {/* 프로필 수정 */}
           <div className="card p-4 space-y-2">
             <div className="text-sm font-bold text-gray-900">프로필</div>
