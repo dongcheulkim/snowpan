@@ -1009,3 +1009,22 @@ export const applyReferral = async (req: AuthRequest, res: Response): Promise<vo
     res.status(500).json({ error: '추천 적용 중 오류가 발생했습니다.' });
   }
 };
+
+// 사장님 여부 — 렌탈·레슨·숙소·스키샵·정비샵 중 등록분이 하나라도 있으면 owner.
+// 마이페이지에서 '내 매장 관리' 메뉴 노출 여부 결정용 (일반 유저에겐 숨김).
+export const getBusinessStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const [rental, lesson, accommodation, skiShop, repairShop] = await Promise.all([
+      prisma.rental.count({ where: { userId } }),
+      prisma.lesson.count({ where: { userId } }),
+      prisma.accommodation.count({ where: { userId } }),
+      prisma.skiShop.count({ where: { userId } }),
+      prisma.repairShop.count({ where: { userId } }),
+    ]);
+    const total = rental + lesson + accommodation + skiShop + repairShop;
+    res.json({ isOwner: total > 0, total, counts: { rental, lesson, accommodation, skiShop, repairShop } });
+  } catch (error) {
+    res.status(500).json({ error: '사장님 정보 조회 실패' });
+  }
+};

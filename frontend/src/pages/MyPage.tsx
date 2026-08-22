@@ -29,6 +29,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,7 +50,8 @@ const MyPage = () => {
 
     // 뱃지 요청 목록 조회
     api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
-    // 광고 예약 목록 조회
+    // 사장님 여부 조회 — 등록한 매장이 있어야 '내 매장 관리' 메뉴 노출
+    api<{ isOwner: boolean }>('/auth/business-status').then(d => setIsOwner(!!d.isOwner)).catch(() => {});
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -105,7 +107,7 @@ const MyPage = () => {
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
-    { label: '내 매장 관리 (사장님)', link: '/mypage/shops' },
+    ...(isOwner ? [{ label: '내 매장 관리 (사장님)', link: '/mypage/shops' }] : []),
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
     { label: t('mypage.notifications'), link: '/notifications' },

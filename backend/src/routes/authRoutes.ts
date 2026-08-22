@@ -19,6 +19,7 @@ import {
   refreshAccessToken,
   logout,
   applyReferral,
+  getBusinessStatus,
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
@@ -45,6 +46,7 @@ router.post('/fcm-token', authenticateToken, saveFcmToken);
 router.post('/reset-password', sensitiveAuthLimiter, resetPassword);
 router.post('/ad-request', authenticateToken, createAdRequest);
 router.get('/my-ad-requests', authenticateToken, getMyAdRequests);
+router.get('/business-status', authenticateToken, getBusinessStatus);
 
 // 소셜 로그인 (카카오/네이버) — OAuth authorization code flow.
 router.get('/kakao', kakaoStart);
