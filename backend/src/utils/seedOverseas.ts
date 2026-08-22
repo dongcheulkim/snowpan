@@ -302,7 +302,7 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'jisan', name: '지산 포레스트', scope: '국내', country: '한국', region: '경기',
-    address: '경기 이천시 마장면 지산로 267', liftPrice: '성인 시간권제(2·4·6시간) · 온라인 예매 25% 상시할인 (정가 공식 확인)',
+    address: '경기 이천시 마장면 지산로 267', liftPrice: '성인 주간권 69,000 · 4.5시간권 58,000 · 6.5시간권 66,000 · 1회권 12,000',
     website: 'https://www.jisanresort.co.kr/w/ski/use/lift.asp', nightSki: true, slopes: 10,
     summary: '수도권 최근접, 야간 스키 활발', season: '12월 ~ 3월', snowType: '정설(인공설)',
     highlights: '수도권최근접,야간,입문,보드', bestFor: '입문,수도권 당일',
