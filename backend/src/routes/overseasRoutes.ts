@@ -71,6 +71,7 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
           select: {
             id: true, title: true, partner: true, price: true, originalPrice: true,
             description: true, image: true, link: true, badge: true,
+            agency: { select: { id: true, name: true, approved: true, paidUntil: true } },
           },
           orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
         },
@@ -79,7 +80,26 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
     if (!resort) { res.status(404).json({ error: '해외 스키장을 찾을 수 없습니다.' }); return; }
     // 조회수 증가 (fire-and-forget).
     prisma.overseasResort.update({ where: { id: resort.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
-    res.json(resort);
+    const now = Date.now();
+    // 여행사 딜은 그 여행사가 구독중일 때만 노출 (관리자 딜은 agency 없음 → 항상 노출).
+    const deals = resort.deals
+      .filter((d) => !d.agency || (d.agency.approved && d.agency.paidUntil && d.agency.paidUntil.getTime() > now))
+      .map((d) => ({ ...d, agency: d.agency ? { id: d.agency.id, name: d.agency.name } : null }));
+    // 추천 여행사 — 이 리조트/국가를 취급하는 승인+구독중 여행사.
+    const activeAgencies = await prisma.travelAgency.findMany({
+      where: { approved: true, paidUntil: { gt: new Date() } },
+      select: {
+        id: true, name: true, description: true, image: true, phone: true, website: true, kakao: true,
+        countries: true, resortSlugs: true, isPremium: true,
+      },
+      orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
+      take: 100,
+    });
+    const tok = (csv?: string | null) => (csv || '').split(',').map((s) => s.trim()).filter(Boolean);
+    const agencies = activeAgencies.filter((a) =>
+      tok(a.resortSlugs).includes(resort.slug) || tok(a.countries).includes(resort.country)
+    );
+    res.json({ ...resort, deals, agencies });
   } catch (error) {
     console.error('Get overseas resort error:', error);
     res.status(500).json({ error: '해외 스키장 조회 중 오류가 발생했습니다.' });

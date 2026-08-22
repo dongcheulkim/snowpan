@@ -85,6 +85,9 @@ const Advertise = lazy(() => import('./pages/Advertise'));
 const Overseas = lazy(() => import('./pages/Overseas'));
 const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
 const AdminOverseas = lazy(() => import('./pages/AdminOverseas'));
+const AgencyRegister = lazy(() => import('./pages/AgencyRegister'));
+const AgencyManage = lazy(() => import('./pages/AgencyManage'));
+const AgencyPayResult = lazy(() => import('./pages/AgencyPayResult'));
 
 function App() {
   return (
@@ -213,6 +216,10 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="advertise" element={<Advertise />} />
             <Route path="overseas" element={<Overseas />} />
+            <Route path="overseas/agency/register" element={<RequireAuth><AgencyRegister /></RequireAuth>} />
+            <Route path="overseas/agency/manage" element={<RequireAuth><AgencyManage /></RequireAuth>} />
+            <Route path="overseas/agency/pay/success" element={<RequireAuth><AgencyPayResult mode="success" /></RequireAuth>} />
+            <Route path="overseas/agency/pay/fail" element={<RequireAuth><AgencyPayResult mode="fail" /></RequireAuth>} />
             <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />

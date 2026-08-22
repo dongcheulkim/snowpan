@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import DealCard, { type Deal } from '../components/DealCard';
+import AgencyCard, { type Agency } from '../components/AgencyCard';
 
 interface ResortDetail {
   id: string;
@@ -18,6 +19,7 @@ interface ResortDetail {
   slopes?: number | null;
   bestFor?: string | null;
   deals: Deal[];
+  agencies: Agency[];
 }
 
 export default function OverseasDetail() {
@@ -115,11 +117,31 @@ export default function OverseasDetail() {
             {resort.deals.map((d) => <DealCard key={d.id} deal={d} />)}
           </div>
         ) : (
-          <Link to="/advertise" className="block bg-white border border-dashed border-gray-300 rounded-2xl p-5 text-center">
-            <p className="text-sm font-bold text-gray-700">제휴 여행 상품 준비 중</p>
-            <p className="text-[11px] text-gray-500 mt-1">여행사·리조트라면 여기에 상품을 노출하세요 · 광고 문의 ›</p>
+          <p className="text-xs text-gray-500 py-2">아직 등록된 여행 상품이 없어요.</p>
+        )}
+      </div>
+
+      {/* 추천 여행사 */}
+      <div className="px-4 mt-6">
+        <h2 className="text-sm font-bold text-gray-900 mb-2">추천 여행사</h2>
+        {resort.agencies.length > 0 ? (
+          <div className="grid gap-3">
+            {resort.agencies.map((a) => <AgencyCard key={a.id} agency={a} />)}
+          </div>
+        ) : (
+          <Link to="/overseas/agency/register" className="block bg-white border border-dashed border-gray-300 rounded-2xl p-5 text-center">
+            <p className="text-sm font-bold text-gray-700">이 지역 여행사를 찾고 있어요</p>
+            <p className="text-[11px] text-gray-500 mt-1">여행사라면 등록하고 이 리조트를 찾는 스키어에게 노출하세요 ›</p>
           </Link>
         )}
+      </div>
+
+      {/* 여행사 등록 유도 */}
+      <div className="px-4 mt-6">
+        <Link to="/overseas/agency/register" className="block bg-gray-900 text-white rounded-2xl p-4 text-center active:scale-[0.98] transition-transform">
+          <p className="text-sm font-bold">여행사이신가요? 상품 등록하기</p>
+          <p className="text-[11px] text-gray-300 mt-0.5">승인 후 직접 여행 상품을 올리고 추천 여행사로 노출돼요</p>
+        </Link>
       </div>
     </div>
   );

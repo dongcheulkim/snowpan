@@ -71,6 +71,7 @@ import preRegisterRoutes from './routes/preRegisterRoutes';
 import shopPostRoutes from './routes/shopPostRoutes';
 import pollRoutes from './routes/pollRoutes';
 import overseasRoutes from './routes/overseasRoutes';
+import travelAgencyRoutes from './routes/travelAgencyRoutes';
 import adViewRoutes from './routes/adViewRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
@@ -306,6 +307,7 @@ app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
 app.use('/api/overseas', overseasRoutes);
+app.use('/api/agencies', travelAgencyRoutes);
 app.use('/api/ads', adViewRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)

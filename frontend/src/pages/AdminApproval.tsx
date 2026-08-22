@@ -26,6 +26,7 @@ interface PendingItem {
   area?: string;
   address?: string;
   description?: string;
+  website?: string;
   user?: { id: string; name: string; email?: string; phone?: string };
   // 매장 이전 요청(claim) 전용
   shopName?: string;
@@ -52,7 +53,7 @@ function AiBadge({ item }: { item: PendingItem }) {
   );
 }
 
-type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair' | 'claim';
+type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair' | 'claim' | 'agency';
 
 const badgeLabels: Record<string, { label: string; color: string }> = {
   lv1: { label: 'LV1', color: 'bg-green-500 text-white' },
@@ -90,12 +91,13 @@ const AdminApproval = () => {
   const [pendingShops, setPendingShops] = useState<PendingItem[]>([]);
   const [pendingRepair, setPendingRepair] = useState<PendingItem[]>([]);
   const [pendingClaims, setPendingClaims] = useState<PendingItem[]>([]);
+  const [pendingAgencies, setPendingAgencies] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
     try {
-      const [rentals, lessons, accom, badges, shops, repair, claims] = await Promise.all([
+      const [rentals, lessons, accom, badges, shops, repair, claims, agencies] = await Promise.all([
         api<PendingItem[]>('/admin/rentals/pending'),
         api<PendingItem[]>('/admin/lessons/pending'),
         api<PendingItem[]>('/admin/accommodations/pending'),
@@ -103,6 +105,7 @@ const AdminApproval = () => {
         api<PendingItem[]>('/ski-shops/pending').catch(() => []),
         api<PendingItem[]>('/repair-shops/pending').catch(() => []),
         api<PendingItem[]>('/shop-claims/pending').catch(() => []),
+        api<PendingItem[]>('/agencies/pending').catch(() => []),
       ]);
       setPendingRentals(rentals);
       setPendingLessons(lessons);
@@ -111,6 +114,7 @@ const AdminApproval = () => {
       setPendingShops(shops);
       setPendingRepair(repair);
       setPendingClaims(claims);
+      setPendingAgencies(agencies);
     } catch {
       // not admin or error
     } finally {
@@ -135,6 +139,10 @@ const AdminApproval = () => {
       if (tab === 'claim') {
         await api(`/shop-claims/${id}/approve`, { method: 'PUT' });
         toastSuccess('소유권이 이전되었습니다!'); fetchPending(); return;
+      }
+      if (tab === 'agency') {
+        await api(`/agencies/${id}/approve`, { method: 'PUT' });
+        toastSuccess('승인되었습니다!'); fetchPending(); return;
       }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       if (tab === 'badge' && !badgeOverrides[id]) {
@@ -165,6 +173,10 @@ const AdminApproval = () => {
         await api(`/shop-claims/${id}/reject`, { method: 'PUT' });
         toastSuccess('반려되었습니다.'); fetchPending(); return;
       }
+      if (tab === 'agency') {
+        await api(`/agencies/${id}`, { method: 'DELETE' });
+        toastSuccess('거부되었습니다.'); fetchPending(); return;
+      }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       await api(`/admin/${path}/${id}/reject`, { method: 'DELETE' });
       toastSuccess('거부되었습니다.');
@@ -182,6 +194,7 @@ const AdminApproval = () => {
     { id: 'skishop' as const, name: '스키샵', count: pendingShops.length },
     { id: 'repair' as const, name: '정비샵', count: pendingRepair.length },
     { id: 'claim' as const, name: '매장이전', count: pendingClaims.length },
+    { id: 'agency' as const, name: '여행사', count: pendingAgencies.length },
   ];
 
   const displayItems =
@@ -191,6 +204,7 @@ const AdminApproval = () => {
     activeTab === 'skishop' ? pendingShops :
     activeTab === 'repair' ? pendingRepair :
     activeTab === 'claim' ? pendingClaims :
+    activeTab === 'agency' ? pendingAgencies :
     pendingBadges;
 
   const renderItem = (item: PendingItem) => {
@@ -271,6 +285,28 @@ const AdminApproval = () => {
           <div className="flex gap-2 pt-3 border-t border-gray-100">
             <button onClick={() => handleReject('skishop', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
             <button onClick={() => handleApprove('skishop', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
+          </div>
+        </div>
+      );
+    }
+    if (activeTab === 'agency') {
+      return (
+        <div key={item.id} className="card p-4">
+          <div className="mb-3">
+            <div className="font-bold text-sm text-gray-900 mb-1">{item.name}</div>
+            {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-600 break-all">{item.website}</a>}
+            {item.description && <div className="text-xs text-gray-500 mt-1 whitespace-pre-line">{item.description}</div>}
+            {item.user && <div className="text-xs text-gray-500 mt-1">신청자: {item.user.name} ({item.user.email})</div>}
+            {item.businessLicense && (
+              <a href={imageUrl(item.businessLicense)} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                <img src={imageUrl(item.businessLicense)} alt="사업자등록증" className="w-full max-w-xs object-contain rounded-lg border border-gray-200 hover:border-sky-400 transition-colors" />
+                <span className="text-[10px] text-sky-500 mt-1 block">사업자등록증 확인</span>
+              </a>
+            )}
+          </div>
+          <div className="flex gap-2 pt-3 border-t border-gray-100">
+            <button onClick={() => handleReject('agency', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
+            <button onClick={() => handleApprove('agency', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
           </div>
         </div>
       );

@@ -31,6 +31,7 @@ const MyPage = () => {
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [hasPendingShop, setHasPendingShop] = useState(false);
+  const [hasAgency, setHasAgency] = useState(false);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -56,6 +57,8 @@ const MyPage = () => {
     api<{ isOwner: boolean; hasPending: boolean }>('/auth/business-status')
       .then(d => { setIsOwner(!!d.isOwner); setHasPendingShop(!!d.hasPending); })
       .catch(() => {});
+    // 여행사 보유 시 '여행사 관리' 메뉴 노출
+    api<unknown[]>('/agencies/my').then(a => setHasAgency(Array.isArray(a) && a.length > 0)).catch(() => {});
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -111,6 +114,7 @@ const MyPage = () => {
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
     ...(isOwner ? [{ label: '내 매장 관리 (사장님)', link: '/mypage/shops' }] : []),
+    ...(hasAgency ? [{ label: '여행사 관리', link: '/overseas/agency/manage' }] : []),
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
     { label: t('mypage.notifications'), link: '/notifications' },

@@ -130,12 +130,13 @@ export default function Overseas() {
         )}
       </div>
 
-      {/* 광고주(파트너) 유입 — 중개 모델 */}
-      <div className="px-4 mt-6">
-        <Link to="/advertise" className="block bg-gray-900 text-white rounded-2xl p-4 text-center active:scale-[0.98] transition-transform">
-          <p className="text-sm font-bold">여행사·리조트 광고 문의</p>
-          <p className="text-[11px] text-gray-300 mt-0.5">해외 스키 여행 상품을 스노우판 이용자에게 노출하세요</p>
+      {/* 여행사 유입 — 셀프서비스 등록 + 광고 문의 */}
+      <div className="px-4 mt-6 space-y-2">
+        <Link to="/overseas/agency/register" className="block bg-gray-900 text-white rounded-2xl p-4 text-center active:scale-[0.98] transition-transform">
+          <p className="text-sm font-bold">여행사이신가요? 상품 등록하기</p>
+          <p className="text-[11px] text-gray-300 mt-0.5">승인 후 직접 여행 상품을 올리고 추천 여행사로 노출돼요</p>
         </Link>
+        <Link to="/advertise" className="block text-center text-[11px] font-bold text-gray-500 py-1">배너 광고 문의 ›</Link>
       </div>
     </div>
   );

@@ -66,6 +66,7 @@ model User {
   adViews          AdView[]
   shopPosts        ShopPost[]
   polls            Poll[]
+  travelAgencies   TravelAgency[]
 
   @@unique([provider, providerId]) // 소셜 (제공자, id) 조합 유일 — 이메일 가입은 둘 다 null 이라 무관
   @@map("users")
@@ -916,6 +917,8 @@ model OverseasDeal {
   badge         String?                  // '특가' | '얼리버드' 등
   resortId      String?                  // 특정 리조트 상세에 노출 / null 이면 메인 노출
   resort        OverseasResort? @relation(fields: [resortId], references: [id], onDelete: SetNull)
+  agencyId      String?                  // 여행사가 올린 딜이면 그 여행사
+  agency        TravelAgency? @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   featured      Boolean  @default(false) // 메인 상단 노출
   active        Boolean  @default(true)
   order         Int      @default(0)
@@ -928,5 +931,59 @@ model OverseasDeal {
 
   @@index([active, featured, order])
   @@index([resortId, active, order])
+  @@index([agencyId])
   @@map("overseas_deals")
+}
+
+// 여행사 — 해외 스키 여행 상품을 홍보/판매하는 파트너. 관리자 승인 후 노출.
+// 승인되면 스스로 딜(OverseasDeal, agencyId)을 등록할 수 있고, 취급 리조트 상세에 '추천 여행사'로 노출.
+model TravelAgency {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  name            String
+  description     String?  @db.Text
+  image           String?  // 로고/대표 이미지
+  phone           String?
+  website         String   // 예약/홈페이지 링크 (중개)
+  kakao           String?  // 카카오 채널/오픈채팅 등
+  businessLicense String   // 사업자등록증 이미지 (필수)
+  countries       String?  // 취급 국가 콤마 (일본,프랑스)
+  resortSlugs     String?  // 취급 리조트 slug 콤마 (niseko,hakuba) — 상세 매칭용
+  approved        Boolean  @default(false)
+  isPremium       Boolean  @default(false)
+  premiumUntil    DateTime?
+  // 유료 구독 — paidUntil 이 현재보다 미래여야 공개 노출 + 딜 등록 가능. signupPaid=가입비 납부여부.
+  paidUntil       DateTime?
+  signupPaid      Boolean  @default(false)
+  viewCount       Int      @default(0)
+  vertical        String   @default("snow")
+  deals           OverseasDeal[]
+  subscriptions   AgencySubscription[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([approved, isPremium, createdAt])
+  @@index([approved, paidUntil])
+  @@index([userId])
+  @@map("travel_agencies")
+}
+
+// 여행사 구독 결제(계좌이체 → 관리자 입금확인). 확인 시 agency.paidUntil 연장.
+model AgencySubscription {
+  id             String   @id @default(uuid())
+  agencyId       String
+  agency         TravelAgency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  months         Int
+  amount         Int      // 총액 (최초엔 가입비 포함)
+  includesSignup Boolean  @default(false)
+  method         String   @default("transfer")
+  status         String   @default("pending") // 'pending' | 'paid' | 'cancelled'
+  adminNote      String?
+  requestedAt    DateTime @default(now())
+  paidAt         DateTime?
+
+  @@index([status, requestedAt])
+  @@index([agencyId])
+  @@map("agency_subscriptions")
 }
