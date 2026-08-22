@@ -877,14 +877,22 @@ model PollVote {
 
 // ===== 해외 스키 여행 =====
 // 콘텐츠형(가이드) + 딜/광고. 에디터(admin)가 채우고, 딜은 외부 파트너로 중개(클릭 추적).
+// 스키장 정보 — 국내/해외 모두. (테이블명은 유지, scope 로 국내·해외 구분)
 model OverseasResort {
   id          String   @id @default(uuid())
-  slug        String   @unique          // 'niseko'
-  name        String                    // '니세코'
-  country     String                    // '일본'
-  continent   String?                   // '아시아' | '유럽' | '북미' (카테고리 필터)
-  popular     Boolean  @default(false)  // '인기(가장 많이 가는)' 카테고리 노출
-  region      String?                   // '홋카이도'
+  slug        String   @unique          // 'niseko' | 'yongpyong'
+  name        String                    // '니세코' | '용평리조트'
+  scope       String   @default("해외")  // '국내' | '해외'
+  country     String                    // '일본' | '한국'
+  continent   String?                   // 해외: '아시아'|'유럽'|'북미'  국내: null
+  popular     Boolean  @default(false)  // '인기' 카테고리 노출
+  region      String?                   // '홋카이도' | '강원'
+  address     String?                   // 위치/주소
+  liftPrice   String?                   // 리프트권 가격 정보 (예: '1일권 약 8만원대')
+  website     String?                   // 공식 사이트
+  phone       String?                   // 대표 전화
+  nightSki    Boolean  @default(false)  // 야간 스키 운영
+  lifts       Int?                      // 리프트 수
   image       String?                   // 대표 이미지
   summary     String?                   // 한 줄 소개
   description String   @db.Text         // 본문 가이드 (줄바꿈 구분)
@@ -901,7 +909,7 @@ model OverseasResort {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([published, order])
+  @@index([published, scope, order])
   @@map("overseas_resorts")
 }
 

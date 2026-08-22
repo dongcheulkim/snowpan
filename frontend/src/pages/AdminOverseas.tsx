@@ -4,8 +4,10 @@ import { api } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 
 interface Resort {
-  id: string; slug: string; name: string; country: string; continent?: string | null; popular?: boolean;
-  region?: string | null; image?: string | null; summary?: string | null; description: string;
+  id: string; slug: string; name: string; scope?: string; country: string; continent?: string | null; popular?: boolean;
+  region?: string | null; address?: string | null; liftPrice?: string | null; website?: string | null; phone?: string | null;
+  nightSki?: boolean; lifts?: number | null;
+  image?: string | null; summary?: string | null; description: string;
   season?: string | null; snowType?: string | null; highlights?: string | null;
   slopes?: number | null; bestFor?: string | null; published: boolean; order: number;
 }
@@ -16,7 +18,7 @@ interface Deal {
   featured: boolean; active: boolean; order: number; clickCount?: number;
 }
 
-const emptyResort: Partial<Resort> = { slug: '', name: '', country: '일본', continent: '아시아', popular: false, region: '', summary: '', description: '', season: '', snowType: '', highlights: '', bestFor: '', image: '', published: true, order: 0 };
+const emptyResort: Partial<Resort> = { slug: '', name: '', scope: '국내', country: '한국', continent: '', popular: false, region: '', address: '', liftPrice: '', website: '', phone: '', nightSki: false, summary: '', description: '', season: '', snowType: '', highlights: '', bestFor: '', image: '', published: true, order: 0 } as Partial<Resort>;
 const emptyDeal: Partial<Deal> = { title: '', partner: '', link: '', badge: '', description: '', image: '', resortId: '', featured: false, active: true, order: 0 };
 
 const inputCls = 'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900';
@@ -92,10 +94,21 @@ export default function AdminOverseas() {
           <div className="card p-4 space-y-2">
             <div className="text-sm font-bold text-gray-900">{editRId ? '스키장 수정' : '스키장 추가'}</div>
             <input className={inputCls} placeholder="slug (예: niseko)" value={rForm.slug || ''} onChange={(e) => setRForm({ ...rForm, slug: e.target.value })} />
-            <input className={inputCls} placeholder="이름 (예: 니세코)" value={rForm.name || ''} onChange={(e) => setRForm({ ...rForm, name: e.target.value })} />
+            <input className={inputCls} placeholder="이름 (예: 니세코 / 용평리조트)" value={rForm.name || ''} onChange={(e) => setRForm({ ...rForm, name: e.target.value })} />
             <div className="flex gap-2">
-              <input className={inputCls} placeholder="국가" value={rForm.country || ''} onChange={(e) => setRForm({ ...rForm, country: e.target.value })} />
-              <input className={inputCls} placeholder="지역" value={rForm.region || ''} onChange={(e) => setRForm({ ...rForm, region: e.target.value })} />
+              <select className={inputCls} value={rForm.scope || '국내'} onChange={(e) => setRForm({ ...rForm, scope: e.target.value })}>
+                <option value="국내">국내</option>
+                <option value="해외">해외</option>
+              </select>
+              <input className={inputCls} placeholder="국가 (한국/일본)" value={rForm.country || ''} onChange={(e) => setRForm({ ...rForm, country: e.target.value })} />
+              <input className={inputCls} placeholder="지역 (강원/홋카이도)" value={rForm.region || ''} onChange={(e) => setRForm({ ...rForm, region: e.target.value })} />
+            </div>
+            <input className={inputCls} placeholder="위치/주소" value={rForm.address || ''} onChange={(e) => setRForm({ ...rForm, address: e.target.value })} />
+            <input className={inputCls} placeholder="리프트권 가격 (예: 1일권 약 9만원대)" value={rForm.liftPrice || ''} onChange={(e) => setRForm({ ...rForm, liftPrice: e.target.value })} />
+            <div className="flex gap-2 items-center">
+              <input className={inputCls} placeholder="공식 사이트 (https)" value={rForm.website || ''} onChange={(e) => setRForm({ ...rForm, website: e.target.value })} />
+              <input className={inputCls} placeholder="전화" value={rForm.phone || ''} onChange={(e) => setRForm({ ...rForm, phone: e.target.value })} />
+              <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 whitespace-nowrap px-2"><input type="checkbox" checked={!!rForm.nightSki} onChange={(e) => setRForm({ ...rForm, nightSki: e.target.checked })} /> 야간</label>
             </div>
             <div className="flex gap-2 items-center">
               <select className={inputCls} value={rForm.continent || ''} onChange={(e) => setRForm({ ...rForm, continent: e.target.value })}>

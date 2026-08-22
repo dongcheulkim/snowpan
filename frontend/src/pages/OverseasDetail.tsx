@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { api, imageUrl, openExternal } from '../api';
 import DealCard, { type Deal } from '../components/DealCard';
 import AgencyCard, { type Agency } from '../components/AgencyCard';
 
@@ -8,8 +8,15 @@ interface ResortDetail {
   id: string;
   slug: string;
   name: string;
+  scope?: string | null;
   country: string;
   region?: string | null;
+  address?: string | null;
+  liftPrice?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  nightSki?: boolean;
+  lifts?: number | null;
   image?: string | null;
   summary?: string | null;
   description: string;
@@ -32,7 +39,7 @@ export default function OverseasDetail() {
     if (!slug) return;
     setLoading(true);
     api<ResortDetail>(`/overseas/resorts/${slug}`)
-      .then((r) => { setResort(r); document.title = `${r.name} - 해외 스키 여행`; })
+      .then((r) => { setResort(r); document.title = `${r.name} - 스키장 정보`; })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
@@ -41,16 +48,18 @@ export default function OverseasDetail() {
   if (notFound || !resort) {
     return (
       <div className="min-h-screen bg-sky-50 flex flex-col items-center justify-center gap-3">
-        <p className="text-sm text-gray-500">해외 스키장을 찾을 수 없어요.</p>
+        <p className="text-sm text-gray-500">스키장을 찾을 수 없어요.</p>
         <Link to="/overseas" className="text-xs font-bold text-white bg-gray-900 px-4 py-2 rounded-lg">목록으로</Link>
       </div>
     );
   }
 
   const metas = [
+    resort.liftPrice && { label: '리프트권', value: resort.liftPrice },
     resort.season && { label: '시즌', value: resort.season },
-    resort.snowType && { label: '설질', value: resort.snowType },
     resort.slopes != null && { label: '슬로프', value: `${resort.slopes}면` },
+    resort.snowType && { label: '설질', value: resort.snowType },
+    (resort.nightSki !== undefined) && { label: '야간 스키', value: resort.nightSki ? '운영' : '미운영' },
     resort.bestFor && { label: '추천', value: resort.bestFor },
   ].filter(Boolean) as { label: string; value: string }[];
 
@@ -91,6 +100,26 @@ export default function OverseasDetail() {
         </div>
       )}
 
+      {/* 위치 + 공식사이트/전화 */}
+      {(resort.address || resort.website || resort.phone) && (
+        <div className="px-4 mt-3">
+          <div className="bg-snow border border-gray-200 rounded-2xl p-3">
+            {resort.address && (
+              <div className="mb-2">
+                <div className="text-[10px] text-gray-400">위치</div>
+                <div className="text-xs font-medium text-gray-800">{resort.address}</div>
+              </div>
+            )}
+            {(resort.website || resort.phone) && (
+              <div className="flex gap-2">
+                {resort.website && <button onClick={() => openExternal(resort.website!)} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">공식 사이트</button>}
+                {resort.phone && <a href={`tel:${resort.phone}`} className="px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold flex items-center">전화</a>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 하이라이트 */}
       {resort.highlights && (
         <div className="px-4 mt-4 flex flex-wrap gap-1.5">
@@ -109,40 +138,42 @@ export default function OverseasDetail() {
         </div>
       </div>
 
-      {/* 딜 / 여행 상품 */}
-      <div className="px-4 mt-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-2">여행 상품 · 딜</h2>
-        {resort.deals.length > 0 ? (
-          <div className="grid gap-3">
-            {resort.deals.map((d) => <DealCard key={d.id} deal={d} />)}
+      {/* 해외 스키장에만 — 여행 상품·추천 여행사·여행사 등록 */}
+      {resort.scope !== '국내' && (
+        <>
+          <div className="px-4 mt-6">
+            <h2 className="text-sm font-bold text-gray-900 mb-2">여행 상품 · 딜</h2>
+            {resort.deals.length > 0 ? (
+              <div className="grid gap-3">
+                {resort.deals.map((d) => <DealCard key={d.id} deal={d} />)}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 py-2">아직 등록된 여행 상품이 없어요.</p>
+            )}
           </div>
-        ) : (
-          <p className="text-xs text-gray-500 py-2">아직 등록된 여행 상품이 없어요.</p>
-        )}
-      </div>
 
-      {/* 추천 여행사 */}
-      <div className="px-4 mt-6">
-        <h2 className="text-sm font-bold text-gray-900 mb-2">추천 여행사</h2>
-        {resort.agencies.length > 0 ? (
-          <div className="grid gap-3">
-            {resort.agencies.map((a) => <AgencyCard key={a.id} agency={a} />)}
+          <div className="px-4 mt-6">
+            <h2 className="text-sm font-bold text-gray-900 mb-2">추천 여행사</h2>
+            {resort.agencies.length > 0 ? (
+              <div className="grid gap-3">
+                {resort.agencies.map((a) => <AgencyCard key={a.id} agency={a} />)}
+              </div>
+            ) : (
+              <Link to="/overseas/agency/register" className="block bg-white border border-dashed border-gray-300 rounded-2xl p-5 text-center">
+                <p className="text-sm font-bold text-gray-700">이 지역 여행사를 찾고 있어요</p>
+                <p className="text-[11px] text-gray-500 mt-1">여행사라면 등록하고 이 리조트를 찾는 스키어에게 노출하세요 ›</p>
+              </Link>
+            )}
           </div>
-        ) : (
-          <Link to="/overseas/agency/register" className="block bg-white border border-dashed border-gray-300 rounded-2xl p-5 text-center">
-            <p className="text-sm font-bold text-gray-700">이 지역 여행사를 찾고 있어요</p>
-            <p className="text-[11px] text-gray-500 mt-1">여행사라면 등록하고 이 리조트를 찾는 스키어에게 노출하세요 ›</p>
-          </Link>
-        )}
-      </div>
 
-      {/* 여행사 등록 유도 */}
-      <div className="px-4 mt-6">
-        <Link to="/overseas/agency/register" className="block bg-gray-900 text-white rounded-2xl p-4 text-center active:scale-[0.98] transition-transform">
-          <p className="text-sm font-bold">여행사이신가요? 상품 등록하기</p>
-          <p className="text-[11px] text-gray-300 mt-0.5">승인 후 직접 여행 상품을 올리고 추천 여행사로 노출돼요</p>
-        </Link>
-      </div>
+          <div className="px-4 mt-6">
+            <Link to="/overseas/agency/register" className="block bg-gray-900 text-white rounded-2xl p-4 text-center active:scale-[0.98] transition-transform">
+              <p className="text-sm font-bold">여행사이신가요? 상품 등록하기</p>
+              <p className="text-[11px] text-gray-300 mt-0.5">승인 후 직접 여행 상품을 올리고 추천 여행사로 노출돼요</p>
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }

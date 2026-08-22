@@ -24,9 +24,9 @@ router.get('/resorts', async (req: Request, res: Response): Promise<void> => {
     const resorts = await prisma.overseasResort.findMany({
       where: { published: true, vertical: verticalSlug },
       select: {
-        id: true, slug: true, name: true, country: true, continent: true, popular: true,
-        region: true, image: true, summary: true, season: true, snowType: true, highlights: true,
-        slopes: true, order: true,
+        id: true, slug: true, name: true, scope: true, country: true, continent: true, popular: true,
+        region: true, address: true, liftPrice: true, nightSki: true, image: true, summary: true,
+        season: true, snowType: true, highlights: true, slopes: true, order: true,
       },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
@@ -136,10 +136,17 @@ router.post('/resorts', authenticateToken, requireAdmin, async (req: AuthRequest
       data: {
         slug: sanitizeText(b.slug, 60) || b.slug,
         name: sanitizeText(b.name, 80) || b.name,
+        scope: b.scope === '국내' ? '국내' : '해외',
         country: sanitizeText(b.country, 40) || b.country,
         continent: sanitizeText(b.continent, 20) || null,
         popular: !!b.popular,
         region: sanitizeText(b.region, 60) || null,
+        address: sanitizeText(b.address, 200) || null,
+        liftPrice: sanitizeText(b.liftPrice, 120) || null,
+        website: b.website && /^https?:\/\//i.test(b.website) ? b.website : null,
+        phone: sanitizeText(b.phone, 40) || null,
+        nightSki: !!b.nightSki,
+        lifts: b.lifts != null ? Number(b.lifts) || null : null,
         image: b.image || null,
         summary: sanitizeText(b.summary, 200) || null,
         description: sanitizeText(b.description, 8000) || b.description,
@@ -169,9 +176,16 @@ router.put('/resorts/:id', authenticateToken, requireAdmin, async (req: AuthRequ
     if (b.slug !== undefined) data.slug = sanitizeText(b.slug, 60) || b.slug;
     if (b.name !== undefined) data.name = sanitizeText(b.name, 80) || b.name;
     if (b.country !== undefined) data.country = sanitizeText(b.country, 40) || b.country;
+    if (b.scope !== undefined) data.scope = b.scope === '국내' ? '국내' : '해외';
     if (b.continent !== undefined) data.continent = b.continent ? (sanitizeText(b.continent, 20) || b.continent) : null;
     if (b.popular !== undefined) data.popular = !!b.popular;
     if (b.region !== undefined) data.region = b.region ? (sanitizeText(b.region, 60) || b.region) : null;
+    if (b.address !== undefined) data.address = b.address ? (sanitizeText(b.address, 200) || b.address) : null;
+    if (b.liftPrice !== undefined) data.liftPrice = b.liftPrice ? (sanitizeText(b.liftPrice, 120) || b.liftPrice) : null;
+    if (b.website !== undefined) data.website = b.website && /^https?:\/\//i.test(b.website) ? b.website : null;
+    if (b.phone !== undefined) data.phone = b.phone ? (sanitizeText(b.phone, 40) || b.phone) : null;
+    if (b.nightSki !== undefined) data.nightSki = !!b.nightSki;
+    if (b.lifts !== undefined) data.lifts = b.lifts != null ? Number(b.lifts) || null : null;
     if (b.image !== undefined) data.image = b.image || null;
     if (b.summary !== undefined) data.summary = b.summary ? (sanitizeText(b.summary, 200) || b.summary) : null;
     if (b.description !== undefined) data.description = sanitizeText(b.description, 8000) || b.description;
