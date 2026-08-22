@@ -18,6 +18,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- 소셜 로그인 딥링크 (kr.snowpan.app://...) — 백엔드가 OAuth 토큰을 앱으로 되돌릴 때 사용 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="kr.snowpan.app" />
+            </intent-filter>
         </activity>
 
         <provider

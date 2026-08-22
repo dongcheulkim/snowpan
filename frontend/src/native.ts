@@ -22,6 +22,21 @@ export async function initNative(): Promise<void> {
       }
     });
 
+    // 소셜 로그인 딥링크 수신 — 백엔드가 kr.snowpan.app://oauth/callback#token=... (또는 login?social_error=) 로 되돌림.
+    // 인앱 브라우저 닫고, 웹뷰를 해당 경로로 이동 → 기존 OAuthCallback/Login 이 처리.
+    App.addListener('appUrlOpen', async ({ url }) => {
+      if (!url || !url.startsWith('kr.snowpan.app://')) return;
+      try { const { Browser } = await import('@capacitor/browser'); await Browser.close().catch(() => {}); } catch { /* ignore */ }
+      const rest = url.slice('kr.snowpan.app://'.length); // "oauth/callback#..." 또는 "login?..."
+      if (rest.startsWith('oauth/callback')) {
+        const hash = url.includes('#') ? url.slice(url.indexOf('#')) : '';
+        window.location.href = '/oauth/callback' + hash;
+      } else if (rest.startsWith('login')) {
+        const query = url.includes('?') ? url.slice(url.indexOf('?')) : '';
+        window.location.href = '/login' + query;
+      }
+    });
+
     // 첫 화면 렌더 후 스플래시 숨김
     setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 200);
   } catch { /* 플러그인 로드 실패 시 무시(웹 동작엔 영향 없음) */ }

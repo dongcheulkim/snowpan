@@ -1,4 +1,11 @@
+import { Capacitor } from '@capacitor/core';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Capacitor 네이티브 앱에서 실행 중인가 (앱 vs 웹 분기용).
+export function isNativeApp(): boolean {
+  try { return Capacitor.isNativePlatform(); } catch { return false; }
+}
 
 interface ApiOptions {
   method?: string;
@@ -226,6 +233,17 @@ export type LoginMethod = 'email' | 'kakao' | 'naver';
 // 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
 export function oauthStartUrl(provider: 'kakao' | 'naver'): string {
   return `${API_BASE}/auth/${provider}`;
+}
+
+// 소셜 로그인 시작 — 앱: 인앱 브라우저로 열고 platform=app(백엔드가 앱 딥링크로 토큰 반환).
+// 웹: 기존처럼 현재 창을 백엔드 OAuth 로 이동.
+export async function startSocialLogin(provider: 'kakao' | 'naver'): Promise<void> {
+  if (isNativeApp()) {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url: `${oauthStartUrl(provider)}?platform=app`, presentationStyle: 'popover' });
+  } else {
+    window.location.href = oauthStartUrl(provider);
+  }
 }
 
 // 마지막으로 성공한 로그인 방식 기록 (로그인 화면 "최근 로그인" 배지용).

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, oauthStartUrl } from '../api';
+import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin } from '../api';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
@@ -46,13 +46,13 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  // 소셜 로그인 시작 — 로그인 후 돌아올 경로 저장 후 백엔드 OAuth 로 이동.
+  // 소셜 로그인 시작 — 로그인 후 돌아올 경로 저장 후 OAuth 시작(앱=인앱브라우저, 웹=현재창).
   const startSocial = (provider: 'kakao' | 'naver') => {
     try {
       const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
       if (safeNext) sessionStorage.setItem('snowpan.oauthNext', safeNext);
     } catch { /* ignore */ }
-    window.location.href = oauthStartUrl(provider);
+    startSocialLogin(provider);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
