@@ -822,6 +822,7 @@ model Poll {
   user      User         @relation(fields: [userId], references: [id])
   options   PollOption[]
   votes     PollVote[]
+  pollLikes PollLike[]
   likes     Int          @default(0)
   views     Int          @default(0)
   vertical  String       @default("snow")
@@ -830,6 +831,19 @@ model Poll {
 
   @@index([vertical, createdAt])
   @@map("polls")
+}
+
+// 투표 좋아요 — 1인 1회(토글). 이전엔 raw increment 라 무한 증가 가능했음.
+model PollLike {
+  id        String   @id @default(uuid())
+  pollId    String
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([pollId, userId]) // 1인 1좋아요
+  @@index([userId])
+  @@map("poll_likes")
 }
 
 model PollOption {

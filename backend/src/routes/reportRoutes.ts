@@ -26,21 +26,28 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    // 셀프 신고 차단 — 본인을 신고하거나 본인의 글/상품을 신고하는 행위.
-    if (type === 'user' && targetId === reporterId) {
-      res.status(400).json({ error: '본인은 신고할 수 없습니다.' });
-      return;
+    // 대상 존재 확인 + 셀프 신고 차단. 존재하지 않는 대상 신고는 관리자 큐 오염이라 404.
+    // (targetId 형식이 uuid 가 아니면 하위 findUnique 가 던지고 바깥 catch 에서 처리)
+    if (type === 'user') {
+      if (targetId === reporterId) {
+        res.status(400).json({ error: '본인은 신고할 수 없습니다.' });
+        return;
+      }
+      const u = await prisma.user.findUnique({ where: { id: targetId }, select: { id: true } });
+      if (!u) { res.status(404).json({ error: '신고 대상을 찾을 수 없습니다.' }); return; }
     }
     if (type === 'post') {
       const post = await prisma.post.findUnique({ where: { id: targetId }, select: { userId: true } });
-      if (post?.userId === reporterId) {
+      if (!post) { res.status(404).json({ error: '신고 대상을 찾을 수 없습니다.' }); return; }
+      if (post.userId === reporterId) {
         res.status(400).json({ error: '본인 게시글은 신고할 수 없습니다.' });
         return;
       }
     }
     if (type === 'product') {
       const product = await prisma.product.findUnique({ where: { id: targetId }, select: { userId: true } });
-      if (product?.userId === reporterId) {
+      if (!product) { res.status(404).json({ error: '신고 대상을 찾을 수 없습니다.' }); return; }
+      if (product.userId === reporterId) {
         res.status(400).json({ error: '본인 상품은 신고할 수 없습니다.' });
         return;
       }

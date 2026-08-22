@@ -115,8 +115,9 @@ export const optionalAuth = (req: AuthRequest, _res: Response, next: NextFunctio
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as { userId: string; email?: string; role?: string; type?: string };
-    if (!decoded.type || decoded.type === 'access') {
+    }) as { userId: string; email?: string; role?: string; type?: string; iat?: number };
+    // 비번 변경/로그아웃 등으로 무효화된 토큰이면 익명 취급 (인증 미들웨어와 동일 기준).
+    if ((!decoded.type || decoded.type === 'access') && !isTokenIatStale(decoded.userId, decoded.iat)) {
       req.user = { id: decoded.userId, email: decoded.email || '', role: decoded.role || 'user' };
     }
   } catch { /* 무효 토큰 → 익명으로 진행 */ }

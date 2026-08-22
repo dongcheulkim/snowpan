@@ -61,8 +61,10 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       ];
     }
 
-    const take = limit ? parseInt(limit as string, 10) : 50;
-    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    const takeParsed = parseInt(limit as string, 10);
+    const take = Number.isFinite(takeParsed) && takeParsed > 0 ? Math.min(takeParsed, 100) : 50;
+    const skipParsed = parseInt(offset as string, 10);
+    const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
     const [posts, totalCount] = await Promise.all([
       prisma.post.findMany({
@@ -286,6 +288,11 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
     if (cleanTitle.length < 2) {
       res.status(400).json({ error: '제목은 2자 이상이어야 합니다.' });
+      return;
+    }
+    // images 는 콤마 구분 URL 문자열만 허용 — 배열/객체/과대 입력은 거절 (미검증 시 Prisma 500).
+    if (images !== undefined && images !== null && (typeof images !== 'string' || images.length > 2000)) {
+      res.status(400).json({ error: '이미지 형식이 올바르지 않습니다.' });
       return;
     }
 

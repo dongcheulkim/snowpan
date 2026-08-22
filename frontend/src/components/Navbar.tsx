@@ -83,7 +83,9 @@ const Navbar = () => {
     const token = getToken();
     if (!user || !token) return;
 
-    const socket = io(SERVER_URL, { auth: { token } });
+    // 함수형 auth — 재연결 시 최신 토큰을 다시 읽음. 고정 토큰이면 1시간 만료 후
+    // 재연결이 인증 거부돼 실시간 알림이 조용히 끊김.
+    const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
     socketRef.current = socket;
 
     socket.on('new_notification', (data: any) => {

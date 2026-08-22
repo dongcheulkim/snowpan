@@ -106,8 +106,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     }
 
     const { limit, offset } = req.query;
-    const take = limit ? parseInt(limit as string, 10) : 50;
-    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    const takeParsed = parseInt(limit as string, 10);
+    const take = Number.isFinite(takeParsed) && takeParsed > 0 ? Math.min(takeParsed, 100) : 50;
+    const skipParsed = parseInt(offset as string, 10);
+    const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
     const where = { sellerId: sellerId as string };
 
     const [reviews, totalCount] = await Promise.all([

@@ -141,17 +141,30 @@ router.post('/:id/vote', authenticateToken, async (req: AuthRequest, res: Respon
   }
 });
 
-// 좋아요 (auth) — 단순 증가 (토글 아님, MVP).
+// 좋아요 (auth) — 1인 1회 토글. PollLike 유니크 제약으로 무한 증가 차단.
 router.post('/:id/like', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  const pollId = req.params.id;
+  const userId = req.user!.id;
   try {
-    const poll = await prisma.poll.update({
-      where: { id: req.params.id },
-      data: { likes: { increment: 1 } },
-      select: { likes: true },
-    });
-    res.json({ likes: poll.likes });
+    const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { userId: true } });
+    if (!poll) { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
+    if (poll.userId === userId) { res.status(400).json({ error: '본인 투표에는 좋아요를 누를 수 없어요.' }); return; }
+
+    // create 성공 = 새 좋아요(+1), P2002 = 이미 눌렀음 → 토글 오프(-1). 카운터는 원자 증감.
+    try {
+      await prisma.pollLike.create({ data: { pollId, userId } });
+      const updated = await prisma.poll.update({ where: { id: pollId }, data: { likes: { increment: 1 } }, select: { likes: true } });
+      res.json({ likes: updated.likes, liked: true });
+    } catch (e) {
+      if ((e as { code?: string })?.code === 'P2002') {
+        await prisma.pollLike.delete({ where: { pollId_userId: { pollId, userId } } });
+        const updated = await prisma.poll.update({ where: { id: pollId }, data: { likes: { decrement: 1 } }, select: { likes: true } });
+        res.json({ likes: updated.likes, liked: false });
+        return;
+      }
+      throw e;
+    }
   } catch (err) {
-    if ((err as { code?: string })?.code === 'P2025') { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
     res.status(500).json({ error: '좋아요 처리 실패' });
   }
 });

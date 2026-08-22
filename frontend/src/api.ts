@@ -287,7 +287,8 @@ export function imageUrl(src: string, width?: number): string {
   if (src.includes('.b-cdn.net')) return transformBunny(src, width);
   if (src.startsWith('http')) return transformCloudinary(src, width);
   if (src.startsWith('/')) {
-    if (src.startsWith('/icons/') || src.startsWith('/uploads/')) return src;
+    if (src.startsWith('/icons/')) return src; // 프론트 번들 정적 자산 → 앱 오리진 그대로
+    // /uploads/ 등은 백엔드가 서빙 → API 오리진 붙여야 함 (앱/웹 오리진에선 404)
     return `${SERVER_URL}${src}`;
   }
   return src;

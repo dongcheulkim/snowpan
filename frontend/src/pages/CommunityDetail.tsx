@@ -60,6 +60,7 @@ const CommunityDetail = () => {
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -100,7 +101,8 @@ const CommunityDetail = () => {
   };
 
   const handleComment = async () => {
-    if (!newComment.trim() || !id) return;
+    if (!newComment.trim() || !id || commentSubmitting) return; // 연타·Enter 중복 제출 방지
+    setCommentSubmitting(true);
     try {
       const comment = await api<Comment>(`/community/${id}/comments`, {
         method: 'POST',
@@ -110,6 +112,8 @@ const CommunityDetail = () => {
       setNewComment('');
     } catch (err) {
       toastError(err instanceof Error ? err.message : '댓글 등록에 실패했습니다.');
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -267,7 +271,7 @@ const CommunityDetail = () => {
         {user ? (
           <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
             <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
-            <button onClick={handleComment} disabled={!newComment.trim()} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
+            <button onClick={handleComment} disabled={!newComment.trim() || commentSubmitting} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
           </div>
         ) : (
           <div className="mt-5 pt-4 border-t border-gray-200 text-center">

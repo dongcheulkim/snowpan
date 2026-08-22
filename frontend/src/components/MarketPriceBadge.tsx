@@ -30,12 +30,13 @@ const subcatLabels: Record<string, string> = {
 // 스노우판 핵심 차별화 — '시세 대비 가격' 비교는 가장 강력한 셀링 포인트라 시각적으로 충분히 강조.
 export default function MarketPriceBadge({ subcategory, brand, price, variant = 'badge' }: Props) {
   // 시세 DB 는 판별 분리돼 있지만 문구·데이터가 스노우 기준 — 비snow 판에선 미표시.
+  // 훅은 조건부 return 앞에서 항상 호출돼야 함(Rules of Hooks) → 미표시 판단은 렌더 하단에서.
   const vertical = useVertical();
-  if (vertical.slug !== 'snow') return null;
+  const isSnow = vertical.slug === 'snow';
   const [stats, setStats] = useState<MarketStats | null>(null);
 
   useEffect(() => {
-    if (!subcategory) return;
+    if (!subcategory || !isSnow) return;
     let cancelled = false;
     const params = new URLSearchParams({ subcategory });
     if (brand) params.set('brand', brand);
@@ -43,9 +44,9 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
       .then((data) => { if (!cancelled) setStats(data); })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [subcategory, brand]);
+  }, [subcategory, brand, isSnow]);
 
-  if (!subcategory || !stats) return null;
+  if (!isSnow || !subcategory || !stats) return null;
   if (!stats.available || !stats.median) {
     if (variant === 'inline') {
       return (

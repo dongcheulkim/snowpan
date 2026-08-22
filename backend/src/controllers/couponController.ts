@@ -120,18 +120,21 @@ export const purchaseCoupon = async (req: AuthRequest, res: Response): Promise<v
         }
       }
 
-      // 포인트 차감 (잔액 부족 시 throw).
-      await spendPoints(tx, {
-        userId,
-        amount: coupon.pointsCost,
-        source: 'coupon_purchase',
-        description: `쿠폰 구매: ${coupon.title}`,
-      });
+      // 포인트 차감 (잔액 부족 시 throw). 0P 이하 무료 쿠폰은 차감 스킵 (spendPoints 는 양수만 허용).
+      if (coupon.pointsCost > 0) {
+        await spendPoints(tx, {
+          userId,
+          amount: coupon.pointsCost,
+          source: 'coupon_purchase',
+          description: `쿠폰 구매: ${coupon.title}`,
+        });
+      }
 
-      // 쿠폰 발급. 다회권은 effectValue 만큼 usesLeft 세팅.
+      // 쿠폰 발급. 다회권(usesLeft>1)은 '끌어올리기(product_bump)' 에만 적용 —
+      // 기간제 효과(초대2배·프로필강조 등)는 effectValue 가 배율 의미라 다회 트리거되면 안 됨.
       const code = generateCouponCode();
       const expiresAt = new Date(Date.now() + coupon.validDays * 24 * 60 * 60 * 1000);
-      const uses = coupon.effectValue && coupon.effectValue > 1 ? coupon.effectValue : 1;
+      const uses = coupon.effect === 'product_bump' && coupon.effectValue && coupon.effectValue > 1 ? coupon.effectValue : 1;
       const userCoupon = await tx.userCoupon.create({
         data: {
           userId,

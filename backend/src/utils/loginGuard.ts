@@ -74,8 +74,9 @@ export function recordSuccess(email: string, ip: string): void {
 
 // timing attack 방어용 dummy hash — 실제 bcrypt 처리 시간과 일치시키기 위해
 // 미리 만들어둔 valid hash. user 가 없을 때 이걸로 compare → 항상 같은 시간 소요.
-// 'never-matches-anything' 의 bcrypt(round=10) 결과.
-export const DUMMY_BCRYPT_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+// cost 는 실제 비밀번호 해시(BCRYPT_COST=12)와 반드시 동일해야 타이밍으로 계정 존재를
+// 구분당하지 않음. (round=10 이면 미가입 이메일이 더 빨리 응답 → 열거 공격 가능)
+export const DUMMY_BCRYPT_HASH = '$2b$12$lM2zb73CyudZK3nHhQTuVODjaVJinuc/WB2CqwJEHPn4BqnsHcwdO';
 
 // 이메일 발송 횟수 제한 — 같은 이메일에 24시간 내 5회 초과 발송 차단.
 // 비밀번호 재설정/이메일 인증 등 SMTP 트래픽 폭격 방지.

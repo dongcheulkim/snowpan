@@ -130,9 +130,16 @@ const Chat = () => {
     // 재연결 시에도 최신 토큰을 읽도록 함수형 auth — 1시간 만료 후 끊겼다 붙어도 인증 유지.
     const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
     socketRef.current = socket;
+    let firstConnect = true;
     socket.on('connect', () => {
       setConnected(true);
       socket.emit('join_room', id);
+      // 재연결(만료·네트워크 끊김 후): socket.io 는 끊긴 동안 온 메시지를 버퍼링하지
+      // 않으므로 목록을 다시 불러와 유실분을 복구. 최초 연결은 위 초기 로드로 충분.
+      if (firstConnect) { firstConnect = false; return; }
+      api<Message[]>(`/chat/rooms/${id}/messages`)
+        .then(m => { setMessages(m); markAsRead(id); })
+        .catch(() => {});
     });
     socket.on('new_message', (msg: Message) => {
       setMessages(prev => [...prev, msg]);

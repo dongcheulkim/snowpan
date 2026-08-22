@@ -990,7 +990,7 @@ export const applyReferral = async (req: AuthRequest, res: Response): Promise<vo
       res.status(400).json({ error: '추천 코드는 가입 직후에만 입력할 수 있어요.' }); return;
     }
 
-    const referrer = await prisma.user.findUnique({ where: { referralCode: code.trim() }, select: { id: true, referralBoostUntil: true, role: true } });
+    const referrer = await prisma.user.findUnique({ where: { referralCode: code.trim().toUpperCase() }, select: { id: true, referralBoostUntil: true, role: true } });
     if (!referrer || referrer.role === 'deleted') { res.status(400).json({ error: '유효하지 않은 추천 코드입니다.' }); return; }
     if (referrer.id === userId) { res.status(400).json({ error: '본인 추천 코드는 사용할 수 없어요.' }); return; }
 
