@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl } from '../api';
 import { CameraIcon, UserIcon } from '../components/Icons';
-import ReferralCard from '../components/ReferralCard';
 import { toastSuccess, toastError } from '../components/Toast';
 import { t } from '../i18n';
 
@@ -27,7 +26,7 @@ const badgeDisplay: Record<string, { label: string; desc: string; color: string 
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string; activeBadge?: string | null } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [hasPendingShop, setHasPendingShop] = useState(false);
@@ -98,7 +97,6 @@ const MyPage = () => {
   };
 
   const approvedBadges = badges.filter(b => b.status === 'approved');
-  const hasPendingBadge = badges.some(b => b.status === 'pending');
 
   if (!user) return null;
 
@@ -151,15 +149,12 @@ const MyPage = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900">{user.nickname || user.name}</h2>
-              {approvedBadges.map((b) => {
-                const badge = badgeDisplay[b.badgeType];
-                if (!badge) return null;
-                return (
-                  <span key={b.id} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
-                    {badge.label}
-                  </span>
-                );
-              })}
+              {/* 이름 옆엔 사용자가 노출 선택한 뱃지(activeBadge) 하나만 */}
+              {user.activeBadge && badgeDisplay[user.activeBadge] && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeDisplay[user.activeBadge].color}`}>
+                  {badgeDisplay[user.activeBadge].label}
+                </span>
+              )}
             </div>
             <p className="text-sm text-gray-500">
               {user.email?.endsWith('@social.local')
@@ -186,23 +181,6 @@ const MyPage = () => {
         </Link>
       </div>
 
-      {/* 인증 뱃지 — 관리는 프로필 관리 페이지로 (관리자에겐 숨김) */}
-      {user.role !== 'admin' && (
-        <Link to="/mypage/edit" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-          <div>
-            <div className="text-sm font-bold text-gray-900">인증 뱃지</div>
-            <div className="text-[11px] text-gray-500 mt-0.5">
-              {hasPendingBadge
-                ? '자격증 심사 중이에요'
-                : approvedBadges.length > 0
-                  ? `인증 뱃지 ${approvedBadges.length}개 · 관리하기`
-                  : '자격증 인증하고 신뢰 뱃지 받기'}
-            </div>
-          </div>
-          <span className="text-gray-400 text-lg">›</span>
-        </Link>
-      )}
-
       {/* 매장 심사중 — 등록했지만 아직 승인 전. 승인되면 '내 매장 관리' 메뉴가 열림 */}
       {hasPendingShop && !isOwner && (
         <Link to="/mypage/shops" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
@@ -215,9 +193,6 @@ const MyPage = () => {
           <span className="text-gray-400 text-lg">›</span>
         </Link>
       )}
-
-      {/* 친구 초대 — 베타 기간 추천 코드 공유 */}
-      <ReferralCard />
 
       {/* Menu */}
       <div className="card overflow-hidden">
