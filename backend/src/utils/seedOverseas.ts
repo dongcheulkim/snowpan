@@ -247,8 +247,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'phoenix', name: '휘닉스 평창', scope: '국내', country: '한국', region: '강원',
-    address: '강원 평창군 봉평면 태기로 174', liftPrice: '성인 1일권 약 8~9만원대',
-    website: 'https://www.phoenixhnr.co.kr/', nightSki: true, slopes: 21,
+    address: '강원 평창군 봉평면 태기로 174', liftPrice: '성인 종일권 약 76,000원 (시즌별 상이)',
+    website: 'https://www.phoenixhnr.co.kr/ski/', nightSki: true, slopes: 21,
     summary: '2018 올림픽 스노보드 개최지', season: '11월 말 ~ 4월', snowType: '정설(인공설)',
     highlights: '올림픽개최지,보드,다양한코스,수도권2시간', bestFor: '전 레벨,보더',
     image: null,
@@ -269,8 +269,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'vivaldi', name: '비발디파크', scope: '국내', country: '한국', region: '강원',
-    address: '강원 홍천군 서면 한치골길 262', liftPrice: '성인 1일권 약 8만원대',
-    website: 'https://www.sonohotelsresorts.com/', nightSki: true, slopes: 13,
+    address: '강원 홍천군 서면 한치골길 262', liftPrice: '타임패스 4/5/6시간제 · 약 8만원대 (정가 공식 확인)',
+    website: 'https://www.sonohotelsresorts.com/daemyung.vp.skiworld.04_04_01.ds/dmparse.dm', nightSki: true, slopes: 13,
     summary: '수도권 최근접급, 활기찬 나이트', season: '11월 말 ~ 3월', snowType: '정설(인공설)',
     highlights: '수도권근접,나이트,보드,오션월드', bestFor: '입문,수도권 당일',
     image: null,
@@ -280,7 +280,7 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'wellihilli', name: '웰리힐리파크', scope: '국내', country: '한국', region: '강원',
-    address: '강원 횡성군 둔내면 서동로 891', liftPrice: '성인 1일권 약 8만원대',
+    address: '강원 횡성군 둔내면 서동로 891', liftPrice: '3/4/6/8시간권제 · 약 8만원대 (정가 공식 확인)',
     website: 'https://www.wellihillipark.com/', nightSki: true, slopes: 18,
     summary: '넓은 슬로프, 수도권 접근 양호', season: '11월 말 ~ 3월', snowType: '정설(인공설)',
     highlights: '넓은슬로프,수도권근접,다양한코스', bestFor: '전 레벨',
@@ -291,7 +291,7 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'elysian-gangchon', name: '엘리시안 강촌', scope: '국내', country: '한국', region: '강원',
-    address: '강원 춘천시 남산면 북한강변길 688', liftPrice: '성인 1일권 약 6~7만원대',
+    address: '강원 춘천시 남산면 북한강변길 688', liftPrice: '성인 4시간 70,000 · 6시간 80,000 · 8시간 90,000원 (25/26)',
     website: 'https://www.elysian.co.kr/', nightSki: true, slopes: 10,
     summary: '전철로 가는 입문자 친화 스키장', season: '12월 ~ 3월', snowType: '정설(인공설)',
     highlights: '전철접근,입문,춘천,가성비', bestFor: '입문,가족',
@@ -335,7 +335,7 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'oakvalley', name: '오크밸리', scope: '국내', country: '한국', region: '강원',
-    address: '강원 원주시 지정면 오크밸리2길 58', liftPrice: '성인 1일권 약 7만원대',
+    address: '강원 원주시 지정면 오크밸리2길 58', liftPrice: '성인 종일권 76,000 · 오전/오후/야간 각 58,000원',
     website: 'https://www.oakvalley.co.kr/', nightSki: true, slopes: 9,
     summary: '원주의 가족형 리조트', season: '12월 ~ 3월', snowType: '정설(인공설)',
     highlights: '원주,가족,골프,입문', bestFor: '입문,가족',
