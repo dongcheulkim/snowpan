@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { getRentals, getRentalById, createRental, updateRental, deleteRental } from '../controllers/rentalController';
+import { getRentals, getRentalById, createRental, updateRental, deleteRental, getMyRentals } from '../controllers/rentalController';
 import { authenticateToken, optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
 router.get('/', getRentals);
+router.get('/my', authenticateToken, getMyRentals);
 router.get('/:id', optionalAuth, getRentalById);
 router.post('/', authenticateToken, createRental);
 router.put('/:id', authenticateToken, updateRental);

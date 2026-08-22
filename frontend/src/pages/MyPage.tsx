@@ -105,6 +105,7 @@ const MyPage = () => {
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
+    { label: '내 매장 관리 (사장님)', link: '/mypage/shops' },
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },
     { label: t('mypage.notifications'), link: '/notifications' },

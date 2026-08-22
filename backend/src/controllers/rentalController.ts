@@ -168,3 +168,14 @@ export const deleteRental = async (req: AuthRequest, res: Response): Promise<voi
     res.json({ message: '렌탈이 삭제되었습니다.' });
   } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
 };
+
+// 내 렌탈 목록 (사장님 대시보드) — 승인 여부 무관 전체.
+export const getMyRentals = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const rentals = await prisma.rental.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(rentals);
+  } catch (error) { res.status(500).json({ error: '내 렌탈 조회 실패' }); }
+};
