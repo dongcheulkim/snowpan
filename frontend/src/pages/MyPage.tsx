@@ -100,7 +100,6 @@ const MyPage = () => {
   };
 
   const menuItems = [
-    ...(user ? [{ label: '내 프로필 (수정 · 남에게 보이는 화면)', link: `/seller/${user.id}` }] : []),
     { label: '포인트 · 쿠폰', link: '/points' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
@@ -171,6 +170,10 @@ const MyPage = () => {
             </div>
           ))}
         </div>
+
+        <Link to="/mypage/edit" className="block w-full text-center mt-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-200 transition-colors">
+          프로필 수정
+        </Link>
       </div>
 
       {/* 인증 뱃지 — 관리는 프로필 관리 페이지로 (관리자에겐 숨김) */}
