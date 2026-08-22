@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import prisma from '../config/database';
 import { signAccessToken, setRefreshCookie } from '../utils/tokens';
-import { awardPoints } from '../utils/points';
 import { normalizeEmail } from '../utils/validate';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
@@ -13,7 +12,6 @@ import { normalizeEmail } from '../utils/validate';
 const FRONTEND = () => process.env.FRONTEND_URL || 'https://snowpan.kr';
 const API_BASE = () => process.env.RENDER_EXTERNAL_URL || 'https://snowpan.onrender.com';
 const APP_SCHEME = 'kr.snowpan.app'; // Capacitor 앱 커스텀 스킴 (딥링크로 토큰 되돌림)
-const SIGNUP_BONUS = 1000;
 
 // ===== OAuth state (CSRF/로그인 고정 방지) =====
 // state = `${platform}.${nonce}`. nonce 를 시작 시 HttpOnly 쿠키에 저장하고
@@ -96,9 +94,7 @@ async function completeLogin(res: Response, profile: SocialProfile, isApp: boole
     return fail(res, '이용이 제한된 계정입니다.', isApp);
   }
 
-  if (isNew) {
-    await awardPoints(prisma, { userId: user.id, amount: SIGNUP_BONUS, source: 'signup_bonus', description: '회원가입 축하 보너스' }).catch(() => {});
-  }
+  // (포인트 시스템 제거) 가입 보너스 없음.
 
   // 우리 토큰 발급 + refresh 쿠키(소셜은 지속 로그인). 프론트로 토큰·유저 전달.
   const token = signAccessToken(user);

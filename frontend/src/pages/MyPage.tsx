@@ -106,7 +106,6 @@ const MyPage = () => {
   };
 
   const menuItems = [
-    { label: '포인트 · 쿠폰', link: '/points' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },

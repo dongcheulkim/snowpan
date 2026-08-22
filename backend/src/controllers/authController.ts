@@ -10,13 +10,6 @@ import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail
 import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
-import { awardPoints } from '../utils/points';
-
-// 가입 보너스 + 추천인 보너스 (양쪽 지급).
-const SIGNUP_BONUS_POINTS = 1000;
-// 추천 코드 양쪽 동일 500P (정책 변경).
-const REFERRAL_BONUS_REFERRER = 500;  // 추천한 사람
-const REFERRAL_BONUS_REFERRED = 500;  // 추천받아 가입한 사람 (가입 보너스 1,000P 위에 추가)
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -140,40 +133,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // 가입 축하 보너스 — 1000P. 실패해도 가입은 성공으로 처리 (포인트는 부수효과).
-    try {
-      await awardPoints(prisma, {
-        userId: user.id,
-        amount: SIGNUP_BONUS_POINTS,
-        source: 'signup_bonus',
-        description: '회원가입 축하 보너스',
-      });
-
-      // 추천인이 있으면 양쪽 다 보너스. 추천인은 무한 보너스 가능하지만
-      // 추천 코드가 유니크 + 가입은 phone 인증 필수라 자기 자신 farming 어려움.
-      if (referredById) {
-        // 추천인이 초대 2배 쿠폰을 사용 중(referralBoostUntil > now)이면 추천인 보너스 2배.
-        const referrer = await prisma.user.findUnique({ where: { id: referredById }, select: { referralBoostUntil: true } });
-        const boosted = !!(referrer?.referralBoostUntil && referrer.referralBoostUntil > new Date());
-        const referrerBonus = boosted ? REFERRAL_BONUS_REFERRER * 2 : REFERRAL_BONUS_REFERRER;
-        await awardPoints(prisma, {
-          userId: user.id,
-          amount: REFERRAL_BONUS_REFERRED,
-          source: 'referral_bonus',
-          refId: referredById,
-          description: '추천 코드로 가입 보너스',
-        });
-        await awardPoints(prisma, {
-          userId: referredById,
-          amount: referrerBonus,
-          source: 'referral_bonus',
-          refId: user.id,
-          description: boosted ? '친구 가입 보너스 (2배 이벤트)' : '친구 가입 보너스',
-        });
-      }
-    } catch (e) {
-      console.error('Signup bonus award failed:', e);
-    }
+    // (포인트 시스템 제거) 추천인 관계(referredById)는 위 create 에서 그대로 기록되지만
+    // 가입/추천 포인트 보너스는 지급하지 않음.
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d (HttpOnly 쿠키).
     const token = signAccessToken(user);
@@ -998,20 +959,15 @@ export const applyReferral = async (req: AuthRequest, res: Response): Promise<vo
       res.status(400).json({ error: '추천 코드는 가입 직후에만 입력할 수 있어요.' }); return;
     }
 
-    const referrer = await prisma.user.findUnique({ where: { referralCode: code.trim().toUpperCase() }, select: { id: true, referralBoostUntil: true, role: true } });
+    const referrer = await prisma.user.findUnique({ where: { referralCode: code.trim().toUpperCase() }, select: { id: true, role: true } });
     if (!referrer || referrer.role === 'deleted') { res.status(400).json({ error: '유효하지 않은 추천 코드입니다.' }); return; }
     if (referrer.id === userId) { res.status(400).json({ error: '본인 추천 코드는 사용할 수 없어요.' }); return; }
 
-    // referredById 를 원자적으로 선점 — 동시 요청 2건이 둘 다 지급하는 것 차단.
+    // referredById 를 원자적으로 선점 — 동시 요청 2건 중복 방지. (포인트 보상은 없음)
     const claim = await prisma.user.updateMany({ where: { id: userId, referredById: null }, data: { referredById: referrer.id } });
     if (claim.count === 0) { res.status(400).json({ error: '이미 추천이 적용된 계정입니다.' }); return; }
 
-    const boosted = !!(referrer.referralBoostUntil && referrer.referralBoostUntil > new Date());
-    const referrerBonus = boosted ? REFERRAL_BONUS_REFERRER * 2 : REFERRAL_BONUS_REFERRER;
-    await awardPoints(prisma, { userId, amount: REFERRAL_BONUS_REFERRED, source: 'referral_bonus', refId: referrer.id, description: '추천 코드로 가입 보너스' }).catch(() => {});
-    await awardPoints(prisma, { userId: referrer.id, amount: referrerBonus, source: 'referral_bonus', refId: userId, description: boosted ? '친구 가입 보너스 (2배 이벤트)' : '친구 가입 보너스' }).catch(() => {});
-
-    res.json({ message: '추천 보너스가 지급되었어요!', bonus: REFERRAL_BONUS_REFERRED });
+    res.json({ message: '추천이 연결되었어요!' });
   } catch (error) {
     console.error('Apply referral error:', error);
     res.status(500).json({ error: '추천 적용 중 오류가 발생했습니다.' });

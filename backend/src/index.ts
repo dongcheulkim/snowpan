@@ -70,9 +70,6 @@ import webcamRoutes from './routes/webcamRoutes';
 import preRegisterRoutes from './routes/preRegisterRoutes';
 import shopPostRoutes from './routes/shopPostRoutes';
 import pollRoutes from './routes/pollRoutes';
-import pointsRoutes from './routes/pointsRoutes';
-import couponRoutes from './routes/couponRoutes';
-import snowRunRoutes from './routes/snowRunRoutes';
 import adViewRoutes from './routes/adViewRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
@@ -306,9 +303,6 @@ app.use('/api/webcams', webcamRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
-app.use('/api/points', pointsRoutes);
-app.use('/api/coupons', publicCache(60), couponRoutes);
-app.use('/api/snow-runs', snowRunRoutes);
 app.use('/api/ads', adViewRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)

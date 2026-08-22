@@ -20,7 +20,7 @@ export default function ReferralCard() {
   if (loading || !code) return null;
 
   const link = `${SITE}/login?ref=${code}`;
-  const shareText = `스노우판 초대 — 이 링크로 가입하면 우리 둘 다 500P 받아요! (가입 보너스 1,000P 별도)\n${link}`;
+  const shareText = `스노우판에 초대할게요! 중고거래·렌탈·강습·커뮤니티까지 스키어를 위한 앱.\n${link}`;
 
   const copyLink = async () => {
     try {
@@ -45,11 +45,10 @@ export default function ReferralCard() {
     <div className="card p-5 bg-gradient-to-br from-sky-50 to-emerald-50 border-sky-200">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-bold text-gray-900">친구 초대</h2>
-        <span className="text-[10px] text-gray-600">초대한 친구 <strong className="text-sky-700">{count}명</strong> · +{(count * 500).toLocaleString()}P 적립</span>
+        <span className="text-[10px] text-gray-600">초대한 친구 <strong className="text-sky-700">{count}명</strong></span>
       </div>
       <p className="text-xs text-gray-700 leading-relaxed mb-3">
-        내 코드로 친구가 가입하면 <strong className="text-emerald-700">나와 친구 양쪽 각각 500P</strong> 적립돼요.
-        <span className="block text-[11px] text-gray-500 mt-0.5">친구는 가입 보너스 1,000P + 추천 500P = 총 1,500P</span>
+        아래 코드·링크를 공유해서 친구를 스노우판에 초대해보세요.
       </p>
       <div className="flex items-center gap-2 mb-3">
         <code className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-mono font-bold text-gray-900 tracking-wider text-center">

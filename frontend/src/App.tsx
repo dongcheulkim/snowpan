@@ -82,13 +82,6 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
 const Advertise = lazy(() => import('./pages/Advertise'));
-const Points = lazy(() => import('./pages/Points'));
-const CouponShop = lazy(() => import('./pages/CouponShop'));
-const MyCoupons = lazy(() => import('./pages/MyCoupons'));
-const SnowRun = lazy(() => import('./pages/SnowRun'));
-const SnowRunRecord = lazy(() => import('./pages/SnowRunRecord'));
-const SnowRunDetail = lazy(() => import('./pages/SnowRunDetail'));
-const SnowRunShare = lazy(() => import('./pages/SnowRunShare'));
 
 function App() {
   return (
@@ -217,14 +210,6 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="advertise" element={<Advertise />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
-            <Route path="points" element={<RequireAuth><Points /></RequireAuth>} />
-            <Route path="coupons" element={<CouponShop />} />
-            <Route path="mypage/coupons" element={<RequireAuth><MyCoupons /></RequireAuth>} />
-            <Route path="mypage/points" element={<Navigate to="/points" replace />} />
-            <Route path="snow-run" element={<RequireAuth><SnowRun /></RequireAuth>} />
-            <Route path="snow-run/record" element={<RequireAuth><SnowRunRecord /></RequireAuth>} />
-            <Route path="snow-run/:id" element={<RequireAuth><SnowRunDetail /></RequireAuth>} />
-            <Route path="snow-run/:id/share" element={<RequireAuth><SnowRunShare /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="marketplace" element={<Navigate to="/used" replace />} />
             <Route path="marketplace/*" element={<Navigate to="/used" replace />} />
