@@ -212,12 +212,13 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       liked = !!existing;
     }
 
+    // 노출은 사용자가 선택한 뱃지(activeBadge) 하나만 — 게시글·댓글 동일 규칙.
     const postWithBadges = {
       ...post,
-      user: { ...post.user, name: resolveDisplayName(post.user), badges: post.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+      user: { ...post.user, name: resolveDisplayName(post.user), badges: post.user.activeBadge ? [post.user.activeBadge] : [], badgeRequests: undefined },
       comments: post.comments.map((c: any) => ({
         ...c,
-        user: { ...c.user, name: resolveDisplayName(c.user), badges: c.user.badgeRequests.map((b: any) => b.badgeType), badgeRequests: undefined },
+        user: { ...c.user, name: resolveDisplayName(c.user), badges: c.user.activeBadge ? [c.user.activeBadge] : [], badgeRequests: undefined },
       })),
       liked,
     };
@@ -446,7 +447,18 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
       sendPushToUser(targetPost.userId, title, body, link);
     }
 
-    res.status(201).json(comment);
+    // 응답도 목록·상세와 동일 형태로 — 닉네임 표시명 + 선택 뱃지(activeBadge)만.
+    // (매핑 없이 raw 로 주면 방금 단 댓글엔 뱃지/닉네임이 안 떠 새로고침 필요했음)
+    const shaped = {
+      ...comment,
+      user: {
+        ...comment.user,
+        name: resolveDisplayName(comment.user),
+        badges: comment.user.activeBadge ? [comment.user.activeBadge] : [],
+        badgeRequests: undefined,
+      },
+    };
+    res.status(201).json(shaped);
   } catch (error) {
     console.error('Create comment error:', error);
     res.status(500).json({ error: '댓글 등록 중 오류가 발생했습니다.' });
