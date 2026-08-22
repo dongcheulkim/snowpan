@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
 
 interface Coupon {
@@ -142,7 +142,7 @@ const CouponShop = () => {
                   {/* 이미지 (위) */}
                   <div className="h-24 bg-gray-100 flex items-center justify-center">
                     {c.image ? (
-                      <img src={c.image} alt={c.title} className="w-full h-full object-cover" />
+                      <img src={imageUrl(c.image, 200)} alt={c.title} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[11px] font-black tracking-widest text-gray-300">COUPON</span>
                     )}

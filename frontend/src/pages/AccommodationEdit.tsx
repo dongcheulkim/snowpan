@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, getUser, uploadImages } from '../api';
+import { api, getUser, uploadImages, imageUrl } from '../api';
 
 interface Resort { id: string; name: string; }
 interface AccommodationData {
@@ -158,7 +158,7 @@ const AccommodationEdit = () => {
       <div>
         <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(바꿀 때만 선택)</span></label>
         {currentImage && imageFiles.length === 0 && (
-          <img src={currentImage.startsWith('http') || currentImage.startsWith('/') ? currentImage : ''} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
+          <img src={imageUrl(currentImage)} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
         )}
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨 (교체)` : '사진을 바꾸려면 선택하세요'}

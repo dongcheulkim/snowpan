@@ -79,13 +79,13 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         productId: productId || null,
       },
       include: {
-        buyer: { select: { id: true, name: true, profileImage: true } },
+        buyer: { select: { id: true, name: true, nickname: true, profileImage: true } },
       },
     });
 
     const title = '새 리뷰';
-    const body = `${review.buyer.name}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
-    const link = `/profile/${sellerId}`;
+    const body = `${review.buyer.nickname || review.buyer.name}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
+    const link = `/seller/${sellerId}`;
     await createNotification(sellerId, 'system', title, body, link);
     sendPushToUser(sellerId, title, body, link);
 
@@ -114,7 +114,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       prisma.review.findMany({
         where,
         include: {
-          buyer: { select: { id: true, name: true, profileImage: true } },
+          buyer: { select: { id: true, name: true, nickname: true, profileImage: true } },
         },
         orderBy: { createdAt: 'desc' },
         take,

@@ -52,6 +52,7 @@ export const getAccommodationById = async (req: AuthRequest, res: Response): Pro
           select: {
             id: true,
             name: true,
+            nickname: true,
           },
         },
       },

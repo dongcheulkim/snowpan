@@ -39,7 +39,7 @@ interface ReviewData {
   id: string;
   rating: number;
   content: string;
-  buyer: { id: string; name: string; profileImage: string | null };
+  buyer: { id: string; name: string; nickname?: string | null; profileImage: string | null };
   createdAt: string;
 }
 
@@ -317,7 +317,7 @@ const SellerProfile = () => {
                   <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
                     {review.buyer.profileImage ? <img src={imageUrl(review.buyer.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={12} />}
                   </div>
-                  <span className="text-xs font-bold text-gray-900">{review.buyer.name}</span>
+                  <span className="text-xs font-bold text-gray-900">{review.buyer.nickname || review.buyer.name}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => (
                       <span key={s} className={`${s <= review.rating ? 'text-gold' : 'text-gray-500'}`}><StarIcon size={11} /></span>

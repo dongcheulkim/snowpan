@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { PackageIcon } from '../components/Icons';
 
@@ -97,7 +97,7 @@ const MySales = () => {
                 {/* 이미지 (위) */}
                 <div className="relative h-28 bg-gray-100 cursor-pointer" onClick={() => navigate(`/used/${item.id}`)}>
                   {(item.image?.startsWith('http') || item.image?.startsWith('/')) ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={imageUrl(item.image, 200)} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400"><PackageIcon size={28} /></div>
                   )}

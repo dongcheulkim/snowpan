@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import EmptyState from '../components/EmptyState';
 import { ListRowSkeleton } from '../components/Skeleton';
@@ -9,8 +9,8 @@ import { toastSuccess, toastError } from '../components/Toast';
 
 interface ChatRoom {
   id: string;
-  user1: { id: string; name: string };
-  user2: { id: string; name: string };
+  user1: { id: string; name: string; profileImage?: string | null };
+  user2: { id: string; name: string; profileImage?: string | null };
   messages: { content: string; createdAt: string; type?: string }[];
   unreadCount: number;
   updatedAt: string;
@@ -120,8 +120,8 @@ const MyChatList = () => {
                 key={room.id}
                 className="card p-4 flex items-center gap-3 block"
               >
-                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500 border border-gray-200">
-                  <UserIcon size={22} />
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500 border border-gray-200 overflow-hidden">
+                  {other.profileImage ? <img src={imageUrl(other.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={22} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

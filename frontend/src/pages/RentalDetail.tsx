@@ -14,7 +14,7 @@ interface RentalData {
   description?: string;
   image: string;
   resort?: { id: string; name: string; location: string };
-  user?: { id?: string; name: string; phone: string };
+  user?: { id?: string; name: string; nickname?: string | null; phone: string };
 }
 
 const RentalDetail = () => {
@@ -91,7 +91,7 @@ const RentalDetail = () => {
           <div className="space-y-2.5">
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <span className="text-xs text-gray-500">이름</span>
-              <span className="text-sm text-gray-900">{item.user.name}</span>
+              <span className="text-sm text-gray-900">{item.user.nickname || item.user.name}</span>
             </div>
             {item.resort?.location && (
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
@@ -114,7 +114,7 @@ const RentalDetail = () => {
       {user && item.userId && item.userId !== user.id && (
         <button
           onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.name || '판매자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
+            state: { seller: item.user?.nickname || item.user?.name || '판매자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
           })}
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
         >채팅하기</button>

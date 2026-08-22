@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         id: true, name: true, area: true, resort: true, address: true, description: true,
         brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
         image: true, isPremium: true, viewCount: true, createdAt: true,
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, nickname: true } },
       },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api, uploadImages } from '../api';
+import { api, uploadImages, imageUrl } from '../api';
 import { useVertical } from '../hooks/useVertical';
 
 interface Product {
@@ -141,7 +141,7 @@ const UsedEdit = () => {
               <div className="flex gap-2 flex-wrap">
                 {existingImages.map((src, idx) => (
                   <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-sky-200">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <img src={imageUrl(src)} alt="" className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => setExistingImages(existingImages.filter((_, i) => i !== idx))}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { ClockIcon, LocationIcon, PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
@@ -117,7 +117,7 @@ export default function NewEquipment() {
               )}
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 flex-shrink-0 overflow-hidden">
-                  {shop.image ? <img src={shop.image} alt={shop.name} loading="lazy" className="w-full h-full object-cover" /> : <SkiShopIcon size={32} />}
+                  {shop.image ? <img src={imageUrl(shop.image)} alt={shop.name} loading="lazy" className="w-full h-full object-cover" /> : <SkiShopIcon size={32} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

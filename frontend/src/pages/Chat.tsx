@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { api, getUser, getToken, SERVER_URL, uploadImages } from '../api';
+import { api, getUser, getToken, SERVER_URL, uploadImages, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../components/Toast';
@@ -13,7 +13,7 @@ interface Message {
   imageUrl: string | null;
   type: string;
   senderId: string;
-  sender: { id: string; name: string; profileImage?: string };
+  sender: { id: string; name: string; nickname?: string | null; profileImage?: string };
   createdAt: string;
 }
 
@@ -43,6 +43,7 @@ const Chat = () => {
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoaded, setMessagesLoaded] = useState(false); // 로드 전엔 빈화면 문구 숨김(깜빡임·가짜빈방 방지)
   const [input, setInput] = useState(state?.initialMessage || '');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
@@ -51,6 +52,7 @@ const Chat = () => {
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const firstScrollRef = useRef(true); // 첫 스크롤은 즉시(히스토리 훑는 애니메이션 방지)
   const socketRef = useRef<Socket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [, setLangTick] = useState(0);
@@ -98,7 +100,7 @@ const Chat = () => {
     try {
       await api(`/products/${dealProduct.id}`, { method: 'PUT', body: { status: newStatus } });
       setDealProduct({ ...dealProduct, status: newStatus });
-      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : newStatus === 'sold' ? '거래완료로 변경했어요' : '판매중으로 변경했어요');
+      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : newStatus === 'sold' ? '판매완료로 변경했어요' : '판매중으로 변경했어요');
     } catch (e) {
       toastError(e instanceof Error ? e.message : '상태 변경 실패');
     } finally {
@@ -115,7 +117,9 @@ const Chat = () => {
     const token = getToken();
     if (!token) return;
     setRoomId(id);
-    api<Message[]>(`/chat/rooms/${id}/messages`).then(setMessages);
+    api<Message[]>(`/chat/rooms/${id}/messages`)
+      .then(m => { setMessages(m); setMessagesLoaded(true); })
+      .catch(() => { setMessagesLoaded(true); toastError('메시지를 불러오지 못했습니다.'); });
     api<ChatRoomInfo>(`/chat/rooms/${id}`).then(room => {
       if (!user) return;
       const isUser1 = room.user1Id === user.id;
@@ -164,8 +168,8 @@ const Chat = () => {
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
         body: { targetUserId: state.sellerId, productName: state.productName || undefined, productPath: state.productPath || undefined },
-      }).then(room => safeConnect(room.id)).catch(() => {
-        if (!cancelled) toastError('채팅방 연결에 실패했습니다.');
+      }).then(room => safeConnect(room.id)).catch((e) => {
+        if (!cancelled) toastError(e instanceof Error ? e.message : '채팅방 연결에 실패했습니다.');
       });
     } else if (chatId) {
       // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
@@ -188,7 +192,8 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: firstScrollRef.current ? 'auto' : 'smooth' });
+    firstScrollRef.current = false;
   }, [messages]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -220,6 +225,7 @@ const Chat = () => {
           roomId,
           content: isVideo ? t('chat.sentVideo') : t('chat.sentPhoto'),
           imageUrl: url,
+          type: isVideo ? 'text' : 'image', // 이미지는 type=image → 채팅목록 미리보기 '[사진]'
         });
       }
     } catch {
@@ -287,11 +293,10 @@ const Chat = () => {
           </Link>
           <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
             <UserIcon size={18} />
-            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white ${connected ? 'bg-emerald-500' : 'bg-gray-300'}`} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
-            <div className="text-[10px] text-gray-500">{connected ? '온라인' : '연결 중…'}</div>
+            <div className="text-[10px] text-gray-500">{connected ? '연결됨' : '연결 중…'}</div>
           </div>
         </div>
 
@@ -304,7 +309,7 @@ const Chat = () => {
             <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0">
                 {state!.productImage!.startsWith('http') || state!.productImage!.startsWith('/') ? (
-                  <img src={state!.productImage!.startsWith('/') ? `${SERVER_URL}${state!.productImage}` : state!.productImage} alt="" className="w-full h-full object-cover" />
+                  <img src={imageUrl(state!.productImage!)} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <PackageIcon size={18} />
                 )}
@@ -327,7 +332,7 @@ const Chat = () => {
             <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-2">
               <span className="text-[11px] text-gray-500 flex-shrink-0">내 매물</span>
               {(['selling', 'reserved', 'sold'] as const).map((s) => {
-                const label = s === 'selling' ? '판매중' : s === 'reserved' ? '예약중' : '거래완료';
+                const label = s === 'selling' ? '판매중' : s === 'reserved' ? '예약중' : '판매완료';
                 const active = dealProduct.status === s;
                 return (
                   <button
@@ -368,8 +373,8 @@ const Chat = () => {
             }} />
           )}
 
-          {/* 빈 상태 — 메시지 없을 때 친근한 안내 + 빠른 답장 */}
-          {!isAdminChat && messages.length === 0 && (
+          {/* 빈 상태 — 실제 대화 없을 때(상품문의 카드만 있어도) 친근한 안내 + 빠른 답장. 로드 후에만 표시(깜빡임 방지) */}
+          {!isAdminChat && messagesLoaded && messages.every(m => m.type === 'product_inquiry' || m.type === 'system') && (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="w-16 h-16 rounded-full bg-snow border border-gray-200 flex items-center justify-center mb-4 shadow-sm">
                 <UserIcon size={32} className="text-gray-500" />
@@ -428,7 +433,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
                       {safePath ? (
                         <Link to={safePath} className="block active:opacity-70 transition-opacity">{inner}</Link>
                       ) : inner}
@@ -449,7 +454,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
                       <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200'}`}>
                         <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>가격 제안</div>
                         <div className="text-xl font-black tracking-tight">
@@ -483,13 +488,13 @@ const Chat = () => {
                     )
                   )}
                   <div className="max-w-[72%]">
-                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.name}</div>}
+                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
                     {msg.imageUrl && (
                       (/\.(mp4|mov|webm)(\?|$)/i.test(msg.imageUrl) || msg.imageUrl.includes('/video/')) ? (
-                        <video src={msg.imageUrl} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 280 }} />
+                        <video src={imageUrl(msg.imageUrl)} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 280 }} />
                       ) : (
                         <img
-                          src={msg.imageUrl}
+                          src={imageUrl(msg.imageUrl)}
                           alt=""
                           loading="lazy"
                           className="rounded-2xl max-w-full w-full cursor-pointer mb-1"
@@ -579,7 +584,7 @@ const Chat = () => {
       {fullImage && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setFullImage(null)}>
           <button className="absolute top-4 right-4 text-white" aria-label="닫기" onClick={() => setFullImage(null)}><CloseIcon size={24} /></button>
-          <img src={fullImage} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
+          <img src={imageUrl(fullImage)} alt="" className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
         </div>
       )}
 
