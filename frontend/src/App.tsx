@@ -82,6 +82,9 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
 const Advertise = lazy(() => import('./pages/Advertise'));
+const Overseas = lazy(() => import('./pages/Overseas'));
+const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
+const AdminOverseas = lazy(() => import('./pages/AdminOverseas'));
 
 function App() {
   return (
@@ -209,8 +212,11 @@ function App() {
             <Route path="webcam/:id" element={<WebcamDetail />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="advertise" element={<Advertise />} />
+            <Route path="overseas" element={<Overseas />} />
+            <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="admin/overseas" element={<RequireAdmin><AdminOverseas /></RequireAdmin>} />
             <Route path="marketplace" element={<Navigate to="/used" replace />} />
             <Route path="marketplace/*" element={<Navigate to="/used" replace />} />
             <Route path="lodging" element={<Navigate to="/accommodation" replace />} />

@@ -7,6 +7,18 @@ export function isNativeApp(): boolean {
   try { return Capacitor.isNativePlatform(); } catch { return false; }
 }
 
+// 외부 링크 열기 — 앱에서는 인앱 브라우저(Capacitor Browser), 웹에서는 새 탭.
+export async function openExternal(url: string): Promise<void> {
+  if (isNativeApp()) {
+    try {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url });
+      return;
+    } catch { /* 실패 시 아래 폴백 */ }
+  }
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 interface ApiOptions {
   method?: string;
   body?: unknown;

@@ -242,8 +242,19 @@ export const SnowRunIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
+// 해외 스키 — 지구본(위도·경도) 라인.
+export const OverseasIcon = ({ size = 32, className }: IconProps) => (
+  <svg {...baseProps(size, className)}>
+    <circle cx="32" cy="32" r="24" fill="#fff" stroke="currentColor" strokeWidth="3" />
+    <ellipse cx="32" cy="32" rx="10" ry="24" fill="none" stroke="currentColor" strokeWidth="2.5" />
+    <line x1="8" y1="32" x2="56" y2="32" stroke="currentColor" strokeWidth="2.5" />
+    <path d="M12 22 H52 M12 42 H52" stroke="currentColor" strokeWidth="2.5" />
+  </svg>
+);
+
 export const categoryIcons = {
   skishop: SkiShopIcon,
+  overseas: OverseasIcon,
   repair: MaintenanceIcon,
   used: SecondHandIcon,
   rental: RentalIcon,

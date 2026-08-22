@@ -70,10 +70,12 @@ import webcamRoutes from './routes/webcamRoutes';
 import preRegisterRoutes from './routes/preRegisterRoutes';
 import shopPostRoutes from './routes/shopPostRoutes';
 import pollRoutes from './routes/pollRoutes';
+import overseasRoutes from './routes/overseasRoutes';
 import adViewRoutes from './routes/adViewRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { setIO } from './realtime';
+import { seedOverseas } from './utils/seedOverseas';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
@@ -303,6 +305,7 @@ app.use('/api/webcams', webcamRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
+app.use('/api/overseas', overseasRoutes);
 app.use('/api/ads', adViewRoutes);
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
@@ -513,6 +516,9 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 httpServer.listen(PORT, async () => {
   console.log(`🎿 스노우프라이스 서버가 포트 ${PORT}에서 실행중입니다.`);
+
+  // 해외 스키 콘텐츠 초기 시드 (비어있을 때만)
+  seedOverseas().catch((err) => console.error('해외 시드 실패:', err));
 
   try {
     startAdBookingScheduler();

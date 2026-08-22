@@ -232,8 +232,12 @@ const MyPage = () => {
             <span className="text-sm font-medium text-coral">{t('mypage.adminApproval')}</span>
             <span className="text-coral text-xs">→</span>
           </Link>
-          <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+          <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
             <span className="text-sm font-medium text-coral">{t('mypage.adminDashboard')}</span>
+            <span className="text-coral text-xs">→</span>
+          </Link>
+          <Link to="/admin/overseas" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+            <span className="text-sm font-medium text-coral">해외 스키 관리</span>
             <span className="text-coral text-xs">→</span>
           </Link>
         </div>

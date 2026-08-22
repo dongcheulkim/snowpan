@@ -873,3 +873,58 @@ model PollVote {
   @@index([optionId])
   @@map("poll_votes")
 }
+
+// ===== 해외 스키 여행 =====
+// 콘텐츠형(가이드) + 딜/광고. 에디터(admin)가 채우고, 딜은 외부 파트너로 중개(클릭 추적).
+model OverseasResort {
+  id          String   @id @default(uuid())
+  slug        String   @unique          // 'niseko'
+  name        String                    // '니세코'
+  country     String                    // '일본'
+  region      String?                   // '홋카이도'
+  image       String?                   // 대표 이미지
+  summary     String?                   // 한 줄 소개
+  description String   @db.Text         // 본문 가이드 (줄바꿈 구분)
+  season      String?                   // '12월 ~ 4월'
+  snowType    String?                   // '파우더'
+  highlights  String?                   // 콤마 구분 (파우더,나이트스키,온천)
+  slopes      Int?                      // 슬로프 수
+  bestFor     String?                   // '상급자,파우더 매니아'
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  viewCount   Int      @default(0)
+  vertical    String   @default("snow")
+  deals       OverseasDeal[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, order])
+  @@map("overseas_resorts")
+}
+
+model OverseasDeal {
+  id            String   @id @default(uuid())
+  title         String                   // '니세코 4박5일 패키지'
+  partner       String?                  // 여행사/리조트명 (광고주)
+  price         Int?                     // 표시 가격(원). null 이면 '문의/공식가'
+  originalPrice Int?
+  description   String?
+  image         String?
+  link          String                   // 외부 파트너 링크 (중개 → 파트너 사이트)
+  badge         String?                  // '특가' | '얼리버드' 등
+  resortId      String?                  // 특정 리조트 상세에 노출 / null 이면 메인 노출
+  resort        OverseasResort? @relation(fields: [resortId], references: [id], onDelete: SetNull)
+  featured      Boolean  @default(false) // 메인 상단 노출
+  active        Boolean  @default(true)
+  order         Int      @default(0)
+  clickCount    Int      @default(0)     // 광고 클릭 추적(중개 성과)
+  startDate     DateTime?
+  endDate       DateTime?
+  vertical      String   @default("snow")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([active, featured, order])
+  @@index([resortId, active, order])
+  @@map("overseas_deals")
+}
