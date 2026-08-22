@@ -140,3 +140,11 @@ export const commentCreateLimiterHourly = createUserLimiter(60, 60 * 60_000);
 // 단일 계정으로 수백 건 자동 도배되는 것을 차단. 정상 판매자에겐 충분한 한도.
 export const listingCreateLimiter = createUserLimiter(5, 60_000);
 export const listingCreateLimiterHourly = createUserLimiter(30, 60 * 60_000);
+
+// 투표 생성: 1시간 5개. 투표/좋아요 액션: 1분 60회 (연타 도배 차단).
+export const pollCreateLimiter = createUserLimiter(5, 60 * 60_000);
+export const pollActionLimiter = createUserLimiter(60, 60_000);
+// 신고: 1시간 10건 (허위신고 도배 차단).
+export const reportCreateLimiter = createUserLimiter(10, 60 * 60_000);
+// 리뷰: 1시간 10건.
+export const reviewCreateLimiter = createUserLimiter(10, 60 * 60_000);

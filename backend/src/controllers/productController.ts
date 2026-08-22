@@ -488,11 +488,16 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       const body = `${discount}%↓ ${updated.name} (${oldPrice.toLocaleString()}원 → ${newPrice.toLocaleString()}원)`;
       const link = `/used/${id}`;
       const io = req.app.get('io');
-      for (const w of wishlists) {
-        if (w.userId === userId) continue; // 본인이 가격 내린 거면 본인에게 알림 X
-        await createNotification(w.userId, 'system', title, body, link);
-        if (io) io.to(`user:${w.userId}`).emit('new_notification', { type: 'price_drop', title, message: body, link });
-        sendPushToUser(w.userId, title, body, link);
+      const recipients = wishlists.map((w) => w.userId).filter((uid) => uid !== userId); // 본인 제외
+      if (recipients.length) {
+        // DB 알림은 한 번의 createMany 로 (찜 500개면 500번 순차 insert 로 응답이 막히던 것 방지).
+        await prisma.notification.createMany({
+          data: recipients.map((uid) => ({ userId: uid, type: 'system', title, message: body, link })),
+        });
+        for (const uid of recipients) {
+          if (io) io.to(`user:${uid}`).emit('new_notification', { type: 'price_drop', title, message: body, link });
+          sendPushToUser(uid, title, body, link); // fire-and-forget (await 안 함)
+        }
       }
     }
 
@@ -536,14 +541,17 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         for (const m of inquiryMessages) {
           if (m.senderId !== updated.userId) buyerIds.add(m.senderId);
         }
-        for (const buyerId of buyerIds) {
-          await createNotification(
-            buyerId,
-            'system',
-            '거래 완료 — 판매자 평가해주세요',
-            `"${updated.name}" 상품이 판매완료되었습니다. 판매자에게 리뷰를 남겨보세요.`,
-            `/seller/${updated.userId}`
-          );
+        const buyers = [...buyerIds];
+        if (buyers.length) {
+          await prisma.notification.createMany({
+            data: buyers.map((buyerId) => ({
+              userId: buyerId,
+              type: 'system',
+              title: '거래 완료 — 판매자 평가해주세요',
+              message: `"${updated.name}" 상품이 판매완료되었습니다. 판매자에게 리뷰를 남겨보세요.`,
+              link: `/seller/${updated.userId}`,
+            })),
+          });
         }
       } catch (e) {
         console.error('Sold notification error:', e);

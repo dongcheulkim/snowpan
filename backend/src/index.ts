@@ -76,6 +76,7 @@ import snowRunRoutes from './routes/snowRunRoutes';
 import adViewRoutes from './routes/adViewRoutes';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
+import { setIO } from './realtime';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
@@ -115,6 +116,8 @@ const PORT = process.env.PORT || 3000;
 
 // Expose io for routers via app locals
 app.set('io', io);
+// 컨트롤러(밴/탈퇴)가 특정 유저 소켓을 끊을 수 있게 io 참조 공유.
+setIO(io);
 
 // === Security Headers (helmet) ===
 // CSP 는 frontend 가 별도 도메인 (snowpan.vercel.app) 이고 API 만 서빙하므로
@@ -437,10 +440,13 @@ io.on('connection', (socket) => {
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
       io.to(`room:${data.roomId}`).emit('new_message', message);
 
-      // Find the recipient and send real-time notification
-      const chatRoom = await prisma.chatRoom.findUnique({ where: { id: data.roomId } });
-      if (chatRoom) {
-        const recipientId = chatRoom.user1Id === userId ? chatRoom.user2Id : chatRoom.user1Id;
+      // 수신자 알림 — room(위 findFirst) 재사용 (중복 쿼리 제거).
+      const recipientId = room.user1Id === userId ? room.user2Id : room.user1Id;
+      // 수신자가 지금 이 방을 보고 있으면(해당 room 소켓 보유) new_message 로 이미 전달됨
+      // → DB 알림·토스트·푸시 생략(메시지마다 알림 row 쌓이는 폭주 방지).
+      const roomSockets = await io.in(`room:${data.roomId}`).fetchSockets();
+      const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));
+      if (!recipientActive) {
         // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
         const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
         const senderName = sender ? displayName(sender) : '알 수 없음';

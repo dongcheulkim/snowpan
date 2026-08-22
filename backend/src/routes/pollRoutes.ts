@@ -6,6 +6,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
+import { pollCreateLimiter, pollActionLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
@@ -71,7 +72,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
 });
 
 // 투표 생성 (auth). 옵션 2~6개.
-router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, pollCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const { title, options, vertical } = req.body ?? {};
@@ -105,7 +106,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 });
 
 // 투표하기 (auth). 1인 1표 — 이미 투표했으면 409. optionId 는 해당 poll 소속이어야 함.
-router.post('/:id/vote', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/:id/vote', authenticateToken, pollActionLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const pollId = req.params.id;
@@ -142,7 +143,7 @@ router.post('/:id/vote', authenticateToken, async (req: AuthRequest, res: Respon
 });
 
 // 좋아요 (auth) — 1인 1회 토글. PollLike 유니크 제약으로 무한 증가 차단.
-router.post('/:id/like', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   const pollId = req.params.id;
   const userId = req.user!.id;
   try {

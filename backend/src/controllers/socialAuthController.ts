@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import prisma from '../config/database';
 import { signAccessToken, setRefreshCookie } from '../utils/tokens';
 import { awardPoints } from '../utils/points';
@@ -13,6 +14,31 @@ const FRONTEND = () => process.env.FRONTEND_URL || 'https://snowpan.kr';
 const API_BASE = () => process.env.RENDER_EXTERNAL_URL || 'https://snowpan.onrender.com';
 const APP_SCHEME = 'kr.snowpan.app'; // Capacitor 앱 커스텀 스킴 (딥링크로 토큰 되돌림)
 const SIGNUP_BONUS = 1000;
+
+// ===== OAuth state (CSRF/로그인 고정 방지) =====
+// state = `${platform}.${nonce}`. nonce 를 시작 시 HttpOnly 쿠키에 저장하고
+// 콜백에서 쿼리의 nonce 와 대조 → 공격자가 자기 code 로 피해자를 로그인시키는 것 차단.
+const STATE_COOKIE = 'snowpan_oauth_state';
+function setStateCookie(res: Response, nonce: string): void {
+  // refresh 쿠키와 동일하게 cross-site 대응(None+Secure), 짧게 10분, /api/auth 스코프.
+  res.cookie(STATE_COOKIE, nonce, {
+    httpOnly: true, secure: true, sameSite: 'none', path: '/api/auth', maxAge: 10 * 60 * 1000,
+  });
+}
+function makeState(req: Request, res: Response): string {
+  const platform = req.query.platform === 'app' ? 'app' : 'web';
+  const nonce = crypto.randomBytes(16).toString('hex');
+  setStateCookie(res, nonce);
+  return `${platform}.${nonce}`;
+}
+// 콜백 state 검증 — 쿠키 nonce 와 일치해야 통과. 검증 후 쿠키는 즉시 제거(1회용).
+function verifyState(req: Request, res: Response): boolean {
+  const stateParam = String(req.query.state || '');
+  const cookieNonce = (req as Request & { cookies?: Record<string, string> }).cookies?.[STATE_COOKIE];
+  const nonce = stateParam.includes('.') ? stateParam.slice(stateParam.indexOf('.') + 1) : '';
+  res.clearCookie(STATE_COOKIE, { path: '/api/auth' });
+  return Boolean(cookieNonce) && Boolean(nonce) && cookieNonce === nonce;
+}
 
 interface SocialProfile {
   provider: 'kakao' | 'naver';
@@ -41,8 +67,9 @@ async function completeLogin(res: Response, profile: SocialProfile, isApp: boole
         data: { provider: profile.provider, providerId: profile.providerId, profileImage: byEmail.profileImage || profile.profileImage || null },
       });
     } else if (byEmail) {
-      // 이미 다른 provider 연결된 계정 — 자동 병합 안 함(안전).
-      user = byEmail;
+      // 이미 다른 로그인 수단(다른 소셜/이메일)에 연결된 계정 — 자동 병합 시 계정 탈취 위험.
+      // 세션 발급하지 않고 원래 로그인 방법으로 유도.
+      return fail(res, '이미 다른 방법으로 가입된 이메일이에요. 기존 로그인 방법으로 로그인해주세요.', isApp);
     }
   }
 
@@ -95,15 +122,17 @@ export function kakaoConfigured() { return Boolean(process.env.KAKAO_CLIENT_ID);
 export const kakaoStart = (req: Request, res: Response): void => {
   if (!kakaoConfigured()) { res.status(503).json({ error: '카카오 로그인 준비 중입니다.' }); return; }
   const redirectUri = `${API_BASE()}/api/auth/kakao/callback`;
-  // 앱에서 시작하면 state=app 을 실어 콜백에서 앱 딥링크로 되돌리게 함.
-  const state = req.query.platform === 'app' ? '&state=app' : '';
-  const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}${state}`;
+  // state = platform.nonce — platform 으로 앱 딥링크 판단, nonce 로 CSRF 검증.
+  const state = makeState(req, res);
+  const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
   res.redirect(url);
 };
 
 export const kakaoCallback = async (req: Request, res: Response): Promise<void> => {
-  const isApp = String(req.query.state || '') === 'app';
+  const isApp = String(req.query.state || '').startsWith('app.');
   try {
+    // CSRF: 시작 시 심은 nonce 쿠키와 state 대조. 불일치면 위조 요청.
+    if (!verifyState(req, res)) return fail(res, '로그인 요청이 만료됐거나 유효하지 않아요. 다시 시도해주세요.', isApp);
     const code = String(req.query.code || '');
     if (!code) return fail(res, '인증 코드가 없습니다.', isApp);
     const redirectUri = `${API_BASE()}/api/auth/kakao/callback`;
@@ -157,17 +186,19 @@ export function naverLoginConfigured() { return Boolean(process.env.NAVER_LOGIN_
 export const naverStart = (req: Request, res: Response): void => {
   if (!naverLoginConfigured()) { res.status(503).json({ error: '네이버 로그인 준비 중입니다.' }); return; }
   const redirectUri = `${API_BASE()}/api/auth/naver/callback`;
-  // 앱이면 state 앞에 app: 를 붙여 콜백에서 앱 딥링크로 되돌림 (뒤는 CSRF 랜덤).
-  const state = (req.query.platform === 'app' ? 'app:' : '') + Math.random().toString(36).slice(2);
-  const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+  // state = platform.nonce (카카오와 동일 규칙). nonce 쿠키로 CSRF 검증.
+  const state = makeState(req, res);
+  const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
   res.redirect(url);
 };
 
 export const naverCallback = async (req: Request, res: Response): Promise<void> => {
-  const isApp = String(req.query.state || '').startsWith('app:');
+  const isApp = String(req.query.state || '').startsWith('app.');
   try {
-    const code = String(req.query.code || '');
     const state = String(req.query.state || '');
+    // CSRF: nonce 쿠키 대조. (verifyState 가 쿠키를 소비하므로 토큰 교환 전에 호출)
+    if (!verifyState(req, res)) return fail(res, '로그인 요청이 만료됐거나 유효하지 않아요. 다시 시도해주세요.', isApp);
+    const code = String(req.query.code || '');
     if (!code) return fail(res, '인증 코드가 없습니다.', isApp);
     const redirectUri = `${API_BASE()}/api/auth/naver/callback`;
 

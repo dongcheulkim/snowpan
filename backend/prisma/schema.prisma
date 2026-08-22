@@ -21,6 +21,8 @@ model User {
   providerId    String?  // 소셜 제공자의 유저 고유 id
   profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
+  // 이 시각 이전 발급된 토큰은 무효 — 비번변경/탈퇴/밴 시 갱신. 서버 재시작에도 유지(인메모리 보완).
+  sessionInvalidBefore DateTime?
   activeBadge   String?  // 노출할 뱃지 1개 (null이면 숨김)
   fcmToken      String?  // Firebase Cloud Messaging token
   points        Int      @default(0) // 캐시된 포인트 잔액. 진실은 PointTransaction 누적합 — 트랜잭션 안에서만 갱신.

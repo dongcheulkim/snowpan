@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { isTokenIatStale } from '../utils/tokens';
+import { isTokenIatStale, isIatBeforeInvalidation } from '../utils/tokens';
 
 interface JwtPayload {
   userId: string;
@@ -56,11 +56,17 @@ export const authMiddleware = async (
     // DB에서 최신 role 확인 (banned 체크)
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, role: true },
+      select: { id: true, email: true, role: true, sessionInvalidBefore: true },
     });
 
     if (!user) {
       res.status(401).json({ error: '존재하지 않는 사용자입니다.' });
+      return;
+    }
+
+    // 영속 무효화 검사 — 재시작으로 인메모리 마커가 사라져도 DB 기준으로 옛 토큰 거절.
+    if (isIatBeforeInvalidation(decoded.iat, user.sessionInvalidBefore)) {
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
       return;
     }
 

@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, invalidateUserTokens } from '../utils/tokens';
+import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
 import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
@@ -703,7 +703,8 @@ export const resetPasswordRequest = async (req: Request, res: Response): Promise
     }
 
     // 이메일 폭탄 방지 — 같은 이메일 24시간 내 5회 초과 발송 차단.
-    const sendCheck = canSendEmail(email);
+    // 정규화된 키로 검사 — 공백/대문자 변형으로 rate-limit 버킷 우회하는 것 차단.
+    const sendCheck = canSendEmail(emailNormalized);
     if (!sendCheck.ok) {
       // 공격자에게도 같은 응답 — 다만 실제 발송 X.
       res.json({ message: GENERIC_MSG });
@@ -935,17 +936,24 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true },
+      select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true, sessionInvalidBefore: true },
     });
     if (!user || user.role === 'deleted' || user.role === 'banned') {
       clearRefreshCookie(res);
       res.status(401).json({ error: '재인증이 필요합니다.' });
       return;
     }
+    // 영속 무효화 검사 (재시작 후에도 옛 refresh 토큰 거절).
+    if (isIatBeforeInvalidation((payload as { iat?: number }).iat, user.sessionInvalidBefore)) {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
+      return;
+    }
 
     // 새 access + 새 refresh (같은 family 유지) — rotation.
+    // remember 는 최초 로그인 선택을 그대로 계승 (자동로그인 미선택이 14일로 승격되지 않게).
     const token = signAccessToken(user);
-    setRefreshCookie(res, user.id, true, payload.fam);
+    setRefreshCookie(res, user.id, payload.rem !== false, payload.fam);
 
     res.json({
       token,

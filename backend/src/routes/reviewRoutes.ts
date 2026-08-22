@@ -4,13 +4,14 @@ import prisma from '../config/database';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
+import { reviewCreateLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
 // 리뷰 작성에 대한 포인트 보상은 정책 변경으로 제거 (가입 1000P, 일일 출석 500P 만 유지).
 
 // 리뷰 생성
-router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const buyerId = req.user!.id;
     const { sellerId, rating, content, productId } = req.body;

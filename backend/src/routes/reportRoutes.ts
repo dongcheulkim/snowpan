@@ -2,11 +2,12 @@ import { Router, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from '../controllers/notificationController';
+import { reportCreateLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
 // 신고 생성
-router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authenticateToken, reportCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const reporterId = req.user!.id;
     const { type, targetId, reason, description } = req.body;

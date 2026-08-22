@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
+import { disconnectUser } from '../realtime';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -182,7 +183,7 @@ export const banUser = async (req: AuthRequest, res: Response): Promise<void> =>
     if (target.role === 'admin') { res.status(400).json({ error: '관리자 계정은 정지할 수 없습니다.' }); return; }
     const newRole = target.role === 'banned' ? 'user' : 'banned';
     const user = await prisma.user.update({ where: { id }, data: { role: newRole } });
-    if (newRole === 'banned') invalidateUserTokens(id);
+    if (newRole === 'banned') { invalidateUserTokens(id); disconnectUser(id); }
     const msg = newRole === 'banned' ? '계정이 정지되었습니다.' : '계정 정지가 해제되었습니다.';
     await createNotification(id, 'system', newRole === 'banned' ? '계정 정지' : '정지 해제', msg);
     res.json({ id: user.id, name: user.name, role: user.role, message: msg });
@@ -228,6 +229,7 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
       await tx.product.updateMany({ where: { userId: id, status: 'selling' }, data: { status: 'sold' } });
     });
     invalidateUserTokens(id);
+    disconnectUser(id);
 
     res.json({ success: true, message: '계정이 익명화 처리되었습니다.' });
   } catch (error) {

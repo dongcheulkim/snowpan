@@ -5,6 +5,7 @@
 
 import jwt from 'jsonwebtoken';
 import type { Response, CookieOptions } from 'express';
+import prisma from '../config/database';
 
 const ACCESS_TTL = '1h';
 const REFRESH_TTL = '14d';
@@ -23,19 +24,19 @@ function getSecrets(): { access: string; refresh: string } {
 }
 
 export interface AccessPayload { userId: string; email: string; role: string; type: 'access'; }
-// jti = unique token ID, fam = token family (rotation 추적용).
-export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; }
+// jti = unique token ID, fam = token family (rotation 추적용). rem = 자동로그인 선택 여부.
+export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; rem?: boolean; }
 
 export function signAccessToken(user: { id: string; email: string; role: string }): string {
   const { access } = getSecrets();
   return jwt.sign({ userId: user.id, email: user.email, role: user.role, type: 'access' }, access, { expiresIn: ACCESS_TTL });
 }
 
-export function signRefreshToken(userId: string, family?: string): string {
+export function signRefreshToken(userId: string, family?: string, remember = true): string {
   const { refresh } = getSecrets();
   const jti = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const fam = family || `${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return jwt.sign({ userId, type: 'refresh', jti, fam }, refresh, { expiresIn: REFRESH_TTL });
+  return jwt.sign({ userId, type: 'refresh', jti, fam, rem: remember }, refresh, { expiresIn: REFRESH_TTL });
 }
 
 export function verifyRefreshToken(token: string): RefreshPayload {
@@ -95,15 +96,24 @@ setInterval(() => {
 
 export function invalidateUserTokens(userId: string): void {
   userInvalidatedAt.set(userId, Math.floor(Date.now() / 1000));
+  // 서버 재시작에도 유지 — DB 에 무효화 시각 기록 (fire-and-forget, 인메모리가 1차).
+  prisma.user.update({ where: { id: userId }, data: { sessionInvalidBefore: new Date() } }).catch(() => {});
 }
 
-// 토큰 iat 가 사용자 무효화 시각보다 이전이면 → 무효.
+// 토큰 iat 가 사용자 무효화 시각보다 이전이면 → 무효 (인메모리 캐시 기준, 빠른 경로).
 // auth middleware / refresh 에서 호출.
 export function isTokenIatStale(userId: string, iat: number | undefined): boolean {
   if (!iat) return false;
   const cutoff = userInvalidatedAt.get(userId);
   if (!cutoff) return false;
   return iat < cutoff;
+}
+
+// DB 의 sessionInvalidBefore 기준 판정 (재시작 후에도 유효한 영속 경로).
+// 이미 조회한 user 레코드의 값을 넘겨 추가 쿼리 없이 검사. 초 단위 strict 비교(인메모리와 동일 의미).
+export function isIatBeforeInvalidation(iat: number | undefined, sessionInvalidBefore: Date | null | undefined): boolean {
+  if (!iat || !sessionInvalidBefore) return false;
+  return iat < Math.floor(sessionInvalidBefore.getTime() / 1000);
 }
 
 // 쿠키 옵션 — cross-domain (vercel ↔ render) 대응.
@@ -124,7 +134,7 @@ export const REFRESH_COOKIE_NAME = 'snowpan_rt';
 // 로그인/등록 시 쿠키 설정 헬퍼. family 미지정 → 새 family 생성 (새 로그인).
 // rotation 시는 같은 family 유지 → 도난 감지 가능.
 export function setRefreshCookie(res: Response, userId: string, remember: boolean, family?: string): void {
-  const token = signRefreshToken(userId, family);
+  const token = signRefreshToken(userId, family, remember);
   res.cookie(REFRESH_COOKIE_NAME, token, refreshCookieOptions(remember));
 }
 

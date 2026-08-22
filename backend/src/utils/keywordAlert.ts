@@ -12,24 +12,20 @@ export async function notifyKeywordMatches(product: { id: string; name: string; 
     const haystack = `${product.name || ''} ${product.brand || ''}`.toLowerCase();
     if (!haystack.trim()) return;
 
-    // 초기 규모에선 전량 조회 후 메모리 매칭. 커지면 인덱스/역색인으로 전환.
-    const searches = await prisma.savedSearch.findMany({ select: { userId: true, keyword: true } });
-    if (searches.length === 0) return;
-
-    // 매칭된 사용자 집합 (판매자 제외, 중복 제거).
-    const matchedUserIds = new Set<string>();
-    for (const s of searches) {
-      if (s.userId === product.userId) continue;
-      if (matchedUserIds.has(s.userId)) continue;
-      if (s.keyword && haystack.includes(s.keyword)) matchedUserIds.add(s.userId);
-    }
-    if (matchedUserIds.size === 0) return;
+    // DB 에서 직접 부분일치(position)로 매칭 — 전량 로딩 없이 매칭된 userId 만, 최대 500명.
+    // position(keyword in haystack)>0 = 리터럴 부분문자열(와일드카드 이스케이프 불필요).
+    const rows = await prisma.$queryRaw<{ userId: string }[]>`
+      SELECT DISTINCT "userId" FROM saved_searches
+      WHERE position(lower(keyword) IN ${haystack}) > 0 AND "userId" <> ${product.userId}
+      LIMIT 500`;
+    const matchedUserIds = rows.map((r) => r.userId);
+    if (matchedUserIds.length === 0) return;
 
     const title = '키워드 알림';
     const message = `관심 키워드에 맞는 매물이 올라왔어요: ${product.name}`;
     const link = `/used/${product.id}`;
 
-    await Promise.all([...matchedUserIds].map(async (uid) => {
+    await Promise.all(matchedUserIds.map(async (uid) => {
       await createNotification(uid, 'system', title, message, link).catch(() => {});
       await sendPushToUser(uid, title, message, link).catch(() => {});
     }));
