@@ -221,22 +221,34 @@ const RESORTS: SeedResort[] = [
   },
 ];
 
+// 국가 → 대륙 카테고리
+const CONTINENT: Record<string, string> = {
+  '일본': '아시아', '중국': '아시아',
+  '프랑스': '유럽', '스위스': '유럽', '오스트리아': '유럽', '이탈리아': '유럽',
+  '캐나다': '북미', '미국': '북미',
+};
+// '인기(가장 많이 가는)' 카테고리 — 한국 스키어가 가장 많이 가는 곳 + 세계적 명소
+const POPULAR = new Set(['niseko', 'hakuba', 'furano', 'rusutsu', 'nozawa-onsen', 'zao', 'whistler', 'zermatt']);
+
 export async function seedOverseas(): Promise<void> {
   try {
     for (let i = 0; i < RESORTS.length; i++) {
       const r = RESORTS[i];
       const img = wikiThumb(r.image);
-      const existing = await prisma.overseasResort.findUnique({ where: { slug: r.slug }, select: { id: true, image: true } });
+      const continent = CONTINENT[r.country] || null;
+      const popular = POPULAR.has(r.slug);
+      const existing = await prisma.overseasResort.findUnique({ where: { slug: r.slug }, select: { id: true, image: true, continent: true } });
       if (existing) {
-        // 이미 있으면 이미지 비어있을 때만 채움 (관리자 수정 보존).
-        if (!existing.image && img) {
-          await prisma.overseasResort.update({ where: { id: existing.id }, data: { image: img } });
-        }
+        // 이미지 비어있으면 채움 + 대륙 미설정(구버전 데이터)이면 대륙·인기 1회 백필 (관리자 수정 보존).
+        const data: { image?: string; continent?: string | null; popular?: boolean } = {};
+        if (!existing.image && img) data.image = img;
+        if (!existing.continent) { data.continent = continent; data.popular = popular; }
+        if (Object.keys(data).length) await prisma.overseasResort.update({ where: { id: existing.id }, data });
         continue;
       }
       const resort = await prisma.overseasResort.create({
         data: {
-          slug: r.slug, name: r.name, country: r.country, region: r.region,
+          slug: r.slug, name: r.name, country: r.country, continent, popular, region: r.region,
           summary: r.summary, season: r.season, snowType: r.snowType, highlights: r.highlights,
           slopes: r.slopes, bestFor: r.bestFor, description: r.description,
           image: img, published: true, order: i,

@@ -23,8 +23,9 @@ router.get('/resorts', async (req: Request, res: Response): Promise<void> => {
     const resorts = await prisma.overseasResort.findMany({
       where: { published: true, vertical: verticalSlug },
       select: {
-        id: true, slug: true, name: true, country: true, region: true, image: true,
-        summary: true, season: true, snowType: true, highlights: true, slopes: true, order: true,
+        id: true, slug: true, name: true, country: true, continent: true, popular: true,
+        region: true, image: true, summary: true, season: true, snowType: true, highlights: true,
+        slopes: true, order: true,
       },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
@@ -116,6 +117,8 @@ router.post('/resorts', authenticateToken, requireAdmin, async (req: AuthRequest
         slug: sanitizeText(b.slug, 60) || b.slug,
         name: sanitizeText(b.name, 80) || b.name,
         country: sanitizeText(b.country, 40) || b.country,
+        continent: sanitizeText(b.continent, 20) || null,
+        popular: !!b.popular,
         region: sanitizeText(b.region, 60) || null,
         image: b.image || null,
         summary: sanitizeText(b.summary, 200) || null,
@@ -146,6 +149,8 @@ router.put('/resorts/:id', authenticateToken, requireAdmin, async (req: AuthRequ
     if (b.slug !== undefined) data.slug = sanitizeText(b.slug, 60) || b.slug;
     if (b.name !== undefined) data.name = sanitizeText(b.name, 80) || b.name;
     if (b.country !== undefined) data.country = sanitizeText(b.country, 40) || b.country;
+    if (b.continent !== undefined) data.continent = b.continent ? (sanitizeText(b.continent, 20) || b.continent) : null;
+    if (b.popular !== undefined) data.popular = !!b.popular;
     if (b.region !== undefined) data.region = b.region ? (sanitizeText(b.region, 60) || b.region) : null;
     if (b.image !== undefined) data.image = b.image || null;
     if (b.summary !== undefined) data.summary = b.summary ? (sanitizeText(b.summary, 200) || b.summary) : null;

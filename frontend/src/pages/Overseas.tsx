@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import DealCard, { type Deal } from '../components/DealCard';
+import CategoryAdBanner from '../components/CategoryAdBanner';
 
 interface Resort {
   id: string;
   slug: string;
   name: string;
   country: string;
+  continent?: string | null;
+  popular?: boolean;
   region?: string | null;
   image?: string | null;
   summary?: string | null;
@@ -17,10 +20,13 @@ interface Resort {
   slopes?: number | null;
 }
 
+const CONTINENT_ORDER = ['아시아', '유럽', '북미', '기타'];
+
 export default function Overseas() {
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cat, setCat] = useState<string>('인기');
 
   useEffect(() => {
     document.title = '해외 스키 여행 - 스노우판';
@@ -33,12 +39,27 @@ export default function Overseas() {
     }).finally(() => setLoading(false));
   }, []);
 
+  const presentContinents = CONTINENT_ORDER.filter((c) => resorts.some((r) => r.continent === c));
+  const hasPopular = resorts.some((r) => r.popular);
+  const tabs = [...(hasPopular ? ['인기'] : []), '전체', ...presentContinents];
+  const activeCat = tabs.includes(cat) ? cat : '전체';
+  const filtered = activeCat === '전체'
+    ? resorts
+    : activeCat === '인기'
+      ? resorts.filter((r) => r.popular)
+      : resorts.filter((r) => r.continent === activeCat);
+
   return (
     <div className="min-h-screen bg-sky-50 pb-10">
       {/* 헤더 */}
       <div className="px-4 pt-5 pb-3">
         <h1 className="text-xl font-bold text-gray-900">해외 스키 여행</h1>
         <p className="text-xs text-gray-500 mt-0.5">일본 파우더부터 알프스까지 — 스키어를 위한 해외 스키장 가이드</p>
+      </div>
+
+      {/* 광고 배너 */}
+      <div className="px-4 pb-3">
+        <CategoryAdBanner category="overseas" />
       </div>
 
       {/* 추천 딜 */}
@@ -51,16 +72,30 @@ export default function Overseas() {
         </div>
       )}
 
+      {/* 카테고리 탭 */}
+      {!loading && tabs.length > 1 && (
+        <div className="px-4 pb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              onClick={() => setCat(t)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeCat === t ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* 스키장 가이드 그리드 */}
       <div className="px-4">
-        <h2 className="text-sm font-bold text-gray-900 mb-2">스키장 가이드</h2>
         {loading ? (
           <p className="text-sm text-gray-500 text-center py-12">불러오는 중...</p>
-        ) : resorts.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-12">준비 중이에요.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-12">해당 지역은 준비 중이에요.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {resorts.map((r) => (
+            {filtered.map((r) => (
               <Link key={r.id} to={`/overseas/${r.slug}`} className="bg-snow border border-gray-200 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform">
                 <div className="h-24 relative overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500">
                   {r.image ? (

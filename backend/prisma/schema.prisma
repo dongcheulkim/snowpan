@@ -881,6 +881,8 @@ model OverseasResort {
   slug        String   @unique          // 'niseko'
   name        String                    // '니세코'
   country     String                    // '일본'
+  continent   String?                   // '아시아' | '유럽' | '북미' (카테고리 필터)
+  popular     Boolean  @default(false)  // '인기(가장 많이 가는)' 카테고리 노출
   region      String?                   // '홋카이도'
   image       String?                   // 대표 이미지
   summary     String?                   // 한 줄 소개

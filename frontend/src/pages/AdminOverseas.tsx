@@ -4,8 +4,8 @@ import { api } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 
 interface Resort {
-  id: string; slug: string; name: string; country: string; region?: string | null;
-  image?: string | null; summary?: string | null; description: string;
+  id: string; slug: string; name: string; country: string; continent?: string | null; popular?: boolean;
+  region?: string | null; image?: string | null; summary?: string | null; description: string;
   season?: string | null; snowType?: string | null; highlights?: string | null;
   slopes?: number | null; bestFor?: string | null; published: boolean; order: number;
 }
@@ -16,7 +16,7 @@ interface Deal {
   featured: boolean; active: boolean; order: number; clickCount?: number;
 }
 
-const emptyResort: Partial<Resort> = { slug: '', name: '', country: '일본', region: '', summary: '', description: '', season: '', snowType: '', highlights: '', bestFor: '', image: '', published: true, order: 0 };
+const emptyResort: Partial<Resort> = { slug: '', name: '', country: '일본', continent: '아시아', popular: false, region: '', summary: '', description: '', season: '', snowType: '', highlights: '', bestFor: '', image: '', published: true, order: 0 };
 const emptyDeal: Partial<Deal> = { title: '', partner: '', link: '', badge: '', description: '', image: '', resortId: '', featured: false, active: true, order: 0 };
 
 const inputCls = 'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900';
@@ -96,6 +96,16 @@ export default function AdminOverseas() {
             <div className="flex gap-2">
               <input className={inputCls} placeholder="국가" value={rForm.country || ''} onChange={(e) => setRForm({ ...rForm, country: e.target.value })} />
               <input className={inputCls} placeholder="지역" value={rForm.region || ''} onChange={(e) => setRForm({ ...rForm, region: e.target.value })} />
+            </div>
+            <div className="flex gap-2 items-center">
+              <select className={inputCls} value={rForm.continent || ''} onChange={(e) => setRForm({ ...rForm, continent: e.target.value })}>
+                <option value="">대륙 선택</option>
+                <option value="아시아">아시아</option>
+                <option value="유럽">유럽</option>
+                <option value="북미">북미</option>
+                <option value="기타">기타</option>
+              </select>
+              <label className="flex items-center gap-1.5 text-xs font-bold text-gray-700 whitespace-nowrap px-2"><input type="checkbox" checked={!!rForm.popular} onChange={(e) => setRForm({ ...rForm, popular: e.target.checked })} /> 인기</label>
             </div>
             <input className={inputCls} placeholder="한 줄 소개" value={rForm.summary || ''} onChange={(e) => setRForm({ ...rForm, summary: e.target.value })} />
             <textarea className={inputCls} rows={5} placeholder="본문 가이드 (엔터로 문단 구분)" value={rForm.description || ''} onChange={(e) => setRForm({ ...rForm, description: e.target.value })} />
