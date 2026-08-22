@@ -7,9 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "app:sync": "npm run build && npx cap sync android",
+    "app:open": "npm run build && npx cap sync android && npx cap open android",
+    "app:assets": "npx capacitor-assets generate --android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@sentry/react": "^10.49.0",
     "hls.js": "^1.6.15",
     "leaflet": "^1.9.4",
@@ -27,6 +36,7 @@
     }
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.39.1",
     "@types/leaflet": "^1.9.12",
     "@types/node": "^24.10.1",

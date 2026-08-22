@@ -93,6 +93,9 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
+// Capacitor 네이티브(앱) 초기화 — 웹에선 no-op.
+import('./native').then(m => m.initNative()).catch(() => {});
+
 // 첫 로딩 스플래시 제거 — React 마운트 후 최소 노출시간(400ms) 보장하고 페이드아웃.
 // 너무 빨리 사라지면 깜빡임처럼 보여서 최소 시간을 둠.
 (() => {
