@@ -149,7 +149,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (ownerEdit) data.approved = false;
 
     const updated = await prisma.repairShop.update({ where: { id: req.params.id }, data });
-    if (ownerEdit) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
+    if (ownerEdit) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update repair shop error:', error);

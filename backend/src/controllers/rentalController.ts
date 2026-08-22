@@ -152,7 +152,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
         ...(image && { image }), ...(ownerEdit && { approved: false }),
       },
     });
-    if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin').catch(() => {});
+    if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };
