@@ -1,3 +1,4 @@
+import { toastError } from '../components/Toast';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import competitions from '../data/competitions';
@@ -50,14 +51,14 @@ export default function Competitions() {
     setChatLoading(true);
     try {
       const admin = await api<{ id: string; name: string }>('/contact/admin-id');
-      if (admin.id === user.id) { alert('관리자 계정입니다.'); setChatLoading(false); return; }
+      if (admin.id === user.id) { toastError('관리자 계정입니다.'); setChatLoading(false); return; }
       const room = await api<{ id: string }>('/chat/rooms', {
         method: 'POST',
         body: { targetUserId: admin.id },
       });
       navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id, isAdmin: true, initialMessage: '[시합 일정 등록 문의] ' } });
     } catch {
-      alert('관리자 연결에 실패했습니다.');
+      toastError('관리자 연결에 실패했습니다.');
     } finally { setChatLoading(false); }
   };
 

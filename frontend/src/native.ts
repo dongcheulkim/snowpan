@@ -10,8 +10,10 @@ export async function initNative(): Promise<void> {
       import('@capacitor/splash-screen'),
     ]);
 
-    // 상태바 — 밝은 배경 + 어두운 아이콘
+    // 상태바 — 밝은 배경 + 어두운 아이콘, 웹뷰 위에 겹치지 않게(내용이 상태바 아래에서 시작)
     StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+    StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {}); // 구버전 안드로이드: 상태바 아래로 내용 밀기
+    StatusBar.setBackgroundColor({ color: '#ffffff' }).catch(() => {}); // 상태바 배경 흰색(앱과 통일)
 
     // 안드로이드 하드웨어 뒤로가기 — 히스토리 있으면 뒤로, 없으면 앱 종료
     App.addListener('backButton', ({ canGoBack }) => {

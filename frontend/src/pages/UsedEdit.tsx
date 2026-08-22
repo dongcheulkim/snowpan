@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl } from '../api';
@@ -78,7 +79,7 @@ const UsedEdit = () => {
     setLoading(true);
     try {
       if (existingImages.length === 0 && imageFiles.length === 0) {
-        alert('이미지를 최소 1장 등록해주세요.');
+        toastError('이미지를 최소 1장 등록해주세요.');
         setLoading(false);
         return;
       }
@@ -107,10 +108,10 @@ const UsedEdit = () => {
           usageCount: form.usageCount ? `${form.usageCount}년식` : undefined,
         },
       });
-      alert('수정되었습니다!');
+      toastSuccess('수정되었습니다!');
       navigate(backTo);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '수정에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -175,7 +176,7 @@ const UsedEdit = () => {
                 const files = Array.from(e.target.files || []);
                 const total = existingImages.length + images.length;
                 const remaining = 5 - total;
-                if (remaining <= 0) { alert('사진은 최대 5장까지 가능합니다.'); return; }
+                if (remaining <= 0) { toastError('사진은 최대 5장까지 가능합니다.'); return; }
                 files.slice(0, remaining).forEach(file => {
                   const reader = new FileReader();
                   reader.onload = (ev) => {

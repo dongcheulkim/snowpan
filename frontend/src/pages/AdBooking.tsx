@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
@@ -115,11 +116,11 @@ export default function AdBooking() {
     setInquiring(true);
     try {
       const admin = await api<{ id: string; name: string }>('/contact/admin-id');
-      if (admin.id === u.id) { alert('관리자 계정입니다.'); return; }
+      if (admin.id === u.id) { toastError('관리자 계정입니다.'); return; }
       const room = await api<{ id: string }>('/chat/rooms', { method: 'POST', body: { targetUserId: admin.id } });
       navigate(`/chat/${room.id}`, { state: { seller: admin.name, sellerId: admin.id, isAdmin: true } });
     } catch {
-      alert('관리자 연결에 실패했습니다.');
+      toastError('관리자 연결에 실패했습니다.');
     } finally {
       setInquiring(false);
     }
@@ -229,7 +230,7 @@ export default function AdBooking() {
         },
       });
 
-      alert('광고 신청이 완료되었습니다!\n관리자 채팅방에 입금 안내가 전송되었습니다.');
+      toastSuccess('광고 신청이 완료되었습니다!\n관리자 채팅방에 입금 안내가 전송되었습니다.');
       // 채팅방 자동 생성됐으면 바로 이동, 아니면 채팅 목록으로.
       if (result.chatRoomId) {
         navigate(`/chat/${result.chatRoomId}`);

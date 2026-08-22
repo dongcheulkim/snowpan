@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
@@ -29,7 +30,7 @@ const LessonEdit = () => {
     const user = getUser();
     api<LessonData>(`/lessons/${id}`).then(d => {
       if (!user || (d.userId && d.userId !== user.id)) {
-        alert('수정 권한이 없습니다.');
+        toastError('수정 권한이 없습니다.');
         navigate(`/lesson/${id}`, { replace: true });
         return;
       }
@@ -44,7 +45,7 @@ const LessonEdit = () => {
       });
       setCurrentImage(d.image || '');
     }).catch(() => {
-      alert('불러오지 못했습니다.');
+      toastError('불러오지 못했습니다.');
       navigate('/lesson', { replace: true });
     }).finally(() => setFetching(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -55,7 +56,7 @@ const LessonEdit = () => {
     if (!form.name.trim()) missing.push('레슨명');
     if (!form.resortId) missing.push('스키장');
     if (!form.price) missing.push('가격');
-    if (missing.length > 0) { alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`); return; }
+    if (missing.length > 0) { toastError(`필수 항목을 입력해주세요: ${missing.join(', ')}`); return; }
 
     setLoading(true);
     try {
@@ -76,10 +77,10 @@ const LessonEdit = () => {
           image,
         },
       });
-      alert('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
+      toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
       navigate(`/lesson/${id}`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '수정에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
     } finally {
       setLoading(false);
     }

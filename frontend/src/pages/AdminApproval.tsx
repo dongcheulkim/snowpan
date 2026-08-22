@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
@@ -125,27 +126,27 @@ const AdminApproval = () => {
     try {
       if (tab === 'skishop') {
         await api(`/ski-shops/${id}/approve`, { method: 'PUT' });
-        alert('승인되었습니다!'); fetchPending(); return;
+        toastSuccess('승인되었습니다!'); fetchPending(); return;
       }
       if (tab === 'repair') {
         await api(`/repair-shops/${id}/approve`, { method: 'PUT' });
-        alert('승인되었습니다!'); fetchPending(); return;
+        toastSuccess('승인되었습니다!'); fetchPending(); return;
       }
       if (tab === 'claim') {
         await api(`/shop-claims/${id}/approve`, { method: 'PUT' });
-        alert('소유권이 이전되었습니다!'); fetchPending(); return;
+        toastSuccess('소유권이 이전되었습니다!'); fetchPending(); return;
       }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       if (tab === 'badge' && !badgeOverrides[id]) {
-        alert('뱃지를 선택해주세요.');
+        toastError('뱃지를 선택해주세요.');
         return;
       }
       const body = tab === 'badge' ? { badgeType: badgeOverrides[id] } : undefined;
       await api(`/admin/${path}/${id}/approve`, { method: 'PUT', body });
-      alert('승인되었습니다!');
+      toastSuccess('승인되었습니다!');
       fetchPending();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '승인 실패');
+      toastError(err instanceof Error ? err.message : '승인 실패');
     }
   };
 
@@ -154,22 +155,22 @@ const AdminApproval = () => {
     try {
       if (tab === 'skishop') {
         await api(`/ski-shops/${id}`, { method: 'DELETE' });
-        alert('거부되었습니다.'); fetchPending(); return;
+        toastSuccess('거부되었습니다.'); fetchPending(); return;
       }
       if (tab === 'repair') {
         await api(`/repair-shops/${id}`, { method: 'DELETE' });
-        alert('거부되었습니다.'); fetchPending(); return;
+        toastSuccess('거부되었습니다.'); fetchPending(); return;
       }
       if (tab === 'claim') {
         await api(`/shop-claims/${id}/reject`, { method: 'PUT' });
-        alert('반려되었습니다.'); fetchPending(); return;
+        toastSuccess('반려되었습니다.'); fetchPending(); return;
       }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       await api(`/admin/${path}/${id}/reject`, { method: 'DELETE' });
-      alert('거부되었습니다.');
+      toastSuccess('거부되었습니다.');
       fetchPending();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '거부 실패');
+      toastError(err instanceof Error ? err.message : '거부 실패');
     }
   };
 

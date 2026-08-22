@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
@@ -61,11 +62,11 @@ const AccommodationRegister = () => {
     if (!form.price) missing.push('특가 1박 가격');
     if (!form.maxGuests) missing.push('최대 인원');
     if (missing.length > 0) {
-      alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
+      toastError(`필수 항목을 입력해주세요: ${missing.join(', ')}`);
       return;
     }
     if (!agreeLiability) {
-      alert('숙소 제공자 책임 사항에 동의해주세요.');
+      toastError('숙소 제공자 책임 사항에 동의해주세요.');
       return;
     }
     setSubmitting(true);
@@ -98,10 +99,10 @@ const AccommodationRegister = () => {
           resortId: form.resortId,
         },
       });
-      alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
+      toastSuccess('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
       navigate('/accommodation');
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : '등록에 실패했습니다. 로그인이 필요합니다.');
+      toastError(e instanceof Error ? e.message : '등록에 실패했습니다. 로그인이 필요합니다.');
     } finally {
       setSubmitting(false);
     }

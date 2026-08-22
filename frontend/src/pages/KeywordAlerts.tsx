@@ -1,3 +1,4 @@
+import { toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -16,14 +17,14 @@ export default function KeywordAlerts() {
 
   const add = async () => {
     const kw = input.trim();
-    if (kw.length < 2) { alert('키워드는 2글자 이상 입력해주세요.'); return; }
+    if (kw.length < 2) { toastError('키워드는 2글자 이상 입력해주세요.'); return; }
     setAdding(true);
     try {
       const created = await api<SavedSearch>('/saved-searches', { method: 'POST', body: { keyword: kw } });
       setItems(prev => prev.some(i => i.id === created.id) ? prev : [created, ...prev]);
       setInput('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '등록 실패');
+      toastError(err instanceof Error ? err.message : '등록 실패');
     } finally {
       setAdding(false);
     }
@@ -34,7 +35,7 @@ export default function KeywordAlerts() {
       await api(`/saved-searches/${id}`, { method: 'DELETE' });
       setItems(prev => prev.filter(i => i.id !== id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 

@@ -1,3 +1,4 @@
+import { toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
@@ -35,7 +36,7 @@ export default function MyShops() {
       if (type === 'ski') setSkiShops(prev => prev.filter(s => s.id !== shop.id));
       else setRepairShops(prev => prev.filter(s => s.id !== shop.id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 

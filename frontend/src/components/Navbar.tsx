@@ -149,7 +149,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
+    <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 pt-[env(safe-area-inset-top)] ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
           <div className="relative" ref={panMenuRef}>

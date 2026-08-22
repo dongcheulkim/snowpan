@@ -1,6 +1,7 @@
 // 스트라바 스타일 공유 카드 — 사진 + 런 통계 오버레이.
 // Instagram 비율(1080x1350, 4:5) PNG 생성. 다운로드 또는 Web Share API.
 
+import { toastError } from '../components/Toast';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
@@ -191,12 +192,12 @@ const SnowRunShare = () => {
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
         await nav.share({ files: [file], title: '오늘의 스노우런' });
       } else {
-        alert('이 브라우저는 직접 공유를 지원하지 않아요. 다운로드 후 SNS에 올려주세요.');
+        toastError('이 브라우저는 직접 공유를 지원하지 않아요. 다운로드 후 SNS에 올려주세요.');
         onDownload();
       }
     } catch (e) {
       // 사용자가 공유 취소한 경우 등.
-      if ((e as Error).name !== 'AbortError') alert((e as Error).message);
+      if ((e as Error).name !== 'AbortError') toastError((e as Error).message);
     }
   };
 

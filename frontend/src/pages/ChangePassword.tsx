@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -8,15 +9,15 @@ const ChangePassword = () => {
 
   const handleSubmit = async () => {
     if (!form.current || !form.newPw || !form.confirm) {
-      alert('모든 필드를 입력해주세요.');
+      toastError('모든 필드를 입력해주세요.');
       return;
     }
     if (form.newPw !== form.confirm) {
-      alert('새 비밀번호가 일치하지 않습니다.');
+      toastError('새 비밀번호가 일치하지 않습니다.');
       return;
     }
     if (form.newPw.length < 6) {
-      alert('비밀번호는 6자 이상이어야 합니다.');
+      toastError('비밀번호는 6자 이상이어야 합니다.');
       return;
     }
     setSubmitting(true);
@@ -25,10 +26,10 @@ const ChangePassword = () => {
         method: 'PUT',
         body: { currentPassword: form.current, newPassword: form.newPw },
       });
-      alert('비밀번호가 변경되었습니다.');
+      toastSuccess('비밀번호가 변경되었습니다.');
       setForm({ current: '', newPw: '', confirm: '' });
     } catch (err) {
-      alert(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }

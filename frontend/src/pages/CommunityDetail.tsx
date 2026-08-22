@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
@@ -87,7 +88,7 @@ const CommunityDetail = () => {
 
   const handleLike = async () => {
     if (!id || !user) {
-      alert('로그인이 필요합니다.');
+      toastError('로그인이 필요합니다.');
       navigate('/login');
       return;
     }
@@ -108,7 +109,7 @@ const CommunityDetail = () => {
       setPost(prev => prev ? { ...prev, comments: [...prev.comments, comment] } : prev);
       setNewComment('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '댓글 등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '댓글 등록에 실패했습니다.');
     }
   };
 
@@ -122,7 +123,7 @@ const CommunityDetail = () => {
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        alert('링크가 클립보드에 복사되었습니다.');
+        toastSuccess('링크가 클립보드에 복사되었습니다.');
       } catch { /* ignore */ }
     }
   };
@@ -135,12 +136,12 @@ const CommunityDetail = () => {
         method: 'POST',
         body: { type: 'post', targetId: id, reason: reportReason, description: reportDesc || undefined },
       });
-      alert('신고가 접수되었습니다.');
+      toastSuccess('신고가 접수되었습니다.');
       setShowReportModal(false);
       setReportReason('');
       setReportDesc('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
     } finally {
       setReportSubmitting(false);
     }
@@ -228,7 +229,7 @@ const CommunityDetail = () => {
       </div>
 
       {user && (post.userId === user.id || user.role === 'admin') && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); alert('삭제되었습니다.'); window.location.href = `${vbase}/community/${post.sport}`; } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); window.location.href = `${vbase}/community/${post.sport}`; } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
       )}
 
       <div className="card p-5">
@@ -251,7 +252,7 @@ const CommunityDetail = () => {
                         try {
                           await api(`/community/comments/${comment.id}`, { method: 'DELETE' });
                           setPost(prev => prev ? { ...prev, comments: prev.comments.filter(c => c.id !== comment.id) } : prev);
-                        } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
+                        } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
                       }}
                       className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
                     >삭제</button>

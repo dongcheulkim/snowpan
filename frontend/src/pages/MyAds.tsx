@@ -1,3 +1,4 @@
+import { toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -46,7 +47,7 @@ export default function MyAds() {
       await api(`/ad-booking/${id}`, { method: 'DELETE' });
       setAds(prev => prev.filter(a => a.id !== id));
       loadAds();
-    } catch { alert('삭제에 실패했습니다.'); }
+    } catch { toastError('삭제에 실패했습니다.'); }
   };
 
   return (

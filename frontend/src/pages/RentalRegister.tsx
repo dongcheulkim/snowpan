@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
@@ -46,14 +47,14 @@ const RentalRegister = () => {
 
   const handleSubmit = async () => {
     const user = getUser();
-    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
+    if (!user) { toastError('로그인이 필요합니다.'); navigate('/login'); return; }
     const missing: string[] = [];
     if (!form.name.trim()) missing.push('상품명');
     if (!form.resortId) missing.push('스키장');
     if (!form.price) missing.push('가격');
     if (form.equipment.length === 0) missing.push('장비');
     if (missing.length > 0) {
-      alert(`다음 항목을 입력해주세요:\n• ${missing.join('\n• ')}`);
+      toastError(`필수 항목을 입력해주세요: ${missing.join(', ')}`);
       return;
     }
 
@@ -82,10 +83,10 @@ const RentalRegister = () => {
           businessLicense: businessLicense || undefined,
         },
       });
-      alert('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
+      toastSuccess('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
       navigate('/rental');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {
       setLoading(false);
     }

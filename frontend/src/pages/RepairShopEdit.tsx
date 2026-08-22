@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl } from '../api';
@@ -54,7 +55,7 @@ export default function RepairShopEdit() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.address || !form.description) { alert('상호명, 주소, 설명은 필수입니다.'); return; }
+    if (!form.name || !form.address || !form.description) { toastError('상호명, 주소, 설명은 필수입니다.'); return; }
     setLoading(true);
     try {
       let image = existingImage;
@@ -64,10 +65,10 @@ export default function RepairShopEdit() {
         method: 'PUT',
         body: { ...form, image: image || null },
       });
-      alert('수정되었습니다!');
+      toastSuccess('수정되었습니다!');
       navigate('/mypage/shops');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '수정에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
     } finally {
       setLoading(false);
     }

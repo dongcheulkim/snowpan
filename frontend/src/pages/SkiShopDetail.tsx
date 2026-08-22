@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api, imageUrl, getUser, uploadImages } from '../api';
@@ -41,15 +42,15 @@ export default function SkiShopDetail() {
     if (!confirm('이 스키샵을 삭제하시겠습니까?')) return;
     try {
       await api(`/ski-shops/${shop.id}`, { method: 'DELETE' });
-      alert('삭제되었습니다.');
+      toastSuccess('삭제되었습니다.');
       navigate('/skishop');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 
   const handleClaim = async () => {
-    if (!shop || !claimFile) { alert('사업자등록증을 업로드해주세요.'); return; }
+    if (!shop || !claimFile) { toastError('사업자등록증을 업로드해주세요.'); return; }
     setClaimSubmitting(true);
     try {
       const urls = await uploadImages([claimFile]);
@@ -57,10 +58,10 @@ export default function SkiShopDetail() {
         method: 'POST',
         body: { shopType: 'skishop', shopId: shop.id, businessLicense: urls[0], message: claimMsg || undefined },
       });
-      alert('매장 관리 요청이 접수되었습니다.\n관리자 확인 후 소유권이 이전됩니다.');
+      toastSuccess('매장 관리 요청이 접수되었습니다.\n관리자 확인 후 소유권이 이전됩니다.');
       setShowClaim(false); setClaimFile(null); setClaimMsg('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '요청 처리에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '요청 처리에 실패했습니다.');
     } finally {
       setClaimSubmitting(false);
     }

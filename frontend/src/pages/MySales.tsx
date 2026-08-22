@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
@@ -55,7 +56,7 @@ const MySales = () => {
       setProducts(prev => prev.filter(p => p.id !== id));
       loadProducts();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 
@@ -64,17 +65,17 @@ const MySales = () => {
       await api(`/products/${id}`, { method: 'PUT', body: { status: newStatus } });
       setProducts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '상태 변경 실패');
+      toastError(err instanceof Error ? err.message : '상태 변경 실패');
     }
   };
 
   const handleBump = async (id: string) => {
     try {
       await api(`/products/${id}/bump`, { method: 'PUT' });
-      alert(t('mySales.bumpSuccess'));
+      toastSuccess(t('mySales.bumpSuccess'));
       loadProducts();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '끌어올리기 실패');
+      toastError(err instanceof Error ? err.message : '끌어올리기 실패');
     }
   };
 

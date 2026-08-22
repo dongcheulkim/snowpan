@@ -179,7 +179,7 @@ const UsedDetail = () => {
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        alert('링크가 클립보드에 복사되었습니다.');
+        toastSuccess('링크가 클립보드에 복사되었습니다.');
       } catch { /* ignore */ }
     }
   };
@@ -217,12 +217,12 @@ const UsedDetail = () => {
         method: 'POST',
         body: { type: 'product', targetId: id, reason: reportReason, description: reportDesc || undefined },
       });
-      alert('신고가 접수되었습니다.');
+      toastSuccess('신고가 접수되었습니다.');
       setShowReportModal(false);
       setReportReason('');
       setReportDesc('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
     } finally {
       setReportSubmitting(false);
     }
@@ -457,9 +457,9 @@ const UsedDetail = () => {
                   if (!confirm(isAdminAction ? '관리자 권한으로 이 상품을 삭제하시겠습니까?' : '정말 삭제하시겠습니까?')) return;
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
-                    alert('삭제되었습니다.');
+                    toastSuccess('삭제되었습니다.');
                     window.location.href = `${vbase}/used` || '/used';
-                  } catch (err) { alert(err instanceof Error ? err.message : '삭제 실패'); }
+                  } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
               >

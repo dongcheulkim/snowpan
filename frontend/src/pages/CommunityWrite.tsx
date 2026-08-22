@@ -1,3 +1,4 @@
+import { toastError } from '../components/Toast';
 import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
@@ -68,13 +69,13 @@ const CommunityWrite = () => {
 
   const handleSubmit = async () => {
     const user = getUser();
-    if (!user) { alert('로그인이 필요합니다.'); navigate('/login'); return; }
-    if (!title.trim()) { alert('제목을 입력해주세요.'); return; }
-    if (title.trim().length < 2) { alert('제목은 2자 이상이어야 합니다.'); return; }
-    if (titleOver) { alert(`제목은 ${TITLE_MAX}자 이내여야 합니다. (현재 ${title.length}자)`); return; }
-    if (!content.trim()) { alert('내용을 입력해주세요.'); return; }
-    if (contentOver) { alert(`내용은 ${CONTENT_MAX}자 이내여야 합니다. (현재 ${content.length}자)`); return; }
-    if (!agreed) { alert('커뮤니티 이용규칙에 동의해주세요.'); return; }
+    if (!user) { toastError('로그인이 필요합니다.'); navigate('/login'); return; }
+    if (!title.trim()) { toastError('제목을 입력해주세요.'); return; }
+    if (title.trim().length < 2) { toastError('제목은 2자 이상이어야 합니다.'); return; }
+    if (titleOver) { toastError(`제목은 ${TITLE_MAX}자 이내여야 합니다. (현재 ${title.length}자)`); return; }
+    if (!content.trim()) { toastError('내용을 입력해주세요.'); return; }
+    if (contentOver) { toastError(`내용은 ${CONTENT_MAX}자 이내여야 합니다. (현재 ${content.length}자)`); return; }
+    if (!agreed) { toastError('커뮤니티 이용규칙에 동의해주세요.'); return; }
 
     setSubmitting(true);
     try {
@@ -90,7 +91,7 @@ const CommunityWrite = () => {
       });
       navigate(`${vbase}/community/${sport}`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }

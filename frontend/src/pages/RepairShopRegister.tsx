@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
@@ -33,8 +34,8 @@ export default function RepairShopRegister() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!licenseFile) { alert('사업자등록증을 업로드해주세요.'); return; }
-    if (!form.name || !form.address || !form.description) { alert('상호명, 주소, 설명은 필수입니다.'); return; }
+    if (!licenseFile) { toastError('사업자등록증을 업로드해주세요.'); return; }
+    if (!form.name || !form.address || !form.description) { toastError('상호명, 주소, 설명은 필수입니다.'); return; }
 
     setLoading(true);
     try {
@@ -47,10 +48,10 @@ export default function RepairShopRegister() {
         body: { ...form, image: shopImage || null, businessLicense: licenseUrls[0] },
       });
 
-      alert('정비샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
+      toastSuccess('정비샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
       navigate('/repair');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally { setLoading(false); }
   };
 

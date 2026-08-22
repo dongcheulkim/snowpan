@@ -1,3 +1,4 @@
+import { toastSuccess } from '../components/Toast';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
@@ -43,7 +44,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       await api('/auth/reset-password', { method: 'POST', body: { email, code, newPassword } });
-      alert('비밀번호가 변경되었습니다. 로그인해주세요.');
+      toastSuccess('비밀번호가 변경되었습니다. 로그인해주세요.');
       navigate('/login');
     } catch (err) {
       setError(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다.');

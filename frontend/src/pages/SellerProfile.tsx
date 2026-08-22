@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
@@ -115,14 +116,14 @@ const SellerProfile = () => {
     try {
       const data = await api<{ products: { id: string; name: string; price: number }[] }>(`/reviews/eligible?sellerId=${sellerId}`);
       if (!data.products.length) {
-        alert('리뷰를 작성할 수 있는 거래 내역이 없습니다. (판매완료된 상품 + 채팅 이력 필요)');
+        toastError('리뷰를 작성할 수 있는 거래 내역이 없습니다. (판매완료된 상품 + 채팅 이력 필요)');
         return;
       }
       setEligibleProducts(data.products);
       setReviewProductId(data.products[0].id);
       setShowReviewForm(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '리뷰 작성 가능 여부를 확인하지 못했습니다.');
+      toastError(err instanceof Error ? err.message : '리뷰 작성 가능 여부를 확인하지 못했습니다.');
     }
   };
 
@@ -143,7 +144,7 @@ const SellerProfile = () => {
       setReviewRating(5);
       setReviewProductId('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다.');
     } finally {
       setReviewSubmitting(false);
     }
@@ -159,12 +160,12 @@ const SellerProfile = () => {
         method: 'POST',
         body: { type: 'user', targetId: sellerId, reason: reportReason, description: reportDesc || undefined },
       });
-      alert('신고가 접수되었습니다.');
+      toastSuccess('신고가 접수되었습니다.');
       setShowReport(false);
       setReportReason('');
       setReportDesc('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : '신고 처리에 실패했습니다.');
     } finally {
       setReportSubmitting(false);
     }

@@ -2,6 +2,7 @@
 // 웹은 화면 켜져있어야 동작 (Wake Lock 으로 화면 잠금 방지).
 // 진짜 백그라운드는 앱이 필요.
 
+import { toastSuccess } from '../components/Toast';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
@@ -290,7 +291,7 @@ const SnowRunRecord = () => {
     }
     setActive(false);
     const final = { ...sessionRef.current };
-    alert(
+    toastSuccess(
       `세션 종료\n총 ${final.runCount}런 · ${(final.totalDistanceM / 1000).toFixed(2)}km · 낙차 ${Math.round(final.totalVerticalDropM)}m\n` +
         `적립 ${final.pointsAwardedThisSession.toLocaleString()}P`
     );

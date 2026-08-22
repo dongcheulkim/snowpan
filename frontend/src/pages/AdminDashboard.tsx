@@ -1,3 +1,4 @@
+import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
@@ -164,7 +165,7 @@ const AdminDashboard = () => {
       await api(`/admin/reports/${id}`, { method: 'PUT' });
       setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'resolved' } : r)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '처리 실패');
+      toastError(err instanceof Error ? err.message : '처리 실패');
     }
   };
 
@@ -175,9 +176,9 @@ const AdminDashboard = () => {
     try {
       const res = await api<{ id: string; role: string; message: string }>(`/admin/users/${id}/ban`, { method: 'PUT' });
       setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: res.role } : u)));
-      alert(res.message);
+      toastSuccess(res.message);
     } catch (err) {
-      alert(err instanceof Error ? err.message : `${action} 실패`);
+      toastError(err instanceof Error ? err.message : `${action} 실패`);
     }
   };
 
@@ -201,7 +202,7 @@ const AdminDashboard = () => {
       setBannerImagePreview('');
       fetchData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '저장 실패');
+      toastError(err instanceof Error ? err.message : '저장 실패');
     }
   };
 
@@ -211,7 +212,7 @@ const AdminDashboard = () => {
       await api(`/admin/banners/${id}`, { method: 'DELETE' });
       fetchData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '삭제 실패');
+      toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 
@@ -228,7 +229,7 @@ const AdminDashboard = () => {
       await api(`/admin/products/${id}/premium`, { method: 'PUT', body: { isPremium: !current } });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isPremium: !current } : p)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '설정 실패');
+      toastError(err instanceof Error ? err.message : '설정 실패');
     }
   };
 
@@ -240,7 +241,7 @@ const AdminDashboard = () => {
     const trimmed = input.trim();
     if (!trimmed) return { cancelled: false };
     if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed) || isNaN(new Date(trimmed).getTime())) {
-      alert('날짜 형식이 올바르지 않습니다. (예: 2026-12-01)');
+      toastError('날짜 형식이 올바르지 않습니다. (예: 2026-12-01)');
       return { cancelled: true };
     }
     // 과거 날짜 거부 (백데이트 방지 — 백엔드도 거부함)
@@ -248,7 +249,7 @@ const AdminDashboard = () => {
     const picked = new Date(y, m - 1, d);
     const today = new Date(); today.setHours(0, 0, 0, 0);
     if (picked < today) {
-      alert('과거 날짜는 지정할 수 없습니다.');
+      toastError('과거 날짜는 지정할 수 없습니다.');
       return { cancelled: true };
     }
     return { cancelled: false, startDate: trimmed };
@@ -261,9 +262,9 @@ const AdminDashboard = () => {
       const r = await api<{ message?: string }>(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST', body: startDate ? { startDate } : {} });
       const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
       setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active' } : b)));
-      alert(r.message || '입금 확인 완료! 광고가 노출됩니다.');
+      toastSuccess(r.message || '입금 확인 완료! 광고가 노출됩니다.');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '승인 실패');
+      toastError(err instanceof Error ? err.message : '승인 실패');
     }
   };
 
@@ -274,9 +275,9 @@ const AdminDashboard = () => {
       await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST', body: startDate ? { startDate } : {} });
       const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
       setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active', totalPrice: 0 } : b)));
-      alert('무료 승인 완료!');
+      toastSuccess('무료 승인 완료!');
     } catch (err) {
-      alert(err instanceof Error ? err.message : '승인 실패');
+      toastError(err instanceof Error ? err.message : '승인 실패');
     }
   };
 
@@ -286,7 +287,7 @@ const AdminDashboard = () => {
       await api(`/ad-booking/admin/bookings/${id}/cancel`, { method: 'POST', body: { reason: '관리자 취소' } });
       setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'refunded' } : b)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '취소 실패');
+      toastError(err instanceof Error ? err.message : '취소 실패');
     }
   };
 
@@ -295,7 +296,7 @@ const AdminDashboard = () => {
       await api(`/ad-booking/admin/pricings/${pricing.id}`, { method: 'PUT', body: { [field]: value } });
       setAdPricings((prev) => prev.map((p) => (p.id === pricing.id ? { ...p, [field]: value } : p)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '수정 실패');
+      toastError(err instanceof Error ? err.message : '수정 실패');
     }
   };
 
