@@ -112,7 +112,7 @@ export default function OverseasDetail() {
             )}
             {(resort.website || resort.phone) && (
               <div className="flex gap-2">
-                {resort.website && <button onClick={() => openExternal(resort.website!)} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">공식 사이트</button>}
+                {resort.website && <button onClick={() => openExternal(resort.website!)} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">{resort.scope === '국내' ? '리프트권 요금 보기' : '공식 사이트'}</button>}
                 {resort.phone && <a href={`tel:${resort.phone}`} className="px-3 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold flex items-center">전화</a>}
               </div>
             )}

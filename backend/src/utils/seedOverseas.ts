@@ -225,8 +225,8 @@ const RESORTS: SeedResort[] = [
   // ===== 국내 =====
   {
     slug: 'yongpyong', name: '용평리조트', scope: '국내', country: '한국', region: '강원',
-    address: '강원 평창군 대관령면 올림픽로 715', liftPrice: '성인 1일권 약 9만원대 (시즌·시간권 상이)',
-    website: 'https://www.yongpyong.co.kr/', nightSki: true, slopes: 28,
+    address: '강원 평창군 대관령면 올림픽로 715', liftPrice: '성인 주간권 96,000원 · 오전/오후/야간 각 68,000원 (25/26)',
+    website: 'https://www.yongpyong.co.kr/kor/skiNboard/utilizationFee/rentCharge.do', nightSki: true, slopes: 28,
     summary: '국내 최대급, 발왕산의 롱코스', season: '11월 말 ~ 4월 초', snowType: '정설(인공설)',
     highlights: '대형슬로프,발왕산,롱코스,드라마촬영지', bestFor: '전 레벨,롱런',
     image: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/Winter_2014_Candidate_City-_PyeongChang_Dragon_Valley_ski_resort.jpg',
@@ -236,8 +236,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'high1', name: '하이원리조트', scope: '국내', country: '한국', region: '강원',
-    address: '강원 정선군 고한읍 하이원길 265', liftPrice: '성인 1일권 약 9만원대',
-    website: 'https://www.high1.com/', nightSki: true, slopes: 18,
+    address: '강원 정선군 고한읍 하이원길 265', liftPrice: '성인 전일권 104,000원 · 시간권 62,000~82,000원 (25/26)',
+    website: 'https://www.high1.com/ski/contents.do?key=750', nightSki: true, slopes: 18,
     summary: '고지대 설질과 탁 트인 경관', season: '11월 말 ~ 4월', snowType: '정설(설질 우수)',
     highlights: '고지대설질,경관,롱코스,쾌적', bestFor: '중상급,경관',
     image: null,
@@ -302,8 +302,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'jisan', name: '지산 포레스트', scope: '국내', country: '한국', region: '경기',
-    address: '경기 이천시 마장면 지산로 267', liftPrice: '성인 1일권 약 7~8만원대',
-    website: 'https://www.jisanresort.co.kr/', nightSki: true, slopes: 10,
+    address: '경기 이천시 마장면 지산로 267', liftPrice: '성인 시간권제(2·4·6시간) · 온라인 예매 25% 상시할인 (정가 공식 확인)',
+    website: 'https://www.jisanresort.co.kr/w/ski/use/lift.asp', nightSki: true, slopes: 10,
     summary: '수도권 최근접, 야간 스키 활발', season: '12월 ~ 3월', snowType: '정설(인공설)',
     highlights: '수도권최근접,야간,입문,보드', bestFor: '입문,수도권 당일',
     image: null,
@@ -313,8 +313,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'konjiam', name: '곤지암리조트', scope: '국내', country: '한국', region: '경기',
-    address: '경기 광주시 도척면 도척윗로 278', liftPrice: '성인 1일권 약 8~9만원대',
-    website: 'https://www.konjiamresort.co.kr/', nightSki: false, slopes: 11,
+    address: '경기 광주시 도척면 도척윗로 278', liftPrice: '성인 6시간권 평일 87,000·주말 105,000원 · 4시간 81,000~96,000원 (25/26)',
+    website: 'https://m.konjiamresort.co.kr/ski/skiInfo.dev', nightSki: false, slopes: 11,
     summary: '예약제로 쾌적한 프리미엄 스키장', season: '12월 ~ 3월', snowType: '정설(인공설)',
     highlights: '예약제쾌적,수도권,프리미엄,렌탈편의', bestFor: '쾌적함 선호,가족',
     image: null,
@@ -324,8 +324,8 @@ const RESORTS: SeedResort[] = [
   },
   {
     slug: 'muju', name: '무주 덕유산', scope: '국내', country: '한국', region: '전북',
-    address: '전북 무주군 설천면 만선로 185', liftPrice: '성인 1일권 약 8만원대',
-    website: 'https://www.mujuresort.com/', nightSki: true, slopes: 23,
+    address: '전북 무주군 설천면 만선로 185', liftPrice: '성인 1일권 약 8만원대 (공식 요금표 확인)',
+    website: 'https://www.mdysresort.com/ski/charge.asp', nightSki: true, slopes: 23,
     summary: '남부 최대, 덕유산 설천봉 경관', season: '11월 말 ~ 3월', snowType: '정설(인공설)',
     highlights: '남부최대,덕유산,설천봉경관,롱코스', bestFor: '전 레벨,경관',
     image: 'https://upload.wikimedia.org/wikipedia/commons/c/cb/%EB%8D%95%EC%9C%A0%EC%82%B0_%EC%84%A4%EC%B2%9C%EB%B4%89.jpg',
@@ -376,11 +376,20 @@ export async function seedOverseas(): Promise<void> {
       const popular = POPULAR.has(r.slug);
       const existing = await prisma.overseasResort.findUnique({ where: { slug: r.slug }, select: { id: true, image: true, continent: true } });
       if (existing) {
-        // 이미지 비어있으면 채움 + 대륙 미설정(구버전 데이터)이면 대륙·인기 1회 백필 (관리자 수정 보존).
-        const data: { image?: string; continent?: string | null; popular?: boolean } = {};
+        // 이미지 비어있으면 채움 + 대륙 미설정이면 대륙·인기 1회 백필.
+        const data: Record<string, unknown> = {};
         if (!existing.image && img) data.image = img;
         if (!existing.continent) { data.continent = continent; data.popular = popular; }
-        if (Object.keys(data).length) await prisma.overseasResort.update({ where: { id: existing.id }, data });
+        // 큐레이션 정보 필드(가격·요금페이지·위치 등)는 최신 시드값으로 갱신.
+        // (아직 관리자 편집 전제 없음 — 추후 잠금 플래그 도입 가능)
+        data.scope = r.scope || '해외';
+        data.liftPrice = r.liftPrice || null;
+        data.website = r.website || r.official || null;
+        data.address = r.address || null;
+        data.phone = r.phone || null;
+        data.nightSki = !!r.nightSki;
+        data.lifts = r.lifts || null;
+        await prisma.overseasResort.update({ where: { id: existing.id }, data });
         continue;
       }
       const resort = await prisma.overseasResort.create({
