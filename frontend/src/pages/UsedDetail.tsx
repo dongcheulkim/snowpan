@@ -26,7 +26,7 @@ interface Product {
   viewCount?: number;
   wishlistCount?: number;
   userId: string | null;
-  user: { id: string; name: string } | null;
+  user: { id: string; name: string; nickname?: string | null; profileImage?: string | null } | null;
   createdAt: string;
 }
 
@@ -248,8 +248,9 @@ const UsedDetail = () => {
     : isUrl(product.image) ? [imageUrl(product.image, 900)] : [];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[selectedImage] || '';
-  const sellerName = product.user?.name || '판매자';
+  const sellerName = product.user?.nickname || product.user?.name || '판매자';
   const sellerId = product.user?.id || '';
+  const sellerImage = product.user?.profileImage || '';
   const isMyProduct = user && product.userId === user.id;
 
   return (
@@ -397,7 +398,9 @@ const UsedDetail = () => {
           {/* Seller */}
           <div className="card p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-600"><UserIcon size={20} /></div>
+              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-600 overflow-hidden">
+                {sellerImage ? <img src={imageUrl(sellerImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={20} />}
+              </div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
               </div>

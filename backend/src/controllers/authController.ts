@@ -828,7 +828,8 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
       prisma.post.count({ where: { userId: id } }).catch(() => 0),
     ]);
 
-    const displayName = user.displayName === 'nickname' && user.nickname ? user.nickname : user.name;
+    // 닉네임 우선 (커뮤니티·채팅과 동일 규칙) — 닉 정한 유저가 판매자프로필서 본명 노출되던 것 통일.
+    const displayName = user.nickname || user.name;
 
     res.json({
       id: user.id,

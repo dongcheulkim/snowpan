@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, setUser, uploadImages } from '../api';
+import { api, getUser, setUser, uploadImages, imageUrl } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 import { CameraIcon, UserIcon } from '../components/Icons';
 
@@ -75,7 +75,7 @@ const EditProfile = () => {
         <label className="relative cursor-pointer group">
           <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden group-hover:border-gray-900 transition-colors">
             {profilePreview ? (
-              <img src={profilePreview} alt="프로필" className="w-full h-full object-cover" />
+              <img src={imageUrl(profilePreview)} alt="프로필" className="w-full h-full object-cover" />
             ) : (
               <UserIcon size={44} />
             )}
@@ -85,7 +85,16 @@ const EditProfile = () => {
           </div>
           <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfileImage} />
         </label>
-        <p className="text-xs text-gray-500">사진을 클릭하여 변경</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-gray-500">사진을 클릭하여 변경</p>
+          {profilePreview && (
+            <button
+              type="button"
+              onClick={() => { setProfilePreview(null); setProfileFile(null); setForm(f => ({ ...f, profileImage: '' })); }}
+              className="text-xs text-gray-400 underline underline-offset-2 hover:text-coral"
+            >사진 삭제</button>
+          )}
+        </div>
       </div>
 
       <div className="card p-5 space-y-4">

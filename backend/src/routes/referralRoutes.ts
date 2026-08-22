@@ -60,7 +60,7 @@ router.get('/lookup/:code', async (req, res) => {
       res.status(404).json({ error: '존재하지 않는 추천 코드입니다.' });
       return;
     }
-    const displayName = user.displayName === 'nickname' && user.nickname ? user.nickname : user.name;
+    const displayName = user.nickname || user.name; // 닉네임 우선 (전체 통일)
     res.json({ referrerId: user.id, referrerName: displayName });
   } catch (error) {
     console.error('Referral lookup error:', error);

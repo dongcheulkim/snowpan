@@ -127,6 +127,7 @@ const MyPage = () => {
 
   const menuItems = [
     { label: t('mypage.editProfile'), link: '/mypage/edit' },
+    ...(user ? [{ label: '내 프로필 보기 (남에게 보이는 화면)', link: `/seller/${user.id}` }] : []),
     { label: '내 포인트', link: '/points' },
     { label: '내 쿠폰', link: '/mypage/coupons' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },

@@ -317,7 +317,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         location: sanitizeText(location, 60) || null,
         userId,
       },
-      include: { user: { select: { id: true, name: true, nickname: true } } },
+      include: { user: { select: { id: true, name: true, nickname: true, profileImage: true } } },
     });
 
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
@@ -383,7 +383,7 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, nickname: true } },
+        user: { select: { id: true, name: true, nickname: true, profileImage: true } },
         _count: { select: { wishlists: true } }, // 찜 개수
       },
     });
