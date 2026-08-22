@@ -96,13 +96,12 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
-export const getRentalById = async (req: Request, res: Response): Promise<void> => {
+export const getRentalById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // 승인된 항목만 공개 — 미승인(심사 대기) 렌탈이 ID 로 노출되던 승인 게이트 우회 차단.
-    const rental = await prisma.rental.findFirst({
-      where: { id, approved: true },
+    const rental = await prisma.rental.findUnique({
+      where: { id },
       include: {
         resort: true,
         user: { select: { id: true, name: true, nickname: true } },
@@ -110,6 +109,11 @@ export const getRentalById = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!rental) {
+      res.status(404).json({ error: '렌탈 정보를 찾을 수 없습니다.' });
+      return;
+    }
+    // 미승인(심사대기·재심사 중)은 소유자/관리자만 조회 — 편집용 로드 허용 + 공개 게이트 유지.
+    if (!rental.approved && rental.userId !== req.user?.id && req.user?.role !== 'admin') {
       res.status(404).json({ error: '렌탈 정보를 찾을 수 없습니다.' });
       return;
     }

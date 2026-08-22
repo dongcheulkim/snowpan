@@ -40,13 +40,12 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export const getAccommodationById = async (req: Request, res: Response): Promise<void> => {
+export const getAccommodationById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // 승인된 항목만 공개 — 미승인(심사 대기) 숙소가 ID 로 노출되던 승인 게이트 우회 차단.
-    const accommodation = await prisma.accommodation.findFirst({
-      where: { id, approved: true },
+    const accommodation = await prisma.accommodation.findUnique({
+      where: { id },
       include: {
         resort: true,
         user: {
@@ -59,6 +58,11 @@ export const getAccommodationById = async (req: Request, res: Response): Promise
     });
 
     if (!accommodation) {
+      res.status(404).json({ error: '숙소를 찾을 수 없습니다.' });
+      return;
+    }
+    // 미승인(심사대기·재심사 중)은 소유자/관리자만 조회 — 편집용 로드 허용 + 공개 게이트 유지.
+    if (!accommodation.approved && accommodation.userId !== req.user?.id && req.user?.role !== 'admin') {
       res.status(404).json({ error: '숙소를 찾을 수 없습니다.' });
       return;
     }

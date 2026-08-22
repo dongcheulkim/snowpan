@@ -53,8 +53,11 @@ const MyShops = lazy(() => import('./pages/MyShops'));
 const RepairShopRegister = lazy(() => import('./pages/RepairShopRegister'));
 const UsedRegister = lazy(() => import('./pages/UsedRegister'));
 const RentalRegister = lazy(() => import('./pages/RentalRegister'));
+const RentalEdit = lazy(() => import('./pages/RentalEdit'));
 const LessonRegister = lazy(() => import('./pages/LessonRegister'));
+const LessonEdit = lazy(() => import('./pages/LessonEdit'));
 const AccommodationRegister = lazy(() => import('./pages/AccommodationRegister'));
+const AccommodationEdit = lazy(() => import('./pages/AccommodationEdit'));
 const CommunityWrite = lazy(() => import('./pages/CommunityWrite'));
 const SellerProfile = lazy(() => import('./pages/SellerProfile'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
@@ -115,12 +118,15 @@ function App() {
             <Route path="chat/:chatId" element={<RequireAuth><Chat /></RequireAuth>} />
             <Route path="rental" element={<Rental />} />
             <Route path="rental/register" element={<RequireAuth><RentalRegister /></RequireAuth>} />
+            <Route path="rental/:id/edit" element={<RequireAuth><RentalEdit /></RequireAuth>} />
             <Route path="rental/:id" element={<RentalDetail />} />
             <Route path="lesson" element={<Lesson />} />
             <Route path="lesson/register" element={<RequireAuth><LessonRegister /></RequireAuth>} />
+            <Route path="lesson/:id/edit" element={<RequireAuth><LessonEdit /></RequireAuth>} />
             <Route path="lesson/:id" element={<LessonDetail />} />
             <Route path="accommodation" element={<Accommodation />} />
             <Route path="accommodation/register" element={<RequireAuth><AccommodationRegister /></RequireAuth>} />
+            <Route path="accommodation/:id/edit" element={<RequireAuth><AccommodationEdit /></RequireAuth>} />
             <Route path="accommodation/:id" element={<AccommodationDetail />} />
             <Route path="gear-guide" element={<GearGuide />} />
             <Route path="search" element={<Search />} />

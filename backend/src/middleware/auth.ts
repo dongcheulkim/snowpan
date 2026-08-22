@@ -104,6 +104,25 @@ export const validateAuthHeaderIfPresent = (req: Request, res: Response, next: N
   }
 };
 
+// 선택적 인증 — 토큰이 있고 유효하면 req.user 세팅, 없거나 무효면 익명으로 통과(거절 안 함).
+// 공개 상세 조회에서 "소유자/관리자면 미승인도 보이게" 같은 분기용.
+export const optionalAuth = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ') || !process.env.JWT_SECRET) { next(); return; }
+  const token = auth.slice(7).trim();
+  if (!token) { next(); return; }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      ignoreExpiration: false,
+    }) as { userId: string; email?: string; role?: string; type?: string };
+    if (!decoded.type || decoded.type === 'access') {
+      req.user = { id: decoded.userId, email: decoded.email || '', role: decoded.role || 'user' };
+    }
+  } catch { /* 무효 토큰 → 익명으로 진행 */ }
+  next();
+};
+
 // 관리자 전용 라우트 가드 — authMiddleware 뒤에 체이닝 해서 사용.
 // 현재 컨트롤러마다 반복되는 role 체크를 중앙화. 신규 라우트에서는 이 미들웨어를 쓰는 걸 권장.
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {

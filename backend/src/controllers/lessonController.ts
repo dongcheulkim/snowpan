@@ -96,13 +96,12 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
-export const getLessonById = async (req: Request, res: Response): Promise<void> => {
+export const getLessonById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // 승인된 항목만 공개 — 미승인(심사 대기) 레슨이 ID 로 노출되던 승인 게이트 우회 차단.
-    const lesson = await prisma.lesson.findFirst({
-      where: { id, approved: true },
+    const lesson = await prisma.lesson.findUnique({
+      where: { id },
       include: {
         resort: true,
         user: { select: { id: true, name: true, nickname: true } },
@@ -110,6 +109,11 @@ export const getLessonById = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!lesson) {
+      res.status(404).json({ error: '레슨 정보를 찾을 수 없습니다.' });
+      return;
+    }
+    // 미승인(심사대기·재심사 중)은 소유자/관리자만 조회 — 편집용 로드 허용 + 공개 게이트 유지.
+    if (!lesson.approved && lesson.userId !== req.user?.id && req.user?.role !== 'admin') {
       res.status(404).json({ error: '레슨 정보를 찾을 수 없습니다.' });
       return;
     }

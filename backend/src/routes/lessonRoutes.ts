@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { getLessons, getLessonById, createLesson, updateLesson, deleteLesson } from '../controllers/lessonController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
 router.get('/', getLessons);
-router.get('/:id', getLessonById);
+router.get('/:id', optionalAuth, getLessonById);
 router.post('/', authenticateToken, createLesson);
 router.put('/:id', authenticateToken, updateLesson);
 router.delete('/:id', authenticateToken, deleteLesson);
