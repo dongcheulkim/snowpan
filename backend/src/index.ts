@@ -93,9 +93,10 @@ app.set('trust proxy', 1);
 
 // CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선,
 // 미설정 시 프로덕션=snowpan.kr(신규 대표) + www + 이전 snowpan.vercel.app(전환 호환), dev=localhost
+// Capacitor 앱: 안드로이드 origin=https://localhost, iOS=capacitor://localhost — 앱에서 API 호출 허용.
 const DEFAULT_ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
-  ? ['https://snowpan.kr', 'https://www.snowpan.kr', 'https://snowpan.vercel.app']
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  ? ['https://snowpan.kr', 'https://www.snowpan.kr', 'https://snowpan.vercel.app', 'https://localhost', 'capacitor://localhost']
+  : ['http://localhost:5173', 'http://localhost:3000', 'https://localhost', 'capacitor://localhost'];
 const ALLOWED_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
   : DEFAULT_ALLOWED_ORIGINS;
