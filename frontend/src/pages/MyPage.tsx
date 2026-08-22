@@ -31,10 +31,6 @@ const MyPage = () => {
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [showBadgeModal, setShowBadgeModal] = useState(false);
-
-  const [badgeImage, setBadgeImage] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -93,29 +89,7 @@ const MyPage = () => {
   };
 
   const approvedBadges = badges.filter(b => b.status === 'approved');
-  const pendingBadges = badges.filter(b => b.status === 'pending');
-
-  const handleRequestBadge = async () => {
-    if (!badgeImage) return;
-    setSubmitting(true);
-    try {
-      const urls = await uploadImages([badgeImage]);
-      const certUrl = urls[0];
-      await api('/auth/badge-request', {
-        method: 'POST',
-        body: { badgeType: 'cert', image: certUrl },
-      });
-      const updated = await api<BadgeRequest[]>('/auth/my-badges');
-      setBadges(updated);
-      setShowBadgeModal(false);
-      setBadgeImage(null);
-      toastSuccess('인증 요청이 완료되었습니다. 관리자가 확인 후 뱃지를 부여합니다.');
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '요청에 실패했습니다.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const hasPendingBadge = badges.some(b => b.status === 'pending');
 
   if (!user) return null;
 
@@ -201,69 +175,22 @@ const MyPage = () => {
         </div>
       </div>
 
-      {/* Badges - 관리자에겐 숨김 */}
-      {user.role !== 'admin' && <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-gray-900">{t('mypage.certBadge')}</h3>
-          <button onClick={() => setShowBadgeModal(true)} className="px-3 py-1 bg-accent text-white rounded-lg font-bold text-[11px] hover:bg-accent-light transition-colors">
-            + {t('mypage.verify')}
-          </button>
-        </div>
-
-        {approvedBadges.length === 0 && pendingBadges.length === 0 ? (
-          <p className="text-xs text-gray-500 text-center py-4">{t('mypage.noBadges')}</p>
-        ) : (
-          <div className="space-y-2">
-            {approvedBadges.map((b) => {
-              const badge = badgeDisplay[b.badgeType];
-              if (!badge) return null;
-              const isActive = (user as any).activeBadge === b.badgeType;
-              return (
-                <div key={b.id} className={`flex items-center justify-between p-3 bg-snow rounded-lg border ${isActive ? 'border-sky-400 bg-sky-50/50' : 'border-gray-200'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
-                    <div>
-                      <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
-                      <div className="text-[10px] text-mint">{t('mypage.verified')}</div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      const newBadge = isActive ? null : b.badgeType;
-                      try {
-                        await api('/auth/profile', { method: 'PUT', body: { activeBadge: newBadge } });
-                        setUser((prev: any) => prev ? { ...prev, activeBadge: newBadge } : prev);
-                        saveUser({ ...user, activeBadge: newBadge });
-                        toastSuccess(isActive ? '뱃지 노출을 해제했습니다' : '뱃지를 노출합니다');
-                      } catch (err) {
-                        toastError(err instanceof Error ? err.message : '뱃지 설정에 실패했습니다');
-                      }
-                    }}
-                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                  >
-                    {isActive ? '노출중' : '노출'}
-                  </button>
-                </div>
-              );
-            })}
-            {pendingBadges.map((b) => {
-              const badge = badgeDisplay[b.badgeType];
-              if (!badge) return null;
-              return (
-                <div key={b.id} className="flex items-center justify-between p-3 bg-snow rounded-lg border border-gray-200 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${badge.color}`}>{badge.label}</span>
-                    <div>
-                      <div className="text-xs font-medium text-gray-900">{badge.desc}</div>
-                      <div className="text-[10px] text-yellow-500">{t('mypage.pendingApproval')}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {/* 인증 뱃지 — 관리는 프로필 관리 페이지로 (관리자에겐 숨김) */}
+      {user.role !== 'admin' && (
+        <Link to="/mypage/edit" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          <div>
+            <div className="text-sm font-bold text-gray-900">인증 뱃지</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">
+              {hasPendingBadge
+                ? '자격증 심사 중이에요'
+                : approvedBadges.length > 0
+                  ? `인증 뱃지 ${approvedBadges.length}개 · 관리하기`
+                  : '자격증 인증하고 신뢰 뱃지 받기'}
+            </div>
           </div>
-        )}
-      </div>}
+          <span className="text-gray-400 text-lg">›</span>
+        </Link>
+      )}
 
       {/* 친구 초대 — 베타 기간 추천 코드 공유 */}
       <ReferralCard />
@@ -361,31 +288,6 @@ const MyPage = () => {
         </div>
       )}
 
-      {/* Badge Modal */}
-      {showBadgeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBadgeModal(false)} />
-          <div className="relative bg-snow rounded-xl p-6 w-full max-w-sm border border-gray-300">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">{t('mypage.certVerification')}</h3>
-            <p className="text-xs text-gray-500 mb-5">자격증 사진을 첨부하면 관리자가 확인 후 적절한 뱃지를 부여합니다.</p>
-
-            <div className="bg-gray-100 rounded-lg p-3 mb-5 border border-gray-300">
-              <p className="text-[11px] text-gray-500 mb-2">{t('mypage.uploadCertPhoto')}</p>
-              <label className="block w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-accent/50 hover:text-accent-light transition-all">
-                {badgeImage ? badgeImage.name : t('mypage.selectPhoto')}
-                <input type="file" accept="image/*" className="hidden" onChange={e => setBadgeImage(e.target.files?.[0] || null)} />
-              </label>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={() => { setShowBadgeModal(false); setBadgeImage(null); }} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg font-medium text-sm border border-gray-300 hover:bg-gray-200 transition-colors">{t('btn.cancel')}</button>
-              <button onClick={handleRequestBadge} disabled={!badgeImage || submitting} className="flex-1 py-3 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
-                {submitting ? t('mypage.requesting') : t('mypage.verifyRequest')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
