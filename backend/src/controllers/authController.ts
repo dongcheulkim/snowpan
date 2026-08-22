@@ -1010,20 +1010,35 @@ export const applyReferral = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// 사장님 여부 — 렌탈·레슨·숙소·스키샵·정비샵 중 등록분이 하나라도 있으면 owner.
-// 마이페이지에서 '내 매장 관리' 메뉴 노출 여부 결정용 (일반 유저에겐 숨김).
+// 사장님 여부 — 렌탈·레슨·숙소·스키샵·정비샵 중 '관리자 심사 통과(approved)'한
+// 매장이 하나라도 있어야 owner. 마이페이지 '내 매장 관리' 메뉴 노출 결정용.
+// approved=false(심사 대기)만 있으면 아직 노출 안 됨 → 승인돼야 대시보드가 열림.
 export const getBusinessStatus = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const [rental, lesson, accommodation, skiShop, repairShop] = await Promise.all([
-      prisma.rental.count({ where: { userId } }),
-      prisma.lesson.count({ where: { userId } }),
-      prisma.accommodation.count({ where: { userId } }),
-      prisma.skiShop.count({ where: { userId } }),
-      prisma.repairShop.count({ where: { userId } }),
+    const where = { userId, approved: true };
+    const [rental, lesson, accommodation, skiShop, repairShop, pending] = await Promise.all([
+      prisma.rental.count({ where }),
+      prisma.lesson.count({ where }),
+      prisma.accommodation.count({ where }),
+      prisma.skiShop.count({ where }),
+      prisma.repairShop.count({ where }),
+      // 심사 대기 중인 등록이 있는지 (승인 전에도 "심사중" 안내를 띄우기 위함)
+      Promise.all([
+        prisma.rental.count({ where: { userId, approved: false } }),
+        prisma.lesson.count({ where: { userId, approved: false } }),
+        prisma.accommodation.count({ where: { userId, approved: false } }),
+        prisma.skiShop.count({ where: { userId, approved: false } }),
+        prisma.repairShop.count({ where: { userId, approved: false } }),
+      ]).then((c) => c.reduce((a, b) => a + b, 0)),
     ]);
     const total = rental + lesson + accommodation + skiShop + repairShop;
-    res.json({ isOwner: total > 0, total, counts: { rental, lesson, accommodation, skiShop, repairShop } });
+    res.json({
+      isOwner: total > 0,
+      hasPending: pending > 0,
+      total,
+      counts: { rental, lesson, accommodation, skiShop, repairShop },
+    });
   } catch (error) {
     res.status(500).json({ error: '사장님 정보 조회 실패' });
   }

@@ -30,6 +30,7 @@ const MyPage = () => {
   const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [isOwner, setIsOwner] = useState(false);
+  const [hasPendingShop, setHasPendingShop] = useState(false);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -50,8 +51,11 @@ const MyPage = () => {
 
     // 뱃지 요청 목록 조회
     api<BadgeRequest[]>('/auth/my-badges').then(setBadges).catch(() => {});
-    // 사장님 여부 조회 — 등록한 매장이 있어야 '내 매장 관리' 메뉴 노출
-    api<{ isOwner: boolean }>('/auth/business-status').then(d => setIsOwner(!!d.isOwner)).catch(() => {});
+    // 사장님 여부 조회 — 심사(승인) 통과한 매장이 있어야 '내 매장 관리' 메뉴 노출.
+    // 심사 대기 중이면 메뉴는 아직 없지만 "심사중" 안내를 띄움.
+    api<{ isOwner: boolean; hasPending: boolean }>('/auth/business-status')
+      .then(d => { setIsOwner(!!d.isOwner); setHasPendingShop(!!d.hasPending); })
+      .catch(() => {});
   }, [navigate]);
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -190,6 +194,19 @@ const MyPage = () => {
                 : approvedBadges.length > 0
                   ? `인증 뱃지 ${approvedBadges.length}개 · 관리하기`
                   : '자격증 인증하고 신뢰 뱃지 받기'}
+            </div>
+          </div>
+          <span className="text-gray-400 text-lg">›</span>
+        </Link>
+      )}
+
+      {/* 매장 심사중 — 등록했지만 아직 승인 전. 승인되면 '내 매장 관리' 메뉴가 열림 */}
+      {hasPendingShop && !isOwner && (
+        <Link to="/mypage/shops" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          <div>
+            <div className="text-sm font-bold text-gray-900">매장 심사 중</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">
+              등록하신 매장을 확인하고 있어요. 승인되면 매장 관리가 열려요.
             </div>
           </div>
           <span className="text-gray-400 text-lg">›</span>
