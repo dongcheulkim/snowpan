@@ -132,7 +132,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (!item) { res.status(404).json({ error: '렌탈을 찾을 수 없습니다.' }); return; }
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, price, duration, equipment, description, image } = req.body;
+    const { name, price, duration, equipment, description, image, resortId } = req.body;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const r = parsePrice(price);
@@ -149,7 +149,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
       data: {
         ...(name && { name }), ...(priceUpdate !== undefined && { price: priceUpdate }), ...(duration && { duration }),
         ...(equipment && { equipment }), ...(description !== undefined && { description: typeof description === 'string' ? description.slice(0, 2000) : null }),
-        ...(image && { image }), ...(ownerEdit && { approved: false }),
+        ...(resortId && { resortId }), ...(image && { image }), ...(ownerEdit && { approved: false }),
       },
     });
     if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});

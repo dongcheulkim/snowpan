@@ -145,7 +145,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, type, price, originalPrice, guests, features, image } = req.body;
+    const { name, type, price, originalPrice, guests, features, image, resortId } = req.body;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const r = parsePrice(price);
@@ -167,7 +167,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
       data: {
         ...(name && { name }), ...(type && { type }), ...(priceUpdate !== undefined && { price: priceUpdate }),
         ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests }), ...(features && { features }),
-        ...(image && { image }), ...(ownerEdit && { approved: false }),
+        ...(resortId && { resortId }), ...(image && { image }), ...(ownerEdit && { approved: false }),
       },
     });
     if (ownerEdit) notifyAdmins('system', '숙소 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});

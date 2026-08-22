@@ -75,6 +75,7 @@ const AccommodationEdit = () => {
         method: 'PUT',
         body: {
           name: form.name.trim(),
+          resortId: form.resortId,
           type: form.types.join(','),
           price: form.price,
           originalPrice: form.originalPrice || form.price,

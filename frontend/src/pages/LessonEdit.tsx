@@ -69,6 +69,7 @@ const LessonEdit = () => {
         method: 'PUT',
         body: {
           name: form.name.trim(),
+          resortId: form.resortId,
           price: Number(form.price),
           duration: form.duration,
           level: form.level,
