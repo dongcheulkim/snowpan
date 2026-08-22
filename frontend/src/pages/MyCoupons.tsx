@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
+import WalletTabs from '../components/WalletTabs';
 
 interface UserCoupon {
   id: string;
@@ -144,6 +145,7 @@ const MyCoupons = () => {
   return (
     <div className="min-h-screen bg-sky-50 pb-10">
       <div className="px-4 pt-5">
+        <WalletTabs active="coupons" />
         {/* 상단 진입 — 쿠폰샵 */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-gray-900">내 쿠폰</h1>

@@ -100,10 +100,8 @@ const MyPage = () => {
   };
 
   const menuItems = [
-    { label: t('mypage.editProfile'), link: '/mypage/edit' },
-    ...(user ? [{ label: '내 프로필 보기 (남에게 보이는 화면)', link: `/seller/${user.id}` }] : []),
-    { label: '내 포인트', link: '/points' },
-    { label: '내 쿠폰', link: '/mypage/coupons' },
+    ...(user ? [{ label: '내 프로필 (수정 · 남에게 보이는 화면)', link: `/seller/${user.id}` }] : []),
+    { label: '포인트 · 쿠폰', link: '/points' },
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },

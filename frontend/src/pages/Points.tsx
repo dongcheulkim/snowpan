@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
+import WalletTabs from '../components/WalletTabs';
 
 interface Transaction {
   id: string;
@@ -69,6 +70,7 @@ const Points = () => {
   return (
     <div className="min-h-screen bg-sky-50 pb-10">
       <div className="px-4 pt-5">
+        <WalletTabs active="points" />
         {/* 잔액 카드 */}
         <div className="bg-gray-900 text-white rounded-2xl p-5 shadow-sm">
           <p className="text-xs text-gray-300">사용 가능한 포인트</p>
