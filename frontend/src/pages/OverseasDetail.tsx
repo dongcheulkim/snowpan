@@ -55,11 +55,14 @@ export default function OverseasDetail() {
   return (
     <div className="min-h-screen bg-sky-50 pb-12">
       {/* 히어로 */}
-      <div className="relative h-52">
-        {resort.image ? (
-          <img src={imageUrl(resort.image, 800)} alt={resort.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-sky-400 to-indigo-600" />
+      <div className="relative h-52 bg-gradient-to-br from-sky-400 to-indigo-600">
+        {resort.image && (
+          <img
+            src={imageUrl(resort.image, 800)}
+            alt={resort.name}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <Link to="/overseas" className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-gray-900 text-lg">←</Link>

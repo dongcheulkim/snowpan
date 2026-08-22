@@ -62,11 +62,17 @@ export default function Overseas() {
           <div className="grid grid-cols-2 gap-3">
             {resorts.map((r) => (
               <Link key={r.id} to={`/overseas/${r.slug}`} className="bg-snow border border-gray-200 rounded-2xl overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="h-24 relative overflow-hidden">
+                <div className="h-24 relative overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500">
                   {r.image ? (
-                    <img src={imageUrl(r.image, 400)} alt={r.name} className="w-full h-full object-cover" />
+                    <img
+                      src={imageUrl(r.image, 400)}
+                      alt={r.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center">
                       <span className="text-white font-black text-lg">{r.name}</span>
                     </div>
                   )}

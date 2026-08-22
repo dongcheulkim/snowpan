@@ -29,7 +29,13 @@ export default function DealCard({ deal, showResort = false }: { deal: Deal; sho
     >
       {deal.image ? (
         <div className="h-28 bg-gray-100 overflow-hidden">
-          <img src={imageUrl(deal.image, 480)} alt={deal.title} className="w-full h-full object-cover" />
+          <img
+            src={imageUrl(deal.image, 480)}
+            alt={deal.title}
+            loading="lazy"
+            className="w-full h-full object-cover"
+            onError={(e) => { const p = (e.currentTarget.parentElement as HTMLElement); if (p) p.style.display = 'none'; }}
+          />
         </div>
       ) : null}
       <div className="p-3.5">
