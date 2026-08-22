@@ -367,6 +367,36 @@ const CONTINENT: Record<string, string> = {
 const POPULAR = new Set(['niseko', 'hakuba', 'furano', 'rusutsu', 'nozawa-onsen', 'zao', 'whistler', 'zermatt',
   'yongpyong', 'high1', 'phoenix', 'muju', 'vivaldi']);
 
+// 해외 리프트권 — 나라별 현지 통화(약값·시즌/날짜별 상이). 정확값은 각 공식 사이트로.
+const LIFT_PRICE: Record<string, string> = {
+  niseko: '1일권 약 ¥9,000 (엔 · 시즌별 상이)',
+  hakuba: '1일권 약 ¥8,000 (엔 · 시즌별 상이)',
+  furano: '1일권 약 ¥7,000 (엔 · 시즌별 상이)',
+  rusutsu: '1일권 약 ¥8,000 (엔 · 시즌별 상이)',
+  'nozawa-onsen': '1일권 약 ¥6,500 (엔 · 시즌별 상이)',
+  myoko: '1일권 약 ¥5,500 (엔 · 시즌별 상이)',
+  zao: '1일권 약 ¥6,000 (엔 · 시즌별 상이)',
+  kiroro: '1일권 약 ¥8,000 (엔 · 시즌별 상이)',
+  yabuli: '1일권 약 400元 (위안 · 시즌별 상이)',
+  chongli: '1일권 약 500元 (위안 · 시즌별 상이)',
+  changbaishan: '1일권 약 450元 (위안 · 시즌별 상이)',
+  chamonix: '1일권 약 €65 (유로 · 시즌별 상이)',
+  valdisere: '1일권 약 €70 (유로 · 시즌별 상이)',
+  zermatt: '1일권 약 CHF 92 (스위스프랑 · 시즌별 상이)',
+  stanton: '1일권 약 €72 (유로 · 시즌별 상이)',
+  cortina: '1일권 약 €80 (유로 · 시즌별 상이)',
+  whistler: '현지 다이내믹 요금 · 약 C$200~ (캐나다달러)',
+  aspen: '현지 다이내믹 요금 · 약 US$200~ (미국달러)',
+};
+
+// 요금 페이지 딥링크 우선(공식 사이트 버튼이 바로 요금표로). 확보된 국내 위주.
+const PRICE_URL: Record<string, string> = {
+  alpensia: 'https://www.alpensia.com/ski/use-cost-lift.do',
+  'elysian-gangchon': 'https://www.elysian.co.kr/gangchon/ski/ski_cost.asp',
+  oakvalley: 'https://oakvalley.co.kr/ski/introduction/charge-info',
+  edenvalley: 'https://www.edenvalley.co.kr/ski/View.asp?location=01',
+};
+
 export async function seedOverseas(): Promise<void> {
   try {
     for (let i = 0; i < RESORTS.length; i++) {
@@ -383,8 +413,8 @@ export async function seedOverseas(): Promise<void> {
         // 큐레이션 정보 필드(가격·요금페이지·위치 등)는 최신 시드값으로 갱신.
         // (아직 관리자 편집 전제 없음 — 추후 잠금 플래그 도입 가능)
         data.scope = r.scope || '해외';
-        data.liftPrice = r.liftPrice || null;
-        data.website = r.website || r.official || null;
+        data.liftPrice = r.liftPrice || LIFT_PRICE[r.slug] || null;
+        data.website = PRICE_URL[r.slug] || r.website || r.official || null;
         data.address = r.address || null;
         data.phone = r.phone || null;
         data.nightSki = !!r.nightSki;
@@ -395,7 +425,8 @@ export async function seedOverseas(): Promise<void> {
       const resort = await prisma.overseasResort.create({
         data: {
           slug: r.slug, name: r.name, scope: r.scope || '해외', country: r.country, continent, popular, region: r.region,
-          address: r.address || null, liftPrice: r.liftPrice || null, website: r.website || r.official || null,
+          address: r.address || null, liftPrice: r.liftPrice || LIFT_PRICE[r.slug] || null,
+          website: PRICE_URL[r.slug] || r.website || r.official || null,
           phone: r.phone || null, nightSki: !!r.nightSki, lifts: r.lifts || null,
           summary: r.summary, season: r.season, snowType: r.snowType, highlights: r.highlights,
           slopes: r.slopes, bestFor: r.bestFor, description: r.description,
