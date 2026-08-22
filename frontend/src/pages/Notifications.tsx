@@ -29,6 +29,7 @@ const Notifications = () => {
     const cls = 'text-gray-700';
     switch (type) {
       case 'chat': return <ChatIcon size={20} className={cls} />;
+      case 'community': return <ChatIcon size={20} className={cls} />;
       case 'approve': return <CheckIcon size={20} className="text-emerald-600" />;
       case 'reject': return <CloseIcon size={20} className="text-red-600" />;
       case 'badge': return <TrophyIcon size={20} className={cls} />;
@@ -134,12 +135,14 @@ const Notifications = () => {
         />
       ) : (
         <div className="card overflow-hidden">
-          {notifications.map((noti, idx) => (
-            <Link
+          {notifications.map((noti, idx) => {
+            const W: any = noti.link ? Link : 'div';
+            return (
+            <W
               key={noti.id}
-              to={noti.link || '#'}
+              {...(noti.link ? { to: noti.link } : {})}
               onClick={() => handleClick(noti.id)}
-              className={`flex items-start gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors ${
+              className={`flex items-start gap-3 px-4 py-3.5 transition-colors ${noti.link ? 'hover:bg-gray-50 cursor-pointer' : ''} ${
                 idx < notifications.length - 1 ? 'border-b border-gray-100' : ''
               } ${!noti.read ? 'bg-sky-50/50' : ''}`}
             >
@@ -161,8 +164,8 @@ const Notifications = () => {
               >
                 <CloseIcon size={16} />
               </button>
-            </Link>
-          ))}
+            </W>
+          );})}
         </div>
       )}
     </div>

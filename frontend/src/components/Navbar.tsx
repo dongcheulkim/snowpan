@@ -47,7 +47,7 @@ const Navbar = () => {
         .then(data => {
           try {
             const notifs = Array.isArray(data) ? data : (data?.notifications || []);
-            const count = notifs.filter((n: any) => !n.read).length;
+            const count = notifs.filter((n: any) => !n.read && n.type !== 'chat').length; // 채팅은 벨 제외(자체 점 dot)
             setUnreadNotifCount(count);
           } catch {}
         })
@@ -87,30 +87,24 @@ const Navbar = () => {
     socketRef.current = socket;
 
     socket.on('new_notification', (data: any) => {
-      setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
       if (data?.type === 'chat') {
+        // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
+        // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).
         setTimeout(() => setHasUnread(true), 0);
-        // chat 알림은 new_message 핸들러에서 표시 — 중복 방지
+        showBrowserNotification({
+          title: data?.title || '새 메시지',
+          body: data?.message || data?.body,
+          link: data?.link || '/chat/rooms',
+          tag: 'chat',
+        });
         return;
       }
+      setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
       showBrowserNotification({
         title: data?.title || '새 알림',
         body: data?.message || data?.body,
         link: data?.link,
         tag: data?.type || 'snowpan',
-      });
-    });
-
-    socket.on('new_message', (data: any) => {
-      setTimeout(() => setHasUnread(true), 0);
-      // 본인이 보낸 메시지는 알림 X
-      if (data?.senderId === user?.id) return;
-      const senderName = data?.sender?.nickname || data?.sender?.name || '알 수 없음';
-      showBrowserNotification({
-        title: `${senderName}님의 메시지`,
-        body: data?.content || '새 메시지가 도착했어요',
-        link: data?.roomId ? `/chat/${data.roomId}` : '/chat/rooms',
-        tag: data?.roomId ? `chat-${data.roomId}` : 'chat',
       });
     });
 

@@ -351,7 +351,7 @@ const AdminDashboard = () => {
                         </span>
                         <span className="text-xs text-gray-500 ml-2">{r.type}</span>
                       </div>
-                      <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
                     </div>
                     <p className="text-sm font-medium text-gray-900 mb-1">{r.reason}</p>
                     {r.description && <p className="text-xs text-gray-500 mb-2">{r.description}</p>}
@@ -651,7 +651,7 @@ const AdminDashboard = () => {
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.color}`}>{s.label}</span>
                           <span className="text-[10px] text-gray-500">{slotLabel}</span>
                         </div>
-                        <span className="text-[10px] text-gray-500">{new Date(b.createdAt).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-gray-500">{new Date(b.createdAt).toLocaleDateString('ko-KR')}</span>
                       </div>
                       <p className="text-sm font-bold text-gray-900 mb-0.5">{b.title}</p>
                       <p className="text-xs text-gray-500 mb-1">
@@ -663,7 +663,7 @@ const AdminDashboard = () => {
                       </p>
                       {b.payment && (
                         <p className="text-[10px] text-gray-500 mt-0.5">
-                          결제: {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString()}
+                          결제: {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}
                         </p>
                       )}
                       <div className="flex gap-2 mt-2">

@@ -71,7 +71,7 @@ const MyCoupons = () => {
 
   useEffect(() => {
     setLoading(true);
-    refresh().finally(() => setLoading(false));
+    refresh().catch(() => toastError('쿠폰을 불러오지 못했습니다.')).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
