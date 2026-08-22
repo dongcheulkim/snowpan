@@ -58,6 +58,7 @@ export default function AgencyRegister() {
         <h1 className="text-xl font-bold text-gray-900">여행사 등록</h1>
       </div>
       <p className="text-xs text-gray-500 -mt-2">승인 후 직접 여행 상품을 올리고, 취급 리조트 상세에 추천 여행사로 노출됩니다.</p>
+      <div className="bg-mint/10 border border-mint/30 rounded-lg px-3 py-2 text-[11px] text-emerald-700 font-medium">베타 기간 등록·노출 무료 · 정식 오픈 후 가입비 100,000원 + 월 구독료 예정</div>
 
       <div className="card p-4 space-y-2.5">
         <input className={inputCls} placeholder="상호명 *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />

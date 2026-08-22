@@ -29,11 +29,13 @@ export default function AgencyManage() {
   const [editDId, setEditDId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [pricing, setPricing] = useState<{ signupFee: number; monthlyFee: number } | null>(null);
+  const [pricing, setPricing] = useState<{ signupFee: number; monthlyFee: number; betaFree?: boolean } | null>(null);
   const [months, setMonths] = useState(1);
   const [paying, setPaying] = useState(false);
 
-  const active = !!sel?.paidUntil && new Date(sel.paidUntil).getTime() > Date.now();
+  const betaFree = !!pricing?.betaFree;
+  const paidActive = !!sel?.paidUntil && new Date(sel.paidUntil).getTime() > Date.now();
+  const active = !!sel?.approved && (betaFree || paidActive);
 
   useEffect(() => {
     document.title = '여행사 관리';
@@ -48,9 +50,8 @@ export default function AgencyManage() {
   }, []);
 
   useEffect(() => {
-    if (sel && sel.paidUntil && new Date(sel.paidUntil).getTime() > Date.now()) {
-      api<Deal[]>(`/agencies/${sel.id}/deals`).then(setDeals).catch(() => setDeals([]));
-    } else setDeals([]);
+    if (sel) api<Deal[]>(`/agencies/${sel.id}/deals`).then(setDeals).catch(() => setDeals([]));
+    else setDeals([]);
   }, [sel]);
 
   const estAmount = pricing ? (sel?.signupPaid ? 0 : pricing.signupFee) + pricing.monthlyFee * months : 0;
@@ -142,13 +143,21 @@ export default function AgencyManage() {
                 {active ? '노출중 (구독)' : sel.approved ? '결제 필요' : '승인 대기중'}
               </span>
             </div>
-            {!sel.approved && <p className="text-[11px] text-gray-500 mt-1">관리자 승인 후 구독 결제를 하면 노출돼요.</p>}
-            {active && sel.paidUntil && <p className="text-[11px] text-gray-500 mt-1">구독 만료: {new Date(sel.paidUntil).toLocaleDateString('ko-KR')}</p>}
+            {!sel.approved && <p className="text-[11px] text-gray-500 mt-1">{betaFree ? '관리자 승인 후 무료로 노출돼요 (베타 기간).' : '관리자 승인 후 구독 결제를 하면 노출돼요.'}</p>}
+            {active && !betaFree && sel.paidUntil && <p className="text-[11px] text-gray-500 mt-1">구독 만료: {new Date(sel.paidUntil).toLocaleDateString('ko-KR')}</p>}
 
-            {/* 구독 결제 (승인된 여행사) */}
-            {sel.approved && (
+            {/* 베타 무료 안내 */}
+            {sel.approved && betaFree && (
               <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="text-xs font-bold text-gray-900 mb-1.5">{active ? '구독 연장' : '구독 시작'}</div>
+                <p className="text-xs font-bold text-mint">베타 기간 무료 노출 중</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">정식 오픈 후에는 가입비 {(pricing?.signupFee ?? 100000).toLocaleString()}원 + 월 구독료가 적용될 예정이에요.</p>
+              </div>
+            )}
+
+            {/* 구독 결제 (베타 종료 후) */}
+            {sel.approved && !betaFree && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="text-xs font-bold text-gray-900 mb-1.5">{paidActive ? '구독 연장' : '구독 시작'}</div>
                 <div className="flex gap-1.5 mb-2">
                   {[1, 3, 6, 12].map((m) => (
                     <button key={m} onClick={() => setMonths(m)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold ${months === m ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{m}개월</button>

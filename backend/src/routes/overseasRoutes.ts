@@ -3,6 +3,7 @@ import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
+import { isAgencyActive, agencyActiveWhere } from '../utils/agencyActive';
 
 // 해외 스키 여행 — 콘텐츠형(가이드) + 딜/광고(외부 파트너 중개).
 // 공개: 목록/상세/딜 조회 + 딜 클릭 추적. 쓰기: 관리자(에디터)만.
@@ -80,14 +81,13 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
     if (!resort) { res.status(404).json({ error: '해외 스키장을 찾을 수 없습니다.' }); return; }
     // 조회수 증가 (fire-and-forget).
     prisma.overseasResort.update({ where: { id: resort.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
-    const now = Date.now();
-    // 여행사 딜은 그 여행사가 구독중일 때만 노출 (관리자 딜은 agency 없음 → 항상 노출).
+    // 여행사 딜은 그 여행사가 활성(베타 무료 or 구독중)일 때만 노출. 관리자 딜(agency 없음)은 항상 노출.
     const deals = resort.deals
-      .filter((d) => !d.agency || (d.agency.approved && d.agency.paidUntil && d.agency.paidUntil.getTime() > now))
+      .filter((d) => !d.agency || isAgencyActive(d.agency))
       .map((d) => ({ ...d, agency: d.agency ? { id: d.agency.id, name: d.agency.name } : null }));
-    // 추천 여행사 — 이 리조트/국가를 취급하는 승인+구독중 여행사.
+    // 추천 여행사 — 이 리조트/국가를 취급하는 활성 여행사.
     const activeAgencies = await prisma.travelAgency.findMany({
-      where: { approved: true, paidUntil: { gt: new Date() } },
+      where: agencyActiveWhere(),
       select: {
         id: true, name: true, description: true, image: true, phone: true, website: true, kakao: true,
         countries: true, resortSlugs: true, isPremium: true,

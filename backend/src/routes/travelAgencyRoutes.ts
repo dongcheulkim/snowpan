@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { notifyAdmins } from '../controllers/notificationController';
+import { isAgencyActive, agencyActiveWhere, AGENCY_BETA_FREE } from '../utils/agencyActive';
 
 // 여행사 — 해외 스키 여행 파트너. 등록→관리자 승인→노출. 승인되면 스스로 딜 등록 가능.
 const router = Router();
@@ -16,12 +17,9 @@ function tokens(csv?: string | null): string[] {
 }
 
 // 구독 요금 (env 로 조정). 가입비=최초 1회, 월요금=매월. 토스페이먼츠 결제.
-const SIGNUP_FEE = Number(process.env.AGENCY_SIGNUP_FEE || 110000);
+// 베타 기간(AGENCY_BETA_FREE=기본 true)엔 무료 — 결제 없이 승인만으로 노출.
+const SIGNUP_FEE = Number(process.env.AGENCY_SIGNUP_FEE || 100000);
 const MONTHLY_FEE = Number(process.env.AGENCY_MONTHLY_FEE || 55000);
-
-function isActive(a: { approved: boolean; paidUntil: Date | null }): boolean {
-  return a.approved && !!a.paidUntil && a.paidUntil.getTime() > Date.now();
-}
 
 // 토스페이먼츠 결제 승인 — successUrl 로 돌아온 paymentKey/orderId/amount 를 서버에서 확정.
 async function confirmTossPayment(paymentKey: string, orderId: string, amount: number): Promise<{ ok: boolean; error?: string }> {
@@ -59,7 +57,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const verticalSlug = pickVertical(req.query.vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
     const agencies = await prisma.travelAgency.findMany({
-      where: { approved: true, paidUntil: { gt: new Date() }, vertical: verticalSlug },
+      where: { ...agencyActiveWhere(), vertical: verticalSlug },
       select: PUBLIC_AGENCY_SELECT,
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
       take: 100,
@@ -99,7 +97,7 @@ router.get('/pending', authenticateToken, requireAdmin, async (_req: AuthRequest
 
 // 구독 요금 안내 (프론트가 금액 계산·표시).
 router.get('/billing/pricing', authenticateToken, async (_req: AuthRequest, res: Response): Promise<void> => {
-  res.json({ signupFee: SIGNUP_FEE, monthlyFee: MONTHLY_FEE });
+  res.json({ signupFee: SIGNUP_FEE, monthlyFee: MONTHLY_FEE, betaFree: AGENCY_BETA_FREE });
 });
 
 // 관리자: 입금/결제 대기 구독 (Toss 승인 실패분 수동 확인용).
@@ -171,7 +169,7 @@ router.post('/subscriptions/confirm', authenticateToken, async (req: AuthRequest
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const agency = await prisma.travelAgency.findFirst({
-      where: { id: req.params.id, approved: true, paidUntil: { gt: new Date() } },
+      where: { id: req.params.id, ...agencyActiveWhere() },
       select: {
         ...PUBLIC_AGENCY_SELECT,
         deals: {
@@ -295,7 +293,7 @@ router.get('/:agencyId/deals', authenticateToken, async (req: AuthRequest, res: 
 router.post('/:agencyId/deals', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   const { agency, err } = await ownedApprovedAgency(req.params.agencyId, req.user!.id, req.user!.role);
   if (err) { res.status(err).json({ error: err === 404 ? '여행사를 찾을 수 없습니다.' : '권한이 없습니다.' }); return; }
-  if (!isActive(agency!)) { res.status(403).json({ error: '구독(결제) 후 딜을 등록할 수 있어요.' }); return; }
+  if (!isAgencyActive(agency!)) { res.status(403).json({ error: AGENCY_BETA_FREE ? '관리자 승인 후 딜을 등록할 수 있어요.' : '구독(결제) 후 딜을 등록할 수 있어요.' }); return; }
   const b = req.body;
   if (!b.title || !isHttpUrl(b.link)) { res.status(400).json({ error: '제목과 링크(http/https)는 필수입니다.' }); return; }
   if (b.image && !isHttpUrl(b.image) && !String(b.image).startsWith('/')) { res.status(400).json({ error: '이미지 형식이 올바르지 않습니다.' }); return; }
