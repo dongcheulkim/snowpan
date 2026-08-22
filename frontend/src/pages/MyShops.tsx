@@ -89,6 +89,8 @@ export default function MyShops() {
   const all = CATEGORIES.flatMap((c) => shops[c.key]);
   const totalShops = all.length;
   const totalViews = all.reduce((n, s) => n + (s.viewCount ?? 0), 0);
+  // 내가 등록한 업종만 노출 (등록 안 한 카테고리는 숨김).
+  const visibleCategories = CATEGORIES.filter((c) => shops[c.key].length > 0);
 
   return (
     <div className="max-w-md mx-auto space-y-5 animate-fade-in">
@@ -98,7 +100,7 @@ export default function MyShops() {
       </div>
 
       <p className="text-xs text-gray-500 -mt-2">
-        스키샵·정비샵·렌탈샵·레슨·숙소를 등록하고 한 곳에서 관리하세요.
+        등록하신 매장을 한 곳에서 관리하세요.
       </p>
 
       {totalShops > 0 && (
@@ -114,29 +116,26 @@ export default function MyShops() {
         </div>
       )}
 
-      {CATEGORIES.map((cat) => {
-        const list = shops[cat.key];
-        return (
+      {visibleCategories.length === 0 ? (
+        <div className="card p-8 text-center">
+          <p className="text-sm text-gray-500">아직 등록한 매장이 없어요.</p>
+          <p className="text-xs text-gray-400 mt-1">각 카테고리 페이지에서 매장을 등록하면 여기에 표시돼요.</p>
+        </div>
+      ) : (
+        visibleCategories.map((cat) => (
           <div key={cat.key} className="card p-5">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5">
                 <cat.Icon size={16} /> {cat.label}
               </h2>
-              <Link to={cat.registerPath} className="text-xs text-sky-600 font-bold">+ 등록</Link>
+              <Link to={cat.registerPath} className="text-xs text-sky-600 font-bold">+ 추가 등록</Link>
             </div>
-            {list.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-xs text-gray-500 mb-2">아직 등록한 {cat.label}이(가) 없어요</p>
-                <Link to={cat.registerPath} className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">+ {cat.label} 등록하기</Link>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {list.map((s) => <ShopCard key={s.id} shop={s} cat={cat} />)}
-              </div>
-            )}
+            <div className="space-y-2">
+              {shops[cat.key].map((s) => <ShopCard key={s.id} shop={s} cat={cat} />)}
+            </div>
           </div>
-        );
-      })}
+        ))
+      )}
     </div>
   );
 }
