@@ -7,6 +7,23 @@ export function isNativeApp(): boolean {
   try { return Capacitor.isNativePlatform(); } catch { return false; }
 }
 
+// ===== 앱 전용 지속 로그인 =====
+// 웹은 httpOnly 쿠키로 refresh 하지만, 앱은 소셜 로그인이 인앱 브라우저에서 일어나
+// 웹뷰에 쿠키가 없음 → refresh 토큰을 앱 저장소(localStorage, 웹뷰 영속)에 보관하고
+// body 채널로 갱신. 웹에서는 아무것도 저장하지 않음.
+const APP_RT_KEY = 'snowpan.appRefresh';
+export function setAppRefreshToken(t: string): void {
+  if (!isNativeApp() || !t) return;
+  try { localStorage.setItem(APP_RT_KEY, t); } catch { /* ignore */ }
+}
+function getAppRefreshToken(): string | null {
+  if (!isNativeApp()) return null;
+  try { return localStorage.getItem(APP_RT_KEY); } catch { return null; }
+}
+function clearAppRefreshToken(): void {
+  try { localStorage.removeItem(APP_RT_KEY); } catch { /* ignore */ }
+}
+
 // 외부 링크 열기 — 앱에서는 인앱 브라우저(Capacitor Browser), 웹에서는 새 탭.
 export async function openExternal(url: string): Promise<void> {
   if (isNativeApp()) {
@@ -37,13 +54,18 @@ async function tryRefreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {
+      // 앱: 저장된 refresh 토큰을 body 로 전송 (쿠키가 웹뷰에 없음). 웹: 쿠키 자동 전송.
+      const appRt = getAppRefreshToken();
       const res = await fetch(`${API_BASE}/auth/refresh`, {
         method: 'POST',
         credentials: 'include',
+        ...(appRt ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: appRt }) } : {}),
       });
       if (!res.ok) return null;
       const data = await res.json();
       if (!data?.token) return null;
+      // 앱: rotation 된 refresh 토큰 저장 (옛 토큰은 재사용 시 도난으로 간주됨).
+      if (data.refreshToken) setAppRefreshToken(data.refreshToken);
       // user 정보도 함께 갱신 (role 변경 등 반영).
       try {
         if (data.user) authStore().setItem('user', JSON.stringify(data.user));
@@ -229,9 +251,15 @@ export async function restoreSession(): Promise<void> {
 
 export function logout() {
   // 백엔드에 refresh 쿠키 제거 요청 (실패해도 진행).
-  // FCM 토큰 정리는 서버 logout 이 refresh 쿠키로 유저를 식별해 처리 —
-  // 액세스 토큰이 만료된 로그아웃에서도 확실히 지워짐 (프론트 Bearer 방식은 1h+ 방치 시 401 로 실패했음).
-  fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+  // FCM 토큰 정리는 서버 logout 이 refresh 쿠키(웹)/body 토큰(앱)으로 유저를 식별해 처리 —
+  // 액세스 토큰이 만료된 로그아웃에서도 확실히 지워짐.
+  const appRt = getAppRefreshToken();
+  fetch(`${API_BASE}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+    ...(appRt ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: appRt }) } : {}),
+  }).catch(() => {});
+  clearAppRefreshToken();
   import('./push').then(m => m.clearPush()).catch(() => {});
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('token');

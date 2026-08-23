@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin } from '../api';
+import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin, isNativeApp, setAppRefreshToken } from '../api';
 import { initPush } from '../push';
 import { t, onLangChange } from '../i18n';
 
@@ -62,12 +62,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const data = await api<{ token: string; user: { id: string; email: string; name: string; phone: string; role: string; createdAt: string } }>('/auth/login', {
+      const data = await api<{ token: string; refreshToken?: string; user: { id: string; email: string; name: string; phone: string; role: string; createdAt: string } }>('/auth/login', {
         method: 'POST',
-        body: { email, password, remember: autoLogin },
+        // 앱은 platform=app 을 보내 refresh 토큰을 body 로 받음 (웹뷰엔 쿠키가 안 심겨 지속 로그인 불가였음)
+        body: { email, password, remember: autoLogin, ...(isNativeApp() ? { platform: 'app' } : {}) },
       });
 
       setAuth(data.token, data.user, autoLogin);
+      if (data.refreshToken) setAppRefreshToken(data.refreshToken); // 앱 지속 로그인
       markLastLogin('email');
       initPush().catch(() => {}); // 앱: 이메일 로그인도 FCM 등록 (웹 no-op)
 

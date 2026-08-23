@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens } from '../utils/tokens';
+import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
 import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
@@ -221,11 +221,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // body 의 remember=true 면 14일 유지, 없으면 브라우저 닫을 때 만료.
     const remember = req.body?.remember === true;
     const token = signAccessToken(user);
-    setRefreshCookie(res, user.id, remember);
+    const isAppClient = req.body?.platform === 'app'; // Capacitor 앱 — 쿠키 대신 body 채널로 지속 로그인
+    const loginRefresh = signRefreshToken(user.id, undefined, remember);
+    res.cookie(REFRESH_COOKIE_NAME, loginRefresh, refreshCookieOptions(remember));
 
     res.json({
       message: '로그인에 성공했습니다.',
       token,
+      ...(isAppClient ? { refreshToken: loginRefresh } : {}),
       user: {
         id: user.id,
         email: user.email,
@@ -871,7 +874,10 @@ export const getMyAdRequests = async (req: AuthRequest, res: Response): Promise<
 // 즉시 강제 로그아웃 → 공격자 차단.
 export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME];
+    // 앱(Capacitor WebView)은 소셜 로그인이 인앱 브라우저에서 일어나 httpOnly 쿠키가 없음 →
+    // body.refreshToken 으로도 수용 (앱 전용 채널, 검증·rotation·도난감지는 쿠키와 동일).
+    const bodyToken = typeof (req.body as { refreshToken?: unknown })?.refreshToken === 'string' ? (req.body as { refreshToken: string }).refreshToken : null;
+    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME] || bodyToken;
     if (!cookieToken) {
       res.status(401).json({ error: '재인증이 필요합니다.' });
       return;
@@ -926,10 +932,14 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
     // 새 access + 새 refresh (같은 family 유지) — rotation.
     // remember 는 최초 로그인 선택을 그대로 계승 (자동로그인 미선택이 14일로 승격되지 않게).
     const token = signAccessToken(user);
-    setRefreshCookie(res, user.id, payload.rem !== false, payload.fam);
+    const remember = payload.rem !== false;
+    const newRefresh = signRefreshToken(user.id, payload.fam, remember);
+    res.cookie(REFRESH_COOKIE_NAME, newRefresh, refreshCookieOptions(remember));
 
     res.json({
       token,
+      // body 채널(앱)로 온 요청엔 회전된 refresh 도 body 로 반환 — 앱이 저장해 다음 refresh 에 사용.
+      ...(bodyToken ? { refreshToken: newRefresh } : {}),
       user: {
         id: user.id,
         email: user.email,
@@ -954,7 +964,9 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 // 액세스 토큰이 이미 만료된 로그아웃(1h+ 방치 후)에서도 확실히 동작.
 export const logout = (req: Request, res: Response): void => {
   try {
-    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME];
+    // 앱은 쿠키가 없으니 body.refreshToken 으로도 유저 식별 (FCM 정리용).
+    const bodyToken = typeof (req.body as { refreshToken?: unknown })?.refreshToken === 'string' ? (req.body as { refreshToken: string }).refreshToken : null;
+    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME] || bodyToken;
     if (cookieToken) {
       const payload = verifyRefreshToken(cookieToken);
       prisma.user.update({ where: { id: payload.userId }, data: { fcmToken: null } }).catch(() => {});

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAuth, markLastLogin } from '../api';
+import { setAuth, markLastLogin, setAppRefreshToken } from '../api';
 import { initPush } from '../push';
 
 // 소셜 로그인 콜백 — 백엔드가 #token=...&user=<base64url>&provider=kakao 형태로 리다이렉트.
@@ -29,6 +29,9 @@ const OAuthCallback = () => {
 
       // 소셜 로그인은 지속 로그인(자동 로그인) 처리.
       setAuth(token, user, true);
+      // 앱: 딥링크로 받은 refresh 토큰 저장 — 앱 재시작/1h 후에도 로그인 유지 (웹 no-op).
+      const refresh = params.get('refresh');
+      if (refresh) setAppRefreshToken(refresh);
       if (provider === 'kakao' || provider === 'naver') markLastLogin(provider);
       initPush().catch(() => {}); // 앱: 로그인 직후 FCM 토큰 등록 (웹 no-op)
 

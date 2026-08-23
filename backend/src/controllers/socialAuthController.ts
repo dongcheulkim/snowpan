@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import prisma from '../config/database';
-import { signAccessToken, setRefreshCookie } from '../utils/tokens';
+import { signAccessToken, signRefreshToken, setRefreshCookie } from '../utils/tokens';
 import { normalizeEmail } from '../utils/validate';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
@@ -102,7 +102,10 @@ async function completeLogin(res: Response, profile: SocialProfile, isApp: boole
   const minimal = { id: user.id, email: user.email, name: user.name, nickname: user.nickname, role: user.role, phone: user.phone, profileImage: user.profileImage, provider: user.provider };
   const payload = Buffer.from(JSON.stringify(minimal)).toString('base64url');
   // isNew=1 이면 프론트가 온보딩(/welcome)으로 보냄 — 닉네임·약관 미완료 신규 소셜 유저.
-  const hash = `#token=${encodeURIComponent(token)}&user=${payload}&provider=${profile.provider}&isNew=${isNew ? 1 : 0}`;
+  let hash = `#token=${encodeURIComponent(token)}&user=${payload}&provider=${profile.provider}&isNew=${isNew ? 1 : 0}`;
+  // 앱: refresh 쿠키가 인앱 브라우저에만 심기고 웹뷰엔 없어 지속 로그인이 안 됐음 →
+  // 딥링크에 refresh 토큰을 실어 앱이 저장 (rotation·도난감지는 쿠키 채널과 동일 적용).
+  if (isApp) hash += `&refresh=${encodeURIComponent(signRefreshToken(user.id, undefined, true))}`;
   // 앱: 커스텀 스킴 딥링크로 토큰 반환 → 앱이 받아 로그인. 웹: 기존 /oauth/callback.
   res.redirect(isApp ? `${APP_SCHEME}://oauth/callback${hash}` : `${FRONTEND()}/oauth/callback${hash}`);
 }
