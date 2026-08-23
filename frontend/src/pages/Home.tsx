@@ -1,25 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api, imageUrl, getUser } from '../api';
-import WishlistButton from '../components/WishlistButton';
+import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
 import { useVertical } from '../hooks/useVertical';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  status: string;
-  createdAt: string;
-  viewCount?: number;
-  wishlistCount?: number;
-}
-
-// 한 번에 보여줄 매물 수. 새로고침 누르면 랜덤 다른 30개로 교체.
-const FEED_PAGE_SIZE = 30;
 
 interface BannerData {
   id: string;
@@ -72,11 +57,6 @@ const Home = () => {
   const verticalBase = isSnow ? '' : vertical.basePath; // '' for snow (root), '/bike' for bike etc.
 
   const [currentBanner, setCurrentBanner] = useState(0);
-  // 매물 30개 노출 + "다른 매물 보기" 새로고침으로 랜덤 오프셋 30개 다시 받음.
-  const [feed, setFeed] = useState<Product[]>([]);
-  const [feedLoading, setFeedLoading] = useState(false);
-  const [feedTotal, setFeedTotal] = useState<number | null>(null);
-  const [wishedIds, setWishedIds] = useState<Set<string>>(new Set());
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -104,14 +84,6 @@ const Home = () => {
       .then((d) => setNews(d.items || []))
       .catch(() => {});
   }, [isSnow]);
-
-  // 로그인 시 내 찜 id 집합 로드 (하트 초기 상태).
-  useEffect(() => {
-    if (!getUser()) return;
-    api<{ id: string }[]>('/products/wishlist')
-      .then((d) => setWishedIds(new Set((Array.isArray(d) ? d : []).map((p) => p.id))))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!isSnow) return; // 배너 광고는 snow 전용 — 다른 판은 브랜드 슬라이드만.
@@ -151,41 +123,6 @@ const Home = () => {
         title: c.label,
         link: `${verticalBase}/${c.slug}`,
       }));
-
-  // 매물 피드 로드 — randomize=true 면 totalCount 기준 랜덤 오프셋으로 다른 30개.
-  const loadFeed = useCallback(async (randomize: boolean) => {
-    setFeedLoading(true);
-    try {
-      // 랜덤이면 totalCount 알아야 유효 오프셋 계산. 첫 로드시도 알 수 있음.
-      let offset = 0;
-      const knownTotal = feedTotal;
-      if (randomize && knownTotal && knownTotal > FEED_PAGE_SIZE) {
-        const maxOffset = Math.max(0, knownTotal - FEED_PAGE_SIZE);
-        offset = Math.floor(Math.random() * (maxOffset + 1));
-      }
-      const res = await api<{ products: Product[]; totalCount?: number } | Product[]>(
-        `/products?category=used&limit=${FEED_PAGE_SIZE}&offset=${offset}`
-      );
-      const items = Array.isArray(res) ? res : (res.products || []);
-      const total = Array.isArray(res) ? null : (res.totalCount ?? null);
-      setFeed(items);
-      if (total !== null) setFeedTotal(total);
-      // 페이지 상단으로 부드럽게 스크롤 (새로고침 클릭 시).
-      if (randomize) window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch {
-      // 실패 시 그대로 유지.
-    } finally {
-      setFeedLoading(false);
-    }
-  }, [feedTotal]);
-
-  // 첫 로드 + vertical 바뀌면 리셋.
-  useEffect(() => {
-    setFeed([]);
-    setFeedTotal(null);
-    loadFeed(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vertical.slug]);
 
   return (
     <div className="min-h-screen bg-sky-50">
@@ -379,98 +316,8 @@ const Home = () => {
         </div>
       )}
 
-      {/* 중고매물 30개 노출 + "다른 매물 보기" 새로고침으로 랜덤 30개 교체 */}
-      <div className="px-4 pt-2 pb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[15px] font-bold text-gray-900 inline-flex items-center gap-1.5">
-            <SecondHandIcon size={18} /> {t('cat.used')}
-            {feedTotal !== null && (
-              <span className="text-[11px] font-medium text-gray-500 ml-1">({feedTotal.toLocaleString()})</span>
-            )}
-          </h2>
-          <Link to={`${verticalBase}/used`} className="text-xs text-gray-500">전체 보기 &gt;</Link>
-        </div>
-
-        {feed.length === 0 && !feedLoading ? (
-          <p className="text-sm text-gray-500 text-center py-10">아직 등록된 매물이 없습니다.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
-            {feed.map((p) => (
-              <Link
-                key={p.id}
-                to={`${verticalBase}/used/${p.id}`}
-                className="flex flex-col active:opacity-80 transition-opacity"
-              >
-                <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                  {p.image && (p.image.startsWith('/') || p.image.startsWith('http')) ? (
-                    <img
-                      src={imageUrl(p.image, 400)}
-                      alt={p.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center text-4xl">{p.image || (isSnow ? '🎿' : '')}</span>
-                  )}
-                  {p.status === 'reserved' && (
-                    <span className="absolute top-2 left-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-500 text-white">예약중</span>
-                  )}
-                  {p.status === 'sold' && (
-                    <span className="absolute inset-0 bg-black/45 flex items-center justify-center text-white text-sm font-bold">판매완료</span>
-                  )}
-                  <WishlistButton productId={p.id} initial={wishedIds.has(p.id)} />
-                </div>
-                <p className="mt-2 text-[13px] text-gray-900 line-clamp-2 leading-snug">{p.name}</p>
-                <p className="mt-1 text-[15px] font-bold text-gray-900">{p.price.toLocaleString()}원</p>
-                {((p.viewCount ?? 0) > 0 || (p.wishlistCount ?? 0) > 0) && (
-                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-400">
-                    <span className="inline-flex items-center gap-0.5">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                      {(p.viewCount ?? 0).toLocaleString()}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                      {(p.wishlistCount ?? 0).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* 다른 매물 보기 — 랜덤 오프셋으로 30개 새로 받아 교체 */}
-        {feed.length > 0 && (
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <button
-              onClick={() => loadFeed(true)}
-              disabled={feedLoading || (feedTotal !== null && feedTotal <= FEED_PAGE_SIZE)}
-              className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 text-white text-sm font-bold rounded-full active:scale-95 transition-transform disabled:opacity-40 disabled:active:scale-100"
-            >
-              <svg
-                className={`w-4 h-4 ${feedLoading ? 'animate-spin' : ''}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-                <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                <polyline points="21 3 21 8 16 8" />
-                <polyline points="3 21 3 16 8 16" />
-              </svg>
-              {feedLoading ? '불러오는 중…' : '다른 매물 보기'}
-            </button>
-            {feedTotal !== null && feedTotal > FEED_PAGE_SIZE && (
-              <p className="text-[11px] text-gray-500">
-                전체 {feedTotal.toLocaleString()}건 중 30개 노출 중
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+      {/* 하단 여백 — 마지막 섹션과 바텀 내비 사이 */}
+      <div className="pb-6" />
     </div>
   );
 };
