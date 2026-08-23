@@ -4,6 +4,7 @@ import {
   getSlotPricings,
   getAvailability,
   createBooking,
+  updateBookingCreative,
 
   getMyBookings,
   deleteBooking,
@@ -31,6 +32,7 @@ router.post('/create', authenticateToken, createBooking);
 
 router.get('/my-bookings', authenticateToken, getMyBookings);
 router.post('/:id/cancel', authenticateToken, cancelBooking);
+router.put('/:id', authenticateToken, updateBookingCreative); // 광고주 소재 수정
 router.delete('/:id', authenticateToken, deleteBooking);
 
 // 관리자 API (인증 + admin role)

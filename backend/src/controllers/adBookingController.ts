@@ -4,6 +4,75 @@ import prisma from '../config/database';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins } from './notificationController';
+import { sanitizeText } from '../utils/sanitize';
+import { isAllowedImageUrl } from '../utils/validate';
+
+// 광고주 본인이 광고 소재(제목·문구·링크·이미지·글자색/정렬) 수정.
+// 슬롯·기간·가격은 과금에 영향이라 수정 불가 — 소재만.
+// 게시 중(active)이면 홈 배너 사본(tag=ad:<id>)도 즉시 동기화. 관리자에게 수정 알림.
+export const updateBookingCreative = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const booking = await prisma.adBooking.findFirst({ where: { id, userId } });
+    if (!booking) { res.status(404).json({ error: '광고를 찾을 수 없습니다.' }); return; }
+    if (!['pending_payment', 'paid', 'active'].includes(booking.status)) {
+      res.status(400).json({ error: '종료·취소된 광고는 수정할 수 없습니다.' });
+      return;
+    }
+
+    const { title, description, url, image, textColor, textAlign } = req.body ?? {};
+    const data: Record<string, unknown> = {};
+    if (title !== undefined) {
+      const clean = sanitizeText(title, 60);
+      if (!clean) { res.status(400).json({ error: '제목을 입력해주세요.' }); return; }
+      data.title = clean;
+    }
+    if (description !== undefined) {
+      const clean = sanitizeText(description, 200);
+      if (!clean) { res.status(400).json({ error: '설명을 입력해주세요.' }); return; }
+      data.description = clean;
+    }
+    if (url !== undefined) {
+      const u = String(url || '').trim();
+      if (u && !/^https?:\/\//.test(u)) { res.status(400).json({ error: '링크는 http(s):// 로 시작해야 합니다.' }); return; }
+      data.url = u;
+    }
+    if (image !== undefined) {
+      if (image && !isAllowedImageUrl(String(image))) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
+      data.image = image || null;
+    }
+    if (textColor !== undefined) {
+      const c = String(textColor || '');
+      if (c && !/^#[0-9a-fA-F]{6}$/.test(c)) { res.status(400).json({ error: '글자 색상 형식이 올바르지 않습니다.' }); return; }
+      data.textColor = c || null;
+    }
+    if (textAlign !== undefined) {
+      if (textAlign && !['left', 'center', 'right'].includes(String(textAlign))) { res.status(400).json({ error: '글자 정렬 값이 올바르지 않습니다.' }); return; }
+      data.textAlign = textAlign || null;
+    }
+    if (Object.keys(data).length === 0) { res.status(400).json({ error: '수정할 내용이 없습니다.' }); return; }
+
+    const updated = await prisma.adBooking.update({ where: { id }, data });
+
+    // 게시 중이면 홈 배너 사본도 동기화 (카테고리 배너는 booking 을 직접 읽어 자동 반영).
+    if (booking.status === 'active') {
+      await prisma.banner.updateMany({
+        where: { tag: `ad:${id}` },
+        data: {
+          title: updated.title, description: updated.description, url: updated.url,
+          image: updated.image, textColor: updated.textColor, textAlign: updated.textAlign,
+        },
+      });
+      cacheDel('banners:public');
+    }
+    notifyAdmins('system', '광고 소재 수정', `'${updated.title}' 광고가 수정되었습니다. 내용을 확인해주세요.`, '/admin').catch(() => {});
+    res.json(updated);
+  } catch (error) {
+    console.error('Update booking creative error:', error);
+    res.status(500).json({ error: '광고 수정 중 오류가 발생했습니다.' });
+  }
+};
 
 // 광고 슬롯 가격 목록 조회
 export const getSlotPricings = async (_req: Request, res: Response): Promise<void> => {
