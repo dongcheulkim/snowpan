@@ -3,7 +3,9 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "https://snowpan.onrender.com/sitemap.xml" },
-    { "source": "/((?!api|assets|icons|sw.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)", "destination": "/index.html" }
+    { "source": "/cam/high1/:path*", "destination": "http://59.30.12.195:1935/:path*" },
+    { "source": "/cam/konjiam/:path*", "destination": "http://konjiam.live.cdn.cloudn.co.kr/:path*" },
+    { "source": "/((?!api|assets|icons|cam|sw.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -13,11 +15,18 @@
       ]
     },
     {
+      "source": "/cam/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://snowpankr.b-cdn.net https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pansports.vercel.app https://snowpan.vercel.app; connect-src 'self' https://snowpan.onrender.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'"
+          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://snowpankr.b-cdn.net https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pansports.vercel.app https://snowpan.vercel.app; connect-src 'self' https://snowpan.onrender.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; media-src 'self' blob: https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://rtsp.me https://rtsp.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'"
         },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },

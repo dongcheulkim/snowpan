@@ -60,6 +60,26 @@ const WEBCAM_STREAMS: Record<string, Cam[]> = {
     { label: '슬로프 캠 1', stream: 'https://rtsp.ru/embed/nKGZGiRD/' },
     { label: '슬로프 캠 2', stream: 'https://rtsp.ru/embed/dh6R7d4k' },
   ],
+  // 하이원 — 원 서버가 HTTP 전용이라 브라우저 차단 → snowpan.kr Vercel 프록시(/cam/high1) 경유.
+  // 18캠 중 주요 지점 8곳. 지금도 1080p 송출 중 (연중).
+  high1: [
+    { label: '하이원탑 (제우스1 입구)', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch1.stream/playlist.m3u8' },
+    { label: '마운틴 베이스 (아테나 리프트)', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch7.stream/playlist.m3u8' },
+    { label: '밸리탑 (빅토리아1 입구)', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch9.stream/playlist.m3u8' },
+    { label: '마운틴허브 (스노우월드 입구)', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch4.stream/playlist.m3u8' },
+    { label: '밸리허브 (헤라 리프트 입구)', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch11.stream/playlist.m3u8' },
+    { label: '제우스2 합류구간', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch10.stream/playlist.m3u8' },
+    { label: '아폴로 베이스', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch16.stream/playlist.m3u8' },
+    { label: '밸리 베이스', stream: 'https://snowpan.kr/cam/high1/live/_definst_/ch18.stream/playlist.m3u8' },
+  ],
+  // 곤지암 — CDN 이 HTTP 전용(인증서 불일치) → 프록시(/cam/konjiam) 경유. cam01/04/05 는 연중 송출.
+  konjiam: [
+    { label: '정상 휴게소', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam01.stream/playlist.m3u8' },
+    { label: '중상급 베이스', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam04.stream/playlist.m3u8' },
+    { label: '중간 슬로프', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam05.stream/playlist.m3u8' },
+    { label: '정상부 슬로프', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam02.stream/playlist.m3u8' },
+    { label: '초중급 베이스', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam03.stream/playlist.m3u8' },
+  ],
 };
 
 export async function seedWebcams(): Promise<void> {
