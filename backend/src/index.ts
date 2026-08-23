@@ -76,6 +76,7 @@ import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './m
 import { createNotification } from './controllers/notificationController';
 import { setIO } from './realtime';
 import { seedOverseas } from './utils/seedOverseas';
+import { seedWebcams } from './utils/seedWebcams';
 import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
@@ -519,6 +520,7 @@ httpServer.listen(PORT, async () => {
 
   // 해외 스키 콘텐츠 초기 시드 (비어있을 때만)
   seedOverseas().catch((err) => console.error('해외 시드 실패:', err));
+  seedWebcams().catch((err) => console.error('웹캠 시드 실패:', err));
 
   try {
     startAdBookingScheduler();

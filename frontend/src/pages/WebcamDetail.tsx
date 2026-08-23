@@ -18,7 +18,29 @@ interface WebcamData {
   externalUrl: string | null;
 }
 
-const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }) => {
+// 유튜브 판별 → 임베드 src 변환. cameras[].stream 에 유튜브 라이브를 넣을 수 있게.
+// 지원: youtube:VIDEOID | youtu.be/ID | watch?v=ID | /live/ID | /embed/ID
+//      | embed/live_stream?channel=UC... (채널 상시 라이브 — 방송 ID 가 바뀌어도 유효)
+function parseYouTubeEmbed(stream: string): string | null {
+  const params = 'autoplay=1&mute=1&playsinline=1';
+  if (stream.startsWith('youtube:')) return `https://www.youtube-nocookie.com/embed/${stream.slice(8)}?${params}`;
+  const ch = stream.match(/youtube\.com\/embed\/live_stream\?channel=([A-Za-z0-9_-]+)/);
+  if (ch) return `https://www.youtube.com/embed/live_stream?channel=${ch[1]}&${params}`;
+  const m = stream.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([A-Za-z0-9_-]{6,})/);
+  return m ? `https://www.youtube-nocookie.com/embed/${m[1]}?${params}` : null;
+}
+
+const YouTubePlayer = ({ src }: { src: string }) => (
+  <iframe
+    src={src}
+    className="w-full h-full border-0"
+    title="실시간 웹캠"
+    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+    allowFullScreen
+  />
+);
+
+const HlsPlayer = ({ src, autoPlay = true, fallbackUrl, fallbackName }: { src: string; autoPlay?: boolean; fallbackUrl?: string | null; fallbackName?: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [error, setError] = useState(false);
@@ -62,9 +84,15 @@ const HlsPlayer = ({ src, autoPlay = true }: { src: string; autoPlay?: boolean }
 
   if (error) {
     return (
-      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white min-h-[200px]">
+      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white min-h-[200px] px-4">
         <LivecamIcon size={28} className="text-gray-500" />
-        <span className="text-xs text-gray-500">스트림을 불러올 수 없습니다</span>
+        <span className="text-sm text-gray-300 font-medium">지금은 방송 중이 아니에요</span>
+        <span className="text-[11px] text-gray-500 text-center">스키 시즌 중에만 방송되는 카메라일 수 있어요</span>
+        {fallbackUrl && (
+          <a href={fallbackUrl} target="_blank" rel="noopener noreferrer" className="mt-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-xs font-bold text-white">
+            {fallbackName || '공식'} 웹캠 페이지 열기
+          </a>
+        )}
       </div>
     );
   }
@@ -164,10 +192,15 @@ const WebcamDetail = () => {
             </div>
           </div>
 
-          {/* Video player */}
+          {/* Video player — 유튜브 라이브면 임베드, 아니면 HLS */}
           <div className="card rounded-2xl overflow-hidden bg-black">
             <div className="aspect-video">
-              <HlsPlayer key={currentStream!.stream} src={currentStream!.stream} />
+              {(() => {
+                const ytSrc = parseYouTubeEmbed(currentStream!.stream);
+                return ytSrc
+                  ? <YouTubePlayer key={ytSrc} src={ytSrc} />
+                  : <HlsPlayer key={currentStream!.stream} src={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />;
+              })()}
             </div>
           </div>
 
