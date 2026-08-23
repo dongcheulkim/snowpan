@@ -461,10 +461,15 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+  // 대댓글 — 부모 댓글 id (null=일반 댓글). 2단계까지만 (답글의 답글은 같은 부모에 붙음).
+  parentId  String?
+  parent    Comment?  @relation("commentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("commentReplies")
   createdAt DateTime @default(now())
 
   @@index([postId, createdAt])
   @@index([userId])
+  @@index([parentId])
   @@map("comments")
 }
 

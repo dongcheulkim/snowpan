@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
-import { notifyAdmins } from '../controllers/notificationController';
+import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { isAllowedImageUrl } from '../utils/validate';
@@ -100,7 +100,9 @@ router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response
 router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
-    await prisma.repairShop.update({ where: { id: req.params.id }, data: { approved: true } });
+    const shop = await prisma.repairShop.update({ where: { id: req.params.id }, data: { approved: true } });
+    // 소유자에게 승인 알림 (렌탈/레슨과 동일한 UX)
+    createNotification(shop.userId, 'approve', '정비샵 승인', `'${shop.name}' 정비샵이 승인되었습니다.`, '/repair').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch (error) { res.status(500).json({ error: '승인 실패' }); }
 });

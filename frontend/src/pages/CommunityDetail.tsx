@@ -10,6 +10,7 @@ import { useVertical } from '../hooks/useVertical';
 interface Comment {
   id: string;
   content: string;
+  parentId?: string | null; // 대댓글 — 부모 댓글 id
   user: { id: string; name: string; profileImage?: string; badges?: string[] };
   createdAt: string;
 }
@@ -60,6 +61,7 @@ const CommunityDetail = () => {
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null); // 답글 대상 댓글
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -106,10 +108,11 @@ const CommunityDetail = () => {
     try {
       const comment = await api<Comment>(`/community/${id}/comments`, {
         method: 'POST',
-        body: { content: newComment.trim() },
+        body: { content: newComment.trim(), parentId: replyTo?.id },
       });
       setPost(prev => prev ? { ...prev, comments: [...prev.comments, comment] } : prev);
       setNewComment('');
+      setReplyTo(null);
     } catch (err) {
       toastError(err instanceof Error ? err.message : '댓글 등록에 실패했습니다.');
     } finally {
@@ -239,39 +242,70 @@ const CommunityDetail = () => {
       <div className="card p-5">
         <h3 className="text-sm font-bold text-gray-900 mb-4">{t('communityDetail.comments')} {post.comments.length}</h3>
         <div className="space-y-4">
-          {post.comments.map((comment) => (
-            <div key={comment.id} className="flex gap-3">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden">
-                {comment.user.profileImage ? <img src={imageUrl(comment.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={14} />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>
-                  <UserBadges badges={comment.user.badges} />
-                  <span className="text-[10px] text-gray-500">{formatTime(comment.createdAt)}</span>
-                  {user && (comment.user.id === user.id || user.role === 'admin') && (
-                    <button
-                      onClick={async () => {
-                        if (!confirm('댓글을 삭제하시겠습니까?')) return;
-                        try {
-                          await api(`/community/comments/${comment.id}`, { method: 'DELETE' });
-                          setPost(prev => prev ? { ...prev, comments: prev.comments.filter(c => c.id !== comment.id) } : prev);
-                        } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
-                      }}
-                      className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
-                    >삭제</button>
-                  )}
+          {(() => {
+            // 대댓글 그룹핑 — 일반 댓글 아래에 답글을 들여쓰기로. (부모가 삭제된 답글은 일반 댓글로 표시)
+            const parentIds = new Set(post.comments.map(c => c.id));
+            const topComments = post.comments.filter(c => !c.parentId || !parentIds.has(c.parentId));
+            const repliesOf = (pid: string) => post.comments.filter(c => c.parentId === pid);
+            const renderComment = (comment: Comment, isReply: boolean) => (
+              <div key={comment.id} className="flex gap-3">
+                <div className={`${isReply ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden`}>
+                  {comment.user.profileImage ? <img src={imageUrl(comment.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={isReply ? 12 : 14} />}
                 </div>
-                <p className="text-sm text-gray-500">{comment.content}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>
+                    <UserBadges badges={comment.user.badges} />
+                    <span className="text-[10px] text-gray-500">{formatTime(comment.createdAt)}</span>
+                    {user && (
+                      <button
+                        onClick={() => { setReplyTo({ id: comment.id, name: comment.user.name }); }}
+                        className="text-[10px] text-gray-500 hover:text-sky-600 transition-colors"
+                      >답글</button>
+                    )}
+                    {user && (comment.user.id === user.id || user.role === 'admin') && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm('댓글을 삭제하시겠습니까?')) return;
+                          try {
+                            await api(`/community/comments/${comment.id}`, { method: 'DELETE' });
+                            // 부모 삭제 시 답글도 함께 제거 (서버 cascade 와 동일하게)
+                            setPost(prev => prev ? { ...prev, comments: prev.comments.filter(c => c.id !== comment.id && c.parentId !== comment.id) } : prev);
+                          } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
+                        }}
+                        className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
+                      >삭제</button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">{comment.content}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+            return topComments.map(comment => (
+              <div key={comment.id}>
+                {renderComment(comment, false)}
+                {repliesOf(comment.id).length > 0 && (
+                  <div className="mt-3 ml-9 pl-3 border-l-2 border-gray-100 space-y-3">
+                    {repliesOf(comment.id).map(r => renderComment(r, true))}
+                  </div>
+                )}
+              </div>
+            ));
+          })()}
         </div>
 
         {user ? (
-          <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
-            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
-            <button onClick={handleComment} disabled={!newComment.trim() || commentSubmitting} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
+          <div className="mt-5 pt-4 border-t border-gray-200">
+            {replyTo && (
+              <div className="flex items-center gap-2 mb-2 px-2.5 py-1.5 bg-sky-50 border border-sky-200 rounded-lg">
+                <span className="text-[11px] text-sky-700 font-medium flex-1 truncate">{replyTo.name}님에게 답글 작성 중</span>
+                <button onClick={() => setReplyTo(null)} className="text-[11px] text-gray-500 hover:text-gray-900 flex-shrink-0">취소</button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={replyTo ? `${replyTo.name}님에게 답글...` : t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
+              <button onClick={handleComment} disabled={!newComment.trim() || commentSubmitting} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
+            </div>
           </div>
         ) : (
           <div className="mt-5 pt-4 border-t border-gray-200 text-center">

@@ -433,18 +433,54 @@ export const createComment = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
+    // 대댓글 — 부모 댓글 검증. 답글의 답글은 같은 부모에 붙여 2단계로 평탄화 (유튜브/당근 방식).
+    const { parentId: rawParentId } = req.body as { parentId?: unknown };
+    let parentId: string | null = null;
+    let replyTargetUserId: string | null = null; // 답글 대상(부모 댓글 작성자) 알림용
+    if (rawParentId) {
+      if (typeof rawParentId !== 'string' || !UUID_RE.test(rawParentId)) {
+        res.status(400).json({ error: '답글 대상 댓글이 올바르지 않습니다.' });
+        return;
+      }
+      const parent = await prisma.comment.findUnique({
+        where: { id: rawParentId },
+        select: { id: true, postId: true, parentId: true, userId: true },
+      });
+      if (!parent || parent.postId !== postId) {
+        res.status(404).json({ error: '답글 대상 댓글을 찾을 수 없습니다.' });
+        return;
+      }
+      parentId = parent.parentId || parent.id; // 2단계 평탄화
+      replyTargetUserId = parent.userId;
+    }
+
     const comment = await prisma.comment.create({
-      data: { content: cleanContent, postId, userId },
+      data: { content: cleanContent, postId, userId, parentId },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: 'snow' }, select: { badgeType: true } } } } },
     });
 
-    // 글 작성자에게 알림 (본인 댓글은 제외) — targetPost 재사용.
+    // 알림 — 글 작성자 + (대댓글이면) 부모 댓글 작성자. 본인 제외·중복 제거.
+    const link = `/community/post/${postId}`;
+    const io = req.app.get('io');
+    const notifyTargets = new Map<string, { title: string; body: string }>();
     if (targetPost.userId !== userId) {
-      const title = '새 댓글';
-      const body = `'${targetPost.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`;
-      const link = `/community/post/${postId}`;
-      await createNotification(targetPost.userId, 'community', title, body, link);
-      sendPushToUser(targetPost.userId, title, body, link);
+      notifyTargets.set(targetPost.userId, {
+        title: '새 댓글',
+        body: `'${targetPost.title}' 글에 댓글이 달렸습니다: "${cleanContent.slice(0, 30)}"`,
+      });
+    }
+    if (replyTargetUserId && replyTargetUserId !== userId) {
+      // 부모 댓글 작성자가 글 작성자와 같으면 답글 알림 하나로 대체 (중복 방지)
+      notifyTargets.set(replyTargetUserId, {
+        title: '내 댓글에 답글',
+        body: `내 댓글에 답글이 달렸습니다: "${cleanContent.slice(0, 30)}"`,
+      });
+    }
+    for (const [uid, n] of notifyTargets) {
+      await createNotification(uid, 'community', n.title, n.body, link);
+      sendPushToUser(uid, n.title, n.body, link);
+      // 접속 중이면 벨 카운트 실시간 갱신 (채팅과 동일 패턴 — 기존엔 emit 누락으로 새로고침 전까지 안 떴음)
+      if (io) io.to(`user:${uid}`).emit('new_notification', { type: 'community', title: n.title, message: n.body, link });
     }
 
     // 응답도 목록·상세와 동일 형태로 — 닉네임 표시명 + 선택 뱃지(activeBadge)만.

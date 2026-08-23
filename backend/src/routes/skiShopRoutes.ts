@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
-import { notifyAdmins } from '../controllers/notificationController';
+import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { isAllowedImageUrl } from '../utils/validate';
@@ -109,7 +109,9 @@ router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response
 router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
-    await prisma.skiShop.update({ where: { id: req.params.id }, data: { approved: true } });
+    const shop = await prisma.skiShop.update({ where: { id: req.params.id }, data: { approved: true } });
+    // 소유자에게 승인 알림 (렌탈/레슨과 동일한 UX)
+    createNotification(shop.userId, 'approve', '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다.`, '/new-equipment').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch (error) {
     res.status(500).json({ error: '승인 실패' });
@@ -180,6 +182,11 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
     if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
     await prisma.skiShop.delete({ where: { id: req.params.id } });
+    // 관리자가 남의 매장을 지운 경우 소유자에게 알림 — 미승인이면 거부, 승인 후면 삭제 안내 (렌탈/레슨과 동일 UX)
+    if (req.user!.role === 'admin' && shop.userId !== req.user!.id) {
+      const msg = shop.approved ? `'${shop.name}' 스키샵이 관리자에 의해 삭제되었습니다.` : `'${shop.name}' 스키샵 등록이 거부되었습니다.`;
+      createNotification(shop.userId, 'reject', shop.approved ? '스키샵 삭제' : '스키샵 거부', msg).catch(() => {});
+    }
     res.json({ message: '삭제 완료' });
   } catch (error) {
     res.status(500).json({ error: '삭제 실패' });
