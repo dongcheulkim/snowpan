@@ -1,8 +1,8 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api, uploadImages, imageUrl } from '../api';
-import { CloseIcon } from '../components/Icons';
+import { api } from '../api';
+import MultiImageUpload from '../components/MultiImageUpload';
 
 // 소유자 본인이 자기 정비샵 정보를 수정. 사업자등록증 재업로드 불필요.
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
@@ -11,7 +11,7 @@ interface Shop {
   id: string;
   name: string; area: string; address: string; description: string;
   services: string | null; phone: string | null; instagram: string | null;
-  website: string | null; naverMap: string | null; hours: string | null; image: string | null;
+  website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null;
 }
 
 export default function RepairShopEdit() {
@@ -19,9 +19,7 @@ export default function RepairShopEdit() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [existingImage, setExistingImage] = useState<string | null>(null);
+  const [images, setImages] = useState('');
   const [form, setForm] = useState({
     name: '', area: '서울', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
@@ -42,7 +40,7 @@ export default function RepairShopEdit() {
           phone: s.phone || '', instagram: s.instagram || '', website: s.website || '',
           naverMap: s.naverMap || '', hours: s.hours || '',
         });
-        setExistingImage(s.image || null);
+        setImages(s.images || s.image || '');
       })
       .catch(() => navigate('/mypage/shops'))
       .finally(() => setFetching(false));
@@ -58,12 +56,9 @@ export default function RepairShopEdit() {
     if (!form.name || !form.address || !form.description) { toastError('상호명, 주소, 설명은 필수입니다.'); return; }
     setLoading(true);
     try {
-      let image = existingImage;
-      if (imageFile) { const urls = await uploadImages([imageFile]); image = urls[0]; }
-
       await api(`/repair-shops/${id}`, {
         method: 'PUT',
-        body: { ...form, image: image || null },
+        body: { ...form, images: images || null, image: images ? images.split(',')[0] : null },
       });
       toastSuccess('수정되었습니다!');
       navigate('/mypage/shops');
@@ -79,8 +74,6 @@ export default function RepairShopEdit() {
 
   if (fetching) return <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>;
 
-  const shownImage = imagePreview || (existingImage ? imageUrl(existingImage) : '');
-
   return (
     <div className="max-w-lg mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
@@ -90,22 +83,10 @@ export default function RepairShopEdit() {
 
       <div className="card p-6">
         <form className="space-y-5" onSubmit={handleSubmit}>
+          {/* 사진 (포스터) */}
           <div>
-            <label className={labelClass}>샵 대표 사진 <span className="text-xs text-gray-500">(선택)</span></label>
-            {shownImage ? (
-              <div className="relative">
-                <img src={shownImage} alt="" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); setExistingImage(null); }} aria-label="제거" className="absolute -top-2 -right-2 min-w-11 min-h-11 w-11 h-11 inline-flex items-center justify-center"><span className="w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></span></button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
-                <span className="text-xs text-gray-500">사진 업로드</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }
-                }} />
-              </label>
-            )}
+            <label className={labelClass}>사진 (포스터) <span className="text-xs text-gray-500">(선택)</span></label>
+            <MultiImageUpload value={images} onChange={setImages} />
           </div>
 
           <div>

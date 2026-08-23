@@ -5,23 +5,20 @@ import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
 import { SadIcon } from '../components/Icons';
+import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 
 interface LessonData {
   id: string;
   userId?: string;
   name: string;
-  price: number;
-  duration: string;
-  level: string;
-  maxStudents: number;
-  description?: string;
-  image: string;
-  resort?: { id: string; name: string; location: string };
-  user?: { id?: string; name: string; nickname?: string | null; phone: string };
+  type?: string | null;
+  description?: string | null;
+  image?: string | null;
+  images?: string | null;
+  resort?: { id: string; name: string; location?: string } | null;
+  user?: { id?: string; name: string; nickname?: string | null };
 }
-
-const levelLabels: Record<string, string> = { beginner: 'LV1', intermediate: 'LV2', advanced: 'LV3' };
 
 const LessonDetail = () => {
   const { id } = useParams();
@@ -31,92 +28,58 @@ const LessonDetail = () => {
   const user = getUser();
 
   useMeta({
-    title: item ? `${item.name} ${item.price.toLocaleString()}원 · ${levelLabels[item.level] || item.level}` : undefined,
-    description: item ? `${item.resort?.name ? item.resort.name + ' · ' : ''}${item.duration} · 최대 ${item.maxStudents}명 - 스노우판 스키/보드 레슨` : undefined,
+    title: item ? `${item.name}${item.type ? ' · ' + item.type : ''} 레슨` : undefined,
+    description: item ? `${item.resort?.name ? item.resort.name + ' · ' : ''}스노우판 스키/보드 레슨` : undefined,
     image: item?.image ? (item.image.startsWith('http') ? item.image : imageUrl(item.image)) : undefined,
     type: 'product',
   });
 
   useEffect(() => {
     if (!id) return;
-    api<LessonData>(`/lessons/${id}`)
-      .then(setItem)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    api<LessonData>(`/lessons/${id}`).then(setItem).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) {
-    return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">로딩 중...</div>;
-  }
-
+  if (loading) return <div className="text-center py-20 text-gray-500 text-sm animate-fade-in">로딩 중...</div>;
   if (!item) {
     return (
       <div className="text-center py-20 animate-fade-in">
         <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500"><SadIcon size={56} strokeWidth={1.4} /></div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">레슨 정보를 찾을 수 없습니다</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">레슨을 찾을 수 없습니다</h2>
         <Link to="/lesson" className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
       </div>
     );
   }
 
-  const isImage = item.image.startsWith('/') || item.image.startsWith('http');
-  const imgSrc = imageUrl(item.image);
+  const gallery = item.images || item.image || '';
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
       <div className="flex items-center justify-between">
         <Link to="/lesson" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
-        <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
+        <ShareButton title={item.name} text={item.name} />
       </div>
 
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
-        {isImage ? <img src={imgSrc} alt={item.name} loading="lazy" className="w-full h-full object-cover" /> : <span className="relative">{item.image}</span>}
-      </div>
+      {gallery && <PhotoGallery images={gallery} />}
 
       <div className="card rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{item.resort?.name}</span>
-          <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300">{levelLabels[item.level] || item.level}</span>
+        <div className="flex items-center gap-2 mb-1">
+          {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded">{item.type}</span>}
+          {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.resort.name}</span>}
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
-      </div>
-
-      <div className="card rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
-          <span className="text-sm text-gray-500">{item.duration}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: '정원', value: item.maxStudents === 1 ? '1:1 개인' : `최대 ${item.maxStudents}명` },
-            { label: '시간', value: item.duration },
-            { label: '난이도', value: levelLabels[item.level] || item.level },
-            { label: '위치', value: item.resort?.location || '-' },
-          ].map((info) => (
-            <div key={info.label} className="py-2 border-b border-gray-200">
-              <span className="text-[10px] text-gray-500 block">{info.label}</span>
-              <span className="text-sm text-gray-900">{info.value}</span>
-            </div>
-          ))}
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
       </div>
 
       {item.description && (
         <div className="card rounded-2xl p-5">
-          <h3 className="text-sm font-bold text-gray-900 mb-3">상세 설명</h3>
-          <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{item.description}</p>
+          <h3 className="text-sm font-bold text-gray-900 mb-3">상세 안내</h3>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{item.description}</p>
         </div>
       )}
 
       {item.user && (
         <div className="card rounded-2xl p-5">
-          <h3 className="text-sm font-bold text-gray-900 mb-3">강사 정보</h3>
-          <div className="space-y-2.5">
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-xs text-gray-500">이름</span>
-              <span className="text-sm text-gray-900">{item.user.nickname || item.user.name}</span>
-            </div>
-          </div>
+          <h3 className="text-sm font-bold text-gray-900 mb-2">강사/스쿨</h3>
+          <span className="text-sm text-gray-900">{item.user.nickname || item.user.name}</span>
         </div>
       )}
 
@@ -131,13 +94,13 @@ const LessonDetail = () => {
       {user && item.userId && item.userId !== user.id && (
         <button
           onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.nickname || item.user?.name || '강사', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/lesson/${item.id}`, productPath: `/lesson/${item.id}` }
+            state: { seller: item.user?.nickname || item.user?.name || '강사', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/lesson/${item.id}`, productPath: `/lesson/${item.id}` }
           })}
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
-        >채팅하기</button>
+        >문의 채팅하기</button>
       )}
       {!user && (
-        <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
+        <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
       )}
 
       {item.userId && <ShopPostsFeed shopType="lesson" shopId={item.id} ownerId={item.userId} />}

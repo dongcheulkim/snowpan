@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { api } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
+import { PhoneIcon } from '../components/Icons';
 
 interface RentalItem {
   id: string;
   name: string;
-  price: number;
-  duration: string;
-  equipment: string;
-  image: string;
-  resort?: { id: string; name: string };
+  area?: string | null;
+  phone?: string | null;
+  resort?: { id: string; name: string } | null;
 }
 
 interface Resort {
@@ -92,38 +91,22 @@ const Rental = () => {
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {rentalItems.map((item) => (
-            <Link to={`/rental/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all duration-300 group block">
-              <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-                {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                  <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
-                ) : (
-                  <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-                )}
-              </div>
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate">
-                    {item.resort?.name || ''}
-                  </span>
-                  <span className="text-[10px] text-gray-500">{item.duration}</span>
-                </div>
-                <h3 className="text-sm font-bold mb-2 text-gray-900">{item.name}</h3>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
-                    {item.equipment}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                  <div>
-                    <div className="text-[10px] text-gray-500">{item.duration}</div>
-                    <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
+            <Link to={`/rental/${item.id}`} key={item.id} className="card p-4 block card-hover">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
+                    {(item.area || item.resort?.name) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.area || item.resort?.name}</span>}
                   </div>
-                  <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
-                    예약
-                  </button>
+                  {item.phone && (
+                    <a href={`tel:${item.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">
+                      <PhoneIcon size={12} /> {item.phone}
+                    </a>
+                  )}
                 </div>
+                <span className="text-gray-300 text-lg flex-shrink-0">›</span>
               </div>
             </Link>
           ))}

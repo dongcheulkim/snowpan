@@ -1,167 +1,115 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, getUser, uploadImages, imageUrl } from '../api';
+import { api, getUser } from '../api';
+import MultiImageUpload from '../components/MultiImageUpload';
 
-interface Resort { id: string; name: string; }
+interface Resort { id: string; name: string }
 interface RentalData {
-  id: string; userId?: string; name: string; price: number; duration: string;
-  equipment: string; description?: string; image: string;
-  resort?: { id: string; name: string };
+  id: string; userId?: string; name: string; area?: string | null; address?: string | null;
+  phone?: string | null; hours?: string | null; brands?: string | null; description?: string | null;
+  website?: string | null; instagram?: string | null; naverMap?: string | null; images?: string | null;
+  image?: string | null; resort?: { id: string } | null;
 }
 
-const equipmentOptions = ['스키', '보드', '부츠', '폴', '헬멧', '고글', '스키복 상의', '스키복 하의'];
+const AREAS = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
-// 렌탈 수정 — 소유자가 기존 매물을 불러와 편집. 저장 시 재심사(승인 대기)로 전환됨.
 const RentalEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [currentImage, setCurrentImage] = useState('');
-  const [form, setForm] = useState({ name: '', resortId: '', price: '', duration: '1일', equipment: [] as string[], description: '' });
+  const [images, setImages] = useState('');
+  const [form, setForm] = useState({
+    name: '', area: '강원', resortId: '', address: '', phone: '', hours: '',
+    brands: '', description: '', website: '', instagram: '', naverMap: '',
+  });
 
-  useEffect(() => {
-    api<Resort[]>('/resorts').then(setResorts).catch(() => {});
-  }, []);
+  useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
   useEffect(() => {
     if (!id) return;
-    const user = getUser();
     api<RentalData>(`/rentals/${id}`).then(d => {
-      // 소유자만 수정 가능
-      if (!user || (d.userId && d.userId !== user.id)) {
-        toastError('수정 권한이 없습니다.');
-        navigate(`/rental/${id}`, { replace: true });
-        return;
-      }
+      const me = getUser();
+      if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/rental/${id}`, { replace: true }); return; }
       setForm({
-        name: d.name || '',
-        resortId: d.resort?.id || '',
-        price: String(d.price ?? ''),
-        duration: d.duration || '1일',
-        equipment: d.equipment ? d.equipment.split(',').map(s => s.trim()).filter(Boolean) : [],
-        description: d.description || '',
+        name: d.name || '', area: d.area || '강원', resortId: d.resort?.id || '',
+        address: d.address || '', phone: d.phone || '', hours: d.hours || '',
+        brands: d.brands || '', description: d.description || '', website: d.website || '',
+        instagram: d.instagram || '', naverMap: d.naverMap || '',
       });
-      setCurrentImage(d.image || '');
-    }).catch(() => {
-      toastError('불러오지 못했습니다.');
-      navigate('/rental', { replace: true });
-    }).finally(() => setFetching(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+      setImages(d.images || d.image || '');
+    }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/rental', { replace: true }); });
+  }, [id, navigate]);
 
-  const toggleEquipment = (eq: string) => {
-    setForm(prev => ({ ...prev, equipment: prev.equipment.includes(eq) ? prev.equipment.filter(e => e !== eq) : [...prev.equipment, eq] }));
-  };
-
-  const handleSubmit = async () => {
-    const missing: string[] = [];
-    if (!form.name.trim()) missing.push('상품명');
-    if (!form.resortId) missing.push('스키장');
-    if (!form.price) missing.push('가격');
-    if (form.equipment.length === 0) missing.push('장비');
-    if (missing.length > 0) { toastError(`필수 항목을 입력해주세요: ${missing.join(', ')}`); return; }
-
+  const submit = async () => {
+    if (!form.name.trim()) { toastError('상호명을 입력해주세요.'); return; }
     setLoading(true);
     try {
-      let image = currentImage;
-      if (imageFiles.length > 0) {
-        const urls = await uploadImages(imageFiles);
-        image = urls[0];
-      }
       await api(`/rentals/${id}`, {
         method: 'PUT',
         body: {
-          name: form.name.trim(),
-          resortId: form.resortId,
-          price: Number(form.price),
-          duration: form.duration,
-          equipment: form.equipment.join(', '),
-          description: form.description?.trim() || '',
-          image,
+          name: form.name.trim(), area: form.area, resortId: form.resortId || null,
+          address: form.address.trim(), phone: form.phone.trim(), hours: form.hours.trim(),
+          brands: form.brands.trim(), description: form.description.trim(), website: form.website.trim(),
+          instagram: form.instagram.trim(), naverMap: form.naverMap.trim(),
+          images, image: images ? images.split(',')[0] : null,
         },
       });
       toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
       navigate(`/rental/${id}`);
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '수정에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { toastError(err instanceof Error ? err.message : '수정 실패'); }
+    finally { setLoading(false); }
   };
 
-  const inputClass = "w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400";
-  const labelClass = "block text-sm font-semibold text-gray-700 mb-2";
-
-  if (fetching) return <div className="text-center py-16 text-gray-500 text-sm">불러오는 중...</div>;
+  const inputClass = 'w-full px-3.5 py-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 placeholder-gray-400';
+  const labelClass = 'block text-sm font-semibold text-gray-700 mb-2';
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">렌탈 수정</h1>
+        <h1 className="text-2xl font-bold text-gray-900">렌탈샵 수정</h1>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
-      <p className="text-xs text-coral">* 수정 시 관리자 재검토 후 노출됩니다</p>
 
       <div>
-        <label className={labelClass}>상품명</label>
-        <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="예: 스키 풀세트" className={inputClass} />
+        <label className={labelClass}>상호명</label>
+        <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputClass} />
       </div>
-
-      <div>
-        <label className={labelClass}>스키장</label>
-        <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
-          <option value="" disabled>스키장을 선택하세요</option>
-          {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-      </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>가격 (원/1일)</label>
-          <input type="text" inputMode="numeric" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })} placeholder="예: 45,000" className={inputClass} />
+          <label className={labelClass}>지역</label>
+          <select value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} className={inputClass}>{AREAS.map(a => <option key={a} value={a}>{a}</option>)}</select>
         </div>
         <div>
-          <label className={labelClass}>기간</label>
-          <select value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} className={inputClass}>
-            <option value="1일">1일</option>
-            <option value="2일">2일</option>
-            <option value="시즌">시즌</option>
+          <label className={labelClass}>근처 스키장</label>
+          <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
+            <option value="">선택 안 함</option>
+            {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
       </div>
-
       <div>
-        <label className={labelClass}>포함 장비</label>
-        <div className="flex flex-wrap gap-2">
-          {equipmentOptions.map(eq => (
-            <button key={eq} onClick={() => toggleEquipment(eq)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${form.equipment.includes(eq) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
-              {eq}
-            </button>
-          ))}
+        <label className={labelClass}>주소</label>
+        <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className={inputClass} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><label className={labelClass}>전화</label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className={inputClass} /></div>
+        <div><label className={labelClass}>영업시간</label><input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} className={inputClass} /></div>
+      </div>
+      <div><label className={labelClass}>취급 장비 · 브랜드</label><input type="text" value={form.brands} onChange={e => setForm({ ...form, brands: e.target.value })} className={inputClass} /></div>
+      <div><label className={labelClass}>매장 소개</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={4} className={`${inputClass} resize-none`} /></div>
+      <div><label className={labelClass}>사진 (포스터)</label><MultiImageUpload value={images} onChange={setImages} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><label className={labelClass}>홈페이지</label><input type="text" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} className={inputClass} /></div>
+        <div>
+          <label className={labelClass}>인스타 / 네이버지도</label>
+          <input type="text" value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} placeholder="인스타 아이디" className={`${inputClass} mb-2`} />
+          <input type="text" value={form.naverMap} onChange={e => setForm({ ...form, naverMap: e.target.value })} placeholder="네이버지도 링크" className={inputClass} />
         </div>
       </div>
 
-      <div>
-        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(바꿀 때만 선택)</span></label>
-        {currentImage && imageFiles.length === 0 && (
-          <img src={imageUrl(currentImage)} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
-        )}
-        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
-          {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨 (교체)` : '사진을 바꾸려면 선택하세요'}
-          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
-        </label>
-      </div>
-
-      <div>
-        <label className={labelClass}>상세 설명</label>
-        <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="장비 상태, 브랜드 등 상세 정보" rows={4} className={`${inputClass} resize-none`} />
-      </div>
-
-      <button onClick={handleSubmit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
+      <button onClick={submit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">
         {loading ? '수정 중...' : '수정하기'}
       </button>
     </div>

@@ -4,6 +4,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api, imageUrl, getUser, uploadImages } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
+import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 
@@ -14,6 +15,7 @@ interface Shop {
   address: string;
   description: string;
   services: string | null;
+  images?: string | null;
   phone: string | null;
   instagram: string | null;
   website: string | null;
@@ -106,11 +108,7 @@ export default function RepairShopDetail() {
         <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
       </div>
 
-      {shop.image && (
-        <div className="rounded-2xl overflow-hidden bg-gray-100 aspect-video">
-          <img src={imageUrl(shop.image)} alt={shop.name} className="w-full h-full object-cover" />
-        </div>
-      )}
+      {(shop.images || shop.image) && <PhotoGallery images={shop.images || shop.image} />}
 
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">

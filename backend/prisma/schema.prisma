@@ -245,17 +245,28 @@ model Product {
   @@map("products")
 }
 
+// 렌탈샵 — 사설 매장 디렉토리(스키샵과 동일 형태). 가격/장비 등은 선택(매장이 자유 안내).
 model Rental {
   id                    String    @id @default(uuid())
   name                  String
-  price                 Int
-  duration              String
-  equipment             String
-  description           String?   // 상세 설명 (장비 상태·브랜드 등)
-  image                 String
+  area                  String?   // 지역 (강원/경기 등)
+  address               String?   // 주소
+  description           String?   // 매장 소개
+  brands                String?   // 취급 브랜드/장비 (콤마)
+  phone                 String?
+  instagram             String?
+  website               String?
+  naverMap              String?
+  hours                 String?   // 영업시간
+  image                 String?
+  images                String?   // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense       String?   // 사업자등록증 이미지 URL
-  resortId              String
-  resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+  // (구) 매물형 필드 — 유지하되 선택
+  price                 Int?
+  duration              String?
+  equipment             String?
+  resortId              String?
+  resort                SkiResort? @relation(fields: [resortId], references: [id], onDelete: SetNull)
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
@@ -273,17 +284,22 @@ model Rental {
   @@map("rentals")
 }
 
+// 레슨 — 포스터형 광고. 강사/스쿨이 레슨명·스키장·종류·상세설명·사진으로 자유롭게 홍보.
+// 가격/난이도/시간/인원은 우리가 강제하지 않고 선택(본인이 상세설명·포스터에 자유 표기).
 model Lesson {
   id                    String    @id @default(uuid())
-  name                  String
-  price                 Int
-  duration              String
-  level                 String    // 'beginner' | 'intermediate' | 'advanced'
-  maxStudents           Int
-  description           String?   // 상세 설명 (강사 경력·레슨 내용 등)
-  image                 String
+  name                  String    // 레슨명
+  type                  String?   // 종류 (스키/보드/스키·보드)
+  description           String?   // 상세 설명
+  images                String?   // 포스터 사진들 (콤마 구분, 최대 8장)
+  image                 String?   // (구) 대표 이미지 — 선택
   instructorCert        String?   // 강사 자격증 이미지 URL
   businessLicense       String?   // 사업자등록증 이미지 URL
+  // (구) 상세 필드 — 선택
+  price                 Int?
+  duration              String?
+  level                 String?
+  maxStudents           Int?
   resortId              String
   resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
   userId                String
@@ -696,6 +712,7 @@ model SkiShop {
   naverMap        String?
   hours           String?  // 영업시간
   image           String?  // 샵 대표 이미지
+  images          String?  // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense String   // 사업자등록증 이미지 (필수)
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
@@ -731,6 +748,7 @@ model RepairShop {
   naverMap        String?
   hours           String?
   image           String?
+  images          String?  // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense String
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)

@@ -3,6 +3,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
+import { sanitizeImages } from '../utils/images';
 import { isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 
@@ -24,7 +25,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, resort: true, address: true, description: true,
         brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, isPremium: true, viewCount: true, createdAt: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
@@ -40,7 +41,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, area, resort, address, description, brands, phone, instagram, website, naverMap, hours, image, businessLicense, vertical } = req.body;
+    const { name, area, resort, address, description, brands, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical } = req.body;
 
     if (!name || !area || !address || !description || !businessLicense) {
       res.status(400).json({ error: '상호명, 지역, 주소, 설명, 사업자등록증은 필수입니다.' });
@@ -63,7 +64,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         website: sanitizeText(website, 300) || null,
         naverMap: sanitizeText(naverMap, 300) || null,
         hours: sanitizeText(hours, 200) || null,
-        image: image || null, businessLicense, userId, approved: false,
+        image: image || null, images: sanitizeImages(images), businessLicense, userId, approved: false,
         vertical: verticalSlug,
       },
     });
@@ -123,7 +124,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, resort: true, address: true, description: true,
         brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, isPremium: true, viewCount: true, createdAt: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
     });
@@ -143,7 +144,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
     if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, area, resort, address, description, brands, phone, instagram, website, naverMap, hours, image } = req.body;
+    const { name, area, resort, address, description, brands, phone, instagram, website, naverMap, hours, image, images } = req.body;
     const data: any = {};
     if (name !== undefined) data.name = sanitizeText(name, 100) || name;
     if (area !== undefined) data.area = sanitizeText(area, 40) || area;
@@ -158,6 +159,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     if (image !== undefined) data.image = image || null;
+    if (images !== undefined) data.images = sanitizeImages(images);
     // 소유자 수정은 재심사 — 승인 후 콘텐츠 바꿔치기 차단. 관리자 수정은 승인 유지.
     const ownerEdit = req.user!.role !== 'admin';
     if (ownerEdit) data.approved = false;

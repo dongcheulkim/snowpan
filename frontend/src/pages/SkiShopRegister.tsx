@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { ClipboardIcon, CloseIcon } from '../components/Icons';
+import MultiImageUpload from '../components/MultiImageUpload';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 const resorts = [
@@ -19,8 +20,7 @@ export default function SkiShopRegister() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [licensePreview, setLicensePreview] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [images, setImages] = useState('');
   const [form, setForm] = useState({
     name: '', area: '강원', resort: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
@@ -33,7 +33,7 @@ export default function SkiShopRegister() {
   };
 
   const isDirty = !loading && (
-    form.name.trim() !== '' || form.address.trim() !== '' || form.description.trim() !== '' || form.brands.trim() !== '' || licenseFile !== null || imageFile !== null
+    form.name.trim() !== '' || form.address.trim() !== '' || form.description.trim() !== '' || form.brands.trim() !== '' || licenseFile !== null || images !== ''
   );
   useUnloadGuard(isDirty);
 
@@ -45,18 +45,14 @@ export default function SkiShopRegister() {
     setLoading(true);
     try {
       const licenseUrls = await uploadImages([licenseFile]);
-      let shopImage = '';
-      if (imageFile) {
-        const urls = await uploadImages([imageFile]);
-        shopImage = urls[0];
-      }
 
       await api('/ski-shops', {
         method: 'POST',
         body: {
           ...form,
           resort: form.resort === '기타/없음' ? null : form.resort || null,
-          image: shopImage || null,
+          images: images || null,
+          image: images ? images.split(',')[0] : null,
           businessLicense: licenseUrls[0],
         },
       });
@@ -102,23 +98,10 @@ export default function SkiShopRegister() {
             )}
           </div>
 
-          {/* 샵 대표 이미지 */}
+          {/* 사진 (포스터) */}
           <div>
-            <label className={labelClass}>샵 대표 사진 <span className="text-xs text-gray-500">(선택)</span></label>
-            {imagePreview ? (
-              <div className="relative">
-                <img src={imagePreview} alt="" className="w-full max-h-40 object-contain rounded-lg border border-gray-200" />
-                <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} aria-label="제거" className="absolute -top-2 -right-2 min-w-11 min-h-11 w-11 h-11 inline-flex items-center justify-center"><span className="w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center"><CloseIcon size={12} /></span></button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
-                <span className="text-xs text-gray-500">사진 업로드</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) { setImageFile(f); setImagePreview(URL.createObjectURL(f)); }
-                }} />
-              </label>
-            )}
+            <label className={labelClass}>사진 (포스터) <span className="text-xs text-gray-500">(선택)</span></label>
+            <MultiImageUpload value={images} onChange={setImages} />
           </div>
 
           <div>
