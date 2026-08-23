@@ -17,7 +17,7 @@ interface BannerData {
   textAlign?: string | null;
 }
 
-// 홈 "지금 핫한 커뮤니티" — /community/popular 상위 5개.
+// 홈 "지금 핫한 커뮤니티" — 인기글 + 투표를 핫한 순으로 섞어 상위 5개.
 interface PopularPost {
   id: string;
   title: string;
@@ -28,6 +28,20 @@ interface PopularPost {
   commentCount?: number;
   _count?: { comments: number };
 }
+
+interface HotPoll {
+  id: string;
+  title: string;
+  likes: number;
+  views: number;
+  totalVotes: number;
+  createdAt: string;
+}
+
+// 글·투표 공통 핫함 점수 — 좋아요 > 참여(댓글/투표) > 조회 순 가중치.
+type HotItem =
+  | { kind: 'post'; id: string; title: string; category: string; likes: number; views: number; comments: number; thumb?: string; score: number }
+  | { kind: 'poll'; id: string; title: string; likes: number; views: number; votes: number; score: number };
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
 interface ShopNews {
@@ -71,15 +85,31 @@ const Home = () => {
   }, []);
 
   const [banners, setBanners] = useState<BannerData[]>([]);
-  const [popular, setPopular] = useState<PopularPost[]>([]);
+  const [hot, setHot] = useState<HotItem[]>([]);
   const [news, setNews] = useState<ShopNews[]>([]);
 
-  // 핫한 커뮤니티 + 매장 소식 (snow 전용, 비어있으면 섹션 자체 숨김)
+  // 핫한 커뮤니티(인기글+투표 혼합) + 매장 소식 (snow 전용)
   useEffect(() => {
     if (!isSnow) return;
-    api<PopularPost[]>('/community/popular?sport=ski')
-      .then((d) => setPopular(Array.isArray(d) ? d : []))
-      .catch(() => {});
+    Promise.all([
+      api<PopularPost[]>('/community/popular?sport=ski').catch(() => [] as PopularPost[]),
+      api<{ items: HotPoll[] }>('/polls?limit=10').then((d) => d.items || []).catch(() => [] as HotPoll[]),
+    ]).then(([posts, polls]) => {
+      const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+      const items: HotItem[] = [
+        ...(Array.isArray(posts) ? posts : []).map((p): HotItem => {
+          const comments = p.commentCount ?? p._count?.comments ?? 0;
+          const thumb = (p.images || '').split(',').filter(Boolean)[0];
+          return { kind: 'post', id: p.id, title: p.title, category: p.category, likes: p.likes, views: p.views ?? 0, comments, thumb, score: p.likes * 10 + comments * 5 + (p.views ?? 0) };
+        }),
+        // 투표는 최근 2주 것만 랭킹 (오래된 투표가 계속 남는 것 방지)
+        ...polls.filter((p) => new Date(p.createdAt).getTime() >= twoWeeksAgo).map((p): HotItem => (
+          { kind: 'poll', id: p.id, title: p.title, likes: p.likes, views: p.views ?? 0, votes: p.totalVotes ?? 0, score: p.likes * 10 + (p.totalVotes ?? 0) * 5 + (p.views ?? 0) }
+        )),
+      ];
+      items.sort((a, b) => b.score - a.score);
+      setHot(items.slice(0, 5));
+    });
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
       .catch(() => {});
@@ -266,31 +296,38 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
             <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
-          {popular.length === 0 ? (
+          {hot.length === 0 ? (
             <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
               <p className="text-sm text-gray-500">아직 인기 글이 없어요.</p>
               <p className="text-xs text-sky-600 font-bold mt-1.5">첫 글을 올려보세요 &gt;</p>
             </Link>
           ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-            {popular.slice(0, 5).map((p, i) => {
-              const thumb = (p.images || '').split(',').filter(Boolean)[0];
-              const comments = p.commentCount ?? p._count?.comments ?? 0;
-              return (
-                <Link key={p.id} to={`/community/post/${p.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors">
-                  <span className={`text-sm font-black w-4 text-center flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-gray-900 truncate">{p.title}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {POST_CAT_LABEL[p.category] || p.category} · 조회 {(p.views ?? 0).toLocaleString()} · 좋아요 {p.likes} · 댓글 {comments}
-                    </p>
-                  </div>
-                  {thumb && (thumb.startsWith('/') || thumb.startsWith('http')) && (
-                    <img src={imageUrl(thumb, 120)} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover bg-gray-100 flex-shrink-0" />
-                  )}
-                </Link>
-              );
-            })}
+            {hot.map((item, i) => (
+              <Link
+                key={`${item.kind}-${item.id}`}
+                to={item.kind === 'poll' ? `/poll/${item.id}` : `/community/post/${item.id}`}
+                className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors"
+              >
+                <span className={`text-sm font-black w-4 text-center flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-gray-900 truncate">
+                    {item.kind === 'poll' && (
+                      <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 mr-1.5 align-middle">투표</span>
+                    )}
+                    {item.title}
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    {item.kind === 'poll'
+                      ? `투표 ${item.votes.toLocaleString()}명 · 조회 ${item.views.toLocaleString()} · 좋아요 ${item.likes}`
+                      : `${POST_CAT_LABEL[item.category] || item.category} · 조회 ${item.views.toLocaleString()} · 좋아요 ${item.likes} · 댓글 ${item.comments}`}
+                  </p>
+                </div>
+                {item.kind === 'post' && item.thumb && (item.thumb.startsWith('/') || item.thumb.startsWith('http')) && (
+                  <img src={imageUrl(item.thumb, 120)} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover bg-gray-100 flex-shrink-0" />
+                )}
+              </Link>
+            ))}
           </div>
           )}
         </div>
