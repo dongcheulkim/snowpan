@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
 import RegisterCTA from '../components/RegisterCTA';
@@ -21,6 +21,7 @@ interface Shop {
   naverMap?: string | null;
   hours?: string | null;
   image?: string | null;
+  images?: string | null;
   isPremium?: boolean;
 }
 
@@ -87,11 +88,18 @@ export default function RepairShop() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {shops.map((shop) => (
+          {shops.map((shop) => {
+            const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
+            return (
             <Link to={`/repair/${shop.id}`} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  {cover
+                    ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    : <MaintenanceIcon size={30} className="text-gray-300" />}
+                </div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     {shop.area && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shop.area}</span>}
@@ -105,7 +113,8 @@ export default function RepairShop() {
                 <span className="text-gray-300 text-lg flex-shrink-0">›</span>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { PhoneIcon } from '../components/Icons';
+import { RentalIcon } from '../components/CategoryIcons';
 
 interface RentalItem {
   id: string;
   name: string;
   area?: string | null;
   phone?: string | null;
+  image?: string | null;
+  images?: string | null;
   resort?: { id: string; name: string } | null;
 }
 
@@ -92,10 +95,17 @@ const Rental = () => {
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {rentalItems.map((item) => (
+          {rentalItems.map((item) => {
+            const cover = (item.images || item.image || '').split(',')[0]?.trim();
+            return (
             <Link to={`/rental/${item.id}`} key={item.id} className="card p-4 block card-hover">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  {cover
+                    ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    : <RentalIcon size={30} className="text-gray-300" />}
+                </div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
                     {(item.area || item.resort?.name) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.area || item.resort?.name}</span>}
@@ -109,7 +119,8 @@ const Rental = () => {
                 <span className="text-gray-300 text-lg flex-shrink-0">›</span>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 
