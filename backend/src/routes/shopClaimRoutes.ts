@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { sendPushToUser } from '../utils/push';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
 
@@ -80,6 +81,7 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
     }
     await prisma.shopClaim.update({ where: { id: claim.id }, data: { status: 'approved' } });
     await createNotification(claim.userId, 'system', '매장 소유권 이전 완료', `"${shop.name}" 매장을 이제 직접 관리할 수 있어요.`, '/mypage/shops').catch(() => {});
+    sendPushToUser(claim.userId, '매장 소유권 이전 완료', `"${shop.name}" 매장을 이제 직접 관리할 수 있어요.`, '/mypage/shops').catch(() => {});
     res.json({ message: '승인 및 소유권 이전 완료' });
   } catch (error) {
     console.error('Approve shop claim error:', error);

@@ -3,7 +3,8 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking } from '../utils/adBookingScheduler';
 import { cacheDel } from '../utils/cache';
-import { notifyAdmins } from './notificationController';
+import { notifyAdmins, createNotification } from './notificationController';
+import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { isAllowedImageUrl } from '../utils/validate';
 
@@ -835,6 +836,12 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
       },
     });
 
+    // 광고주에게 승인 알림 + 푸시
+    {
+      const msgUser = startsInFuture ? `'${updated.title}' 광고 입금이 확인됐어요. ${startLabel}부터 노출됩니다.` : `'${updated.title}' 광고 입금이 확인됐어요. 지금부터 노출됩니다.`;
+      createNotification(updated.userId, 'approve', '광고 승인 완료', msgUser, '/mypage/ads').catch(() => {});
+      sendPushToUser(updated.userId, '광고 승인 완료', msgUser, '/mypage/ads').catch(() => {});
+    }
     res.json({ success: true, message: startsInFuture ? `입금 확인 완료, ${startLabel}부터 노출` : '입금 확인 완료, 광고 노출 시작' });
   } catch (error) {
     console.error('관리자 입금 확인 오류:', error);
@@ -890,6 +897,7 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
       },
     });
 
+    sendPushToUser(booking.userId, '광고 무료 승인', `"${booking.title}" 광고가 무료로 승인되었습니다!`, '/mypage/ads').catch(() => {});
     res.json({ success: true, message: '무료 승인 완료' });
   } catch (error) {
     console.error('관리자 무료 승인 오류:', error);

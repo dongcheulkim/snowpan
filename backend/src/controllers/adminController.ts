@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
+import { sendPushToUser } from '../utils/push';
 import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
 import { disconnectUser } from '../realtime';
@@ -462,6 +463,7 @@ export const approveRental = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     await createNotification(rental.userId, 'approve', '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental');
+    sendPushToUser(rental.userId, '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental').catch(() => {});
     res.json({ ...rental, message: '렌탈이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve rental error:', error);
@@ -494,6 +496,7 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson');
+    sendPushToUser(lesson.userId, '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson').catch(() => {});
     res.json({ ...lesson, message: '레슨이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve lesson error:', error);
@@ -568,6 +571,7 @@ export const approveAccommodation = async (req: AuthRequest, res: Response): Pro
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.accommodation.update({ where: { id: req.params.id }, data: { approved: true } });
     await createNotification(item.userId, 'approve', '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation');
+    sendPushToUser(item.userId, '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation').catch(() => {});
     res.json({ ...item, message: '숙소가 승인되었습니다.' });
   } catch (error) {
     console.error('Approve accommodation error:', error);
@@ -615,6 +619,7 @@ export const approveBadge = async (req: AuthRequest, res: Response): Promise<voi
     if (badgeType) data.badgeType = badgeType;
     const item = await prisma.badgeRequest.update({ where: { id: req.params.id }, data });
     await createNotification(item.userId, 'badge', '자격증 승인', `자격증 인증이 승인되었습니다.`, '/mypage');
+    sendPushToUser(item.userId, '자격증 승인', '자격증 인증이 승인되었습니다.', '/mypage').catch(() => {});
     res.json({ ...item, message: '자격증이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve badge error:', error);

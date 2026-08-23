@@ -4,7 +4,8 @@ import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
-import { notifyAdmins } from '../controllers/notificationController';
+import { notifyAdmins, createNotification } from '../controllers/notificationController';
+import { sendPushToUser } from '../utils/push';
 import { isAgencyActive, agencyActiveWhere, AGENCY_BETA_FREE } from '../utils/agencyActive';
 import { confirmTossPayment } from '../utils/toss';
 
@@ -258,7 +259,11 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 // 관리자: 승인.
 router.put('/:id/approve', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    await prisma.travelAgency.update({ where: { id: req.params.id }, data: { approved: true } });
+    const agency = await prisma.travelAgency.update({ where: { id: req.params.id }, data: { approved: true } });
+    // 소유자에게 승인 알림 + 푸시
+    const msg = `'${agency.name}' 여행사가 승인되었습니다. 이제 여행 상품(딜)을 등록할 수 있어요.`;
+    createNotification(agency.userId, 'approve', '여행사 승인', msg, '/overseas/agency/manage').catch(() => {});
+    sendPushToUser(agency.userId, '여행사 승인', msg, '/overseas/agency/manage').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch {
     res.status(500).json({ error: '승인 실패' });

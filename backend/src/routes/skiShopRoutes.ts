@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
+import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { isAllowedImageUrl } from '../utils/validate';
@@ -112,6 +113,7 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
     const shop = await prisma.skiShop.update({ where: { id: req.params.id }, data: { approved: true } });
     // 소유자에게 승인 알림 (렌탈/레슨과 동일한 UX)
     createNotification(shop.userId, 'approve', '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다.`, '/new-equipment').catch(() => {});
+    sendPushToUser(shop.userId, '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다.`, '/new-equipment').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch (error) {
     res.status(500).json({ error: '승인 실패' });
@@ -186,6 +188,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     if (req.user!.role === 'admin' && shop.userId !== req.user!.id) {
       const msg = shop.approved ? `'${shop.name}' 스키샵이 관리자에 의해 삭제되었습니다.` : `'${shop.name}' 스키샵 등록이 거부되었습니다.`;
       createNotification(shop.userId, 'reject', shop.approved ? '스키샵 삭제' : '스키샵 거부', msg).catch(() => {});
+      sendPushToUser(shop.userId, shop.approved ? '스키샵 삭제' : '스키샵 거부', msg).catch(() => {});
     }
     res.json({ message: '삭제 완료' });
   } catch (error) {
