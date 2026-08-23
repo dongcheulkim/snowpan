@@ -69,7 +69,7 @@ const Welcome = () => {
       <div className="card p-8">
         <div className="text-center mb-7">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">환영해요!</h1>
-          <p className="text-sm text-gray-500">가입 축하 1,000P가 지급됐어요.<br />마지막으로 닉네임만 정하면 끝이에요.</p>
+          <p className="text-sm text-gray-500">스노우판에 오신 걸 환영해요.<br />마지막으로 닉네임만 정하면 끝이에요.</p>
         </div>
 
         <div className="space-y-4">
