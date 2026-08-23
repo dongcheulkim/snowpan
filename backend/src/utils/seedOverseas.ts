@@ -404,22 +404,22 @@ export async function seedOverseas(): Promise<void> {
       const img = wikiThumb(r.image);
       const continent = CONTINENT[r.country] || null;
       const popular = POPULAR.has(r.slug);
-      const existing = await prisma.overseasResort.findUnique({ where: { slug: r.slug }, select: { id: true, image: true, continent: true } });
+      const existing = await prisma.overseasResort.findUnique({
+        where: { slug: r.slug },
+        select: { id: true, image: true, continent: true, liftPrice: true, website: true, address: true, phone: true, lifts: true },
+      });
       if (existing) {
-        // 이미지 비어있으면 채움 + 대륙 미설정이면 대륙·인기 1회 백필.
+        // 큐레이션 필드는 "비어있을 때만" 시드값으로 백필 — 관리자가 편집한 값은 재부팅에도 보존.
+        // (매 부팅마다 덮어쓰면 AdminOverseas 편집이 revert 되던 버그 수정)
         const data: Record<string, unknown> = {};
         if (!existing.image && img) data.image = img;
         if (!existing.continent) { data.continent = continent; data.popular = popular; }
-        // 큐레이션 정보 필드(가격·요금페이지·위치 등)는 최신 시드값으로 갱신.
-        // (아직 관리자 편집 전제 없음 — 추후 잠금 플래그 도입 가능)
-        data.scope = r.scope || '해외';
-        data.liftPrice = r.liftPrice || LIFT_PRICE[r.slug] || null;
-        data.website = PRICE_URL[r.slug] || r.website || r.official || null;
-        data.address = r.address || null;
-        data.phone = r.phone || null;
-        data.nightSki = !!r.nightSki;
-        data.lifts = r.lifts || null;
-        await prisma.overseasResort.update({ where: { id: existing.id }, data });
+        if (!existing.liftPrice) { const v = r.liftPrice || LIFT_PRICE[r.slug]; if (v) data.liftPrice = v; }
+        if (!existing.website) { const v = PRICE_URL[r.slug] || r.website || r.official; if (v) data.website = v; }
+        if (!existing.address && r.address) data.address = r.address;
+        if (!existing.phone && r.phone) data.phone = r.phone;
+        if (!existing.lifts && r.lifts) data.lifts = r.lifts;
+        if (Object.keys(data).length) await prisma.overseasResort.update({ where: { id: existing.id }, data });
         continue;
       }
       const resort = await prisma.overseasResort.create({

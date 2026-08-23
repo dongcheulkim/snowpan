@@ -25,6 +25,10 @@ interface PendingItem {
   resort?: { name: string };
   area?: string;
   address?: string;
+  phone?: string;
+  brands?: string;
+  services?: string;
+  hours?: string;
   description?: string;
   website?: string;
   user?: { id: string; name: string; email?: string; phone?: string };
@@ -367,12 +371,19 @@ const AdminApproval = () => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-sm text-gray-900">{item.name}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{item.resort?.name}</div>
-            {activeTab === 'rental' && item.equipment && (
-              <div className="text-xs text-gray-500 mt-0.5">{item.duration} · {item.equipment}</div>
+            {item.resort?.name && <div className="text-xs text-gray-500 mt-0.5">{item.resort.name}</div>}
+            {activeTab === 'rental' && (
+              <>
+                {(item.area || item.address) && <div className="text-xs text-gray-500 mt-0.5">{[item.area, item.address].filter(Boolean).join(' · ')}</div>}
+                {(item.phone || item.brands) && <div className="text-xs text-gray-500 mt-0.5">{[item.phone, item.brands].filter(Boolean).join(' · ')}</div>}
+                {item.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{item.description}</div>}
+              </>
             )}
             {activeTab === 'lesson' && (
-              <div className="text-xs text-gray-500 mt-0.5">{item.duration} · {item.level} · 최대 {item.maxStudents}명</div>
+              <>
+                {item.type && <div className="text-xs text-gray-500 mt-0.5">{item.type}</div>}
+                {item.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{item.description}</div>}
+              </>
             )}
             {activeTab === 'accommodation' && (
               <div className="text-xs text-gray-500 mt-0.5">{(item.type || '').split(',').map(t => accomTypeLabels[t] || t).join(', ')} · {item.guests}</div>
@@ -380,7 +391,7 @@ const AdminApproval = () => {
             {item.user && <div className="text-xs text-gray-500 mt-0.5">등록자: {item.user.name}</div>}
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="text-base font-black text-gray-900">{item.price?.toLocaleString()}원</div>
+            {item.price != null && <div className="text-base font-black text-gray-900">{item.price.toLocaleString()}원</div>}
           </div>
         </div>
 

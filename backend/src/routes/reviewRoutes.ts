@@ -8,7 +8,7 @@ import { reviewCreateLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
-// 리뷰 작성에 대한 포인트 보상은 정책 변경으로 제거 (가입 1000P, 일일 출석 500P 만 유지).
+// 포인트 시스템은 전면 제거됨 — 리뷰/가입/출석 어떤 것에도 포인트 보상 없음.
 
 // 리뷰 생성
 router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {

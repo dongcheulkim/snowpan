@@ -85,9 +85,9 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
     const deals = resort.deals
       .filter((d) => !d.agency || isAgencyActive(d.agency))
       .map((d) => ({ ...d, agency: d.agency ? { id: d.agency.id, name: d.agency.name } : null }));
-    // 추천 여행사 — 이 리조트/국가를 취급하는 활성 여행사.
+    // 추천 여행사 — 이 리조트/국가를 취급하는 활성 여행사. (스키장 정보는 snow vertical 전용)
     const activeAgencies = await prisma.travelAgency.findMany({
-      where: agencyActiveWhere(),
+      where: { ...agencyActiveWhere(), vertical: 'snow' },
       select: {
         id: true, name: true, description: true, image: true, phone: true, website: true, kakao: true,
         countries: true, resortSlugs: true, isPremium: true,

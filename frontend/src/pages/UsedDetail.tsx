@@ -458,7 +458,7 @@ const UsedDetail = () => {
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
                     toastSuccess('삭제되었습니다.');
-                    window.location.href = `${vbase}/used` || '/used';
+                    window.location.href = `${vbase}/used`;
                   } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"

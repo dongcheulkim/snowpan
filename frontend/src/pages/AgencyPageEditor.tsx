@@ -23,8 +23,9 @@ export default function AgencyPageEditor() {
     api<Agency[]>('/agencies/my').then((list) => {
       const a = list[0] || null;
       setAgency(a);
-      // pageBlocks 는 상세 조회로 (my 목록엔 없음)
-      if (a) api<{ pageBlocks?: PageBlock[] | null }>(`/agencies/${a.id}`).then((d) => setBlocks(Array.isArray(d.pageBlocks) ? d.pageBlocks : [])).catch(() => {});
+      // /agencies/my 가 pageBlocks 를 그대로 반환 — 승인 게이트 걸린 /agencies/:id 재조회 금지
+      // (미승인 여행사는 상세가 404 라 저장한 페이지가 사라진 것처럼 보였음)
+      if (a) setBlocks(Array.isArray(a.pageBlocks) ? a.pageBlocks : []);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 

@@ -157,8 +157,8 @@ const Community = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`${vbase}/community` || '/community')} className="text-gray-500 text-lg">←</button>
-          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {t('community.title')}</h1>
+          <button onClick={() => navigate(`${vbase}/community`)} className="text-gray-500 text-lg">←</button>
+          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2">{SportLabel()} {t('community.title')}</h1>
         </div>
         <div className="flex gap-2">
           {selectedTab === 'poll' && (
