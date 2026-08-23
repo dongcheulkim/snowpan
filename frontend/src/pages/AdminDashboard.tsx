@@ -68,6 +68,7 @@ interface AdBookingItem {
   title: string;
   description: string;
   url: string;
+  image?: string | null;
   status: string;
   startDate: string;
   endDate: string;
@@ -107,6 +108,9 @@ const AdminDashboard = () => {
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
+  // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
+  const [adCatFilter, setAdCatFilter] = useState('all');
+  const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -336,13 +340,14 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="flex gap-1 bg-gray-50 rounded-xl p-1 overflow-x-auto">
+      {/* 탭 — 7개가 눌리지 않게 스크롤 필 방식 */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap px-2 ${
-              tab === t.id ? 'bg-snow text-gray-900 shadow-sm' : 'text-gray-500'
+            className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 border ${
+              tab === t.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-snow text-gray-500 border-gray-200 hover:border-gray-300'
             }`}
           >
             {t.label}
@@ -516,7 +521,7 @@ const AdminDashboard = () => {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {u.role}
+                          {({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[u.role] || u.role}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">{u.email}</p>
@@ -656,74 +661,128 @@ const AdminDashboard = () => {
                 </div>
               )}
 
-              {adBookings.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 예약이 없습니다.</div>
-              ) : (
-                adBookings.map((b) => {
-                  const slotLabel = adSlotLabelKr(b.slotType, b.category);
-                  const statusMap: Record<string, { label: string; color: string }> = {
-                    pending_payment: { label: '결제 대기', color: 'bg-yellow-100 text-yellow-700' },
-                    paid: { label: '결제 완료', color: 'bg-blue-100 text-blue-700' },
-                    active: { label: '노출중', color: 'bg-mint/20 text-emerald-700' },
-                    completed: { label: '종료', color: 'bg-gray-100 text-gray-600' },
-                    cancelled: { label: '취소', color: 'bg-coral/20 text-coral' },
-                    refunded: { label: '환불', color: 'bg-coral/20 text-coral' },
-                  };
-                  const s = statusMap[b.status] || { label: b.status, color: 'bg-gray-100 text-gray-600' };
-                  const startD = new Date(b.startDate);
-                  const endD = new Date(b.endDate);
-                  return (
-                    <div key={b.id} className="card p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.color}`}>{s.label}</span>
-                          <span className="text-[10px] text-gray-500">{slotLabel}</span>
-                        </div>
-                        <span className="text-[10px] text-gray-500">{new Date(b.createdAt).toLocaleDateString('ko-KR')}</span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-900 mb-0.5">{b.title}</p>
-                      <p className="text-xs text-gray-500 mb-1">
-                        {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일)
-                      </p>
-                      <p className="text-xs font-bold text-accent mb-1">{b.totalPrice.toLocaleString()}원</p>
-                      <p className="text-[10px] text-gray-500">
-                        {b.user.name} ({b.user.email}) · {b.user.phone}
-                      </p>
-                      {b.payment && (
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          결제: {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}
-                        </p>
-                      )}
-                      <div className="flex gap-2 mt-2">
-                        {b.status === 'pending_payment' && (
-                          <>
-                            <button
-                              onClick={() => handleAdBookingApprove(b.id)}
-                              className="px-3 py-1.5 bg-mint/20 text-emerald-700 rounded-lg font-bold text-[11px] hover:bg-mint/30 transition-colors"
-                            >
-                              입금 확인
-                            </button>
-                            <button
-                              onClick={() => handleAdBookingFree(b.id)}
-                              className="px-3 py-1.5 bg-sky-100 text-sky-700 rounded-lg font-bold text-[11px] hover:bg-sky-200 transition-colors"
-                            >
-                              무료 승인
-                            </button>
-                          </>
-                        )}
-                        {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
-                          <button
-                            onClick={() => handleAdBookingCancel(b.id)}
-                            className="px-3 py-1.5 bg-coral/10 text-coral rounded-lg font-bold text-[11px] hover:bg-coral/20 transition-colors"
-                          >
-                            취소
-                          </button>
-                        )}
-                      </div>
+              {/* 카테고리(슬롯)별 필터 — 들어온 예약에서 자동 생성, 건수 표시 */}
+              {(() => {
+                const catKey = (b: AdBookingItem) => (b.slotType === 'main_banner' ? 'main_banner' : `cat:${b.category || 'none'}`);
+                const catCounts = new Map<string, number>();
+                adBookings.forEach((b) => catCounts.set(catKey(b), (catCounts.get(catKey(b)) || 0) + 1));
+                const catChips = [
+                  { id: 'all', label: `전체 ${adBookings.length}` },
+                  ...Array.from(catCounts.entries()).map(([id, n]) => {
+                    const sample = adBookings.find((b) => catKey(b) === id)!;
+                    return { id, label: `${adSlotLabelKr(sample.slotType, sample.category)} ${n}` };
+                  }),
+                ];
+                const statusChips = [
+                  { id: 'all', label: '전체' },
+                  { id: 'pending_payment', label: '결제 대기' },
+                  { id: 'active', label: '노출중' },
+                  { id: 'paid', label: '결제 완료' },
+                  { id: 'done', label: '종료·취소' },
+                ];
+                const shown = adBookings
+                  .filter((b) => adCatFilter === 'all' || catKey(b) === adCatFilter)
+                  .filter((b) => {
+                    if (adStatusFilter === 'all') return true;
+                    if (adStatusFilter === 'done') return ['completed', 'cancelled', 'refunded'].includes(b.status);
+                    return b.status === adStatusFilter;
+                  });
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  pending_payment: { label: '결제 대기', color: 'bg-yellow-100 text-yellow-700' },
+                  paid: { label: '결제 완료', color: 'bg-blue-100 text-blue-700' },
+                  active: { label: '노출중', color: 'bg-mint/20 text-emerald-700' },
+                  completed: { label: '종료', color: 'bg-gray-100 text-gray-600' },
+                  cancelled: { label: '취소', color: 'bg-coral/20 text-coral' },
+                  refunded: { label: '환불', color: 'bg-coral/20 text-coral' },
+                };
+                return (
+                  <>
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                      {catChips.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => setAdCatFilter(c.id)}
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 border transition-colors ${
+                            adCatFilter === c.id ? 'bg-sky-500 text-white border-sky-500' : 'bg-snow text-gray-600 border-gray-200'
+                          }`}
+                        >{c.label}</button>
+                      ))}
                     </div>
-                  );
-                })
-              )}
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                      {statusChips.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => setAdStatusFilter(c.id)}
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap flex-shrink-0 border transition-colors ${
+                            adStatusFilter === c.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-snow text-gray-600 border-gray-200'
+                          }`}
+                        >{c.label}</button>
+                      ))}
+                    </div>
+
+                    {shown.length === 0 ? (
+                      <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">
+                        {adBookings.length === 0 ? '광고 예약이 없습니다.' : '이 조건의 광고가 없습니다.'}
+                      </div>
+                    ) : (
+                      shown.map((b) => {
+                        const s = statusMap[b.status] || { label: b.status, color: 'bg-gray-100 text-gray-600' };
+                        const startD = new Date(b.startDate);
+                        const endD = new Date(b.endDate);
+                        return (
+                          <div key={b.id} className="card p-4">
+                            <div className="flex gap-3">
+                              {/* 소재 썸네일 — 어떤 광고인지 한눈에 */}
+                              <div className="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
+                                {b.image
+                                  ? <img src={imageUrl(b.image, 200)} alt="" className="w-full h-full object-cover" />
+                                  : <span className="text-[9px] text-gray-400">텍스트 광고</span>}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.color}`}>{s.label}</span>
+                                  <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">{adSlotLabelKr(b.slotType, b.category)}</span>
+                                  <span className="text-[10px] text-gray-400 ml-auto">{new Date(b.createdAt).toLocaleDateString('ko-KR')}</span>
+                                </div>
+                                <p className="text-sm font-bold text-gray-900 mt-1 truncate">{b.title}</p>
+                                <p className="text-[11px] text-gray-500 mt-0.5">
+                                  {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일) · <span className="font-bold text-gray-900">{b.totalPrice.toLocaleString()}원</span>
+                                </p>
+                                <p className="text-[10px] text-gray-500 mt-0.5 truncate">
+                                  {b.user.name} · {b.user.phone} · {b.user.email}
+                                </p>
+                                {b.payment && (
+                                  <p className="text-[10px] text-gray-400 mt-0.5">결제 {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                              {b.status === 'pending_payment' && (
+                                <>
+                                  <button
+                                    onClick={() => handleAdBookingApprove(b.id)}
+                                    className="flex-1 py-2 bg-emerald-500 text-white rounded-lg font-bold text-xs hover:bg-emerald-600 transition-colors"
+                                  >입금 확인</button>
+                                  <button
+                                    onClick={() => handleAdBookingFree(b.id)}
+                                    className="flex-1 py-2 bg-sky-100 text-sky-700 rounded-lg font-bold text-xs hover:bg-sky-200 transition-colors"
+                                  >무료 승인</button>
+                                </>
+                              )}
+                              {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
+                                <button
+                                  onClick={() => handleAdBookingCancel(b.id)}
+                                  className="flex-1 py-2 bg-gray-100 text-coral rounded-lg font-bold text-xs hover:bg-coral/10 transition-colors"
+                                >취소</button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
