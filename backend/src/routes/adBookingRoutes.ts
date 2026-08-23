@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import {
   getSlotPricings,
+  getDepositInfo,
   getAvailability,
   createBooking,
   updateBookingCreative,
@@ -26,6 +27,7 @@ const router = Router();
 router.get('/slots', getSlotPricings);
 router.get('/availability', getAvailability);
 router.get('/active', getActiveAds);
+router.get('/deposit-info', getDepositInfo); // 입금계좌 (env 단일 소스)
 
 // 사용자 API (인증 필요)
 router.post('/create', authenticateToken, createBooking);

@@ -75,6 +75,16 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
 };
 
 // 광고 슬롯 가격 목록 조회
+// 입금 계좌 안내 (공개) — Render env(AD_DEPOSIT_*) 한 곳만 갱신하면 사이트 전체에 반영.
+// (기존엔 Vercel VITE_ env 에도 중복돼 있어 계좌 변경 시 두 곳을 고쳐야 했음)
+export const getDepositInfo = async (_req: Request, res: Response): Promise<void> => {
+  res.json({
+    bank: process.env.AD_DEPOSIT_BANK || null,
+    account: process.env.AD_DEPOSIT_ACCOUNT || null,
+    holder: process.env.AD_DEPOSIT_HOLDER || null,
+  });
+};
+
 export const getSlotPricings = async (_req: Request, res: Response): Promise<void> => {
   try {
     const pricings = await prisma.adSlotPricing.findMany({
@@ -114,8 +124,8 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
     const monthStart = new Date(year, mon - 1, 1);
     const monthEnd = new Date(year, mon, 0, 23, 59, 59);
 
-    // 해당 월에 겹치는 모든 예약 조회
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+    // 해당 월에 겹치는 모든 예약 조회 — pending 점유 창은 createBooking 과 동일하게 72시간
+    const ttlAgo = new Date(Date.now() - 72 * 60 * 60 * 1000);
     const bookings = await prisma.adBooking.findMany({
       where: {
         slotType: slotType as string,
@@ -124,7 +134,7 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
         endDate: { gte: monthStart },
         OR: [
           { status: { in: ['paid', 'active'] } },
-          { status: 'pending_payment', createdAt: { gte: thirtyMinAgo } },
+          { status: 'pending_payment', createdAt: { gte: ttlAgo } },
         ],
       },
       select: { startDate: true, endDate: true },
@@ -395,19 +405,19 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         const holder = process.env.AD_DEPOSIT_HOLDER;
         const fmt = (d: Date) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
         const accountBlock = (bank && account && holder)
-          ? `🏦 입금 계좌\n  • 은행: ${bank}\n  • 계좌: ${account}\n  • 예금주: ${holder}`
-          : `🏦 입금 계좌는 곧 안내드리겠습니다.`;
+          ? `[입금 계좌]\n  • 은행: ${bank}\n  • 계좌: ${account}\n  • 예금주: ${holder}`
+          : `입금 계좌는 곧 안내드리겠습니다.`;
         const applicantBlock = applicant
-          ? `👤 신청자 정보\n` +
+          ? `[신청자 정보]\n` +
             `  • 성함: ${applicant.name || '-'}${applicant.nickname ? ` (${applicant.nickname})` : ''}\n` +
             `  • 연락처: ${applicant.phone || '-'}\n` +
             `  • 이메일: ${applicant.email || '-'}\n` +
             `\n`
           : '';
         const depositMsg =
-          `📢 광고 신청이 접수되었습니다.\n` +
+          `광고 신청이 접수되었습니다.\n` +
           `\n` +
-          `📋 신청 내역\n` +
+          `[신청 내역]\n` +
           `  • 광고: ${title}\n` +
           `  • 기간: ${fmt(new Date(startDate))} ~ ${fmt(new Date(endDate))} (${booking.totalDays}일)\n` +
           `  • 금액: ${booking.totalPrice.toLocaleString()}원\n` +

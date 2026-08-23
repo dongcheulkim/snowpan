@@ -84,6 +84,8 @@ export default function AdBooking() {
   getUser(); // auth check
   const [step, setStep] = useState(1);
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
+  // 입금 계좌 — 백엔드 env 단일 소스 (Render 만 갱신하면 반영). VITE_ env 는 레거시 폴백.
+  const [deposit, setDeposit] = useState<{ bank: string | null; account: string | null; holder: string | null }>({ bank: null, account: null, holder: null });
   const [loading, setLoading] = useState(true);
 
   // Step 1: 슬롯 선택
@@ -152,6 +154,9 @@ export default function AdBooking() {
       .then(setPricings)
       .catch(() => {})
       .finally(() => setLoading(false));
+    api<{ bank: string | null; account: string | null; holder: string | null }>('/ad-booking/deposit-info')
+      .then(setDeposit)
+      .catch(() => {});
   }, []);
 
   const currentPricing = pricings.find(
@@ -689,9 +694,9 @@ export default function AdBooking() {
 
           {/* 입금 계좌 안내 */}
           {(() => {
-            const bank = import.meta.env.VITE_AD_DEPOSIT_BANK;
-            const account = import.meta.env.VITE_AD_DEPOSIT_ACCOUNT;
-            const holder = import.meta.env.VITE_AD_DEPOSIT_HOLDER;
+            const bank = deposit.bank || import.meta.env.VITE_AD_DEPOSIT_BANK;
+            const account = deposit.account || import.meta.env.VITE_AD_DEPOSIT_ACCOUNT;
+            const holder = deposit.holder || import.meta.env.VITE_AD_DEPOSIT_HOLDER;
             if (!bank || !account || !holder) {
               return (
                 <div className="bg-sky-50 rounded-xl p-4">
