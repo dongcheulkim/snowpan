@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { useVertical } from '../hooks/useVertical';
 
 interface AdItem {
   title: string;
   description: string;
   url?: string;
+  image?: string | null;
   textColor?: string | null;
   textAlign?: string | null;
 }
@@ -15,6 +16,7 @@ interface RawAd {
   title: string;
   description: string;
   url?: string;
+  image?: string | null;
   textColor?: string | null;
   textAlign?: string | null;
 }
@@ -41,6 +43,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
           title: a.title,
           description: a.description,
           url: a.url,
+          image: a.image,
           textColor: a.textColor,
           textAlign: a.textAlign,
         })));
@@ -98,6 +101,9 @@ export default function CategoryAdBanner({ category }: { category: string }) {
               idx === current ? 'translate-x-0' : idx < current ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
             }`}
           >
+            {banner.image && (
+              <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+            )}
             <div className={`relative z-10 flex-1 ${align}`}>
               <div className={`flex items-center gap-2 mb-0.5 ${justify}`}>
                 <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
