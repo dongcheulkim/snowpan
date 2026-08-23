@@ -171,7 +171,6 @@ router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthR
   try {
     const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { userId: true } });
     if (!poll) { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
-    if (poll.userId === userId) { res.status(400).json({ error: '본인 투표에는 좋아요를 누를 수 없어요.' }); return; }
 
     // create 성공 = 새 좋아요(+1), P2002 = 이미 눌렀음 → 토글 오프(-1). 카운터는 원자 증감.
     try {

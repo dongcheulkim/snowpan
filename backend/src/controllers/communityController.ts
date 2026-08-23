@@ -335,13 +335,9 @@ export const likePost = async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    // 셀프 좋아요 차단 — 본인 글 좋아요로 인기 조작 방지.
+    // 본인 글 좋아요 허용 — 어차피 1인 1개라 조작 여지 없음 (인스타 등 통상 UX).
     const post = await prisma.post.findUnique({ where: { id }, select: { userId: true } });
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
-    if (post.userId === userId) {
-      res.status(400).json({ error: '본인 글에는 좋아요를 누를 수 없습니다.' });
-      return;
-    }
 
     // race condition 방지 — find→create/delete 분리 시 동시 요청이 양쪽 분기 동시 실행해
     // likes 카운터가 ±2 되거나 unique 위반 발생.

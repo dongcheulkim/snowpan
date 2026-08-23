@@ -154,6 +154,9 @@ async function main() {
   // 좋아요 토글
   const like1 = await req('PUT', `/community/${postId}/like`, { token: B.token });
   check('글 좋아요', like1.status === 200 && like1.json?.liked === true);
+  // 본인 글 좋아요 허용 (정책 변경 — 1인 1개라 조작 여지 없음)
+  const selfLike = await req('PUT', `/community/${postId}/like`, { token: A.token });
+  check('본인 글 좋아요 허용', selfLike.status === 200 && selfLike.json?.liked === true, `${selfLike.status}`);
   // 글 수정 (신규 편집 흐름 — PUT + images)
   const pEdit = await req('PUT', `/community/${postId}`, { token: A.token, body: { title: 'E2E 게시글(수정)', content: '수정된 본문', category: 'free', images: '' } });
   check('글 수정', pEdit.status === 200, `${pEdit.status}`);
@@ -184,6 +187,9 @@ async function main() {
   check('투표 myLike 복원', pd2.json?.myLike === true && pd2.json?.myVote === optId, JSON.stringify({ myLike: pd2.json?.myLike, myVote: !!pd2.json?.myVote }));
   const unlike = await req('POST', `/polls/${pollId}/like`, { token: B.token });
   check('좋아요 토글 해제', unlike.json?.liked === false);
+  // 본인 투표 좋아요 허용 (정책 변경)
+  const pollSelfLike = await req('POST', `/polls/${pollId}/like`, { token: A.token });
+  check('본인 투표 좋아요 허용', pollSelfLike.status === 200 && pollSelfLike.json?.liked === true, `${pollSelfLike.status}`);
   check('투표 삭제(작성자)', (await req('DELETE', `/polls/${pollId}`, { token: A.token })).status === 200);
 
   // ============ 5. 매장 4종 + 승인 흐름 ============
