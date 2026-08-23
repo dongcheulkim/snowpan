@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { CalendarIcon, ChartIcon, ChatIcon, CloseIcon, DocumentIcon, PackageIcon, UsersIcon } from '../components/Icons';
-import { adSlotLabelKr, SLOT_DESCRIPTIONS } from '../utils/adLabels';
+import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 
 type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
@@ -788,62 +788,77 @@ const AdminDashboard = () => {
 
           {/* Ad Pricing Tab */}
           {tab === 'adPricing' && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {adPricings.length === 0 ? (
                 <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 가격 설정이 없습니다.</div>
               ) : (
-                adPricings.map((p) => {
-                  const slotLabel = adSlotLabelKr(p.slotType, p.category);
-                  const slotDesc = SLOT_DESCRIPTIONS[p.slotType];
-                  return (
-                    <div key={p.id} className="card p-4">
-                      <div className="flex items-start justify-between mb-3 gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold text-gray-900">{slotLabel}</span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                              {p.active ? '활성' : '비활성'}
-                            </span>
-                          </div>
-                          {slotDesc && <p className="text-[11px] text-gray-500 leading-tight">{slotDesc}</p>}
-                        </div>
-                        <button
-                          onClick={() => handlePricingUpdate(p, 'active', !p.active)}
-                          className="text-[10px] text-gray-500 hover:text-gray-600 flex-shrink-0"
-                        >
-                          {p.active ? '비활성화' : '활성화'}
-                        </button>
+                (() => {
+                  // 슬롯별 그룹 (메인 배너 / 카테고리 배너 / 프리미엄) — 카테고리 배너는 카테고리 순 정렬
+                  const catOrder = ['none', 'skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
+                  const groups: { slot: string; items: AdPricingItem[] }[] = [];
+                  for (const slot of ['main_banner', 'category', 'premium']) {
+                    const items = adPricings
+                      .filter((p) => p.slotType === slot)
+                      .sort((a, b) => catOrder.indexOf(a.category || 'none') - catOrder.indexOf(b.category || 'none'));
+                    if (items.length) groups.push({ slot, items });
+                  }
+                  // 알 수 없는 슬롯도 누락 없이
+                  const known = new Set(['main_banner', 'category', 'premium']);
+                  const etc = adPricings.filter((p) => !known.has(p.slotType));
+                  if (etc.length) groups.push({ slot: '기타', items: etc });
+                  return groups.map(({ slot, items }) => (
+                    <div key={slot}>
+                      <div className="mb-2 px-1">
+                        <h3 className="text-sm font-bold text-gray-900">{SLOT_LABELS[slot] || slot}</h3>
+                        {SLOT_DESCRIPTIONS[slot] && <p className="text-[11px] text-gray-500 mt-0.5">{SLOT_DESCRIPTIONS[slot]}</p>}
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] text-gray-500 block mb-1">1일 가격 (원)</label>
-                          <input
-                            type="number"
-                            defaultValue={p.pricePerDay}
-                            onBlur={(e) => {
-                              const v = parseInt(e.target.value);
-                              if (v > 0 && v !== p.pricePerDay) handlePricingUpdate(p, 'pricePerDay', v);
-                            }}
-                            className={inputClass}
-                          />
+                      <div className="card overflow-hidden divide-y divide-gray-100">
+                        {/* 열 헤더 */}
+                        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-[10px] font-bold text-gray-500">
+                          <span className="flex-1">카테고리</span>
+                          <span className="w-24 text-center">1일 가격</span>
+                          <span className="w-14 text-center">동시 수</span>
+                          <span className="w-12 text-center">상태</span>
                         </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 block mb-1">동시 광고 수</label>
-                          <input
-                            type="number"
-                            defaultValue={p.maxConcurrent}
-                            onBlur={(e) => {
-                              const v = parseInt(e.target.value);
-                              if (v > 0 && v !== p.maxConcurrent) handlePricingUpdate(p, 'maxConcurrent', v);
-                            }}
-                            className={inputClass}
-                          />
-                        </div>
+                        {items.map((p) => (
+                          <div key={p.id} className={`flex items-center gap-2 px-4 py-2.5 ${p.active ? '' : 'opacity-50'}`}>
+                            <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+                              {p.slotType === 'category' || p.slotType === 'premium'
+                                ? (AD_CATEGORY_LABELS[p.category || 'none'] || p.category || '전체')
+                                : '홈 상단'}
+                            </span>
+                            <input
+                              type="number"
+                              defaultValue={p.pricePerDay}
+                              onBlur={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (v > 0 && v !== p.pricePerDay) handlePricingUpdate(p, 'pricePerDay', v);
+                              }}
+                              className="w-24 px-2 py-1.5 bg-snow border border-gray-200 rounded-lg text-sm text-right text-gray-900 focus:outline-none focus:border-sky-400"
+                            />
+                            <input
+                              type="number"
+                              defaultValue={p.maxConcurrent}
+                              onBlur={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (v > 0 && v !== p.maxConcurrent) handlePricingUpdate(p, 'maxConcurrent', v);
+                              }}
+                              className="w-14 px-2 py-1.5 bg-snow border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none focus:border-sky-400"
+                            />
+                            <button
+                              onClick={() => handlePricingUpdate(p, 'active', !p.active)}
+                              className={`w-12 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                                p.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                              }`}
+                            >{p.active ? '활성' : '꺼짐'}</button>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  );
-                })
+                  ));
+                })()
               )}
+              <p className="text-[10px] text-gray-400 px-1">가격·동시 수는 입력 후 바깥을 누르면 저장됩니다. 상태 버튼으로 슬롯 판매 켜기/끄기.</p>
             </div>
           )}
         </>
