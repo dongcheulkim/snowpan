@@ -31,6 +31,11 @@ function getFcm(): Promise<FcmMessaging | null> {
   return fcmInit;
 }
 
+// FCM 서버 키(FCM_SERVICE_ACCOUNT)가 설정·초기화 가능한 상태인지 — 관리자 푸시 테스트용.
+export async function isFcmConfigured(): Promise<boolean> {
+  return (await getFcm()) !== null;
+}
+
 async function clearToken(userId: string): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } }).catch(() => {});
 }

@@ -318,7 +318,21 @@ const AdminDashboard = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
-        <button type="button" onClick={() => navigate('/mypage')} className="text-sm text-gray-500 hover:text-gray-600 transition-colors">← 내정보</button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const r = await api<{ fcmConfigured: boolean; hasToken: boolean; sent: boolean }>('/admin/push-test', { method: 'POST' });
+                if (r.sent) toastSuccess('테스트 알림을 보냈어요. 폰을 확인하세요.');
+                else if (!r.fcmConfigured) toastError('FCM 서버 키 미적용 — Render 재배포 완료 후 다시 시도하세요.');
+                else toastError('이 계정에 등록된 기기가 없어요. 앱에서 로그인하고 알림을 허용한 뒤 다시 시도하세요.');
+              } catch { toastError('푸시 테스트 실패'); }
+            }}
+            className="text-xs font-bold text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors"
+          >푸시 테스트</button>
+          <button type="button" onClick={() => navigate('/mypage')} className="text-sm text-gray-500 hover:text-gray-600 transition-colors">← 내정보</button>
+        </div>
       </div>
 
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1 overflow-x-auto">

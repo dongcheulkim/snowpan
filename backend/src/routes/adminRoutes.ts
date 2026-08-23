@@ -28,11 +28,29 @@ import {
   rejectAdRequest,
 } from '../controllers/adminController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { isFcmConfigured, sendPushToUser } from '../utils/push';
+import prisma from '../config/database';
 
 const router = Router();
 
 // 모든 관리자 라우트: 인증 + admin 권한 한번에. 각 컨트롤러 인라인 체크는 중복이라 제거 가능.
 router.use(authenticateToken, requireAdmin);
+
+// 푸시 셀프 테스트 — FCM 서버 키·기기 토큰 상태 확인 + 본인 기기로 테스트 알림 발송.
+router.post('/push-test', async (req: any, res) => {
+  try {
+    const configured = await isFcmConfigured();
+    const me = await prisma.user.findUnique({ where: { id: req.user.id }, select: { fcmToken: true } });
+    const hasToken = !!me?.fcmToken;
+    if (configured && hasToken) {
+      await sendPushToUser(req.user.id, '푸시 테스트', '스노우판 푸시가 정상 작동합니다.', '/admin');
+    }
+    res.json({ fcmConfigured: configured, hasToken, sent: configured && hasToken });
+  } catch (e) {
+    console.error('Push test error:', e);
+    res.status(500).json({ error: '푸시 테스트 실패' });
+  }
+});
 
 // 승인 대기 목록 조회
 router.get('/rentals/pending', getPendingRentals);
