@@ -41,5 +41,9 @@ export async function initNative(): Promise<void> {
 
     // 첫 화면 렌더 후 스플래시 숨김
     setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 200);
+
+    // 이미 로그인된 상태면(지속 로그인 복원) FCM 푸시 등록.
+    const { initPush } = await import('./push');
+    initPush().catch(() => {});
   } catch { /* 플러그인 로드 실패 시 무시(웹 동작엔 영향 없음) */ }
 }

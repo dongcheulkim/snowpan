@@ -230,6 +230,16 @@ export async function restoreSession(): Promise<void> {
 export function logout() {
   // 백엔드에 refresh 쿠키 제거 요청 (실패해도 진행).
   fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+  // 앱: 이 기기의 FCM 토큰 서버에서 정리(로그아웃한 유저에게 푸시 안 가게) + 리스너 해제.
+  const tok = sessionStorage.getItem('token') || localStorage.getItem('token');
+  if (tok) {
+    fetch(`${API_BASE}/auth/fcm-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+      body: JSON.stringify({ fcmToken: null }),
+    }).catch(() => {});
+  }
+  import('./push').then(m => m.clearPush()).catch(() => {});
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('token');
   localStorage.removeItem('user');

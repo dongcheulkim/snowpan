@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setAuth, markLastLogin } from '../api';
+import { initPush } from '../push';
 
 // 소셜 로그인 콜백 — 백엔드가 #token=...&user=<base64url>&provider=kakao 형태로 리다이렉트.
 // 해시에서 토큰/유저를 꺼내 세션에 저장하고 홈으로 이동.
@@ -29,6 +30,7 @@ const OAuthCallback = () => {
       // 소셜 로그인은 지속 로그인(자동 로그인) 처리.
       setAuth(token, user, true);
       if (provider === 'kakao' || provider === 'naver') markLastLogin(provider);
+      initPush().catch(() => {}); // 앱: 로그인 직후 FCM 토큰 등록 (웹 no-op)
 
       // 신규 가입자 or 닉네임 미설정 → 온보딩(/welcome)으로. (oauthNext 는 Welcome 이 소비)
       if (isNew || !user?.nickname) {

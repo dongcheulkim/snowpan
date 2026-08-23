@@ -1,8 +1,38 @@
 import prisma from '../config/database';
 
-// 백그라운드 푸시 — 현재 Expo (모바일 앱) 만 활성화.
-// 웹 백그라운드 푸시는 Web Push (VAPID) 로 별도 구현 예정.
-// 웹 사용자는 탭 열려있을 때 Socket.IO + Browser Notification 으로 알림 수신.
+// 백그라운드 푸시.
+// - Capacitor(안드로이드) 앱: FCM HTTP v1 (firebase-admin). 토큰은 순수 FCM registration token.
+// - (레거시) Expo 토큰: ExponentPushToken... 형식. RN 앱 폐기됐지만 호환 유지.
+// - 웹: 탭 열려있을 때 Socket.IO + Browser Notification. 웹 백그라운드 푸시(VAPID)는 별도 예정.
+
+// firebase-admin 지연 초기화 — FCM_SERVICE_ACCOUNT env(서비스계정 JSON 문자열) 없으면 비활성(안전).
+// 서버는 env 없이도 정상 기동하고, 푸시만 조용히 no-op 됨.
+type FcmMessaging = { send: (msg: unknown) => Promise<string> };
+let fcmMessaging: FcmMessaging | null = null;
+let fcmInitTried = false;
+async function getFcm(): Promise<FcmMessaging | null> {
+  if (fcmInitTried) return fcmMessaging;
+  fcmInitTried = true;
+  const raw = process.env.FCM_SERVICE_ACCOUNT;
+  if (!raw) return null;
+  try {
+    // 모듈러 subpath import — 네임스페이스/default interop 회피, 타입 깔끔.
+    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+    const { getMessaging } = await import('firebase-admin/messaging');
+    const cred = JSON.parse(raw);
+    const app = getApps().length ? getApps()[0] : initializeApp({ credential: cert(cred) });
+    fcmMessaging = getMessaging(app) as unknown as FcmMessaging;
+  } catch (e) {
+    console.error('FCM(firebase-admin) 초기화 실패:', e);
+    fcmMessaging = null;
+  }
+  return fcmMessaging;
+}
+
+async function clearToken(userId: string): Promise<void> {
+  await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } }).catch(() => {});
+}
+
 export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<void> {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { fcmToken: true } });
@@ -10,6 +40,7 @@ export async function sendPushToUser(userId: string, title: string, body: string
 
     const token = user.fcmToken;
 
+    // 레거시 Expo (RN 앱) — 호환 유지.
     if (token.startsWith('ExponentPushToken')) {
       const res = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
@@ -26,11 +57,37 @@ export async function sendPushToUser(userId: string, title: string, body: string
       try {
         const data = await res.json() as { data?: { status?: string; details?: { error?: string } } };
         if (data?.data?.status === 'error' && data.data.details?.error === 'DeviceNotRegistered') {
-          await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } });
+          await clearToken(userId);
         }
       } catch { /* 응답 파싱 실패는 무시 */ }
+      return;
     }
-    // 다른 토큰 형식 (구 FCM) 은 무시 — 레거시 FCM HTTP API 는 2024-06 deprecated.
+
+    // Capacitor 안드로이드 앱 — FCM HTTP v1.
+    const messaging = await getFcm();
+    if (!messaging) return; // 서비스계정 미설정 → 조용히 무시.
+    try {
+      await messaging.send({
+        token,
+        notification: { title, body },
+        data: { link: link || '/' },
+        android: {
+          priority: 'high',
+          notification: { channelId: 'default', sound: 'default' },
+        },
+      });
+    } catch (err: unknown) {
+      const code = String((err as { errorInfo?: { code?: string }; code?: string })?.errorInfo?.code
+        || (err as { code?: string })?.code || '');
+      // 무효/만료 토큰 정리 — 죽은 토큰으로의 영구 재시도 방지.
+      if (code.includes('registration-token-not-registered')
+        || code.includes('invalid-registration-token')
+        || code.includes('invalid-argument')) {
+        await clearToken(userId);
+      } else {
+        console.error('FCM send 실패:', code || err);
+      }
+    }
   } catch (error) {
     console.error('Push failed:', error);
   }
