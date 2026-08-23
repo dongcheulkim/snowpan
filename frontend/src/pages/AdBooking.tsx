@@ -613,20 +613,42 @@ export default function AdBooking() {
                 </div>
               </div>
 
-              {/* 미리보기 */}
+              {/* 미리보기 — 선택한 슬롯의 실제 노출 모양 그대로 (비율·AD 칩 포함) */}
               <div>
-                <label className="text-sm font-medium text-gray-600">미리보기</label>
-                <div className="mt-1 relative overflow-hidden rounded-xl bg-gray-100 border border-gray-200 aspect-[3.5/1]">
-                  {imagePreview && (
-                    <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  )}
-                  <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
-                    <div>
-                      <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>
-                      <p className="text-sm opacity-80" style={{ color: textColor }}>{description || '광고 설명'}</p>
+                <label className="text-sm font-medium text-gray-600">
+                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일한 모양</span>
+                </label>
+                {selectedSlot === 'main_banner' ? (
+                  /* 홈 메인 배너 — 5:4 큰 카드, AD 칩은 좌하단 (Home.tsx 와 동일) */
+                  <div className="mt-1 relative overflow-hidden rounded-2xl border border-gray-200 aspect-[5/4] max-w-sm mx-auto" style={{ backgroundColor: '#ffffff' }}>
+                    {imagePreview && (
+                      <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
+                      <div>
+                        <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>
+                        <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>
+                      </div>
+                    </div>
+                    <span className="absolute bottom-2 left-3 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-black/55 text-white z-10">AD</span>
+                  </div>
+                ) : (
+                  /* 카테고리 배너 — 슬림 카드, AD 칩은 제목 앞 (CategoryAdBanner 와 동일) */
+                  <div className="mt-1 relative overflow-hidden rounded-2xl border border-gray-200 h-24" style={{ backgroundColor: '#ffffff' }}>
+                    {imagePreview && (
+                      <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    <div className={`relative z-10 flex items-center h-full px-6 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
+                      <div className={textAlign === 'center' ? 'text-center' : textAlign === 'right' ? 'text-right' : ''}>
+                        <div className={`flex items-center gap-2 mb-0.5 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
+                          <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
+                          <span className="text-base font-bold" style={{ color: textColor }}>{title || '광고 제목'}</span>
+                        </div>
+                        <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}
