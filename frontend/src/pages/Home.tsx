@@ -259,13 +259,19 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5 */}
-      {isSnow && popular.length > 0 && (
+      {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5. 비어도 섹션은 항상 표시 */}
+      {isSnow && (
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
             <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
+          {popular.length === 0 ? (
+            <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
+              <p className="text-sm text-gray-500">아직 인기 글이 없어요.</p>
+              <p className="text-xs text-sky-600 font-bold mt-1.5">첫 글을 올려보세요 &gt;</p>
+            </Link>
+          ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
             {popular.slice(0, 5).map((p, i) => {
               const thumb = (p.images || '').split(',').filter(Boolean)[0];
@@ -286,17 +292,24 @@ const Home = () => {
               );
             })}
           </div>
+          )}
         </div>
       )}
 
-      {/* 매장 소식·이벤트 — 전 매장 최신 소식 (프로모션/이벤트/공지) */}
-      {isSnow && news.length > 0 && (
+      {/* 매장 소식·이벤트 — 전 매장 최신 소식. 비어도 섹션은 항상 표시 ("곧 올라와요") */}
+      {isSnow && (
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">매장 소식·이벤트</h2>
             {/* 홈은 매장당 최신 1개만 — 밀려난 소식은 전체 페이지에서 */}
             <Link to="/shop-news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
+          {news.length === 0 ? (
+            <div className="bg-snow rounded-2xl border border-gray-200 p-6 text-center">
+              <p className="text-sm text-gray-500">입점 매장들의 소식과 이벤트가 곧 올라와요.</p>
+              <p className="text-xs text-gray-400 mt-1.5">스키샵·렌탈·레슨·정비·숙소의 프로모션 소식이 여기에 표시됩니다.</p>
+            </div>
+          ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
             {news.map((n) => {
               const label = NEWS_TYPE_LABEL[n.postType] || NEWS_TYPE_LABEL.general;
@@ -317,31 +330,7 @@ const Home = () => {
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* 사장님 입점 유도 — 매장이 하나도 없어도 홈에서 바로 등록 진입 (상시 노출) */}
-      {isSnow && (
-        <div className="px-4 pt-2 pb-4">
-          <div className="bg-gradient-to-br from-sky-500 to-sky-600 rounded-2xl p-5 text-white">
-            <h2 className="text-[15px] font-bold">매장을 운영하시나요?</h2>
-            <p className="text-[12px] text-sky-100 mt-1 leading-relaxed">
-              스키샵·정비·렌탈·레슨·숙소를 무료로 등록하고<br />매장 소식을 홈 화면에 노출해 보세요.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {[
-                { label: '스키샵', link: '/skishop/register' },
-                { label: '정비샵', link: '/repair/register' },
-                { label: '렌탈샵', link: '/rental/register' },
-                { label: '레슨', link: '/lesson/register' },
-                { label: '숙소', link: '/accommodation/register' },
-              ].map((r) => (
-                <Link key={r.link} to={r.link} className="px-3 py-1.5 bg-white/15 border border-white/30 rounded-full text-[12px] font-bold active:bg-white/25 transition-colors">
-                  {r.label} 등록
-                </Link>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       )}
 
