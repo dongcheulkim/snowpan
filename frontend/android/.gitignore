@@ -62,7 +62,8 @@ captures/
 .cxx/
 
 # Google Services (e.g. APIs or Firebase)
-# google-services.json
+# 공개 저장소라 커밋 금지 — 로컬에만 보관 (분실 시 Firebase 콘솔에서 재다운로드 가능)
+google-services.json
 
 # Freeline
 freeline.py
