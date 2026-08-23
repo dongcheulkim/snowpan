@@ -320,6 +320,31 @@ const Home = () => {
         </div>
       )}
 
+      {/* 사장님 입점 유도 — 매장이 하나도 없어도 홈에서 바로 등록 진입 (상시 노출) */}
+      {isSnow && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="bg-gradient-to-br from-sky-500 to-sky-600 rounded-2xl p-5 text-white">
+            <h2 className="text-[15px] font-bold">매장을 운영하시나요?</h2>
+            <p className="text-[12px] text-sky-100 mt-1 leading-relaxed">
+              스키샵·정비·렌탈·레슨·숙소를 무료로 등록하고<br />매장 소식을 홈 화면에 노출해 보세요.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[
+                { label: '스키샵', link: '/skishop/register' },
+                { label: '정비샵', link: '/repair/register' },
+                { label: '렌탈샵', link: '/rental/register' },
+                { label: '레슨', link: '/lesson/register' },
+                { label: '숙소', link: '/accommodation/register' },
+              ].map((r) => (
+                <Link key={r.link} to={r.link} className="px-3 py-1.5 bg-white/15 border border-white/30 rounded-full text-[12px] font-bold active:bg-white/25 transition-colors">
+                  {r.label} 등록
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 하단 여백 — 마지막 섹션과 바텀 내비 사이 */}
       <div className="pb-6" />
     </div>
