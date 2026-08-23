@@ -62,6 +62,7 @@ const CommunityDetail = () => {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null); // 답글 대상 댓글
+  const [openReplies, setOpenReplies] = useState<Set<string>>(new Set()); // 답글 펼친 부모 댓글 id
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -111,6 +112,11 @@ const CommunityDetail = () => {
         body: { content: newComment.trim(), parentId: replyTo?.id },
       });
       setPost(prev => prev ? { ...prev, comments: [...prev.comments, comment] } : prev);
+      // 답글을 달았으면 그 스레드는 자동으로 펼쳐 내 답글이 바로 보이게
+      if (comment.parentId) {
+        const pid = comment.parentId;
+        setOpenReplies(prev => new Set(prev).add(pid));
+      }
       setNewComment('');
       setReplyTo(null);
     } catch (err) {
@@ -286,16 +292,38 @@ const CommunityDetail = () => {
                 </div>
               </div>
             );
-            return topComments.map(comment => (
-              <div key={comment.id}>
-                {renderComment(comment, false)}
-                {repliesOf(comment.id).length > 0 && (
-                  <div className="mt-3 ml-9 pl-3 border-l-2 border-gray-100 space-y-3">
-                    {repliesOf(comment.id).map(r => renderComment(r, true))}
-                  </div>
-                )}
-              </div>
-            ));
+            const toggleReplies = (pid: string) => setOpenReplies(prev => {
+              const next = new Set(prev);
+              if (next.has(pid)) next.delete(pid); else next.add(pid);
+              return next;
+            });
+            return topComments.map(comment => {
+              const replies = repliesOf(comment.id);
+              const opened = openReplies.has(comment.id);
+              return (
+                <div key={comment.id}>
+                  {renderComment(comment, false)}
+                  {replies.length > 0 && (
+                    <div className="ml-9 mt-2">
+                      {/* 기본 접힘 — 답글 많아도 목록이 길어지지 않게 */}
+                      <button
+                        type="button"
+                        onClick={() => toggleReplies(comment.id)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:text-sky-700"
+                      >
+                        <span className="w-4 border-t border-gray-300" />
+                        {opened ? '답글 숨기기' : `답글 ${replies.length}개 보기`}
+                      </button>
+                      {opened && (
+                        <div className="mt-2 pl-3 border-l-2 border-gray-100 space-y-3">
+                          {replies.map(r => renderComment(r, true))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            });
           })()}
         </div>
 
