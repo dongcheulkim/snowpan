@@ -12,6 +12,7 @@ interface ShopNews {
   images: string | null;
   postType: string;
   createdAt: string;
+  shopType: string;
   shopName: string;
 }
 
@@ -29,10 +30,24 @@ const FILTERS = [
   { id: 'notice', label: '공지' },
 ];
 
+// 매장 종류별 필터 — 스키샵/렌탈 소식이 섞여 보이지 않게.
+const SHOP_FILTERS = [
+  { id: 'all', label: '전체' },
+  { id: 'skishop', label: '스키샵' },
+  { id: 'repair', label: '정비샵' },
+  { id: 'rental', label: '렌탈샵' },
+  { id: 'lesson', label: '레슨' },
+  { id: 'accommodation', label: '숙소' },
+];
+const SHOP_TYPE_LABEL: Record<string, string> = {
+  skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소',
+};
+
 export default function ShopNewsPage() {
   const [items, setItems] = useState<ShopNews[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [shopFilter, setShopFilter] = useState('all');
 
   useEffect(() => {
     document.title = '매장 소식·이벤트 - 스노우판';
@@ -42,7 +57,9 @@ export default function ShopNewsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const shown = filter === 'all' ? items : items.filter((n) => n.postType === filter);
+  const shown = items
+    .filter((n) => shopFilter === 'all' || n.shopType === shopFilter)
+    .filter((n) => filter === 'all' || n.postType === filter);
 
   const formatDate = (s: string) => {
     const d = new Date(s);
@@ -59,6 +76,20 @@ export default function ShopNewsPage() {
         <h1 className="text-xl font-bold text-gray-900">매장 소식·이벤트</h1>
       </div>
 
+      {/* 매장 종류 필터 — 카테고리별 소식만 모아보기 */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {SHOP_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setShopFilter(f.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors whitespace-nowrap flex-shrink-0 ${
+              shopFilter === f.id ? 'bg-sky-500 text-white border-sky-500' : 'bg-white text-gray-600 border-gray-200'
+            }`}
+          >{f.label}</button>
+        ))}
+      </div>
+
+      {/* 소식 유형 필터 */}
       <div className="flex gap-2">
         {FILTERS.map((f) => (
           <button
@@ -87,6 +118,9 @@ export default function ShopNewsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${label.color}`}>{label.text}</span>
+                    {SHOP_TYPE_LABEL[n.shopType] && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-600 border border-sky-200 flex-shrink-0">{SHOP_TYPE_LABEL[n.shopType]}</span>
+                    )}
                     <span className="text-[11px] font-bold text-gray-500 truncate">{n.shopName}</span>
                     <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">{formatDate(n.createdAt)}</span>
                   </div>
