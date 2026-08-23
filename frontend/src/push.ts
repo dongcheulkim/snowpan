@@ -47,6 +47,32 @@ export async function initPush(): Promise<void> {
       }
     });
 
+    // 앱이 화면에 떠 있을 때(포그라운드)는 안드로이드가 푸시 배너를 안 띄움 →
+    // 로컬 알림으로 동일하게 표시해 "앱 켜둔 상태"에서도 알림이 보이게.
+    try {
+      const { LocalNotifications } = await import('@capacitor/local-notifications');
+      await PushNotifications.addListener('pushNotificationReceived', (n) => {
+        const link = (n.data as { link?: string })?.link || '/';
+        LocalNotifications.schedule({
+          notifications: [{
+            id: Math.floor(Date.now() % 2147483647),
+            title: n.title || '스노우판',
+            body: n.body || '',
+            channelId: 'default',
+            extra: { link },
+          }],
+        }).catch(() => {});
+      });
+      // 포그라운드 로컬 알림 탭 → 링크 이동 (백그라운드 푸시 탭과 동일 UX)
+      await LocalNotifications.removeAllListeners().catch(() => {});
+      await LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+        const link = (action.notification.extra as { link?: string })?.link;
+        if (link && typeof link === 'string' && link.startsWith('/')) {
+          window.location.href = link;
+        }
+      });
+    } catch { /* 로컬 알림 플러그인 로드 실패 시 포그라운드 표시만 생략 */ }
+
     await PushNotifications.register();
   } catch {
     started = false; // 실패 시 재시도 허용
