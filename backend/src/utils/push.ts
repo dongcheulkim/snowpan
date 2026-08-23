@@ -40,10 +40,11 @@ async function clearToken(userId: string): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } }).catch(() => {});
 }
 
-export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<void> {
+// 반환값: 발송 결과 (관리자 푸시 테스트 진단용). 일반 호출부는 fire-and-forget 으로 무시해도 무방.
+export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<{ ok: boolean; detail: string }> {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { fcmToken: true } });
-    if (!user?.fcmToken) return;
+    if (!user?.fcmToken) return { ok: false, detail: 'no-token' };
 
     const token = user.fcmToken;
 
@@ -65,16 +66,17 @@ export async function sendPushToUser(userId: string, title: string, body: string
         const data = await res.json() as { data?: { status?: string; details?: { error?: string } } };
         if (data?.data?.status === 'error' && data.data.details?.error === 'DeviceNotRegistered') {
           await clearToken(userId);
+          return { ok: false, detail: 'expo-device-not-registered' };
         }
       } catch { /* 응답 파싱 실패는 무시 */ }
-      return;
+      return { ok: true, detail: 'expo-sent' };
     }
 
     // Capacitor 안드로이드 앱 — FCM HTTP v1.
     const messaging = await getFcm();
-    if (!messaging) return; // 서비스계정 미설정 → 조용히 무시.
+    if (!messaging) return { ok: false, detail: 'fcm-not-configured' }; // 서비스계정 미설정 → 조용히 무시.
     try {
-      await messaging.send({
+      const msgId = await messaging.send({
         token,
         notification: { title, body },
         data: { link: link || '/' },
@@ -83,6 +85,7 @@ export async function sendPushToUser(userId: string, title: string, body: string
           notification: { channelId: 'default', sound: 'default' },
         },
       });
+      return { ok: true, detail: `fcm-sent:${msgId}` };
     } catch (err: unknown) {
       const code = String((err as { errorInfo?: { code?: string }; code?: string })?.errorInfo?.code
         || (err as { code?: string })?.code || '');
@@ -94,9 +97,11 @@ export async function sendPushToUser(userId: string, title: string, body: string
       } else {
         console.error('FCM send 실패:', code || err);
       }
+      return { ok: false, detail: code || String(err).slice(0, 200) };
     }
   } catch (error) {
     console.error('Push failed:', error);
+    return { ok: false, detail: String(error).slice(0, 200) };
   }
 }
 

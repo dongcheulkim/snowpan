@@ -323,10 +323,11 @@ const AdminDashboard = () => {
             type="button"
             onClick={async () => {
               try {
-                const r = await api<{ fcmConfigured: boolean; hasToken: boolean; sent: boolean }>('/admin/push-test', { method: 'POST' });
-                if (r.sent) toastSuccess('테스트 알림을 보냈어요. 폰을 확인하세요.');
+                const r = await api<{ fcmConfigured: boolean; hasToken: boolean; sent: boolean; detail?: string }>('/admin/push-test', { method: 'POST' });
+                if (r.sent) toastSuccess('테스트 알림을 보냈어요. 앱을 완전히 내린 상태에서 폰을 확인하세요.');
                 else if (!r.fcmConfigured) toastError('FCM 서버 키 미적용 — Render 재배포 완료 후 다시 시도하세요.');
-                else toastError('이 계정에 등록된 기기가 없어요. 앱에서 로그인하고 알림을 허용한 뒤 다시 시도하세요.');
+                else if (!r.hasToken) toastError('이 계정에 등록된 기기가 없어요. 앱에서 로그인하고 알림을 허용한 뒤 다시 시도하세요.');
+                else toastError(`발송 실패: ${r.detail || '원인 미상'}`);
               } catch { toastError('푸시 테스트 실패'); }
             }}
             className="text-xs font-bold text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors"

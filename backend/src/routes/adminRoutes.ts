@@ -42,10 +42,12 @@ router.post('/push-test', async (req: any, res) => {
     const configured = await isFcmConfigured();
     const me = await prisma.user.findUnique({ where: { id: req.user.id }, select: { fcmToken: true } });
     const hasToken = !!me?.fcmToken;
+    let sent = false; let detail = '';
     if (configured && hasToken) {
-      await sendPushToUser(req.user.id, '푸시 테스트', '스노우판 푸시가 정상 작동합니다.', '/admin');
+      const r = await sendPushToUser(req.user.id, '푸시 테스트', '스노우판 푸시가 정상 작동합니다.', '/admin');
+      sent = r.ok; detail = r.detail; // 실패 시 FCM 에러코드 그대로 노출 — 원인 즉시 파악용
     }
-    res.json({ fcmConfigured: configured, hasToken, sent: configured && hasToken });
+    res.json({ fcmConfigured: configured, hasToken, sent, detail });
   } catch (e) {
     console.error('Push test error:', e);
     res.status(500).json({ error: '푸시 테스트 실패' });
