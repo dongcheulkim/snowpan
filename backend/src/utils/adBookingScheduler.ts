@@ -127,7 +127,7 @@ export async function revokePremiumFromBooking(booking: { slotType: string; url:
 }
 
 // 광고 예약 → 배너 생성
-export async function createBannerFromBooking(booking: { id: string; title: string; description: string; url: string; image: string | null; textColor?: string | null; textAlign?: string | null }) {
+export async function createBannerFromBooking(booking: { id: string; title: string; description: string; url: string; image: string | null; textColor?: string | null; textAlign?: string | null; imagePos?: string | null }) {
   try {
     const maxOrder = await prisma.banner.aggregate({ _max: { order: true } });
     await prisma.banner.create({
@@ -139,6 +139,7 @@ export async function createBannerFromBooking(booking: { id: string; title: stri
         image: booking.image || null,
         textColor: booking.textColor || null,
         textAlign: booking.textAlign || null,
+        imagePos: booking.imagePos || null,
         order: (maxOrder._max.order || 0) + 1,
         active: true,
       },

@@ -601,6 +601,7 @@ model Banner {
   image       String?
   textColor   String?  // 글자 색상 hex (#ffffff)
   textAlign   String?  // 글자 위치 'left' | 'center' | 'right'
+  imagePos    String?  // 이미지 초점 'X% Y%' (object-position) — 광고주가 드래그로 지정
   order       Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -635,6 +636,7 @@ model AdBooking {
   image       String?
   textColor   String?  // 글자 색상 hex (#ffffff)
   textAlign   String?  // 글자 위치 'left' | 'center' | 'right'
+  imagePos    String?  // 이미지 초점 'X% Y%' (object-position)
   startDate   DateTime
   endDate     DateTime
   totalDays   Int

@@ -1,5 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { BankIcon, CloseIcon, MountainIcon, StarIcon } from '../components/Icons';
@@ -105,6 +105,24 @@ export default function AdBooking() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [textColor, setTextColor] = useState('#1e293b');
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
+  // 이미지 초점 (object-position) — 미리보기에서 드래그로 "사진의 어느 부분을 보여줄지" 지정.
+  const [imgPos, setImgPos] = useState('50% 50%');
+  const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const startImgDrag = (e: React.PointerEvent) => {
+    if (!imagePreview) return;
+    const [px, py] = imgPos.split(' ').map((v) => parseFloat(v));
+    dragRef.current = { x: e.clientX, y: e.clientY, px, py };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const moveImgDrag = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const nx = Math.min(100, Math.max(0, d.px - ((e.clientX - d.x) / r.width) * 100));
+    const ny = Math.min(100, Math.max(0, d.py - ((e.clientY - d.y) / r.height) * 100));
+    setImgPos(`${Math.round(nx)}% ${Math.round(ny)}%`);
+  };
+  const endImgDrag = () => { dragRef.current = null; };
 
   // Step 4: 결제
   const [paying, setPaying] = useState(false);
@@ -230,6 +248,7 @@ export default function AdBooking() {
           image: imageUrl,
           textColor: selectedSlot !== 'premium' ? textColor : undefined,
           textAlign: selectedSlot !== 'premium' ? textAlign : undefined,
+          imagePos: selectedSlot !== 'premium' && imageUrl ? imgPos : undefined,
           periodMonths,
           desiredStart: desiredStart || undefined,
           payMethod: 'TRANSFER',
@@ -616,13 +635,17 @@ export default function AdBooking() {
               {/* 미리보기 — 선택한 슬롯의 실제 노출 모양 그대로 (비율·AD 칩 포함) */}
               <div>
                 <label className="text-sm font-medium text-gray-600">
-                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일한 모양</span>
+                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일 · 사진을 드래그해 보여줄 부분을 맞춰보세요</span>
                 </label>
                 {selectedSlot === 'main_banner' ? (
                   /* 홈 메인 배너 — 5:4 큰 카드, AD 칩은 좌하단 (Home.tsx 와 동일) */
-                  <div className="mt-1 relative overflow-hidden rounded-2xl border border-gray-200 aspect-[5/4] max-w-sm mx-auto" style={{ backgroundColor: '#ffffff' }}>
+                  <div
+                    className={`mt-1 relative overflow-hidden rounded-2xl border border-gray-200 aspect-[5/4] max-w-sm mx-auto select-none ${imagePreview ? 'touch-none cursor-grab active:cursor-grabbing' : ''}`}
+                    style={{ backgroundColor: '#ffffff' }}
+                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag}
+                  >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
                     )}
                     <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
                       <div>
@@ -634,9 +657,13 @@ export default function AdBooking() {
                   </div>
                 ) : (
                   /* 카테고리 배너 — 슬림 카드, AD 칩은 제목 앞 (CategoryAdBanner 와 동일) */
-                  <div className="mt-1 relative overflow-hidden rounded-2xl border border-gray-200 h-24" style={{ backgroundColor: '#ffffff' }}>
+                  <div
+                    className={`mt-1 relative overflow-hidden rounded-2xl border border-gray-200 h-24 select-none ${imagePreview ? 'touch-none cursor-grab active:cursor-grabbing' : ''}`}
+                    style={{ backgroundColor: '#ffffff' }}
+                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag}
+                  >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
                     )}
                     <div className={`relative z-10 flex items-center h-full px-6 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
                       <div className={textAlign === 'center' ? 'text-center' : textAlign === 'right' ? 'text-right' : ''}>

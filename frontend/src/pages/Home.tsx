@@ -13,6 +13,7 @@ interface BannerData {
   tag: string;
   url: string;
   image: string | null;
+  imagePos?: string | null;
   textColor?: string | null;
   textAlign?: string | null;
 }
@@ -220,7 +221,7 @@ const Home = () => {
                 }`}
               >
                 {banner.image && (
-                  <img src={imageUrl(banner.image, 900)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                  <img src={imageUrl(banner.image, 900)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={banner.imagePos ? { objectPosition: banner.imagePos } : undefined} />
                 )}
                 <div className={`flex-1 relative z-10 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : 'text-left'}`}>
                   <div className={`flex items-center gap-2 mb-1 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>

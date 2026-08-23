@@ -8,6 +8,7 @@ interface AdItem {
   description: string;
   url?: string;
   image?: string | null;
+  imagePos?: string | null;
   textColor?: string | null;
   textAlign?: string | null;
 }
@@ -17,6 +18,7 @@ interface RawAd {
   description: string;
   url?: string;
   image?: string | null;
+  imagePos?: string | null;
   textColor?: string | null;
   textAlign?: string | null;
 }
@@ -44,6 +46,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
           description: a.description,
           url: a.url,
           image: a.image,
+          imagePos: a.imagePos,
           textColor: a.textColor,
           textAlign: a.textAlign,
         })));
@@ -102,7 +105,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
             }`}
           >
             {banner.image && (
-              <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+              <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={banner.imagePos ? { objectPosition: banner.imagePos } : undefined} />
             )}
             <div className={`relative z-10 flex-1 ${align}`}>
               <div className={`flex items-center gap-2 mb-0.5 ${justify}`}>

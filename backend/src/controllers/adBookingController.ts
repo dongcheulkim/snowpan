@@ -7,6 +7,15 @@ import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
 import { isAllowedImageUrl } from '../utils/validate';
 
+// 이미지 초점 'X% Y%' (object-position) 검증 — 드래그로 지정된 값.
+function validImagePos(v: unknown): v is string {
+  if (typeof v !== 'string') return false;
+  const m = v.match(/^(\d{1,3})% (\d{1,3})%$/);
+  if (!m) return false;
+  const x = Number(m[1]); const y = Number(m[2]);
+  return x >= 0 && x <= 100 && y >= 0 && y <= 100;
+}
+
 // 광고주 본인이 광고 소재(제목·문구·링크·이미지·글자색/정렬) 수정.
 // 슬롯·기간·가격은 과금에 영향이라 수정 불가 — 소재만.
 // 게시 중(active)이면 홈 배너 사본(tag=ad:<id>)도 즉시 동기화. 관리자에게 수정 알림.
@@ -21,7 +30,7 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    const { title, description, url, image, textColor, textAlign } = req.body ?? {};
+    const { title, description, url, image, textColor, textAlign, imagePos } = req.body ?? {};
     const data: Record<string, unknown> = {};
     if (title !== undefined) {
       const clean = sanitizeText(title, 60);
@@ -51,6 +60,10 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
       if (textAlign && !['left', 'center', 'right'].includes(String(textAlign))) { res.status(400).json({ error: '글자 정렬 값이 올바르지 않습니다.' }); return; }
       data.textAlign = textAlign || null;
     }
+    if (imagePos !== undefined) {
+      if (imagePos && !validImagePos(imagePos)) { res.status(400).json({ error: '이미지 위치 값이 올바르지 않습니다.' }); return; }
+      data.imagePos = imagePos || null;
+    }
     if (Object.keys(data).length === 0) { res.status(400).json({ error: '수정할 내용이 없습니다.' }); return; }
 
     const updated = await prisma.adBooking.update({ where: { id }, data });
@@ -61,7 +74,7 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
         where: { tag: `ad:${id}` },
         data: {
           title: updated.title, description: updated.description, url: updated.url,
-          image: updated.image, textColor: updated.textColor, textAlign: updated.textAlign,
+          image: updated.image, imagePos: updated.imagePos, textColor: updated.textColor, textAlign: updated.textAlign,
         },
       });
       cacheDel('banners:public');
@@ -171,7 +184,7 @@ const PERIOD_DISCOUNT: Record<number, number> = { 1: 0, 6: 0.05, 12: 0.1 };
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { slotType, category, title, description, url, image, textColor, textAlign, payMethod, periodMonths, desiredStart } = req.body;
+    const { slotType, category, title, description, url, image, textColor, textAlign, imagePos, payMethod, periodMonths, desiredStart } = req.body;
     let { startDate, endDate } = req.body;
 
     // 기간제 신청 (신규 방식): periodMonths 로 시작/종료일 계산.
@@ -348,6 +361,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           image: image || null,
           textColor: textColor || null,
           textAlign: textAlign || null,
+          imagePos: validImagePos(imagePos) ? imagePos : null,
           startDate: start,
           endDate: end,
           totalDays,
@@ -606,6 +620,7 @@ export const getActiveAds = async (req: Request, res: Response): Promise<void> =
         image: true,
         textColor: true,
         textAlign: true,
+        imagePos: true,
         startDate: true,
         endDate: true,
       },
