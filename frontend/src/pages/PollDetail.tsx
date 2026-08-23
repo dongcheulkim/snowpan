@@ -90,10 +90,11 @@ const PollDetail = () => {
       const res = await api<{ likes: number; liked: boolean }>(`/polls/${poll.id}/like`, { method: 'POST' });
       setLiked(res.liked);
       setPoll((prev) => (prev ? { ...prev, likes: res.likes } : prev));
-    } catch {
-      // 실패 시 롤백.
+    } catch (e) {
+      // 실패 시 롤백 + 이유 표시 (본인 투표 좋아요 차단 등 — 조용히 삼키면 고장처럼 보임).
       setLiked(prevLiked);
       setPoll((prev) => (prev ? { ...prev, likes: prev.likes + (prevLiked ? 1 : -1) } : prev));
+      toastError(e instanceof Error ? e.message : '좋아요 처리에 실패했습니다.');
     }
   };
 

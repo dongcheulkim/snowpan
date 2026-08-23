@@ -56,6 +56,12 @@ const EditProfile = () => {
   };
 
   const handleSubmit = async () => {
+    // 닉네임 규칙 사전 검증 — 백엔드와 동일 (한글/영문/숫자 2~20자).
+    const nick = form.nickname.trim();
+    if (nick && !/^[가-힣a-zA-Z0-9]{2,20}$/.test(nick)) {
+      toastError('닉네임은 한글·영문·숫자 2~20자만 사용할 수 있어요.');
+      return;
+    }
     setLoading(true);
     let updated: Record<string, unknown> | null = null;
     try {

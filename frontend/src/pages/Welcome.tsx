@@ -24,7 +24,9 @@ const Welcome = () => {
   }, []);
 
   const trimmed = nickname.trim();
-  const valid = trimmed.length >= 2 && trimmed.length <= 20 && agreeTerms && agreePrivacy;
+  // 특수문자·공백 금지 — 백엔드와 동일 규칙 (한글/영문/숫자만).
+  const charsOk = trimmed === '' || /^[가-힣a-zA-Z0-9]+$/.test(trimmed);
+  const valid = trimmed.length >= 2 && trimmed.length <= 20 && charsOk && agreeTerms && agreePrivacy;
 
   const submit = async () => {
     if (!valid || loading) return;
@@ -84,7 +86,11 @@ const Welcome = () => {
               className="w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
               onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') submit(); }}
             />
-            <p className="text-xs text-gray-400 mt-1.5">스노우판에서 활동할 때 표시되는 이름이에요.</p>
+            {!charsOk ? (
+              <p className="text-xs text-coral mt-1.5">한글·영문·숫자만 사용할 수 있어요. (특수문자·공백 불가)</p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1.5">한글·영문·숫자 2~20자, 스노우판에서 표시되는 이름이에요.</p>
+            )}
           </div>
 
           <div className="space-y-2.5 pt-1">

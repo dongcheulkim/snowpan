@@ -296,14 +296,14 @@ const Chat = () => {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col animate-fade-in z-20"
+      className="fixed inset-0 flex flex-col animate-fade-in z-[60]"
       style={{
         // 미세한 점 패턴 배경 — 빈 채팅창의 허전함 완화
         background: 'radial-gradient(circle at 1px 1px, rgba(15,23,42,0.04) 1px, transparent 0) 0 0 / 24px 24px, #fafafa',
       }}
     >
       {/* Sticky Header */}
-      <header className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200">
+      <header className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200 pt-[env(safe-area-inset-top)]">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link to={backPath} aria-label="뒤로" className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>

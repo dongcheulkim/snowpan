@@ -89,11 +89,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // 닉네임 중복 사전 차단 — Prisma unique constraint 가 던지는 모호한 500 대신 친절한 409 반환.
     const trimmedNickname = nickname ? String(nickname).trim() : '';
     if (trimmedNickname) {
+      // 특수문자·공백 금지 — 한글/영문/숫자만 (사칭·혼란 유발 문자 차단)
+      if (!/^[가-힣a-zA-Z0-9]+$/.test(trimmedNickname)) {
+        res.status(400).json({ error: '닉네임은 한글·영문·숫자만 사용할 수 있어요.' });
+        return;
+      }
       if (trimmedNickname.length < 2 || trimmedNickname.length > 20) {
         res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
         return;
       }
-      const existingNickname = await prisma.user.findFirst({ where: { nickname: trimmedNickname }, select: { id: true } });
+      // 대소문자만 다른 변형("Snow"/"snow")도 중복으로 간주
+      const existingNickname = await prisma.user.findFirst({ where: { nickname: { equals: trimmedNickname, mode: 'insensitive' } }, select: { id: true } });
       if (existingNickname) {
         res.status(409).json({ error: '이미 사용 중인 닉네임입니다.' });
         return;
@@ -358,8 +364,14 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
           res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
           return;
         }
+        // 특수문자·공백 금지 — 한글/영문/숫자만
+        if (!/^[가-힣a-zA-Z0-9]+$/.test(cleanNickname)) {
+          res.status(400).json({ error: '닉네임은 한글·영문·숫자만 사용할 수 있어요.' });
+          return;
+        }
+        // 대소문자만 다른 변형("Snow"/"snow")도 중복으로 간주
         const duplicate = await prisma.user.findFirst({
-          where: { nickname: cleanNickname, NOT: { id: userId } },
+          where: { nickname: { equals: cleanNickname, mode: 'insensitive' }, NOT: { id: userId } },
           select: { id: true },
         });
         if (duplicate) {
