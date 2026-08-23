@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
+import UserBadges from '../components/UserBadges';
+import { UserIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
 
 interface PollOption {
@@ -22,6 +24,14 @@ interface Poll {
   createdAt: string;
   myVote?: string | null;
   myLike?: boolean;
+  comments?: PollComment[];
+}
+
+interface PollComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: { id: string; name: string; badges?: string[]; profileImage?: string | null };
 }
 
 const PollDetail = () => {
@@ -33,6 +43,9 @@ const PollDetail = () => {
   const [voted, setVoted] = useState<string | null>(null); // 내가 투표한 optionId
   const [liked, setLiked] = useState(false);
   const [voting, setVoting] = useState(false);
+  const [comments, setComments] = useState<PollComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -42,6 +55,7 @@ const PollDetail = () => {
         setPoll(p);
         setVoted(p.myVote || null);
         setLiked(!!p.myLike); // 서버 기준으로 하트 상태 복원 (이전엔 새로고침하면 항상 빈 하트)
+        setComments(p.comments || []);
       })
       .catch(() => setPoll(null))
       .finally(() => setLoading(false));
@@ -81,6 +95,18 @@ const PollDetail = () => {
       setLiked(prevLiked);
       setPoll((prev) => (prev ? { ...prev, likes: prev.likes + (prevLiked ? 1 : -1) } : prev));
     }
+  };
+
+  const handleComment = async () => {
+    if (!newComment.trim() || !poll || commentSubmitting) return;
+    if (!user) { navigate('/login'); return; }
+    setCommentSubmitting(true);
+    try {
+      const c = await api<PollComment>(`/polls/${poll.id}/comments`, { method: 'POST', body: { content: newComment.trim() } });
+      setComments((prev) => [...prev, c]);
+      setNewComment('');
+    } catch (e) { toastError(e instanceof Error ? e.message : '댓글 등록에 실패했습니다.'); }
+    finally { setCommentSubmitting(false); }
   };
 
   if (loading) {
@@ -173,6 +199,58 @@ const PollDetail = () => {
             {poll.likes}
           </button>
         </div>
+      </div>
+
+      {/* 댓글 */}
+      <div className="card p-5">
+        <h3 className="text-sm font-bold text-gray-900 mb-4">댓글 {comments.length}</h3>
+        <div className="space-y-4">
+          {comments.map((c) => (
+            <div key={c.id} className="flex gap-3">
+              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden">
+                {c.user.profileImage ? <img src={imageUrl(c.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={14} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold text-gray-900">{c.user.name}</span>
+                  <UserBadges badges={c.user.badges} />
+                  <span className="text-[10px] text-gray-500">{new Date(c.createdAt).toLocaleDateString('ko-KR')}</span>
+                  {user && (c.user.id === user.id || user.role === 'admin') && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm('댓글을 삭제하시겠습니까?')) return;
+                        try {
+                          await api(`/polls/comments/${c.id}`, { method: 'DELETE' });
+                          setComments((prev) => prev.filter((x) => x.id !== c.id));
+                        } catch (e) { toastError(e instanceof Error ? e.message : '삭제 실패'); }
+                      }}
+                      className="ml-auto text-[10px] text-gray-500 hover:text-red-400 transition-colors"
+                    >삭제</button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500">{c.content}</p>
+              </div>
+            </div>
+          ))}
+          {comments.length === 0 && <p className="text-xs text-gray-400 text-center py-3">첫 댓글을 남겨보세요.</p>}
+        </div>
+        {user ? (
+          <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">
+            <input
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') handleComment(); }}
+              placeholder="댓글을 입력하세요"
+              className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
+            />
+            <button onClick={handleComment} disabled={!newComment.trim() || commentSubmitting} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 active:scale-95 transition-transform disabled:opacity-30">등록</button>
+          </div>
+        ) : (
+          <div className="mt-5 pt-4 border-t border-gray-200 text-center">
+            <button onClick={() => navigate('/login')} className="text-xs text-primary-dark hover:underline">로그인하고 댓글 남기기</button>
+          </div>
+        )}
       </div>
 
       {/* 작성자/관리자 삭제 — 백엔드 DELETE /polls/:id 는 있었지만 UI 진입점이 없었음 */}

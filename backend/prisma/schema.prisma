@@ -66,6 +66,7 @@ model User {
   adViews          AdView[]
   shopPosts        ShopPost[]
   polls            Poll[]
+  pollComments     PollComment[]
   travelAgencies   TravelAgency[]
 
   @@unique([provider, providerId]) // 소셜 (제공자, id) 조합 유일 — 이메일 가입은 둘 다 null 이라 무관
@@ -860,6 +861,21 @@ model Poll {
 
   @@index([vertical, createdAt])
   @@map("polls")
+  comments  PollComment[]
+}
+
+// 투표 댓글 — 커뮤니티 댓글과 동일한 단순 구조 (투표 삭제 시 함께 삭제).
+model PollComment {
+  id        String   @id @default(uuid())
+  pollId    String
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([pollId, createdAt])
+  @@map("poll_comments")
 }
 
 // 투표 좋아요 — 1인 1회(토글). 이전엔 raw increment 라 무한 증가 가능했음.

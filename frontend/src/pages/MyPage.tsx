@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl } from '../api';
 import { CameraIcon, UserIcon } from '../components/Icons';
 import { toastSuccess, toastError } from '../components/Toast';
-import ReferralCard from '../components/ReferralCard';
 import { t } from '../i18n';
 
 interface BadgeRequest {
@@ -198,9 +197,6 @@ const MyPage = () => {
           <span className="text-gray-400 text-lg">›</span>
         </Link>
       )}
-
-      {/* 친구 초대 */}
-      <ReferralCard />
 
       {/* Menu */}
       <div className="card overflow-hidden">

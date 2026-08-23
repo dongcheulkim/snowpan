@@ -6,7 +6,9 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
-import { pollCreateLimiter, pollActionLimiter } from '../middleware/rateLimit';
+import { pollCreateLimiter, pollActionLimiter, commentCreateLimiter } from '../middleware/rateLimit';
+import { createNotification } from '../controllers/notificationController';
+import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
@@ -72,7 +74,19 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
         }
       } catch { /* 비로그인/만료 무시 */ }
     }
-    res.json({ ...shapePoll(poll), myVote, myLike });
+    // 댓글 — 닉네임 표시명 + 노출 뱃지 (커뮤니티와 동일 규칙)
+    const rawComments = await prisma.pollComment.findMany({
+      where: { pollId: poll.id },
+      orderBy: { createdAt: 'asc' },
+      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true } } },
+    });
+    const comments = rawComments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt,
+      user: { id: c.user.id, name: c.user.nickname || c.user.name, badges: c.user.activeBadge ? [c.user.activeBadge] : [], profileImage: c.user.profileImage },
+    }));
+    res.json({ ...shapePoll(poll), myVote, myLike, comments });
   } catch (err) {
     console.error('Get poll error:', err);
     res.status(500).json({ error: '투표 조회 중 오류가 발생했습니다.' });
@@ -179,6 +193,56 @@ router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthR
 });
 
 // 삭제 (auth + 소유자/admin).
+// 댓글 작성 (auth) — 알림: 투표 작성자에게 (본인 제외).
+router.post('/:id/comments', authenticateToken, commentCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const pollId = req.params.id;
+    const content = sanitizeText(req.body?.content, 1000);
+    if (!content) { res.status(400).json({ error: '댓글 내용을 입력해주세요.' }); return; }
+    const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true, userId: true, title: true } });
+    if (!poll) { res.status(404).json({ error: '투표를 찾을 수 없습니다.' }); return; }
+    // 같은 내용 1분 내 반복 차단 (도배 방지 — 커뮤니티와 동일)
+    const oneMinAgo = new Date(Date.now() - 60_000);
+    const dupe = await prisma.pollComment.findFirst({ where: { userId, pollId, content, createdAt: { gte: oneMinAgo } }, select: { id: true } });
+    if (dupe) { res.status(409).json({ error: '같은 댓글이 방금 등록되었습니다.' }); return; }
+    const comment = await prisma.pollComment.create({
+      data: { pollId, userId, content },
+      include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true } } },
+    });
+    if (poll.userId !== userId) {
+      const link = `/poll/${pollId}`;
+      const body = `'${poll.title}' 투표에 댓글이 달렸습니다: "${content.slice(0, 30)}"`;
+      createNotification(poll.userId, 'community', '투표에 새 댓글', body, link).catch(() => {});
+      sendPushToUser(poll.userId, '투표에 새 댓글', body, link).catch(() => {});
+      const io = req.app.get('io');
+      if (io) io.to(`user:${poll.userId}`).emit('new_notification', { type: 'community', title: '투표에 새 댓글', message: body, link });
+    }
+    res.status(201).json({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      user: { id: comment.user.id, name: comment.user.nickname || comment.user.name, badges: comment.user.activeBadge ? [comment.user.activeBadge] : [], profileImage: comment.user.profileImage },
+    });
+  } catch (err) {
+    console.error('Create poll comment error:', err);
+    res.status(500).json({ error: '댓글 등록 중 오류가 발생했습니다.' });
+  }
+});
+
+// 댓글 삭제 (작성자/관리자)
+router.delete('/comments/:commentId', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const c = await prisma.pollComment.findUnique({ where: { id: req.params.commentId }, select: { userId: true } });
+    if (!c) { res.status(404).json({ error: '댓글을 찾을 수 없습니다.' }); return; }
+    if (c.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '작성자만 삭제할 수 있어요.' }); return; }
+    await prisma.pollComment.delete({ where: { id: req.params.commentId } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: '삭제 실패' });
+  }
+});
+
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const poll = await prisma.poll.findUnique({ where: { id: req.params.id }, select: { userId: true } });
