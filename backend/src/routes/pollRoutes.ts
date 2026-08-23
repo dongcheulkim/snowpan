@@ -46,8 +46,9 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     if (!poll) { res.status(404).json({ error: '투표를 찾을 수 없습니다.' }); return; }
     prisma.poll.update({ where: { id: poll.id }, data: { views: { increment: 1 } } }).catch(() => {});
 
-    // 로그인 사용자면 내 투표 옵션 조회 (Authorization 헤더 있을 때만 — 공개 라우트라 선택적).
+    // 로그인 사용자면 내 투표 옵션 + 내 좋아요 여부 조회 (Authorization 헤더 있을 때만 — 공개 라우트라 선택적).
     let myVote: string | null = null;
+    let myLike = false;
     const auth = req.headers.authorization;
     if (auth) {
       try {
@@ -56,15 +57,22 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
         // 토큰 클레임은 userId (id 아님) + HS256 고정. 이전엔 payload.id 를 읽어 myVote 가 항상 null 이었음.
         const payload = jwt.default.verify(token, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as { userId?: string; type?: string };
         if (payload?.userId && (!payload.type || payload.type === 'access')) {
-          const v = await prisma.pollVote.findUnique({
-            where: { pollId_userId: { pollId: poll.id, userId: payload.userId } },
-            select: { optionId: true },
-          });
+          const [v, l] = await Promise.all([
+            prisma.pollVote.findUnique({
+              where: { pollId_userId: { pollId: poll.id, userId: payload.userId } },
+              select: { optionId: true },
+            }),
+            prisma.pollLike.findUnique({
+              where: { pollId_userId: { pollId: poll.id, userId: payload.userId } },
+              select: { id: true },
+            }),
+          ]);
           myVote = v?.optionId || null;
+          myLike = !!l; // 기존엔 안 내려줘서 새로고침 후 하트가 항상 빈 상태였음
         }
       } catch { /* 비로그인/만료 무시 */ }
     }
-    res.json({ ...shapePoll(poll), myVote });
+    res.json({ ...shapePoll(poll), myVote, myLike });
   } catch (err) {
     console.error('Get poll error:', err);
     res.status(500).json({ error: '투표 조회 중 오류가 발생했습니다.' });

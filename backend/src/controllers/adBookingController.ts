@@ -195,18 +195,17 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
-    // 오래된 pending_payment 정리 (30분 초과)
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+    // 오래된 pending_payment 정리 — 무통장 입금·관리자 확인 시간을 고려해 72시간
+    // (30분이던 시절엔 입금 확인 전에 예약이 취소돼 승인 자체가 불가했음)
+    const ttlAgo = new Date(Date.now() - 72 * 60 * 60 * 1000);
     await prisma.adBooking.updateMany({
-      where: { status: 'pending_payment', createdAt: { lt: thirtyMinAgo } },
+      where: { status: 'pending_payment', createdAt: { lt: ttlAgo } },
       data: { status: 'cancelled' },
     });
 
-    // 같은 사용자의 기존 pending_payment 예약 취소
-    await prisma.adBooking.updateMany({
-      where: { userId, status: 'pending_payment' },
-      data: { status: 'cancelled' },
-    });
+    // (제거) "같은 사용자의 기존 pending 전부 취소" — 메인배너+카테고리배너처럼
+    // 두 개를 연달아 예약하면 첫 예약(이미 입금했을 수도)이 소리 없이 취소되던 버그.
+    // 슬롯 점유는 아래 maxConcurrent 카운트가 pending(72h 내)도 포함해 이미 방지함.
 
     // 트랜잭션으로 동시 예약 방지
     const booking = await prisma.$transaction(async (tx) => {
@@ -224,7 +223,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           endDate: { gte: start },
           OR: [
             { status: { in: ['paid', 'active'] } },
-            { status: 'pending_payment', createdAt: { gte: thirtyMinAgo } },
+            { status: 'pending_payment', createdAt: { gte: ttlAgo } },
           ],
         },
         select: { startDate: true, endDate: true },

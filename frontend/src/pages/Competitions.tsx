@@ -241,7 +241,8 @@ export default function Competitions() {
                 <div className="divide-y divide-gray-100 border-t border-gray-100">
                   {items.map((comp) => {
                     const isPast = new Date(comp.endDate || comp.date) < now;
-                    const isToday = comp.date === now.toISOString().split('T')[0];
+                    // 로컬(KST) 기준 — toISOString 은 UTC 라 TODAY 뱃지가 하루 밀렸음
+                    const isToday = comp.date === `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                     const sportDot = comp.sport === 'board' ? 'bg-emerald-500' : comp.sport === 'both' ? 'bg-purple-400' : 'bg-sky-500';
                     return (
                       <Link

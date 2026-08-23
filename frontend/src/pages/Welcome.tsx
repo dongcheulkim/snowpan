@@ -82,7 +82,7 @@ const Welcome = () => {
               placeholder="2~20자로 입력해주세요"
               maxLength={20}
               className="w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all"
-              onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+              onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') submit(); }}
             />
             <p className="text-xs text-gray-400 mt-1.5">스노우판에서 활동할 때 표시되는 이름이에요.</p>
           </div>

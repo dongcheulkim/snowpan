@@ -44,7 +44,8 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const where: any = { vertical: verticalSlug };
+    // userId 조회(내 게시글)는 버티컬 무관 전체 — 다른 버티컬에서 쓴 글도 관리 가능하게.
+    const where: any = typeof userId === 'string' && userId ? {} : { vertical: verticalSlug };
     // 배열 파라미터(?sport=a&sport=b) 는 문자열만 통과 — Prisma 예외로 500 나는 것 방지.
     const sportStr = typeof sport === 'string' ? sport : undefined;
     const categoryStr = typeof category === 'string' ? category : undefined;
@@ -508,10 +509,16 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
     if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { title, content, category } = req.body;
+    const { title, content, category, images } = req.body;
     // create 와 동일한 검증 — sanitize + 길이 제한 + 카테고리 화이트리스트.
     // (이전엔 update 만 검증 누락되어 저장형 XSS/남용 경로였음)
-    const data: { title?: string; content?: string; category?: string } = {};
+    const data: { title?: string; content?: string; category?: string; images?: string | null } = {};
+    // images — create 와 동일 규칙 (콤마 구분 URL 문자열, 과대 입력 거절). null/'' = 전체 삭제.
+    if (images !== undefined) {
+      if (images === null || images === '') data.images = null;
+      else if (typeof images === 'string' && images.length <= 2000) data.images = images;
+      else { res.status(400).json({ error: '이미지 형식이 올바르지 않습니다.' }); return; }
+    }
     if (title !== undefined) {
       const clean = sanitizeText(title, 50);
       if (!clean) { res.status(400).json({ error: '제목을 입력해주세요.' }); return; }

@@ -1,7 +1,7 @@
 import { toastError } from '../components/Toast';
-import { useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { api, getUser, uploadImages } from '../api';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { api, getUser, uploadImages, imageUrl } from '../api';
 import { CloseIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import { communityCategories } from '../utils/communityLabels';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
@@ -10,6 +10,8 @@ import { useVertical } from '../hooks/useVertical';
 const CommunityWrite = () => {
   const navigate = useNavigate();
   const { sport } = useParams<{ sport: string }>();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit'); // 수정 모드 — 기존 글 불러와 PUT
   const [category, setCategory] = useState('free');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -18,7 +20,29 @@ const CommunityWrite = () => {
   const [submitting, setSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]); // 수정 모드 — 기존 업로드 이미지
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 수정 모드: 기존 글 프리필 (작성자/관리자만)
+  useEffect(() => {
+    if (!editId) return;
+    api<{ userId?: string; title: string; content: string; category: string; images?: string | null }>(`/community/${editId}`)
+      .then(p => {
+        const me = getUser();
+        if (!me || (p.userId && p.userId !== me.id && me.role !== 'admin')) {
+          toastError('수정 권한이 없습니다.');
+          navigate(-1);
+          return;
+        }
+        setTitle(p.title || '');
+        setContent(p.content || '');
+        setCategory(p.category || 'free');
+        setExistingImages(p.images ? p.images.split(',').filter(Boolean) : []);
+        setAgreed(true); // 최초 작성 시 이미 동의함
+      })
+      .catch(() => { toastError('글을 불러오지 못했습니다.'); navigate(-1); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   const vertical = useVertical();
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
@@ -40,7 +64,9 @@ const CommunityWrite = () => {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newFiles = [...imageFiles, ...files].slice(0, 5);
+    // 총 5장 — 수정 모드에선 남긴 기존 이미지 포함해서 계산
+    const room = Math.max(0, 5 - existingImages.length);
+    const newFiles = [...imageFiles, ...files].slice(0, room);
     setImageFiles(newFiles);
     const previews = newFiles.map(f => URL.createObjectURL(f));
     setImagePreviews(previews);
@@ -79,19 +105,28 @@ const CommunityWrite = () => {
 
     setSubmitting(true);
     try {
-      let images: string | undefined;
+      let newUrls: string[] = [];
       if (imageFiles.length > 0) {
-        const urls = await uploadImages(imageFiles);
-        images = urls.join(',');
+        newUrls = await uploadImages(imageFiles);
       }
 
-      await api('/community', {
-        method: 'POST',
-        body: { title: title.trim(), content: content.trim(), category, sport, images },
-      });
-      navigate(`${vbase}/community/${sport}`);
+      if (editId) {
+        // 수정 — 남긴 기존 이미지 + 새 이미지. 전부 지웠으면 '' 로 보내 서버에서 삭제.
+        const merged = [...existingImages, ...newUrls].join(',');
+        await api(`/community/${editId}`, {
+          method: 'PUT',
+          body: { title: title.trim(), content: content.trim(), category, images: merged },
+        });
+        navigate(`${vbase}/community/post/${editId}`);
+      } else {
+        await api('/community', {
+          method: 'POST',
+          body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined },
+        });
+        navigate(`${vbase}/community/${sport}`);
+      }
     } catch (err) {
-      toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      toastError(err instanceof Error ? err.message : editId ? '수정에 실패했습니다.' : '등록에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -102,7 +137,7 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> 글쓰기</h1>
+          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {editId ? '글 수정' : '글쓰기'}</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
@@ -196,19 +231,26 @@ const CommunityWrite = () => {
           onChange={handleImageSelect}
         />
         <div className="flex gap-2 flex-wrap">
+          {/* 수정 모드 — 기존 업로드 이미지 (제거 가능) */}
+          {existingImages.map((url, idx) => (
+            <div key={`ex-${idx}`} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+              <img src={imageUrl(url, 200)} alt="" className="w-full h-full object-cover" />
+              <button onClick={() => setExistingImages(prev => prev.filter((_, i) => i !== idx))} aria-label="이미지 삭제" className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center"><CloseIcon size={11} /></button>
+            </div>
+          ))}
           {imagePreviews.map((preview, idx) => (
             <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
               <img src={preview} alt="" className="w-full h-full object-cover" />
               <button onClick={() => removeImage(idx)} aria-label="이미지 삭제" className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center"><CloseIcon size={11} /></button>
             </div>
           ))}
-          {imageFiles.length < 5 && (
+          {existingImages.length + imageFiles.length < 5 && (
             <button
               onClick={() => fileInputRef.current?.click()}
               className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 hover:border-accent/50 hover:text-accent-light transition-all"
             >
               <span className="text-xl">+</span>
-              <span className="text-[10px]">{imageFiles.length}/5</span>
+              <span className="text-[10px]">{existingImages.length + imageFiles.length}/5</span>
             </button>
           )}
         </div>
@@ -238,7 +280,7 @@ const CommunityWrite = () => {
       </div>
 
       <button onClick={handleSubmit} disabled={!agreed || submitting} className={`w-full h-12 rounded-xl font-bold text-sm transition-colors ${agreed ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-        {submitting ? '등록 중...' : '등록하기'}
+        {submitting ? (editId ? '수정 중...' : '등록 중...') : (editId ? '수정하기' : '등록하기')}
       </button>
     </div>
   );

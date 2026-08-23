@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api, uploadImages } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 
-interface ResortOpt { slug: string; name: string; country: string; continent?: string | null }
+interface ResortOpt { slug: string; name: string; country: string; continent?: string | null; scope?: string }
 
 const inputCls = 'w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900';
 
@@ -19,7 +19,8 @@ export default function AgencyRegister() {
 
   useEffect(() => {
     document.title = '여행사 등록 - 스노우판';
-    api<ResortOpt[]>('/overseas/resorts').then(setResorts).catch(() => {});
+    // 여행사는 해외 스키 여행 전문 — 국내 리조트는 여행사 섹션이 없어 선택해도 무의미 → 해외만
+    api<ResortOpt[]>('/overseas/resorts').then((rs) => setResorts(rs.filter((r) => r.scope !== '국내'))).catch(() => {});
   }, []);
 
   const upload = async (file: File, set: (v: string) => void) => {

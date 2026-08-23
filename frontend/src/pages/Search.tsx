@@ -139,7 +139,7 @@ export default function Search() {
           <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><SkiShopIcon size={16} /> 스키샵 · 정비샵</h2>
           <div className="space-y-2">
             {results.shops.map(s => (
-              <Link key={`${s.type}-${s.id}`} to={s.type === 'ski' ? '/new-equipment' : '/repair'} className="card p-3 flex items-center gap-3 card-hover block">
+              <Link key={`${s.type}-${s.id}`} to={s.type === 'ski' ? `/skishop/${s.id}` : `/repair/${s.id}`} className="card p-3 flex items-center gap-3 card-hover block">
                 <span className="text-gray-700">{s.type === 'ski' ? <SkiShopIcon size={22} /> : <MaintenanceIcon size={22} />}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">{s.name}</p>

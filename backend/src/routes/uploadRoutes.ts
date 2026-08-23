@@ -57,10 +57,10 @@ function detectFileType(buf: Buffer): string | null {
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
   // WebP: 'RIFF' .... 'WEBP'
   if (buf.slice(0, 4).toString() === 'RIFF' && buf.slice(8, 12).toString() === 'WEBP') return 'image/webp';
-  // MP4: ftyp box at offset 4
+  // MP4: ftyp box at offset 4 — 흔한 브랜드 전부 허용 (iso5/iso6/mp4v/dash 등 정상 mp4 가 거부되던 것 수정)
   if (buf.slice(4, 8).toString() === 'ftyp') {
     const brand = buf.slice(8, 12).toString();
-    if (['mp42', 'mp41', 'isom', 'avc1', 'M4V '].includes(brand)) return 'video/mp4';
+    if (['mp42', 'mp41', 'mp4v', 'isom', 'iso2', 'iso4', 'iso5', 'iso6', 'avc1', 'avc3', 'dash', 'M4V ', 'M4VP', 'f4v '].includes(brand)) return 'video/mp4';
     if (brand === 'qt  ') return 'video/quicktime';
   }
   // WebM: 1A 45 DF A3 (EBML header)

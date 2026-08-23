@@ -25,6 +25,9 @@ interface Props {
 const subcatLabels: Record<string, string> = {
   ski: '스키', board: '보드', boots: '부츠', binding: '바인딩',
   helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
+  // verticals 설정의 실제 서브카테고리 id 들 — 누락 시 영문 id 가 그대로 노출됐음
+  ski_boots: '스키부츠', board_boots: '보드부츠', pole: '폴', gloves: '장갑',
+  bag: '가방', accessory: '액세서리', protector: '보호대',
 };
 
 // 스노우판 핵심 차별화 — '시세 대비 가격' 비교는 가장 강력한 셀링 포인트라 시각적으로 충분히 강조.

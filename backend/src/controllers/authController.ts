@@ -304,6 +304,12 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
+    // 비밀번호 정책 — 가입/재설정과 동일 강제 (기존엔 변경만 무정책이라 1자 비번 설정 가능했음).
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(newPassword)) {
+      res.status(400).json({ error: '비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.' });
+      return;
+    }
+
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
 

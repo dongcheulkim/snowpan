@@ -36,7 +36,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const where: Prisma.ProductWhereInput = { vertical: verticalSlug };
+    // userId 조회(판매내역/판매자 프로필)는 버티컬 무관 전체 — snow 기본값 때문에
+    // run/bike 등에서 등록한 매물이 판매내역에 안 보여 관리 불가하던 것 수정.
+    const where: Prisma.ProductWhereInput = userId ? {} : { vertical: verticalSlug };
     if (category) where.category = category as string;
     if (subcategory) where.subcategory = subcategory as string;
     if (userId) where.userId = userId as string;
@@ -425,7 +427,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size, tradeMethod, location } = req.body;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const priceResult = parsePrice(price);
@@ -469,8 +471,11 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(images !== undefined && { images }),
         ...(description !== undefined && { description: sanitizeText(description, 5000) }),
         ...(condition && { condition: sanitizeText(condition, 20) }),
-        ...(usageCount !== undefined && { usageCount: sanitizeText(usageCount, 30) }),
+        // usageCount(연식): null/'' 로 보내면 비우기 허용 (기존엔 한번 쓰면 못 지웠음)
+        ...(usageCount !== undefined && { usageCount: usageCount ? sanitizeText(usageCount, 30) : null }),
         ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
+        ...(tradeMethod !== undefined && { tradeMethod: sanitizeText(tradeMethod, 20) || null }),
+        ...(location !== undefined && { location: sanitizeText(location, 60) || null }),
         ...(length !== undefined && { length: sanitizeText(length, 30) || null }),
         ...(radius !== undefined && { radius: sanitizeText(radius, 30) || null }),
         ...(flex !== undefined && { flex: sanitizeText(flex, 30) || null }),

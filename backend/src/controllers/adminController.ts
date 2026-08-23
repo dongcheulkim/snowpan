@@ -278,8 +278,11 @@ export const createBanner = async (req: AuthRequest, res: Response): Promise<voi
     const { title, description, tag, url, image, order, active } = req.body as {
       title: string; description: string; tag: string; url: string; image?: string; order?: number; active?: boolean;
     };
+    // 검증 — 빈 폼 저장 시 제목 없는 빈 배너가 홈 캐러셀에 그대로 라이브되던 것 차단.
+    if (!title || !String(title).trim()) { res.status(400).json({ error: '배너 제목을 입력해주세요.' }); return; }
+    if (url && !/^(https?:\/\/|\/)/.test(String(url))) { res.status(400).json({ error: '링크는 http(s):// 또는 / 로 시작해야 합니다.' }); return; }
     const banner = await prisma.banner.create({
-      data: { title, description, tag, url, image: image || null, order: order ?? 0, active: active ?? true },
+      data: { title: String(title).trim(), description: description || '', tag: tag || '', url: url || '', image: image || null, order: order ?? 0, active: active ?? true },
     });
     res.status(201).json(banner);
   } catch (error) {

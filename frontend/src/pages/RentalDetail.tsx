@@ -94,6 +94,19 @@ const RentalDetail = () => {
         {item.instagram && <button onClick={() => openExternal(`https://instagram.com/${item.instagram}`)} className="px-4 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm">인스타</button>}
       </div>
 
+      {/* 문의 채팅 — 전화/링크가 없는 매장도 연락 가능하게 (레슨과 동일 UX) */}
+      {user && item.userId && item.userId !== user.id && (
+        <button
+          onClick={() => navigate(`/chat/new`, {
+            state: { seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
+          })}
+          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+        >문의 채팅하기</button>
+      )}
+      {!user && (
+        <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+      )}
+
       {user && (item.userId === user.id || user.role === 'admin') && (
         <div className="flex gap-2">
           {item.userId === user.id && (

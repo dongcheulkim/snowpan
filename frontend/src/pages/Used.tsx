@@ -145,7 +145,7 @@ const Used = () => {
         {/* 태블릿+ 에서만 헤더 우측 버튼, 모바일은 FAB 사용 */}
         <Link
           to={`${vbase}/used/register`}
-          className="hidden px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
+          className="hidden sm:inline-block px-4 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
           {t('used.register')}
         </Link>

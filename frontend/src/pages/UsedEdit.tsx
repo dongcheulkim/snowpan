@@ -15,6 +15,8 @@ interface Product {
   description: string | null;
   condition: string | null;
   usageCount: string | null;
+  tradeMethod?: string | null;
+  location?: string | null;
 }
 
 // 백엔드는 '상/중/하' 3단계만 사용 (UsedRegister 와 동일). '상중' 은 미지원 —
@@ -45,6 +47,8 @@ const UsedEdit = () => {
     condition: '사용감 적음',
     usageCount: '',
     description: '',
+    tradeMethod: '직거래',
+    location: '',
   });
 
   useEffect(() => {
@@ -59,6 +63,8 @@ const UsedEdit = () => {
           condition: codeToCondition[p.condition || '중'] || '사용감 적음',
           usageCount: p.usageCount?.replace('년식', '') || '',
           description: p.description || '',
+          tradeMethod: p.tradeMethod || '직거래',
+          location: p.location || '',
         });
         const imgs = p.images
           ? p.images.split(',').filter(Boolean)
@@ -105,7 +111,10 @@ const UsedEdit = () => {
           images: allImageUrls || undefined,
           description: form.description,
           condition: conditionToCode[form.condition] || '중',
-          usageCount: form.usageCount ? `${form.usageCount}년식` : undefined,
+          // 비우면 null 로 보내 서버에서 지움 (undefined 는 "변경 없음"이라 옛 연식이 남았음)
+          usageCount: form.usageCount ? `${form.usageCount}년식` : null,
+          tradeMethod: form.tradeMethod,
+          location: form.location.trim() || null,
         },
       });
       toastSuccess('수정되었습니다!');
@@ -236,6 +245,20 @@ const UsedEdit = () => {
           <div>
             <label className={labelClass}>연식</label>
             <input type="text" name="usageCount" value={form.usageCount} onChange={handleChange} placeholder="예: 2022" className={inputClass} />
+          </div>
+
+          {/* 거래 방식 · 직거래 지역 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>거래 방식</label>
+              <select name="tradeMethod" value={form.tradeMethod} onChange={handleChange} className={inputClass}>
+                {['직거래', '택배', '둘 다 가능'].map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>직거래 지역</label>
+              <input type="text" name="location" value={form.location} onChange={handleChange} placeholder="예: 서울 강남구" className={inputClass} />
+            </div>
           </div>
 
           {/* 상태 */}

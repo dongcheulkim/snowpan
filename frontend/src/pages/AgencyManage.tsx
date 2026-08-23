@@ -14,7 +14,7 @@ interface Deal {
   image?: string | null; link: string; badge?: string | null; resortId?: string | null; active: boolean; order: number;
   resort?: { slug: string; name: string } | null; clickCount?: number;
 }
-interface ResortOpt { id: string; slug: string; name: string }
+interface ResortOpt { id: string; slug: string; name: string; scope?: string }
 
 const inputCls = 'w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900';
 const emptyDeal: Partial<Deal> = { title: '', link: '', description: '', badge: '', image: '', resortId: '', active: true, order: 0 };
@@ -43,7 +43,7 @@ export default function AgencyManage() {
       api<Agency[]>('/agencies/my').catch(() => []),
       api<ResortOpt[]>('/overseas/resorts').catch(() => []),
     ]).then(([a, r]) => {
-      setAgencies(a); setResorts(r);
+      setAgencies(a); setResorts(r.filter((x) => x.scope !== '국내')); // 딜 연결은 해외 리조트만 (국내는 여행사 섹션 없음)
       if (a[0]) { setSel(a[0]); setProf(a[0]); }
     }).finally(() => setLoading(false));
     api<{ signupFee: number; monthlyFee: number }>('/agencies/billing/pricing').then(setPricing).catch(() => {});

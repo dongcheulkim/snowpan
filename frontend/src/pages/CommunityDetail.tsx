@@ -236,7 +236,12 @@ const CommunityDetail = () => {
       </div>
 
       {user && (post.userId === user.id || user.role === 'admin') && (
-        <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); window.location.href = `${vbase}/community/${post.sport}`; } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+        <div className="flex gap-2">
+          {post.userId === user.id && (
+            <Link to={`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center active:bg-gray-200">수정</Link>
+          )}
+          <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); window.location.href = `${vbase}/community/${post.sport}`; } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+        </div>
       )}
 
       <div className="card p-5">
@@ -303,7 +308,7 @@ const CommunityDetail = () => {
               </div>
             )}
             <div className="flex gap-2">
-              <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleComment(); }} placeholder={replyTo ? `${replyTo.name}님에게 답글...` : t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
+              <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') handleComment(); }} placeholder={replyTo ? `${replyTo.name}님에게 답글...` : t('communityDetail.commentPlaceholder')} className="flex-1 min-w-0 h-9 px-3 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all" />
               <button onClick={handleComment} disabled={!newComment.trim() || commentSubmitting} className="h-9 px-3 bg-accent text-white rounded-lg font-bold text-xs flex-shrink-0 hover:bg-accent-light transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed">{t('communityDetail.submit')}</button>
             </div>
           </div>

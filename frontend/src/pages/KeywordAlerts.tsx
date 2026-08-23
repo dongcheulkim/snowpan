@@ -52,7 +52,7 @@ export default function KeywordAlerts() {
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') add(); }}
+            onKeyDown={e => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') add(); }}
             placeholder="관심 키워드 입력"
             maxLength={40}
             className="flex-1 px-3 py-2.5 bg-snow border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400"

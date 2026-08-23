@@ -34,15 +34,22 @@ interface Props {
 
 export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = true }: Props) {
   const [posts, setPosts] = useState<ShopPost[] | null>(null);
+  const [expanded, setExpanded] = useState(false); // 더보기 — 4개 초과 소식 열람
   const user = getUser();
   const isOwner = user && (user.id === ownerId || user.role === 'admin');
 
   useEffect(() => {
     if (!shopId) return;
-    api<{ items: ShopPost[] }>(`/shop-posts?shopType=${shopType}&shopId=${shopId}&limit=${compact ? 4 : 20}`)
+    // compact: 5개 요청해 4개만 보여주고 5번째가 있으면 "더보기" 노출 (기존엔 4개 초과 소식은 볼 방법이 없었음)
+    const limit = compact && !expanded ? 5 : 50;
+    api<{ items: ShopPost[] }>(`/shop-posts?shopType=${shopType}&shopId=${shopId}&limit=${limit}`)
       .then((r) => setPosts(r.items))
       .catch(() => setPosts([]));
-  }, [shopType, shopId, compact]);
+  }, [shopType, shopId, compact, expanded]);
+
+  const collapsed = compact && !expanded;
+  const visible = posts ? (collapsed ? posts.slice(0, 4) : posts) : [];
+  const hasMore = collapsed && (posts?.length || 0) > 4;
 
   if (posts === null) {
     return (
@@ -75,7 +82,7 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
       ) : (
         <>
           <ul className="space-y-3">
-            {posts.map((p) => {
+            {visible.map((p) => {
               const label = TYPE_LABEL[p.postType] || TYPE_LABEL.general;
               const cover = p.images?.split(',').filter(Boolean)[0];
               return (
@@ -109,6 +116,13 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
               );
             })}
           </ul>
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="w-full mt-3 py-2.5 text-xs font-bold text-gray-600 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+            >소식 더보기</button>
+          )}
         </>
       )}
     </section>

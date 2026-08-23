@@ -27,7 +27,7 @@ const badgeDisplay: Record<string, { label: string; desc: string; color: string 
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string; activeBadge?: string | null } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string; activeBadge?: string | null; provider?: string | null } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [hasPendingShop, setHasPendingShop] = useState(false);
@@ -63,8 +63,10 @@ const MyPage = () => {
 
   const handleLogout = () => { logout(); navigate('/'); };
 
+  const isSocialUser = !!user?.provider; // 카카오/네이버 계정 — 비밀번호가 없음
+
   const handleDeleteAccount = async () => {
-    if (!deletePassword) { toastError('비밀번호를 입력해주세요.'); return; }
+    if (!isSocialUser && !deletePassword) { toastError('비밀번호를 입력해주세요.'); return; }
     setDeleting(true);
     try {
       await api('/auth/account', { method: 'DELETE', body: { password: deletePassword } });
@@ -121,6 +123,8 @@ const MyPage = () => {
 
 
   const settings = [
+    // 이메일 계정만 — 소셜 계정은 비밀번호가 없음. (기존엔 어디에도 링크가 없어 페이지 도달 불가였음)
+    ...(!isSocialUser ? [{ label: '비밀번호 변경', link: '/mypage/password' }] : []),
     { label: t('mypage.terms'), link: '/mypage/terms' },
     { label: '개인정보처리방침', link: '/privacy' },
     { label: '안전거래 가이드', link: '/safe-trade' },
@@ -266,15 +270,22 @@ const MyPage = () => {
                 <li>같은 정보로 재가입은 즉시 불가</li>
               </ul>
             </div>
-            <p className="text-xs text-gray-500 mb-2">계속하려면 비밀번호를 입력해주세요.</p>
-            <input
-              type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="비밀번호"
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm outline-none focus:border-coral mb-5"
-              autoComplete="current-password"
-            />
+            {isSocialUser ? (
+              // 소셜 계정은 비밀번호가 없음 — 입력 요구하면 탈퇴가 막혔음
+              <p className="text-xs text-gray-500 mb-5">카카오/네이버 계정은 비밀번호 확인 없이 바로 탈퇴됩니다.</p>
+            ) : (
+              <>
+                <p className="text-xs text-gray-500 mb-2">계속하려면 비밀번호를 입력해주세요.</p>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="비밀번호"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm outline-none focus:border-coral mb-5"
+                  autoComplete="current-password"
+                />
+              </>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
@@ -285,7 +296,7 @@ const MyPage = () => {
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleting || !deletePassword}
+                disabled={deleting || (!isSocialUser && !deletePassword)}
                 className="flex-1 py-3 bg-coral text-white rounded-lg font-bold text-sm hover:bg-coral/90 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {deleting ? '처리 중...' : '탈퇴하기'}

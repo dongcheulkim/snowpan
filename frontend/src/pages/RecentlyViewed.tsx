@@ -63,7 +63,7 @@ const RecentlyViewed = () => {
         <EmptyState
           icon={<ClockIcon size={48} strokeWidth={1.4} />}
           title={t('recentlyViewed.empty')}
-          description={"중고 장비 상세 페이지에 들어가면\n최근 본 매물 7일치가 여기에 모입니다."}
+          description={"중고 장비 상세 페이지에 들어가면\n최근 본 매물 20개가 여기에 모입니다."}
           ctaLabel="중고장비 둘러보기"
           ctaTo="/used"
         />

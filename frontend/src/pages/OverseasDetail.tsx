@@ -138,6 +138,15 @@ export default function OverseasDetail() {
         </div>
       </div>
 
+      {/* 국내 스키장 — 근처 업체(스키샵·렌탈·레슨·숙소)와 웹캠·커뮤니티로 연결 */}
+      {resort.scope === '국내' && (
+        <div className="px-4 mt-6 grid grid-cols-3 gap-2">
+          <Link to={`/resort/${encodeURIComponent(resort.name)}`} className="py-3 bg-sky-500 text-white rounded-xl text-xs font-bold text-center">근처 업체 보기</Link>
+          <Link to="/webcam" className="py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold text-center">실시간 웹캠</Link>
+          <Link to="/community/ski" className="py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold text-center">커뮤니티</Link>
+        </div>
+      )}
+
       {/* 해외 스키장에만 — 여행 상품·추천 여행사·여행사 등록 */}
       {resort.scope !== '국내' && (
         <>

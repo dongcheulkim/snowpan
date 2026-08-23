@@ -387,7 +387,11 @@ const SellerProfile = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-gray-900 truncate">{item.name}</div>
-                  <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</span>
+                    {item.status === 'sold' && <span className="text-[9px] font-bold text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">판매완료</span>}
+                    {item.status === 'reserved' && <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">예약중</span>}
+                  </div>
                 </div>
                 <span className="text-gray-500 text-xs">&rarr;</span>
               </Link>

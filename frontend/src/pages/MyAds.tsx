@@ -1,4 +1,4 @@
-import { toastError } from '../components/Toast';
+import { toastError, toastSuccess } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
@@ -50,6 +50,22 @@ export default function MyAds() {
     } catch { toastError('삭제에 실패했습니다.'); }
   };
 
+  // 입금 전(pending_payment)·게시 전(paid)·게시 중(active) 취소 — 백엔드 취소/환불 로직은
+  // 이미 있었는데 UI 진입점이 없어 사용자가 취소할 방법이 없었음.
+  const handleCancel = async (ad: AdBooking) => {
+    const msg = ad.status === 'pending_payment'
+      ? '이 예약을 취소하시겠습니까?'
+      : ad.status === 'active'
+        ? '게시 중인 광고를 취소하면 남은 기간만큼 환불됩니다. 취소하시겠습니까?'
+        : '결제된 광고를 취소하면 전액 환불 처리됩니다. 취소하시겠습니까?';
+    if (!confirm(msg)) return;
+    try {
+      await api(`/ad-booking/${ad.id}/cancel`, { method: 'POST' });
+      toastSuccess('취소되었습니다.');
+      loadAds();
+    } catch (e) { toastError(e instanceof Error ? e.message : '취소에 실패했습니다.'); }
+  };
+
   return (
     <div className="max-w-md mx-auto space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -91,7 +107,9 @@ export default function MyAds() {
                   <p className="text-sm font-medium text-gray-900 truncate">{ad.title}</p>
                   <p className="text-[10px] text-gray-500 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                 </div>
-                {!['active', 'paid', 'pending_payment'].includes(ad.status) && (
+                {['active', 'paid', 'pending_payment'].includes(ad.status) ? (
+                  <button onClick={() => handleCancel(ad)} className="text-[11px] font-bold text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-2.5 py-1.5 transition-colors flex-shrink-0">취소</button>
+                ) : (
                   <button onClick={() => handleDelete(ad.id)} aria-label="삭제" className="text-gray-500 hover:text-red-400 transition-colors p-1 flex-shrink-0"><CloseIcon size={14} /></button>
                 )}
               </div>

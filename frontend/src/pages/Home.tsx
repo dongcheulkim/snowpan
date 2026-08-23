@@ -170,9 +170,11 @@ const Home = () => {
             return (
               <a
                 key={banner.id}
-                href={banner.url}
-                target="_blank"
+                // URL 없는 광고는 클릭해도 이동 안 함 — 빈 href 로 빈 탭 열리던 것 방지
+                href={banner.url || undefined}
+                target={banner.url ? '_blank' : undefined}
                 rel="noopener noreferrer"
+                onClick={banner.url ? undefined : (e) => e.preventDefault()}
                 aria-hidden={inactive}
                 tabIndex={inactive ? -1 : 0}
                 className={`absolute inset-0 flex items-center px-5 transition-transform duration-500 ease-in-out cursor-pointer ${

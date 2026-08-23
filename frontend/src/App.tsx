@@ -68,7 +68,6 @@ const MySales = lazy(() => import('./pages/MySales'));
 const UsedEdit = lazy(() => import('./pages/UsedEdit'));
 const MyWishlist = lazy(() => import('./pages/MyWishlist'));
 const MyPosts = lazy(() => import('./pages/MyPosts'));
-const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Support = lazy(() => import('./pages/Support'));
@@ -205,7 +204,6 @@ function App() {
             <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
             <Route path="mypage/shops" element={<RequireAuth><MyShops /></RequireAuth>} />
             <Route path="mypage/ads" element={<RequireAuth><MyAds /></RequireAuth>} />
-            <Route path="mypage/notifications" element={<RequireAuth><NotificationSettings /></RequireAuth>} />
             <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
             <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />
             <Route path="terms" element={<Terms />} />

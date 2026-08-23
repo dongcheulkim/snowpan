@@ -170,7 +170,16 @@ const Chat = () => {
 
     if (state?.isAdmin) setIsAdminChat(true);
 
-    if (state?.sellerId) {
+    // 기존 방(chatId)이 있으면 방 우선 — sellerId 재생성(POST) 경로는 상대가 탈퇴하면 410 이라
+    // 목록에서 기존 대화조차 못 열던 버그. 방 직접 연결은 탈퇴 상대여도 기록 열람 가능.
+    if (chatId && chatId !== 'new') {
+      safeConnect(chatId);
+      api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
+        if (cancelled) return;
+        const other = room.user1.id === user.id ? room.user2 : room.user1;
+        setOtherName(other.name);
+      }).catch(() => {});
+    } else if (state?.sellerId) {
       // 상품에서 채팅하기로 진입 -> 방 생성/조회
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
@@ -243,6 +252,7 @@ const Chat = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing) return; // 한글 IME 조합 중 Enter 이중 발화 → 중복 전송 방지
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();

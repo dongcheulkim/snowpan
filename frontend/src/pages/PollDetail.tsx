@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
-import { toastError } from '../components/Toast';
+import { toastError, toastSuccess } from '../components/Toast';
 
 interface PollOption {
   id: string;
@@ -21,6 +21,7 @@ interface Poll {
   likes: number;
   createdAt: string;
   myVote?: string | null;
+  myLike?: boolean;
 }
 
 const PollDetail = () => {
@@ -40,6 +41,7 @@ const PollDetail = () => {
       .then((p) => {
         setPoll(p);
         setVoted(p.myVote || null);
+        setLiked(!!p.myLike); // 서버 기준으로 하트 상태 복원 (이전엔 새로고침하면 항상 빈 하트)
       })
       .catch(() => setPoll(null))
       .finally(() => setLoading(false));
@@ -64,18 +66,20 @@ const PollDetail = () => {
   };
 
   const handleLike = async () => {
-    if (!poll || liked) return;
+    if (!poll) return;
     if (!user) { navigate('/login'); return; }
-    // 낙관적 업데이트.
-    setLiked(true);
-    setPoll({ ...poll, likes: poll.likes + 1 });
+    // 토글 — 서버 응답(liked)을 그대로 반영 (이전엔 무조건 liked=true 로 굳혀 해제가 표시 안 됐음).
+    const prevLiked = liked;
+    setLiked(!prevLiked);
+    setPoll({ ...poll, likes: poll.likes + (prevLiked ? -1 : 1) });
     try {
-      const res = await api<{ likes: number }>(`/polls/${poll.id}/like`, { method: 'POST' });
+      const res = await api<{ likes: number; liked: boolean }>(`/polls/${poll.id}/like`, { method: 'POST' });
+      setLiked(res.liked);
       setPoll((prev) => (prev ? { ...prev, likes: res.likes } : prev));
     } catch {
       // 실패 시 롤백.
-      setLiked(false);
-      setPoll((prev) => (prev ? { ...prev, likes: prev.likes - 1 } : prev));
+      setLiked(prevLiked);
+      setPoll((prev) => (prev ? { ...prev, likes: prev.likes + (prevLiked ? 1 : -1) } : prev));
     }
   };
 
@@ -170,6 +174,21 @@ const PollDetail = () => {
           </button>
         </div>
       </div>
+
+      {/* 작성자/관리자 삭제 — 백엔드 DELETE /polls/:id 는 있었지만 UI 진입점이 없었음 */}
+      {user && (poll.authorId === user.id || user.role === 'admin') && (
+        <button
+          onClick={async () => {
+            if (!confirm(poll.authorId !== user.id ? '관리자 권한으로 이 투표를 삭제하시겠습니까?' : '투표를 삭제하시겠습니까?')) return;
+            try {
+              await api(`/polls/${poll.id}`, { method: 'DELETE' });
+              toastSuccess('삭제되었습니다.');
+              navigate('/community/ski?tab=poll');
+            } catch (e) { toastError(e instanceof Error ? e.message : '삭제 실패'); }
+          }}
+          className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
+        >{poll.authorId !== user.id && user.role === 'admin' ? '관리자 삭제' : '삭제'}</button>
+      )}
     </div>
   );
 };

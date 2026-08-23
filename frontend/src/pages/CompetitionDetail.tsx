@@ -32,7 +32,9 @@ export default function CompetitionDetail() {
 
   const now = new Date(); now.setHours(0, 0, 0, 0);
   const isPast = new Date(comp.endDate || comp.date) < now;
-  const isToday = comp.date === now.toISOString().split('T')[0];
+  // 로컬(KST) 기준 날짜 문자열 — toISOString 은 UTC 라 자정~9시엔 전날로 계산돼 TODAY 가 밀렸음
+  const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const isToday = comp.date === localDate;
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">

@@ -21,6 +21,8 @@ interface Product {
   description: string | null;
   condition: string | null;
   usageCount: string | null;
+  tradeMethod?: string | null;
+  location?: string | null;
   status: string;
   wishlisted: boolean;
   viewCount?: number;
@@ -384,6 +386,18 @@ const UsedDetail = () => {
                   <span className="text-sm text-gray-900 font-medium">{product.usageCount}</span>
                 </div>
               )}
+              {product.tradeMethod && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">거래 방식</span>
+                  <span className="text-sm text-gray-900 font-medium">{product.tradeMethod}</span>
+                </div>
+              )}
+              {product.location && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">직거래 지역</span>
+                  <span className="text-sm text-gray-900 font-medium">{product.location}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -451,6 +465,9 @@ const UsedDetail = () => {
           {/* Edit/Delete */}
           {(isMyProduct || (user && user.role === 'admin')) && (
             <div className="flex gap-2">
+              {isMyProduct && (
+                <Link to={`${vbase}/used/${product.id}/edit`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center active:bg-gray-200">수정</Link>
+              )}
               <button
                 onClick={async () => {
                   const isAdminAction = !isMyProduct && user?.role === 'admin';

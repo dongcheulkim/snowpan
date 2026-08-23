@@ -64,6 +64,7 @@ const AccommodationEdit = () => {
     if (!form.resortId) missing.push('스키장');
     if (form.types.length === 0) missing.push('숙소 유형');
     if (!form.price) missing.push('특가 1박 가격');
+    if (!form.maxGuests || Number(form.maxGuests) < 1) missing.push('최대 인원'); // 비우면 "인"으로 저장되던 것 방지
     if (missing.length > 0) { toastError(`필수 항목을 입력해주세요: ${missing.join(', ')}`); return; }
 
     setLoading(true);

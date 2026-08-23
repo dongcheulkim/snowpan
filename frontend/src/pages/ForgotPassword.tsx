@@ -38,7 +38,8 @@ const ForgotPassword = () => {
   };
 
   const handleResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) { setError('비밀번호는 6자 이상이어야 합니다.'); return; }
+    // 백엔드 정책과 일치 (기존 6자 검증은 통과해도 서버에서 거절돼 헛수고였음)
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(newPassword)) { setError('비밀번호는 영문과 숫자를 포함해 8자 이상이어야 합니다.'); return; }
     if (newPassword !== confirmPassword) { setError('비밀번호가 일치하지 않습니다.'); return; }
     setError('');
     setLoading(true);
@@ -111,7 +112,7 @@ const ForgotPassword = () => {
                 <label className="block text-sm font-medium text-gray-500 mb-2">새 비밀번호</label>
                 <input
                   type="password"
-                  placeholder="새 비밀번호 (6자 이상)"
+                  placeholder="새 비밀번호 (영문+숫자 8자 이상)"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className={inputClass}

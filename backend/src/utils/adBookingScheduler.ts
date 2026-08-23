@@ -6,12 +6,14 @@ export async function updateAdBookingStatuses(): Promise<void> {
   const now = new Date();
 
   try {
-    // pending_payment 30분 초과 → cancelled
-    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    // pending_payment 72시간 초과 → cancelled.
+    // (기존 30분은 온라인결제 전제 — 베타 무통장(입금 후 관리자 승인) 흐름에선
+    //  입금·확인에 하루 이상 걸려 승인 전에 전부 취소돼 승인 불가였음)
+    const ttlAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000);
     await prisma.adBooking.updateMany({
       where: {
         status: 'pending_payment',
-        createdAt: { lt: thirtyMinAgo },
+        createdAt: { lt: ttlAgo },
       },
       data: { status: 'cancelled' },
     });
