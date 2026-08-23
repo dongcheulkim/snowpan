@@ -17,6 +17,8 @@ interface ReportItem {
   status: string;
   createdAt: string;
   reporter: { id: string; name: string; email: string };
+  targetName?: string | null;
+  targetPath?: string | null;
 }
 
 interface StatsData {
@@ -350,10 +352,20 @@ const AdminDashboard = () => {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.status === 'resolved' ? 'bg-mint/20 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
                           {r.status === 'resolved' ? '처리완료' : '대기중'}
                         </span>
-                        <span className="text-xs text-gray-500 ml-2">{r.type}</span>
+                        <span className="text-xs text-gray-500 ml-2">{({ product: '상품', post: '게시글', user: '유저', skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' } as Record<string, string>)[r.type] || r.type}</span>
                       </div>
                       <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
                     </div>
+                    {/* 신고 대상 — 이름 + 바로가기 (삭제된 대상은 표시만) */}
+                    {(r.targetName || r.targetPath) && (
+                      <p className="text-xs mb-1">
+                        <span className="text-gray-500">대상: </span>
+                        <span className="font-bold text-gray-900">{r.targetName || '(삭제됨)'}</span>
+                        {r.targetPath && r.targetName && (
+                          <a href={r.targetPath} target="_blank" rel="noopener noreferrer" className="ml-2 text-sky-600 underline">보러가기</a>
+                        )}
+                      </p>
+                    )}
                     <p className="text-sm font-medium text-gray-900 mb-1">{r.reason}</p>
                     {r.description && <p className="text-xs text-gray-500 mb-2">{r.description}</p>}
                     <p className="text-[10px] text-gray-500">신고자: {r.reporter.name} ({r.reporter.email})</p>

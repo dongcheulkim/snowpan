@@ -6,6 +6,7 @@ import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
+import ShopReportButton from '../components/ShopReportButton';
 
 interface Shop {
   id: string;
@@ -151,6 +152,7 @@ export default function SkiShopDetail() {
       )}
 
       <ShopPostsFeed shopType="skishop" shopId={shop.id} ownerId={shop.user.id} />
+      <ShopReportButton shopType="skishop" shopId={shop.id} ownerId={shop.user.id} />
 
       {showClaim && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45" onClick={() => setShowClaim(false)}>

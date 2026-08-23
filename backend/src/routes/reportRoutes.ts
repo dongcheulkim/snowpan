@@ -17,7 +17,8 @@ router.post('/', authenticateToken, reportCreateLimiter, async (req: AuthRequest
       return;
     }
 
-    if (!['product', 'post', 'user'].includes(type)) {
+    // 매장 신고 포함 — 폐업/잘못된 정보/부적절 콘텐츠 제보용.
+    if (!['product', 'post', 'user', 'skishop', 'repair', 'rental', 'lesson', 'accommodation'].includes(type)) {
       res.status(400).json({ error: '잘못된 신고 유형입니다.' });
       return;
     }
@@ -53,6 +54,22 @@ router.post('/', authenticateToken, reportCreateLimiter, async (req: AuthRequest
         return;
       }
     }
+    // 매장 신고 — 존재 확인 + 본인 매장 셀프 신고 차단.
+    const shopModel: Record<string, (id: string) => Promise<{ userId: string | null } | null>> = {
+      skishop: (id) => prisma.skiShop.findUnique({ where: { id }, select: { userId: true } }),
+      repair: (id) => prisma.repairShop.findUnique({ where: { id }, select: { userId: true } }),
+      rental: (id) => prisma.rental.findUnique({ where: { id }, select: { userId: true } }),
+      lesson: (id) => prisma.lesson.findUnique({ where: { id }, select: { userId: true } }),
+      accommodation: (id) => prisma.accommodation.findUnique({ where: { id }, select: { userId: true } }),
+    };
+    if (shopModel[type]) {
+      const shop = await shopModel[type](targetId);
+      if (!shop) { res.status(404).json({ error: '신고 대상을 찾을 수 없습니다.' }); return; }
+      if (shop.userId === reporterId) {
+        res.status(400).json({ error: '본인 매장은 신고할 수 없습니다.' });
+        return;
+      }
+    }
 
     // 같은 사용자가 같은 대상을 24시간 내 중복 신고 시 차단 — 도배 방지.
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60_000);
@@ -75,7 +92,7 @@ router.post('/', authenticateToken, reportCreateLimiter, async (req: AuthRequest
       },
     });
 
-    const typeLabel: Record<string, string> = { product: '상품', post: '게시글', user: '유저' };
+    const typeLabel: Record<string, string> = { product: '상품', post: '게시글', user: '유저', skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' };
     await notifyAdmins('system', '새 신고 접수', `${typeLabel[type] || type} 신고: ${reason}`, '/admin');
     res.status(201).json(report);
   } catch (error) {

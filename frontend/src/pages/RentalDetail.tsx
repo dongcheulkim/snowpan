@@ -5,6 +5,7 @@ import { api, getUser, openExternal } from '../api';
 import { SadIcon, PhoneIcon, LocationIcon, ClockIcon } from '../components/Icons';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
+import ShopReportButton from '../components/ShopReportButton';
 
 interface RentalData {
   id: string;
@@ -117,6 +118,7 @@ const RentalDetail = () => {
       )}
 
       {item.userId && <ShopPostsFeed shopType="rental" shopId={item.id} ownerId={item.userId} />}
+      <ShopReportButton shopType="rental" shopId={item.id} ownerId={item.userId} />
     </div>
   );
 };

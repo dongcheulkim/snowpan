@@ -14,7 +14,31 @@ export const getReports = async (req: AuthRequest, res: Response): Promise<void>
       include: { reporter: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(reports);
+    // 신고 대상 이름·경로 해석 — 관리자가 어떤 매장/글이 신고됐는지 바로 확인·이동 가능하게.
+    const byType: Record<string, string[]> = {};
+    for (const r of reports) (byType[r.type] ||= []).push(r.targetId);
+    const names: Record<string, Record<string, string>> = {};
+    const put = (type: string, rows: { id: string; label: string }[]) => {
+      names[type] = Object.fromEntries(rows.map((x) => [x.id, x.label]));
+    };
+    if (byType.product) put('product', (await prisma.product.findMany({ where: { id: { in: byType.product } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    if (byType.post) put('post', (await prisma.post.findMany({ where: { id: { in: byType.post } }, select: { id: true, title: true } })).map(x => ({ id: x.id, label: x.title })));
+    if (byType.user) put('user', (await prisma.user.findMany({ where: { id: { in: byType.user } }, select: { id: true, name: true, nickname: true } })).map(x => ({ id: x.id, label: x.nickname || x.name })));
+    if (byType.skishop) put('skishop', (await prisma.skiShop.findMany({ where: { id: { in: byType.skishop } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    if (byType.repair) put('repair', (await prisma.repairShop.findMany({ where: { id: { in: byType.repair } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    if (byType.rental) put('rental', (await prisma.rental.findMany({ where: { id: { in: byType.rental } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    if (byType.lesson) put('lesson', (await prisma.lesson.findMany({ where: { id: { in: byType.lesson } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    if (byType.accommodation) put('accommodation', (await prisma.accommodation.findMany({ where: { id: { in: byType.accommodation } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
+    const pathOf: Record<string, (id: string) => string> = {
+      product: (id) => `/used/${id}`, post: (id) => `/community/post/${id}`, user: (id) => `/seller/${id}`,
+      skishop: (id) => `/skishop/${id}`, repair: (id) => `/repair/${id}`, rental: (id) => `/rental/${id}`,
+      lesson: (id) => `/lesson/${id}`, accommodation: (id) => `/accommodation/${id}`,
+    };
+    res.json(reports.map((r) => ({
+      ...r,
+      targetName: names[r.type]?.[r.targetId] || null, // null = 이미 삭제된 대상
+      targetPath: pathOf[r.type] ? pathOf[r.type](r.targetId) : null,
+    })));
   } catch (error) {
     console.error('Get reports error:', error);
     res.status(500).json({ error: '신고 조회 중 오류가 발생했습니다.' });

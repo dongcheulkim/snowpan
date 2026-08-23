@@ -7,6 +7,7 @@ import ShareButton from '../components/ShareButton';
 import { SadIcon } from '../components/Icons';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
+import ShopReportButton from '../components/ShopReportButton';
 
 interface LessonData {
   id: string;
@@ -104,6 +105,7 @@ const LessonDetail = () => {
       )}
 
       {item.userId && <ShopPostsFeed shopType="lesson" shopId={item.id} ownerId={item.userId} />}
+      <ShopReportButton shopType="lesson" shopId={item.id} ownerId={item.userId} />
     </div>
   );
 };
