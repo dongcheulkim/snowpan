@@ -744,7 +744,7 @@ const AdminDashboard = () => {
                                   <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">{adSlotLabelKr(b.slotType, b.category)}</span>
                                   <span className="text-[10px] text-gray-400 ml-auto">{new Date(b.createdAt).toLocaleDateString('ko-KR')}</span>
                                 </div>
-                                <p className="text-sm font-bold text-gray-900 mt-1 truncate">{b.title}</p>
+                                <p className="text-sm font-bold text-gray-900 mt-1 truncate">{b.title || '(이미지 광고)'}</p>
                                 <p className="text-[11px] text-gray-500 mt-0.5">
                                   {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일) · <span className="font-bold text-gray-900">{b.totalPrice.toLocaleString()}원</span>
                                 </p>

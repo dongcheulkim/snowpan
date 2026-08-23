@@ -33,16 +33,8 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
 
     const { title, description, url, image, textColor, textAlign, imagePos } = req.body ?? {};
     const data: Record<string, unknown> = {};
-    if (title !== undefined) {
-      const clean = sanitizeText(title, 60);
-      if (!clean) { res.status(400).json({ error: '제목을 입력해주세요.' }); return; }
-      data.title = clean;
-    }
-    if (description !== undefined) {
-      const clean = sanitizeText(description, 200);
-      if (!clean) { res.status(400).json({ error: '설명을 입력해주세요.' }); return; }
-      data.description = clean;
-    }
+    if (title !== undefined) data.title = sanitizeText(title, 60) || '';
+    if (description !== undefined) data.description = sanitizeText(description, 200) || '';
     if (url !== undefined) {
       const u = String(url || '').trim();
       if (u && !/^https?:\/\//.test(u)) { res.status(400).json({ error: '링크는 http(s):// 로 시작해야 합니다.' }); return; }
@@ -66,6 +58,13 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
       data.imagePos = imagePos || null;
     }
     if (Object.keys(data).length === 0) { res.status(400).json({ error: '수정할 내용이 없습니다.' }); return; }
+    // 빈 광고 방지 — 수정 결과에 이미지도 제목도 없으면 거절.
+    const nextImage = data.image !== undefined ? data.image : booking.image;
+    const nextTitle = data.title !== undefined ? data.title : booking.title;
+    if (!nextImage && !nextTitle) {
+      res.status(400).json({ error: '이미지 또는 제목 중 하나는 있어야 합니다.' });
+      return;
+    }
 
     const updated = await prisma.adBooking.update({ where: { id }, data });
 
@@ -80,7 +79,7 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
       });
       cacheDel('banners:public');
     }
-    notifyAdmins('system', '광고 소재 수정', `'${updated.title}' 광고가 수정되었습니다. 내용을 확인해주세요.`, '/admin').catch(() => {});
+    notifyAdmins('system', '광고 소재 수정', `'${updated.title || '(이미지 광고)'}' 광고가 수정되었습니다. 내용을 확인해주세요.`, '/admin').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update booking creative error:', error);
@@ -208,8 +207,13 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       endDate = endBase.toISOString();
     }
 
-    if (!slotType || !title || !description || !startDate || !endDate) {
+    if (!slotType || !startDate || !endDate) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    // 이미지형 광고는 제목·설명 없이 가능 (로고/포스터만 노출). 이미지가 없으면 텍스트가 필수.
+    if (!image && (!title || !description)) {
+      res.status(400).json({ error: '이미지 없이 진행하려면 제목과 설명을 입력해주세요.' });
       return;
     }
 
@@ -356,8 +360,8 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         data: {
           slotType,
           category: category || 'none',
-          title,
-          description,
+          title: title || '',
+          description: description || '',
           url,
           image: image || null,
           textColor: textColor || null,
@@ -433,7 +437,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
           `광고 신청이 접수되었습니다.\n` +
           `\n` +
           `[신청 내역]\n` +
-          `  • 광고: ${title}\n` +
+          `  • 광고: ${title || '(이미지 광고)'}\n` +
           `  • 기간: ${fmt(new Date(startDate))} ~ ${fmt(new Date(endDate))} (${booking.totalDays}일)\n` +
           `  • 금액: ${booking.totalPrice.toLocaleString()}원\n` +
           `  • 예약번호: ${booking.id.slice(0, 8)}\n` +
@@ -838,7 +842,8 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
 
     // 광고주에게 승인 알림 + 푸시
     {
-      const msgUser = startsInFuture ? `'${updated.title}' 광고 입금이 확인됐어요. ${startLabel}부터 노출됩니다.` : `'${updated.title}' 광고 입금이 확인됐어요. 지금부터 노출됩니다.`;
+      const adName = updated.title || '(이미지 광고)';
+      const msgUser = startsInFuture ? `'${adName}' 광고 입금이 확인됐어요. ${startLabel}부터 노출됩니다.` : `'${adName}' 광고 입금이 확인됐어요. 지금부터 노출됩니다.`;
       createNotification(updated.userId, 'approve', '광고 승인 완료', msgUser, '/mypage/ads').catch(() => {});
       sendPushToUser(updated.userId, '광고 승인 완료', msgUser, '/mypage/ads').catch(() => {});
     }

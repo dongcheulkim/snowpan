@@ -220,7 +220,8 @@ export default function AdBooking() {
   // 프리미엄은 url 이 등록물에서 자동 채워지므로 별도 noUrl 체크 불필요.
   // 일반 슬롯은 noUrl 체크 시 url 비어도 통과.
   const urlOk = selectedSlot === 'premium' ? !!url.trim() : (noUrl || !!url.trim());
-  const canProceedStep3 = title.trim() && description.trim() && urlOk;
+  // 이미지형 광고는 제목·설명 생략 가능 (로고만 노출). 이미지가 없으면 텍스트 필수.
+  const canProceedStep3 = urlOk && (imagePreview ? true : (title.trim() && description.trim()));
 
   const handlePayment = async () => {
     if (paying) return;
@@ -488,7 +489,7 @@ export default function AdBooking() {
           <h2 className="text-lg font-bold mb-2">광고 내용 작성</h2>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">광고 제목 *</label>
+            <label className="text-sm font-medium text-gray-600">광고 제목 <span className="text-xs text-gray-400 font-normal">(이미지 광고면 생략 가능)</span></label>
             <input
               type="text"
               value={title}
@@ -499,7 +500,7 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">광고 설명 *</label>
+            <label className="text-sm font-medium text-gray-600">광고 설명 <span className="text-xs text-gray-400 font-normal">(이미지 광고면 생략 가능)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -647,12 +648,14 @@ export default function AdBooking() {
                     {imagePreview && (
                       <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
                     )}
+                    {(title || description || !imagePreview) && (
                     <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
                       <div>
-                        <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>
-                        <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>
+                        {(title || !imagePreview) && <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>}
+                        {(description || !imagePreview) && <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>}
                       </div>
                     </div>
+                    )}
                     <span className="absolute bottom-2 left-3 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-black/55 text-white z-10">AD</span>
                   </div>
                 ) : (
@@ -665,15 +668,19 @@ export default function AdBooking() {
                     {imagePreview && (
                       <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
                     )}
+                    {(title || description || !imagePreview) ? (
                     <div className={`relative z-10 flex items-center h-full px-6 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
                       <div className={textAlign === 'center' ? 'text-center' : textAlign === 'right' ? 'text-right' : ''}>
                         <div className={`flex items-center gap-2 mb-0.5 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
                           <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
-                          <span className="text-base font-bold" style={{ color: textColor }}>{title || '광고 제목'}</span>
+                          {(title || !imagePreview) && <span className="text-base font-bold" style={{ color: textColor }}>{title || '광고 제목'}</span>}
                         </div>
-                        <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>
+                        {(description || !imagePreview) && <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>}
                       </div>
                     </div>
+                    ) : (
+                      <span className="absolute bottom-1.5 left-3 z-10 text-[9px] font-bold bg-black/55 text-white px-1.5 py-0.5 rounded">AD</span>
+                    )}
                   </div>
                 )}
               </div>

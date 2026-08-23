@@ -66,7 +66,7 @@ export default function MyAds() {
 
   const saveEdit = async () => {
     if (!editAd || editSaving) return;
-    if (!editForm.title.trim()) { toastError('제목을 입력해주세요.'); return; }
+    if (!editForm.title.trim() && !editForm.image) { toastError('이미지 또는 제목 중 하나는 있어야 합니다.'); return; }
     setEditSaving(true);
     try {
       await api(`/ad-booking/${editAd.id}`, {
@@ -139,7 +139,7 @@ export default function MyAds() {
                     </span>
                     <span className="text-[10px] text-gray-500">{slotLabel}</span>
                   </div>
-                  <p className="text-sm font-medium text-gray-900 truncate">{ad.title}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{ad.title || '(이미지 광고)'}</p>
                   <p className="text-[10px] text-gray-500 mt-0.5">{dateRange} ({ad.totalDays}일) · {ad.totalPrice.toLocaleString()}원</p>
                 </div>
                 {['active', 'paid', 'pending_payment'].includes(ad.status) ? (

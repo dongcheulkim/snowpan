@@ -107,18 +107,24 @@ export default function CategoryAdBanner({ category }: { category: string }) {
             {banner.image && (
               <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={banner.imagePos ? { objectPosition: banner.imagePos } : undefined} />
             )}
+            {(banner.title || banner.description) ? (
             <div className={`relative z-10 flex-1 ${align}`}>
               <div className={`flex items-center gap-2 mb-0.5 ${justify}`}>
                 <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
-                <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>
+                {banner.title && <h3 className="text-base font-bold" style={banner.textColor ? { color: banner.textColor } : undefined}>{banner.title}</h3>}
               </div>
+              {banner.description && (
               <p
                 className="text-sm"
                 style={banner.textColor ? { color: banner.textColor, opacity: 0.8 } : { color: '#6b7280' }}
               >
                 {banner.description}
               </p>
+              )}
             </div>
+            ) : (
+              <span className="absolute bottom-1.5 left-3 z-10 text-[9px] font-bold bg-black/55 text-white px-1.5 py-0.5 rounded">AD</span>
+            )}
           </a>
         );
       })}
