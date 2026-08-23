@@ -111,7 +111,7 @@ export default function About() {
           </dd>
 
           <dt className="col-span-1 text-gray-500">대표 전화</dt>
-          <dd className="col-span-2 text-gray-900 font-medium">010-6710-0656</dd>
+          <dd className="col-span-2 text-gray-900 font-medium">070-8027-4757</dd>
 
           <dt className="col-span-1 text-gray-500">호스팅 서비스</dt>
           <dd className="col-span-2 text-gray-900 font-medium">Vercel · Render</dd>
