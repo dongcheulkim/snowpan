@@ -80,14 +80,27 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // GET /api/shop-posts/recent — 홈 "매장 소식·이벤트" 피드. 전 매장 최신 소식 (승인 매장만, 매장명 포함).
+// 기본: 매장당 최신 1개만 (한 매장이 하루에 여러 개 올려도 다른 매장 소식이 안 밀리게).
+// ?all=1: 중복 제거 없이 전체 시간순 — "매장 소식 전체" 페이지용.
 router.get('/recent', async (req: Request, res: Response): Promise<void> => {
   try {
-    const limit = Math.min(parseInt(String(req.query.limit || '6'), 10) || 6, 20);
-    const posts = await prisma.shopPost.findMany({
+    const showAll = req.query.all === '1';
+    const limit = Math.min(parseInt(String(req.query.limit || '6'), 10) || 6, 50);
+    let posts = await prisma.shopPost.findMany({
       orderBy: { createdAt: 'desc' },
-      take: limit * 3, // 미승인 매장 소식을 걸러낸 뒤에도 limit 를 채우도록 여유
+      take: showAll ? limit * 2 : limit * 8, // 매장당 1개 압축·미승인 필터 후에도 limit 를 채우도록 여유
       select: { id: true, title: true, content: true, images: true, postType: true, createdAt: true, shopType: true, shopId: true },
     });
+    // 매장당 최신 1개로 압축 (홈 전용 공정 노출)
+    if (!showAll) {
+      const seen = new Set<string>();
+      posts = posts.filter((p) => {
+        const k = `${p.shopType}:${p.shopId}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
     // 매장명 일괄 해석 — 승인된 매장의 소식만 노출.
     const idsBy: Record<string, string[]> = {};
     for (const p of posts) (idsBy[p.shopType] ||= []).push(p.shopId);
@@ -165,6 +178,15 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       }
       if (ownerId !== userId) {
         res.status(403).json({ error: '해당 매장의 소유자만 소식을 올릴 수 있어요.' });
+        return;
+      }
+      // 매장당 하루 5개 제한 — 소식 도배로 홈 피드 독점하는 것 방지. (admin 은 제한 없음)
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const todayCount = await prisma.shopPost.count({
+        where: { shopType, shopId, createdAt: { gte: dayAgo } },
+      });
+      if (todayCount >= 5) {
+        res.status(429).json({ error: '매장 소식은 하루 5개까지 올릴 수 있어요. 내일 다시 올려주세요.' });
         return;
       }
     }

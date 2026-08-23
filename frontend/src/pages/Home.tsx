@@ -276,7 +276,7 @@ const Home = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-medium text-gray-900 truncate">{p.title}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">
-                      {POST_CAT_LABEL[p.category] || p.category} · 좋아요 {p.likes} · 댓글 {comments}
+                      {POST_CAT_LABEL[p.category] || p.category} · 조회 {(p.views ?? 0).toLocaleString()} · 좋아요 {p.likes} · 댓글 {comments}
                     </p>
                   </div>
                   {thumb && (thumb.startsWith('/') || thumb.startsWith('http')) && (
@@ -292,7 +292,11 @@ const Home = () => {
       {/* 매장 소식·이벤트 — 전 매장 최신 소식 (프로모션/이벤트/공지) */}
       {isSnow && news.length > 0 && (
         <div className="px-4 pt-2 pb-4">
-          <h2 className="text-[15px] font-bold text-gray-900 mb-3">매장 소식·이벤트</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">매장 소식·이벤트</h2>
+            {/* 홈은 매장당 최신 1개만 — 밀려난 소식은 전체 페이지에서 */}
+            <Link to="/shop-news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+          </div>
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
             {news.map((n) => {
               const label = NEWS_TYPE_LABEL[n.postType] || NEWS_TYPE_LABEL.general;
