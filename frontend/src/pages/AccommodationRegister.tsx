@@ -72,9 +72,11 @@ const AccommodationRegister = () => {
     setSubmitting(true);
     try {
       let image = '/icons/placeholder-card.svg'; // 사진 미첨부 시 로컬 기본(허용 자산)
+      let images = '';
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
-        image = urls[0];
+        image = urls[0];       // 대표 = 첫 장
+        images = urls.join(','); // 상세 캐러셀용 전체
       }
       // 사업자등록증은 선택 — 개인 시즌방 등도 등록 가능 (있으면 첨부).
       let bizUrl = '';
@@ -94,6 +96,7 @@ const AccommodationRegister = () => {
           guests: `${form.maxGuests}인`,
           features: form.features.join(','),
           image,
+          images: images || undefined,
           businessLicense: bizUrl || undefined,
           accommodationPermit: accommodationPermit || undefined,
           resortId: form.resortId,

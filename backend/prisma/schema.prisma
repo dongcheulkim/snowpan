@@ -328,6 +328,7 @@ model Accommodation {
   guests                String    // '2인', '4인', '6인'
   features              String    // 콤마 구분
   image                 String
+  images                String?   // 여러 장 사진 (콤마 구분, 최대 8장). image = 첫 장(대표)
   businessLicense       String?   // 사업자등록증 이미지 URL (필수)
   accommodationPermit   String?   // 숙박업 신고증 이미지 URL
   resortId              String

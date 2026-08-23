@@ -6,7 +6,7 @@ import { api, getUser, uploadImages, imageUrl } from '../api';
 interface Resort { id: string; name: string; }
 interface AccommodationData {
   id: string; userId?: string; name: string; type: string; price: number; originalPrice?: number;
-  guests: string; features: string; image: string; resort?: { id: string; name: string };
+  guests: string; features: string; image: string; images?: string | null; resort?: { id: string; name: string };
 }
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
@@ -21,6 +21,7 @@ const AccommodationEdit = () => {
   const [fetching, setFetching] = useState(true);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [currentImage, setCurrentImage] = useState('');
+  const [currentImages, setCurrentImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', types: [] as string[], price: '', originalPrice: '', maxGuests: '4', features: [] as string[] });
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const AccommodationEdit = () => {
         features: d.features ? d.features.split(',').map(s => s.trim()).filter(Boolean) : [],
       });
       setCurrentImage(d.image || '');
+      setCurrentImages(d.images || d.image || '');
     }).catch(() => {
       toastError('불러오지 못했습니다.');
       navigate('/accommodation', { replace: true });
@@ -67,9 +69,11 @@ const AccommodationEdit = () => {
     setLoading(true);
     try {
       let image = currentImage;
+      let images = currentImages;
       if (imageFiles.length > 0) {
         const urls = await uploadImages(imageFiles);
-        image = urls[0];
+        image = urls[0];        // 새로 선택 시 전체 교체, 첫 장이 대표
+        images = urls.join(',');
       }
       await api(`/accommodations/${id}`, {
         method: 'PUT',
@@ -82,6 +86,7 @@ const AccommodationEdit = () => {
           guests: `${form.maxGuests}인`,
           features: form.features.join(','),
           image,
+          images: images || undefined,
         },
       });
       toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');

@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
+import PhotoGallery from '../components/PhotoGallery';
 import { SadIcon } from '../components/Icons';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 
@@ -19,6 +20,7 @@ interface AccommodationData {
   guests: string;
   features: string;
   image: string;
+  images?: string | null;
   resort?: { id: string; name: string; location: string };
   user?: { id: string; name: string; nickname?: string | null; phone: string };
   createdAt: string;
@@ -75,14 +77,21 @@ const AccommodationDetail = () => {
         <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />
       </div>
 
-      {/* Hero */}
-      <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl relative overflow-hidden bg-gray-100">
-        {item.image.startsWith('/') || item.image.startsWith('http') ? (
-          <img src={imageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="relative">{item.image}</span>
-        )}
-        <span className="absolute top-4 right-4 bg-white/85 backdrop-blur-md text-gray-900 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-white/40 shadow-sm">
+      {/* Hero — 사진 여러 장이면 스와이프 캐러셀, 옛 이모지 매물은 이모지 표시 */}
+      <div className="relative">
+        {(() => {
+          const gallery = item.images || item.image || '';
+          const first = gallery.split(',')[0]?.trim() || '';
+          const hasPhotos = first.startsWith('/') || first.startsWith('http');
+          return hasPhotos ? (
+            <PhotoGallery images={gallery} />
+          ) : (
+            <div className="card rounded-2xl h-48 flex items-center justify-center text-8xl overflow-hidden bg-gray-100">
+              <span>{item.image}</span>
+            </div>
+          );
+        })()}
+        <span className="absolute top-3 left-3 z-10 bg-white/85 backdrop-blur-md text-gray-900 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-white/40 shadow-sm">
           {typeText}
         </span>
       </div>
