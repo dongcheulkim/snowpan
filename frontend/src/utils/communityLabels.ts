@@ -11,6 +11,7 @@ const BASE: Record<string, { ski: string; board: string }> = {
   tip:     { ski: '초보팁',   board: '초보팁' },
   carpool: { ski: '카풀',     board: '카풀' },
   meetup:  { ski: '모임',     board: '모임' },
+  job:     { ski: '구인구직', board: '구인구직' },
   poll:    { ski: '투표',     board: '투표' },
   notice:  { ski: '공지',     board: '공지' },
 };
@@ -39,7 +40,7 @@ export function communityCategoryLabel(id: string, sport?: Sport): string {
 // 카테고리 옵션 배열 — sport 파라미터에 따라 라벨이 달라짐.
 export function communityCategories(sport?: Sport, includePoll = false): { id: string; name: string }[] {
   const ids = includePoll
-    ? ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'poll']
-    : ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup'];
+    ? ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'poll']
+    : ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job'];
   return ids.map((id) => ({ id, name: communityCategoryLabel(id, sport) }));
 }

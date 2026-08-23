@@ -31,7 +31,7 @@ interface PostData {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', notice: '공지',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인구직', notice: '공지',
 };
 
 const badgeColor: Record<string, string> = {
@@ -41,6 +41,7 @@ const badgeColor: Record<string, string> = {
   '스키장후기': 'text-gold bg-gold/10 border-gold/20',
   '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
+  '구인구직': 'text-indigo-500 bg-indigo-50 border-indigo-200',
   '공지': 'text-red-600 bg-red-50 border-red-200 font-bold',
 };
 

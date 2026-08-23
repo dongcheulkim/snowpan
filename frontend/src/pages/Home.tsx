@@ -56,7 +56,7 @@ interface ShopNews {
 
 const POST_CAT_LABEL: Record<string, string> = {
   free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기',
-  tip: '초보팁', carpool: '카풀/동행', meetup: '모임', notice: '공지',
+  tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인구직', notice: '공지',
 };
 const NEWS_TYPE_LABEL: Record<string, { text: string; color: string }> = {
   general: { text: '소식', color: 'bg-gray-100 text-gray-600' },
@@ -97,6 +97,7 @@ const Home = () => {
     { id: 'gear', label: '장비' },      // review + gear
     { id: 'resort', label: '스키장후기' },
     { id: 'tip', label: '초보팁' },
+    { id: 'job', label: '구인구직' },
   ];
   const hot = hotAll.filter((it) => {
     if (hotTab === 'all') return true;

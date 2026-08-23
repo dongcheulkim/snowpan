@@ -243,7 +243,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     // 카테고리 화이트리스트. 'notice'(공지)는 관리자 전용.
-    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'notice'];
+    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'notice'];
     if (!allowedCategories.includes(category)) {
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;
@@ -530,7 +530,7 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       data.content = clean;
     }
     if (category !== undefined) {
-      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'notice'];
+      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'notice'];
       if (!allowedCategories.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
       if (category === 'notice' && req.user!.role !== 'admin') { res.status(403).json({ error: '공지사항은 관리자만 지정할 수 있습니다.' }); return; }
       data.category = category;
