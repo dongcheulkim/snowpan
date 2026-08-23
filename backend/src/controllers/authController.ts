@@ -631,11 +631,17 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// FCM 토큰 저장
+// FCM 토큰 저장 (null = 이 기기 푸시 해제)
 export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { fcmToken } = req.body as { fcmToken: string };
+    const { fcmToken } = req.body as { fcmToken?: unknown };
+    // 검증 — null(해제) 또는 합리적 길이의 문자열만. 그 외(누락·객체·초장문)는 400.
+    // (FCM registration token 은 보통 150~200자, Expo 토큰도 유사 — 512면 충분)
+    if (fcmToken !== null && (typeof fcmToken !== 'string' || fcmToken.length === 0 || fcmToken.length > 512)) {
+      res.status(400).json({ error: 'fcmToken 형식이 올바르지 않습니다.' });
+      return;
+    }
     await prisma.user.update({ where: { id: userId }, data: { fcmToken } });
     res.json({ message: 'FCM 토큰이 저장되었습니다.' });
   } catch (error) {
@@ -938,7 +944,16 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 };
 
 // 로그아웃 — refresh 쿠키 제거. 클라이언트는 별도로 access 토큰을 메모리/세션에서 비움.
-export const logout = (_req: Request, res: Response): void => {
+// 앱 푸시 정리도 여기서: refresh 쿠키(httpOnly)로 유저를 식별해 FCM 토큰 제거 —
+// 액세스 토큰이 이미 만료된 로그아웃(1h+ 방치 후)에서도 확실히 동작.
+export const logout = (req: Request, res: Response): void => {
+  try {
+    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME];
+    if (cookieToken) {
+      const payload = verifyRefreshToken(cookieToken);
+      prisma.user.update({ where: { id: payload.userId }, data: { fcmToken: null } }).catch(() => {});
+    }
+  } catch { /* 쿠키 없음/무효 — 푸시 정리 생략 */ }
   clearRefreshCookie(res);
   res.json({ message: '로그아웃되었습니다.' });
 };

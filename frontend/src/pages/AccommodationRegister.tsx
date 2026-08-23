@@ -174,10 +174,14 @@ const AccommodationRegister = () => {
       </div>
 
       <div>
-        <label className={labelClass}>사진</label>
+        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(최대 8장 · 첫 장이 대표)</span></label>
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
-          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
+          <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+            const files = Array.from(e.target.files || []);
+            if (files.length > 8) toastError('사진은 최대 8장까지 올릴 수 있어요. 앞 8장만 사용합니다.');
+            setImageFiles(files.slice(0, 8));
+          }} />
         </label>
       </div>
 

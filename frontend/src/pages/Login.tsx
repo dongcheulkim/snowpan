@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin } from '../api';
+import { initPush } from '../push';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
@@ -68,6 +69,7 @@ const Login = () => {
 
       setAuth(data.token, data.user, autoLogin);
       markLastLogin('email');
+      initPush().catch(() => {}); // 앱: 이메일 로그인도 FCM 등록 (웹 no-op)
 
       if (saveEmail) {
         localStorage.setItem('savedEmail', email);

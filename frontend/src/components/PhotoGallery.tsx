@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { imageUrl } from '../api';
 
 // 상세 페이지 사진 캐러셀 — 콤마 구분 URL 문자열. 한 장씩 스와이프(가로 스크롤 스냅).
@@ -8,6 +8,12 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
   const urls = (images || '').split(',').map((s) => s.trim()).filter(Boolean);
   const [idx, setIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
+
+  // 매물 전환 등으로 사진 목록이 바뀌면 첫 장부터 (stale index 방지)
+  useEffect(() => {
+    setIdx(0);
+    trackRef.current?.scrollTo({ left: 0 });
+  }, [images]);
 
   if (!urls.length) return null;
 

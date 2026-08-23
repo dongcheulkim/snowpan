@@ -75,6 +75,9 @@ const AccommodationEdit = () => {
         image = urls[0];        // 새로 선택 시 전체 교체, 첫 장이 대표
         images = urls.join(',');
       }
+      // 옛 이모지 매물(image='🏨' 등): URL 이 아니면 image/images 를 보내지 않음 —
+      // 백엔드 isAllowedImageUrl 검증에 걸려 저장 전체가 400 나던 것 방지 (기존 값 유지됨).
+      const isUrlish = (s: string) => s.startsWith('/') || s.startsWith('http');
       await api(`/accommodations/${id}`, {
         method: 'PUT',
         body: {
@@ -85,8 +88,8 @@ const AccommodationEdit = () => {
           originalPrice: form.originalPrice || form.price,
           guests: `${form.maxGuests}인`,
           features: form.features.join(','),
-          image,
-          images: images || undefined,
+          image: image && isUrlish(image) ? image : undefined,
+          images: images && isUrlish(images.split(',')[0]?.trim() || '') ? images : undefined,
         },
       });
       toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
@@ -163,13 +166,22 @@ const AccommodationEdit = () => {
       </div>
 
       <div>
-        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(바꿀 때만 선택)</span></label>
+        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(바꿀 때만 선택 · 최대 8장)</span></label>
         {currentImage && imageFiles.length === 0 && (
-          <img src={imageUrl(currentImage)} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
+          currentImage.startsWith('/') || currentImage.startsWith('http') ? (
+            <img src={imageUrl(currentImage)} alt="" className="w-full h-32 object-cover rounded-lg mb-2" />
+          ) : (
+            // 옛 이모지 매물 — 깨진 <img> 대신 이모지 그대로 표시
+            <div className="w-full h-32 rounded-lg mb-2 bg-gray-100 flex items-center justify-center text-5xl">{currentImage}</div>
+          )
         )}
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨 (교체)` : '사진을 바꾸려면 선택하세요'}
-          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
+          <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+            const files = Array.from(e.target.files || []);
+            if (files.length > 8) toastError('사진은 최대 8장까지 올릴 수 있어요. 앞 8장만 사용합니다.');
+            setImageFiles(files.slice(0, 8));
+          }} />
         </label>
       </div>
 

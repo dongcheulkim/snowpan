@@ -229,16 +229,9 @@ export async function restoreSession(): Promise<void> {
 
 export function logout() {
   // 백엔드에 refresh 쿠키 제거 요청 (실패해도 진행).
+  // FCM 토큰 정리는 서버 logout 이 refresh 쿠키로 유저를 식별해 처리 —
+  // 액세스 토큰이 만료된 로그아웃에서도 확실히 지워짐 (프론트 Bearer 방식은 1h+ 방치 시 401 로 실패했음).
   fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
-  // 앱: 이 기기의 FCM 토큰 서버에서 정리(로그아웃한 유저에게 푸시 안 가게) + 리스너 해제.
-  const tok = sessionStorage.getItem('token') || localStorage.getItem('token');
-  if (tok) {
-    fetch(`${API_BASE}/auth/fcm-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
-      body: JSON.stringify({ fcmToken: null }),
-    }).catch(() => {});
-  }
   import('./push').then(m => m.clearPush()).catch(() => {});
   sessionStorage.removeItem('user');
   sessionStorage.removeItem('token');

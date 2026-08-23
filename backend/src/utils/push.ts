@@ -8,25 +8,27 @@ import prisma from '../config/database';
 // firebase-admin 지연 초기화 — FCM_SERVICE_ACCOUNT env(서비스계정 JSON 문자열) 없으면 비활성(안전).
 // 서버는 env 없이도 정상 기동하고, 푸시만 조용히 no-op 됨.
 type FcmMessaging = { send: (msg: unknown) => Promise<string> };
-let fcmMessaging: FcmMessaging | null = null;
-let fcmInitTried = false;
-async function getFcm(): Promise<FcmMessaging | null> {
-  if (fcmInitTried) return fcmMessaging;
-  fcmInitTried = true;
-  const raw = process.env.FCM_SERVICE_ACCOUNT;
-  if (!raw) return null;
-  try {
-    // 모듈러 subpath import — 네임스페이스/default interop 회피, 타입 깔끔.
-    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
-    const { getMessaging } = await import('firebase-admin/messaging');
-    const cred = JSON.parse(raw);
-    const app = getApps().length ? getApps()[0] : initializeApp({ credential: cert(cred) });
-    fcmMessaging = getMessaging(app) as unknown as FcmMessaging;
-  } catch (e) {
-    console.error('FCM(firebase-admin) 초기화 실패:', e);
-    fcmMessaging = null;
-  }
-  return fcmMessaging;
+// 초기화 Promise 를 공유 — 초기화 중 도착한 동시 발송도 같은 Promise 를 await 해서
+// 첫 발송들이 유실되지 않음 (boolean 플래그 방식은 init 창구간의 푸시를 드롭했음).
+let fcmInit: Promise<FcmMessaging | null> | null = null;
+function getFcm(): Promise<FcmMessaging | null> {
+  if (fcmInit) return fcmInit;
+  fcmInit = (async () => {
+    const raw = process.env.FCM_SERVICE_ACCOUNT;
+    if (!raw) return null;
+    try {
+      // 모듈러 subpath import — 네임스페이스/default interop 회피, 타입 깔끔.
+      const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+      const { getMessaging } = await import('firebase-admin/messaging');
+      const cred = JSON.parse(raw);
+      const app = getApps().length ? getApps()[0] : initializeApp({ credential: cert(cred) });
+      return getMessaging(app) as unknown as FcmMessaging;
+    } catch (e) {
+      console.error('FCM(firebase-admin) 초기화 실패:', e);
+      return null;
+    }
+  })();
+  return fcmInit;
 }
 
 async function clearToken(userId: string): Promise<void> {
