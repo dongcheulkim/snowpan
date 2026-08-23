@@ -85,8 +85,26 @@ const Home = () => {
   }, []);
 
   const [banners, setBanners] = useState<BannerData[]>([]);
-  const [hot, setHot] = useState<HotItem[]>([]);
+  const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
+  const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
+
+  // 핫 섹션 카테고리 칩 — 탭하면 그 카테고리의 핫한 것만.
+  const HOT_TABS = [
+    { id: 'all', label: '전체' },
+    { id: 'poll', label: '투표' },
+    { id: 'free', label: '자유' },
+    { id: 'gear', label: '장비' },      // review + gear
+    { id: 'resort', label: '스키장후기' },
+    { id: 'tip', label: '초보팁' },
+  ];
+  const hot = hotAll.filter((it) => {
+    if (hotTab === 'all') return true;
+    if (hotTab === 'poll') return it.kind === 'poll';
+    if (it.kind !== 'post') return false;
+    if (hotTab === 'gear') return it.category === 'review' || it.category === 'gear';
+    return it.category === hotTab;
+  }).slice(0, 5);
 
   // 핫한 커뮤니티(인기글+투표 혼합) + 매장 소식 (snow 전용)
   useEffect(() => {
@@ -108,7 +126,7 @@ const Home = () => {
         )),
       ];
       items.sort((a, b) => b.score - a.score);
-      setHot(items.slice(0, 5));
+      setHotAll(items); // 칩 필터가 골라 쓰도록 전체 보관 (표시는 5개씩)
     });
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
@@ -296,11 +314,29 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
             <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
+          {/* 카테고리 칩 — 골라보기 (투표/자유/장비/스키장후기/초보팁) */}
+          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
+            {HOT_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setHotTab(tab.id)}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors whitespace-nowrap flex-shrink-0 ${
+                  hotTab === tab.id ? 'bg-gray-900 text-white border-gray-900' : 'bg-snow text-gray-600 border-gray-200'
+                }`}
+              >{tab.label}</button>
+            ))}
+          </div>
           {hot.length === 0 ? (
-            <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
-              <p className="text-sm text-gray-500">아직 인기 글이 없어요.</p>
-              <p className="text-xs text-sky-600 font-bold mt-1.5">첫 글을 올려보세요 &gt;</p>
-            </Link>
+            hotTab === 'all' ? (
+              <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
+                <p className="text-sm text-gray-500">아직 인기 글이 없어요.</p>
+                <p className="text-xs text-sky-600 font-bold mt-1.5">첫 글을 올려보세요 &gt;</p>
+              </Link>
+            ) : (
+              <div className="bg-snow rounded-2xl border border-gray-200 p-6 text-center">
+                <p className="text-sm text-gray-500">이 카테고리엔 아직 핫한 {hotTab === 'poll' ? '투표' : '글'}가 없어요.</p>
+              </div>
+            )
           ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
             {hot.map((item, i) => (
