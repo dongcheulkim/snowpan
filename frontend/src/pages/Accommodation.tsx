@@ -188,7 +188,7 @@ const Accommodation = () => {
           </div>
           <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 {vertical.pageLabels?.accommodation || '숙소'}가 없어요</h3>
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
-            숙소 운영자라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 직접 만나보세요. 베타 기간 등록 무료입니다.
+            숙소 운영자라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 직접 만나보세요. 등록은 무료입니다.
           </p>
           <Link to="/accommodation/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
             + 첫 숙소 등록하기

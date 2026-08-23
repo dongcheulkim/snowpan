@@ -124,11 +124,11 @@ export default function About() {
       {/* Beta */}
       <section className="text-center space-y-3 py-6">
         <p className="text-[11px] font-bold tracking-widest text-sky-500">BETA</p>
-        <h2 className="text-lg font-bold text-gray-900">베타 기간 등록 무료</h2>
+        <h2 className="text-lg font-bold text-gray-900">매장 등록 무료</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
           렌탈샵·레슨·숙소·정비샵 운영자라면 첫 등록자가 되어 스키어들을 만나보세요.
           <br className="hidden sm:block" />
-          베타 기간 동안 등록비·중개수수료 없이 운영합니다.
+          등록비·중개수수료 없이 운영합니다.
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Link to="/used" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">중고장비 둘러보기</Link>

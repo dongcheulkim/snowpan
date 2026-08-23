@@ -103,7 +103,7 @@ export default function NewEquipment() {
             {selectedArea !== 'all' || selectedResort !== 'all' ? '이 지역엔 아직 스키샵이 없어요' : '아직 등록된 스키샵이 없어요'}
           </h3>
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
-            첫 번째로 등록해서 손님들에게 노출 기회를<br/>가져가세요. 베타 기간 등록 무료입니다.
+            첫 번째로 등록해서 손님들에게 노출 기회를<br/>가져가세요. 등록은 무료입니다.
           </p>
           <RegisterCTA to="/skishop/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
             + 첫 스키샵 등록하기
