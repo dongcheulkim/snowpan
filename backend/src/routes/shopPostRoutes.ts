@@ -79,6 +79,36 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// GET /api/shop-posts/recent — 홈 "매장 소식·이벤트" 피드. 전 매장 최신 소식 (승인 매장만, 매장명 포함).
+router.get('/recent', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = Math.min(parseInt(String(req.query.limit || '6'), 10) || 6, 20);
+    const posts = await prisma.shopPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit * 3, // 미승인 매장 소식을 걸러낸 뒤에도 limit 를 채우도록 여유
+      select: { id: true, title: true, content: true, images: true, postType: true, createdAt: true, shopType: true, shopId: true },
+    });
+    // 매장명 일괄 해석 — 승인된 매장의 소식만 노출.
+    const idsBy: Record<string, string[]> = {};
+    for (const p of posts) (idsBy[p.shopType] ||= []).push(p.shopId);
+    const names = new Map<string, string>();
+    const put = (type: string, rows: { id: string; name: string }[]) => rows.forEach((r) => names.set(`${type}:${r.id}`, r.name));
+    if (idsBy.skishop) put('skishop', await prisma.skiShop.findMany({ where: { id: { in: idsBy.skishop }, approved: true }, select: { id: true, name: true } }));
+    if (idsBy.repair) put('repair', await prisma.repairShop.findMany({ where: { id: { in: idsBy.repair }, approved: true }, select: { id: true, name: true } }));
+    if (idsBy.rental) put('rental', await prisma.rental.findMany({ where: { id: { in: idsBy.rental }, approved: true }, select: { id: true, name: true } }));
+    if (idsBy.lesson) put('lesson', await prisma.lesson.findMany({ where: { id: { in: idsBy.lesson }, approved: true }, select: { id: true, name: true } }));
+    if (idsBy.accommodation) put('accommodation', await prisma.accommodation.findMany({ where: { id: { in: idsBy.accommodation }, approved: true }, select: { id: true, name: true } }));
+    const items = posts
+      .filter((p) => names.has(`${p.shopType}:${p.shopId}`))
+      .slice(0, limit)
+      .map((p) => ({ ...p, shopName: names.get(`${p.shopType}:${p.shopId}`) }));
+    res.json({ items });
+  } catch (err) {
+    console.error('Recent shop posts error:', err);
+    res.status(500).json({ error: '소식 조회 중 오류가 발생했습니다.' });
+  }
+});
+
 // GET /api/shop-posts/:id  — 단건 (공개). 조회수 증가.
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {

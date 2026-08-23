@@ -32,6 +32,40 @@ interface BannerData {
   textAlign?: string | null;
 }
 
+// 홈 "지금 핫한 커뮤니티" — /community/popular 상위 5개.
+interface PopularPost {
+  id: string;
+  title: string;
+  category: string;
+  likes: number;
+  views: number;
+  images?: string | null;
+  commentCount?: number;
+  _count?: { comments: number };
+}
+
+// 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
+interface ShopNews {
+  id: string;
+  title: string;
+  content: string;
+  images: string | null;
+  postType: string;
+  createdAt: string;
+  shopName: string;
+}
+
+const POST_CAT_LABEL: Record<string, string> = {
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기',
+  tip: '초보팁', carpool: '카풀/동행', meetup: '모임', notice: '공지',
+};
+const NEWS_TYPE_LABEL: Record<string, { text: string; color: string }> = {
+  general: { text: '소식', color: 'bg-gray-100 text-gray-600' },
+  promo: { text: '프로모션', color: 'bg-sky-100 text-sky-700' },
+  event: { text: '이벤트', color: 'bg-orange-100 text-orange-700' },
+  notice: { text: '공지', color: 'bg-emerald-100 text-emerald-700' },
+};
+
 const Home = () => {
   const vertical = useVertical();
   const isSnow = vertical.slug === 'snow';
@@ -57,6 +91,19 @@ const Home = () => {
   }, []);
 
   const [banners, setBanners] = useState<BannerData[]>([]);
+  const [popular, setPopular] = useState<PopularPost[]>([]);
+  const [news, setNews] = useState<ShopNews[]>([]);
+
+  // 핫한 커뮤니티 + 매장 소식 (snow 전용, 비어있으면 섹션 자체 숨김)
+  useEffect(() => {
+    if (!isSnow) return;
+    api<PopularPost[]>('/community/popular?sport=ski')
+      .then((d) => setPopular(Array.isArray(d) ? d : []))
+      .catch(() => {});
+    api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
+      .then((d) => setNews(d.items || []))
+      .catch(() => {});
+  }, [isSnow]);
 
   // 로그인 시 내 찜 id 집합 로드 (하트 초기 상태).
   useEffect(() => {
@@ -275,6 +322,63 @@ const Home = () => {
         </div>
       </div>
 
+      {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5 */}
+      {isSnow && popular.length > 0 && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
+            <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+          </div>
+          <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+            {popular.slice(0, 5).map((p, i) => {
+              const thumb = (p.images || '').split(',').filter(Boolean)[0];
+              const comments = p.commentCount ?? p._count?.comments ?? 0;
+              return (
+                <Link key={p.id} to={`/community/post/${p.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors">
+                  <span className={`text-sm font-black w-4 text-center flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-gray-900 truncate">{p.title}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {POST_CAT_LABEL[p.category] || p.category} · 좋아요 {p.likes} · 댓글 {comments}
+                    </p>
+                  </div>
+                  {thumb && (thumb.startsWith('/') || thumb.startsWith('http')) && (
+                    <img src={imageUrl(thumb, 120)} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover bg-gray-100 flex-shrink-0" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 매장 소식·이벤트 — 전 매장 최신 소식 (프로모션/이벤트/공지) */}
+      {isSnow && news.length > 0 && (
+        <div className="px-4 pt-2 pb-4">
+          <h2 className="text-[15px] font-bold text-gray-900 mb-3">매장 소식·이벤트</h2>
+          <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+            {news.map((n) => {
+              const label = NEWS_TYPE_LABEL[n.postType] || NEWS_TYPE_LABEL.general;
+              const thumb = (n.images || '').split(',').filter(Boolean)[0];
+              return (
+                <Link key={n.id} to={`/shop-post/${n.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${label.color}`}>{label.text}</span>
+                      <span className="text-[11px] font-bold text-gray-500 truncate">{n.shopName}</span>
+                    </div>
+                    <p className="text-[13px] font-medium text-gray-900 truncate mt-1">{n.title}</p>
+                  </div>
+                  {thumb && (
+                    <img src={imageUrl(thumb, 120)} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover bg-gray-100 flex-shrink-0" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 중고매물 30개 노출 + "다른 매물 보기" 새로고침으로 랜덤 30개 교체 */}
       <div className="px-4 pt-2 pb-6">
         <div className="flex items-center justify-between mb-3">
@@ -357,7 +461,7 @@ const Home = () => {
                 <polyline points="21 3 21 8 16 8" />
                 <polyline points="3 21 3 16 8 16" />
               </svg>
-              {feedLoading ? '불러오는 중…' : '🔄 다른 매물 보기'}
+              {feedLoading ? '불러오는 중…' : '다른 매물 보기'}
             </button>
             {feedTotal !== null && feedTotal > FEED_PAGE_SIZE && (
               <p className="text-[11px] text-gray-500">
