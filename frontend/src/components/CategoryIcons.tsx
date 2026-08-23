@@ -216,32 +216,6 @@ export const LivecamIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
-// 10. 쿠폰샵 — 디테일 강화 티켓 (별 + 점선)
-export const CouponIcon = ({ size = 32, className }: IconProps) => (
-  <svg {...baseProps(size, className)}>
-    {/* 티켓 본체 (양쪽 노치) */}
-    <path d="M6 18 a 4 4 0 0 1 4 -4 L 54 14 a 4 4 0 0 1 4 4 L 58 24 a 4 4 0 0 0 0 8 L 58 38 a 4 4 0 0 1 -4 4 L 10 42 a 4 4 0 0 1 -4 -4 L 6 32 a 4 4 0 0 0 0 -8 Z" />
-    {/* 중앙 점선 (음각) — 절취선 */}
-    <path d="M32 18 L 32 22 M 32 26 L 32 30 M 32 34 L 32 38" {...inkLine} stroke="#fff" strokeWidth="2.2" />
-    {/* 왼쪽 별 */}
-    <path d="M18 23 L 19.7 27.1 L 24 27.1 L 20.6 29.6 L 21.9 33.8 L 18 31.3 L 14.1 33.8 L 15.4 29.6 L 12 27.1 L 16.3 27.1 Z" fill="#fff" />
-    {/* 오른쪽 % */}
-    <circle cx="42" cy="24" r="2.5" fill="#fff" />
-    <circle cx="50" cy="34" r="2.5" fill="#fff" />
-    <path d="M40 36 L 52 22" {...inkLine} stroke="#fff" strokeWidth="2.5" />
-  </svg>
-);
-
-// 11. 스노우런 — 번개 + 속도선
-export const SnowRunIcon = ({ size = 32, className }: IconProps) => (
-  <svg {...baseProps(size, className)}>
-    {/* 번개 */}
-    <path d="M40 4 L 14 34 L 28 34 L 22 60 L 50 30 L 36 30 Z" />
-    {/* 속도선 (오른쪽 잔상) */}
-    <path d="M52 10 L 60 10 M 50 18 L 58 18 M 54 26 L 62 26" {...inkLine} strokeWidth="2.5" />
-  </svg>
-);
-
 // 해외 스키 — 지구본(위도·경도) 라인.
 export const OverseasIcon = ({ size = 32, className }: IconProps) => (
   <svg {...baseProps(size, className)}>
@@ -263,6 +237,4 @@ export const categoryIcons = {
   community: CommunityIcon,
   competitions: ScheduleIcon,
   webcam: LivecamIcon,
-  coupon: CouponIcon,
-  snowrun: SnowRunIcon,
 };
