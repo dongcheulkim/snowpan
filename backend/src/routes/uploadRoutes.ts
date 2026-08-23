@@ -80,7 +80,24 @@ const upload = multer({
 
 const router = Router();
 
-router.post('/', uploadLimitPerMin, uploadLimitPerHour, upload.array('images', 5), async (req: Request, res: Response) => {
+// 한 요청당 최대 10장 (프론트 MultiImageUpload 는 8장까지 → 여유). multer 에러는 깔끔한 JSON 으로.
+const MAX_FILES = 10;
+const uploadArray = upload.array('images', MAX_FILES);
+function uploadImages(req: Request, res: Response, next: (err?: unknown) => void): void {
+  uploadArray(req, res, (err: unknown) => {
+    if (err) {
+      const code = (err as { code?: string })?.code;
+      const msg = code === 'LIMIT_FILE_SIZE' ? '파일이 너무 큽니다 (최대 20MB).'
+        : code === 'LIMIT_UNEXPECTED_FILE' ? `한 번에 최대 ${MAX_FILES}장까지 올릴 수 있어요.`
+        : ((err as { message?: string })?.message || '이미지 업로드에 실패했습니다.');
+      res.status(400).json({ error: msg });
+      return;
+    }
+    next();
+  });
+}
+
+router.post('/', uploadLimitPerMin, uploadLimitPerHour, uploadImages, async (req: Request, res: Response) => {
   const files = req.files as Express.Multer.File[];
   if (!files || files.length === 0) {
     res.status(400).json({ error: '파일이 없습니다.' });
