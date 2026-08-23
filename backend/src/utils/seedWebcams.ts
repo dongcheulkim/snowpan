@@ -42,6 +42,24 @@ const WEBCAM_STREAMS: Record<string, Cam[]> = {
   alpensia: [
     { label: '스키700 전경 (유튜브 라이브)', stream: 'https://www.youtube.com/embed/live_stream?channel=UCrmFQpznvkrLQSjJG1wGdGg' },
   ],
+  // 엘리시안 — 공식 유튜브 채널('1엘리시안1')이 시즌 중 슬로프 라이브 송출.
+  // 채널 임베드 방식이라 방송 ID 가 시즌마다 바뀌어도 유효. 오프시즌엔 유튜브가 "오프라인" 표시.
+  elysian: [
+    { label: '슬로프 실시간 (유튜브 라이브)', stream: 'https://www.youtube.com/embed/live_stream?channel=UCS2jAqQUUyWgtN36tzpH8KA' },
+  ],
+  // 지산 — 유효한 HTTPS 인증서 + CORS(*) 의 정석 HLS. 시즌 중에만 송출 (여름 404 → 안내 표시).
+  jisan: [
+    { label: '레몬 탑승장', stream: 'https://ant.livecity.co.kr:5443/jisancam/streams/jisan1.m3u8' },
+    { label: '슬로프 캠 2', stream: 'https://ant.livecity.co.kr:5443/jisancam/streams/jisan2.m3u8' },
+    { label: '슬로프 캠 3', stream: 'https://ant.livecity.co.kr:5443/jisancam/streams/jisan3.m3u8' },
+    { label: '슬로프 캠 4', stream: 'https://ant.livecity.co.kr:5443/jisancam/streams/jisan4.m3u8' },
+    { label: '실버 탑승장', stream: 'https://ant.livecity.co.kr:5443/jisancam/streams/jisan5.m3u8' },
+  ],
+  // 에덴밸리 — 공식 웹캠 팝업이 쓰는 rtsp.me 임베드 (임베드 전용 서비스, HTTPS iframe OK).
+  eden: [
+    { label: '슬로프 캠 1', stream: 'https://rtsp.ru/embed/nKGZGiRD/' },
+    { label: '슬로프 캠 2', stream: 'https://rtsp.ru/embed/dh6R7d4k' },
+  ],
 };
 
 export async function seedWebcams(): Promise<void> {

@@ -40,6 +40,14 @@ const YouTubePlayer = ({ src }: { src: string }) => (
   />
 );
 
+// 일반 임베드 iframe — rtsp.me/rtsp.ru 같은 "임베드 전용" 웹캠 서비스 (에덴밸리 등).
+// stream 을 'iframe:URL' 로 넣거나, rtsp.me/rtsp.ru embed URL 이면 자동 인식.
+function parseIframeEmbed(stream: string): string | null {
+  if (stream.startsWith('iframe:')) return stream.slice(7);
+  if (/https:\/\/rtsp\.(me|ru)\/embed\//.test(stream)) return stream;
+  return null;
+}
+
 const HlsPlayer = ({ src, autoPlay = true, fallbackUrl, fallbackName }: { src: string; autoPlay?: boolean; fallbackUrl?: string | null; fallbackName?: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -197,9 +205,10 @@ const WebcamDetail = () => {
             <div className="aspect-video">
               {(() => {
                 const ytSrc = parseYouTubeEmbed(currentStream!.stream);
-                return ytSrc
-                  ? <YouTubePlayer key={ytSrc} src={ytSrc} />
-                  : <HlsPlayer key={currentStream!.stream} src={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />;
+                if (ytSrc) return <YouTubePlayer key={ytSrc} src={ytSrc} />;
+                const frameSrc = parseIframeEmbed(currentStream!.stream);
+                if (frameSrc) return <YouTubePlayer key={frameSrc} src={frameSrc} />;
+                return <HlsPlayer key={currentStream!.stream} src={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />;
               })()}
             </div>
           </div>
