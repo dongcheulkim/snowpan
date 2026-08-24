@@ -141,7 +141,7 @@ const Lesson = () => {
                 to={`/lesson/${item.id}`}
                 key={item.id}
                 viewTransition
-                onClick={(e) => { const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
+                onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
                 className="bg-snow border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors"
               >
                 <div className="relative aspect-[4/5] bg-gradient-to-br from-sky-400 to-indigo-500 overflow-hidden">
@@ -176,13 +176,25 @@ const Lesson = () => {
               <circle cx="12" cy="7" r="3"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/>
             </svg>
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
-          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
-            자격을 가진 분이라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
-          </p>
-          <Link to="/lesson/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
-            + 첫 레슨 등록하기
-          </Link>
+          {(selectedSpec !== 'all' || selectedResort !== 'all') ? (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1.5">조건에 맞는 {sport} {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">다른 분야·스키장을 선택하거나 필터를 해제해보세요.</p>
+              <button onClick={() => { setSelectedSpec('all'); setSelectedResort('all'); }} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
+                필터 해제
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1.5">아직 등록된 {sport} {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                자격을 가진 분이라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
+              </p>
+              <Link to="/lesson/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+                + 첫 레슨 등록하기
+              </Link>
+            </>
+          )}
         </div>
       )}
 

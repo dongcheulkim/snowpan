@@ -589,6 +589,8 @@ export default function AdBooking() {
                     onClick={() => {
                       setImageFile(null);
                       setImagePreview('');
+                      // 업로드 시 자동 흰색 전환의 역방향 — 안 되돌리면 흰배경+흰글자 유령 배너
+                      setTextColor((prev) => (prev === '#ffffff' ? '#1e293b' : prev));
                     }}
                     aria-label="제거"
                     className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center"
@@ -658,7 +660,7 @@ export default function AdBooking() {
                     <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
                       <div>
                         {(title || !imagePreview) && <div className={imagePreview ? 'text-xl font-black leading-snug' : 'text-[15px] font-bold'} style={{ color: textColor }}>{title || '광고 제목'}</div>}
-                        {(description || !imagePreview) && <p className={imagePreview ? 'text-[13px]' : 'text-sm'} style={{ color: textColor, opacity: 0.85 }}>{description || '광고 설명'}</p>}
+                        {(description || !imagePreview) && <p className={imagePreview ? 'text-[13px] line-clamp-2' : 'text-sm'} style={{ color: textColor, opacity: 0.85 }}>{description || '광고 설명'}</p>}
                       </div>
                     </div>
                     )}

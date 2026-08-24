@@ -296,7 +296,7 @@ const Chat = () => {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col animate-fade-in z-[60]"
+      className="fixed inset-0 flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >
       {/* Sticky Header */}

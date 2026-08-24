@@ -128,7 +128,7 @@ function Card({ title, onClose, children }: { title: string; onClose: () => void
     <div
       role="dialog"
       aria-labelledby="install-title"
-      className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-[55]"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-[55]"
     >
       <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl px-5 py-4 relative">
         <button

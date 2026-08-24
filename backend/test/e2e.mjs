@@ -12,6 +12,8 @@
 //     e2e_3@test.snowpan.kr 가입 후 role='admin' UPDATE
 //  6) npm i socket.io-client 후 node e2e.mjs
 //  7) 끝나면 .env 원복!
+//  * 재실행 시 주의: phone_verifications 은 1시간 유효 — 오래된 시드면
+//    UPDATE phone_verifications SET "createdAt"=now(), "expiresAt"=now()+interval '1 hour', verified=true;
 // ===================================================================
 // 스노우판 전 기능 E2E — 로컬 서버(4001) + 임시 DB. 실제 API 호출로 전 흐름 실행.
 import { io as ioClient } from 'socket.io-client';
@@ -104,6 +106,10 @@ async function main() {
   check('매물 등록', pCreate.status === 201 || pCreate.status === 200, `${pCreate.status} ${JSON.stringify(pCreate.json)?.slice(0, 150)}`);
   const prodId = pCreate.json?.id || pCreate.json?.product?.id;
   const pList = await req('GET', '/products?category=used&limit=10');
+  const pGroup = await req('GET', '/products?category=used&subcategory=ski,ski_boots,pole&limit=10');
+  check('중고 대분류(콤마) 필터', pGroup.status === 200 && (pGroup.json?.products || []).some(x => x.id === prodId), `${pGroup.status}`);
+  const pGroupMiss = await req('GET', '/products?category=used&subcategory=helmet,goggles&limit=10');
+  check('타 대분류엔 미노출', !(pGroupMiss.json?.products || []).some(x => x.id === prodId));
   check('매물 목록 노출', (pList.json?.products || []).some(p => p.id === prodId));
   const pDetail = await req('GET', `/products/${prodId}`, { token: A.token });
   check('매물 상세 + 거래정보', pDetail.status === 200 && pDetail.json?.tradeMethod === '직거래' && pDetail.json?.location === '서울 강남구', JSON.stringify({ t: pDetail.json?.tradeMethod, l: pDetail.json?.location }));
@@ -222,13 +228,23 @@ async function main() {
   const rental = await req('POST', '/rentals', { token: B.token, body: { name: 'E2E렌탈샵', area: '강원', businessLicense: IMG, phone: '033-222-3333', images: IMG, image: IMG } });
   check('렌탈샵 등록(매장형)', rental.status === 201 || rental.status === 200, `${rental.status} ${JSON.stringify(rental.json)?.slice(0, 120)}`);
   const rentalId = rental.json?.id || rental.json?.rental?.id;
-  const lesson = await req('POST', '/lessons', { token: B.token, body: { name: 'E2E레슨', resortId, type: '스키', description: '레슨 설명 (가격/시간 자유)', images: IMG, image: IMG } });
+  const lesson = await req('POST', '/lessons', { token: B.token, body: { name: 'E2E레슨', resortId, type: '스키', specialties: '인터,레이싱,없는분야', description: '레슨 설명 (가격/시간 자유)', images: IMG, image: IMG } });
   check('레슨 등록(포스터형·가격 없이)', lesson.status === 201 || lesson.status === 200, `${lesson.status} ${JSON.stringify(lesson.json)?.slice(0, 120)}`);
+  check('강습 분야 화이트리스트 필터링', lesson.json?.specialties === '인터,레이싱', `specialties=${lesson.json?.specialties}`);
   const lessonId = lesson.json?.id || lesson.json?.lesson?.id;
   check('렌탈 승인', (await req('PUT', `/admin/rentals/${rentalId}/approve`, { token: ADM.token })).status === 200);
   check('레슨 승인', (await req('PUT', `/admin/lessons/${lessonId}/approve`, { token: ADM.token })).status === 200);
   const lDetail = await req('GET', `/lessons/${lessonId}`);
   check('레슨 상세(가격 null 안전)', lDetail.status === 200 && lDetail.json?.price === null, `price=${lDetail.json?.price}`);
+  // 종목·분야 필터 (신규)
+  const lSki = await req('GET', '/lessons?type=스키');
+  check('레슨 스키 탭 필터', (lSki.json?.items || []).some(l => l.id === lessonId), `${(lSki.json?.items || []).length}건`);
+  const lBoard = await req('GET', '/lessons?type=보드');
+  check('레슨 보드 탭엔 미노출', !(lBoard.json?.items || []).some(l => l.id === lessonId));
+  const lSpec = await req('GET', '/lessons?specialty=인터');
+  check('강습 분야 필터(인터)', (lSpec.json?.items || []).some(l => l.id === lessonId));
+  const lSpec2 = await req('GET', '/lessons?specialty=모글');
+  check('미보유 분야 필터 제외', !(lSpec2.json?.items || []).some(l => l.id === lessonId));
 
   // 정비샵 + 거절(관리자 삭제) 알림
   const repair = await req('POST', '/repair-shops', { token: B.token, body: { name: 'E2E정비샵', area: '서울', address: '주소2', description: '설명', businessLicense: IMG } });

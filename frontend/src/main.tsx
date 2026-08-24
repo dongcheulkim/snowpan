@@ -52,6 +52,14 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!hadController) { hadController = true; return; }
     if (swReloaded) return;
+    // 병리적 상황(CDN 이 구/신 sw 를 번갈아 서빙) 대비 — 10분 내 3회 초과 자동 리로드 금지
+    try {
+      const raw = sessionStorage.getItem('snowpan.swReloadLog') || '[]';
+      const log = (JSON.parse(raw) as number[]).filter((t) => Date.now() - t < 10 * 60 * 1000);
+      if (log.length >= 3) return;
+      log.push(Date.now());
+      sessionStorage.setItem('snowpan.swReloadLog', JSON.stringify(log));
+    } catch { /* 무시 */ }
     swReloaded = true;
     // 자동 리로드 직후엔 스플래시 스킵 표시 (인트로 2연속 방지)
     try { sessionStorage.setItem('snowpan.swReload', '1'); } catch { /* 무시 */ }
@@ -129,7 +137,7 @@ import('./native').then(m => m.initNative()).catch(() => {});
   } catch { /* 무시 */ }
   if (swReloaded) { splash.remove(); return; }
   const start = performance.now();
-  const MIN_MS = 1450; // 네온 점화(1.1s) + 잠깐의 머무름
+  const MIN_MS = 1450; // 로고 리빌(1.1s) + 잠깐의 머무름
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {

@@ -93,6 +93,12 @@
         background: #ffffff;
         opacity: 1; transition: opacity .45s ease;
         overflow: hidden;
+        /* 번들 로드 실패 시에도 스플래시가 영원히 남지 않게 — JS 없이 8초 후 자동 소멸.
+           정상 경로에선 main.tsx 가 1.5초쯤 제거하므로 이 폴백은 발동 안 함. */
+        animation: splashAutoHide .4s ease 8s forwards;
+      }
+      @keyframes splashAutoHide {
+        to { opacity: 0; visibility: hidden; }
       }
       #app-splash.hide { opacity: 0; pointer-events: none; }
       /* 후레쉬 — 로고 뒤 중앙이 환하고 가장자리로 은은히 어두워지는 빛 웅덩이 */

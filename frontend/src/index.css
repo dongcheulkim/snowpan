@@ -95,6 +95,9 @@ html {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
 
 /* 스크롤 스냅 */
 .snap-x {

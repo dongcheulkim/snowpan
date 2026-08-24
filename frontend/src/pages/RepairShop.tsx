@@ -92,15 +92,29 @@ export default function RepairShop() {
       ) : shownShops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>
-          <h3 className="text-base font-bold text-gray-900 mb-1.5">
-            {selectedArea !== 'all' ? `이 지역엔 아직 ${vertical.pageLabels?.repair || '정비샵'}이 없어요` : `아직 등록된 ${vertical.pageLabels?.repair || '정비샵'}이 없어요`}
-          </h3>
-          <p className="text-xs text-gray-500 mb-5 leading-relaxed">
-            정비·전문가라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
-          </p>
-          <RegisterCTA to="/repair/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
-            + 첫 정비샵 등록하기
-          </RegisterCTA>
+          {selectedService !== 'all' ? (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1.5">조건에 맞는 {vertical.pageLabels?.repair || '정비샵'}이 없어요</h3>
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                다른 서비스 종류를 선택하거나 필터를 해제해보세요.
+              </p>
+              <button onClick={() => setSelectedService('all')} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
+                서비스 필터 해제
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base font-bold text-gray-900 mb-1.5">
+                {selectedArea !== 'all' ? `이 지역엔 아직 ${vertical.pageLabels?.repair || '정비샵'}이 없어요` : `아직 등록된 ${vertical.pageLabels?.repair || '정비샵'}이 없어요`}
+              </h3>
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                정비·전문가라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
+              </p>
+              <RegisterCTA to="/repair/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
+                + 첫 정비샵 등록하기
+              </RegisterCTA>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">

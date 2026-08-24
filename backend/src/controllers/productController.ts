@@ -18,9 +18,15 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
+    // 배열(?subcategory=a&subcategory=b)도 콤마 문자열로 정규화 — 캐시 키와 where 가
+    // 항상 같은 값을 쓰도록 (배열이 캐시 키만 타고 필터를 건너뛰던 캐시 오염 방지)
+    const subcategoryStr = subcategory
+      ? (Array.isArray(subcategory) ? subcategory.map(String).join(',') : String(subcategory))
+      : undefined;
+
     const keyParts: Record<string, string> = { vertical: verticalSlug };
     if (category) keyParts.category = String(category);
-    if (subcategory) keyParts.subcategory = String(subcategory);
+    if (subcategoryStr) keyParts.subcategory = subcategoryStr;
     if (userId) keyParts.userId = String(userId);
     if (status) keyParts.status = String(status);
     if (search) keyParts.search = String(search);
@@ -40,9 +46,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     // run/bike 등에서 등록한 매물이 판매내역에 안 보여 관리 불가하던 것 수정.
     const where: Prisma.ProductWhereInput = userId ? {} : { vertical: verticalSlug };
     if (category) where.category = category as string;
-    if (subcategory && typeof subcategory === 'string') {
+    if (subcategoryStr) {
       // 콤마 목록 지원 — 대분류 필터(예: ski,ski_boots,pole)는 in 으로.
-      const subs = subcategory.split(',').filter(Boolean);
+      const subs = subcategoryStr.split(',').filter(Boolean);
       where.subcategory = subs.length > 1 ? { in: subs } : subs[0];
     }
     if (userId) where.userId = userId as string;

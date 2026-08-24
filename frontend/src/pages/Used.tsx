@@ -292,7 +292,7 @@ const Used = () => {
                 key={product.id}
                 viewTransition
                 // 누른 카드의 사진만 이름을 부여 → 상세 대표 사진으로 morphing (나이키식 shared element)
-                onClick={(e) => { const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
+                onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
                 className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}
               >
                 <div className="relative h-28 flex items-center justify-center text-4xl overflow-hidden bg-gray-100">
