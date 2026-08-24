@@ -7,6 +7,7 @@ import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
+import { RowListSkeleton } from '../components/Skeleton';
 
 interface Shop {
   id: string;
@@ -72,7 +73,7 @@ export default function RepairShop() {
 
       {/* 목록 */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+        <RowListSkeleton count={5} />
       ) : shops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>

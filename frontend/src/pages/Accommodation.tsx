@@ -6,6 +6,7 @@ import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
+import { PosterGridSkeleton } from '../components/Skeleton';
 
 interface AccommodationItem {
   id: string;
@@ -122,7 +123,7 @@ const Accommodation = () => {
 
       {/* Accommodation List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+        <PosterGridSkeleton count={6} aspect="aspect-square" />
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {accommodations.map((item) => (

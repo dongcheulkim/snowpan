@@ -7,6 +7,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
+import { PosterGridSkeleton } from '../components/Skeleton';
 
 interface LessonItem {
   id: string;
@@ -130,13 +131,19 @@ const Lesson = () => {
 
       {/* Lesson Items — 포스터형 */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+        <PosterGridSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {lessonItems.map((item) => {
             const cover = (item.images && item.images.split(',')[0]) || item.image || '';
             return (
-              <Link to={`/lesson/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors">
+              <Link
+                to={`/lesson/${item.id}`}
+                key={item.id}
+                viewTransition
+                onClick={(e) => { const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
+                className="bg-snow border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors"
+              >
                 <div className="relative aspect-[4/5] bg-gradient-to-br from-sky-400 to-indigo-500 overflow-hidden">
                   {cover && (cover.startsWith('/') || cover.startsWith('http')) ? (
                     <img src={imageUrl(cover, 500)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />

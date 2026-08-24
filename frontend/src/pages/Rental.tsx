@@ -8,6 +8,7 @@ import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { PhoneIcon } from '../components/Icons';
 import { RentalIcon } from '../components/CategoryIcons';
+import { RowListSkeleton } from '../components/Skeleton';
 
 interface RentalItem {
   id: string;
@@ -92,7 +93,7 @@ const Rental = () => {
 
       {/* Rental Items */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+        <RowListSkeleton count={5} />
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {rentalItems.map((item) => {

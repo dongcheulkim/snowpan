@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { MountainIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
+import { RowListSkeleton } from '../components/Skeleton';
 
 interface WebcamItem {
   id: string;
@@ -42,7 +43,7 @@ const Webcam = () => {
       <p className="text-xs text-gray-500">{vertical.venue || '스키장'}을 선택하면 실시간 웹캠을 볼 수 있습니다.</p>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+        <RowListSkeleton count={5} />
       ) : webcams.length === 0 ? (
         <div className="text-center py-12 text-gray-500 text-sm">웹캠 정보가 없어요.</div>
       ) : (

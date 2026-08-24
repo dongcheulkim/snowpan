@@ -270,7 +270,7 @@ const UsedDetail = () => {
             onClick={() => hasImages && !imgError && setShowFullImage(true)}
           >
             {hasImages && !imgError ? (
-              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" onError={() => setImgError(true)} loading="eager" decoding="async" />
+              <img src={currentImage} alt={product.name} className="w-full h-full object-cover" style={{ viewTransitionName: 'hero-img' }} onError={() => setImgError(true)} loading="eager" decoding="async" />
             ) : (
               <CategoryPlaceholder subcategory={product.subcategory} />
             )}

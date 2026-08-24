@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { HeartFilledIcon, HeartOutlineIcon } from './Icons';
 import { toastError } from './Toast';
+import { hapticLight } from '../utils/haptics';
 
 interface Props {
   productId: string;
@@ -25,6 +26,7 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
   // 이미 찜한 매물이 빈 하트로 보이고, 탭 시 찜이 해제되는 역효과 발생.
   useEffect(() => { setWished(initial); }, [initial]);
 
+  const [pop, setPop] = useState(false);
   const toggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -33,6 +35,12 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
     setBusy(true);
     const next = !wished;
     setWished(next); // 낙관적
+    if (next) {
+      // 찜 켜질 때만 팝 + 햅틱 — 해제는 조용히
+      setPop(true);
+      setTimeout(() => setPop(false), 400);
+      hapticLight();
+    }
     try {
       const res = await api<{ wishlisted: boolean }>(`/products/${productId}/wishlist`, { method: 'POST' });
       setWished(res.wishlisted);
@@ -55,9 +63,11 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
       aria-pressed={wished}
       className={`${base} active:scale-90 transition-transform`}
     >
-      {wished
-        ? <HeartFilledIcon size={size} className="text-coral" />
-        : <HeartOutlineIcon size={size} className="text-gray-500" />}
+      <span className={pop ? 'animate-heart-pop inline-flex' : 'inline-flex'}>
+        {wished
+          ? <HeartFilledIcon size={size} className="text-coral" />
+          : <HeartOutlineIcon size={size} className="text-gray-500" />}
+      </span>
     </button>
   );
 }

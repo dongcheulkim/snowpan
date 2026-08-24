@@ -212,6 +212,8 @@ export default function AdBooking() {
     if (file) {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+      // 사진 위엔 흰 글자가 기본 (스크림 위 에디토리얼 스타일) — 사용자가 이미 색을 골랐으면 존중
+      setTextColor((prev) => (prev === '#1e293b' ? '#ffffff' : prev));
     }
   };
 
@@ -648,11 +650,15 @@ export default function AdBooking() {
                     {imagePreview && (
                       <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
                     )}
+                    {/* 실노출(홈 배너)과 동일한 가독성 스크림 */}
+                    {imagePreview && (title || description) && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
+                    )}
                     {(title || description || !imagePreview) && (
                     <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
                       <div>
-                        {(title || !imagePreview) && <div className="text-[15px] font-bold" style={{ color: textColor }}>{title || '광고 제목'}</div>}
-                        {(description || !imagePreview) && <p className="text-sm" style={{ color: textColor, opacity: 0.8 }}>{description || '광고 설명'}</p>}
+                        {(title || !imagePreview) && <div className={imagePreview ? 'text-xl font-black leading-snug' : 'text-[15px] font-bold'} style={{ color: textColor }}>{title || '광고 제목'}</div>}
+                        {(description || !imagePreview) && <p className={imagePreview ? 'text-[13px]' : 'text-sm'} style={{ color: textColor, opacity: 0.85 }}>{description || '광고 설명'}</p>}
                       </div>
                     </div>
                     )}

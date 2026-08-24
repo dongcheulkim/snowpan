@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
+import { RowListSkeleton } from '../components/Skeleton';
 
 // 매장 소식 전체 피드 — 홈은 매장당 최신 1개만 보여주므로,
 // 밀려난 소식까지 전부 시간순으로 볼 수 있는 페이지.
@@ -103,7 +104,7 @@ export default function ShopNewsPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500 text-center py-16">불러오는 중...</p>
+        <RowListSkeleton count={5} />
       ) : shown.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-2xl">
           <p className="text-sm text-gray-500">아직 등록된 소식이 없어요.</p>

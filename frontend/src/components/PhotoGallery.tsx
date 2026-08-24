@@ -47,6 +47,8 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
               alt=""
               loading={i === 0 ? 'eager' : 'lazy'}
               className="relative w-full h-full object-contain"
+              // 현재 슬라이드만 이름 부여 — 목록 카드에서 이어지는 shared element 전환 대상
+              style={i === idx ? { viewTransitionName: 'hero-img' } : undefined}
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
             />
           </div>

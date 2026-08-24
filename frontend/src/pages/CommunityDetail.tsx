@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { hapticLight } from '../utils/haptics';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
@@ -67,6 +68,7 @@ const CommunityDetail = () => {
   const [openReplies, setOpenReplies] = useState<Set<string>>(new Set()); // 답글 펼친 부모 댓글 id
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [likePop, setLikePop] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -102,6 +104,11 @@ const CommunityDetail = () => {
       const result = await api<{ likes: number; liked: boolean }>(`/community/${id}/like`, { method: 'PUT' });
       setLikeCount(result.likes);
       setLiked(result.liked);
+      if (result.liked) {
+        setLikePop(true);
+        setTimeout(() => setLikePop(false), 400);
+        hapticLight();
+      }
     } catch (e) {
       // 실패 이유를 토스트로 표시 — 조용히 삼키면 버튼이 고장난 것처럼 보임.
       toastError(e instanceof Error ? e.message : '좋아요 처리에 실패했습니다.');
@@ -240,7 +247,7 @@ const CommunityDetail = () => {
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'}`}>
-            <HeartFilledIcon size={14} /> {likeCount}
+            <span className={likePop ? 'animate-heart-pop inline-flex' : 'inline-flex'}><HeartFilledIcon size={14} /></span> {likeCount}
           </button>
           <span className="text-sm text-gray-500">{t('communityDetail.comments')} {post.comments.length}</span>
         </div>

@@ -9,6 +9,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import EmptyState from '../components/EmptyState';
 import { communityCategoryLabel } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
+import { RowListSkeleton } from '../components/Skeleton';
 
 interface Post {
   id: string;
@@ -238,7 +239,7 @@ const Community = () => {
       )}
 
       {selectedTab !== 'poll' && (loading ? (
-        <div className="text-center py-12 text-gray-500 text-sm">{t('general.loading')}</div>
+        <RowListSkeleton count={6} />
       ) : (
         <div className="space-y-2">
           {(selectedTab === 'popular' ? popularPosts : posts).map((post, idx) => {

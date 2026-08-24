@@ -39,3 +39,29 @@ export function ListRowSkeleton() {
     </div>
   );
 }
+
+// 포스터형 카드 (레슨·렌탈 등 세로 비율) — 2열 그리드
+export function PosterGridSkeleton({ count = 6, aspect = 'aspect-[4/5]' }: { count?: number; aspect?: string }) {
+  return (
+    <div className="grid grid-cols-2 gap-3" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="card overflow-hidden block">
+          <SkeletonBox className={`${aspect} w-full rounded-none`} />
+          <div className="p-3 space-y-2">
+            <SkeletonBox className="h-3 w-1/3" />
+            <SkeletonBox className="h-4 w-3/4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// 행 리스트 묶음 — 페이지들이 반복문 없이 한 줄로 쓰도록
+export function RowListSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-2" aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => <ListRowSkeleton key={i} />)}
+    </div>
+  );
+}
