@@ -95,13 +95,13 @@
       }
       #app-splash.hide { opacity: 0; pointer-events: none; }
       #app-splash-logo {
-        height: 34px; width: auto;
-        animation: splashLogo .72s cubic-bezier(.22, .9, .3, 1) both;
+        width: min(64vw, 280px); height: auto;
+        animation: splashLogo .95s cubic-bezier(.16, .84, .28, 1) both;
       }
       @keyframes splashLogo {
-        0%   { opacity: 0; transform: scale(.92); }
-        55%  { opacity: 1; }
-        100% { opacity: 1; transform: scale(1); }
+        0%   { opacity: 0; transform: scale(.86) translateY(10px); }
+        50%  { opacity: 1; }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
       }
       @media (prefers-reduced-motion: reduce) {
         #app-splash-logo { animation: none; }
