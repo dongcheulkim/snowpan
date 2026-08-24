@@ -115,18 +115,22 @@ createRoot(document.getElementById('root')!).render(
 // Capacitor 네이티브(앱) 초기화 — 웹에선 no-op.
 import('./native').then(m => m.initNative()).catch(() => {});
 
-// 첫 로딩 스플래시 제거 — React 마운트 후 최소 노출시간(400ms) 보장하고 페이드아웃.
-// 너무 빨리 사라지면 깜빡임처럼 보여서 최소 시간을 둠.
+// 첫 로딩 스플래시(index.html 워드마크 리빌) 제거 — 세션당 1회만 연출.
+// 같은 세션의 새로고침·재진입은 애니메이션 없이 즉시 제거 (반복 노출 방지).
 (() => {
   const splash = document.getElementById('app-splash');
   if (!splash) return;
+  let seen = false;
+  try { seen = !!sessionStorage.getItem('snowpan.introShown'); } catch { /* 무시 */ }
+  if (seen) { splash.remove(); return; }
+  try { sessionStorage.setItem('snowpan.introShown', '1'); } catch { /* 무시 */ }
   const start = performance.now();
-  const MIN_MS = 2000; // 눈 펑펑 내리는 연출 노출 시간
+  const MIN_MS = 1050; // 로고 리빌(720ms) + 잠깐의 머무름
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {
       splash.classList.add('hide');
-      setTimeout(() => splash.remove(), 500);
+      setTimeout(() => splash.remove(), 480);
     }, wait);
   });
 })();
