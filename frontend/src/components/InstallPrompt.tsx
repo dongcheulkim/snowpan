@@ -38,6 +38,16 @@ function isDismissedRecently(): boolean {
 export default function InstallPrompt() {
   const [bip, setBip] = useState<BIPEvent | null>(null);
   const [showIos, setShowIos] = useState(false);
+  // 쿠키 동의가 끝나기 전엔 안 띄움 — 첫 방문에 배너 2개가 겹쳐 하단 네비까지 가리던 문제
+  const [consentDone, setConsentDone] = useState(() => {
+    try { return !!localStorage.getItem('cookie-consent-v1'); } catch { return true; }
+  });
+  useEffect(() => {
+    if (consentDone) return;
+    const on = () => setConsentDone(true);
+    window.addEventListener('cookie-consent-changed', on);
+    return () => window.removeEventListener('cookie-consent-changed', on);
+  }, [consentDone]);
 
   useEffect(() => {
     if (isStandalone() || isDismissedRecently()) return;
@@ -75,6 +85,8 @@ export default function InstallPrompt() {
     } catch { /* ignore */ }
     dismiss();
   };
+
+  if (!consentDone) return null;
 
   if (bip) {
     return (

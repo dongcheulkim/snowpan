@@ -46,7 +46,7 @@ export default function CookieConsent() {
       role="dialog"
       aria-labelledby="cookie-title"
       aria-describedby="cookie-desc"
-      className="fixed bottom-0 left-0 right-0 z-[60] md:left-4 md:right-4 md:bottom-4 md:max-w-lg md:mx-auto"
+      className="fixed left-0 right-0 z-[60] bottom-[calc(4rem+env(safe-area-inset-bottom))] md:left-4 md:right-4 md:bottom-4 md:max-w-lg md:mx-auto"
     >
       <div className="bg-white border-t border-gray-200 md:border md:rounded-2xl shadow-2xl px-5 py-4">
         <h2 id="cookie-title" className="text-sm font-bold text-gray-900 mb-1">
