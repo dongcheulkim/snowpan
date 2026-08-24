@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { REPAIR_SERVICES } from '../utils/repairServices';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
@@ -35,6 +36,7 @@ const areas = [
 export default function RepairShop() {
   const vertical = useVertical();
   const [selectedArea, setSelectedArea] = useState('all');
+  const [selectedService, setSelectedService] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +49,9 @@ export default function RepairShop() {
       .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '정비샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
   }, [selectedArea]);
+
+  // 서비스 필터는 클라이언트에서 — 목록이 통짜 배열이라 재요청 불필요 (services 는 콤마 텍스트)
+  const shownShops = selectedService === 'all' ? shops : shops.filter(sh => (sh.services || '').includes(selectedService));
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -71,10 +76,20 @@ export default function RepairShop() {
         ))}
       </div>
 
+      {/* 서비스 종류 필터 — 부츠피팅 등 원하는 정비만 골라 보기 */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        {['all', ...REPAIR_SERVICES].map((sv) => (
+          <button key={sv} onClick={() => setSelectedService(sv)}
+            className={`px-2.5 py-1.5 rounded-full font-medium text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${selectedService === sv ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'}`}>
+            {sv === 'all' ? '전체 서비스' : sv}
+          </button>
+        ))}
+      </div>
+
       {/* 목록 */}
       {loading ? (
         <RowListSkeleton count={5} />
-      ) : shops.length === 0 ? (
+      ) : shownShops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>
           <h3 className="text-base font-bold text-gray-900 mb-1.5">
@@ -89,7 +104,7 @@ export default function RepairShop() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {shops.map((shop) => {
+          {shownShops.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
             <Link to={`/repair/${shop.id}`} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>

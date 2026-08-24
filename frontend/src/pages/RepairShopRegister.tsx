@@ -5,6 +5,7 @@ import { api, uploadImages, getUser } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { ClipboardIcon, CloseIcon } from '../components/Icons';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { REPAIR_SERVICES } from '../utils/repairServices';
 
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
@@ -114,8 +115,20 @@ export default function RepairShopRegister() {
           </div>
 
           <div>
-            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-500">(콤마로 구분)</span></label>
-            <input type="text" name="services" value={form.services} onChange={handleChange} placeholder="예: 튜닝, 왁싱, 엣지, 바인딩, 부츠피팅" className={inputClass} />
+            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-500">(복수 선택 가능)</span></label>
+            <div className="flex flex-wrap gap-1.5">
+              {REPAIR_SERVICES.map((sv) => {
+                const picked = form.services.split(',').map(x => x.trim()).filter(Boolean);
+                const on = picked.includes(sv);
+                return (
+                  <button key={sv} type="button"
+                    onClick={() => setForm({ ...form, services: (on ? picked.filter(x => x !== sv) : [...picked, sv]).join(', ') })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${on ? 'bg-sky-500 text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                    {sv}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

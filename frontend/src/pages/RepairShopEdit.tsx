@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { REPAIR_SERVICES } from '../utils/repairServices';
 
 // 소유자 본인이 자기 정비샵 정보를 수정. 사업자등록증 재업로드 불필요.
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
@@ -117,8 +118,24 @@ export default function RepairShopEdit() {
           </div>
 
           <div>
-            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-500">(콤마로 구분)</span></label>
-            <input type="text" name="services" value={form.services} onChange={handleChange} placeholder="예: 튜닝, 왁싱, 엣지, 바인딩, 부츠피팅" className={inputClass} />
+            <label className={labelClass}>서비스 종류 <span className="text-xs text-gray-500">(복수 선택 가능)</span></label>
+            <div className="flex flex-wrap gap-1.5">
+              {(() => {
+                const picked = form.services.split(',').map(x => x.trim()).filter(Boolean);
+                // 예전 자유입력으로 저장된 항목도 칩으로 보여서 잃어버리지 않게
+                const all = [...REPAIR_SERVICES, ...picked.filter(x => !REPAIR_SERVICES.includes(x))];
+                return all.map((sv) => {
+                  const on = picked.includes(sv);
+                  return (
+                    <button key={sv} type="button"
+                      onClick={() => setForm({ ...form, services: (on ? picked.filter(x => x !== sv) : [...picked, sv]).join(', ') })}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${on ? 'bg-sky-500 text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                      {sv}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
