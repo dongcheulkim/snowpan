@@ -44,6 +44,25 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
     regs.forEach(reg => reg.update().catch(() => {}));
   }).catch(() => {});
+
+  // 새 SW 가 제어권을 잡는 순간 1회 자동 리로드 — 배포 직후 "새로고침 두 번" 없이 바로 최신 화면.
+  // 첫 설치(controller 없음 → 생김) 때는 리로드하지 않음 (첫 방문 무한 리로드 방지).
+  let hadController = !!navigator.serviceWorker.controller;
+  let swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) { hadController = true; return; }
+    if (swReloaded) return;
+    swReloaded = true;
+    window.location.reload();
+  });
+
+  // 탭을 오래 열어둔 사용자도 다시 볼 때 새 버전 감지
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.update().catch(() => {}));
+    }).catch(() => {});
+  });
 }
 
 // Sentry (VITE_SENTRY_DSN 설정 시 활성화)
