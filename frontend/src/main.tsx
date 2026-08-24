@@ -53,6 +53,8 @@ if ('serviceWorker' in navigator) {
     if (!hadController) { hadController = true; return; }
     if (swReloaded) return;
     swReloaded = true;
+    // 자동 리로드 직후엔 스플래시 스킵 표시 (인트로 2연속 방지)
+    try { sessionStorage.setItem('snowpan.swReload', '1'); } catch { /* 무시 */ }
     window.location.reload();
   });
 
@@ -115,15 +117,17 @@ createRoot(document.getElementById('root')!).render(
 // Capacitor 네이티브(앱) 초기화 — 웹에선 no-op.
 import('./native').then(m => m.initNative()).catch(() => {});
 
-// 첫 로딩 스플래시(index.html 워드마크 리빌) 제거 — 세션당 1회만 연출.
-// 같은 세션의 새로고침·재진입은 애니메이션 없이 즉시 제거 (반복 노출 방지).
+// 첫 로딩 스플래시(index.html 워드마크 리빌) 제거 — 매 페이지 로드마다 연출.
+// 단 SW 업데이트로 인한 자동 리로드 직후엔 스킵 (배포 직후 스플래시 2연속 방지).
 (() => {
   const splash = document.getElementById('app-splash');
   if (!splash) return;
-  let seen = false;
-  try { seen = !!sessionStorage.getItem('snowpan.introShown'); } catch { /* 무시 */ }
-  if (seen) { splash.remove(); return; }
-  try { sessionStorage.setItem('snowpan.introShown', '1'); } catch { /* 무시 */ }
+  let swReloaded = false;
+  try {
+    swReloaded = sessionStorage.getItem('snowpan.swReload') === '1';
+    sessionStorage.removeItem('snowpan.swReload');
+  } catch { /* 무시 */ }
+  if (swReloaded) { splash.remove(); return; }
   const start = performance.now();
   const MIN_MS = 1050; // 로고 리빌(720ms) + 잠깐의 머무름
   requestAnimationFrame(() => {
