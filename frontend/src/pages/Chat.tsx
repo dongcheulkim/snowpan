@@ -297,10 +297,7 @@ const Chat = () => {
   return (
     <div
       className="fixed inset-0 flex flex-col animate-fade-in z-[60]"
-      style={{
-        // 미세한 점 패턴 배경 — 빈 채팅창의 허전함 완화
-        background: 'radial-gradient(circle at 1px 1px, rgba(15,23,42,0.04) 1px, transparent 0) 0 0 / 24px 24px, #fafafa',
-      }}
+      style={{ background: '#fafafa' }}
     >
       {/* Sticky Header */}
       <header className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200 pt-[env(safe-area-inset-top)]">
