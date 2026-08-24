@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import UserBadges from '../components/UserBadges';
@@ -79,9 +79,12 @@ const PollDetail = () => {
     }
   };
 
+  const likingRef = useRef(false);
   const handleLike = async () => {
     if (!poll) return;
     if (!user) { navigate('/login'); return; }
+    if (likingRef.current) return; // 연타 시 토글 요청 2건이 역순 도착해 낡은 스냅샷이 남는 것 방지
+    likingRef.current = true;
     // 토글 — 서버 응답(liked)을 그대로 반영 (이전엔 무조건 liked=true 로 굳혀 해제가 표시 안 됐음).
     const prevLiked = liked;
     setLiked(!prevLiked);
@@ -91,10 +94,12 @@ const PollDetail = () => {
       setLiked(res.liked);
       setPoll((prev) => (prev ? { ...prev, likes: res.likes } : prev));
     } catch (e) {
-      // 실패 시 롤백 + 이유 표시 (본인 투표 좋아요 차단 등 — 조용히 삼키면 고장처럼 보임).
+      // 실패 시 롤백 + 이유 표시 — 조용히 삼키면 고장처럼 보임.
       setLiked(prevLiked);
       setPoll((prev) => (prev ? { ...prev, likes: prev.likes + (prevLiked ? 1 : -1) } : prev));
       toastError(e instanceof Error ? e.message : '좋아요 처리에 실패했습니다.');
+    } finally {
+      likingRef.current = false;
     }
   };
 

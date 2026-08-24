@@ -251,14 +251,20 @@ export async function restoreSession(): Promise<void> {
 
 export function logout() {
   // 백엔드에 refresh 쿠키 제거 요청 (실패해도 진행).
-  // FCM 토큰 정리는 서버 logout 이 refresh 쿠키(웹)/body 토큰(앱)으로 유저를 식별해 처리 —
-  // 액세스 토큰이 만료된 로그아웃에서도 확실히 지워짐.
+  // FCM 정리는 이 기기 토큰(snowpan.fcmToken)을 함께 보내 그 토큰일 때만 말소 —
+  // 웹 브라우저 로그아웃이 앱 기기의 푸시까지 끊던 문제 방지 (웹은 토큰이 없어 안 보냄).
   const appRt = getAppRefreshToken();
+  let deviceFcm: string | null = null;
+  try { deviceFcm = localStorage.getItem('snowpan.fcmToken'); } catch { /* 무시 */ }
   fetch(`${API_BASE}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
-    ...(appRt ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: appRt }) } : {}),
+    ...((appRt || deviceFcm) ? {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...(appRt ? { refreshToken: appRt } : {}), ...(deviceFcm ? { fcmToken: deviceFcm } : {}) }),
+    } : {}),
   }).catch(() => {});
+  try { localStorage.removeItem('snowpan.fcmToken'); } catch { /* 무시 */ }
   clearAppRefreshToken();
   import('./push').then(m => m.clearPush()).catch(() => {});
   sessionStorage.removeItem('user');

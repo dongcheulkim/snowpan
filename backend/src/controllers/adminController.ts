@@ -519,7 +519,10 @@ export const rejectRental = async (req: AuthRequest, res: Response): Promise<voi
     const rentalName = rental?.name;
     await prisma.rental.delete({ where: { id } });
 
-    if (rentalUserId) await createNotification(rentalUserId, 'reject', '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`);
+    if (rentalUserId) {
+      await createNotification(rentalUserId, 'reject', '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`);
+      sendPushToUser(rentalUserId, '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`).catch(() => {});
+    }
     res.json({ message: '렌탈이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject rental error:', error);
@@ -542,7 +545,10 @@ export const rejectLesson = async (req: AuthRequest, res: Response): Promise<voi
     const lessonName = lesson?.name;
     await prisma.lesson.delete({ where: { id } });
 
-    if (lessonUserId) await createNotification(lessonUserId, 'reject', '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`);
+    if (lessonUserId) {
+      await createNotification(lessonUserId, 'reject', '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`);
+      sendPushToUser(lessonUserId, '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`).catch(() => {});
+    }
     res.json({ message: '레슨이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject lesson error:', error);
@@ -586,7 +592,10 @@ export const rejectAccommodation = async (req: AuthRequest, res: Response): Prom
     const accomUserId = accom?.userId;
     const accomName = accom?.name;
     await prisma.accommodation.delete({ where: { id: req.params.id } });
-    if (accomUserId) await createNotification(accomUserId, 'reject', '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`);
+    if (accomUserId) {
+      await createNotification(accomUserId, 'reject', '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`);
+      sendPushToUser(accomUserId, '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`).catch(() => {});
+    }
     res.json({ message: '숙소가 거부되었습니다.' });
   } catch (error) {
     console.error('Reject accommodation error:', error);
@@ -632,6 +641,7 @@ export const rejectBadge = async (req: AuthRequest, res: Response): Promise<void
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const badge = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'rejected' } });
     await createNotification(badge.userId, 'badge', '자격증 거부', `자격증 인증이 거부되었습니다.`);
+    sendPushToUser(badge.userId, '자격증 거부', '자격증 인증이 거부되었습니다.').catch(() => {});
     res.json({ message: '자격증이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject badge error:', error);
@@ -675,6 +685,7 @@ export const approveAdRequest = async (req: AuthRequest, res: Response): Promise
     cacheDel('banners:public'); // 배너 캐시 초기화
 
     await createNotification(item.userId, 'approve', '광고 신청 승인', `'${item.title}' 광고 신청이 승인되었습니다.`, '/mypage');
+    sendPushToUser(item.userId, '광고 신청 승인', `'${item.title}' 광고 신청이 승인되었습니다.`, '/mypage').catch(() => {});
     res.json({ ...item, message: '광고 신청이 승인되었습니다.' });
   } catch (error) {
     console.error('Approve ad request error:', error);
@@ -688,6 +699,7 @@ export const rejectAdRequest = async (req: AuthRequest, res: Response): Promise<
     const { adminNote } = req.body as { adminNote?: string };
     const item = await prisma.adRequest.update({ where: { id: req.params.id }, data: { status: 'rejected', adminNote: adminNote || null } });
     await createNotification(item.userId, 'reject', '광고 신청 거부', `'${item.title}' 광고 신청이 거부되었습니다.`);
+    sendPushToUser(item.userId, '광고 신청 거부', `'${item.title}' 광고 신청이 거부되었습니다.`).catch(() => {});
     res.json({ ...item, message: '광고 신청이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject ad request error:', error);

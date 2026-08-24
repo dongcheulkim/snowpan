@@ -250,6 +250,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     if (!agency) { res.status(404).json({ error: '여행사를 찾을 수 없습니다.' }); return; }
     if (agency.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
     await prisma.travelAgency.delete({ where: { id: req.params.id } });
+    // 관리자가 남의 여행사를 지운 경우 소유자에게 알림+푸시 (스키샵·정비샵과 동일 UX — 유일하게 통지가 없던 vertical)
+    if (req.user!.role === 'admin' && agency.userId !== req.user!.id) {
+      const msg = agency.approved ? `'${agency.name}' 여행사가 관리자에 의해 삭제되었습니다.` : `'${agency.name}' 여행사 등록이 거부되었습니다.`;
+      createNotification(agency.userId, 'reject', agency.approved ? '여행사 삭제' : '여행사 거부', msg).catch(() => {});
+      sendPushToUser(agency.userId, agency.approved ? '여행사 삭제' : '여행사 거부', msg).catch(() => {});
+    }
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' });

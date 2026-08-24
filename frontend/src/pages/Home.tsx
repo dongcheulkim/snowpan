@@ -339,7 +339,7 @@ const Home = () => {
               </Link>
             ) : (
               <div className="bg-snow rounded-2xl border border-gray-200 p-6 text-center">
-                <p className="text-sm text-gray-500">이 카테고리엔 아직 핫한 {hotTab === 'poll' ? '투표' : '글'}가 없어요.</p>
+                <p className="text-sm text-gray-500">이 카테고리엔 아직 핫한 {hotTab === 'poll' ? '투표가' : '글이'} 없어요.</p>
               </div>
             )
           ) : (

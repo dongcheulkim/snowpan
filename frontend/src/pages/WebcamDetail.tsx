@@ -80,9 +80,17 @@ const HlsPlayer = ({ src, autoPlay = true, fallbackUrl, fallbackName }: { src: s
         hlsRef.current = null;
       };
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari 네이티브 HLS — 오프시즌 404 스트림도 오프라인 폴백 UI 가 뜨도록 error 감지
+      const onErr = () => setError(true);
+      video.addEventListener('error', onErr);
       video.src = src;
       if (autoPlay) video.play().catch(() => {});
-      return () => { clearTimeout(resetTimer); video.src = ''; };
+      return () => {
+        clearTimeout(resetTimer);
+        video.removeEventListener('error', onErr);
+        video.removeAttribute('src');
+        video.load();
+      };
     } else {
       clearTimeout(resetTimer);
       const errorTimer = setTimeout(() => setError(true), 0);
@@ -119,7 +127,6 @@ const HlsPlayer = ({ src, autoPlay = true, fallbackUrl, fallbackName }: { src: s
 const WebcamDetail = () => {
   const { id } = useParams();
   const [selectedCam, setSelectedCam] = useState(0);
-  const [iframeFailed, setIframeFailed] = useState(false);
   const [cam, setCam] = useState<WebcamData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -219,47 +226,24 @@ const WebcamDetail = () => {
         </>
       ) : (
         <>
-          {/* Fallback: iframe */}
+          {/* 자체 스트림 없는 리조트 — 외부 사이트는 CSP·X-Frame-Options 로 임베딩이 막히므로 바로 공식 링크 안내 */}
           <div className="card rounded-2xl overflow-hidden">
-            {iframeFailed ? (
-              <div className="h-[500px] bg-gray-50 flex flex-col items-center justify-center gap-4">
-                <ProhibitIcon size={48} className="text-gray-500" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-700 mb-1">외부 임베딩이 차단되었습니다</p>
-                  <p className="text-xs text-gray-500">공식 사이트에서 직접 확인해주세요</p>
-                </div>
-                <a
-                  href={cam.externalUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold hover:bg-accent-light transition-colors"
-                >
-                  {cam.name} 웹캠 보러가기
-                </a>
+            <div className="h-[320px] bg-gray-50 flex flex-col items-center justify-center gap-4">
+              <ProhibitIcon size={48} className="text-gray-500" />
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700 mb-1">이 스키장은 아직 판 안에서 재생할 수 없어요</p>
+                <p className="text-xs text-gray-500">공식 사이트에서 실시간 웹캠을 확인해주세요</p>
               </div>
-            ) : (
-              <iframe
-                src={cam.externalUrl || '#'}
-                className="w-full h-[500px] md:h-[600px] border-0"
-                title={`${cam.name} 실시간 웹캠`}
-                sandbox="allow-scripts allow-same-origin allow-popups"
-                onError={() => setIframeFailed(true)}
-                onLoad={(e) => {
-                  try {
-                    const frame = e.target as HTMLIFrameElement;
-                    if (frame.contentDocument?.title === '') {
-                      setIframeFailed(true);
-                    }
-                  } catch {
-                    // Cross-origin = loaded successfully
-                  }
-                }}
-              />
-            )}
+              <a
+                href={cam.externalUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold hover:bg-accent-light transition-colors"
+              >
+                {cam.name} 웹캠 보러가기
+              </a>
+            </div>
           </div>
-          <p className="text-[11px] text-gray-500 text-center">
-            이 스키장은 자체 스트림이 지원되지 않아 공식 사이트를 표시합니다.
-          </p>
         </>
       )}
     </div>

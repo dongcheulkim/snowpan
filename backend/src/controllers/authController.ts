@@ -359,16 +359,19 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       if (nickname === null || nickname === '') {
         cleanNickname = null;
       } else {
-        cleanNickname = sanitizeText(nickname, 20) || null;
-        if (!cleanNickname || cleanNickname.length < 2) {
+        // register 와 동일하게 raw 입력에 검증 — sanitize 가 태그를 먼저 지우면
+        // "닉<b>네임</b>" 이 조용히 통과되고 21자 초과가 무단 절단되는 비일관 발생.
+        const rawNick = String(nickname).trim();
+        if (rawNick.length < 2 || rawNick.length > 20) {
           res.status(400).json({ error: '닉네임은 2~20자여야 합니다.' });
           return;
         }
         // 특수문자·공백 금지 — 한글/영문/숫자만
-        if (!/^[가-힣a-zA-Z0-9]+$/.test(cleanNickname)) {
+        if (!/^[가-힣a-zA-Z0-9]+$/.test(rawNick)) {
           res.status(400).json({ error: '닉네임은 한글·영문·숫자만 사용할 수 있어요.' });
           return;
         }
+        cleanNickname = sanitizeText(rawNick, 20) || rawNick;
         // 대소문자만 다른 변형("Snow"/"snow")도 중복으로 간주
         const duplicate = await prisma.user.findFirst({
           where: { nickname: { equals: cleanNickname, mode: 'insensitive' }, NOT: { id: userId } },
@@ -663,6 +666,11 @@ export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<voi
       res.status(400).json({ error: 'fcmToken 형식이 올바르지 않습니다.' });
       return;
     }
+    // 같은 기기 토큰이 다른 계정 row 에 남아있으면 말소 — 로그아웃 실패 후 계정 전환 시
+    // 이전 계정의 푸시가 이 기기로 오던 크로스 계정 버그 방지.
+    if (typeof fcmToken === 'string') {
+      await prisma.user.updateMany({ where: { fcmToken, NOT: { id: userId } }, data: { fcmToken: null } });
+    }
     await prisma.user.update({ where: { id: userId }, data: { fcmToken } });
     res.json({ message: 'FCM 토큰이 저장되었습니다.' });
   } catch (error) {
@@ -889,7 +897,9 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
     // 앱(Capacitor WebView)은 소셜 로그인이 인앱 브라우저에서 일어나 httpOnly 쿠키가 없음 →
     // body.refreshToken 으로도 수용 (앱 전용 채널, 검증·rotation·도난감지는 쿠키와 동일).
     const bodyToken = typeof (req.body as { refreshToken?: unknown })?.refreshToken === 'string' ? (req.body as { refreshToken: string }).refreshToken : null;
-    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME] || bodyToken;
+    // 앱 명시 채널(body) 우선 — 웹뷰에 잔존한 이전 계정 쿠키가 body 토큰을 덮어
+    // 다른 계정으로 refresh 되는 크로스 계정 오염 방지.
+    const cookieToken = bodyToken || (req as any).cookies?.[REFRESH_COOKIE_NAME];
     if (!cookieToken) {
       res.status(401).json({ error: '재인증이 필요합니다.' });
       return;
@@ -976,12 +986,15 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 // 액세스 토큰이 이미 만료된 로그아웃(1h+ 방치 후)에서도 확실히 동작.
 export const logout = (req: Request, res: Response): void => {
   try {
-    // 앱은 쿠키가 없으니 body.refreshToken 으로도 유저 식별 (FCM 정리용).
+    // 앱은 쿠키가 없으니 body.refreshToken 으로도 유저 식별 (FCM 정리용). 앱 명시 채널 우선.
     const bodyToken = typeof (req.body as { refreshToken?: unknown })?.refreshToken === 'string' ? (req.body as { refreshToken: string }).refreshToken : null;
-    const cookieToken = (req as any).cookies?.[REFRESH_COOKIE_NAME] || bodyToken;
-    if (cookieToken) {
+    const cookieToken = bodyToken || (req as any).cookies?.[REFRESH_COOKIE_NAME];
+    // 기기 구분 없는 무조건 말소 금지 — 웹 브라우저 로그아웃이 앱 기기의 푸시를 끊던 문제.
+    // 클라이언트가 자기 기기 토큰을 보내온 경우 그 토큰일 때만 말소.
+    const deviceFcm = typeof (req.body as { fcmToken?: unknown })?.fcmToken === 'string' ? (req.body as { fcmToken: string }).fcmToken : null;
+    if (cookieToken && deviceFcm) {
       const payload = verifyRefreshToken(cookieToken);
-      prisma.user.update({ where: { id: payload.userId }, data: { fcmToken: null } }).catch(() => {});
+      prisma.user.updateMany({ where: { id: payload.userId, fcmToken: deviceFcm }, data: { fcmToken: null } }).catch(() => {});
     }
   } catch { /* 쿠키 없음/무효 — 푸시 정리 생략 */ }
   clearRefreshCookie(res);

@@ -95,9 +95,11 @@ export default function CategoryAdBanner({ category }: { category: string }) {
         return (
           <a
             key={idx}
-            href={banner.url || '#'}
+            // URL 없는 광고는 클릭해도 이동 안 함 — href="#" 이 해시 이동/스크롤 점프 유발하던 것 방지 (Home 배너와 동일 패턴)
+            href={banner.url || undefined}
             target={banner.url ? '_blank' : undefined}
             rel={banner.url ? 'noopener noreferrer' : undefined}
+            onClick={banner.url ? undefined : (e) => e.preventDefault()}
             aria-hidden={inactive}
             tabIndex={inactive ? -1 : 0}
             className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${

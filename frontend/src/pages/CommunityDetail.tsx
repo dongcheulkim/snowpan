@@ -103,7 +103,7 @@ const CommunityDetail = () => {
       setLikeCount(result.likes);
       setLiked(result.liked);
     } catch (e) {
-      // 본인 글 좋아요 차단(400) 등 — 조용히 삼키면 버튼이 고장난 것처럼 보임.
+      // 실패 이유를 토스트로 표시 — 조용히 삼키면 버튼이 고장난 것처럼 보임.
       toastError(e instanceof Error ? e.message : '좋아요 처리에 실패했습니다.');
     }
   };

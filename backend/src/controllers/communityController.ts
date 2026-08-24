@@ -105,12 +105,15 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const cacheKey = `posts:popular:${verticalSlug}:${sport || 'all'}`;
+    // 배열 파라미터는 문자열만 통과 — ?sport=a&sport=b 가 Prisma 예외로 500 나는 것 방지 (getPosts 와 동일)
+    const sportStr = typeof sport === 'string' ? sport : undefined;
+    const cacheKey = `posts:popular:${verticalSlug}:${sportStr || 'all'}`;
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
     const where: any = { vertical: verticalSlug };
-    if (sport) where.sport = sport as string;
+    // getPosts 와 동일하게 공용(sport='all') 글 포함 — 공지가 핫 랭킹에서 빠지던 비일관 해소
+    if (sportStr) where.sport = { in: [sportStr, 'all'] };
 
     // 최근 7일 인기글 먼저, 부족하면 전체에서 채움
     const oneWeekAgo = new Date();
@@ -335,8 +338,8 @@ export const likePost = async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    // 본인 글 좋아요 허용 — 어차피 1인 1개라 조작 여지 없음 (인스타 등 통상 UX).
-    const post = await prisma.post.findUnique({ where: { id }, select: { userId: true } });
+    // 본인 글 좋아요 허용 — 어차피 1인 1개라 조작 여지 없음 (인스타 등 통상 UX). 존재 확인만 한다.
+    const post = await prisma.post.findUnique({ where: { id }, select: { id: true } });
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
 
     // race condition 방지 — find→create/delete 분리 시 동시 요청이 양쪽 분기 동시 실행해

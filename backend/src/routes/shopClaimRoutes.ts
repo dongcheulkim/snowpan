@@ -97,6 +97,7 @@ router.put('/:id/reject', authenticateToken, async (req: AuthRequest, res: Respo
     if (!claim || claim.status !== 'pending') { res.status(404).json({ error: '요청을 찾을 수 없습니다.' }); return; }
     await prisma.shopClaim.update({ where: { id: claim.id }, data: { status: 'rejected' } });
     await createNotification(claim.userId, 'system', '매장 이전 요청 반려', '매장 소유권 이전 요청이 반려되었습니다. 문의가 필요하면 고객센터로 연락주세요.', '/mypage/support').catch(() => {});
+    sendPushToUser(claim.userId, '매장 이전 요청 반려', '매장 소유권 이전 요청이 반려되었습니다.', '/mypage/support').catch(() => {});
     res.json({ message: '거절 완료' });
   } catch (error) {
     res.status(500).json({ error: '거절 처리 실패' });

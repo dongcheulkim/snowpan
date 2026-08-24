@@ -76,6 +76,8 @@ export default function MyAds() {
           description: editForm.description.trim(),
           url: editForm.url.trim(),
           image: editForm.image || null,
+          // 이미지를 교체하면 이전 이미지 기준 초점은 무의미 — 중앙으로 리셋 (수정 모달엔 드래그 UI 없음)
+          ...(editForm.image && editForm.image !== (editAd.image || '') ? { imagePos: '50% 50%' } : {}),
         },
       });
       toastSuccess(editAd.status === 'active' ? '수정되었습니다. 노출 중인 광고에 바로 반영돼요.' : '수정되었습니다.');

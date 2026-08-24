@@ -37,7 +37,16 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
     if (description !== undefined) data.description = sanitizeText(description, 200) || '';
     if (url !== undefined) {
       const u = String(url || '').trim();
-      if (u && !/^https?:\/\//.test(u)) { res.status(400).json({ error: '링크는 http(s):// 로 시작해야 합니다.' }); return; }
+      // create 와 동일 규칙: 빈 값 / 내부 경로(/) / http(s) 허용 (프리미엄 신청 폼이 /used/<id> 를 만들므로 http(s) 만 허용하면 소재 수정이 전부 400 남)
+      if (u && !u.startsWith('/') && !/^https?:\/\//i.test(u)) {
+        res.status(400).json({ error: 'URL 은 / 로 시작하거나 https:// 로 시작해야 합니다.' });
+        return;
+      }
+      // 프리미엄은 URL 이 곧 프리미엄 적용 대상 — 소유권 검증 없이 바꾸면 남의 등록물/가격 우회에 악용 가능
+      if (booking.slotType === 'premium' && u !== (booking.url || '')) {
+        res.status(400).json({ error: '프리미엄 광고는 링크를 변경할 수 없습니다. 대상 변경은 새 예약으로 진행해주세요.' });
+        return;
+      }
       data.url = u;
     }
     if (image !== undefined) {
@@ -58,11 +67,12 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
       data.imagePos = imagePos || null;
     }
     if (Object.keys(data).length === 0) { res.status(400).json({ error: '수정할 내용이 없습니다.' }); return; }
-    // 빈 광고 방지 — 수정 결과에 이미지도 제목도 없으면 거절.
+    // 빈 광고 방지 — create 와 동일 규칙: 이미지가 없으면 제목+설명 필수.
     const nextImage = data.image !== undefined ? data.image : booking.image;
     const nextTitle = data.title !== undefined ? data.title : booking.title;
-    if (!nextImage && !nextTitle) {
-      res.status(400).json({ error: '이미지 또는 제목 중 하나는 있어야 합니다.' });
+    const nextDesc = data.description !== undefined ? data.description : booking.description;
+    if (!nextImage && (!nextTitle || !nextDesc)) {
+      res.status(400).json({ error: '이미지 없이 진행하려면 제목과 설명을 입력해주세요.' });
       return;
     }
 
@@ -211,8 +221,25 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
+    // update 와 동일한 방어층 — sanitize·길이 제한·이미지 화이트리스트·색상/정렬 enum.
+    // (기존엔 create 만 원본 그대로 저장해 추적픽셀 이미지·초장문 title 이 승인 시 공개 노출될 수 있었음)
+    const cleanTitle = sanitizeText(title, 60) || '';
+    const cleanDesc = sanitizeText(description, 200) || '';
+    if (image && !isAllowedImageUrl(String(image))) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
+      return;
+    }
+    if (textColor && !/^#[0-9a-fA-F]{6}$/.test(String(textColor))) {
+      res.status(400).json({ error: '글자 색상 형식이 올바르지 않습니다.' });
+      return;
+    }
+    if (textAlign && !['left', 'center', 'right'].includes(String(textAlign))) {
+      res.status(400).json({ error: '글자 정렬 값이 올바르지 않습니다.' });
+      return;
+    }
     // 이미지형 광고는 제목·설명 없이 가능 (로고/포스터만 노출). 이미지가 없으면 텍스트가 필수.
-    if (!image && (!title || !description)) {
+    // sanitize 후 값으로 검사 — 공백만 있는 제목이 통과하던 구멍도 함께 막음.
+    if (!image && (!cleanTitle || !cleanDesc)) {
       res.status(400).json({ error: '이미지 없이 진행하려면 제목과 설명을 입력해주세요.' });
       return;
     }
@@ -360,8 +387,8 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         data: {
           slotType,
           category: category || 'none',
-          title: title || '',
-          description: description || '',
+          title: cleanTitle,
+          description: cleanDesc,
           url,
           image: image || null,
           textColor: textColor || null,
@@ -388,7 +415,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
-    await notifyAdmins('system', '새 광고 신청', `"${title}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
+    await notifyAdmins('system', '새 광고 신청', `"${cleanTitle || '(이미지 광고)'}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
 
     // 관리자와 채팅방 자동 생성 + 입금 안내 메시지 자동 발송. 실패해도 예약은 성공.
     let chatRoomId: string | null = null;
@@ -828,19 +855,8 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
     }
 
     const startLabel = `${dates.start.getFullYear()}.${dates.start.getMonth() + 1}.${dates.start.getDate()}`;
-    await prisma.notification.create({
-      data: {
-        type: 'system',
-        title: '광고 입금 확인',
-        message: startsInFuture
-          ? `"${booking.title}" 광고 입금이 확인되었습니다. ${startLabel}부터 노출됩니다.`
-          : `"${booking.title}" 광고 입금이 확인되었습니다. 바로 노출됩니다!`,
-        link: '/mypage',
-        userId: booking.userId,
-      },
-    });
 
-    // 광고주에게 승인 알림 + 푸시
+    // 광고주에게 승인 알림 + 푸시 (벨 알림은 이 한 건만 — 예전 '광고 입금 확인' 알림과 중복 생성되던 것 제거)
     {
       const adName = updated.title || '(이미지 광고)';
       const msgUser = startsInFuture ? `'${adName}' 광고 입금이 확인됐어요. ${startLabel}부터 노출됩니다.` : `'${adName}' 광고 입금이 확인됐어요. 지금부터 노출됩니다.`;
@@ -892,17 +908,19 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
       cacheDel('banners:public');
     }
 
-    await prisma.notification.create({
-      data: {
-        type: 'system',
-        title: '광고 무료 승인',
-        message: `"${booking.title}" 광고가 무료로 승인되었습니다!`,
-        link: '/mypage',
-        userId: booking.userId,
-      },
-    });
-
-    sendPushToUser(booking.userId, '광고 무료 승인', `"${booking.title}" 광고가 무료로 승인되었습니다!`, '/mypage/ads').catch(() => {});
+    {
+      const adName = booking.title || '(이미지 광고)';
+      await prisma.notification.create({
+        data: {
+          type: 'system',
+          title: '광고 무료 승인',
+          message: `"${adName}" 광고가 무료로 승인되었습니다!`,
+          link: '/mypage/ads',
+          userId: booking.userId,
+        },
+      });
+      sendPushToUser(booking.userId, '광고 무료 승인', `"${adName}" 광고가 무료로 승인되었습니다!`, '/mypage/ads').catch(() => {});
+    }
     res.json({ success: true, message: '무료 승인 완료' });
   } catch (error) {
     console.error('관리자 무료 승인 오류:', error);
@@ -948,12 +966,13 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
         data: {
           type: 'system',
           title: '광고 예약 취소',
-          message: `"${booking.title}" 광고가 관리자에 의해 취소되었습니다.${reason ? ` 사유: ${reason}` : ''}`,
-          link: '/mypage',
+          message: `"${booking.title || '(이미지 광고)'}" 광고가 관리자에 의해 취소되었습니다.${reason ? ` 사유: ${reason}` : ''}`,
+          link: '/mypage/ads',
           userId: booking.userId,
         },
       }),
     ]);
+    sendPushToUser(booking.userId, '광고 예약 취소', `"${booking.title || '(이미지 광고)'}" 광고가 관리자에 의해 취소되었습니다.${reason ? ` 사유: ${reason}` : ''}`, '/mypage/ads').catch(() => {});
 
     // 배너 삭제 + 프리미엄 즉시 해제
     await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });

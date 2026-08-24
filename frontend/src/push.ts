@@ -33,8 +33,9 @@ export async function initPush(): Promise<void> {
 
     await PushNotifications.removeAllListeners();
 
-    // FCM 토큰 수신 → 백엔드 저장
+    // FCM 토큰 수신 → 백엔드 저장 + 로컬 보관 (로그아웃 시 이 기기 토큰만 서버에서 말소하기 위함)
     await PushNotifications.addListener('registration', (t) => {
+      try { localStorage.setItem('snowpan.fcmToken', t.value); } catch { /* 무시 */ }
       api('/auth/fcm-token', { method: 'POST', body: { fcmToken: t.value } }).catch(() => {});
     });
     await PushNotifications.addListener('registrationError', () => { /* 무시 */ });

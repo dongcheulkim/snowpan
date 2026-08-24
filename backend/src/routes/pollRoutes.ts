@@ -169,7 +169,7 @@ router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthR
   const pollId = req.params.id;
   const userId = req.user!.id;
   try {
-    const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { userId: true } });
+    const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
     if (!poll) { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
 
     // create 성공 = 새 좋아요(+1), P2002 = 이미 눌렀음 → 토글 오프(-1). 카운터는 원자 증감.
