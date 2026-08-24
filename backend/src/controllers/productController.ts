@@ -40,7 +40,11 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     // run/bike 등에서 등록한 매물이 판매내역에 안 보여 관리 불가하던 것 수정.
     const where: Prisma.ProductWhereInput = userId ? {} : { vertical: verticalSlug };
     if (category) where.category = category as string;
-    if (subcategory) where.subcategory = subcategory as string;
+    if (subcategory && typeof subcategory === 'string') {
+      // 콤마 목록 지원 — 대분류 필터(예: ski,ski_boots,pole)는 in 으로.
+      const subs = subcategory.split(',').filter(Boolean);
+      where.subcategory = subs.length > 1 ? { in: subs } : subs[0];
+    }
     if (userId) where.userId = userId as string;
     if (status) where.status = status as string;
     if (search) {

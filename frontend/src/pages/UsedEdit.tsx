@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl } from '../api';
 import { useVertical } from '../hooks/useVertical';
+import { SNOW_USED_GROUPS } from '../config/verticals';
 
 interface Product {
   id: string;
@@ -228,7 +229,14 @@ const UsedEdit = () => {
             <div>
               <label className={labelClass}>카테고리</label>
               <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
-                {subcategories.map((c) => (
+                {isSnow ? SNOW_USED_GROUPS.map((g) => (
+                  <optgroup key={g.id} label={g.name}>
+                    {g.subs.map((id) => {
+                      const c = subcategories.find((s) => s.id === id);
+                      return c ? <option key={c.id} value={c.id}>{c.label}</option> : null;
+                    })}
+                  </optgroup>
+                )) : subcategories.map((c) => (
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>

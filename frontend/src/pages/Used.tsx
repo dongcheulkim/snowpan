@@ -11,6 +11,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { toastError, toastSuccess } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
+import { SNOW_USED_GROUPS } from '../config/verticals';
 
 interface Product {
   id: string;
@@ -29,9 +30,14 @@ interface Product {
 
 const PAGE_SIZE = 12;
 
+// 중고 2단계 탐색 (snow) — 대분류 선택 시 세부카테고리 칩이 아래로 펼쳐짐.
+const SNOW_GROUPS = SNOW_USED_GROUPS;
+
 const Used = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCategory = searchParams.get('category') || 'all';
+  const selectedGroup = searchParams.get('group')
+    || (selectedCategory !== 'all' ? SNOW_GROUPS.find(g => g.subs.includes(selectedCategory))?.id || 'all' : 'all');
   const sort = searchParams.get('sort') || 'newest';
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
   const initialSearch = searchParams.get('q') || '';
@@ -66,6 +72,14 @@ const Used = () => {
   };
   const setSelectedCategory = (v: string) => updateParam('category', v);
   const setSort = (v: string) => updateParam('sort', v);
+  // 대분류 선택 — 세부 선택은 초기화. 딥링크로 세부만 온 경우 소속 대분류를 역추론.
+  const selectGroup = (gid: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (gid === 'all') next.delete('group'); else next.set('group', gid);
+    next.delete('category');
+    next.delete('page');
+    setSearchParams(next, { replace: false });
+  };
   const setPage = (p: number) => {
     const next = new URLSearchParams(searchParams);
     if (p <= 1) next.delete('page'); else next.set('page', String(p));
@@ -119,7 +133,13 @@ const Used = () => {
       setLoading(true);
       try {
         const params = new URLSearchParams({ category: 'used', limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-        if (selectedCategory !== 'all') params.set('subcategory', selectedCategory);
+        if (selectedCategory !== 'all') {
+          params.set('subcategory', selectedCategory);
+        } else if (selectedGroup !== 'all') {
+          // 대분류만 선택 — 소속 세부 전체를 콤마 목록으로 (백엔드 in 필터)
+          const g = SNOW_GROUPS.find(x => x.id === selectedGroup);
+          if (g) params.set('subcategory', g.subs.join(','));
+        }
         if (debouncedSearch) params.set('search', debouncedSearch);
         if (sort && sort !== 'newest') params.set('sort', sort);
         const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
@@ -134,7 +154,7 @@ const Used = () => {
       }
     };
     fetchProducts();
-  }, [selectedCategory, debouncedSearch, page, sort]);
+  }, [selectedCategory, selectedGroup, debouncedSearch, page, sort]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -200,22 +220,65 @@ const Used = () => {
         </button>
       )}
 
-      {/* Categories — 2줄 자동 래핑 그리드. 13개 모두 한눈에. */}
-      <div className="flex flex-wrap gap-1.5">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-3 py-1.5 rounded-full font-medium text-xs whitespace-nowrap transition-all ${
-              selectedCategory === cat.id
-                ? 'bg-accent text-white'
-                : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
+      {/* Categories — snow 는 대분류 → 세부 2단계, 다른 vertical 은 기존 플랫 칩 */}
+      {vertical.slug === 'snow' ? (
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap gap-1.5">
+            {[{ id: 'all', name: t('used.cat.all') }, ...SNOW_GROUPS].map((g) => (
+              <button
+                key={g.id}
+                onClick={() => selectGroup(g.id)}
+                className={`px-3 py-1.5 rounded-full font-medium text-xs whitespace-nowrap transition-all ${
+                  selectedGroup === g.id || (g.id === 'all' && selectedGroup === 'all')
+                    ? 'bg-accent text-white'
+                    : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                }`}
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
+          {selectedGroup !== 'all' && (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap transition-all ${
+                  selectedCategory === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                전체
+              </button>
+              {(SNOW_GROUPS.find(g => g.id === selectedGroup)?.subs || []).map((id) => (
+                <button
+                  key={id}
+                  onClick={() => setSelectedCategory(id)}
+                  className={`px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap transition-all ${
+                    selectedCategory === id ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {categories.find(c => c.id === id)?.name || id}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-full font-medium text-xs whitespace-nowrap transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-accent text-white'
+                  : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />

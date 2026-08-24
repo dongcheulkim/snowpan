@@ -8,6 +8,8 @@ import MultiImageUpload from '../components/MultiImageUpload';
 interface Resort { id: string; name: string }
 
 const TYPES = ['스키', '보드', '스키·보드'];
+// 강습 분야 (복수 선택) — 백엔드 화이트리스트와 1:1
+const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
 
 const LessonRegister = () => {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ const LessonRegister = () => {
   const [certFile, setCertFile] = useState<File | null>(null);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
 
   useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
@@ -43,6 +47,7 @@ const LessonRegister = () => {
         method: 'POST',
         body: {
           name: form.name.trim(), resortId: form.resortId, type: form.type,
+          specialties: specialties.join(',') || undefined,
           description: form.description.trim(),
           images: images || undefined, image: images ? images.split(',')[0] : undefined,
           instructorCert, businessLicense,
@@ -84,6 +89,15 @@ const LessonRegister = () => {
         <div className="flex gap-2">
           {TYPES.map(t => (
             <button key={t} onClick={() => setForm({ ...form, type: t })} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${form.type === t ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{t}</button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>강습 분야 <span className="font-normal text-gray-400">(복수 선택 가능)</span></label>
+        <div className="flex flex-wrap gap-1.5">
+          {SPECIALTIES.map(sp => (
+            <button key={sp} onClick={() => toggleSpecialty(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${specialties.includes(sp) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{sp}</button>
           ))}
         </div>
       </div>

@@ -28,6 +28,7 @@ export interface Vertical {
   homeCategories?: { slug: string; label: string; desc: string }[];
   // 중고거래 (used) 의 sport-specific 서브카테고리 (ski, board, frame 등)
   usedSubcategories?: { id: string; label: string }[];
+
   // 커뮤니티 sport 탭 — snow 는 ski/board, bike 는 road/mtb 등
   sports?: { id: string; label: string }[];
   // 강조 색상 (브랜드 accent) — 버튼, 헤더 강조에 사용. hex.
@@ -97,8 +98,10 @@ export const VERTICALS: Vertical[] = [
       { id: 'helmet', label: '헬멧' },
       { id: 'goggles', label: '고글' },
       { id: 'gloves', label: '장갑' },
+      { id: 'protector', label: '보호대' },
       { id: 'bag', label: '가방' },
       { id: 'accessory', label: '악세사리' },
+      { id: 'tuning', label: '왁스·튜닝' },
       { id: 'etc', label: '기타' },
     ],
     sports: [
@@ -382,3 +385,11 @@ export function getActiveVertical(): Vertical {
 export function getVerticalBySlug(slug: string): Vertical | undefined {
   return VERTICALS.find(v => v.slug === slug);
 }
+
+// 중고 대분류 → 세부카테고리 (snow) — 목록 2단계 칩과 등록/수정 optgroup 에서 공용
+export const SNOW_USED_GROUPS = [
+  { id: 'g_ski', name: '스키', subs: ['ski', 'ski_boots', 'pole'] },
+  { id: 'g_board', name: '보드', subs: ['board', 'board_boots', 'binding'] },
+  { id: 'g_gear', name: '의류·보호구', subs: ['wear', 'helmet', 'goggles', 'gloves', 'protector'] },
+  { id: 'g_etc', name: '가방·기타', subs: ['bag', 'accessory', 'tuning', 'etc'] },
+];

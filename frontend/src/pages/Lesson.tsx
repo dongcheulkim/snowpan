@@ -11,6 +11,7 @@ interface LessonItem {
   id: string;
   name: string;
   type?: string | null;
+  specialties?: string | null;
   image?: string | null;
   images?: string | null;
   resort?: { id: string; name: string } | null;
@@ -23,9 +24,13 @@ interface Resort {
 
 const PAGE_SIZE = 12;
 
+// 강습 분야 필터 — 백엔드 화이트리스트와 1:1
+const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+
 const Lesson = () => {
   const vertical = useVertical();
   const [selectedResort, setSelectedResort] = useState<string>('all');
+  const [selectedSpec, setSelectedSpec] = useState<string>('all');
   const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -37,7 +42,7 @@ const Lesson = () => {
   }, []);
 
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort]);
+  useEffect(() => { setPage(1); }, [selectedResort, selectedSpec]);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -45,6 +50,7 @@ const Lesson = () => {
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        if (selectedSpec !== 'all') params.set('specialty', selectedSpec);
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
         setLessonItems(data.items);
         setTotalCount(data.totalCount);
@@ -58,7 +64,7 @@ const Lesson = () => {
     };
     fetchLessons();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedResort, page]);
+  }, [selectedResort, selectedSpec, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -88,6 +94,21 @@ const Lesson = () => {
         ))}
       </div>
 
+      {/* 강습 분야 필터 — 인터·레이싱 등 */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        {['all', ...SPECIALTIES].map((sp) => (
+          <button
+            key={sp}
+            onClick={() => setSelectedSpec(sp)}
+            className={`px-2.5 py-1.5 rounded-full font-medium text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${
+              selectedSpec === sp ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            {sp === 'all' ? '전체 분야' : sp}
+          </button>
+        ))}
+      </div>
+
       {/* Lesson Items — 포스터형 */}
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
@@ -108,6 +129,13 @@ const Lesson = () => {
                 <div className="p-3">
                   {item.resort?.name && <span className="text-[10px] font-medium text-sky-600">{item.resort.name}</span>}
                   <h3 className="text-sm font-bold text-gray-900 mt-0.5 line-clamp-2">{item.name}</h3>
+                  {item.specialties && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {item.specialties.split(',').map((sp) => (
+                        <span key={sp} className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{sp}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Link>
             );

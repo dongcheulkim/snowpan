@@ -77,8 +77,8 @@ const WEBCAM_STREAMS: Record<string, Cam[]> = {
     { label: '정상 휴게소', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam01.stream/playlist.m3u8' },
     { label: '중상급 베이스', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam04.stream/playlist.m3u8' },
     { label: '중간 슬로프', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam05.stream/playlist.m3u8' },
-    { label: '정상부 슬로프', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam02.stream/playlist.m3u8' },
-    { label: '초중급 베이스', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam03.stream/playlist.m3u8' },
+    { label: '정상부 슬로프 (시즌 중 운영)', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam02.stream/playlist.m3u8' },
+    { label: '초중급 베이스 (시즌 중 운영)', stream: 'https://snowpan.kr/cam/konjiam/konjiam/cam03.stream/playlist.m3u8' },
   ],
 };
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
@@ -18,6 +18,8 @@ import { SITE_URL } from '../config/site';
 
 const MainLayout = () => {
   const location = useLocation();
+  // 사업자 정보 접기 — 기본 접힘 (번개장터 스타일)
+  const [bizOpen, setBizOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -67,12 +69,25 @@ const MainLayout = () => {
         )}
         <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
           <Outlet />
-          {/* 사업자 정보 푸터 — 전자상거래법상 표시 의무 + 결제대행 심사 요건 */}
+          {/* 사업자 정보 푸터 — 전자상거래법상 표시 의무 + 결제대행 심사 요건.
+              번개장터 등 통상 UX 처럼 기본 접힘 — 초기화면에서 펼쳐 확인 가능하면 표시 의무 충족 */}
           <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-400">
-            <p className="font-bold text-gray-500">스노우판</p>
-            <p>대표 김동철 · 사업자등록번호 333-12-03287</p>
-            <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
-            <p>고객센터 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-600">help.snowpan@gmail.com</a> · 070-8027-4757</p>
+            <button
+              type="button"
+              onClick={() => setBizOpen(v => !v)}
+              aria-expanded={bizOpen}
+              className="flex items-center gap-1 font-bold text-gray-500"
+            >
+              스노우판 사업자 정보
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${bizOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            {bizOpen && (
+              <div className="mt-1">
+                <p>대표 김동철 · 사업자등록번호 333-12-03287</p>
+                <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
+                <p>고객센터 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-600">help.snowpan@gmail.com</a> · 070-8027-4757</p>
+              </div>
+            )}
             <p className="mt-1.5">
               <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
               <span className="mx-1.5">·</span>

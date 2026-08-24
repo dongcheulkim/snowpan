@@ -14,6 +14,7 @@ interface LessonData {
   userId?: string;
   name: string;
   type?: string | null;
+  specialties?: string | null;
   description?: string | null;
   image?: string | null;
   images?: string | null;
@@ -66,6 +67,9 @@ const LessonDetail = () => {
         <div className="flex items-center gap-2 mb-1">
           {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded">{item.type}</span>}
           {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.resort.name}</span>}
+          {item.specialties && item.specialties.split(',').map((sp) => (
+            <span key={sp} className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{sp}</span>
+          ))}
         </div>
         <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
       </div>

@@ -5,6 +5,7 @@ import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../components/Toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import { useVertical } from '../hooks/useVertical';
+import { SNOW_USED_GROUPS } from '../config/verticals';
 
 const UsedRegister = () => {
   const navigate = useNavigate();
@@ -269,7 +270,14 @@ const UsedRegister = () => {
                 onChange={handleChange}
                 className={inputClass}
               >
-                {subcategories.map((c) => (
+                {isSnow ? SNOW_USED_GROUPS.map((g) => (
+                  <optgroup key={g.id} label={g.name}>
+                    {g.subs.map((id) => {
+                      const c = subcategories.find((s) => s.id === id);
+                      return c ? <option key={c.id} value={c.id} className="bg-snow">{c.label}</option> : null;
+                    })}
+                  </optgroup>
+                )) : subcategories.map((c) => (
                   <option key={c.id} value={c.id} className="bg-snow">{c.label}</option>
                 ))}
               </select>

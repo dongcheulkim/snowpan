@@ -291,6 +291,7 @@ model Lesson {
   id                    String    @id @default(uuid())
   name                  String    // 레슨명
   type                  String?   // 종류 (스키/보드/스키·보드)
+  specialties           String?   // 강습 분야 (콤마 구분: 입문,초중급,인터,상급,레이싱,모글,파크,키즈)
   description           String?   // 상세 설명
   images                String?   // 포스터 사진들 (콤마 구분, 최대 8장)
   image                 String?   // (구) 대표 이미지 — 선택

@@ -6,11 +6,12 @@ import MultiImageUpload from '../components/MultiImageUpload';
 
 interface Resort { id: string; name: string }
 interface LessonData {
-  id: string; userId?: string; name: string; type?: string | null; description?: string | null;
+  id: string; userId?: string; name: string; type?: string | null; specialties?: string | null; description?: string | null;
   images?: string | null; image?: string | null; resort?: { id: string } | null;
 }
 
 const TYPES = ['스키', '보드', '스키·보드'];
+const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
 
 const LessonEdit = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const LessonEdit = () => {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
 
   useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
@@ -28,6 +31,7 @@ const LessonEdit = () => {
       const me = getUser();
       if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/lesson/${id}`, { replace: true }); return; }
       setForm({ name: d.name || '', resortId: d.resort?.id || '', type: d.type || '스키', description: d.description || '' });
+      setSpecialties(d.specialties ? d.specialties.split(',') : []);
       setImages(d.images || d.image || '');
     }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/lesson', { replace: true }); });
   }, [id, navigate]);
@@ -42,6 +46,7 @@ const LessonEdit = () => {
         method: 'PUT',
         body: {
           name: form.name.trim(), resortId: form.resortId, type: form.type,
+          specialties: specialties.join(','),
           description: form.description.trim(), images, image: images ? images.split(',')[0] : null,
         },
       });
@@ -73,6 +78,14 @@ const LessonEdit = () => {
         <label className={labelClass}>종류</label>
         <div className="flex gap-2">
           {TYPES.map(t => <button key={t} onClick={() => setForm({ ...form, type: t })} className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${form.type === t ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{t}</button>)}
+        </div>
+      </div>
+      <div>
+        <label className={labelClass}>강습 분야 <span className="font-normal text-gray-400">(복수 선택 가능)</span></label>
+        <div className="flex flex-wrap gap-1.5">
+          {SPECIALTIES.map(sp => (
+            <button key={sp} onClick={() => toggleSpecialty(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${specialties.includes(sp) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{sp}</button>
+          ))}
         </div>
       </div>
       <div><label className={labelClass}>상세 설명</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={7} className={`${inputClass} resize-none`} /></div>

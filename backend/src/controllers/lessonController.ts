@@ -8,15 +8,26 @@ import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 
+// 강습 분야 화이트리스트 — 콤마 구분 저장. 목록 필터 칩과 1:1 대응.
+const LESSON_SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+const cleanSpecialties = (v: unknown): string | null => {
+  if (typeof v !== 'string' || !v.trim()) return null;
+  const picked = v.split(',').map((x) => x.trim()).filter((x) => LESSON_SPECIALTIES.includes(x));
+  return picked.length ? [...new Set(picked)].join(',') : null;
+};
+
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, level, limit, offset, vertical } = req.query;
+    const { resortId, level, specialty, limit, offset, vertical } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const where: any = { approved: true, vertical: verticalSlug };
     if (resortId) where.resortId = resortId as string;
     if (level) where.level = level as string;
+    if (typeof specialty === 'string' && LESSON_SPECIALTIES.includes(specialty)) {
+      where.specialties = { contains: specialty };
+    }
 
     const take = limit ? parseInt(limit as string, 10) : 50;
     const skip = offset ? parseInt(offset as string, 10) : undefined;
@@ -69,6 +80,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
       data: {
         name: sanitizeText(b.name, 100) || b.name,
         type: sanitizeText(b.type, 30) || null,
+        specialties: cleanSpecialties(b.specialties),
         description: sanitizeText(b.description, 4000) || b.description,
         images,
         image: b.image || (images ? images.split(',')[0] : null), // 대표 = 첫 사진
@@ -138,6 +150,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     const data: Record<string, unknown> = {};
     if (b.name !== undefined) data.name = sanitizeText(b.name, 100) || b.name;
     if (b.type !== undefined) data.type = b.type ? (sanitizeText(b.type, 30) || b.type) : null;
+    if (b.specialties !== undefined) data.specialties = cleanSpecialties(b.specialties);
     if (b.description !== undefined) data.description = b.description ? (sanitizeText(b.description, 4000) || b.description) : null;
     if (b.images !== undefined) data.images = sanitizeImages(b.images);
     if (b.image !== undefined) data.image = b.image || null;
