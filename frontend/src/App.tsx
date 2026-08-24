@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
 import ErrorBoundary from './components/ErrorBoundary';
+import SplashIntro from './components/SplashIntro';
 import NotFound from './pages/NotFound';
 
 // 즉시 로딩 — 랜딩(Home) 만. 나머지 페이지는 lazy 로 초기 번들 축소.
@@ -95,6 +96,8 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
+      {/* Suspense 폴백(스피너)까지 덮도록 라우터 트리 밖에서 렌더 — 콜드 스타트 1회 */}
+      <SplashIntro />
       <Suspense fallback={
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="relative w-14 h-14">
