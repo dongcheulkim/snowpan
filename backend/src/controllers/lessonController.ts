@@ -9,7 +9,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 
 // 강습 분야 화이트리스트 — 콤마 구분 저장. 목록 필터 칩과 1:1 대응.
-const LESSON_SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+const LESSON_SPECIALTIES = ['초중급', '인터', '레이싱', '모글', '파크', '키즈'];
 const cleanSpecialties = (v: unknown): string | null => {
   if (typeof v !== 'string' || !v.trim()) return null;
   const picked = v.split(',').map((x) => x.trim()).filter((x) => LESSON_SPECIALTIES.includes(x));
@@ -18,7 +18,7 @@ const cleanSpecialties = (v: unknown): string | null => {
 
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, level, specialty, limit, offset, vertical } = req.query;
+    const { resortId, level, specialty, type, limit, offset, vertical } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -27,6 +27,10 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
     if (level) where.level = level as string;
     if (typeof specialty === 'string' && LESSON_SPECIALTIES.includes(specialty)) {
       where.specialties = { contains: specialty };
+    }
+    // 스키/보드 시장 분리 — '스키·보드'(겸용) 레슨은 양쪽 탭에 모두 노출 (contains)
+    if (typeof type === 'string' && ['스키', '보드'].includes(type)) {
+      where.type = { contains: type };
     }
 
     const take = limit ? parseInt(limit as string, 10) : 50;

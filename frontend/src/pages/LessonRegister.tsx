@@ -9,7 +9,7 @@ interface Resort { id: string; name: string }
 
 const TYPES = ['스키', '보드', '스키·보드'];
 // 강습 분야 (복수 선택) — 백엔드 화이트리스트와 1:1
-const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+const SPECIALTIES = ['초중급', '인터', '레이싱', '모글', '파크', '키즈'];
 
 const LessonRegister = () => {
   const navigate = useNavigate();

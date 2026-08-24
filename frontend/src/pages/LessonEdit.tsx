@@ -11,7 +11,7 @@ interface LessonData {
 }
 
 const TYPES = ['스키', '보드', '스키·보드'];
-const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+const SPECIALTIES = ['초중급', '인터', '레이싱', '모글', '파크', '키즈'];
 
 const LessonEdit = () => {
   const navigate = useNavigate();

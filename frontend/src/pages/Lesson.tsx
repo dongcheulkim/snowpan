@@ -5,6 +5,7 @@ import Pagination from '../components/Pagination';
 import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
+import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 
 interface LessonItem {
@@ -25,12 +26,13 @@ interface Resort {
 const PAGE_SIZE = 12;
 
 // 강습 분야 필터 — 백엔드 화이트리스트와 1:1
-const SPECIALTIES = ['입문', '초중급', '인터', '상급', '레이싱', '모글', '파크', '키즈'];
+const SPECIALTIES = ['초중급', '인터', '레이싱', '모글', '파크', '키즈'];
 
 const Lesson = () => {
   const vertical = useVertical();
   const [selectedResort, setSelectedResort] = useState<string>('all');
   const [selectedSpec, setSelectedSpec] = useState<string>('all');
+  const [sport, setSport] = useState<'스키' | '보드'>('스키');
   const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -42,13 +44,14 @@ const Lesson = () => {
   }, []);
 
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort, selectedSpec]);
+  useEffect(() => { setPage(1); }, [selectedResort, selectedSpec, sport]);
 
   useEffect(() => {
     const fetchLessons = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
+        params.set('type', sport);
         if (selectedResort !== 'all') params.set('resortId', selectedResort);
         if (selectedSpec !== 'all') params.set('specialty', selectedSpec);
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
@@ -64,7 +67,7 @@ const Lesson = () => {
     };
     fetchLessons();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedResort, selectedSpec, page]);
+  }, [selectedResort, selectedSpec, sport, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -76,6 +79,22 @@ const Lesson = () => {
       </div>
 
       <CategoryAdBanner category="lesson" />
+
+      {/* 스키/보드 레슨 시장 분리 — 커뮤니티 종목 탭과 동일 컨셉. 겸용(스키·보드) 레슨은 양쪽 노출 */}
+      <div className="grid grid-cols-2 gap-2">
+        {(['스키', '보드'] as const).map((sp) => (
+          <button
+            key={sp}
+            onClick={() => setSport(sp)}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              sport === sp ? 'bg-accent text-white' : 'bg-snow text-gray-600 border border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            {sp === '스키' ? <SkiIcon size={16} /> : <SnowboardIcon size={16} />}
+            {sp} 레슨
+          </button>
+        ))}
+      </div>
 
       {/* Resort Filter */}
       <div className="flex gap-2 overflow-x-auto pb-1">
