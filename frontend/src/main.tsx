@@ -129,7 +129,7 @@ import('./native').then(m => m.initNative()).catch(() => {});
   } catch { /* 무시 */ }
   if (swReloaded) { splash.remove(); return; }
   const start = performance.now();
-  const MIN_MS = 1250; // 로고 리빌(950ms) + 잠깐의 머무름
+  const MIN_MS = 1450; // 네온 점화(1.1s) + 잠깐의 머무름
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {
