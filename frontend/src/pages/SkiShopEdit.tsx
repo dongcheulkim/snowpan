@@ -3,14 +3,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
 
 // 소유자 본인이 자기 스키샵 정보를 수정. 사업자등록증은 재업로드 불필요(등록 시 검증 완료).
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
-const resorts = [
-  '용평리조트', '웰리힐리파크', '하이원리조트', '휘닉스평창',
-  '곤지암리조트', '비발디파크', '엘리시안강촌', '지산리조트',
-  '오크밸리', '무주덕유산', '에덴밸리', '기타/없음',
-];
+
 
 interface Shop {
   id: string;
@@ -117,7 +114,7 @@ export default function SkiShopEdit() {
               <label className={labelClass}>소속 스키장</label>
               <select name="resort" value={form.resort} onChange={handleChange} className={inputClass}>
                 <option value="">선택 안 함</option>
-                {resorts.map(r => <option key={r} value={r}>{r}</option>)}
+                {[...(REGION_RESORTS[form.area] || ALL_RESORTS), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
           </div>

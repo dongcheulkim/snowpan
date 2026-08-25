@@ -8,6 +8,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
+import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
 
 interface Shop {
   id: string;
@@ -33,11 +34,7 @@ const areas = [
   { id: '충청', name: '충청' }, { id: '경상', name: '경상' }, { id: '전라', name: '전라' },
 ];
 
-const resortList = [
-  '용평리조트', '웰리힐리파크', '하이원리조트', '휘닉스평창',
-  '곤지암리조트', '비발디파크', '엘리시안강촌', '지산리조트',
-  '오크밸리', '무주덕유산', '에덴밸리',
-];
+
 
 export default function NewEquipment() {
   const vertical = useVertical();
@@ -80,19 +77,21 @@ export default function NewEquipment() {
         ))}
       </div>
 
-      {/* 스키장 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        <button onClick={() => setSelectedResort('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
-          전체
-        </button>
-        {resortList.map(r => (
-          <button key={r} onClick={() => setSelectedResort(r)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
-            {r}
+      {/* 소분류: 리조트 — 선택한 지역 소속만 (리조트 없는 지역은 줄 숨김) */}
+      {(selectedArea === 'all' ? ALL_RESORTS : (REGION_RESORTS[selectedArea] || [])).length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button onClick={() => setSelectedResort('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
+            전체
           </button>
-        ))}
-      </div>
+          {(selectedArea === 'all' ? ALL_RESORTS : (REGION_RESORTS[selectedArea] || [])).map(r => (
+            <button key={r} onClick={() => setSelectedResort(r)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
+              {r}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 목록 */}
       {loading ? (
