@@ -85,6 +85,7 @@
     <!-- 웹 첫 로딩 스플래시 — 워드마크 리빌. JS 로드 전에도 즉시 표시, React 마운트 후 main.tsx 가 제거. -->
     <div id="app-splash" aria-hidden="true">
       <div id="app-splash-logo-wrap">
+        <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-dim" />
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
         <div id="app-splash-shine"></div>
       </div>
@@ -121,18 +122,30 @@
         width: min(82vw, 380px);
         animation: splashLogo 1s cubic-bezier(.16, .84, .28, 1) both;
       }
+      /* 미점등 상태 로고 — 꺼진 간판처럼 아주 희미하게 */
+      #app-splash-logo-dim {
+        position: absolute; inset: 0; width: 100%; height: auto;
+        filter: brightness(0) invert(1);
+        opacity: 0.13;
+      }
       #app-splash-logo {
+        position: relative;
         display: block; width: 100%; height: auto;
         filter: brightness(0) invert(1)
           drop-shadow(0 0 12px rgba(190, 225, 255, 0.4))
           drop-shadow(0 0 36px rgba(90, 160, 255, 0.28));
-        /* 빛이 지나간 자리만 로고가 켜지는 좌→우 와이프 리빌 */
-        clip-path: inset(0 100% 0 0);
+        /* 빛이 지나간 자리만 점등 — 소프트 마스크 좌→우 와이프 */
+        -webkit-mask-image: linear-gradient(100deg, #000 45%, transparent 55%);
+        -webkit-mask-size: 300% 100%;
+        -webkit-mask-position: 80% 0;
+        mask-image: linear-gradient(100deg, #000 45%, transparent 55%);
+        mask-size: 300% 100%;
+        mask-position: 80% 0;
         animation: splashReveal 1.15s linear .25s forwards;
       }
       @keyframes splashReveal {
-        from { clip-path: inset(0 100% 0 0); }
-        to   { clip-path: inset(0 -8% 0 0); }
+        from { -webkit-mask-position: 80% 0; mask-position: 80% 0; }
+        to   { -webkit-mask-position: 20% 0; mask-position: 20% 0; }
       }
       /* 리빌 앞머리를 이끄는 강한 광 — 로고 모양 마스킹, 리빌과 동기화 */
       #app-splash-shine {
@@ -162,7 +175,7 @@
       }
       @media (prefers-reduced-motion: reduce) {
         #app-splash-logo-wrap, #app-splash::before, #app-splash-shine { animation: none; }
-        #app-splash-logo { animation: none; clip-path: none; }
+        #app-splash-logo { animation: none; -webkit-mask-image: none; mask-image: none; }
       }
     </style>
     <div id="root"></div>
