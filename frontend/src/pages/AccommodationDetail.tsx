@@ -9,7 +9,7 @@ import { SadIcon } from '../components/Icons';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 
-const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', guesthouse: '게스트하우스', season: '시즌방' };
+const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', guest: '게스트', season: '시즌방' };
 
 interface AccommodationData {
   id: string;
