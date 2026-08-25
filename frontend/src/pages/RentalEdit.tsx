@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { resortRegion } from '../utils/resortRegion';
 
-interface Resort { id: string; name: string }
+interface Resort { id: string; name: string; location?: string | null }
 interface RentalData {
   id: string; userId?: string; name: string; area?: string | null; address?: string | null;
   phone?: string | null; hours?: string | null; brands?: string | null; description?: string | null;
@@ -85,7 +86,7 @@ const RentalEdit = () => {
           <label className={labelClass}>근처 스키장</label>
           <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
             <option value="">선택 안 함</option>
-            {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {resorts.filter(r => resortRegion(r.location) === form.area || r.id === form.resortId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
       </div>

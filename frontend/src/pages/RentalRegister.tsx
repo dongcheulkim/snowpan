@@ -4,8 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { resortRegion } from '../utils/resortRegion';
 
-interface Resort { id: string; name: string }
+interface Resort { id: string; name: string; location?: string | null }
 
 const AREAS = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
@@ -85,7 +86,7 @@ const RentalRegister = () => {
           <label className={labelClass}>근처 스키장</label>
           <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
             <option value="">선택 안 함</option>
-            {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {resorts.filter(r => resortRegion(r.location) === form.area).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
       </div>

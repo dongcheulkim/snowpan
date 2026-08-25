@@ -4,8 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import MultiImageUpload from '../components/MultiImageUpload';
+import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
-interface Resort { id: string; name: string }
+interface Resort { id: string; name: string; location?: string | null }
 
 const TYPES = ['스키', '보드', '스키·보드'];
 // 강습 분야 (복수 선택) — 백엔드 화이트리스트와 1:1
@@ -20,6 +21,7 @@ const LessonRegister = () => {
   const [certFile, setCertFile] = useState<File | null>(null);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
+  const [region, setRegion] = useState('강원'); // 대분류: 지역 → 스키장 선택지 좁힘
   const [specialties, setSpecialties] = useState<string[]>([]);
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
 
@@ -78,9 +80,17 @@ const LessonRegister = () => {
 
       <div>
         <label className={labelClass}>스키장 *</label>
+        <div className="flex flex-wrap gap-1.5 mb-1.5">
+          {RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg)).map((rg) => (
+            <button key={rg} type="button" onClick={() => setRegion(rg)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${region === rg ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+              {rg}
+            </button>
+          ))}
+        </div>
         <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
           <option value="" disabled>스키장을 선택하세요</option>
-          {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          {resorts.filter(r => resortRegion(r.location) === region).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
 
