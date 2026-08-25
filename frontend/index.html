@@ -108,8 +108,8 @@
       #app-splash::before {
         content: ''; position: absolute; inset: 0;
         background: radial-gradient(ellipse 80% 50% at 50% 47%,
-          rgba(90, 150, 255, 0.14) 0%,
-          rgba(60, 110, 220, 0.05) 45%,
+          rgba(90, 150, 255, 0.20) 0%,
+          rgba(60, 110, 220, 0.08) 45%,
           rgba(0, 0, 0, 0) 75%);
         animation: splashLight 1.1s ease-out both;
       }
@@ -132,8 +132,7 @@
         position: relative;
         display: block; width: 100%; height: auto;
         filter: brightness(0) invert(1)
-          drop-shadow(0 0 12px rgba(190, 225, 255, 0.4))
-          drop-shadow(0 0 36px rgba(90, 160, 255, 0.28));
+          drop-shadow(0 0 10px rgba(190, 225, 255, 0.3));
         /* 빛이 지나간 자리만 점등 — 소프트 마스크 좌→우 와이프 */
         -webkit-mask-image: linear-gradient(100deg, #000 45%, transparent 55%);
         -webkit-mask-size: 300% 100%;
