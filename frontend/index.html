@@ -85,7 +85,6 @@
     <!-- 웹 첫 로딩 스플래시 — 워드마크 리빌. JS 로드 전에도 즉시 표시, React 마운트 후 main.tsx 가 제거. -->
     <div id="app-splash" aria-hidden="true">
       <div id="app-splash-logo-wrap">
-        <div id="app-splash-beam"></div>
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
         <div id="app-splash-shine"></div>
       </div>
@@ -120,50 +119,41 @@
       #app-splash-logo-wrap {
         position: relative;
         width: min(82vw, 380px);
-        animation: splashLogo 1.1s cubic-bezier(.16, .84, .28, 1) both;
+        animation: splashLogo 1s cubic-bezier(.16, .84, .28, 1) both;
       }
       #app-splash-logo {
         display: block; width: 100%; height: auto;
-        /* 흰 로고 + 부드러운 아이스 글로우 (네온보다 절제) */
         filter: brightness(0) invert(1)
           drop-shadow(0 0 12px rgba(190, 225, 255, 0.4))
           drop-shadow(0 0 36px rgba(90, 160, 255, 0.28));
+        /* 빛이 지나간 자리만 로고가 켜지는 좌→우 와이프 리빌 */
+        clip-path: inset(0 100% 0 0);
+        animation: splashReveal 1.15s linear .25s forwards;
       }
-      /* 로고 글자 위를 지나가는 샤인 — 넓고 강한 광택 (로고 모양 마스킹) */
+      @keyframes splashReveal {
+        from { clip-path: inset(0 100% 0 0); }
+        to   { clip-path: inset(0 -8% 0 0); }
+      }
+      /* 리빌 앞머리를 이끄는 강한 광 — 로고 모양 마스킹, 리빌과 동기화 */
       #app-splash-shine {
         position: absolute; inset: 0; pointer-events: none;
-        background: linear-gradient(105deg,
-          transparent 22%,
-          rgba(200, 230, 255, 0.55) 38%,
+        background: linear-gradient(100deg,
+          transparent 34%,
+          rgba(190, 225, 255, 0.7) 44%,
           #ffffff 50%,
-          rgba(200, 230, 255, 0.55) 62%,
-          transparent 78%);
-        background-size: 260% 100%;
-        background-position: -60% 0;
+          rgba(190, 225, 255, 0.7) 56%,
+          transparent 66%);
+        background-size: 300% 100%;
+        background-position: 78% 0;
         -webkit-mask-image: url('/snowpan-wordmark.svg');
         -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
         mask-image: url('/snowpan-wordmark.svg');
         mask-size: contain; mask-repeat: no-repeat; mask-position: center;
-        animation: splashShine 1.25s cubic-bezier(.4, 0, .3, 1) .4s both;
-      }
-      /* 로고 주변 공간을 함께 지나가는 빛기둥 — "조명을 쏘며 훑는" 느낌 */
-      #app-splash-beam {
-        position: absolute; left: -8%; right: -8%; top: -90px; bottom: -90px;
-        pointer-events: none;
-        background: linear-gradient(100deg,
-          transparent 38%,
-          rgba(150, 200, 255, 0.10) 46%,
-          rgba(220, 240, 255, 0.30) 50%,
-          rgba(150, 200, 255, 0.10) 54%,
-          transparent 62%);
-        background-size: 260% 100%;
-        background-position: -60% 0;
-        filter: blur(6px);
-        animation: splashShine 1.25s cubic-bezier(.4, 0, .3, 1) .4s both;
+        animation: splashShine 1.15s linear .25s both;
       }
       @keyframes splashShine {
-        from { background-position: -60% 0; }
-        to   { background-position: 210% 0; }
+        from { background-position: 78% 0; }
+        to   { background-position: 22% 0; }
       }
       @keyframes splashLogo {
         0%   { opacity: 0; transform: scale(.9) translateY(8px); }
@@ -171,7 +161,8 @@
         100% { opacity: 1; transform: scale(1) translateY(0); }
       }
       @media (prefers-reduced-motion: reduce) {
-        #app-splash-logo-wrap, #app-splash::before, #app-splash-shine, #app-splash-beam { animation: none; }
+        #app-splash-logo-wrap, #app-splash::before, #app-splash-shine { animation: none; }
+        #app-splash-logo { animation: none; clip-path: none; }
       }
     </style>
     <div id="root"></div>
