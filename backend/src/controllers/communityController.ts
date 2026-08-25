@@ -53,7 +53,11 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     const searchStr = typeof search === 'string' ? search : undefined;
     // sport 필터 시 공용(sport='all', 공지) 글도 함께 노출 — 스키·보드 양쪽에 뜨게.
     if (sportStr) where.sport = { in: [sportStr, 'all'] };
-    if (categoryStr && categoryStr !== 'all') where.category = categoryStr;
+    if (categoryStr && categoryStr !== 'all') {
+      // 콤마 목록 지원 — 구인구직 통합 탭(job,jobseek) 등
+      const cats = categoryStr.split(',').filter(Boolean);
+      where.category = cats.length > 1 ? { in: cats } : cats[0];
+    }
     if (userIdStr) where.userId = userIdStr;
     if (searchStr) {
       where.OR = [

@@ -98,8 +98,7 @@ const Community = () => {
     { id: 'tip', name: communityCategoryLabel('tip', sport) },
     { id: 'carpool', name: communityCategoryLabel('carpool', sport) },
     { id: 'meetup', name: communityCategoryLabel('meetup', sport) },
-    { id: 'job', name: communityCategoryLabel('job', sport) },
-    { id: 'jobseek', name: communityCategoryLabel('jobseek', sport) },
+    { id: 'jobs', name: '구인구직' },
     // 투표는 판 구분 없는 snow 시스템 — 다른 판에선 탭 미노출.
     ...(vertical.slug === 'snow' ? [{ id: 'poll', name: communityCategoryLabel('poll', sport) }] : []),
   ];
@@ -123,12 +122,12 @@ const Community = () => {
 
   // 투표 탭 — 서버화된 Poll 목록 로딩 (커뮤니티 글이 아닌 별도 Poll 시스템).
   useEffect(() => {
-    if (selectedTab !== 'poll') return;
-    setTimeout(() => setLoading(true), 0);
+    if (selectedTab !== 'poll' && selectedTab !== 'all') return;
+    if (selectedTab === 'poll') setTimeout(() => setLoading(true), 0);
     api<{ items: PollItem[] }>(`/polls?limit=${PAGE_SIZE}`)
       .then(data => setPolls(data.items || []))
       .catch(() => setPolls([]))
-      .finally(() => setLoading(false));
+      .finally(() => { if (selectedTab === 'poll') setLoading(false); });
   }, [selectedTab]);
 
   // 일반 게시글 로딩 (poll/popular 제외)
@@ -137,7 +136,8 @@ const Community = () => {
     setTimeout(() => setLoading(true), 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
-    if (selectedTab !== 'all') params.set('category', selectedTab);
+    if (selectedTab === 'jobs') params.set('category', 'job,jobseek');
+    else if (selectedTab !== 'all') params.set('category', selectedTab);
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     api<{ posts: Post[]; totalCount: number }>(`/community?${params}`)
@@ -157,6 +157,44 @@ const Community = () => {
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}시간 전`;
     return `${d.getMonth() + 1}/${d.getDate()}`;
   };
+
+  // 투표 카드 — 투표 탭과 전체 탭 병합 피드에서 공용
+  const renderPollCard = (poll: PollItem) => (
+    <Link to={`/poll/${poll.id}`} key={`poll-${poll.id}`} className="card p-4 block card-hover">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-medium px-2 py-0.5 rounded border text-orange-500 bg-orange-50 border-orange-200">투표</span>
+        <span className="text-[10px] text-gray-500">{formatTime(poll.createdAt)}</span>
+      </div>
+      <h3 className="text-sm font-bold text-gray-900 mb-2">{poll.title}</h3>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {poll.options.slice(0, 4).map((o) => (
+          <span key={o.id} className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5">{o.label}</span>
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-gray-500">{poll.author}</span>
+        <div className="flex items-center gap-3 text-[11px] text-gray-500">
+          <span>{poll.totalVotes.toLocaleString()}명 참여</span>
+          <span>조회 {poll.views}</span>
+          <span className="text-coral inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {poll.likes}</span>
+        </div>
+      </div>
+    </Link>
+  );
+
+  // 전체 탭 1페이지: 게시글과 투표를 시간순으로 병합 (공지 고정글은 항상 위)
+  type FeedItem = { kind: 'post'; post: Post } | { kind: 'poll'; poll: PollItem };
+  const baseList: Post[] = selectedTab === 'popular' ? popularPosts : posts;
+  let feedItems: FeedItem[] = baseList.map((p) => ({ kind: 'post' as const, post: p }));
+  if (selectedTab === 'all' && page === 1 && polls.length) {
+    const at = (f: FeedItem) => new Date(f.kind === 'post' ? f.post.createdAt : f.poll.createdAt).getTime();
+    const pinnedItems = feedItems.filter((f) => f.kind === 'post' && f.post.pinned);
+    const restItems: FeedItem[] = [
+      ...feedItems.filter((f) => !(f.kind === 'post' && f.post.pinned)),
+      ...polls.map((p) => ({ kind: 'poll' as const, poll: p })),
+    ].sort((a, b) => at(b) - at(a));
+    feedItems = [...pinnedItems, ...restItems];
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -212,28 +250,7 @@ const Community = () => {
           />
         ) : (
           <div className="space-y-2">
-            {polls.map((poll) => (
-              <Link to={`/poll/${poll.id}`} key={poll.id} className="card p-4 block card-hover">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded border text-orange-500 bg-orange-50 border-orange-200">투표</span>
-                  <span className="text-[10px] text-gray-500">{formatTime(poll.createdAt)}</span>
-                </div>
-                <h3 className="text-sm font-bold text-gray-900 mb-2">{poll.title}</h3>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {poll.options.slice(0, 4).map((o) => (
-                    <span key={o.id} className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5">{o.label}</span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-500">{poll.author}</span>
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
-                    <span>{poll.totalVotes.toLocaleString()}명 참여</span>
-                    <span>조회 {poll.views}</span>
-                    <span className="text-coral inline-flex items-center gap-0.5"><HeartFilledIcon size={11} /> {poll.likes}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            {polls.map(renderPollCard)}
           </div>
         )
       )}
@@ -242,7 +259,9 @@ const Community = () => {
         <RowListSkeleton count={6} />
       ) : (
         <div className="space-y-2">
-          {(selectedTab === 'popular' ? popularPosts : posts).map((post, idx) => {
+          {feedItems.map((item, idx) => {
+            if (item.kind === 'poll') return renderPollCard(item.poll);
+            const post = item.post;
             const firstImage = post.images ? post.images.split(',')[0]?.trim() : null;
             const rank = selectedTab === 'popular' ? idx + 1 : 0;
             return (

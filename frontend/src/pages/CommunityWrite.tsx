@@ -57,9 +57,15 @@ const CommunityWrite = () => {
 
   const isAdmin = getUser()?.role === 'admin';
   // 공지(notice)는 관리자만. 선택 시 스키·보드 양쪽 상단 고정으로 저장됨.
-  const categories = isAdmin
+  const rawCategories = isAdmin
     ? [...communityCategories(sport), { id: 'notice', name: '공지' }]
     : communityCategories(sport);
+  // 구인·구직은 '구인구직' 칩 하나로 — 선택 시 아래 토글에서 구인/구직을 고르면
+  // 그 값이 카테고리로 저장되고 목록에서 제목 앞 배지(구인/구직)로 표시됨.
+  const categories = rawCategories
+    .filter((c) => c.id !== 'jobseek')
+    .map((c) => (c.id === 'job' ? { ...c, name: '구인구직' } : c));
+  const isJobs = category === 'job' || category === 'jobseek';
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -150,14 +156,23 @@ const CommunityWrite = () => {
               key={cat.id}
               type="button"
               role="radio"
-              aria-checked={category === cat.id}
+              aria-checked={cat.id === 'job' ? isJobs : category === cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${category === cat.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}
+              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${(cat.id === 'job' ? isJobs : category === cat.id) ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}
             >
               {cat.name}
             </button>
           ))}
         </div>
+        {isJobs && (
+          <div className="mt-2.5">
+            <span className="text-xs text-gray-500 block mb-1.5">제목 앞에 붙을 구분을 선택하세요</span>
+            <div className="flex gap-1.5">
+              <button type="button" onClick={() => setCategory('job')} className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${category === 'job' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600'}`}>구인 — 사람 구해요</button>
+              <button type="button" onClick={() => setCategory('jobseek')} className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${category === 'jobseek' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-600'}`}>구직 — 일자리 구해요</button>
+            </div>
+          </div>
+        )}
         {category === 'notice' && (
           <p className="text-[11px] text-sky-600 mt-2 font-medium">공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
         )}
