@@ -14,7 +14,11 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const where: any = { approved: true, vertical: verticalSlug };
-    if (resortId) where.resortId = resortId as string;
+    if (resortId && typeof resortId === 'string') {
+      // 콤마 목록 지원 — 지역(대분류) 필터가 소속 리조트 id 들을 한 번에 보냄
+      const ids = resortId.split(',').filter(Boolean);
+      where.resortId = ids.length > 1 ? { in: ids } : ids[0];
+    }
     if (type) where.type = { contains: type as string };
 
     const take = limit ? parseInt(limit as string, 10) : 50;

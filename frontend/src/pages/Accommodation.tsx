@@ -7,6 +7,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
+import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
 interface AccommodationItem {
   id: string;
@@ -25,6 +26,7 @@ const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', co
 interface Resort {
   id: string;
   name: string;
+  location?: string | null;
 }
 
 const PAGE_SIZE = 12;
@@ -38,6 +40,7 @@ const Accommodation = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState('all'); // 대분류: 지역
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
@@ -53,14 +56,20 @@ const Accommodation = () => {
   ];
 
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort, selectedType]);
+  useEffect(() => { setPage(1); }, [selectedRegion, selectedResort, selectedType]);
+  useEffect(() => { setSelectedResort('all'); }, [selectedRegion]);
 
   useEffect(() => {
     const fetchAccommodations = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-        if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        if (selectedResort !== 'all') {
+          params.set('resortId', selectedResort);
+        } else if (selectedRegion !== 'all') {
+          const ids = resorts.filter((r) => resortRegion(r.location) === selectedRegion).map((r) => r.id);
+          if (ids.length) params.set('resortId', ids.join(','));
+        }
         if (selectedType !== 'all') params.set('type', selectedType);
         const data = await api<{ items: AccommodationItem[]; totalCount: number }>(`/accommodations?${params}`);
         setAccommodations(data.items);
@@ -74,7 +83,7 @@ const Accommodation = () => {
       }
     };
     fetchAccommodations();
-  }, [selectedResort, selectedType, page]);
+  }, [selectedRegion, selectedResort, resorts, selectedType, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -87,16 +96,29 @@ const Accommodation = () => {
 
       <CategoryAdBanner category="accommodation" />
 
-      {/* Resort Filter */}
+      {/* 대분류: 지역 → 소분류: 그 지역 리조트 */}
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {[{ id: 'all', name: '전체' }, ...resorts].map((resort) => (
+        {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
+          <button
+            key={rg}
+            onClick={() => setSelectedRegion(rg)}
+            className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
+              selectedRegion === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            {rg === 'all' ? '전체' : rg}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {[{ id: 'all', name: '전체' }, ...resorts.filter((r) => selectedRegion === 'all' || resortRegion(r.location) === selectedRegion)].map((resort) => (
           <button
             key={resort.id}
             onClick={() => setSelectedResort(resort.id)}
-            className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedResort === resort.id
-                ? 'bg-accent text-white'
-                : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+                ? 'bg-sky-100 text-sky-700 border border-sky-300'
+                : 'bg-snow text-gray-500 border border-gray-200'
             }`}
           >
             {resort.name}

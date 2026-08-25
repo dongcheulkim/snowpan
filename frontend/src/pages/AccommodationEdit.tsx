@@ -2,8 +2,9 @@ import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
+import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
-interface Resort { id: string; name: string; }
+interface Resort { id: string; name: string; location?: string | null; }
 interface AccommodationData {
   id: string; userId?: string; name: string; type: string; price: number; originalPrice?: number;
   guests: string; features: string; image: string; images?: string | null; resort?: { id: string; name: string };
@@ -23,6 +24,14 @@ const AccommodationEdit = () => {
   const [currentImage, setCurrentImage] = useState('');
   const [currentImages, setCurrentImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', types: [] as string[], price: '', originalPrice: '', maxGuests: '4', features: [] as string[] });
+  const [region, setRegion] = useState('강원');
+
+  // 기존 숙소의 리조트 지역으로 대분류 자동 세팅
+  useEffect(() => {
+    const cur = resorts.find(r => r.id === form.resortId);
+    if (cur) setRegion(resortRegion(cur.location));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resorts, form.resortId]);
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
@@ -122,9 +131,18 @@ const AccommodationEdit = () => {
 
       <div>
         <label className={labelClass}>스키장</label>
+          <label className={labelClass}>스키장</label>
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
+            {RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg)).map((rg) => (
+              <button key={rg} type="button" onClick={() => setRegion(rg)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${region === rg ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                {rg}
+              </button>
+            ))}
+          </div>
         <select value={form.resortId} onChange={e => setForm({ ...form, resortId: e.target.value })} className={inputClass}>
           <option value="" disabled>스키장을 선택하세요</option>
-          {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          {resorts.filter(r => resortRegion(r.location) === region || r.id === form.resortId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
       </div>
 

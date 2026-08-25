@@ -3,15 +3,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
+import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
 interface Resort {
   id: string;
   name: string;
+  location?: string | null;
 }
 
 const AccommodationRegister = () => {
   const navigate = useNavigate();
   const [resorts, setResorts] = useState<Resort[]>([]);
+  const [region, setRegion] = useState('강원'); // 대분류: 지역 → 스키장 선택지 좁힘
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [permitFile, setPermitFile] = useState<File | null>(null);
@@ -130,9 +133,17 @@ const AccommodationRegister = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>스키장</label>
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
+            {RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg)).map((rg) => (
+              <button key={rg} type="button" onClick={() => setRegion(rg)}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${region === rg ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                {rg}
+              </button>
+            ))}
+          </div>
           <select value={form.resortId} onChange={e => setForm({...form, resortId: e.target.value})} className={inputClass}>
             <option value="" disabled>스키장을 선택하세요</option>
-            {resorts.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {resorts.filter(r => resortRegion(r.location) === region).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
         </div>
         <div>
