@@ -61,6 +61,7 @@ const Community = () => {
   const { sport } = useParams<{ sport: string }>();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedSub, setSelectedSub] = useState('all'); // 대분류 안 소분류
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -88,27 +89,26 @@ const Community = () => {
   );
 
   // 카테고리 라벨은 종목별로 다름 — 보드 커뮤니티에선 'resort' 가 '라이딩 장소' 로 표시.
-  const tabs = [
+  // 대분류 → 소분류 2단계 (중고거래와 동일 UX). 대분류 선택 시 소분류 칩이 아래로 펼쳐짐.
+  const tabs: { id: string; name: string; subs?: string[] }[] = [
     { id: 'all', name: t('community.all') },
     { id: 'popular', name: '인기' },
-    { id: 'free', name: communityCategoryLabel('free', sport) },
-    { id: 'review', name: communityCategoryLabel('review', sport) },
-    { id: 'gear', name: communityCategoryLabel('gear', sport) },
-    { id: 'resort', name: communityCategoryLabel('resort', sport) },
-    { id: 'tip', name: communityCategoryLabel('tip', sport) },
-    { id: 'carpool', name: communityCategoryLabel('carpool', sport) },
-    { id: 'meetup', name: communityCategoryLabel('meetup', sport) },
-    { id: 'jobs', name: '구인구직' },
+    { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },
+    { id: 'g_gear', name: '장비', subs: ['review', 'gear'] },
+    { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'] },
+    { id: 'g_jobs', name: '구인구직', subs: ['job', 'jobseek'] },
     // 투표는 판 구분 없는 snow 시스템 — 다른 판에선 탭 미노출.
     ...(vertical.slug === 'snow' ? [{ id: 'poll', name: communityCategoryLabel('poll', sport) }] : []),
   ];
+  const activeGroup = tabs.find((tb) => tb.id === selectedTab);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => { setTimeout(() => setPage(1), 0); }, [sport, selectedTab, debouncedSearch]);
+  useEffect(() => { setTimeout(() => setPage(1), 0); }, [sport, selectedTab, selectedSub, debouncedSearch]);
+  useEffect(() => { setSelectedSub('all'); }, [selectedTab]);
 
   // 인기 게시글 로딩
   useEffect(() => {
@@ -136,15 +136,16 @@ const Community = () => {
     setTimeout(() => setLoading(true), 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
-    if (selectedTab === 'jobs') params.set('category', 'job,jobseek');
-    else if (selectedTab !== 'all') params.set('category', selectedTab);
+    if (activeGroup?.subs) {
+      params.set('category', selectedSub !== 'all' ? selectedSub : activeGroup.subs.join(','));
+    }
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     api<{ posts: Post[]; totalCount: number }>(`/community?${params}`)
       .then(data => { setPosts(data.posts); setTotalCount(data.totalCount); })
       .catch(() => { setPosts([]); setTotalCount(0); })
       .finally(() => setLoading(false));
-  }, [sport, selectedTab, debouncedSearch, page]);
+  }, [sport, selectedTab, selectedSub, debouncedSearch, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -224,12 +225,26 @@ const Community = () => {
         <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('community.searchPlaceholder')} className="w-full h-10 pl-9 pr-4 rounded-lg text-sm bg-gray-50 border border-gray-100 text-gray-900 placeholder-gray-400" />
       </div>
 
-      <div className="flex gap-1.5 flex-wrap">
-        {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setSelectedTab(tab.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
-            {tab.name}
-          </button>
-        ))}
+      <div className="space-y-1.5">
+        <div className="flex gap-1.5 flex-wrap">
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setSelectedTab(tab.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
+              {tab.name}
+            </button>
+          ))}
+        </div>
+        {activeGroup?.subs && (
+          <div className="flex gap-1.5 flex-wrap">
+            <button onClick={() => setSelectedSub('all')} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${selectedSub === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}>
+              전체
+            </button>
+            {activeGroup.subs.map((id) => (
+              <button key={id} onClick={() => setSelectedSub(id)} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${selectedSub === id ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}>
+                {communityCategoryLabel(id, sport)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {selectedTab === 'popular' && !loading && popularPosts.length > 0 && (
