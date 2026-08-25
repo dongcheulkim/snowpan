@@ -225,21 +225,42 @@ const UsedEdit = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* 카테고리 */}
-            <div>
+            {/* 카테고리 — 대분류 칩 → 소분류 칩 2단계 (snow). 다른 vertical 은 기존 셀렉트 */}
+            <div className={isSnow ? 'col-span-2' : undefined}>
               <label className={labelClass}>카테고리</label>
-              <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
-                {isSnow ? SNOW_USED_GROUPS.map((g) => (
-                  <optgroup key={g.id} label={g.name}>
-                    {g.subs.map((id) => {
-                      const c = subcategories.find((s) => s.id === id);
-                      return c ? <option key={c.id} value={c.id}>{c.label}</option> : null;
+              {isSnow ? (
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap gap-1.5">
+                    {SNOW_USED_GROUPS.map((g) => {
+                      const on = g.subs.includes(form.subcategory);
+                      return (
+                        <button key={g.id} type="button" onClick={() => setForm({ ...form, subcategory: g.subs[0] })}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${on ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                          {g.name}
+                        </button>
+                      );
                     })}
-                  </optgroup>
-                )) : subcategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(SNOW_USED_GROUPS.find((g) => g.subs.includes(form.subcategory))?.subs || subcategories.map((sc) => sc.id)).map((id) => {
+                      const c = subcategories.find((sc) => sc.id === id);
+                      if (!c) return null;
+                      return (
+                        <button key={id} type="button" onClick={() => setForm({ ...form, subcategory: id })}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${form.subcategory === id ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                          {c.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <select name="subcategory" value={form.subcategory} onChange={handleChange} className={inputClass}>
+                  {subcategories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* 브랜드 */}
