@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import { ChatIcon, FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import EmptyState from '../components/EmptyState';
-import { communityCategoryLabel } from '../utils/communityLabels';
+import { communityCategoryLabel, COMMUNITY_GROUPS } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 
@@ -93,10 +93,7 @@ const Community = () => {
   const tabs: { id: string; name: string; subs?: string[] }[] = [
     { id: 'all', name: t('community.all') },
     { id: 'popular', name: '인기' },
-    { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },
-    { id: 'g_gear', name: '장비', subs: ['review', 'gear'] },
-    { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'] },
-    { id: 'g_jobs', name: '구인구직', subs: ['job', 'jobseek'] },
+    ...COMMUNITY_GROUPS,
     // 투표는 판 구분 없는 snow 시스템 — 다른 판에선 탭 미노출.
     ...(vertical.slug === 'snow' ? [{ id: 'poll', name: communityCategoryLabel('poll', sport) }] : []),
   ];

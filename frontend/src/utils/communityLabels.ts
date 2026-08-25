@@ -45,3 +45,11 @@ export function communityCategories(sport?: Sport, includePoll = false): { id: s
     : ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek'];
   return ids.map((id) => ({ id, name: communityCategoryLabel(id, sport) }));
 }
+
+// 커뮤니티 대분류 → 소분류 (목록 탭·글쓰기 폼 공용)
+export const COMMUNITY_GROUPS: { id: string; name: string; subs: string[] }[] = [
+  { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },
+  { id: 'g_gear', name: '장비', subs: ['review', 'gear'] },
+  { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'] },
+  { id: 'g_jobs', name: '구인구직', subs: ['job', 'jobseek'] },
+];

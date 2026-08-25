@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 import { CloseIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
-import { communityCategories } from '../utils/communityLabels';
+import { communityCategoryLabel, COMMUNITY_GROUPS } from '../utils/communityLabels';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { useVertical } from '../hooks/useVertical';
 
@@ -56,16 +56,11 @@ const CommunityWrite = () => {
   );
 
   const isAdmin = getUser()?.role === 'admin';
-  // 공지(notice)는 관리자만. 선택 시 스키·보드 양쪽 상단 고정으로 저장됨.
-  const rawCategories = isAdmin
-    ? [...communityCategories(sport), { id: 'notice', name: '공지' }]
-    : communityCategories(sport);
-  // 구인·구직은 '구인구직' 칩 하나로 — 선택 시 아래 토글에서 구인/구직을 고르면
-  // 그 값이 카테고리로 저장되고 목록에서 제목 앞 배지(구인/구직)로 표시됨.
-  const categories = rawCategories
-    .filter((c) => c.id !== 'jobseek')
-    .map((c) => (c.id === 'job' ? { ...c, name: '구인구직' } : c));
-  const isJobs = category === 'job' || category === 'jobseek';
+  // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 공지(notice)는 관리자 전용 대분류.
+  const writeGroups = isAdmin
+    ? [...COMMUNITY_GROUPS, { id: 'notice', name: '공지', subs: ['notice'] }]
+    : COMMUNITY_GROUPS;
+  const activeWriteGroup = writeGroups.find((g) => g.subs.includes(category));
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -150,29 +145,39 @@ const CommunityWrite = () => {
 
       <div>
         <span id="cw-category-label" className="text-sm font-semibold text-gray-700 block mb-2">카테고리</span>
-        <div role="radiogroup" aria-labelledby="cw-category-label" className="flex gap-1.5 flex-wrap">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              role="radio"
-              aria-checked={cat.id === 'job' ? isJobs : category === cat.id}
-              onClick={() => setCategory(cat.id)}
-              className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${(cat.id === 'job' ? isJobs : category === cat.id) ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-        {isJobs && (
-          <div className="mt-2.5">
-            <span className="text-xs text-gray-500 block mb-1.5">제목 앞에 붙을 구분을 선택하세요</span>
-            <div className="flex gap-1.5">
-              <button type="button" onClick={() => setCategory('job')} className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${category === 'job' ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-600'}`}>구인 — 사람 구해요</button>
-              <button type="button" onClick={() => setCategory('jobseek')} className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${category === 'jobseek' ? 'bg-teal-600 text-white' : 'bg-gray-100 text-gray-600'}`}>구직 — 일자리 구해요</button>
-            </div>
+        <div role="radiogroup" aria-labelledby="cw-category-label" className="space-y-1.5">
+          <div className="flex gap-1.5 flex-wrap">
+            {writeGroups.map((g) => {
+              const on = g.subs.includes(category);
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setCategory(g.subs[0])}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${on ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}
+                >
+                  {g.name}
+                </button>
+              );
+            })}
           </div>
-        )}
+          {activeWriteGroup && activeWriteGroup.subs.length > 1 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {activeWriteGroup.subs.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setCategory(id)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${category === id ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
+                >
+                  {communityCategoryLabel(id, sport)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {category === 'notice' && (
           <p className="text-[11px] text-sky-600 mt-2 font-medium">공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
         )}
