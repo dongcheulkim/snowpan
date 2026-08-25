@@ -21,7 +21,7 @@ interface AccommodationItem {
   resort?: { id: string; name: string };
 }
 
-const typeMap: Record<string, string> = { guest: '게스트', hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
+const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
 interface Resort {
   id: string;
@@ -48,12 +48,12 @@ const Accommodation = () => {
 
   const types = [
     { id: 'all', name: '전체' },
-    { id: 'guest', name: '게스트' },
     { id: 'hotel', name: '호텔' },
     { id: 'pension', name: '펜션' },
     { id: 'condo', name: '콘도' },
     { id: 'minbak', name: '민박' },
     { id: 'season', name: '시즌방' },
+    { id: 'guest', name: '게스트' },
   ];
 
   // 필터 변경 시 페이지 리셋
