@@ -87,7 +87,7 @@
       <div id="app-splash-logo-wrap">
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-dim" />
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
-        <div id="app-splash-shine"></div>
+        <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-hot" />
       </div>
     </div>
     <style>
@@ -147,26 +147,20 @@
         from { -webkit-mask-position: 80% 0; mask-position: 80% 0; }
         to   { -webkit-mask-position: 20% 0; mask-position: 20% 0; }
       }
-      /* 리빌 앞머리를 이끄는 강한 광 — 로고 모양 마스킹, 리빌과 동기화 */
-      #app-splash-shine {
-        position: absolute; inset: 0; pointer-events: none;
-        background: linear-gradient(100deg,
-          transparent 34%,
-          rgba(190, 225, 255, 0.7) 44%,
-          #ffffff 50%,
-          rgba(190, 225, 255, 0.7) 56%,
-          transparent 66%);
-        background-size: 300% 100%;
-        background-position: 78% 0;
-        -webkit-mask-image: url('/snowpan-wordmark.svg');
-        -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
-        mask-image: url('/snowpan-wordmark.svg');
-        mask-size: contain; mask-repeat: no-repeat; mask-position: center;
-        animation: splashShine 1.15s linear .25s both;
-      }
-      @keyframes splashShine {
-        from { background-position: 78% 0; }
-        to   { background-position: 22% 0; }
+      /* 리빌 앞머리 — 같은 로고를 강한 글로우로 겹치고 좁은 띠만 보이게 (순수 CSS 마스크) */
+      #app-splash-logo-hot {
+        position: absolute; inset: 0; width: 100%; height: auto;
+        filter: brightness(0) invert(1)
+          drop-shadow(0 0 10px rgba(255, 255, 255, 0.95))
+          drop-shadow(0 0 26px rgba(190, 225, 255, 0.8))
+          drop-shadow(0 0 60px rgba(90, 160, 255, 0.5));
+        -webkit-mask-image: linear-gradient(100deg, transparent 42%, #000 48%, #000 52%, transparent 58%);
+        -webkit-mask-size: 300% 100%;
+        -webkit-mask-position: 80% 0;
+        mask-image: linear-gradient(100deg, transparent 42%, #000 48%, #000 52%, transparent 58%);
+        mask-size: 300% 100%;
+        mask-position: 80% 0;
+        animation: splashReveal 1.15s linear .25s both;
       }
       @keyframes splashLogo {
         0%   { opacity: 0; transform: scale(.9) translateY(8px); }
@@ -174,8 +168,9 @@
         100% { opacity: 1; transform: scale(1) translateY(0); }
       }
       @media (prefers-reduced-motion: reduce) {
-        #app-splash-logo-wrap, #app-splash::before, #app-splash-shine { animation: none; }
+        #app-splash-logo-wrap, #app-splash::before { animation: none; }
         #app-splash-logo { animation: none; -webkit-mask-image: none; mask-image: none; }
+        #app-splash-logo-hot { display: none; }
       }
     </style>
     <div id="root"></div>
