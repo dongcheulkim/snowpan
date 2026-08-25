@@ -21,7 +21,7 @@ interface AccommodationItem {
   resort?: { id: string; name: string };
 }
 
-const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
+const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', guesthouse: '게스트하우스', season: '시즌방' };
 
 interface Resort {
   id: string;
@@ -52,6 +52,7 @@ const Accommodation = () => {
     { id: 'pension', name: '펜션' },
     { id: 'condo', name: '콘도' },
     { id: 'minbak', name: '민박' },
+    { id: 'guesthouse', name: '게스트하우스' },
     { id: 'season', name: '시즌방' },
   ];
 

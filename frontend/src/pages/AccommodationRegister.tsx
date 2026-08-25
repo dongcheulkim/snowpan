@@ -31,7 +31,7 @@ const AccommodationRegister = () => {
     features: [] as string[],
   });
 
-  const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방' };
+  const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', guesthouse: '게스트하우스', season: '시즌방' };
   const featureOptions = ['스키장 셔틀', '조식 포함', '주차 무료', '온수풀', '사우나', 'BBQ', '넷플릭스', '와이파이'];
 
   useEffect(() => {
