@@ -34,7 +34,7 @@ export default function Overseas() {
   const [sub, setSub] = useState<string>('전체');
 
   useEffect(() => {
-    document.title = '스키장 정보 - 스노우판';
+    document.title = '스키장 투어 - 스노우판';
     Promise.all([
       api<Resort[]>('/overseas/resorts').catch(() => []),
       api<Deal[]>('/overseas/deals?featured=1').catch(() => []),
@@ -65,7 +65,7 @@ export default function Overseas() {
     <div className="min-h-screen bg-sky-50 pb-10">
       {/* 헤더 */}
       <div className="px-4 pt-5 pb-3">
-        <h1 className="text-xl font-bold text-gray-900">스키장 정보</h1>
+        <h1 className="text-xl font-bold text-gray-900">스키장 투어</h1>
         <p className="text-xs text-gray-500 mt-0.5">국내부터 해외까지 — 위치·가격·코스 한눈에</p>
       </div>
 

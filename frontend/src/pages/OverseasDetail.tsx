@@ -39,7 +39,7 @@ export default function OverseasDetail() {
     if (!slug) return;
     setLoading(true);
     api<ResortDetail>(`/overseas/resorts/${slug}`)
-      .then((r) => { setResort(r); document.title = `${r.name} - 스키장 정보`; })
+      .then((r) => { setResort(r); document.title = `${r.name} - 스키장 투어`; })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
