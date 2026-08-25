@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { REPAIR_SERVICES } from '../utils/repairServices';
+import { REPAIR_SERVICES, TUNING_ALIASES } from '../utils/repairServices';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
@@ -51,7 +51,11 @@ export default function RepairShop() {
   }, [selectedArea]);
 
   // 서비스 필터는 클라이언트에서 — 목록이 통짜 배열이라 재요청 불필요 (services 는 콤마 텍스트)
-  const shownShops = selectedService === 'all' ? shops : shops.filter(sh => (sh.services || '').includes(selectedService));
+  const shownShops = selectedService === 'all' ? shops : shops.filter(sh => {
+    const sv = sh.services || '';
+    // '튜닝' 은 예전 자유입력(왁싱·엣지·바인딩·정비 등)까지 포괄 매칭
+    return selectedService === '튜닝' ? TUNING_ALIASES.some(a => sv.includes(a)) : sv.includes(selectedService);
+  });
 
   return (
     <div className="space-y-5 animate-fade-in">
