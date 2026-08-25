@@ -85,6 +85,7 @@
     <!-- 웹 첫 로딩 스플래시 — 워드마크 리빌. JS 로드 전에도 즉시 표시, React 마운트 후 main.tsx 가 제거. -->
     <div id="app-splash" aria-hidden="true">
       <div id="app-splash-logo-wrap">
+        <div id="app-splash-beam"></div>
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
         <div id="app-splash-shine"></div>
       </div>
@@ -128,18 +129,37 @@
           drop-shadow(0 0 12px rgba(190, 225, 255, 0.4))
           drop-shadow(0 0 36px rgba(90, 160, 255, 0.28));
       }
-      /* 빛이 로고 글자 위를 스치고 지나가는 샤인 스윕 — 로고 모양으로 마스킹 */
+      /* 로고 글자 위를 지나가는 샤인 — 넓고 강한 광택 (로고 모양 마스킹) */
       #app-splash-shine {
         position: absolute; inset: 0; pointer-events: none;
-        background: linear-gradient(115deg,
-          transparent 32%, rgba(255, 255, 255, 0.95) 50%, transparent 68%);
+        background: linear-gradient(105deg,
+          transparent 22%,
+          rgba(200, 230, 255, 0.55) 38%,
+          #ffffff 50%,
+          rgba(200, 230, 255, 0.55) 62%,
+          transparent 78%);
         background-size: 260% 100%;
         background-position: -60% 0;
         -webkit-mask-image: url('/snowpan-wordmark.svg');
         -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
         mask-image: url('/snowpan-wordmark.svg');
         mask-size: contain; mask-repeat: no-repeat; mask-position: center;
-        animation: splashShine 1.1s ease .45s both;
+        animation: splashShine 1.25s cubic-bezier(.4, 0, .3, 1) .4s both;
+      }
+      /* 로고 주변 공간을 함께 지나가는 빛기둥 — "조명을 쏘며 훑는" 느낌 */
+      #app-splash-beam {
+        position: absolute; left: -8%; right: -8%; top: -90px; bottom: -90px;
+        pointer-events: none;
+        background: linear-gradient(100deg,
+          transparent 38%,
+          rgba(150, 200, 255, 0.10) 46%,
+          rgba(220, 240, 255, 0.30) 50%,
+          rgba(150, 200, 255, 0.10) 54%,
+          transparent 62%);
+        background-size: 260% 100%;
+        background-position: -60% 0;
+        filter: blur(6px);
+        animation: splashShine 1.25s cubic-bezier(.4, 0, .3, 1) .4s both;
       }
       @keyframes splashShine {
         from { background-position: -60% 0; }
@@ -151,7 +171,7 @@
         100% { opacity: 1; transform: scale(1) translateY(0); }
       }
       @media (prefers-reduced-motion: reduce) {
-        #app-splash-logo-wrap, #app-splash::before, #app-splash-shine { animation: none; }
+        #app-splash-logo-wrap, #app-splash::before, #app-splash-shine, #app-splash-beam { animation: none; }
       }
     </style>
     <div id="root"></div>

@@ -137,7 +137,7 @@ import('./native').then(m => m.initNative()).catch(() => {});
   } catch { /* 무시 */ }
   if (swReloaded) { splash.remove(); return; }
   const start = performance.now();
-  const MIN_MS = 1700; // 로고 리빌(1.1s) + 샤인 스윕까지
+  const MIN_MS = 1850; // 로고 리빌(1.1s) + 샤인·빔 스윕까지
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {
