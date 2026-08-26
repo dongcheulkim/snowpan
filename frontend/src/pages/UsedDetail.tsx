@@ -475,7 +475,7 @@ const UsedDetail = () => {
                   try {
                     await api(`/products/${product.id}`, { method: 'DELETE' });
                     toastSuccess('삭제되었습니다.');
-                    window.location.href = `${vbase}/used`;
+                    navigate(`${vbase}/used`, { replace: true }); // SPA 이동 — 전체 리로드(스플래시 재생) 방지
                   } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
                 }}
                 className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"
