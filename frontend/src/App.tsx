@@ -27,10 +27,6 @@ const Accommodation = lazy(() => import('./pages/Accommodation'));
 const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const CommunitySelect = lazy(() => import('./pages/CommunitySelect'));
-const ComingSoon = lazy(() => import('./pages/ComingSoon'));
-const PanEvents = lazy(() => import('./pages/PanEvents'));
-const PanCourses = lazy(() => import('./pages/PanCourses'));
-const PanGear = lazy(() => import('./pages/PanGear'));
 const Chat = lazy(() => import('./pages/Chat'));
 const MyChatList = lazy(() => import('./pages/MyChatList'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -139,33 +135,9 @@ function App() {
             <Route path="shop-post/:id" element={<ShopPostDetail />} />
             <Route path="shop-post/:id/edit" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
             <Route path="shop/:shopType/:shopId/post/new" element={<RequireAuth><ShopPostEditor /></RequireAuth>} />
-            {/* 멀티판 (/run, /bike, /golf) — 동일 컴포넌트 재사용, useVertical 이 경로 prefix 로 판 감지.
-                코스/대회/장비 추천은 data/panContent 기반 공용 페이지. */}
+            {/* 멀티판 폐기 — SNOWPAN 단일 운영. 옛 /run·/bike·/golf 링크는 루트로 */}
             {(['run', 'bike', 'golf'] as const).map((v) => (
-              <Route key={v} path={v}>
-                <Route index element={<Home />} />
-                <Route path="used" element={<Used />} />
-                <Route path="used/register" element={<RequireAuth><UsedRegister /></RequireAuth>} />
-                <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
-                <Route path="used/:id" element={<UsedDetail />} />
-                <Route path="community" element={<CommunitySelect />} />
-                <Route path="community/post/:id" element={<CommunityDetail />} />
-                <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
-                <Route path="community/:sport" element={<Community />} />
-                <Route path="search" element={<Search />} />
-                <Route path="event" element={<PanEvents />} />
-                <Route path="course" element={<PanCourses />} />
-                <Route path="gear" element={<PanGear />} />
-                <Route path="gear-guide" element={<Navigate to={`/${v}/gear`} replace />} />
-                <Route path="crew" element={<Navigate to={`/${v}/community`} replace />} />
-                {/* 아직 미구현 메뉴 — 준비중 */}
-                <Route path="shop" element={<ComingSoon />} />
-                <Route path="coach" element={<ComingSoon />} />
-                <Route path="lesson" element={<ComingSoon />} />
-                <Route path="round" element={<ComingSoon />} />
-                <Route path="screen" element={<ComingSoon />} />
-                <Route path="*" element={<Navigate to={`/${v}`} replace />} />
-              </Route>
+              <Route key={v} path={`${v}/*`} element={<Navigate to="/" replace />} />
             ))}
             {/* 나머지 미출시 판은 루트로 리다이렉트 (옛 링크 호환) */}
             <Route path="pan" element={<Navigate to="/" replace />} />
