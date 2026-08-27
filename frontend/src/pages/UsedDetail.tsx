@@ -54,6 +54,7 @@ const UsedDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [sellerRating, setSellerRating] = useState<{ avg: number; count: number } | null>(null);
   // 이미지 한 장 깨져도 다른 썸네일 선택 시 다시 시도 (한 번 실패로 갤러리 전체 placeholder 되는 것 방지).
   useEffect(() => { setImgError(false); }, [selectedImage]);
   const [wishlisted, setWishlisted] = useState(false);
@@ -131,6 +132,15 @@ const UsedDetail = () => {
     document.head.appendChild(script);
     return () => { document.getElementById(SCRIPT_ID)?.remove(); };
   }, [product]);
+
+  // 판매자 평점 요약 — 판매자 카드 배지용 (공개 API)
+  useEffect(() => {
+    const sid = product?.userId;
+    if (!sid) return;
+    api<{ averageRating: number; totalCount: number }>(`/reviews?sellerId=${sid}`)
+      .then((d) => setSellerRating({ avg: d.averageRating || 0, count: d.totalCount || 0 }))
+      .catch(() => {});
+  }, [product?.userId]);
 
   const statusLabel: Record<string, { text: string; color: string }> = {
     selling: { text: t('used.status.selling'), color: 'bg-mint/20 text-emerald-700' },
@@ -417,6 +427,13 @@ const UsedDetail = () => {
               </div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
+                {sellerRating && (
+                  sellerRating.count > 0 ? (
+                    <div className="text-[11px] text-gold font-bold mt-0.5">★ {sellerRating.avg.toFixed(1)} <span className="text-gray-500 font-medium">· 후기 {sellerRating.count}</span></div>
+                  ) : (
+                    <div className="text-[10px] text-gray-400 mt-0.5">신규 판매자</div>
+                  )
+                )}
               </div>
             </div>
             {sellerId && (

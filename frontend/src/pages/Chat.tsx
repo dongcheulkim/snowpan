@@ -341,6 +341,17 @@ const Chat = () => {
         )}
 
         {/* 판매자 전용 — 이 대화의 거래 상품 상태 변경 (약속 잡으면 예약중으로) */}
+        {/* 구매자: 거래 완료된 상품이면 후기 남기기 진입점 */}
+        {!iAmSeller && user && dealProduct && dealProduct.status === 'sold' && dealProduct.userId !== user.id && (
+          <div className="border-t border-gray-100 bg-amber-50/60">
+            <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-gray-600">거래가 완료됐어요. 판매자에게 후기를 남겨보세요.</span>
+              <Link to={`/seller/${dealProduct.userId}`} className="flex-shrink-0 text-[11px] font-bold text-white bg-gray-900 rounded-lg px-2.5 py-1.5">
+                거래 후기 남기기
+              </Link>
+            </div>
+          </div>
+        )}
         {iAmSeller && dealProduct && (
           <div className="border-t border-gray-100 bg-white">
             <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-2">
