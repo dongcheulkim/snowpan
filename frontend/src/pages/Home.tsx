@@ -365,8 +365,6 @@ const Home = () => {
         <div className={`grid ${isSnow ? 'grid-cols-5' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
-            // 신규/핫 카테고리에 빨간 점 (전환 유도). 쿠폰샵은 NEW 강조.
-            const showNew = ['used', 'rental', 'competitions'].includes(cat.id as string);
             return (
               <Link
                 key={cat.id}
@@ -375,9 +373,6 @@ const Home = () => {
               >
                 <div className="relative w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
                   {Icon ? <Icon size={32} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
-                  {showNew && (
-                    <span className="absolute top-1 right-1 w-4 h-4 inline-flex items-center justify-center text-[8px] font-black text-white bg-coral rounded-full">N</span>
-                  )}
                 </div>
                 <span className="text-[11px] font-medium text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
