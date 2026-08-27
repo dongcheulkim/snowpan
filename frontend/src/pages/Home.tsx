@@ -66,6 +66,13 @@ const NEWS_TYPE_LABEL: Record<string, { text: string; color: string }> = {
   notice: { text: '공지', color: 'bg-emerald-100 text-emerald-700' },
 };
 
+interface HomeUsedItem {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+}
+
 const Home = () => {
   const vertical = useVertical();
   const isSnow = vertical.slug === 'snow';
@@ -89,6 +96,7 @@ const Home = () => {
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
+  const [usedItems, setUsedItems] = useState<HomeUsedItem[]>([]);
 
   // 핫 섹션 카테고리 칩 — 탭하면 그 카테고리의 핫한 것만.
   const HOT_TABS = [
@@ -133,6 +141,9 @@ const Home = () => {
     });
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
+      .catch(() => {});
+    api<{ products: HomeUsedItem[] }>('/products?category=used&status=selling&limit=4')
+      .then((d) => setUsedItems(d.products || []))
       .catch(() => {});
   }, [isSnow]);
 
@@ -420,6 +431,36 @@ const Home = () => {
               );
             })}
           </div>
+          )}
+        </div>
+      )}
+
+      {/* 방금 올라온 중고거래 — 매장 소식 아래. 비어도 섹션 항상 표시 */}
+      {isSnow && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">방금 올라온 중고거래</h2>
+            <Link to="/used" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+          </div>
+          {usedItems.length === 0 ? (
+            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
+              <p className="text-sm text-gray-500">아직 매물이 없어요.</p>
+              <p className="text-xs text-sky-600 font-bold mt-1.5">첫 매물을 올려보세요 &gt;</p>
+            </Link>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {usedItems.map((it) => (
+                <Link key={it.id} to={`/used/${it.id}`} className="block active:scale-[0.98] transition-transform">
+                  <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                    {it.image && (it.image.startsWith('/') || it.image.startsWith('http')) && (
+                      <img src={imageUrl(it.image, 400)} alt={it.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
+                  </div>
+                  <p className="text-[13px] text-gray-900 truncate mt-1.5 px-0.5">{it.name}</p>
+                  <p className="text-sm font-bold text-gray-900 px-0.5">{it.price.toLocaleString()}원</p>
+                </Link>
+              ))}
+            </div>
           )}
         </div>
       )}
