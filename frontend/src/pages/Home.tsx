@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -73,6 +73,11 @@ interface HomeUsedItem {
   image: string;
 }
 
+// 홈 중고 피드 모듈 캐시 — 상세 진입 후 뒤로 왔을 때 피드와 스크롤 위치 복원 (세션 내)
+let usedFeedCache: HomeUsedItem[] | null = null;
+let usedFeedHasMoreCache = true;
+let homeScrollYCache = 0;
+
 const Home = () => {
   const vertical = useVertical();
   const isSnow = vertical.slug === 'snow';
@@ -96,7 +101,35 @@ const Home = () => {
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
-  const [usedItems, setUsedItems] = useState<HomeUsedItem[]>([]);
+  const [usedItems, setUsedItems] = useState<HomeUsedItem[]>(usedFeedCache || []);
+  const [usedHasMore, setUsedHasMore] = useState(usedFeedHasMoreCache);
+  const [usedLoaded, setUsedLoaded] = useState(!!usedFeedCache);
+  const usedBusyRef = useRef(false);
+  const usedLenRef = useRef((usedFeedCache || []).length);
+  const usedSentinelRef = useRef<HTMLDivElement>(null);
+
+  // 다음 페이지 로드 — 초기 4개, 이후 8개씩 (번장식 무한 피드)
+  const loadMoreUsed = useCallback(async (first = false) => {
+    if (usedBusyRef.current) return;
+    usedBusyRef.current = true;
+    try {
+      const limit = first ? 4 : 8;
+      const offset = usedLenRef.current;
+      const d = await api<{ products: HomeUsedItem[]; totalCount: number }>(`/products?category=used&status=selling&limit=${limit}&offset=${offset}`);
+      const next = d.products || [];
+      setUsedItems((prev) => {
+        const merged = first && prev.length === 0 ? next : [...prev, ...next.filter((n) => !prev.some((x) => x.id === n.id))];
+        usedLenRef.current = merged.length;
+        usedFeedCache = merged;
+        const more = merged.length < (d.totalCount ?? merged.length);
+        setUsedHasMore(more);
+        usedFeedHasMoreCache = more;
+        return merged;
+      });
+      setUsedLoaded(true);
+    } catch { /* 다음 스크롤에서 재시도 */ }
+    finally { usedBusyRef.current = false; }
+  }, []);
 
   // 핫 섹션 카테고리 칩 — 탭하면 그 카테고리의 핫한 것만.
   const HOT_TABS = [
@@ -142,10 +175,28 @@ const Home = () => {
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
       .catch(() => {});
-    api<{ products: HomeUsedItem[] }>('/products?category=used&status=selling&limit=4')
-      .then((d) => setUsedItems(d.products || []))
-      .catch(() => {});
-  }, [isSnow]);
+    if (!usedFeedCache) loadMoreUsed(true);
+  }, [isSnow, loadMoreUsed]);
+
+  // 스크롤 바닥 감지 — 센티널이 보이면 다음 페이지
+  useEffect(() => {
+    if (!isSnow) return;
+    const el = usedSentinelRef.current;
+    if (!el || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && usedHasMore) loadMoreUsed();
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isSnow, usedHasMore, loadMoreUsed]);
+
+  // 뒤로 왔을 때 보던 위치 복원 + 떠날 때 위치 저장
+  useEffect(() => {
+    if (usedFeedCache && homeScrollYCache > 0) {
+      requestAnimationFrame(() => window.scrollTo(0, homeScrollYCache));
+    }
+    return () => { homeScrollYCache = window.scrollY; };
+  }, []);
 
   useEffect(() => {
     if (!isSnow) return; // 배너 광고는 snow 전용 — 다른 판은 브랜드 슬라이드만.
@@ -442,7 +493,7 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">방금 올라온 중고거래</h2>
             <Link to="/used" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
-          {usedItems.length === 0 ? (
+          {usedLoaded && usedItems.length === 0 ? (
             <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
               <p className="text-sm text-gray-500">아직 매물이 없어요.</p>
               <p className="text-xs text-sky-600 font-bold mt-1.5">첫 매물을 올려보세요 &gt;</p>
@@ -461,6 +512,14 @@ const Home = () => {
                 </Link>
               ))}
             </div>
+          )}
+          {/* 무한 스크롤 센티널 — 근처에 오면 다음 페이지 자동 로드 */}
+          <div ref={usedSentinelRef} />
+          {usedLoaded && !usedHasMore && usedItems.length > 0 && (
+            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-5 text-center mt-3 active:bg-gray-50 transition-colors">
+              <p className="text-sm text-gray-500">매물을 다 봤어요.</p>
+              <p className="text-xs text-sky-600 font-bold mt-1">내 장비도 판매해보세요 &gt;</p>
+            </Link>
           )}
         </div>
       )}
