@@ -155,15 +155,19 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       if (newToken) {
         return api<T>(path, { ...options, _retried: true });
       }
-      if (getToken() && !window.location.pathname.includes('/login')) {
+      // getUser() 도 함께 확인 — 세션이 반쯤 남은 상태(유저 정보만 있고 토큰 만료)에서
+      // "인증 토큰이 필요합니다" 원시 에러만 뜨고 로그인 화면으로 못 가던 구멍.
+      if ((getToken() || getUser()) && !window.location.pathname.includes('/login')) {
         logout();
+        data && (data.error = '로그인이 만료되었어요. 다시 로그인해주세요.');
         setTimeout(() => { window.location.href = '/login'; }, 0);
       }
     }
     // refresh 후 재시도했는데도 401 이면 (새 토큰도 거부됨) 로그아웃 유도.
     // 이전엔 이 경로가 generic 에러만 던져 사용자가 로그인 화면으로 못 가던 버그.
-    if (res.status === 401 && _retried && getToken() && !window.location.pathname.includes('/login')) {
+    if (res.status === 401 && _retried && (getToken() || getUser()) && !window.location.pathname.includes('/login')) {
       logout();
+      data && (data.error = '로그인이 만료되었어요. 다시 로그인해주세요.');
       setTimeout(() => { window.location.href = '/login'; }, 0);
     }
     if (res.status === 429) {
