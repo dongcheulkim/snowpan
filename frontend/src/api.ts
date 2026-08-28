@@ -159,7 +159,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       // "인증 토큰이 필요합니다" 원시 에러만 뜨고 로그인 화면으로 못 가던 구멍.
       if ((getToken() || getUser()) && !window.location.pathname.includes('/login')) {
         logout();
-        data && (data.error = '로그인이 만료되었어요. 다시 로그인해주세요.');
+        data && (data.error = '로그인을 다시 해주세요.');
         setTimeout(() => { window.location.href = '/login'; }, 0);
       }
     }
@@ -167,8 +167,12 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     // 이전엔 이 경로가 generic 에러만 던져 사용자가 로그인 화면으로 못 가던 버그.
     if (res.status === 401 && _retried && (getToken() || getUser()) && !window.location.pathname.includes('/login')) {
       logout();
-      data && (data.error = '로그인이 만료되었어요. 다시 로그인해주세요.');
+      data && (data.error = '로그인을 다시 해주세요.');
       setTimeout(() => { window.location.href = '/login'; }, 0);
+    }
+    // 401 은 어떤 경로든 사용자에겐 한 문장으로 — 원시 서버 메시지("인증 토큰이 필요합니다" 등) 노출 금지
+    if (res.status === 401) {
+      data = { ...data, error: '로그인을 다시 해주세요.' };
     }
     if (res.status === 429) {
       const retry = res.headers.get('Retry-After');
