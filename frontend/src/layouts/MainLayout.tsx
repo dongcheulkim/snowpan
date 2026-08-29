@@ -58,7 +58,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">
       {/* 앱 컨테이너 — 데스크탑에선 phone-width 중앙 정렬, 모바일에선 전체 폭 */}
-      <div className="relative w-full max-w-md md:max-w-3xl lg:max-w-5xl bg-snow flex flex-col min-h-screen shadow-xl md:shadow-none">
+      <div className="relative w-full max-w-md bg-snow flex flex-col min-h-screen shadow-xl">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
           본문 바로가기
         </a>

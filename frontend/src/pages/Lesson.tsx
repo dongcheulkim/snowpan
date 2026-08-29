@@ -133,7 +133,7 @@ const Lesson = () => {
       {loading ? (
         <PosterGridSkeleton count={6} />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {lessonItems.map((item) => {
             const cover = (item.images && item.images.split(',')[0]) || item.image || '';
             return (

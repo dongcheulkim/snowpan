@@ -134,20 +134,9 @@ const Navbar = () => {
       <div className="px-4">
         <div className="flex items-center justify-between h-14">
           {/* 로고 = 홈 링크. 판 스위처(런닝·바이크·골프)는 출시 전까지 숨김 — 복원은 git 히스토리 참고 */}
-          <div className="flex items-center gap-6">
-            <Link to="/" aria-label="스노우판 홈으로">
-              <Logo />
-            </Link>
-            {/* 데스크탑 가로 메뉴 — 모바일에선 숨김 (하단 탭바가 담당) */}
-            <nav className="hidden md:flex items-center gap-5">
-              <Link to="/used" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">중고거래</Link>
-              <Link to="/new-equipment" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">스키샵</Link>
-              <Link to="/rental" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">렌탈</Link>
-              <Link to="/lesson" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">레슨</Link>
-              <Link to="/accommodation" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">숙소</Link>
-              <Link to="/community" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">커뮤니티</Link>
-            </nav>
-          </div>
+          <Link to="/" aria-label="스노우판 홈으로">
+            <Logo />
+          </Link>
 
           <div className="flex items-center gap-1">
             <Link
