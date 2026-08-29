@@ -25,6 +25,58 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+
+// ===== 리조트 현재 기온 — Open-Meteo (무료·키 불필요), 10분 캐시 =====
+// 슬러그 → 베이스 좌표. 한 번의 업스트림 호출로 전 리조트 조회.
+const RESORT_COORDS: Record<string, [number, number]> = {
+  yongpyong: [37.643, 128.680],
+  alpensia: [37.658, 128.671],
+  phoenix: [37.582, 128.323],
+  wellihilli: [37.489, 128.245],
+  high1: [37.204, 128.837],
+  vivaldi: [37.647, 127.687],
+  elysian: [37.821, 127.591],
+  oak: [37.406, 127.816],
+  o2: [37.180, 128.943],
+  konjiam: [37.335, 127.290],
+  jisan: [37.219, 127.342],
+  muju: [35.890, 127.737],
+  eden: [35.428, 129.014],
+};
+
+let weatherCache: { data: Record<string, number>; at: number } | null = null;
+const WEATHER_TTL = 10 * 60 * 1000;
+
+router.get('/weather', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    if (weatherCache && Date.now() - weatherCache.at < WEATHER_TTL) {
+      res.json(weatherCache.data);
+      return;
+    }
+    const slugs = Object.keys(RESORT_COORDS);
+    const lats = slugs.map((sl) => RESORT_COORDS[sl][0]).join(',');
+    const lons = slugs.map((sl) => RESORT_COORDS[sl][1]).join(',');
+    const r = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m&timezone=Asia%2FSeoul`,
+      { signal: AbortSignal.timeout(5000) },
+    );
+    if (!r.ok) throw new Error(`open-meteo ${r.status}`);
+    const arr = await r.json();
+    const list = Array.isArray(arr) ? arr : [arr];
+    const data: Record<string, number> = {};
+    slugs.forEach((sl, i) => {
+      const t = list[i]?.current?.temperature_2m;
+      if (typeof t === 'number') data[sl] = Math.round(t);
+    });
+    weatherCache = { data, at: Date.now() };
+    res.json(data);
+  } catch (e) {
+    console.error('Webcam weather error:', e);
+    // 실패 시 빈 객체 — 프론트는 기온 표시만 생략
+    res.json(weatherCache?.data || {});
+  }
+});
+
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;

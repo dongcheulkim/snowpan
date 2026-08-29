@@ -20,12 +20,17 @@ const Webcam = () => {
   const vertical = useVertical();
   const [webcams, setWebcams] = useState<WebcamItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [temps, setTemps] = useState<Record<string, number>>({});
 
   useEffect(() => {
     api<WebcamItem[]>('/webcams')
       .then(d => setWebcams(Array.isArray(d) ? d : []))
       .catch(() => setWebcams([]))
       .finally(() => setLoading(false));
+    // 리조트 현재 기온 (10분 서버 캐시) — 실패해도 표시만 생략
+    api<Record<string, number>>('/webcams/weather')
+      .then(setTemps)
+      .catch(() => {});
   }, []);
 
   return (
@@ -57,7 +62,12 @@ const Webcam = () => {
                     <MountainIcon size={22} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-gray-900">{cam.name}</div>
+                    <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                      {cam.name}
+                      {temps[cam.slug] !== undefined && (
+                        <span className={`text-[11px] font-bold ${temps[cam.slug] <= 0 ? 'text-sky-600' : 'text-gray-500'}`}>{temps[cam.slug]}°</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
                       <span className="text-[10px] text-gray-500">
