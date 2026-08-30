@@ -73,10 +73,13 @@ interface HomeUsedItem {
   image: string;
 }
 
-// 홈 중고 피드 모듈 캐시 — 상세 진입 후 뒤로 왔을 때 피드와 스크롤 위치 복원 (세션 내)
+// 홈 중고 피드 모듈 캐시 — 상세 진입 후 뒤로 왔을 때 피드와 스크롤 위치 복원 (세션 내).
+// 60초 TTL: 삭제·판매완료·신규 매물이 세션 내내 동결되는 것 방지.
 let usedFeedCache: HomeUsedItem[] | null = null;
 let usedFeedHasMoreCache = true;
+let usedFeedCachedAt = 0;
 let homeScrollYCache = 0;
+const USED_FEED_TTL = 60 * 1000;
 
 const Home = () => {
   const vertical = useVertical();
@@ -101,6 +104,11 @@ const Home = () => {
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
+  if (usedFeedCache && Date.now() - usedFeedCachedAt > USED_FEED_TTL) {
+    usedFeedCache = null;
+    usedFeedHasMoreCache = true;
+    homeScrollYCache = 0;
+  }
   const [usedItems, setUsedItems] = useState<HomeUsedItem[]>(usedFeedCache || []);
   const [usedHasMore, setUsedHasMore] = useState(usedFeedHasMoreCache);
   const [usedLoaded, setUsedLoaded] = useState(!!usedFeedCache);
@@ -117,15 +125,15 @@ const Home = () => {
       const offset = usedLenRef.current;
       const d = await api<{ products: HomeUsedItem[]; totalCount: number }>(`/products?category=used&status=selling&limit=${limit}&offset=${offset}`);
       const next = d.products || [];
-      setUsedItems((prev) => {
-        const merged = first && prev.length === 0 ? next : [...prev, ...next.filter((n) => !prev.some((x) => x.id === n.id))];
-        usedLenRef.current = merged.length;
-        usedFeedCache = merged;
-        const more = merged.length < (d.totalCount ?? merged.length);
-        setUsedHasMore(more);
-        usedFeedHasMoreCache = more;
-        return merged;
-      });
+      const prev = usedLenRef.current === 0 ? [] : (usedFeedCache || []);
+      const merged = first && prev.length === 0 ? next : [...prev, ...next.filter((n) => !prev.some((x) => x.id === n.id))];
+      usedLenRef.current = merged.length;
+      usedFeedCache = merged;
+      usedFeedCachedAt = Date.now();
+      const more = merged.length < (d.totalCount ?? merged.length);
+      usedFeedHasMoreCache = more;
+      setUsedItems(merged);
+      setUsedHasMore(more);
       setUsedLoaded(true);
     } catch { /* 다음 스크롤에서 재시도 */ }
     finally { usedBusyRef.current = false; }
@@ -175,7 +183,22 @@ const Home = () => {
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
       .catch(() => {});
-    if (!usedFeedCache) loadMoreUsed(true);
+    if (!usedFeedCache) {
+      loadMoreUsed(true);
+    } else {
+      // 캐시 유지 + 머리 4개만 신선화 — 삭제된 매물 제거·방금 올라온 매물 반영
+      api<{ products: HomeUsedItem[]; totalCount: number }>('/products?category=used&status=selling&limit=4')
+        .then((d) => {
+          const fresh = d.products || [];
+          const rest = (usedFeedCache || []).filter((x) => !fresh.some((f) => f.id === x.id));
+          const merged = [...fresh, ...rest];
+          usedFeedCache = merged;
+          usedFeedCachedAt = Date.now();
+          usedLenRef.current = merged.length;
+          setUsedItems(merged);
+        })
+        .catch(() => {});
+    }
   }, [isSnow, loadMoreUsed]);
 
   // 스크롤 바닥 감지 — 센티널이 보이면 다음 페이지

@@ -135,7 +135,7 @@ const AccommodationRegister = () => {
           <label className={labelClass}>스키장</label>
           <div className="flex flex-wrap gap-1.5 mb-1.5">
             {RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg)).map((rg) => (
-              <button key={rg} type="button" onClick={() => setRegion(rg)}
+              <button key={rg} type="button" onClick={() => { setRegion(rg); setForm((f) => ({ ...f, resortId: '' })); }}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${region === rg ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
                 {rg}
               </button>

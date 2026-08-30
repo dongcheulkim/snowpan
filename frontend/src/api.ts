@@ -159,14 +159,14 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       if (!window.location.pathname.includes('/login')) {
         logout();
         data && (data.error = '로그인을 다시 해주세요.');
-        setTimeout(() => { window.location.href = '/login'; }, 0);
+        setTimeout(() => { window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 0);
       }
     }
     // refresh 후 재시도했는데도 401 이면 (새 토큰도 거부됨) 로그인 화면으로.
     if (res.status === 401 && _retried && !window.location.pathname.includes('/login')) {
       logout();
       data && (data.error = '로그인을 다시 해주세요.');
-      setTimeout(() => { window.location.href = '/login'; }, 0);
+      setTimeout(() => { window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 0);
     }
     // 401 은 사용자에겐 한 문장으로 — 원시 서버 메시지("인증 토큰이 필요합니다" 등) 노출 금지.
     // 단 로그인·가입 자체의 401(비밀번호 불일치 등)은 원래 메시지 유지.

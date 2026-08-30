@@ -54,12 +54,16 @@ if ('serviceWorker' in navigator) {
     if (swReloaded) return;
     // 병리적 상황(CDN 이 구/신 sw 를 번갈아 서빙) 대비 — 10분 내 3회 초과 자동 리로드 금지
     try {
-      const raw = sessionStorage.getItem('snowpan.swReloadLog') || '[]';
-      const log = (JSON.parse(raw) as number[]).filter((t) => Date.now() - t < 10 * 60 * 1000);
-      if (log.length >= 3) return;
+      let log: number[] = [];
+      try {
+        const parsed = JSON.parse(sessionStorage.getItem('snowpan.swReloadLog') || '[]');
+        if (Array.isArray(parsed)) log = parsed.filter((t) => typeof t === 'number');
+      } catch { /* corrupt — 빈 로그로 리셋 */ }
+      log = log.filter((t) => Date.now() - t < 10 * 60 * 1000);
+      if (log.length >= 3) return; // 캡 초과 — 리로드 중단 (fail-closed)
       log.push(Date.now());
       sessionStorage.setItem('snowpan.swReloadLog', JSON.stringify(log));
-    } catch { /* 무시 */ }
+    } catch { return; /* 스토리지 자체 불가 — 리로드 포기가 안전 */ }
     swReloaded = true;
     // 자동 리로드 직후엔 스플래시 스킵 표시 (인트로 2연속 방지)
     try { sessionStorage.setItem('snowpan.swReload', '1'); } catch { /* 무시 */ }

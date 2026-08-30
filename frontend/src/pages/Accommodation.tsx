@@ -102,7 +102,7 @@ const Accommodation = () => {
         {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
           <button
             key={rg}
-            onClick={() => setSelectedRegion(rg)}
+            onClick={() => { setSelectedRegion(rg); setSelectedResort('all'); }}
             className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedRegion === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}

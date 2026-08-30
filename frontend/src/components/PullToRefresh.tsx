@@ -53,6 +53,7 @@ export default function PullToRefresh() {
         if (y >= THRESHOLD_PX) {
           setRefreshing(true);
           // 약간의 지연 — 사용자에게 시각적으로 트리거 확인 시간
+          try { sessionStorage.setItem('snowpan.swReload', '1'); } catch { /* 무시 */ } // 당겨서 새로고침엔 스플래시 스킵
           setTimeout(() => window.location.reload(), 300);
           return THRESHOLD_PX;
         }

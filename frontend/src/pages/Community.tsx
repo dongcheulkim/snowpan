@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api, imageUrl as toImageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -70,6 +70,7 @@ const Community = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const reqSeq = useRef(0); // 탭 전환 경쟁 시 낡은 응답·finally 무시
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -110,27 +111,30 @@ const Community = () => {
   // 인기 게시글 로딩
   useEffect(() => {
     if (selectedTab !== 'popular') return;
+    const seq = ++reqSeq.current;
     setLoading(true);
     api<Post[]>(`/community/popular?sport=${sport || ''}`)
-      .then(data => { setPopularPosts(Array.isArray(data) ? data : []); })
-      .catch(() => setPopularPosts([]))
-      .finally(() => setLoading(false));
+      .then(data => { if (reqSeq.current === seq) setPopularPosts(Array.isArray(data) ? data : []); })
+      .catch(() => { if (reqSeq.current === seq) setPopularPosts([]); })
+      .finally(() => { if (reqSeq.current === seq) setLoading(false); });
   }, [sport, selectedTab]);
 
   // 투표 탭 — 서버화된 Poll 목록 로딩 (커뮤니티 글이 아닌 별도 Poll 시스템).
   useEffect(() => {
     if (selectedTab !== 'poll' && selectedTab !== 'all') return;
+    const seq = selectedTab === 'poll' ? ++reqSeq.current : reqSeq.current;
     if (selectedTab === 'poll') setTimeout(() => setLoading(true), 0);
     api<{ items: PollItem[] }>(`/polls?limit=${PAGE_SIZE}`)
       .then(data => setPolls(data.items || []))
       .catch(() => setPolls([]))
-      .finally(() => { if (selectedTab === 'poll') setLoading(false); });
+      .finally(() => { if (selectedTab === 'poll' && reqSeq.current === seq) setLoading(false); });
   }, [selectedTab]);
 
   // 일반 게시글 로딩 (poll/popular 제외)
   useEffect(() => {
     if (selectedTab === 'popular' || selectedTab === 'poll') return;
-    setTimeout(() => setLoading(true), 0);
+    const seq = ++reqSeq.current;
+    setTimeout(() => { if (reqSeq.current === seq) setLoading(true); }, 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
     if (activeGroup?.subs) {
@@ -139,9 +143,9 @@ const Community = () => {
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     api<{ posts: Post[]; totalCount: number }>(`/community?${params}`)
-      .then(data => { setPosts(data.posts); setTotalCount(data.totalCount); })
-      .catch(() => { setPosts([]); setTotalCount(0); })
-      .finally(() => setLoading(false));
+      .then(data => { if (reqSeq.current === seq) { setPosts(data.posts); setTotalCount(data.totalCount); } })
+      .catch(() => { if (reqSeq.current === seq) { setPosts([]); setTotalCount(0); } })
+      .finally(() => { if (reqSeq.current === seq) setLoading(false); });
   }, [sport, selectedTab, selectedSub, debouncedSearch, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
@@ -184,7 +188,7 @@ const Community = () => {
   type FeedItem = { kind: 'post'; post: Post } | { kind: 'poll'; poll: PollItem };
   const baseList: Post[] = selectedTab === 'popular' ? popularPosts : posts;
   let feedItems: FeedItem[] = baseList.map((p) => ({ kind: 'post' as const, post: p }));
-  if (selectedTab === 'all' && page === 1 && polls.length) {
+  if (selectedTab === 'all' && page === 1 && polls.length && !debouncedSearch) {
     const at = (f: FeedItem) => new Date(f.kind === 'post' ? f.post.createdAt : f.poll.createdAt).getTime();
     const pinnedItems = feedItems.filter((f) => f.kind === 'post' && f.post.pinned);
     const restItems: FeedItem[] = [
@@ -225,7 +229,7 @@ const Community = () => {
       <div className="space-y-1.5">
         <div className="flex gap-1.5 flex-wrap">
           {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setSelectedTab(tab.id)} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
+            <button key={tab.id} onClick={() => { setSelectedTab(tab.id); setSelectedSub('all'); }} className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${selectedTab === tab.id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 active:bg-gray-200'}`}>
               {tab.name}
             </button>
           ))}

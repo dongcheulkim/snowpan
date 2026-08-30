@@ -137,9 +137,11 @@ const UsedDetail = () => {
   useEffect(() => {
     const sid = product?.userId;
     if (!sid) return;
+    let cancelled = false;
     api<{ averageRating: number; totalCount: number }>(`/reviews?sellerId=${sid}`)
-      .then((d) => setSellerRating({ avg: d.averageRating || 0, count: d.totalCount || 0 }))
+      .then((d) => { if (!cancelled) setSellerRating({ avg: d.averageRating || 0, count: d.totalCount || 0 }); })
       .catch(() => {});
+    return () => { cancelled = true; };
   }, [product?.userId]);
 
   const statusLabel: Record<string, { text: string; color: string }> = {

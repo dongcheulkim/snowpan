@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
-import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
+import { REGION_RESORTS } from '../utils/regionResorts';
 
 // 소유자 본인이 자기 스키샵 정보를 수정. 사업자등록증은 재업로드 불필요(등록 시 검증 완료).
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
@@ -106,7 +106,7 @@ export default function SkiShopEdit() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>지역 *</label>
-              <select name="area" value={form.area} onChange={handleChange} className={inputClass}>
+              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resort: '' })} className={inputClass}>
                 {areas.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
@@ -114,7 +114,7 @@ export default function SkiShopEdit() {
               <label className={labelClass}>소속 스키장</label>
               <select name="resort" value={form.resort} onChange={handleChange} className={inputClass}>
                 <option value="">선택 안 함</option>
-                {[...(REGION_RESORTS[form.area] || ALL_RESORTS), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
+                {[...(REGION_RESORTS[form.area] || []), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
           </div>

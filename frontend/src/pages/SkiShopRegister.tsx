@@ -5,7 +5,7 @@ import { api, uploadImages, getUser } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { ClipboardIcon, CloseIcon } from '../components/Icons';
 import MultiImageUpload from '../components/MultiImageUpload';
-import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
+import { REGION_RESORTS } from '../utils/regionResorts';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
@@ -109,7 +109,7 @@ export default function SkiShopRegister() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>지역 *</label>
-              <select name="area" value={form.area} onChange={handleChange} className={inputClass}>
+              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resort: '' })} className={inputClass}>
                 {areas.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
@@ -117,7 +117,7 @@ export default function SkiShopRegister() {
               <label className={labelClass}>소속 스키장</label>
               <select name="resort" value={form.resort} onChange={handleChange} className={inputClass}>
                 <option value="">선택 안 함</option>
-                {[...(REGION_RESORTS[form.area] || ALL_RESORTS), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
+                {[...(REGION_RESORTS[form.area] || []), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
           </div>

@@ -80,7 +80,7 @@ const RentalEdit = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>지역</label>
-          <select value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} className={inputClass}>{AREAS.map(a => <option key={a} value={a}>{a}</option>)}</select>
+          <select value={form.area} onChange={e => setForm({ ...form, area: e.target.value, resortId: '' })} className={inputClass}>{AREAS.map(a => <option key={a} value={a}>{a}</option>)}</select>
         </div>
         <div>
           <label className={labelClass}>근처 스키장</label>
