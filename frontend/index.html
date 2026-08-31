@@ -35,9 +35,7 @@
     <!-- 실사용 오리진 사전 연결 — 첫 API 호출·이미지 로딩 단축 -->
     <link rel="preconnect" href="https://snowpan.onrender.com" crossorigin>
     <link rel="preconnect" href="https://snowpankr.b-cdn.net" crossorigin>
-    <!-- 폰트는 비차단 로딩 (display=swap + print 트릭) — 시스템 폰트로 먼저 그리고 로드 후 교체 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
+    <!-- 폰트 스타일시트는 main.tsx 에서 비차단 주입 (CSP 가 인라인 핸들러를 막아 print 트릭 사용 불가) -->
     <!-- Schema.org Organization + WebSite -->
     <script type="application/ld+json">
     {

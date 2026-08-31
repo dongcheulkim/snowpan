@@ -140,17 +140,30 @@ createRoot(document.getElementById('root')!).render(
 // Capacitor 네이티브(앱) 초기화 — 웹에선 no-op.
 import('./native').then(m => m.initNative()).catch(() => {});
 
-// 첫 로딩 스플래시(index.html 워드마크 리빌) 제거 — 매 페이지 로드마다 연출.
-// 단 SW 업데이트로 인한 자동 리로드 직후엔 스킵 (배포 직후 스플래시 2연속 방지).
+// 웹폰트 비차단 로딩 — 렌더는 시스템 폰트로 먼저, 로드되면 교체(swap).
+// index.html 인라인 핸들러는 CSP(script-src 'self')에 막히므로 여기서 주입.
+(() => {
+  const l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap';
+  document.head.appendChild(l);
+})();
+
+// 첫 로딩 스플래시(index.html 워드마크 리빌) 제거.
+// 재생 규칙: 새 세션(첫 방문·탭 새로 엶·앱 완전 종료 후 재실행)에만 풀 재생,
+// 같은 세션 내 재로딩(새로고침·내부 이동·SW 자동 리로드)은 스킵.
+// 앱에서 백그라운드 복귀는 리로드 자체가 없어 자연히 스플래시 없음.
 (() => {
   const splash = document.getElementById('app-splash');
   if (!splash) return;
-  let swReloaded = false;
+  let skip = false;
   try {
-    swReloaded = sessionStorage.getItem('snowpan.swReload') === '1';
+    const swReloaded = sessionStorage.getItem('snowpan.swReload') === '1';
     sessionStorage.removeItem('snowpan.swReload');
+    skip = swReloaded || sessionStorage.getItem('snowpan.splashShown') === '1';
+    sessionStorage.setItem('snowpan.splashShown', '1');
   } catch { /* 무시 */ }
-  if (swReloaded) { splash.remove(); return; }
+  if (skip) { splash.remove(); return; }
   const start = performance.now();
   const MIN_MS = 1850; // 로고 리빌(1.1s) + 샤인·빔 스윕까지
   requestAnimationFrame(() => {
