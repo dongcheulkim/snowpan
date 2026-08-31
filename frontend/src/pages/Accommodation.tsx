@@ -8,6 +8,7 @@ import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
+import HScroll from '../components/HScroll';
 
 interface AccommodationItem {
   id: string;
@@ -98,7 +99,7 @@ const Accommodation = () => {
       <CategoryAdBanner category="accommodation" />
 
       {/* 대분류: 지역 → 소분류: 그 지역 리조트 */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
           <button
             key={rg}
@@ -110,8 +111,8 @@ const Accommodation = () => {
             {rg === 'all' ? '전체' : rg}
           </button>
         ))}
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      </HScroll>
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {[{ id: 'all', name: '전체' }, ...resorts.filter((r) => selectedRegion === 'all' || resortRegion(r.location) === selectedRegion)].map((resort) => (
           <button
             key={resort.id}
@@ -125,7 +126,7 @@ const Accommodation = () => {
             {resort.name}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* Type Filter */}
       <div className="flex gap-2">

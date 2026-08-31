@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
 import { requestTossPayment, tossConfigured } from '../toss';
+import HScroll from '../components/HScroll';
 
 interface Agency {
   id: string; name: string; description?: string | null; website: string; phone?: string | null; kakao?: string | null;
@@ -127,11 +128,11 @@ export default function AgencyManage() {
       <div className="flex items-center gap-3"><Link to="/overseas" className="text-gray-500 text-lg">←</Link><h1 className="text-xl font-bold text-gray-900">여행사 관리</h1></div>
 
       {agencies.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <HScroll className="flex gap-2 overflow-x-auto no-scrollbar">
           {agencies.map((a) => (
             <button key={a.id} onClick={() => { setSel(a); setProf(a); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${sel?.id === a.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{a.name}</button>
           ))}
-        </div>
+        </HScroll>
       )}
 
       {sel && (

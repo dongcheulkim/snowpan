@@ -9,6 +9,7 @@ import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
+import HScroll from '../components/HScroll';
 
 interface Shop {
   id: string;
@@ -68,18 +69,18 @@ export default function NewEquipment() {
       <CategoryAdBanner category="skishop" />
 
       {/* 지역 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {areas.map(a => (
           <button key={a.id} onClick={() => { setSelectedArea(a.id); setSelectedResort('all'); }}
             className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
             {a.name}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* 소분류: 리조트 — 선택한 지역 소속만 (리조트 없는 지역은 줄 숨김) */}
       {(selectedArea === 'all' ? ALL_RESORTS : (REGION_RESORTS[selectedArea] || [])).length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <HScroll className="flex gap-2 overflow-x-auto pb-1">
           <button onClick={() => setSelectedResort('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
             전체
@@ -90,7 +91,7 @@ export default function NewEquipment() {
               {r}
             </button>
           ))}
-        </div>
+        </HScroll>
       )}
 
       {/* 목록 */}

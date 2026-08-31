@@ -9,6 +9,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
+import HScroll from '../components/HScroll';
 
 interface Shop {
   id: string;
@@ -71,24 +72,24 @@ export default function RepairShop() {
       <CategoryAdBanner category="repair" />
 
       {/* 지역 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {areas.map(a => (
           <button key={a.id} onClick={() => setSelectedArea(a.id)}
             className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
             {a.name}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* 서비스 종류 필터 — 부츠피팅 등 원하는 정비만 골라 보기 */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <HScroll className="flex gap-1.5 overflow-x-auto pb-1">
         {['all', ...REPAIR_SERVICES].map((sv) => (
           <button key={sv} onClick={() => setSelectedService(sv)}
             className={`px-2.5 py-1.5 rounded-full font-medium text-[11px] whitespace-nowrap transition-all flex-shrink-0 ${selectedService === sv ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'}`}>
             {sv === 'all' ? '전체 서비스' : sv}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* 목록 */}
       {loading ? (

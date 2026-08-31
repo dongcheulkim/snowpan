@@ -8,6 +8,7 @@ import { CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } fr
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
+import HScroll from '../components/HScroll';
 
 interface Product {
   id: string;
@@ -288,13 +289,13 @@ const UsedDetail = () => {
             )}
           </div>
           {allImages.length > 1 && (
-            <div className="flex gap-2 mt-2 overflow-x-auto">
+            <HScroll className="flex gap-2 mt-2 overflow-x-auto">
               {allImages.map((img, idx) => (
                 <button key={idx} onClick={() => setSelectedImage(idx)} className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 ${selectedImage === idx ? 'border-accent' : 'border-gray-200'}`}>
                   <img src={img} alt="" loading="lazy" className="w-full h-full object-cover" />
                 </button>
               ))}
-            </div>
+            </HScroll>
           )}
         </div>
 

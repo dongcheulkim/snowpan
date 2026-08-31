@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
+import HScroll from '../components/HScroll';
 
 interface ShopPost {
   id: string;
@@ -133,7 +134,7 @@ export default function ShopPostDetail() {
               )}
             </div>
             {images.length > 1 && (
-              <div className="flex gap-1.5 mt-2 overflow-x-auto">
+              <HScroll className="flex gap-1.5 mt-2 overflow-x-auto">
                 {images.map((u, i) => (
                   <button
                     key={i}
@@ -145,7 +146,7 @@ export default function ShopPostDetail() {
                     <img src={imageUrl(u, 200)} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
-              </div>
+              </HScroll>
             )}
           </div>
         )}

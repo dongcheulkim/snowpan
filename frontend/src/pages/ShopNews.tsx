@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { RowListSkeleton } from '../components/Skeleton';
+import HScroll from '../components/HScroll';
 
 // 매장 소식 전체 피드 — 홈은 매장당 최신 1개만 보여주므로,
 // 밀려난 소식까지 전부 시간순으로 볼 수 있는 페이지.
@@ -78,7 +79,7 @@ export default function ShopNewsPage() {
       </div>
 
       {/* 매장 종류 필터 — 카테고리별 소식만 모아보기 */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {SHOP_FILTERS.map((f) => (
           <button
             key={f.id}
@@ -88,7 +89,7 @@ export default function ShopNewsPage() {
             }`}
           >{f.label}</button>
         ))}
-      </div>
+      </HScroll>
 
       {/* 소식 유형 필터 */}
       <div className="flex gap-2">

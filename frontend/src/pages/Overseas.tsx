@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import DealCard, { type Deal } from '../components/DealCard';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { RowListSkeleton } from '../components/Skeleton';
+import { hasMouse } from '../utils/pointer';
+import HScroll from '../components/HScroll';
 
 interface Resort {
   id: string;
@@ -79,14 +81,32 @@ function GridCard({ r, scope }: { r: Resort; scope: '국내' | '해외' }) {
 
 // 가로 스크롤 섹션 (야놀자식 테마 행)
 function Row({ title, items, scope, onMore }: { title: string; items: Resort[]; scope: '국내' | '해외'; onMore?: () => void }) {
+  const trackRef = useRef<HTMLDivElement>(null);
   if (!items.length) return null;
+  const nudge = (dir: -1 | 1) => {
+    const el = trackRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
+  };
   return (
     <div className="pb-5">
       <div className="px-4 flex items-center justify-between mb-2">
         <h2 className="text-base font-bold text-gray-900">{title}</h2>
-        {onMore && <button onClick={onMore} className="text-[11px] font-bold text-gray-500">전체보기 ›</button>}
+        <div className="flex items-center gap-1.5">
+          {/* PC — 스와이프 대신 화살표 */}
+          {hasMouse && items.length > 1 && (
+            <>
+              <button type="button" aria-label="왼쪽으로" onClick={() => nudge(-1)} className="w-7 h-7 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <button type="button" aria-label="오른쪽으로" onClick={() => nudge(1)} className="w-7 h-7 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
+            </>
+          )}
+          {onMore && <button onClick={onMore} className="text-[11px] font-bold text-gray-500">전체보기 ›</button>}
+        </div>
       </div>
-      <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 snap-x">
+      <div ref={trackRef} className="flex gap-3 overflow-x-auto no-scrollbar px-4 snap-x">
         {items.map((r) => <PhotoCard key={r.id} r={r} scope={scope} />)}
       </div>
     </div>
@@ -196,11 +216,11 @@ export default function Overseas() {
 
           {/* 하위 카테고리 칩 */}
           {!loading && subTabs.length > 1 && (
-            <div className="px-4 pb-3 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <HScroll className="px-4 pb-3 flex gap-1.5 overflow-x-auto no-scrollbar">
               {subTabs.map((tb) => (
                 <button key={tb} onClick={() => setSub(tb)} className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeSub === tb ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>{tb}</button>
               ))}
-            </div>
+            </HScroll>
           )}
 
           {loading ? (

@@ -9,6 +9,7 @@ import { useVertical } from '../hooks/useVertical';
 import { PhoneIcon } from '../components/Icons';
 import { RentalIcon } from '../components/CategoryIcons';
 import { RowListSkeleton } from '../components/Skeleton';
+import HScroll from '../components/HScroll';
 
 interface RentalItem {
   id: string;
@@ -75,7 +76,7 @@ const Rental = () => {
       <CategoryAdBanner category="rental" />
 
       {/* Resort Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {[{ id: 'all', name: '전체' }, ...resorts].map((resort) => (
           <button
             key={resort.id}
@@ -89,7 +90,7 @@ const Rental = () => {
             {resort.name}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* Rental Items */}
       {loading ? (

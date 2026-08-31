@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
 import { useVertical } from '../hooks/useVertical';
+import HScroll from '../components/HScroll';
 
 interface BannerData {
   id: string;
@@ -412,7 +413,7 @@ const Home = () => {
             <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           {/* 카테고리 칩 — 골라보기 (투표/자유/장비/스키장후기/초보팁) */}
-          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
+          <HScroll className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
             {HOT_TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -422,7 +423,7 @@ const Home = () => {
                 }`}
               >{tab.label}</button>
             ))}
-          </div>
+          </HScroll>
           {hot.length === 0 ? (
             hotTab === 'all' ? (
               <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">

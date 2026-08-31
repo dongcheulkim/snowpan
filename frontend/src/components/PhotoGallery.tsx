@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { imageUrl } from '../api';
+import { hasMouse } from '../utils/pointer';
 
 // 상세 페이지 사진 캐러셀 — 콤마 구분 URL 문자열. 한 장씩 스와이프(가로 스크롤 스냅).
 // 에어비앤비/인스타 패턴: 세로·가로 사진 섞여도 예쁘게 — 블러 배경 채움 + object-contain,
@@ -55,6 +56,29 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
         ))}
       </div>
 
+      {/* PC(마우스) — 스와이프 대신 화살표로 넘기기 */}
+      {hasMouse && urls.length > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="이전 사진"
+            onClick={() => goTo(Math.max(0, idx - 1))}
+            disabled={idx === 0}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 text-white flex items-center justify-center disabled:opacity-25 hover:bg-black/65 transition-colors z-10"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <button
+            type="button"
+            aria-label="다음 사진"
+            onClick={() => goTo(Math.min(urls.length - 1, idx + 1))}
+            disabled={idx === urls.length - 1}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/45 text-white flex items-center justify-center disabled:opacity-25 hover:bg-black/65 transition-colors z-10"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+          </button>
+        </>
+      )}
       {urls.length > 1 && (
         <>
           {/* 카운터 */}

@@ -4,6 +4,7 @@ import Hls from 'hls.js';
 import { api } from '../api';
 import { ProhibitIcon } from '../components/Icons';
 import { LivecamIcon } from '../components/CategoryIcons';
+import HScroll from '../components/HScroll';
 
 interface CamInfo { label: string; stream: string }
 interface WebcamData {
@@ -189,7 +190,7 @@ const WebcamDetail = () => {
       {hasStreams ? (
         <>
           {/* Camera selector tabs */}
-          <div className="overflow-x-auto pb-1">
+          <HScroll className="overflow-x-auto pb-1">
             <div className="flex gap-1.5 min-w-max">
               {cameras.map((c, idx) => (
                 <button
@@ -205,7 +206,7 @@ const WebcamDetail = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </HScroll>
 
           {/* Video player — 유튜브 라이브면 임베드, 아니면 HLS */}
           <div className="card rounded-2xl overflow-hidden bg-black">

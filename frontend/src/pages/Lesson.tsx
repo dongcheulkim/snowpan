@@ -8,6 +8,7 @@ import { toastError } from '../components/Toast';
 import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
+import HScroll from '../components/HScroll';
 
 interface LessonItem {
   id: string;
@@ -98,7 +99,7 @@ const Lesson = () => {
       </div>
 
       {/* Resort Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
         {[{ id: 'all', name: '전체' }, ...resorts].map((resort) => (
           <button
             key={resort.id}
@@ -112,10 +113,10 @@ const Lesson = () => {
             {resort.name}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* 강습 분야 필터 — 인터·레이싱 등 */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <HScroll className="flex gap-1.5 overflow-x-auto pb-1">
         {['all', ...SPECIALTIES].map((sp) => (
           <button
             key={sp}
@@ -127,7 +128,7 @@ const Lesson = () => {
             {sp === 'all' ? '전체 분야' : sp}
           </button>
         ))}
-      </div>
+      </HScroll>
 
       {/* Lesson Items — 포스터형 */}
       {loading ? (
