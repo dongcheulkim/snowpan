@@ -83,9 +83,19 @@ if ('serviceWorker' in navigator) {
 // Vercel env에 VITE_SENTRY_DSN을 세팅하면 자동으로 활성화됩니다.
 // 형식이 깨진 DSN 으로 init 하면 console 에 'Invalid Sentry Dsn' 빨갛게 뜨므로 사전 검증.
 const VALID_DSN = /^https?:\/\/[^@]+@[^/]+\/\d+/;
+// 초기 로딩과 대역폭 경쟁하지 않도록 load 이후 유휴 시간에 로드 (모바일 LCP 보호).
+function whenIdleAfterLoad(fn: () => void) {
+  const idle = () => {
+    if ('requestIdleCallback' in window) (window as Window & { requestIdleCallback: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback(fn, { timeout: 5000 });
+    else setTimeout(fn, 2500);
+  };
+  if (document.readyState === 'complete') idle();
+  else window.addEventListener('load', idle, { once: true });
+}
 try {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
   if (dsn && VALID_DSN.test(dsn)) {
+    whenIdleAfterLoad(() => {
     // .catch() 필수 — Safari 등 특정 브라우저에서 dynamic import 실패 시
     // unhandled promise rejection 으로 Sentry 가 자기 자신 로드 실패를 보고하는
     // 무한 루프 방지.
@@ -117,6 +127,7 @@ try {
         }
       } catch { /* ignore */ }
     }).catch(() => { /* Sentry 로드 실패는 silent — 앱 동작에 영향 없음 */ });
+    });
   }
 } catch { /* ignore */ }
 
