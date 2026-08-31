@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { api, getUser, getToken, SERVER_URL, uploadImages, imageUrl } from '../api';
+import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../components/Toast';
@@ -109,6 +109,26 @@ const Chat = () => {
   };
   const backPath = state?.backTo || '/chat/rooms';
 
+  // 탭이 백그라운드면 방에서 나감 — 서버가 "보고 있다"고 오판해 푸시·알림을 생략하는 것 방지.
+  // 복귀 시 재조인 + 그 사이 메시지 refetch + 읽음 처리.
+  useEffect(() => {
+    const onVis = () => {
+      const sock = socketRef.current;
+      if (!sock || !roomId) return;
+      if (document.visibilityState === 'hidden') {
+        sock.emit('leave_room', roomId);
+      } else {
+        sock.emit('join_room', roomId);
+        api<Message[]>(`/chat/rooms/${roomId}/messages`)
+          .then(m => { setMessages(m); markAsRead(roomId); })
+          .catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
+
   const markAsRead = (id: string) => {
     api(`/chat/rooms/${id}/read`, { method: 'PUT' }).catch(() => { /* ignore */ });
   };
@@ -153,6 +173,16 @@ const Chat = () => {
       if (data.userId !== user.id) setOtherLastReadAt(data.readAt);
     });
     socket.on('disconnect', () => setConnected(false));
+    // 토큰 만료로 재연결이 거부되면 자동 재시도 중단 → refresh 후 수동 재연결
+    let refreshingSock = false;
+    socket.on('connect_error', async () => {
+      if (refreshingSock) return;
+      refreshingSock = true;
+      try {
+        const t = await tryRefreshAccessToken();
+        if (t) socket.connect();
+      } finally { refreshingSock = false; }
+    });
     // 서버가 메시지를 드롭(레이트리밋)하거나 방 입장 거부 시 사용자에게 알림 — 조용한 유실 방지.
     socket.on('rate_limited', (d: { error?: string }) => toastError(d?.error || '메시지를 너무 빠르게 보내고 있어요.'));
     socket.on('room_error', (d: { error?: string }) => toastError(d?.error || '채팅방에 접근할 수 없어요.'));

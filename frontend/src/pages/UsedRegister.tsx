@@ -206,7 +206,7 @@ const UsedRegister = () => {
                       if (prev.length >= 5) return prev;
                       return [...prev, ev.target?.result as string];
                     });
-                    setImageFiles((prev) => [...prev, file]);
+                    setImageFiles((prev) => (prev.length >= 5 ? prev : [...prev, file])); // 미리보기와 동일 가드 — desync 방지
                   };
                   reader.readAsDataURL(file);
                 });

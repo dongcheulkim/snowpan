@@ -721,7 +721,7 @@ export default function AdBooking() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">광고 제목</span>
-              <span className="font-medium">{title}</span>
+              <span className="font-medium">{title || '(이미지 광고)'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">광고 기간</span>

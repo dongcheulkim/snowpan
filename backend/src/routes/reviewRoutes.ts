@@ -90,7 +90,10 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
     await createNotification(sellerId, 'system', title, body, link);
     sendPushToUser(sellerId, title, body, link);
 
-    res.status(201).json(review);
+    res.status(201).json({
+      ...review,
+      buyer: review.buyer ? { ...review.buyer, name: review.buyer.nickname || review.buyer.name } : review.buyer,
+    });
   } catch (error) {
     console.error('Create review error:', error);
     res.status(500).json({ error: '리뷰 등록 중 오류가 발생했습니다.' });
@@ -130,7 +133,12 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const agg = await prisma.review.aggregate({ where, _avg: { rating: true } });
     const averageRating = agg._avg.rating || 0;
 
-    res.json({ reviews, averageRating, totalCount });
+    // 실명 보호 — 공개 API 라 name 을 닉네임으로 치환 (커뮤니티와 동일 정책)
+    const shaped = reviews.map((r) => ({
+      ...r,
+      buyer: r.buyer ? { ...r.buyer, name: r.buyer.nickname || r.buyer.name } : r.buyer,
+    }));
+    res.json({ reviews: shaped, averageRating, totalCount });
   } catch (error) {
     console.error('Get reviews error:', error);
     res.status(500).json({ error: '리뷰 조회 중 오류가 발생했습니다.' });

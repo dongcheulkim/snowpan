@@ -47,7 +47,7 @@ export default function KeywordAlerts() {
       </div>
 
       <div className="card p-5">
-        <p className="text-xs text-gray-500 mb-3">등록한 키워드가 포함된 중고매물이 올라오면 푸시로 알려드려요. (예: 살로몬, 160 스키, 버튼 보드)</p>
+        <p className="text-xs text-gray-500 mb-3">등록한 키워드가 포함된 중고매물이 올라오면 푸시로 알려드려요. (예: 살로몬, 스키복, 버튼 커스텀</p>
         <div className="flex gap-2">
           <input
             value={input}

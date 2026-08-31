@@ -429,7 +429,11 @@ io.on('connection', (socket) => {
       const room = await prisma.chatRoom.findFirst({
         where: { id: data.roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
       });
-      if (!room) return;
+      if (!room) {
+        // 상대가 방을 삭제한 경우 등 — 무음 드롭하면 보낸 내용이 증발한 것처럼 보임
+        socket.emit('room_error', { roomId: data.roomId, error: '채팅방을 찾을 수 없어요. 목록을 새로고침해주세요.' });
+        return;
+      }
 
       const message = await prisma.message.create({
         data: { roomId: data.roomId, senderId: userId, content, imageUrl, type },

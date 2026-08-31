@@ -60,7 +60,14 @@ const PAGE_SIZE = 20;
 const Community = () => {
   const { sport } = useParams<{ sport: string }>();
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState('all');
+  // ?tab= 딥링크 지원 (투표 삭제 후 복귀 등) — 유효한 탭 id 만 수용
+  const initialTab = (() => {
+    try {
+      const t = new URLSearchParams(window.location.search).get('tab');
+      return t && ['all', 'popular', 'g_talk', 'g_gear', 'g_info', 'g_jobs', 'poll'].includes(t) ? t : 'all';
+    } catch { return 'all'; }
+  })();
+  const [selectedTab, setSelectedTab] = useState(initialTab);
   const [selectedSub, setSelectedSub] = useState('all'); // 대분류 안 소분류
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');

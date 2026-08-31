@@ -7,6 +7,18 @@ import { sanitizeImages } from '../utils/images';
 import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
+// 숙소 유형 화이트리스트 — 콤마 목록 각 항목 검증 (API 직접 호출로 임의 유형 저장 방지)
+const ACCOM_TYPES = ['hotel', 'pension', 'condo', 'minbak', 'season', 'guest'];
+const cleanAccomType = (v: unknown): string | null => {
+  if (typeof v !== 'string' || !v.trim()) return null;
+  const picked = v.split(',').map((x) => x.trim()).filter((x) => ACCOM_TYPES.includes(x));
+  return picked.length ? [...new Set(picked)].join(',') : null;
+};
+const validGuests = (v: unknown): boolean => {
+  const n = parseInt(String(v), 10);
+  return Number.isInteger(n) && n >= 1 && n <= 50;
+};
+
 export const getAccommodations = async (req: Request, res: Response): Promise<void> => {
   try {
     const { resortId, type, limit, offset, vertical } = req.query;
@@ -91,6 +103,9 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
+    const cleanType = cleanAccomType(type);
+    if (!cleanType) { res.status(400).json({ error: '숙소 유형이 올바르지 않습니다.' }); return; }
+    if (!validGuests(guests)) { res.status(400).json({ error: '최대 인원은 1~50 사이여야 합니다.' }); return; }
     if (!isAllowedImageUrl(image)) {
       res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
       return;
@@ -109,7 +124,7 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
     const accommodation = await prisma.accommodation.create({
       data: {
         name,
-        type,
+        type: cleanType,
         price: priceResult.value,
         originalPrice: originalParsed,
         guests,
@@ -152,6 +167,8 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
     const { name, type, price, originalPrice, guests, features, image, images, resortId } = req.body;
+    if (type !== undefined && !cleanAccomType(type)) { res.status(400).json({ error: '숙소 유형이 올바르지 않습니다.' }); return; }
+    if (guests !== undefined && !validGuests(guests)) { res.status(400).json({ error: '최대 인원은 1~50 사이여야 합니다.' }); return; }
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const r = parsePrice(price);

@@ -98,9 +98,10 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
     // 3) DAU/방문 통계 — 최근 14일
     const days = 14;
     const today = todayKST();
-    const since = new Date();
-    since.setHours(0, 0, 0, 0);
-    since.setDate(since.getDate() - (days - 1));
+    // KST 오늘 00:00(UTC 로 환산)을 기준으로 14일 창 — 서버가 UTC 라서
+    // UTC 자정 기준으로 잡으면 KST 00~09시 사이 "오늘" 버킷이 통째로 빠지던 문제.
+    const kstTodayStart = new Date(`${today}T00:00:00+09:00`);
+    const since = new Date(kstTodayStart.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
     const sinceStr = (() => { const d = new Date(since.getTime() + 9 * 60 * 60 * 1000); return d.toISOString().slice(0, 10); })();
 
     const [newUsers, newProducts, visits] = await Promise.all([
@@ -116,8 +117,7 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
     const buckets: { date: string; users: number; products: number; visitors: number; pageviews: number }[] = [];
     const dateList: string[] = [];
     for (let i = 0; i < days; i++) {
-      const d = new Date(since);
-      d.setDate(since.getDate() + i);
+      const d = new Date(since.getTime() + i * 24 * 60 * 60 * 1000);
       const kstDate = new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
       dateList.push(kstDate);
       buckets.push({ date: kstDate.slice(5), users: 0, products: 0, visitors: 0, pageviews: 0 });
@@ -309,6 +309,7 @@ export const createBanner = async (req: AuthRequest, res: Response): Promise<voi
     const banner = await prisma.banner.create({
       data: { title: String(title).trim(), description: description || '', tag: tag || '', url: url || '', image: image || null, order: order ?? 0, active: active ?? true },
     });
+    cacheDel('banners:public');
     res.status(201).json(banner);
   } catch (error) {
     console.error('Create banner error:', error);
@@ -335,6 +336,7 @@ export const updateBanner = async (req: AuthRequest, res: Response): Promise<voi
         ...(active !== undefined && { active }),
       },
     });
+    cacheDel('banners:public');
     res.json(banner);
   } catch (error) {
     console.error('Update banner error:', error);
@@ -347,6 +349,7 @@ export const deleteBanner = async (req: AuthRequest, res: Response): Promise<voi
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
     await prisma.banner.delete({ where: { id } });
+    cacheDel('banners:public');
     res.json({ message: '배너가 삭제되었습니다.' });
   } catch (error) {
     console.error('Delete banner error:', error);
@@ -517,7 +520,7 @@ export const rejectRental = async (req: AuthRequest, res: Response): Promise<voi
     const rental = await prisma.rental.findUnique({ where: { id } });
     const rentalUserId = rental?.userId;
     const rentalName = rental?.name;
-    await prisma.rental.delete({ where: { id } });
+    await prisma.rental.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
 
     if (rentalUserId) {
       await createNotification(rentalUserId, 'reject', '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`);
@@ -543,7 +546,7 @@ export const rejectLesson = async (req: AuthRequest, res: Response): Promise<voi
     const lesson = await prisma.lesson.findUnique({ where: { id } });
     const lessonUserId = lesson?.userId;
     const lessonName = lesson?.name;
-    await prisma.lesson.delete({ where: { id } });
+    await prisma.lesson.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
 
     if (lessonUserId) {
       await createNotification(lessonUserId, 'reject', '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`);

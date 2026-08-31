@@ -13,28 +13,34 @@ const VALID_POST_TYPES = ['general', 'promo', 'notice', 'event'];
 
 // 각 shop 테이블에서 owner userId 조회 헬퍼.
 async function getShopOwner(shopType: string, shopId: string): Promise<string | null> {
-  const select = { userId: true } as const;
+  const info = await getShopInfo(shopType, shopId);
+  return info?.userId ?? null;
+}
+
+// 소유자 + 승인 여부 — 미승인 매장의 소식 작성·공개 차단용
+async function getShopInfo(shopType: string, shopId: string): Promise<{ userId: string; approved: boolean } | null> {
+  const select = { userId: true, approved: true } as const;
   try {
     switch (shopType) {
       case 'skishop': {
         const row = await prisma.skiShop.findUnique({ where: { id: shopId }, select });
-        return row?.userId ?? null;
+        return row ?? null;
       }
       case 'repair': {
         const row = await prisma.repairShop.findUnique({ where: { id: shopId }, select });
-        return row?.userId ?? null;
+        return row ?? null;
       }
       case 'rental': {
         const row = await prisma.rental.findUnique({ where: { id: shopId }, select });
-        return row?.userId ?? null;
+        return row ?? null;
       }
       case 'lesson': {
         const row = await prisma.lesson.findUnique({ where: { id: shopId }, select });
-        return row?.userId ?? null;
+        return row ?? null;
       }
       case 'accommodation': {
         const row = await prisma.accommodation.findUnique({ where: { id: shopId }, select });
-        return row?.userId ?? null;
+        return row ?? null;
       }
       default:
         return null;
@@ -56,6 +62,13 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     }
     const limit = Math.min(parseInt(String(req.query.limit || '20'), 10) || 20, 50);
     const cursor = req.query.cursor as string | undefined;
+
+    // 미승인(심사 대기·재심사) 매장의 소식은 비공개 — 홈 피드(/recent)와 정책 통일
+    const shopInfo = await getShopInfo(shopType, shopId);
+    if (!shopInfo?.approved) {
+      res.json({ items: [], nextCursor: null });
+      return;
+    }
 
     const posts = await prisma.shopPost.findMany({
       where: { shopType, shopId },
@@ -135,6 +148,11 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ error: '포스트를 찾을 수 없습니다.' });
       return;
     }
+    const shopInfo = await getShopInfo(post.shopType, post.shopId);
+    if (!shopInfo?.approved) {
+      res.status(404).json({ error: '포스트를 찾을 수 없습니다.' });
+      return;
+    }
     // 조회수 +1 (실패해도 응답은 정상).
     prisma.shopPost.update({
       where: { id: post.id },
@@ -171,13 +189,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 
     // 소유자 검증 — admin 은 어떤 shop 이든 가능.
     if (!isAdmin) {
-      const ownerId = await getShopOwner(shopType, shopId);
-      if (!ownerId) {
+      const info = await getShopInfo(shopType, shopId);
+      if (!info) {
         res.status(404).json({ error: '매장을 찾을 수 없습니다.' });
         return;
       }
-      if (ownerId !== userId) {
+      if (info.userId !== userId) {
         res.status(403).json({ error: '해당 매장의 소유자만 소식을 올릴 수 있어요.' });
+        return;
+      }
+      if (!info.approved) {
+        res.status(403).json({ error: '매장 승인 후에 소식을 올릴 수 있어요. 심사 중이라면 조금만 기다려주세요.' });
         return;
       }
       // 매장당 하루 5개 제한 — 소식 도배로 홈 피드 독점하는 것 방지. (admin 은 제한 없음)

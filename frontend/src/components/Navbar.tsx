@@ -1,6 +1,6 @@
 import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { api, getToken } from '../api';
+import { tryRefreshAccessToken, api, getToken } from '../api';
 import { io, Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
 import { showBrowserNotification } from '../utils/pushNotification';
@@ -88,11 +88,24 @@ const Navbar = () => {
     const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
     socketRef.current = socket;
 
+    // 토큰 만료로 핸드셰이크가 거부되면 Socket.IO 는 자동 재연결을 멈춤(active=false).
+    // refresh 성공 시 수동 재연결 — 없으면 1시간 뒤 실시간 알림이 조용히 죽음.
+    let refreshingSock = false;
+    socket.on('connect_error', async () => {
+      if (refreshingSock) return;
+      refreshingSock = true;
+      try {
+        const t = await tryRefreshAccessToken();
+        if (t) socket.connect();
+      } finally { refreshingSock = false; }
+    });
+
     socket.on('new_notification', (data: any) => {
       if (data?.type === 'chat') {
         // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
         // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).
         setTimeout(() => setHasUnread(true), 0);
+        try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: true })); } catch { /* 무시 */ }
         showBrowserNotification({
           title: data?.title || '새 메시지',
           body: data?.message || data?.body,

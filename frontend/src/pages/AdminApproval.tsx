@@ -83,7 +83,7 @@ const allBadgeOptions = [
 ];
 
 const accomTypeLabels: Record<string, string> = {
-  hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방',
+  hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트',
 };
 
 const AdminApproval = () => {

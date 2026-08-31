@@ -39,7 +39,8 @@ const Used = () => {
   const selectedGroup = searchParams.get('group')
     || (selectedCategory !== 'all' ? SNOW_GROUPS.find(g => g.subs.includes(selectedCategory))?.id || 'all' : 'all');
   const sort = searchParams.get('sort') || 'newest';
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const pageRaw = parseInt(searchParams.get('page') || '1', 10);
+  const page = Number.isFinite(pageRaw) ? Math.max(1, pageRaw) : 1;
   const initialSearch = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);

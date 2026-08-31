@@ -36,6 +36,14 @@ const BottomNav = () => {
   const user = getUser();
   const path = location.pathname;
   const keyboardOpen = useKeyboardOpen();
+  // 새 채팅 메시지 dot — Navbar 소켓이 쏘는 전역 이벤트 소비, 채팅 목록 방문 시 해제
+  const [chatUnread, setChatUnread] = useState(false);
+  useEffect(() => {
+    const on = () => setChatUnread(true);
+    window.addEventListener('snowpan:chat-unread', on);
+    return () => window.removeEventListener('snowpan:chat-unread', on);
+  }, []);
+  useEffect(() => { if (path.startsWith('/chat')) setChatUnread(false); }, [path]);
   const vertical = useVertical();
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;
@@ -93,6 +101,9 @@ const BottomNav = () => {
             >
               <div aria-hidden="true" className={`relative ${active ? 'scale-110' : ''} transition-transform duration-200`}>
                 {item.icon(active)}
+                {item.path === '/chat/rooms' && chatUnread && (
+                  <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-coral rounded-full" />
+                )}
                 {active && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-900 rounded-full" />}
               </div>
               <span style={active && activeColor ? { color: activeColor } : undefined} className={`text-[10px] font-medium ${active ? '' : 'text-gray-500'}`}>{item.label}</span>

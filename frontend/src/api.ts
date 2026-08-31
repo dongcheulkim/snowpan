@@ -50,7 +50,7 @@ interface ApiOptions {
 // 401 발생 → /auth/refresh (HttpOnly 쿠키 자동 전송) → 새 access 토큰 → 원 요청 재시도.
 // refresh 도 실패면 진짜 만료 → /login 리다이렉트.
 let refreshPromise: Promise<string | null> | null = null;
-async function tryRefreshAccessToken(): Promise<string | null> {
+export async function tryRefreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {

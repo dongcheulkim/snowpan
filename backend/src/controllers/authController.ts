@@ -155,6 +155,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         name: user.nickname || user.name,
         nickname: user.nickname,
+        provider: (user as { provider?: string | null }).provider ?? null,
         displayName: user.displayName,
         phone: user.phone,
         phoneVerified: user.phoneVerified,
@@ -385,9 +386,14 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     // 프로필 이미지 — 허용 도메인 URL 만 (javascript:, 외부 피싱 URL 차단).
+    // 단 기존 저장값과 동일하면 통과 — 소셜 가입 시 저장된 카카오/네이버 CDN 사진 때문에
+    // 닉네임만 바꿔도 400 나던 문제 방지 (새 URL 만 화이트리스트 검증).
     if (profileImage !== undefined && profileImage !== null && profileImage !== '' && !isAllowedImageUrl(profileImage)) {
-      res.status(400).json({ error: '허용되지 않은 이미지 URL 입니다.' });
-      return;
+      const cur = await prisma.user.findUnique({ where: { id: userId }, select: { profileImage: true } });
+      if (cur?.profileImage !== profileImage) {
+        res.status(400).json({ error: '허용되지 않은 이미지 URL 입니다.' });
+        return;
+      }
     }
 
     // 배지 — 본인이 "승인" 받은 배지만 표시 가능 (공인강사 등 신뢰배지 사칭 차단).
@@ -429,6 +435,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       email: user.email,
       name: user.nickname || user.name,
       nickname: user.nickname,
+      provider: (user as { provider?: string | null }).provider ?? null,
       displayName: user.displayName,
       phone: user.phone,
       phoneVerified: user.phoneVerified,
@@ -455,6 +462,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       email: user.email,
       name: user.nickname || user.name,
       nickname: user.nickname,
+      provider: (user as { provider?: string | null }).provider ?? null,
       displayName: user.displayName,
       phone: user.phone,
       phoneVerified: user.phoneVerified,

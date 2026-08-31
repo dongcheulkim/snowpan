@@ -266,9 +266,8 @@ const AdminDashboard = () => {
     if (cancelled) return;
     try {
       const r = await api<{ message?: string }>(`/ad-booking/admin/bookings/${id}/approve`, { method: 'POST', body: startDate ? { startDate } : {} });
-      const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
-      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active' } : b)));
-      toastSuccess(r.message || '입금 확인 완료! 광고가 노출됩니다.');
+      toastSuccess(r.message || '입금 확인 완료!');
+      fetchData(); // 서버가 결정한 최종 상태(미래 시작=paid/즉시=active)로 갱신 — 낙관 추측 오표시 방지
     } catch (err) {
       toastError(err instanceof Error ? err.message : '승인 실패');
     }
@@ -279,9 +278,8 @@ const AdminDashboard = () => {
     if (cancelled) return;
     try {
       await api(`/ad-booking/admin/bookings/${id}/free`, { method: 'POST', body: startDate ? { startDate } : {} });
-      const future = !!startDate && (() => { const [yy, mm, dd] = startDate.split('-').map(Number); return new Date(yy, mm - 1, dd) > new Date(); })();
-      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: future ? 'paid' : 'active', totalPrice: 0 } : b)));
       toastSuccess('무료 승인 완료!');
+      fetchData();
     } catch (err) {
       toastError(err instanceof Error ? err.message : '승인 실패');
     }

@@ -27,7 +27,7 @@ const subcatLabels: Record<string, string> = {
   helmet: '헬멧', goggles: '고글', wear: '의류', etc: '기타',
   // verticals 설정의 실제 서브카테고리 id 들 — 누락 시 영문 id 가 그대로 노출됐음
   ski_boots: '스키부츠', board_boots: '보드부츠', pole: '폴', gloves: '장갑',
-  bag: '가방', accessory: '액세서리', protector: '보호대',
+  bag: '가방', accessory: '액세서리', protector: '보호대', tuning: '왁스·튜닝',
 };
 
 // 스노우판 핵심 차별화 — '시세 대비 가격' 비교는 가장 강력한 셀링 포인트라 시각적으로 충분히 강조.
@@ -39,14 +39,17 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
   const [stats, setStats] = useState<MarketStats | null>(null);
 
   useEffect(() => {
-    if (!subcategory || !isSnow) return;
-    let cancelled = false;
-    const params = new URLSearchParams({ subcategory });
-    if (brand) params.set('brand', brand);
-    api<MarketStats>(`/products/market-stats?${params.toString()}`)
-      .then((data) => { if (!cancelled) setStats(data); })
-      .catch(() => {});
-    return () => { cancelled = true; };
+    const t = setTimeout(() => {
+      if (!subcategory || !isSnow) return;
+      let cancelled = false;
+      const params = new URLSearchParams({ subcategory });
+      if (brand) params.set('brand', brand);
+      api<MarketStats>(`/products/market-stats?${params.toString()}`)
+        .then((data) => { if (!cancelled) setStats(data); })
+        .catch(() => {});
+      return () => { cancelled = true; };
+    }, 300); // 브랜드 타이핑 디바운스 — 키스트로크마다 시세 조회 방지
+    return () => clearTimeout(t);
   }, [subcategory, brand, isSnow]);
 
   if (!isSnow || !subcategory || !stats) return null;

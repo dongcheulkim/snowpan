@@ -687,7 +687,8 @@ export const adminGetRevenue = async (_req: AuthRequest, res: Response): Promise
   try {
     if (_req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const payments = await prisma.adPayment.findMany({
-      where: { status: 'paid' },
+      // 부분환불(refunded) 건도 포함 — 잔여 수취액(amount - refundAmount)이 매출에서 통째로 빠지던 것 수정
+      where: { status: { in: ['paid', 'refunded'] } },
       select: { amount: true, paidAt: true, refundAmount: true },
     });
 

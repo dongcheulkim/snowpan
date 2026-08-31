@@ -42,6 +42,7 @@ const badgeColor: Record<string, string> = {
   '스키장후기': 'text-gold bg-gold/10 border-gold/20',
   '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
+  '모임': 'text-emerald-600 bg-emerald-50 border-emerald-200',
   '구인': 'text-indigo-500 bg-indigo-50 border-indigo-200',
   '구직': 'text-teal-600 bg-teal-50 border-teal-200',
   '공지': 'text-red-600 bg-red-50 border-red-200 font-bold',
@@ -200,7 +201,7 @@ const CommunityDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
-      <Link to={`${vbase}/community/${post.sport}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
+      <Link to={`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">&larr; {t('communityDetail.back')}</Link>
 
       <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -258,7 +259,7 @@ const CommunityDetail = () => {
           {post.userId === user.id && (
             <Link to={`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center active:bg-gray-200">수정</Link>
           )}
-          <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate(`${vbase}/community/${post.sport}`, { replace: true }); } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+          <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate(`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}`, { replace: true }); } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
         </div>
       )}
 

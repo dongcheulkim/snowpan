@@ -38,7 +38,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: Props) => {
       {end < totalPages && <span className="px-2 text-xs text-gray-500">...</span>}
       <button
         onClick={() => onPageChange(page + 1)}
-        disabled={page === totalPages}
+        disabled={page >= totalPages}
         className="px-3 py-2 text-xs text-gray-500 bg-snow border border-gray-200 rounded-lg disabled:opacity-30 hover:bg-gray-50 transition-colors"
       >
         다음 →
