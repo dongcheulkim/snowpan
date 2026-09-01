@@ -814,7 +814,7 @@ const AdminDashboard = () => {
                         {/* 열 헤더 */}
                         <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-[10px] font-bold text-gray-500">
                           <span className="flex-1">카테고리</span>
-                          <span className="w-24 text-center">1일 가격</span>
+                          <span className="w-24 text-center">월 단가</span>
                           <span className="w-14 text-center">동시 수</span>
                           <span className="w-12 text-center">상태</span>
                         </div>

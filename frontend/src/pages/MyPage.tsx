@@ -91,8 +91,10 @@ const MyPage = () => {
       });
       saveUser(updated);
       setUser(prev => prev ? { ...prev, profileImage: urls[0] } : prev);
-    } catch {
-      toastError('사진 업로드에 실패했습니다.');
+    } catch (err) {
+      // 서버가 준 구체적 사유(형식·용량·변환 실패 등)를 그대로 노출 — 원인 파악 가능하게
+      const msg = err instanceof Error && err.message && err.message !== '업로드 실패' ? err.message : '사진 업로드에 실패했습니다.';
+      toastError(msg);
     } finally {
       setUploadingPhoto(false);
     }

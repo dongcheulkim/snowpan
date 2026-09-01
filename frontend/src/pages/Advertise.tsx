@@ -24,11 +24,7 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
   premium: '내 상품·매장을 목록 최상단에 고정 노출합니다.',
 };
 
-const PERIOD_OPTIONS = [
-  { label: '1개월', discount: 0 },
-  { label: '6개월', discount: 0.05 },
-  { label: '12개월', discount: 0.1 },
-];
+
 
 const won = (n: number) => n.toLocaleString('ko-KR');
 
@@ -43,12 +39,12 @@ const Advertise = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // 슬롯별 최저 월 단가(=일단가×30) 계산.
+  // 슬롯별 최저 월 단가 (pricePerDay 필드에 월 단가 저장).
   const groups = ['main_banner', 'category', 'premium']
     .map((slot) => {
       const rows = pricings.filter((p) => p.slotType === slot);
-      const minDay = rows.length ? Math.min(...rows.map((r) => r.pricePerDay)) : null;
-      return { slot, rows, minMonthly: minDay != null ? minDay * 30 : null };
+      const minMonthly = rows.length ? Math.min(...rows.map((r) => r.pricePerDay)) : null;
+      return { slot, rows, minMonthly };
     })
     .filter((g) => g.rows.length > 0);
 
@@ -91,19 +87,13 @@ const Advertise = () => {
         </div>
       )}
 
-      {/* 기간 · 할인 */}
+      {/* 계약 단위 */}
       <section className="card p-5">
-        <h2 className="text-sm font-bold text-gray-900 mb-3">기간 선택 · 장기 할인</h2>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {PERIOD_OPTIONS.map((p) => (
-            <div key={p.label} className="rounded-lg border border-gray-200 py-3">
-              <div className="text-sm font-bold text-gray-900">{p.label}</div>
-              <div className="text-[11px] text-gray-400 mt-0.5">
-                {p.discount > 0 ? `${Math.round(p.discount * 100)}% 할인` : '기본가'}
-              </div>
-            </div>
-          ))}
-        </div>
+        <h2 className="text-sm font-bold text-gray-900 mb-2">계약 단위</h2>
+        <p className="text-xs text-gray-600 leading-relaxed">
+          광고는 <span className="font-bold text-gray-900">12개월(1년)</span> 단위로 게재됩니다.
+          표기된 월 단가 × 12개월로 결제되며, 게재 기간 동안 소재(문구·이미지) 교체가 가능합니다.
+        </p>
       </section>
 
       {/* 결제 · 환불 */}

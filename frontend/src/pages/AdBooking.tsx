@@ -16,10 +16,9 @@ interface SlotPricing {
 }
 
 // 기간제 — 백엔드 PERIOD_DAYS/PERIOD_DISCOUNT 와 동일해야 함.
+// 광고는 12개월(1년) 단일 상품 — pricePerDay 필드는 월 단가로 사용
 const PERIOD_OPTIONS: { months: number; days: number; discount: number; label: string }[] = [
-  { months: 1, days: 30, discount: 0, label: '1개월' },
-  { months: 6, days: 180, discount: 0.05, label: '6개월' },
-  { months: 12, days: 360, discount: 0.1, label: '12개월' },
+  { months: 12, days: 360, discount: 0, label: '12개월' },
 ];
 
 const SLOT_LABELS: Record<string, string> = {
@@ -92,8 +91,9 @@ export default function AdBooking() {
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  // Step 2: 기간 선택 (1/6/12개월) + 희망 시작일 (선택 — 비우면 입금 확인 즉시 시작)
-  const [periodMonths, setPeriodMonths] = useState<number | null>(null);
+  // Step 2: 기간 확인 (12개월 단일) + 희망 시작일 (선택 — 비우면 입금 확인 즉시 시작)
+  // 12개월 단일 상품 — 기본 선택 상태로 시작
+  const [periodMonths, setPeriodMonths] = useState<number | null>(12);
   const [desiredStart, setDesiredStart] = useState('');
 
   // Step 3: 광고 내용
@@ -187,7 +187,7 @@ export default function AdBooking() {
 
   const selectedPeriod = PERIOD_OPTIONS.find((p) => p.months === periodMonths) || null;
   const totalDays = selectedPeriod?.days || 0;
-  const originalPrice = currentPricing ? totalDays * currentPricing.pricePerDay : 0;
+  const originalPrice = currentPricing && selectedPeriod ? selectedPeriod.months * currentPricing.pricePerDay : 0;
   const discountAmount = selectedPeriod ? Math.round(originalPrice * selectedPeriod.discount) : 0;
   const totalPrice = originalPrice - discountAmount;
 
@@ -346,7 +346,7 @@ export default function AdBooking() {
                     {minPrice > 0 && (
                       <div className="text-right">
                         <div className="text-sky-600 font-bold">{formatPrice(minPrice)}원</div>
-                        <div className="text-xs text-gray-500">/ 1일</div>
+                        <div className="text-xs text-gray-500">/ 월</div>
                       </div>
                     )}
                   </div>
@@ -405,14 +405,14 @@ export default function AdBooking() {
         </div>
       )}
 
-      {/* Step 2: 기간 선택 (1/6/12개월) */}
+      {/* Step 2: 기간 확인 (12개월 단일 상품) */}
       {step === 2 && (
         <div className="space-y-4">
           <h2 className="text-lg font-bold mb-2">광고 기간 선택</h2>
 
           <div className="grid gap-3">
             {PERIOD_OPTIONS.map((opt) => {
-              const base = currentPricing ? opt.days * currentPricing.pricePerDay : 0;
+              const base = currentPricing ? opt.months * currentPricing.pricePerDay : 0;
               const dc = Math.round(base * opt.discount);
               const price = base - dc;
               const selected = periodMonths === opt.months;
@@ -434,7 +434,7 @@ export default function AdBooking() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">{opt.days}일 노출</div>
+                      <div className="text-xs text-gray-500 mt-0.5">1년(360일) 노출 · 월 {currentPricing ? formatPrice(currentPricing.pricePerDay) : ''}원</div>
                     </div>
                     <div className="text-right">
                       {dc > 0 && (
@@ -468,7 +468,7 @@ export default function AdBooking() {
           {selectedPeriod && currentPricing && (
             <div className="bg-sky-50 rounded-xl p-4 flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {selectedPeriod.label} ({totalDays}일) × {formatPrice(currentPricing.pricePerDay)}원
+                월 {formatPrice(currentPricing.pricePerDay)}원 × {selectedPeriod.months}개월
                 {discountAmount > 0 && ` − 할인 ${formatPrice(discountAmount)}원`}
               </span>
               <span className="font-bold text-sky-700 text-lg">{formatPrice(totalPrice)}원</span>
@@ -733,7 +733,7 @@ export default function AdBooking() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">단가</span>
-              <span className="font-medium">{currentPricing && formatPrice(currentPricing.pricePerDay)}원/일</span>
+              <span className="font-medium">{currentPricing && formatPrice(currentPricing.pricePerDay)}원/월</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between">

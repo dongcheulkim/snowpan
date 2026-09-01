@@ -188,8 +188,9 @@ export const getAvailability = async (req: Request, res: Response): Promise<void
 
 // 광고 예약 생성 (결제 대기 상태)
 // 기간제 옵션: 1/6/12개월 (고정 일수로 가격 예측 가능). 장기 계약 할인 5%/10%.
-const PERIOD_DAYS: Record<number, number> = { 1: 30, 6: 180, 12: 360 };
-const PERIOD_DISCOUNT: Record<number, number> = { 1: 0, 6: 0.05, 12: 0.1 };
+const PERIOD_DAYS: Record<number, number> = { 12: 360 };
+// 광고는 12개월(1년) 단일 상품 — 가격은 월 단가(pricePerDay 컬럼을 월 단가로 사용) × 12
+const PERIOD_DISCOUNT: Record<number, number> = { 12: 0 };
 
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -202,7 +203,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     const months = Number(periodMonths);
     if (periodMonths !== undefined) {
       if (!PERIOD_DAYS[months]) {
-        res.status(400).json({ error: '기간은 1개월/6개월/12개월 중에서 선택해주세요.' });
+        res.status(400).json({ error: '광고는 12개월(1년) 단위로 신청할 수 있습니다.' });
         return;
       }
       const base = desiredStart ? new Date(String(desiredStart)) : new Date();
@@ -374,11 +375,12 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       }
 
       const totalDays = days;
-      const basePrice = totalDays * pricing.pricePerDay;
-      // 할인: 기간제(6개월 5%, 12개월 10%)가 우선. 구버전(날짜 직접 선택)은 기존 이체 5% 유지.
-      const periodRate = PERIOD_DISCOUNT[months] ?? null;
-      const discountRate = periodRate !== null ? periodRate : (payMethod === 'TRANSFER' ? 0.05 : 0);
-      const discountAmount = Math.round(basePrice * discountRate);
+      // pricePerDay 컬럼은 월 단가 — 기간제(12개월)는 월 단가 × 개월수, 할인 없음.
+      // 구버전(날짜 직접 선택) 경로는 월 단가를 30일로 일할 계산.
+      const basePrice = PERIOD_DISCOUNT[months] !== undefined
+        ? months * pricing.pricePerDay
+        : Math.round(totalDays * (pricing.pricePerDay / 30));
+      const discountAmount = 0;
       const totalPrice = basePrice - discountAmount;
       const merchantUid = `snowpan_ad_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 

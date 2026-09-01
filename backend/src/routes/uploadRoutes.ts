@@ -63,6 +63,11 @@ function detectFileType(buf: Buffer): string | null {
     if (['mp42', 'mp41', 'mp4v', 'isom', 'iso2', 'iso4', 'iso5', 'iso6', 'avc1', 'avc3', 'dash', 'M4V ', 'M4VP', 'f4v '].includes(brand)) return 'video/mp4';
     if (brand === 'qt  ') return 'video/quicktime';
   }
+  // HEIC/HEIF: ftyp 브랜드 (아이폰·갤럭시 고효율 사진)
+  if (buf.slice(4, 8).toString() === 'ftyp') {
+    const brand = buf.slice(8, 12).toString();
+    if (['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'msf1'].includes(brand)) return 'image/heic';
+  }
   // WebM: 1A 45 DF A3 (EBML header)
   if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return 'video/webm';
   return null;
@@ -72,9 +77,10 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'];
-    if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('JPG, PNG, WebP, MP4, MOV, WebM 파일만 업로드 가능합니다.'));
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'video/mp4', 'video/quicktime', 'video/webm'];
+    // 일부 안드로이드가 mimetype 을 비우거나 octet-stream 으로 보냄 — 매직 바이트 검증이 최종 판정
+    if (allowed.includes(file.mimetype) || !file.mimetype || file.mimetype === 'application/octet-stream') cb(null, true);
+    else cb(new Error('JPG, PNG, WebP, HEIC, MP4, MOV, WebM 파일만 업로드 가능합니다.'));
   },
 });
 
@@ -111,9 +117,30 @@ router.post('/', uploadLimitPerMin, uploadLimitPerHour, uploadImages, async (req
       res.status(400).json({ error: `${file.originalname}: 지원하지 않는 파일 형식입니다.` });
       return;
     }
-    if (detected !== file.mimetype) {
-      res.status(400).json({ error: `${file.originalname}: 파일 형식이 일치하지 않습니다 (선언: ${file.mimetype}, 실제: ${detected}).` });
+    // 선언 mimetype 이 비어있거나(안드로이드 일부) heic 계열이면 실제 감지값을 채택
+    const declared = file.mimetype;
+    const laxDeclared = !declared || declared === 'application/octet-stream' || declared === 'image/heif';
+    if (!laxDeclared && declared !== detected && !(declared === 'image/heic' && detected === 'image/heic')) {
+      res.status(400).json({ error: `${file.originalname}: 파일 형식이 일치하지 않습니다 (선언: ${declared}, 실제: ${detected}).` });
       return;
+    }
+    file.mimetype = detected;
+  }
+
+  // HEIC → JPEG 서버 변환 — 브라우저(특히 안드로이드 크롬)가 HEIC 를 디코드 못 해
+  // 원본이 그대로 올라오는 경우. 웹에서 표시 가능하도록 변환 후 저장.
+  for (const file of files) {
+    if (file.mimetype === 'image/heic') {
+      try {
+        const heicConvert = (await import('heic-convert')).default;
+        const jpeg = await heicConvert({ buffer: file.buffer, format: 'JPEG', quality: 0.85 });
+        file.buffer = Buffer.from(jpeg);
+        file.mimetype = 'image/jpeg';
+      } catch (e) {
+        console.error('HEIC 변환 실패:', e);
+        res.status(400).json({ error: `${file.originalname}: HEIC 사진 변환에 실패했습니다. 갤러리에서 JPG로 저장 후 다시 올려주세요.` });
+        return;
+      }
     }
   }
 
