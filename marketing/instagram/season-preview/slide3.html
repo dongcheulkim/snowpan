@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; }
+  body {
+    font-family: "Apple SD Gothic Neo", "Pretendard", -apple-system, sans-serif;
+    background: linear-gradient(180deg, #0B1220 0%, #0F172A 55%, #1E293B 100%);
+    color: #F8FAFC;
+    position: relative;
+  }
+  .snow {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      radial-gradient(circle, rgba(248,250,252,.85) 3px, transparent 4px),
+      radial-gradient(circle, rgba(248,250,252,.45) 2px, transparent 3px),
+      radial-gradient(circle, rgba(248,250,252,.25) 1.5px, transparent 2.5px);
+    background-size: 340px 420px, 220px 260px, 140px 180px;
+    background-position: 40px 60px, 120px 30px, 10px 90px;
+  }
+  .masthead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 72px 84px 0;
+  }
+  .brand { display: flex; align-items: baseline; gap: 18px; }
+  .brand .logo { font-size: 54px; font-weight: 900; letter-spacing: 6px; }
+  .brand .news { font-family: Georgia, serif; font-style: italic; font-size: 44px; color: #7DD3FC; }
+  .issue { font-size: 26px; font-weight: 600; letter-spacing: 3px; color: #94A3B8; }
+  .rule { margin: 36px 84px 0; height: 3px; background: rgba(248,250,252,.35); }
+  .content {
+    position: relative; z-index: 2;
+    padding: 120px 84px 0; text-align: center;
+  }
+  h2 { font-size: 108px; font-weight: 900; line-height: 1.25; letter-spacing: -2px; }
+  .url {
+    margin-top: 84px; display: inline-block;
+    background: #38BDF8; color: #0B1220;
+    font-size: 72px; font-weight: 900; letter-spacing: 2px;
+    padding: 34px 72px; border-radius: 20px;
+  }
+  .sub { margin-top: 48px; font-size: 36px; font-weight: 500; color: #CBD5E1; line-height: 1.6; }
+  .scene { position: absolute; left: 0; right: 0; bottom: 96px; height: 280px; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+  .footer {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
+    background: #F8FAFC; color: #0F172A;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 84px; font-size: 30px; font-weight: 800; letter-spacing: 1px;
+    z-index: 3;
+  }
+  .footer .page { font-weight: 600; color: #64748B; }
+</style>
+</head>
+<body>
+  <div class="snow"></div>
+
+  <div class="masthead">
+    <div class="brand"><span class="logo">SNOWPAN</span><span class="news">news</span></div>
+    <div class="issue">2026 WINTER PREVIEW</div>
+  </div>
+  <div class="rule"></div>
+
+  <div class="content">
+    <h2>겨울보다 먼저,<br>스노우판</h2>
+    <div class="url">snowpan.kr</div>
+    <p class="sub">지금 접속해서 이번 시즌 장비를 준비하세요.<br>검색창에 스노우판을 입력해도 됩니다.</p>
+  </div>
+
+  <div class="scene">
+    <svg viewBox="0 0 1080 400" preserveAspectRatio="none">
+      <path d="M0 280 L220 120 L380 250 L560 90 L740 270 L900 150 L1080 290 L1080 400 L0 400 Z" fill="#334155"/>
+      <path d="M220 120 L265 156 L235 150 L205 170 Z" fill="#F8FAFC"/>
+      <path d="M560 90 L610 142 L575 132 L535 156 Z" fill="#F8FAFC"/>
+      <path d="M900 150 L940 186 L912 178 L880 198 Z" fill="#F8FAFC"/>
+      <path d="M0 400 L0 300 L320 210 L660 340 L1080 260 L1080 400 Z" fill="#E2E8F0"/>
+      <path d="M320 216 L400 270 L350 310 L490 370" stroke="#94A3B8" stroke-width="5" stroke-dasharray="14 12" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="footer">
+    <span>snowpan.kr</span>
+    <span class="page">3 / 3</span>
+  </div>
+</body>
+</html>
