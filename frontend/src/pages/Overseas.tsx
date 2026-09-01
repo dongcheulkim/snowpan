@@ -101,13 +101,12 @@ function DomesticCard({ r, temp }: { r: Resort; temp: number | null }) {
     <div className="card overflow-hidden">
       <Link to={`/overseas/${r.slug}`} className="block active:opacity-90 transition-opacity">
         <div className={`relative h-40 bg-gradient-to-br ${gradOf(r.slug)}`}>
-          {r.image ? (
-            <img src={imageUrl(r.image, 700)} alt={r.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-          ) : (
-            /* 설산 실루엣 — 사진 없는 카드의 밋밋함 방지 */
-            <svg className="absolute bottom-0 inset-x-0 text-white/10" viewBox="0 0 420 96" fill="currentColor" preserveAspectRatio="none" aria-hidden>
-              <path d="M0 96 L70 30 L120 66 L180 8 L250 74 L310 26 L360 58 L420 14 L420 96 Z" />
-            </svg>
+          {/* 설산 실루엣 — 사진이 없거나 로드 실패해도 밋밋하지 않게 (사진이 뜨면 덮임) */}
+          <svg className="absolute bottom-0 inset-x-0 text-white/10" viewBox="0 0 420 96" fill="currentColor" preserveAspectRatio="none" aria-hidden>
+            <path d="M0 96 L70 30 L120 66 L180 8 L250 74 L310 26 L360 58 L420 14 L420 96 Z" />
+          </svg>
+          {r.image && (
+            <img src={imageUrl(r.image, 700)} alt={r.name} loading="lazy" className="relative w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
           {r.popular && <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-gray-900 bg-white/90 px-1.5 py-0.5 rounded">인기</span>}
