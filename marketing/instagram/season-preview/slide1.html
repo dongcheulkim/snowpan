@@ -6,97 +6,72 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1350px; overflow: hidden; }
   body {
-    font-family: "Apple SD Gothic Neo", "Pretendard", -apple-system, sans-serif;
-    background: linear-gradient(180deg, #0B1220 0%, #0F172A 55%, #1E293B 100%);
-    color: #F8FAFC;
-    position: relative;
+    font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+    position: relative; color: #fff; background: #000;
   }
-  .snow {
-    position: absolute; inset: 0; pointer-events: none;
-    background-image:
-      radial-gradient(circle, rgba(248,250,252,.85) 3px, transparent 4px),
-      radial-gradient(circle, rgba(248,250,252,.45) 2px, transparent 3px),
-      radial-gradient(circle, rgba(248,250,252,.25) 1.5px, transparent 2.5px);
-    background-size: 340px 420px, 220px 260px, 140px 180px;
-    background-position: 40px 60px, 120px 30px, 10px 90px;
+  .photo {
+    position: absolute; inset: 0;
+    background: url("snowboard.jpg") center 22% / cover no-repeat;
   }
-  .masthead {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 72px 84px 0;
+  .shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(8,12,22,.62) 0%, rgba(8,12,22,.18) 30%,
+      rgba(8,12,22,.16) 48%, rgba(8,12,22,.94) 100%);
   }
-  .brand { display: flex; align-items: baseline; gap: 18px; }
-  .brand .logo { font-size: 54px; font-weight: 900; letter-spacing: 6px; }
-  .brand .news { font-family: Georgia, serif; font-style: italic; font-size: 44px; color: #7DD3FC; }
-  .issue { font-size: 26px; font-weight: 600; letter-spacing: 3px; color: #94A3B8; }
-  .rule { margin: 36px 84px 0; height: 3px; background: rgba(248,250,252,.35); }
-  .content { padding: 96px 84px 0; position: relative; z-index: 2; }
-  .chip {
-    display: inline-block; background: #38BDF8; color: #0B1220;
-    font-size: 30px; font-weight: 800; letter-spacing: 2px;
-    padding: 14px 30px; border-radius: 8px;
+  .grain {
+    position: absolute; inset: 0; opacity: .07; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
   }
+  .top {
+    position: absolute; top: 64px; left: 72px; right: 72px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .brand { font-size: 40px; font-weight: 900; letter-spacing: 5px; }
+  .brand em { font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: 34px; letter-spacing: 0; margin-left: 12px; color: #BFE7FF; }
+  .date { font-size: 24px; font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,.85); }
+  .bottom { position: absolute; left: 72px; right: 72px; bottom: 76px; }
+  .kicker {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 30px; font-weight: 800; letter-spacing: 1px; color: #FF5A5F;
+  }
+  .kicker::before { content: ""; width: 10px; height: 34px; background: #FF5A5F; }
   h1 {
-    margin-top: 52px;
-    font-size: 94px; font-weight: 900; line-height: 1.22;
-    letter-spacing: -2px;
+    margin-top: 30px;
+    font-size: 92px; font-weight: 900; line-height: 1.18; letter-spacing: -2px;
+    text-shadow: 0 2px 24px rgba(0,0,0,.45);
   }
-  h1 .accent { color: #7DD3FC; }
   .sub {
-    margin-top: 42px;
-    font-size: 36px; font-weight: 500; line-height: 1.55; color: #CBD5E1;
-    max-width: 860px;
+    margin-top: 30px; font-size: 33px; font-weight: 500;
+    color: rgba(255,255,255,.86); letter-spacing: -0.5px;
   }
-  .scene { position: absolute; left: 0; right: 0; bottom: 96px; height: 350px; }
-  .scene svg { width: 100%; height: 100%; display: block; }
-  .footer {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
-    background: #F8FAFC; color: #0F172A;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 84px; font-size: 30px; font-weight: 800; letter-spacing: 1px;
-    z-index: 3;
+  .foot {
+    margin-top: 44px; padding-top: 26px;
+    border-top: 1px solid rgba(255,255,255,.4);
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 27px; font-weight: 700; letter-spacing: 1px;
   }
-  .footer .page { font-weight: 600; color: #64748B; }
+  .foot .page { font-weight: 500; color: rgba(255,255,255,.7); }
 </style>
 </head>
 <body>
-  <div class="snow"></div>
+  <div class="photo"></div>
+  <div class="shade"></div>
+  <div class="grain"></div>
 
-  <div class="masthead">
-    <div class="brand"><span class="logo">SNOWPAN</span><span class="news">news</span></div>
-    <div class="issue">2026 WINTER PREVIEW</div>
-  </div>
-  <div class="rule"></div>
-
-  <div class="content">
-    <span class="chip">26/27 시즌 프리뷰</span>
-    <h1>스키장 열리기 전,<br><span class="accent">장비</span>가 먼저<br>움직인다</h1>
-    <p class="sub">스키·스노보드 장비 중계 거래 플랫폼 스노우판.<br>이번 시즌 준비, 지금부터 시작됩니다.</p>
+  <div class="top">
+    <div class="brand">SNOWPAN<em>news</em></div>
+    <div class="date">2026. 09</div>
   </div>
 
-  <div class="scene">
-    <svg viewBox="0 0 1080 460" preserveAspectRatio="none">
-      <!-- gondola cable -->
-      <line x1="-20" y1="70" x2="1100" y2="205" stroke="#94A3B8" stroke-width="3"/>
-      <g fill="#E2E8F0">
-        <g transform="translate(230,96)"><line x1="0" y1="0" x2="0" y2="26" stroke="#94A3B8" stroke-width="4"/><rect x="-22" y="26" width="44" height="52" rx="8"/><rect x="-14" y="38" width="28" height="20" rx="4" fill="#334155"/></g>
-        <g transform="translate(560,137)"><line x1="0" y1="0" x2="0" y2="26" stroke="#94A3B8" stroke-width="4"/><rect x="-22" y="26" width="44" height="52" rx="8"/><rect x="-14" y="38" width="28" height="20" rx="4" fill="#334155"/></g>
-        <g transform="translate(880,177)"><line x1="0" y1="0" x2="0" y2="26" stroke="#94A3B8" stroke-width="4"/><rect x="-22" y="26" width="44" height="52" rx="8"/><rect x="-14" y="38" width="28" height="20" rx="4" fill="#334155"/></g>
-      </g>
-      <!-- back ridge -->
-      <path d="M0 320 L200 160 L340 280 L520 120 L700 300 L860 180 L1080 330 L1080 460 L0 460 Z" fill="#334155"/>
-      <path d="M200 160 L245 196 L215 190 L185 210 Z" fill="#F8FAFC"/>
-      <path d="M520 120 L570 172 L535 162 L495 186 Z" fill="#F8FAFC"/>
-      <path d="M860 180 L900 216 L872 208 L840 228 Z" fill="#F8FAFC"/>
-      <!-- front slope -->
-      <path d="M0 460 L0 340 L300 240 L640 380 L1080 300 L1080 460 Z" fill="#E2E8F0"/>
-      <!-- piste line -->
-      <path d="M300 246 L380 300 L330 340 L470 400 L420 440" stroke="#94A3B8" stroke-width="5" stroke-dasharray="14 12" fill="none"/>
-    </svg>
-  </div>
-
-  <div class="footer">
-    <span>snowpan.kr</span>
-    <span class="page">1 / 3</span>
+  <div class="bottom">
+    <div class="kicker">26/27 시즌 프리뷰</div>
+    <h1>스키장 열리기 전,<br>장비가 먼저 움직인다</h1>
+    <p class="sub">스키·스노보드 장비 거래 플랫폼 스노우판, 시즌 준비 시작</p>
+    <div class="foot">
+      <span>snowpan.kr</span>
+      <span class="page">1 / 3</span>
+    </div>
   </div>
 </body>
 </html>

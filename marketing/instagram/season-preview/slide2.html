@@ -6,89 +6,103 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1350px; overflow: hidden; }
   body {
-    font-family: "Apple SD Gothic Neo", "Pretendard", -apple-system, sans-serif;
-    background: #F8FAFC;
-    color: #0F172A;
-    position: relative;
+    font-family: "Apple SD Gothic Neo", -apple-system, sans-serif;
+    position: relative; color: #fff; background: #000;
   }
-  .masthead {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 72px 84px 0;
+  .photo {
+    position: absolute; inset: 0;
+    background: url("skis-on-snow.jpg") center 68% / cover no-repeat;
   }
-  .brand { display: flex; align-items: baseline; gap: 18px; }
-  .brand .logo { font-size: 54px; font-weight: 900; letter-spacing: 6px; }
-  .brand .news { font-family: Georgia, serif; font-style: italic; font-size: 44px; color: #0284C7; }
-  .issue { font-size: 26px; font-weight: 600; letter-spacing: 3px; color: #64748B; }
-  .rule { margin: 36px 84px 0; height: 3px; background: rgba(15,23,42,.25); }
-  .content { padding: 88px 84px 0; }
-  .chip {
-    display: inline-block; background: #0F172A; color: #F8FAFC;
-    font-size: 30px; font-weight: 800; letter-spacing: 2px;
-    padding: 14px 30px; border-radius: 8px;
+  .shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(8,12,22,.74) 0%, rgba(8,12,22,.58) 34%,
+      rgba(8,12,22,.76) 60%, rgba(8,12,22,.94) 100%);
   }
-  h2 { margin-top: 48px; font-size: 76px; font-weight: 900; letter-spacing: -1px; line-height: 1.25; }
-  .lede { margin-top: 24px; font-size: 34px; color: #475569; font-weight: 500; }
-  .items { margin-top: 72px; display: flex; flex-direction: column; gap: 56px; }
-  .item { display: flex; gap: 36px; align-items: flex-start; }
-  .marker { flex: 0 0 64px; height: 64px; margin-top: 8px; position: relative; }
-  .marker.circle { background: #16A34A; border-radius: 50%; }
-  .marker.square { background: #2563EB; border-radius: 10px; }
-  .marker.diamond { background: #0F172A; border-radius: 10px; transform: rotate(45deg) scale(.88); }
-  .item h3 { font-size: 46px; font-weight: 800; }
-  .item p { margin-top: 14px; font-size: 32px; line-height: 1.5; color: #475569; }
-  .caption {
-    margin: 76px 84px 0; padding-top: 34px;
-    border-top: 3px solid rgba(15,23,42,.15);
-    font-size: 30px; font-weight: 600; color: #64748B;
+  .grain {
+    position: absolute; inset: 0; opacity: .07; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  .footer {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 96px;
-    background: #0F172A; color: #F8FAFC;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 84px; font-size: 30px; font-weight: 800; letter-spacing: 1px;
+  .top {
+    position: absolute; top: 64px; left: 72px; right: 72px;
+    display: flex; justify-content: space-between; align-items: baseline;
   }
-  .footer .page { font-weight: 600; color: #94A3B8; }
+  .brand { font-size: 40px; font-weight: 900; letter-spacing: 5px; }
+  .brand em { font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: 34px; letter-spacing: 0; margin-left: 12px; color: #BFE7FF; }
+  .date { font-size: 24px; font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,.85); }
+  .content { position: absolute; left: 72px; right: 72px; top: 210px; }
+  .kicker {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 30px; font-weight: 800; letter-spacing: 1px; color: #FF5A5F;
+  }
+  .kicker::before { content: ""; width: 10px; height: 34px; background: #FF5A5F; }
+  h1 {
+    margin-top: 30px;
+    font-size: 84px; font-weight: 900; line-height: 1.2; letter-spacing: -2px;
+    text-shadow: 0 2px 24px rgba(0,0,0,.45);
+  }
+  .items { margin-top: 88px; }
+  .item {
+    display: flex; align-items: baseline; gap: 34px;
+    padding: 44px 0;
+    border-top: 1px solid rgba(255,255,255,.35);
+  }
+  .item .no {
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 34px; font-weight: 700; color: #7DD3FC; letter-spacing: 1px;
+    flex: 0 0 66px;
+  }
+  .item h2 { font-size: 47px; font-weight: 800; letter-spacing: -1px; text-shadow: 0 2px 18px rgba(0,0,0,.5); }
+  .item p { margin-top: 12px; font-size: 30px; font-weight: 500; color: rgba(255,255,255,.82); }
+  .bottom {
+    position: absolute; left: 72px; right: 72px; bottom: 76px;
+    padding-top: 26px; border-top: 1px solid rgba(255,255,255,.4);
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 27px; font-weight: 700; letter-spacing: 1px;
+  }
+  .bottom .page { font-weight: 500; color: rgba(255,255,255,.7); }
 </style>
 </head>
 <body>
-  <div class="masthead">
-    <div class="brand"><span class="logo">SNOWPAN</span><span class="news">news</span></div>
-    <div class="issue">2026 WINTER PREVIEW</div>
+  <div class="photo"></div>
+  <div class="shade"></div>
+  <div class="grain"></div>
+
+  <div class="top">
+    <div class="brand">SNOWPAN<em>news</em></div>
+    <div class="date">2026. 09</div>
   </div>
-  <div class="rule"></div>
 
   <div class="content">
-    <span class="chip">스노우판은 이렇게</span>
-    <h2>슬로프 난이도처럼,<br>거래도 단계별로 쉽게</h2>
+    <div class="kicker">스노우판에서는</div>
+    <h1>장비 구하는 법,<br>세 줄 요약</h1>
 
     <div class="items">
       <div class="item">
-        <div class="marker circle"></div>
+        <span class="no">01</span>
         <div>
-          <h3>장비를 한곳에서</h3>
-          <p>스키·스노보드 판매글을 모아 보고 조건을 한눈에 비교합니다.</p>
+          <h2>판매글 한곳에서 비교</h2>
+          <p>스키·스노보드 장비를 모아 보고 조건을 한눈에 확인</p>
         </div>
       </div>
       <div class="item">
-        <div class="marker square"></div>
+        <span class="no">02</span>
         <div>
-          <h3>채팅으로 바로 거래</h3>
-          <p>복잡한 절차 없이 판매자와 대화로 바로 연결됩니다.</p>
+          <h2>채팅으로 바로 거래</h2>
+          <p>복잡한 절차 없이 판매자와 대화로 바로 연결</p>
         </div>
       </div>
       <div class="item">
-        <div class="marker diamond"></div>
+        <span class="no">03</span>
         <div>
-          <h3>리뷰와 평점으로 확인</h3>
-          <p>거래 후기를 보고 믿을 만한 상대인지 미리 확인합니다.</p>
+          <h2>리뷰·평점으로 확인</h2>
+          <p>거래 후기로 믿을 만한 상대인지 미리 체크</p>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="caption">초급 슬로프부터 상급까지, 필요한 장비는 전부 스노우판에</div>
-
-  <div class="footer">
+  <div class="bottom">
     <span>snowpan.kr</span>
     <span class="page">2 / 3</span>
   </div>
