@@ -67,6 +67,8 @@ export default function Help() {
   const [query, setQuery] = useState('');
   const [openCat, setOpenCat] = useState<string | null>('account');
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  // 사업자 정보 접기 — 기본 접힘
+  const [bizOpen, setBizOpen] = useState(false);
 
   // 검색 — 모든 카테고리/FAQ 평탄화 후 매치 항목만 노출
   const filtered = useMemo(() => {
@@ -180,13 +182,25 @@ export default function Help() {
         <Link to="/mypage/support" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">1:1 문의하기</Link>
       </div>
 
-      {/* 사업자 정보 — 전자상거래법 표시 의무 (기존 전역 푸터에서 이동) */}
+      {/* 사업자 정보 — 전자상거래법 표시 의무 (기존 전역 푸터에서 이동). 기본 접힘, 눌러서 펼침 */}
       <section className="card p-5 text-[11px] leading-relaxed text-gray-500">
-        <h2 className="text-xs font-bold text-gray-900 mb-2">스노우판 사업자 정보</h2>
-        <p>상호 스노우판 · 대표 김동철</p>
-        <p>사업자등록번호 333-12-03287</p>
-        <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
-        <p>이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-700 underline underline-offset-2">help.snowpan@gmail.com</a> · 전화 070-8027-4757</p>
+        <button
+          type="button"
+          onClick={() => setBizOpen(v => !v)}
+          aria-expanded={bizOpen}
+          className="flex items-center gap-1 text-xs font-bold text-gray-900"
+        >
+          스노우판 사업자 정보
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${bizOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        {bizOpen && (
+          <div className="mt-2">
+            <p>상호 스노우판 · 대표 김동철</p>
+            <p>사업자등록번호 333-12-03287</p>
+            <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
+            <p>이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-700 underline underline-offset-2">help.snowpan@gmail.com</a> · 전화 070-8027-4757</p>
+          </div>
+        )}
         <p className="mt-2.5">
           <Link to="/about" className="underline underline-offset-2 hover:text-gray-700">사업자정보</Link>
           <span className="mx-1.5">·</span>
