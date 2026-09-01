@@ -79,6 +79,75 @@ function GridCard({ r, scope }: { r: Resort; scope: '국내' | '해외' }) {
   );
 }
 
+// 투어 슬러그 → 웹캠 슬러그 (표기가 다른 3곳만 보정)
+const WEBCAM_ALIAS: Record<string, string> = { 'elysian-gangchon': 'elysian', oakvalley: 'oak', edenvalley: 'eden' };
+const camSlugOf = (slug: string) => WEBCAM_ALIAS[slug] || slug;
+
+// 사진 없는 리조트용 설산 그라데이션 — 슬러그 해시로 고정 배정 (로드마다 안 바뀜)
+const CARD_GRADS = [
+  'from-sky-500 to-indigo-600',
+  'from-slate-600 to-slate-800',
+  'from-cyan-500 to-blue-700',
+  'from-indigo-500 to-violet-700',
+  'from-blue-600 to-slate-800',
+  'from-teal-500 to-emerald-700',
+];
+const gradOf = (slug: string) => CARD_GRADS[[...slug].reduce((a, c) => a + c.charCodeAt(0), 0) % CARD_GRADS.length];
+
+// 국내 디렉토리 카드 — 사진(또는 설산 그라데이션) + 실시간 기온 + 정보칩 + 웹캠/상세 액션
+function DomesticCard({ r, temp }: { r: Resort; temp: number | null }) {
+  const hasCam = temp !== null;
+  return (
+    <div className="card overflow-hidden">
+      <Link to={`/overseas/${r.slug}`} className="block active:opacity-90 transition-opacity">
+        <div className={`relative h-40 bg-gradient-to-br ${gradOf(r.slug)}`}>
+          {r.image ? (
+            <img src={imageUrl(r.image, 700)} alt={r.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          ) : (
+            /* 설산 실루엣 — 사진 없는 카드의 밋밋함 방지 */
+            <svg className="absolute bottom-0 inset-x-0 text-white/10" viewBox="0 0 420 96" fill="currentColor" preserveAspectRatio="none" aria-hidden>
+              <path d="M0 96 L70 30 L120 66 L180 8 L250 74 L310 26 L360 58 L420 14 L420 96 Z" />
+            </svg>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+          {r.popular && <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-gray-900 bg-white/90 px-1.5 py-0.5 rounded">인기</span>}
+          {hasCam && (
+            <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold text-white px-2 py-0.5 rounded-full ${temp! <= 0 ? 'bg-blue-600' : 'bg-black/55'}`}>
+              현재 {temp}°
+            </span>
+          )}
+          <div className="absolute bottom-0 inset-x-0 p-3.5">
+            <p className="text-white font-bold text-lg leading-tight">{r.name}</p>
+            <p className="text-white/80 text-[11px] mt-0.5">{r.region || '국내'}{r.season ? ` · 시즌 ${r.season}` : ''}</p>
+          </div>
+        </div>
+      </Link>
+      <div className="p-3.5">
+        <div className="flex flex-wrap gap-1.5">
+          {r.slopes != null && r.slopes > 0 && (
+            <span className="text-[11px] font-medium text-gray-600 bg-gray-50 border border-gray-100 rounded-md px-2 py-1">슬로프 {r.slopes}면</span>
+          )}
+          <span className={`text-[11px] font-medium rounded-md px-2 py-1 border ${r.nightSki ? 'text-sky-700 bg-sky-50 border-sky-100' : 'text-gray-400 bg-gray-50 border-gray-100'}`}>
+            {r.nightSki ? '야간 운영' : '야간 없음'}
+          </span>
+          {hasCam && <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-1">웹캠 라이브</span>}
+        </div>
+        {r.liftPrice && <p className="text-xs font-bold text-gray-900 mt-2.5 line-clamp-1">{r.liftPrice}</p>}
+        <div className="flex gap-2 mt-3">
+          {hasCam && (
+            <Link to={`/webcam/${camSlugOf(r.slug)}`} className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold text-center active:scale-[0.98] transition-transform">
+              웹캠 라이브
+            </Link>
+          )}
+          <Link to={`/overseas/${r.slug}`} className={`${hasCam ? 'flex-1' : 'w-full'} py-2.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold text-center active:scale-[0.98] transition-transform`}>
+            상세 정보
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 가로 스크롤 섹션 (야놀자식 테마 행)
 function Row({ title, items, scope, onMore }: { title: string; items: Resort[]; scope: '국내' | '해외'; onMore?: () => void }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -120,15 +189,20 @@ export default function Overseas() {
   const [scope, setScope] = useState<'국내' | '해외'>('국내');
   const [sub, setSub] = useState<string>('전체');
   const [query, setQuery] = useState('');
+  // 국내 디렉토리용 — 실시간 기온(웹캠 API 공유) + 정렬
+  const [temps, setTemps] = useState<Record<string, number>>({});
+  const [domSort, setDomSort] = useState<'popular' | 'slopes' | 'temp'>('popular');
 
   useEffect(() => {
     document.title = '스키장 투어 - 스노우판';
     Promise.all([
       api<Resort[]>('/overseas/resorts').catch(() => []),
       api<Deal[]>('/overseas/deals?featured=1').catch(() => []),
-    ]).then(([r, d]) => {
+      api<Record<string, number>>('/webcams/weather').catch(() => ({} as Record<string, number>)),
+    ]).then(([r, d, t]) => {
       setResorts(Array.isArray(r) ? r : []);
       setDeals(Array.isArray(d) ? d : []);
+      setTemps(t && typeof t === 'object' ? t : {});
     }).finally(() => setLoading(false));
   }, []);
 
@@ -225,17 +299,51 @@ export default function Overseas() {
 
           {loading ? (
             <div className="px-4"><RowListSkeleton count={4} /></div>
+          ) : scope === '국내' ? (
+            /* 국내 — 정보형 디렉토리: 실시간 기온·웹캠·슬로프·리프트권을 한 카드에 */
+            <div className="px-4">
+              <div className="flex gap-1.5 pb-3">
+                {([
+                  ['popular', '인기순'],
+                  ['slopes', '슬로프 많은순'],
+                  ['temp', '기온 낮은순'],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setDomSort(key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${domSort === key ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {filtered.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-12">준비 중이에요.</p>
+              ) : (
+                <div className="grid gap-3">
+                  {[...filtered]
+                    .sort((a, b) => {
+                      const ta = temps[camSlugOf(a.slug)];
+                      const tb = temps[camSlugOf(b.slug)];
+                      if (domSort === 'slopes') return (b.slopes || 0) - (a.slopes || 0);
+                      if (domSort === 'temp') return (ta ?? 99) - (tb ?? 99);
+                      return (Number(b.popular) - Number(a.popular)) || (b.slopes || 0) - (a.slopes || 0);
+                    })
+                    .map((r) => <DomesticCard key={r.id} r={r} temp={temps[camSlugOf(r.slug)] ?? null} />)}
+                </div>
+              )}
+            </div>
           ) : showThemeRows ? (
             <>
-              {/* 테마별 가로 스크롤 (야놀자식) */}
+              {/* 해외 — 테마별 가로 스크롤 (야놀자식) */}
               {hasPopular && (
-                <Row title={scope === '국내' ? '지금 인기 스키장' : '인기 해외 스키장'} items={scoped.filter((r) => r.popular)} scope={scope} onMore={() => setSub('인기')} />
+                <Row title="인기 해외 스키장" items={scoped.filter((r) => r.popular)} scope={scope} onMore={() => setSub('인기')} />
               )}
               {subValues.map((sv) => (
                 <Row
                   key={sv}
-                  title={scope === '해외' ? sv : `${sv} 스키장`}
-                  items={scope === '해외' ? scoped.filter((r) => r.continent === sv) : scoped.filter((r) => r.region === sv)}
+                  title={sv}
+                  items={scoped.filter((r) => r.continent === sv)}
                   scope={scope}
                   onMore={() => setSub(sv)}
                 />
