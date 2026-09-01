@@ -179,6 +179,26 @@ export default function Help() {
         <p className="text-xs text-gray-600 mb-3">관리자에게 1:1 채팅으로 직접 문의할 수 있어요.</p>
         <Link to="/mypage/support" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">1:1 문의하기</Link>
       </div>
+
+      {/* 사업자 정보 — 전자상거래법 표시 의무 (기존 전역 푸터에서 이동) */}
+      <section className="card p-5 text-[11px] leading-relaxed text-gray-500">
+        <h2 className="text-xs font-bold text-gray-900 mb-2">스노우판 사업자 정보</h2>
+        <p>상호 스노우판 · 대표 김동철</p>
+        <p>사업자등록번호 333-12-03287</p>
+        <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
+        <p>이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-700 underline underline-offset-2">help.snowpan@gmail.com</a> · 전화 070-8027-4757</p>
+        <p className="mt-2.5">
+          <Link to="/about" className="underline underline-offset-2 hover:text-gray-700">사업자정보</Link>
+          <span className="mx-1.5">·</span>
+          <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-700">광고안내</Link>
+          <span className="mx-1.5">·</span>
+          <Link to="/safe-trade" className="underline underline-offset-2 hover:text-gray-700">안전거래</Link>
+          <span className="mx-1.5">·</span>
+          <a href="https://www.instagram.com/snowpan.kr/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-gray-700">인스타그램</a>
+        </p>
+        <p className="mt-2 text-gray-400">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
+        <p className="text-gray-400">© 2026 스노우판</p>
+      </section>
     </div>
   );
 }
