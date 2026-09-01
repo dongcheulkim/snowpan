@@ -127,8 +127,8 @@ const MyPage = () => {
     { label: t('mypage.terms'), link: '/mypage/terms' },
     { label: '개인정보처리방침', link: '/privacy' },
     { label: '안전거래 가이드', link: '/safe-trade' },
+    // 고객센터(/help) 하나로 통합 — FAQ·1:1 문의·사업자 정보 모두 이 안에 있음
     { label: '고객센터', link: '/help' },
-    { label: t('mypage.support'), link: '/mypage/support' },
   ];
 
   return (

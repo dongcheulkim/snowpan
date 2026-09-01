@@ -185,7 +185,7 @@ const AccommodationRegister = () => {
       </div>
 
       <div>
-        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(최대 8장 · 첫 장이 대표)</span></label>
+        <label className={labelClass}>사진 <span className="text-gray-500 font-normal">(선택 · 최대 8장 · 첫 장이 대표)</span></label>
         <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-primary/50 transition-all">
           {imageFiles.length > 0 ? `${imageFiles.length}장 선택됨` : '사진을 선택하세요 (선택사항)'}
           <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
@@ -196,6 +196,11 @@ const AccommodationRegister = () => {
         </label>
       </div>
 
+      {/* 게스트(우리 집 하루 재워주기)만 선택한 경우 사업자·숙박업 서류는 무관 — 칸 자체를 숨김 */}
+      {form.types.length > 0 && form.types.every(t => t === 'guest') ? (
+        <p className="text-[11px] text-gray-500 bg-gray-50 rounded-lg px-3 py-2.5">게스트 등록은 별도 서류 없이 가능해요. 숙소 소개와 가격만 입력하면 됩니다.</p>
+      ) : (
+      <>
       <div>
         <label className={labelClass}>사업자등록증 <span className="text-gray-500 font-normal">(선택)</span></label>
         <label className={`block w-full py-4 border-2 border-dashed rounded-lg text-center text-xs cursor-pointer transition-all ${bizLicenseFile ? 'border-primary/50 text-primary bg-primary/5' : 'border-gray-200 text-gray-500 hover:border-primary/50'}`}>
@@ -213,6 +218,8 @@ const AccommodationRegister = () => {
         </label>
         <p className="text-[10px] text-gray-500 mt-1">관광진흥법/공중위생관리법에 따른 숙박업 신고증이 있으면 첨부해주세요.</p>
       </div>
+      </>
+      )}
 
       {/* 숙소 제공자 책임·면책 동의 (필수) — 숙박은 미신고 영업 등 법적 리스크가 있어 판매자 책임 명시 */}
       <label className="flex items-start gap-2 py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
