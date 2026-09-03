@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { notifyAdmins } from './notificationController';
-import { isAllowedImageUrl } from '../utils/validate';
+import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 import { sanitizeText } from '../utils/sanitize';
@@ -64,8 +64,8 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         brands: sanitizeText(b.brands, 500) || null,
         phone: sanitizeText(b.phone, 40) || null,
         instagram: sanitizeText(b.instagram, 60) || null,
-        website: sanitizeText(b.website, 300) || null,
-        naverMap: sanitizeText(b.naverMap, 300) || null,
+        website: isHttpUrl(b.website) ? sanitizeText(b.website, 300) || null : null,
+        naverMap: isHttpUrl(b.naverMap) ? sanitizeText(b.naverMap, 300) || null : null,
         hours: sanitizeText(b.hours, 200) || null,
         image: b.image || null,
         images: sanitizeImages(b.images),
@@ -136,8 +136,8 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (b.brands !== undefined) data.brands = b.brands ? (sanitizeText(b.brands, 500) || b.brands) : null;
     if (b.phone !== undefined) data.phone = b.phone ? (sanitizeText(b.phone, 40) || b.phone) : null;
     if (b.instagram !== undefined) data.instagram = b.instagram ? (sanitizeText(b.instagram, 60) || b.instagram) : null;
-    if (b.website !== undefined) data.website = b.website ? (sanitizeText(b.website, 300) || b.website) : null;
-    if (b.naverMap !== undefined) data.naverMap = b.naverMap ? (sanitizeText(b.naverMap, 300) || b.naverMap) : null;
+    if (b.website !== undefined) data.website = b.website && isHttpUrl(b.website) ? (sanitizeText(b.website, 300) || null) : null;
+    if (b.naverMap !== undefined) data.naverMap = b.naverMap && isHttpUrl(b.naverMap) ? (sanitizeText(b.naverMap, 300) || null) : null;
     if (b.hours !== undefined) data.hours = b.hours ? (sanitizeText(b.hours, 200) || b.hours) : null;
     if (b.image !== undefined) data.image = b.image || null;
     if (b.images !== undefined) data.images = sanitizeImages(b.images);

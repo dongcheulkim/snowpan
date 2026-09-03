@@ -5,7 +5,7 @@ import { notifyAdmins, createNotification } from '../controllers/notificationCon
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
-import { isAllowedImageUrl } from '../utils/validate';
+import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 
 const router = Router();
@@ -62,8 +62,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         brands: sanitizeText(brands, 500) || null,
         phone: sanitizeText(phone, 40) || null,
         instagram: sanitizeText(instagram, 60) || null,
-        website: sanitizeText(website, 300) || null,
-        naverMap: sanitizeText(naverMap, 300) || null,
+        website: isHttpUrl(website) ? sanitizeText(website, 300) || null : null,
+        naverMap: isHttpUrl(naverMap) ? sanitizeText(naverMap, 300) || null : null,
         hours: sanitizeText(hours, 200) || null,
         image: image || null, images: sanitizeImages(images), businessLicense, userId, approved: false,
         vertical: verticalSlug,

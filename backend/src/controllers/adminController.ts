@@ -6,6 +6,7 @@ import { sendPushToUser } from '../utils/push';
 import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
 import { disconnectUser } from '../realtime';
+import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -670,6 +671,18 @@ export const getAdRequests = async (req: AuthRequest, res: Response): Promise<vo
 export const approveAdRequest = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    // 승인 전 재검증 (심층 방어) — 신청 시점 검증을 우회한 구데이터/직접 주입이
+    // 공개 배너로 나가는 것 차단
+    const pending = await prisma.adRequest.findUnique({ where: { id: req.params.id } });
+    if (!pending) { res.status(404).json({ error: '신청을 찾을 수 없습니다.' }); return; }
+    if (!isHttpUrl(pending.url)) {
+      res.status(400).json({ error: '신청의 링크가 http(s) 주소가 아니라 승인할 수 없습니다.' });
+      return;
+    }
+    if (pending.image && !isAllowedImageUrl(pending.image)) {
+      res.status(400).json({ error: '신청의 이미지가 허용된 저장소가 아니라 승인할 수 없습니다.' });
+      return;
+    }
     const item = await prisma.adRequest.update({ where: { id: req.params.id }, data: { status: 'approved', adminNote: null } });
 
     // 승인된 광고를 배너에 자동 추가

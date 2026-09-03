@@ -47,6 +47,12 @@ export const updateBookingCreative = async (req: AuthRequest, res: Response): Pr
         res.status(400).json({ error: '프리미엄 광고는 링크를 변경할 수 없습니다. 대상 변경은 새 예약으로 진행해주세요.' });
         return;
       }
+      // 게시 중(active) 링크 교체 금지 — 건전한 소재로 승인받은 뒤 피싱 링크로 바꾸는
+      // bait-and-switch 차단. 문구·이미지(내부 CDN 한정)는 교체 허용 유지.
+      if (booking.status === 'active' && u !== (booking.url || '')) {
+        res.status(400).json({ error: '게시 중인 광고의 링크는 변경할 수 없습니다. 링크 변경은 고객센터로 문의해주세요.' });
+        return;
+      }
       data.url = u;
     }
     if (image !== undefined) {

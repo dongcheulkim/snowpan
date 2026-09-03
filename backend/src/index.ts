@@ -339,7 +339,10 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
     return;
   }
   console.error('Unhandled error:', err);
-  res.status(err.status || 500).json({ error: err.message || '서버 내부 오류' });
+  const status = err.status || 500;
+  // 5xx 내부 메시지(CORS 오리진 등)는 외부에 노출하지 않음 — 로그로만
+  const msg = status >= 500 && process.env.NODE_ENV === 'production' ? '서버 내부 오류' : (err.message || '서버 내부 오류');
+  res.status(status).json({ error: msg });
 });
 
 // Socket.IO auth middleware
@@ -355,10 +358,14 @@ io.use((socket, next) => {
     if (decoded.type && decoded.type !== 'access') return next(new Error('잘못된 토큰 타입'));
     // HTTP authMiddleware 와 동일한 게이트 — 세션무효화/차단/탈퇴/존재확인. 소켓만 우회하던 구멍 차단.
     if (isTokenIatStale(decoded.userId, decoded.iat)) return next(new Error('세션 만료'));
-    prisma.user.findUnique({ where: { id: decoded.userId }, select: { id: true, role: true } })
+    prisma.user.findUnique({ where: { id: decoded.userId }, select: { id: true, role: true, sessionInvalidBefore: true } })
       .then((user) => {
         if (!user) return next(new Error('존재하지 않는 사용자'));
         if (user.role === 'banned' || user.role === 'deleted') return next(new Error('이용이 제한된 계정'));
+        // 비밀번호 변경 등으로 영속 무효화된 토큰 차단 — HTTP 경로(auth.ts)와 동일 게이트
+        if (user.sessionInvalidBefore && decoded.iat && decoded.iat * 1000 < user.sessionInvalidBefore.getTime()) {
+          return next(new Error('세션 만료'));
+        }
         socket.data.userId = user.id;
         next();
       })

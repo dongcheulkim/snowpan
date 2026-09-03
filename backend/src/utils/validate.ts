@@ -84,3 +84,14 @@ export function parsePositiveInt(raw: unknown, max = 1_000_000): ParsedPrice | P
   }
   return { ok: true, value: Math.floor(n) };
 }
+
+// http(s) URL 만 허용 — javascript:/data: 스킴 저장 차단용 공용 검증
+export function isHttpUrl(url: unknown): boolean {
+  if (typeof url !== 'string' || !url.trim()) return false;
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

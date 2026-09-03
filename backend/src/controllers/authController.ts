@@ -7,7 +7,7 @@ import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
 import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
-import { normalizeEmail, isAllowedImageUrl } from '../utils/validate';
+import { isHttpUrl, normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
 
@@ -293,7 +293,8 @@ export const requestBadge = async (req: AuthRequest, res: Response): Promise<voi
     }
 
     const badge = await prisma.badgeRequest.create({
-      data: { userId, vertical: verticalSlug, badgeType, image: image || null },
+      // image 는 내부 업로드 URL 만 — 외부 추적픽셀이 관리자 심사화면에 렌더되는 것 방지
+      data: { userId, vertical: verticalSlug, badgeType, image: image && isAllowedImageUrl(image) ? image : null },
     });
     await notifyAdmins('system', '새 자격증 인증 요청', `${badgeType} 자격증 인증이 신청되었습니다.`, '/admin-approval').catch(() => {});
     res.status(201).json(badge);
@@ -873,8 +874,24 @@ export const createAdRequest = async (req: AuthRequest, res: Response): Promise<
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
+    // 승인 시 그대로 공개 배너가 되는 입력 — 다른 등록 흐름과 동일한 방어층 적용
+    const cleanTitle = sanitizeText(title, 100);
+    const cleanDesc = sanitizeText(description, 500);
+    const cleanMsg = sanitizeText(message, 1000);
+    if (!cleanTitle || !cleanDesc) {
+      res.status(400).json({ error: '제목/설명을 확인해주세요.' });
+      return;
+    }
+    if (!isHttpUrl(url)) {
+      res.status(400).json({ error: '링크는 http(s) 주소만 가능합니다.' });
+      return;
+    }
+    if (image && !isAllowedImageUrl(image)) {
+      res.status(400).json({ error: '이미지는 스노우판에 업로드한 파일만 사용할 수 있습니다.' });
+      return;
+    }
     const item = await prisma.adRequest.create({
-      data: { type, category: category || null, title, description, url, image: image || null, message: message || null, userId: req.user!.id },
+      data: { type: String(type).slice(0, 30), category: category ? String(category).slice(0, 30) : null, title: cleanTitle, description: cleanDesc, url: String(url).trim(), image: image || null, message: cleanMsg || null, userId: req.user!.id },
     });
     res.status(201).json(item);
   } catch (error) {
