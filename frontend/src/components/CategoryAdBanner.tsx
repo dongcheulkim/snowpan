@@ -76,7 +76,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
             <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
             <span className="text-sm font-bold text-gray-700">이 자리 광고 모집 중</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">카테고리 상단 노출 월 500,000원 · 클릭해서 신청</p>
+          <p className="text-xs text-gray-500 mt-1">카테고리 상단 노출 · 클릭해서 신청</p>
         </div>
         <span className="text-xs text-gray-500 ml-3 flex-shrink-0 hidden sm:inline">광고 신청 →</span>
       </Link>
