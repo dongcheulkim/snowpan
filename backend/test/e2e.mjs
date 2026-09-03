@@ -331,7 +331,7 @@ async function main() {
   const slots = await req('GET', '/ad-booking/slots');
   check('슬롯 조회', slots.status === 200);
   const start = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-  const mkBooking = (title) => req('POST', '/ad-booking/create', { token: B.token, body: { slotType: 'main_banner', category: 'none', title, description: 'E2E 광고 설명', url: 'https://example.com', desiredStart: start, periodMonths: 1, payMethod: 'TRANSFER' } });
+  const mkBooking = (title) => req('POST', '/ad-booking/create', { token: B.token, body: { slotType: 'main_banner', category: 'none', title, description: 'E2E 광고 설명', url: 'https://example.com', desiredStart: start, periodMonths: 12, payMethod: 'TRANSFER' } });
   const bk1 = await mkBooking('E2E광고1');
   check('광고 예약1', bk1.status === 201 || bk1.status === 200, `${bk1.status} ${JSON.stringify(bk1.json)?.slice(0, 150)}`);
   const bk2 = await mkBooking('E2E광고2');

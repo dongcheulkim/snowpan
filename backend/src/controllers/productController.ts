@@ -74,11 +74,14 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     if ((lengthMin !== undefined && Number.isFinite(minL)) || (lengthMax !== undefined && Number.isFinite(maxL))) {
       const lo = Number.isFinite(minL) ? minL : 0;
       const hi = Number.isFinite(maxL) ? maxL : 9999;
+      // 등록 폼이 길이를 size 필드("165cm")로 받으므로 length·size 를 함께 본다.
+      // substring 으로 첫 숫자만 추출 — "1.65/1.75" 같은 자유 텍스트도 캐스트 예외 없이 처리.
+      // 스키·보드만 대상 (부츠 270mm 등이 길이 버킷에 잘못 걸리는 것 방지)
       const rows = await prisma.$queryRaw<Array<{ id: string }>>`
         SELECT id FROM products
-        WHERE length IS NOT NULL
-          AND NULLIF(regexp_replace(length, '[^0-9.]', '', 'g'), '') IS NOT NULL
-          AND NULLIF(regexp_replace(length, '[^0-9.]', '', 'g'), '')::numeric BETWEEN ${lo} AND ${hi}`;
+        WHERE subcategory IN ('ski', 'board')
+          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+\.?[0-9]*') IS NOT NULL
+          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+\.?[0-9]*')::numeric BETWEEN ${lo} AND ${hi}`;
       where.id = { in: rows.map((r) => r.id) };
     }
 

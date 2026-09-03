@@ -644,6 +644,7 @@ model AdBooking {
   totalDays   Int
   totalPrice  Int
   status      String   @default("pending_payment")
+  approvedAt  DateTime? // 관리자 검수 승인 시각 — 스케줄러 자동 게재 게이트 (null 이면 미검수)
   // 'pending_payment' | 'paid' | 'active' | 'completed' | 'cancelled' | 'refunded'
   adminNote   String?
 

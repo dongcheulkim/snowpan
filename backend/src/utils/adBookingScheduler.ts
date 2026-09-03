@@ -18,9 +18,10 @@ export async function updateAdBookingStatuses(): Promise<void> {
       data: { status: 'cancelled' },
     });
 
-    // paid + startDate <= now → active + 배너 자동 생성 + 프리미엄 적용
+    // paid + 검수 승인됨 + startDate <= now → active + 배너 자동 생성 + 프리미엄 적용.
+    // approvedAt 조건 — 카드 결제 완료(paid) 건이 관리자 검수 전에 자동 게재되던 구멍 차단.
     const toActivate = await prisma.adBooking.findMany({
-      where: { status: 'paid', startDate: { lte: now } },
+      where: { status: 'paid', approvedAt: { not: null }, startDate: { lte: now } },
     });
     for (const booking of toActivate) {
       // 원자적 CAS — status='paid' 인 경우에만 active 로. 다중 인스턴스/중복 실행 시

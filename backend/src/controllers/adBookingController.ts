@@ -542,6 +542,30 @@ export const deleteBooking = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 // 예약 취소
+
+// 토스 카드 결제 취소(환불) — PG 실패 시 false 반환해 DB 상태 변경을 막는다.
+async function refundTossPayment(paymentId: string, refundAmount: number, paidAmount: number, reason: string): Promise<{ ok: boolean; message?: string }> {
+  const secret = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
+  const refundInt = Math.round(refundAmount);
+  const resp = await fetch(`https://api.tosspayments.com/v1/payments/${encodeURIComponent(paymentId)}/cancel`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      cancelReason: reason,
+      ...(refundInt < paidAmount ? { cancelAmount: refundInt } : {}),
+    }),
+  });
+  if (!resp.ok) {
+    const err = (await resp.json().catch(() => ({}))) as { message?: string };
+    console.error('토스 결제 취소 실패:', err);
+    return { ok: false, message: err?.message };
+  }
+  return { ok: true };
+}
+
 export const cancelBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -594,7 +618,15 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
         return;
       }
 
-
+      // 카드 결제(토스) 건은 PG 취소 API 를 먼저 호출 — 실패하면 DB 상태를 바꾸지 않음
+      // (DB 만 환불 처리되고 실제 돈은 안 돌아가는 불일치 방지)
+      if (booking.payment.pgProvider === 'tosspayments') {
+        const r = await refundTossPayment(booking.payment.paymentId, refundAmount, booking.payment.amount, '사용자 취소');
+        if (!r.ok) {
+          res.status(502).json({ error: r.message || '결제사 환불 처리에 실패했습니다. 고객센터로 문의해주세요.' });
+          return;
+        }
+      }
 
       await prisma.$transaction([
         prisma.adBooking.update({
@@ -845,7 +877,7 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
     const startsInFuture = dates.start > new Date();
     const updated = await prisma.adBooking.update({
       where: { id },
-      data: { status: startsInFuture ? 'paid' : 'active', startDate: dates.start, endDate: dates.end },
+      data: { status: startsInFuture ? 'paid' : 'active', approvedAt: new Date(), startDate: dates.start, endDate: dates.end },
     });
     if (!startsInFuture) {
       // slotType 별 활성화 분기:
@@ -952,6 +984,14 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
     }
 
     if (booking.payment && booking.payment.status === 'paid') {
+      // 토스 카드 결제 건은 PG 취소를 먼저 — 실패 시 DB 를 바꾸지 않음
+      if (booking.payment.pgProvider === 'tosspayments') {
+        const r = await refundTossPayment(booking.payment.paymentId, booking.totalPrice, booking.payment.amount, reason || '관리자 취소');
+        if (!r.ok) {
+          res.status(502).json({ error: r.message || '결제사 환불 처리에 실패했습니다.' });
+          return;
+        }
+      }
       await prisma.adPayment.update({
         where: { bookingId: id },
         data: {
@@ -1045,7 +1085,16 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
       res.status(400).json({ error: '결제 금액이 일치하지 않습니다.' });
       return;
     }
+    // 동시 요청 이중 승인 방지 — pending_payment 인 경우에만 선점 (CAS)
+    const claimed = await prisma.adBooking.updateMany({ where: { id, status: 'pending_payment' }, data: { status: 'paid' } });
+    if (claimed.count === 0) {
+      res.status(400).json({ error: '이미 처리 중이거나 완료된 결제입니다.' });
+      return;
+    }
     const secret = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
+    if (!process.env.TOSS_SECRET_KEY && process.env.NODE_ENV === 'production') {
+      console.warn('[toss] TOSS_SECRET_KEY 미설정 — 문서용 테스트 키로 승인 (실청구 없음). 운영 전 env 설정 필요.');
+    }
     const resp = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
       method: 'POST',
       headers: {
@@ -1056,6 +1105,8 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
     });
     const data = (await resp.json()) as { message?: string; lastTransactionKey?: string; receipt?: { url?: string } };
     if (!resp.ok) {
+      // 선점했던 상태를 되돌려 재시도 가능하게
+      await prisma.adBooking.updateMany({ where: { id, status: 'paid' }, data: { status: 'pending_payment' } });
       res.status(400).json({ error: data?.message || '결제 승인에 실패했습니다.' });
       return;
     }
@@ -1072,7 +1123,7 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
           receiptUrl: data.receipt?.url || null,
         },
       }),
-      prisma.adBooking.update({ where: { id }, data: { status: 'paid' } }),
+      // booking.status 는 위 CAS 선점에서 이미 'paid'
     ]);
     await notifyAdmins('system', '광고 카드 결제 완료', `"${booking.title || '(이미지 광고)'}" ${booking.totalPrice.toLocaleString()}원 카드 결제가 완료되었습니다. 검수 후 게재 승인해주세요.`, '/admin');
     res.json({ ok: true });

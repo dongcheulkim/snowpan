@@ -82,6 +82,8 @@ function GridCard({ r, scope }: { r: Resort; scope: '국내' | '해외' }) {
 // 투어 슬러그 → 웹캠 슬러그 (표기가 다른 3곳만 보정)
 const WEBCAM_ALIAS: Record<string, string> = { 'elysian-gangchon': 'elysian', oakvalley: 'oak', edenvalley: 'eden' };
 const camSlugOf = (slug: string) => WEBCAM_ALIAS[slug] || slug;
+// 웹캠 보유 리조트 고정 목록 — 기온 API 가 일시 실패해도 웹캠 버튼은 유지
+const WEBCAM_SLUGS = new Set(['yongpyong', 'wellihilli', 'konjiam', 'phoenix', 'high1', 'vivaldi', 'elysian', 'jisan', 'muju', 'oak', 'o2', 'alpensia', 'eden']);
 
 // 사진 없는 리조트용 설산 그라데이션 — 슬러그 해시로 고정 배정 (로드마다 안 바뀜)
 const CARD_GRADS = [
@@ -96,7 +98,7 @@ const gradOf = (slug: string) => CARD_GRADS[[...slug].reduce((a, c) => a + c.cha
 
 // 국내 디렉토리 카드 — 사진(또는 설산 그라데이션) + 실시간 기온 + 정보칩 + 웹캠/상세 액션
 function DomesticCard({ r, temp }: { r: Resort; temp: number | null }) {
-  const hasCam = temp !== null;
+  const hasCam = WEBCAM_SLUGS.has(camSlugOf(r.slug));
   return (
     <div className="card overflow-hidden">
       <Link to={`/overseas/${r.slug}`} className="block active:opacity-90 transition-opacity">
@@ -110,8 +112,8 @@ function DomesticCard({ r, temp }: { r: Resort; temp: number | null }) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
           {r.popular && <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-gray-900 bg-white/90 px-1.5 py-0.5 rounded">인기</span>}
-          {hasCam && (
-            <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold text-white px-2 py-0.5 rounded-full ${temp! <= 0 ? 'bg-blue-600' : 'bg-black/55'}`}>
+          {temp !== null && (
+            <span className={`absolute top-2.5 right-2.5 text-[11px] font-bold text-white px-2 py-0.5 rounded-full ${temp <= 0 ? 'bg-blue-600' : 'bg-black/55'}`}>
               현재 {temp}°
             </span>
           )}
