@@ -80,8 +80,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       const rows = await prisma.$queryRaw<Array<{ id: string }>>`
         SELECT id FROM products
         WHERE subcategory IN ('ski', 'board')
-          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+\.?[0-9]*') IS NOT NULL
-          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+\.?[0-9]*')::numeric BETWEEN ${lo} AND ${hi}`;
+          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+[.]?[0-9]*') IS NOT NULL
+          AND substring(COALESCE(NULLIF(length, ''), size) FROM '[0-9]+[.]?[0-9]*')::numeric BETWEEN ${lo} AND ${hi}`;
       where.id = { in: rows.map((r) => r.id) };
     }
 

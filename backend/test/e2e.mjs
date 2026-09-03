@@ -101,7 +101,7 @@ async function main() {
   console.log('[2] 중고거래');
   const pCreate = await req('POST', '/products/used', {
     token: B.token,
-    body: { name: 'E2E 테스트 스키', brand: 'Atomic', subcategory: 'ski', price: '350000', image: IMG, images: IMG, description: '테스트 매물', condition: '중', usageCount: '2023년식', tradeMethod: '직거래', location: '서울 강남구', category: 'used' },
+    body: { name: 'E2E 테스트 스키', brand: 'Atomic', subcategory: 'ski', price: '350000', image: IMG, images: IMG, description: '테스트 매물', condition: '중', usageCount: '2023년식', tradeMethod: '직거래', location: '서울 강남구', category: 'used', size: '170cm' },
   });
   check('매물 등록', pCreate.status === 201 || pCreate.status === 200, `${pCreate.status} ${JSON.stringify(pCreate.json)?.slice(0, 150)}`);
   const prodId = pCreate.json?.id || pCreate.json?.product?.id;
@@ -110,6 +110,13 @@ async function main() {
   check('중고 대분류(콤마) 필터', pGroup.status === 200 && (pGroup.json?.products || []).some(x => x.id === prodId), `${pGroup.status}`);
   const pGroupMiss = await req('GET', '/products?category=used&subcategory=helmet,goggles&limit=10');
   check('타 대분류엔 미노출', !(pGroupMiss.json?.products || []).some(x => x.id === prodId));
+  // 길이 필터 — size 필드("170cm")에서 숫자 추출 매칭 (length 컬럼은 미사용)
+  const pLen = await req('GET', '/products?category=used&lengthMin=165&lengthMax=175&limit=10');
+  check('길이 필터(165~175, size 매칭)', pLen.status === 200 && (pLen.json?.products || []).some(x => x.id === prodId), `${pLen.status}`);
+  const pLenMiss = await req('GET', '/products?category=used&lengthMin=150&lengthMax=159&limit=10');
+  check('길이 필터 범위 밖 미노출', pLenMiss.status === 200 && !(pLenMiss.json?.products || []).some(x => x.id === prodId), `${pLenMiss.status}`);
+  const pBrand = await req('GET', '/products?category=used&brand=atomic&limit=10');
+  check('브랜드 필터(대소문자 무관)', pBrand.status === 200 && (pBrand.json?.products || []).some(x => x.id === prodId), `${pBrand.status}`);
   check('매물 목록 노출', (pList.json?.products || []).some(p => p.id === prodId));
   const pDetail = await req('GET', `/products/${prodId}`, { token: A.token });
   check('매물 상세 + 거래정보', pDetail.status === 200 && pDetail.json?.tradeMethod === '직거래' && pDetail.json?.location === '서울 강남구', JSON.stringify({ t: pDetail.json?.tradeMethod, l: pDetail.json?.location }));
