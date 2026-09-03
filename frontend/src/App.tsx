@@ -77,6 +77,8 @@ const RecentlyViewed = lazy(() => import('./pages/RecentlyViewed'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
+const AdPay = lazy(() => import('./pages/AdPay'));
+const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
 const Overseas = lazy(() => import('./pages/Overseas'));
 const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
@@ -198,6 +200,9 @@ function App() {
             <Route path="agency/:id" element={<AgencyPage />} />
             <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
+            <Route path="ad-booking/pay/success" element={<RequireAuth><AdPayResult /></RequireAuth>} />
+            <Route path="ad-booking/pay/fail" element={<AdPayResult />} />
+            <Route path="ad-booking/pay/:id" element={<RequireAuth><AdPay /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="admin/overseas" element={<RequireAdmin><AdminOverseas /></RequireAdmin>} />
             <Route path="marketplace" element={<Navigate to="/used" replace />} />

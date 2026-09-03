@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -18,6 +18,8 @@ import { SITE_URL } from '../config/site';
 
 const MainLayout = () => {
   const location = useLocation();
+  // 사업자 정보 접기 — 기본 접힘. 하단 상시 게재는 토스페이먼츠(카드사) 심사 필수 요건.
+  const [bizOpen, setBizOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -67,6 +69,36 @@ const MainLayout = () => {
         )}
         <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
           <Outlet />
+          {/* 사업자 정보 푸터 — 전자상거래법 표시 의무 + PG(토스) 카드사 심사 요건.
+              기본 접힘(번개장터식) — 펼치면 사업자등록증과 동일 표기 노출 */}
+          <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-400">
+            <button
+              type="button"
+              onClick={() => setBizOpen(v => !v)}
+              aria-expanded={bizOpen}
+              className="flex items-center gap-1 font-bold text-gray-500"
+            >
+              스노우판 사업자 정보
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${bizOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            {bizOpen && (
+              <div className="mt-1">
+                <p>상호 스노우판 · 대표자 김동철</p>
+                <p>사업자등록번호 333-12-03287</p>
+                <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
+                <p>유선번호 070-8027-4757 · 이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-600">help.snowpan@gmail.com</a></p>
+              </div>
+            )}
+            <p className="mt-1.5">
+              <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
+              <span className="mx-1.5">·</span>
+              <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-600">광고안내</Link>
+              <span className="mx-1.5">·</span>
+              <Link to="/help" className="underline underline-offset-2 hover:text-gray-600">고객센터</Link>
+            </p>
+            <p className="mt-2 text-gray-300">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
+            <p className="text-gray-300">© 2026 스노우판</p>
+          </footer>
         </main>
         {showAppChrome && <BottomNav />}
         <ToastHost />

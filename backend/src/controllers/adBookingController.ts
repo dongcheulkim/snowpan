@@ -824,18 +824,21 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    if (booking.status !== 'pending_payment') {
-      res.status(400).json({ error: '입금 대기 상태가 아닙니다.' });
+    if (!['pending_payment', 'paid'].includes(booking.status)) {
+      res.status(400).json({ error: '승인 대기 상태가 아닙니다.' });
       return;
     }
 
     const dates = resolveApprovedDates(booking, req.body?.startDate);
     if (!dates) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다. (YYYY-MM-DD)' }); return; }
 
-    await prisma.adPayment.update({
-      where: { bookingId: id },
-      data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
-    });
+    // 무통장 경로만 여기서 결제 확정 — 카드 결제(paid) 건은 토스 승인 시 이미 확정됨
+    if (booking.status === 'pending_payment') {
+      await prisma.adPayment.update({
+        where: { bookingId: id },
+        data: { status: 'paid', payMethod: 'transfer', paidAt: new Date() },
+      });
+    }
 
     // 시작일이 미래면 즉시 노출하지 않고 paid 로만 — 스케줄러가 startDate 도래 시 활성화.
     // (이전엔 미래 광고도 승인 즉시 active + 배너 생성되어 광고비 기간 전 무료 노출)
@@ -986,5 +989,95 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
   } catch (error) {
     console.error('관리자 예약 취소 오류:', error);
     res.status(500).json({ error: '예약 취소 실패' });
+  }
+};
+
+
+// ───────── 토스페이먼츠 카드 결제 (심사·운영 공용, 테스트 키 지원) ─────────
+
+// 결제 페이지용 최소 정보 — 본인 예약만
+export const getBookingPayInfo = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const booking = await prisma.adBooking.findUnique({ where: { id }, include: { payment: true } });
+    if (!booking || booking.userId !== req.user!.id) {
+      res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+      return;
+    }
+    res.json({
+      id: booking.id,
+      title: booking.title,
+      slotType: booking.slotType,
+      totalPrice: booking.totalPrice,
+      status: booking.status,
+      merchantUid: booking.payment?.merchantUid || null,
+    });
+  } catch (e) {
+    console.error('Pay info error:', e);
+    res.status(500).json({ error: '조회 중 오류가 발생했습니다.' });
+  }
+};
+
+// 결제 승인 — successUrl 에서 받은 paymentKey/orderId/amount 로 토스 승인 API 호출.
+// 시크릿 키: 운영은 TOSS_SECRET_KEY env, 미설정 시 문서용 테스트 키 (실청구 없음).
+export const confirmTossPayment = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { paymentKey, orderId, amount } = req.body;
+    if (!paymentKey || !orderId || amount === undefined) {
+      res.status(400).json({ error: '결제 정보가 누락되었습니다.' });
+      return;
+    }
+    const booking = await prisma.adBooking.findUnique({ where: { id }, include: { payment: true } });
+    if (!booking || booking.userId !== req.user!.id) {
+      res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+      return;
+    }
+    if (booking.status !== 'pending_payment') {
+      res.status(400).json({ error: '결제 대기 상태가 아닙니다.' });
+      return;
+    }
+    if (!booking.payment || String(orderId) !== booking.payment.merchantUid) {
+      res.status(400).json({ error: '주문번호가 일치하지 않습니다.' });
+      return;
+    }
+    if (Number(amount) !== booking.totalPrice) {
+      res.status(400).json({ error: '결제 금액이 일치하지 않습니다.' });
+      return;
+    }
+    const secret = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
+    const resp = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ paymentKey, orderId, amount: Number(amount) }),
+    });
+    const data = (await resp.json()) as { message?: string; lastTransactionKey?: string; receipt?: { url?: string } };
+    if (!resp.ok) {
+      res.status(400).json({ error: data?.message || '결제 승인에 실패했습니다.' });
+      return;
+    }
+    await prisma.$transaction([
+      prisma.adPayment.update({
+        where: { bookingId: id },
+        data: {
+          paymentId: String(paymentKey),
+          payMethod: 'card',
+          status: 'paid',
+          paidAt: new Date(),
+          pgProvider: 'tosspayments',
+          pgTid: data.lastTransactionKey || String(paymentKey),
+          receiptUrl: data.receipt?.url || null,
+        },
+      }),
+      prisma.adBooking.update({ where: { id }, data: { status: 'paid' } }),
+    ]);
+    await notifyAdmins('system', '광고 카드 결제 완료', `"${booking.title || '(이미지 광고)'}" ${booking.totalPrice.toLocaleString()}원 카드 결제가 완료되었습니다. 검수 후 게재 승인해주세요.`, '/admin');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Toss confirm error:', e);
+    res.status(500).json({ error: '결제 승인 처리 중 오류가 발생했습니다.' });
   }
 };

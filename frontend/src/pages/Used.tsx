@@ -44,6 +44,10 @@ const Used = () => {
   const initialSearch = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+  // 브랜드·길이 필터 — URL 파라미터로 유지 (뒤로가기·공유 시 상태 보존)
+  const brandParam = searchParams.get('brand') || '';
+  const lenBucket = searchParams.get('len') || '';
+  const [brandInput, setBrandInput] = useState(brandParam);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -60,6 +64,15 @@ const Used = () => {
       })
       .catch(() => {});
   }, []);
+
+  // 브랜드 입력 300ms 디바운스 후 URL 반영 (타이핑마다 fetch 방지)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (brandInput.trim() !== brandParam) updateParam('brand', brandInput.trim());
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandInput]);
 
   const updateParam = (key: string, value: string | null, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
@@ -142,6 +155,12 @@ const Used = () => {
           if (g) params.set('subcategory', g.subs.join(','));
         }
         if (debouncedSearch) params.set('search', debouncedSearch);
+        if (brandParam) params.set('brand', brandParam);
+        if (lenBucket) {
+          const [lo, hi] = lenBucket.split('-');
+          if (lo) params.set('lengthMin', lo);
+          if (hi) params.set('lengthMax', hi);
+        }
         if (sort && sort !== 'newest') params.set('sort', sort);
         const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
         setProducts(data.products);
@@ -155,7 +174,7 @@ const Used = () => {
       }
     };
     fetchProducts();
-  }, [selectedCategory, selectedGroup, debouncedSearch, page, sort]);
+  }, [selectedCategory, selectedGroup, debouncedSearch, page, sort, brandParam, lenBucket]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -262,6 +281,29 @@ const Used = () => {
               ))}
             </div>
           )}
+          {/* 브랜드 · 길이 필터 */}
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <input
+              type="text"
+              value={brandInput}
+              onChange={(e) => setBrandInput(e.target.value)}
+              placeholder="브랜드 (예: 살로몬)"
+              className="w-32 h-8 px-3 rounded-full text-[11px] bg-snow border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400"
+            />
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+              {([['', '길이 전체'], ['-149', '~149cm'], ['150-159', '150~159'], ['160-169', '160~169'], ['170-', '170cm~']] as const).map(([val, label]) => (
+                <button
+                  key={val || 'all'}
+                  onClick={() => updateParam('len', val)}
+                  className={`px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap transition-all ${
+                    lenBucket === val ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">

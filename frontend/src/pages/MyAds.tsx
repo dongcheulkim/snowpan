@@ -146,6 +146,9 @@ export default function MyAds() {
                 </div>
                 {['active', 'paid', 'pending_payment'].includes(ad.status) ? (
                   <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {ad.status === 'pending_payment' && (
+                      <Link to={`/ad-booking/pay/${ad.id}`} className="text-[11px] font-bold text-white bg-sky-500 rounded-lg px-2.5 py-1.5 transition-colors">카드 결제</Link>
+                    )}
                     <button onClick={() => openEdit(ad)} className="text-[11px] font-bold text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 transition-colors">수정</button>
                     <button onClick={() => handleCancel(ad)} className="text-[11px] font-bold text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-2.5 py-1.5 transition-colors">취소</button>
                   </div>

@@ -13,7 +13,7 @@ import { notifyKeywordMatches } from '../utils/keywordAlert';
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, subcategory, userId, status, search, limit, offset, sort, vertical } = req.query;
+    const { category, subcategory, userId, status, search, limit, offset, sort, vertical, brand, lengthMin, lengthMax } = req.query;
     // ?vertical=X 없으면 'snow' default (역호환). 잘못된 값은 거절.
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
@@ -30,6 +30,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     if (userId) keyParts.userId = String(userId);
     if (status) keyParts.status = String(status);
     if (search) keyParts.search = String(search);
+    if (brand) keyParts.brand = String(brand);
+    if (lengthMin) keyParts.lengthMin = String(lengthMin);
+    if (lengthMax) keyParts.lengthMax = String(lengthMax);
     if (limit) keyParts.limit = String(limit);
     if (offset) keyParts.offset = String(offset);
     if (sort) keyParts.sort = String(sort);
@@ -59,6 +62,24 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         { brand: { contains: search as string, mode: 'insensitive' } },
         { description: { contains: search as string, mode: 'insensitive' } },
       ];
+    }
+    // 브랜드 필터 — 부분 일치 (살로몬/살로만 등 표기 편차 감안해 contains)
+    if (brand) {
+      where.brand = { contains: String(brand), mode: 'insensitive' };
+    }
+    // 길이(cm) 범위 필터 — length 가 문자열("165", "165cm")이라 숫자만 추출해 비교.
+    // 매물 규모가 작아 ID 선별 후 in 필터로 처리 (인덱스 불필요, 페이지네이션 정합 유지).
+    const minL = Number(lengthMin);
+    const maxL = Number(lengthMax);
+    if ((lengthMin !== undefined && Number.isFinite(minL)) || (lengthMax !== undefined && Number.isFinite(maxL))) {
+      const lo = Number.isFinite(minL) ? minL : 0;
+      const hi = Number.isFinite(maxL) ? maxL : 9999;
+      const rows = await prisma.$queryRaw<Array<{ id: string }>>`
+        SELECT id FROM products
+        WHERE length IS NOT NULL
+          AND NULLIF(regexp_replace(length, '[^0-9.]', '', 'g'), '') IS NOT NULL
+          AND NULLIF(regexp_replace(length, '[^0-9.]', '', 'g'), '')::numeric BETWEEN ${lo} AND ${hi}`;
+      where.id = { in: rows.map((r) => r.id) };
     }
 
     // limit/offset 검증 — 잘못된 값(예: ?limit=abc)이 parseInt→NaN→Prisma 예외→500 나는 것 방지.

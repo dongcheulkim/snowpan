@@ -19,6 +19,8 @@ import {
   adminCancelBooking,
   adminApproveBooking,
   adminFreeApprove,
+  getBookingPayInfo,
+  confirmTossPayment,
 } from '../controllers/adBookingController';
 
 const router = Router();
@@ -33,6 +35,8 @@ router.get('/deposit-info', getDepositInfo); // 입금계좌 (env 단일 소스)
 router.post('/create', authenticateToken, createBooking);
 
 router.get('/my-bookings', authenticateToken, getMyBookings);
+router.get('/:id/pay-info', authenticateToken, getBookingPayInfo); // 토스 결제 페이지용
+router.post('/:id/confirm-payment', authenticateToken, confirmTossPayment); // 토스 결제 승인
 router.post('/:id/cancel', authenticateToken, cancelBooking);
 router.put('/:id', authenticateToken, updateBookingCreative); // 광고주 소재 수정
 router.delete('/:id', authenticateToken, deleteBooking);
