@@ -9,6 +9,7 @@ import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
 import HScroll from '../components/HScroll';
+import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
 interface LessonItem {
   id: string;
@@ -23,6 +24,7 @@ interface LessonItem {
 interface Resort {
   id: string;
   name: string;
+  location?: string | null;
 }
 
 const PAGE_SIZE = 12;
@@ -40,13 +42,15 @@ const Lesson = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
+  // 지역(대분류) → 리조트(소분류) 2단계 — 리조트 칩이 길어 한 줄로 못 담던 것
+  const [selectedRegion, setSelectedRegion] = useState('all');
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
   }, []);
 
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort, selectedSpec, sport]);
+  useEffect(() => { setPage(1); }, [selectedResort, selectedRegion, selectedSpec, sport]);
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -54,7 +58,12 @@ const Lesson = () => {
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         params.set('type', sport);
-        if (selectedResort !== 'all') params.set('resortId', selectedResort);
+        if (selectedResort !== 'all') {
+          params.set('resortId', selectedResort);
+        } else if (selectedRegion !== 'all') {
+          const ids = resorts.filter((r) => resortRegion(r.location) === selectedRegion).map((r) => r.id);
+          if (ids.length) params.set('resortId', ids.join(','));
+        }
         if (selectedSpec !== 'all') params.set('specialty', selectedSpec);
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
         setLessonItems(data.items);
@@ -69,7 +78,7 @@ const Lesson = () => {
     };
     fetchLessons();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedResort, selectedSpec, sport, page]);
+  }, [selectedResort, selectedRegion, resorts, selectedSpec, sport, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -98,22 +107,37 @@ const Lesson = () => {
         ))}
       </div>
 
-      {/* Resort Filter */}
+      {/* 장소 — 대분류: 지역 → 소분류: 그 지역 리조트 (숙소와 동일 패턴) */}
       <HScroll className="flex gap-2 overflow-x-auto pb-1">
-        {[{ id: 'all', name: '전체' }, ...resorts].map((resort) => (
+        {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
           <button
-            key={resort.id}
-            onClick={() => setSelectedResort(resort.id)}
-            className={`px-3 py-2 rounded-xl font-medium text-xs whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
-              selectedResort === resort.id
-                ? 'bg-accent text-white'
-                : 'bg-snow text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'
+            key={rg}
+            onClick={() => { setSelectedRegion(rg); setSelectedResort('all'); }}
+            className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
+              selectedRegion === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
           >
-            {resort.name}
+            {rg === 'all' ? '전체 지역' : rg}
           </button>
         ))}
       </HScroll>
+      {selectedRegion !== 'all' && (
+        <HScroll className="flex gap-2 overflow-x-auto pb-1">
+          {[{ id: 'all', name: '전체' }, ...resorts.filter((r) => resortRegion(r.location) === selectedRegion)].map((resort) => (
+            <button
+              key={resort.id}
+              onClick={() => setSelectedResort(resort.id)}
+              className={`px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all flex-shrink-0 ${
+                selectedResort === resort.id
+                  ? 'bg-sky-100 text-sky-700 border border-sky-300'
+                  : 'bg-snow text-gray-500 border border-gray-200'
+              }`}
+            >
+              {resort.name}
+            </button>
+          ))}
+        </HScroll>
+      )}
 
       {/* 강습 분야 필터 — 인터·레이싱 등 */}
       <HScroll className="flex gap-1.5 overflow-x-auto pb-1">

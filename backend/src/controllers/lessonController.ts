@@ -23,7 +23,11 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const where: any = { approved: true, vertical: verticalSlug };
-    if (resortId) where.resortId = resortId as string;
+    if (resortId) {
+      // 콤마 목록 지원 — 지역(대분류) 선택 시 그 지역 리조트 전체를 in 으로 필터
+      const ids = String(resortId).split(',').filter(Boolean);
+      where.resortId = ids.length > 1 ? { in: ids } : ids[0];
+    }
     if (level) where.level = level as string;
     if (typeof specialty === 'string' && LESSON_SPECIALTIES.includes(specialty)) {
       where.specialties = { contains: specialty };
