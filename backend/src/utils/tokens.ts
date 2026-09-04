@@ -106,6 +106,9 @@ export function isTokenIatStale(userId: string, iat: number | undefined): boolea
   if (!iat) return false;
   const cutoff = userInvalidatedAt.get(userId);
   if (!cutoff) return false;
+  // strict < : 무효화 직후 같은 초에 재로그인한 '정상' 토큰(iat==cutoff)은 통과시켜야 함.
+  // (<= 로 하면 비번변경 직후 재로그인 세션까지 튕겨내 실사용을 깨뜨림 — E2E 로 확인)
+  // 같은 초에 발급된 '탈취' 토큰만 통과하는 극히 드문 창은 tokenVersion 도입으로 후속 해결.
   return iat < cutoff;
 }
 

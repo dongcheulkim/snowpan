@@ -116,12 +116,18 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
             { viewCount: 'desc' },
             { createdAt: 'desc' },
           ]
+        : sort === 'price_asc' || sort === 'price_desc'
+        // 가격 정렬은 price 를 주 키로 — bumpedAt 이 항상 채워져 있어 price 가 tie-breaker
+        // 로 밀리면 정렬이 무력화되던 것 수정 (프리미엄 고정 노출만 유지)
+        ? [
+            { isPremium: { sort: 'desc', nulls: 'last' } },
+            { price: sort === 'price_asc' ? 'asc' : 'desc' },
+            { bumpedAt: { sort: 'desc', nulls: 'last' } },
+          ]
         : [
             { isPremium: { sort: 'desc', nulls: 'last' } },
             { bumpedAt: { sort: 'desc', nulls: 'last' } },
-            sort === 'price_asc' ? { price: 'asc' }
-            : sort === 'price_desc' ? { price: 'desc' }
-            : { createdAt: 'desc' },
+            { createdAt: 'desc' },
           ];
 
     const productSelect = {
@@ -290,6 +296,9 @@ export const getMarketStats = async (req: Request, res: Response): Promise<void>
 };
 
 // 중고 장비 등록 (로그인 필요)
+// 중고 세부 카테고리 화이트리스트 — 프론트 SNOW_USED_GROUPS 와 일치. 오염값 저장 차단.
+const VALID_USED_SUBS = new Set(['ski', 'ski_boots', 'pole', 'board', 'board_boots', 'binding', 'wear', 'helmet', 'goggles', 'gloves', 'protector', 'bag', 'accessory', 'tuning', 'etc']);
+
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -337,7 +346,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
       data: {
         name: cleanName,
         brand: sanitizeText(brand, 60) || '',
-        subcategory: subcategory || null,
+        subcategory: subcategory && VALID_USED_SUBS.has(String(subcategory)) ? String(subcategory) : null,
         price: priceResult.value,
         image,
         images: images || null,

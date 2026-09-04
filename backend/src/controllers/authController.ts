@@ -246,6 +246,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         phoneVerified: user.phoneVerified,
         profileImage: user.profileImage,
         role: user.role,
+        provider: (user as { provider?: string | null }).provider ?? null,
         createdAt: user.createdAt,
       },
     });
@@ -997,6 +998,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
         phoneVerified: user.phoneVerified,
         profileImage: user.profileImage,
         role: user.role,
+        provider: (user as { provider?: string | null }).provider ?? null,
         createdAt: user.createdAt,
       },
     });

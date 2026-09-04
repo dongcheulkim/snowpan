@@ -16,7 +16,11 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const where: any = { approved: true, vertical: verticalSlug };
-    if (resortId) where.resortId = resortId as string;
+    if (resortId) {
+      // 지역(대분류) 선택 시 그 지역 리조트 콤마 목록 → in 필터 (레슨·숙소와 통일)
+      const ids = String(resortId).split(',').filter(Boolean);
+      where.resortId = ids.length > 1 ? { in: ids } : ids[0];
+    }
 
     const take = limit ? parseInt(limit as string, 10) : 50;
     const skip = offset ? parseInt(offset as string, 10) : undefined;

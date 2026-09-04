@@ -146,8 +146,8 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (services !== undefined) data.services = services ? (sanitizeText(services, 500) || services) : null;
     if (phone !== undefined) data.phone = phone ? (sanitizeText(phone, 40) || phone) : null;
     if (instagram !== undefined) data.instagram = instagram ? (sanitizeText(instagram, 60) || instagram) : null;
-    if (website !== undefined) data.website = website ? (sanitizeText(website, 300) || website) : null;
-    if (naverMap !== undefined) data.naverMap = naverMap ? (sanitizeText(naverMap, 300) || naverMap) : null;
+    if (website !== undefined) data.website = isHttpUrl(website) ? (sanitizeText(website, 300) || null) : null;
+    if (naverMap !== undefined) data.naverMap = isHttpUrl(naverMap) ? (sanitizeText(naverMap, 300) || null) : null;
     if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     if (image !== undefined) data.image = image || null;
