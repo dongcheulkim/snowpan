@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
+import { stripPrivateAll } from '../utils/publicFields';
 
 export const getResorts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -79,8 +80,9 @@ export const getResortById = async (req: Request, res: Response): Promise<void> 
     const resort = await prisma.skiResort.findUnique({
       where: { id },
       include: {
-        rentals: true,
-        lessons: true,
+        // 승인된 것만 — 심사 대기 매물이 공개되던 것 차단
+        rentals: { where: { approved: true } },
+        lessons: { where: { approved: true } },
       },
     });
 
@@ -89,7 +91,12 @@ export const getResortById = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    res.json(resort);
+    // 사업자등록증·자격증 등 심사용 서류 URL 제거 (개인정보 — 공개 금지)
+    res.json({
+      ...resort,
+      rentals: stripPrivateAll(resort.rentals as unknown as Record<string, unknown>[]),
+      lessons: stripPrivateAll(resort.lessons as unknown as Record<string, unknown>[]),
+    });
   } catch (error) {
     console.error('Get resort error:', error);
     res.status(500).json({ error: '스키장 조회 중 오류가 발생했습니다.' });

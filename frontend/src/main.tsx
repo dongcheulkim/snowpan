@@ -118,12 +118,13 @@ try {
           return event;
         },
       });
-      // 로그인 시 user context 자동 태깅
+      // 로그인 시 user context 자동 태깅 — 개인정보 최소화: 이메일·실명은 보내지 않음
+      // (에러 추적엔 id 로 충분, 국외 수탁 데이터 최소화 원칙)
       try {
         const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
         if (raw) {
           const u = JSON.parse(raw);
-          S.setUser({ id: u.id, email: u.email, username: u.nickname || u.name });
+          S.setUser({ id: u.id, username: u.nickname || undefined });
         }
       } catch { /* ignore */ }
     }).catch(() => { /* Sentry 로드 실패는 silent — 앱 동작에 영향 없음 */ });

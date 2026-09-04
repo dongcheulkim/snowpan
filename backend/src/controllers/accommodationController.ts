@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins } from './notificationController';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { sanitizeImages } from '../utils/images';
@@ -50,7 +51,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
       prisma.accommodation.count({ where }),
     ]);
 
-    res.json({ items: stripPrivateAll(accommodations as any), totalCount });
+    res.json({ items: maskRowUserAll(stripPrivateAll(accommodations as any)), totalCount });
   } catch (error) {
     console.error('Get accommodations error:', error);
     res.status(500).json({ error: '숙소 조회 중 오류가 발생했습니다.' });
@@ -85,7 +86,7 @@ export const getAccommodationById = async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    res.json(stripPrivate(accommodation as any));
+    res.json(maskRowUser(stripPrivate(accommodation as any)));
   } catch (error) {
     console.error('Get accommodation error:', error);
     res.status(500).json({ error: '숙소 조회 중 오류가 발생했습니다.' });

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -446,7 +447,7 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     }
 
     const { _count, ...rest } = product;
-    res.json({ ...rest, viewCount, wishlistCount: _count.wishlists, wishlisted });
+    res.json({ ...maskRowUser(rest), viewCount, wishlistCount: _count.wishlists, wishlisted });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });

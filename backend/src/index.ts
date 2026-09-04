@@ -447,7 +447,8 @@ io.on('connection', (socket) => {
         include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       });
       await prisma.chatRoom.update({ where: { id: data.roomId }, data: { updatedAt: new Date() } });
-      io.to(`room:${data.roomId}`).emit('new_message', message);
+      // sender 실명 비노출 — HTTP 메시지 조회와 동일하게 표시명 치환
+      io.to(`room:${data.roomId}`).emit('new_message', { ...message, sender: { ...message.sender, name: message.sender.nickname || message.sender.name } });
 
       // 수신자 알림 — room(위 findFirst) 재사용 (중복 쿼리 제거).
       const recipientId = room.user1Id === userId ? room.user2Id : room.user1Id;

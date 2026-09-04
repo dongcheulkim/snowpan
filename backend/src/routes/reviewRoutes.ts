@@ -189,7 +189,11 @@ router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: R
       productPrice: p.price,
       productImage: p.image,
       sellerId: p.userId,
-      seller: p.userId ? sellerById.get(p.userId) || null : null,
+      seller: (() => {
+        const sel = p.userId ? sellerById.get(p.userId) || null : null;
+        // 실명 비노출 — 표시명(닉네임 우선) 치환
+        return sel ? { ...sel, name: sel.nickname || sel.name } : null;
+      })(),
       soldAt: p.updatedAt,
     })).filter((x) => x.seller && x.seller.role !== 'deleted');
 

@@ -241,7 +241,8 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
       include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       orderBy: { createdAt: 'asc' },
     });
-    res.json(messages);
+    // 상대 실명 비노출 — 표시명(닉네임 우선)으로 치환 (rooms 목록과 정책 통일)
+    res.json(messages.map((m) => ({ ...m, sender: { ...m.sender, name: m.sender.nickname || m.sender.name } })));
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: '메시지 조회 실패' });

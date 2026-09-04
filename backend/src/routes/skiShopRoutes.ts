@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
@@ -31,7 +32,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
     });
-    res.json(shops);
+    res.json(maskRowUserAll(shops));
   } catch (error) {
     console.error('Get ski shops error:', error);
     res.status(500).json({ error: '스키샵 조회 중 오류가 발생했습니다.' });
@@ -135,7 +136,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     if (!shop) { res.status(404).json({ error: '스키샵을 찾을 수 없습니다.' }); return; }
     // 조회수 증가 (fire-and-forget) — 응답 지연 없이.
     prisma.skiShop.update({ where: { id: req.params.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
-    res.json(shop);
+    res.json(maskRowUser(shop));
   } catch (error) {
     res.status(500).json({ error: '스키샵 조회 실패' });
   }

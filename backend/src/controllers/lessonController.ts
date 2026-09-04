@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins } from './notificationController';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
@@ -54,7 +55,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
       prisma.lesson.count({ where }),
     ]);
 
-    res.json({ items: stripPrivateAll(lessons as any), totalCount });
+    res.json({ items: maskRowUserAll(stripPrivateAll(lessons as any)), totalCount });
   } catch (error) {
     console.error('Get lessons error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });
@@ -136,7 +137,7 @@ export const getLessonById = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    res.json(stripPrivate(lesson as any));
+    res.json(maskRowUser(stripPrivate(lesson as any)));
   } catch (error) {
     console.error('Get lesson error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });

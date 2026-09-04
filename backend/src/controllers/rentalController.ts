@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins } from './notificationController';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
@@ -34,7 +35,7 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
       prisma.rental.count({ where }),
     ]);
 
-    res.json({ items: stripPrivateAll(rentals as any), totalCount });
+    res.json({ items: maskRowUserAll(stripPrivateAll(rentals as any)), totalCount });
   } catch (error) {
     console.error('Get rentals error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });
@@ -108,7 +109,7 @@ export const getRentalById = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    res.json(stripPrivate(rental as any));
+    res.json(maskRowUser(stripPrivate(rental as any)));
   } catch (error) {
     console.error('Get rental error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });

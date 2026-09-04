@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { sanitizeText } from '../utils/sanitize';
 
 const router = Router();
@@ -83,7 +84,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const hasMore = posts.length > limit;
     const items = hasMore ? posts.slice(0, limit) : posts;
     res.json({
-      items,
+      items: maskRowUserAll(items),
       nextCursor: hasMore ? items[items.length - 1].id : null,
     });
   } catch (err) {
@@ -158,7 +159,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       where: { id: post.id },
       data: { viewCount: { increment: 1 } },
     }).catch(() => { /* noop */ });
-    res.json(post);
+    res.json(maskRowUser(post));
   } catch (err) {
     console.error('Get shop post error:', err);
     res.status(500).json({ error: '포스트 조회 중 오류가 발생했습니다.' });
