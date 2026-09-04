@@ -190,7 +190,8 @@ app.use(cors({
     // 서버 내부 호출 / Postman 등 origin 없을 땐 허용
     if (!origin) return cb(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    return cb(new Error(`CORS blocked: ${origin}`));
+    // 미허용 오리진 — throw(500) 대신 조용히 거부(ACAO 헤더 미부여). 브라우저가 차단.
+    return cb(null, false);
   },
   credentials: true,
 }));

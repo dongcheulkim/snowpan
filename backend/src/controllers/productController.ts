@@ -509,7 +509,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       data: {
         ...(name && { name: sanitizeText(name, 100) }),
         ...(brand !== undefined && { brand: sanitizeText(brand, 60) || '' }),
-        ...(subcategory !== undefined && { subcategory }),
+        ...(subcategory !== undefined && { subcategory: subcategory && VALID_USED_SUBS.has(String(subcategory)) ? String(subcategory) : null }),
         ...(priceUpdate !== undefined && { price: priceUpdate }),
         ...(image && { image }),
         ...(images !== undefined && { images }),

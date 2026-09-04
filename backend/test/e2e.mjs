@@ -377,6 +377,14 @@ async function main() {
   const roomAfter = await req('GET', `/chat/rooms/${roomId}`, { token: B.token });
   check('탈퇴 상대 채팅방 열람', roomAfter.status === 200, `${roomAfter.status}`);
 
+  // 수정 경로 subcategory 오염 차단 (보안 감사 M-1 회귀 방지)
+  {
+    const atk = await req('PUT', `/products/${prodId}`, { token: B.token, body: { subcategory: '<script>alert(1)</script>' } });
+    // 타인 매물이면 403, 본인이면 200이되 저장은 무시. prodId 소유자에 맞춰 확인
+    const after = await req('GET', `/products/${prodId}`);
+    check('중고 수정 subcategory 오염 차단', !(JSON.stringify(after.json || {}).includes('<script>')), `${atk.status}`);
+  }
+
   // ============ 11. 개인정보 가드 ============
   // 공개 API 응답에 서류·내부심사 필드·이메일·실명이 실려나가면 즉시 실패.
   // (2026-09-04 리조트 상세 서류 URL 공개 유출 사고 재발 방지 — 새 공개 엔드포인트를

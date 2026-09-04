@@ -189,7 +189,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     const updated = await prisma.accommodation.update({
       where: { id },
       data: {
-        ...(name && { name }), ...(type && { type }), ...(priceUpdate !== undefined && { price: priceUpdate }),
+        ...(name && { name }), ...(type && { type: cleanAccomType(type) }), ...(priceUpdate !== undefined && { price: priceUpdate }),
         ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests }), ...(features && { features }),
         ...(resortId && { resortId }), ...(image && { image }), ...(images !== undefined && { images: sanitizeImages(images) }),
         ...(ownerEdit && { approved: false }),
