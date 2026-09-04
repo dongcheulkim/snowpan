@@ -377,6 +377,39 @@ async function main() {
   const roomAfter = await req('GET', `/chat/rooms/${roomId}`, { token: B.token });
   check('탈퇴 상대 채팅방 열람', roomAfter.status === 200, `${roomAfter.status}`);
 
+  // ============ 11. 개인정보 가드 ============
+  // 공개 API 응답에 서류·내부심사 필드·이메일·실명이 실려나가면 즉시 실패.
+  // (2026-09-04 리조트 상세 서류 URL 공개 유출 사고 재발 방지 — 새 공개 엔드포인트를
+  //  만들면 여기 목록에도 추가할 것)
+  console.log('[11] 개인정보 가드');
+  {
+    const resortsAll = await req('GET', '/resorts');
+    const rid0 = resortsAll.json?.[0]?.id;
+    const publicPaths = [
+      '/products?category=used&limit=20',
+      rid0 ? `/resorts/${rid0}` : '/resorts',
+      '/rentals?limit=20', '/lessons?limit=20', '/accommodations?limit=20',
+      '/ski-shops', '/repair-shops', '/shop-posts/recent?limit=20',
+      '/community?limit=20', '/banners',
+    ];
+    // phone 은 매장 사업 연락처로 의도된 공개 — 금지 목록에서 제외
+    const FORBIDDEN_KEYS = ['"businessLicense"', '"instructorCert"', '"accommodationPermit"', '"aiNote"', '"aiReviewedAt"', '"email"', '"fcmToken"', '"sessionInvalidBefore"'];
+    // 실명(테스터N)은 어떤 공개 응답에도 나오면 안 됨 — 표시명은 항상 e2e닉N
+    const FORBIDDEN_NAMES = ['테스터1', '테스터2', '테스터3'];
+    for (const path of publicPaths) {
+      const r = await req('GET', path);
+      const body = JSON.stringify(r.json ?? {});
+      const badKey = FORBIDDEN_KEYS.find((k) => body.includes(k));
+      const badName = FORBIDDEN_NAMES.find((n) => body.includes(n));
+      check(`공개응답 무유출 ${path.split('?')[0]}`, r.status === 200 && !badKey && !badName,
+        `${r.status}${badKey ? ' 금지키 ' + badKey : ''}${badName ? ' 실명 ' + badName : ''}`);
+    }
+    // 채팅 메시지 — 상대 실명 비노출 (표시명 치환 확인)
+    const msgsGuard = await req('GET', `/chat/rooms/${roomId}/messages`, { token: B.token });
+    const msgsBody = JSON.stringify(msgsGuard.json ?? {});
+    check('채팅 메시지 실명 비노출', msgsGuard.status === 200 && !FORBIDDEN_NAMES.some((n) => msgsBody.includes(n)), `${msgsGuard.status}`);
+  }
+
   // ============ 결과 ============
   console.log('\n========== 결과 ==========');
   console.log(`PASS ${pass} / FAIL ${fail} / TOTAL ${pass + fail}`);
