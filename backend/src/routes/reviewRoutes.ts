@@ -92,7 +92,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
 
     res.status(201).json({
       ...review,
-      buyer: review.buyer ? { ...review.buyer, name: review.buyer.nickname || review.buyer.name } : review.buyer,
+      buyer: review.buyer ? { ...review.buyer, name: review.buyer.nickname || '스노우판 회원' } : review.buyer,
     });
   } catch (error) {
     console.error('Create review error:', error);
@@ -136,7 +136,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     // 실명 보호 — 공개 API 라 name 을 닉네임으로 치환 (커뮤니티와 동일 정책)
     const shaped = reviews.map((r) => ({
       ...r,
-      buyer: r.buyer ? { ...r.buyer, name: r.buyer.nickname || r.buyer.name } : r.buyer,
+      buyer: r.buyer ? { ...r.buyer, name: r.buyer.nickname || '스노우판 회원' } : r.buyer,
     }));
     res.json({ reviews: shaped, averageRating, totalCount });
   } catch (error) {
@@ -192,7 +192,7 @@ router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: R
       seller: (() => {
         const sel = p.userId ? sellerById.get(p.userId) || null : null;
         // 실명 비노출 — 표시명(닉네임 우선) 치환
-        return sel ? { ...sel, name: sel.nickname || sel.name } : null;
+        return sel ? { ...sel, name: sel.nickname || '스노우판 회원' } : null;
       })(),
       soldAt: p.updatedAt,
     })).filter((x) => x.seller && x.seller.role !== 'deleted');

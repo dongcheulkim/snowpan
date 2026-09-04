@@ -34,8 +34,11 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
     }
     if (type) where.type = { contains: type as string };
 
-    const take = limit ? parseInt(limit as string, 10) : 50;
-    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    // 검증 — NaN/음수/거대값이 Prisma take/skip 예외(500)로 이어지던 것 차단 (products 와 통일)
+    const takeParsed = limit ? parseInt(limit as string, 10) : 50;
+    const take = Number.isFinite(takeParsed) && takeParsed > 0 ? Math.min(takeParsed, 100) : 50;
+    const skipParsed = offset ? parseInt(offset as string, 10) : 0;
+    const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
     const [accommodations, totalCount] = await Promise.all([
       prisma.accommodation.findMany({
@@ -128,7 +131,7 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         type: cleanType,
         price: priceResult.value,
         originalPrice: originalParsed,
-        guests,
+        guests: String(guests),
         features: features || '',
         image,
         images: sanitizeImages(images),
@@ -190,7 +193,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
       where: { id },
       data: {
         ...(name && { name }), ...(type && { type: cleanAccomType(type) }), ...(priceUpdate !== undefined && { price: priceUpdate }),
-        ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests }), ...(features && { features }),
+        ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests: String(guests) }), ...(features && { features }),
         ...(resortId && { resortId }), ...(image && { image }), ...(images !== undefined && { images: sanitizeImages(images) }),
         ...(ownerEdit && { approved: false }),
       },

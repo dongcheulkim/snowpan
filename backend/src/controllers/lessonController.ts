@@ -38,8 +38,11 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
       where.type = { contains: type };
     }
 
-    const take = limit ? parseInt(limit as string, 10) : 50;
-    const skip = offset ? parseInt(offset as string, 10) : undefined;
+    // 검증 — NaN/음수/거대값이 Prisma take/skip 예외(500)로 이어지던 것 차단 (products 와 통일)
+    const takeParsed = limit ? parseInt(limit as string, 10) : 50;
+    const take = Number.isFinite(takeParsed) && takeParsed > 0 ? Math.min(takeParsed, 100) : 50;
+    const skipParsed = offset ? parseInt(offset as string, 10) : 0;
+    const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
     const [lessons, totalCount] = await Promise.all([
       prisma.lesson.findMany({

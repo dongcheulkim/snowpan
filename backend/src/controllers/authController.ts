@@ -132,6 +132,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         name: name.trim(),
         nickname: trimmedNickname || null,
         phone: phoneClean,
+        // 가입 게이트(verifiedPhone)를 통과했으므로 인증 완료 상태로 기록 —
+        // 컬럼이 false 로 남아 인증했는데 미인증 표시되던 것 수정
+        phoneVerified: true,
         referredById: referredById,
         // 이메일 가입은 약관·개인정보 동의 필수(프론트) → 동의 시각 기록.
         termsAgreedAt: new Date(),
@@ -835,8 +838,8 @@ export const getSellerProfile = async (req: Request, res: Response): Promise<voi
       prisma.post.count({ where: { userId: id } }).catch(() => 0),
     ]);
 
-    // 닉네임 우선 (커뮤니티·채팅과 동일 규칙) — 닉 정한 유저가 판매자프로필서 본명 노출되던 것 통일.
-    const displayName = user.nickname || user.name;
+    // 공개 판매자 프로필 — 닉네임 없으면 실명 대신 익명 라벨 (실명 유출 방지)
+    const displayName = user.nickname || '스노우판 회원';
 
     res.json({
       id: user.id,

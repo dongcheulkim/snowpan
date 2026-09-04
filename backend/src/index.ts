@@ -198,6 +198,31 @@ app.use(cors({
 // JSON body 200KB 상한 — 일반 폼 충분, 거대 페이로드 DoS 방지.
 // 이미지 업로드는 multipart 라 별도 (uploadRoutes 의 multer 가 20MB).
 app.use(express.json({ limit: '200kb' }));
+
+// 널바이트(0x00) 제거 — Postgres text 는 널바이트를 거부해 Prisma 500 을 유발.
+// 요청 진입점에서 문자열 값의 \u0000 을 제거해 광범위한 500 을 원천 차단.
+app.use((req, res, next) => {
+  // 경로에 널바이트(%00) — 라우팅 후 req.params 로 들어가면 Prisma 500. 원시 URL 에서 조기 차단.
+  if (req.originalUrl && /%00/i.test(req.originalUrl)) {
+    res.status(400).json({ error: '잘못된 요청 경로입니다.' });
+    return;
+  }
+  const strip = (v: unknown): unknown => {
+    if (typeof v === 'string') return v.includes('\u0000') ? v.replace(/\u0000/g, '') : v;
+    if (Array.isArray(v)) return v.map(strip);
+    if (v && typeof v === 'object') {
+      for (const k of Object.keys(v as Record<string, unknown>)) {
+        (v as Record<string, unknown>)[k] = strip((v as Record<string, unknown>)[k]);
+      }
+      return v;
+    }
+    return v;
+  };
+  if (req.body) strip(req.body);
+  if (req.query) { for (const k of Object.keys(req.query)) (req.query as Record<string, unknown>)[k] = strip((req.query as Record<string, unknown>)[k]); }
+  if (req.params) strip(req.params);
+  next();
+});
 // HttpOnly 쿠키 (refresh token) 파싱.
 app.use(cookieParser());
 // 업로드 이미지는 파일명에 uuid/해시 포함되어 있어 사실상 immutable.

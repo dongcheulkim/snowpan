@@ -172,19 +172,27 @@ router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthR
     const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
     if (!poll) { res.status(404).json({ error: '존재하지 않는 투표입니다.' }); return; }
 
-    // create 성공 = 새 좋아요(+1), P2002 = 이미 눌렀음 → 토글 오프(-1). 카운터는 원자 증감.
-    try {
-      await prisma.pollLike.create({ data: { pollId, userId } });
-      const updated = await prisma.poll.update({ where: { id: pollId }, data: { likes: { increment: 1 } }, select: { likes: true } });
-      res.json({ likes: updated.likes, liked: true });
-    } catch (e) {
-      if ((e as { code?: string })?.code === 'P2002') {
-        await prisma.pollLike.delete({ where: { pollId_userId: { pollId, userId } } });
-        const updated = await prisma.poll.update({ where: { id: pollId }, data: { likes: { decrement: 1 } }, select: { likes: true } });
-        res.json({ likes: updated.likes, liked: false });
-        return;
+    // 동시 요청 안전 — 현재 상태를 보고 트랜잭션으로 토글 (커뮤니티 likePost 와 동일 패턴).
+    // 기존 create/P2002→delete 방식은 동시 더블탭 시 이미 삭제된 행 delete(P2025)로 500 나던 것 수정.
+    const existing = await prisma.pollLike.findUnique({ where: { pollId_userId: { pollId, userId } }, select: { id: true } });
+    if (existing) {
+      const [, updated] = await prisma.$transaction([
+        prisma.pollLike.deleteMany({ where: { pollId, userId } }),
+        prisma.poll.update({ where: { id: pollId }, data: { likes: { decrement: 1 } }, select: { likes: true } }),
+      ]);
+      res.json({ likes: Math.max(0, updated.likes), liked: false });
+    } else {
+      try {
+        await prisma.$transaction([
+          prisma.pollLike.create({ data: { pollId, userId } }),
+          prisma.poll.update({ where: { id: pollId }, data: { likes: { increment: 1 } } }),
+        ]);
+      } catch (e) {
+        // 경쟁으로 그새 생성됨(P2002) → 이미 좋아요 상태로 간주, 카운터 중복 증가 안 함
+        if ((e as { code?: string })?.code !== 'P2002') throw e;
       }
-      throw e;
+      const cur = await prisma.poll.findUnique({ where: { id: pollId }, select: { likes: true } });
+      res.json({ likes: cur?.likes ?? 0, liked: true });
     }
   } catch (err) {
     res.status(500).json({ error: '좋아요 처리 실패' });
