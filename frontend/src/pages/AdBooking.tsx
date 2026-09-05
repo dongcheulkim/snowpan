@@ -578,7 +578,17 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">광고 이미지</label>
+            <label className="text-sm font-medium text-gray-600">
+              광고 이미지
+              {/* 슬롯별 노출 비율이 달라 업로드 전에 권장 크기 안내 — 잘림·저화질 예방 */}
+              <span className="text-xs text-gray-400 font-normal ml-2">
+                {selectedSlot === 'main_banner'
+                  ? '권장 1000x800px 이상 (5:4 비율)'
+                  : selectedSlot === 'category'
+                  ? '권장 1200x300px 이상 (가로로 긴 배너)'
+                  : ''}
+              </span>
+            </label>
             <div className="mt-1">
               {imagePreview ? (
                 <div className="relative">
@@ -602,6 +612,13 @@ export default function AdBooking() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span className="text-sm text-gray-500">이미지 업로드</span>
+                  <span className="text-[11px] text-gray-400 mt-1">
+                    {selectedSlot === 'main_banner'
+                      ? '1000x800px 이상, 5:4 비율이 가장 잘 맞아요'
+                      : selectedSlot === 'category'
+                      ? '1200x300px 이상, 가로로 긴 사진이 잘 맞아요'
+                      : 'JPG·PNG·HEIC 가능'}
+                  </span>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
               )}
