@@ -65,6 +65,9 @@ const UsedDetail = () => {
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const user = getUser();
   const [, setLangTick] = useState(0);
+  // 하단 sticky 액션바 — 인라인 버튼이 화면 밖으로 스크롤되면 노출. 훅은 조기 return 앞에 위치(훅 순서 규칙).
+  const inlineActionsRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   useMeta({
     title: product ? `${product.name}${product.brand ? ` · ${product.brand}` : ''} ${product.price.toLocaleString()}원` : undefined,
@@ -210,6 +213,15 @@ const UsedDetail = () => {
     }
   };
 
+  // 인라인 액션 버튼 가시성 추적 → 화면 밖이면 sticky 바 노출
+  useEffect(() => {
+    const el = inlineActionsRef.current;
+    if (!el) { setShowStickyBar(false); return; }
+    const io = new IntersectionObserver(([e]) => setShowStickyBar(!e.isIntersecting), { rootMargin: '0px 0px -80px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  });
+
   const [bumping, setBumping] = useState(false);
   const handleBump = async () => {
     if (!id || bumping) return;
@@ -267,17 +279,6 @@ const UsedDetail = () => {
   const sellerId = product.user?.id || '';
   const sellerImage = product.user?.profileImage || '';
   const isMyProduct = user && product.userId === user.id;
-
-  // 하단 sticky 액션바 — 인라인 버튼이 화면 밖으로 스크롤되면 노출 (모바일 전환 마찰 감소)
-  const inlineActionsRef = useRef<HTMLDivElement>(null);
-  const [showStickyBar, setShowStickyBar] = useState(false);
-  useEffect(() => {
-    const el = inlineActionsRef.current;
-    if (!el) { setShowStickyBar(false); return; }
-    const io = new IntersectionObserver(([e]) => setShowStickyBar(!e.isIntersecting), { rootMargin: '0px 0px -80px 0px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [product?.id, isMyProduct, product?.status]);
 
   const startChat = () => {
     // 탈퇴한 판매자 매물 — sellerId 없이 채팅방 열면 죽은 방이 생김.
