@@ -76,6 +76,10 @@ export default function OverseasDetail() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        {/* 사진 출처 — 위키미디어 공용 CC0. 잘 안 보이게 아주 작게 우하단에 */}
+        {resort.image && resort.image.includes('wikimedia') && (
+          <span className="absolute bottom-1 right-1.5 text-[8px] text-white/35 leading-none">사진 위키미디어 공용 (CC0)</span>
+        )}
         <Link to="/overseas" className="absolute top-4 left-4 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-gray-900 text-lg">←</Link>
         <div className="absolute bottom-4 left-4 right-4 text-white">
           <span className="text-[11px] font-bold bg-white/20 px-2 py-0.5 rounded">
