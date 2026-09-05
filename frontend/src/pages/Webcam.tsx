@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, imageUrl } from '../api';
 import { MountainIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
@@ -14,6 +14,7 @@ interface WebcamItem {
   elevation: string | null;
   camCount: number;
   externalUrl: string | null;
+  image?: string | null;
 }
 
 const Webcam = () => {
@@ -57,9 +58,14 @@ const Webcam = () => {
             const hasStream = cam.camCount > 0;
             const cardContent = (
               <>
-                {/* 상단 설산 블록 — LIVE·기온 배지 오버레이 */}
-                <div className="relative h-24 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
-                  <MountainIcon size={30} />
+                {/* 스키장 투어 카드 스타일 — 사진 위 텍스트 오버레이 (사진 없으면 설산 그라데이션) */}
+                <div className="relative h-32 bg-gradient-to-br from-slate-600 to-slate-800">
+                  {cam.image ? (
+                    <img src={imageUrl(cam.image, 400)} alt={cam.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white/50"><MountainIcon size={30} /></div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
                   {hasStream ? (
                     <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-green-500/90 px-1.5 py-0.5 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
@@ -72,12 +78,12 @@ const Webcam = () => {
                       {temps[cam.slug]}°
                     </span>
                   )}
-                </div>
-                <div className="p-2.5">
-                  <p className="text-sm font-bold text-gray-900 leading-tight truncate">{cam.name}</p>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
-                    <span className="text-[10px] text-gray-500 truncate">{cam.slopes}면{hasStream ? ` · ${cam.camCount}캠` : ''}</span>
+                  <div className="absolute bottom-0 inset-x-0 p-2.5">
+                    <p className="text-white font-bold text-sm leading-tight truncate">{cam.name}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] font-medium text-white/90">{cam.region}</span>
+                      <span className="text-[10px] text-white/70 truncate">{cam.slopes}면{hasStream ? ` · ${cam.camCount}캠` : ''}</span>
+                    </div>
                   </div>
                 </div>
               </>

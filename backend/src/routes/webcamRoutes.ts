@@ -18,7 +18,17 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         slopes: true, elevation: true, camCount: true, externalUrl: true,
       },
     });
-    res.json(list);
+    // 스키장 투어(OverseasResort) 대표 사진을 slug 로 매칭해 붙임 — 웹캠 카드에도 사진 노출.
+    // 웹캠 slug ↔ 투어 slug 표기 차이 3곳 보정 (엘리시안·오크·에덴).
+    const camToResort: Record<string, string> = { elysian: 'elysian-gangchon', oak: 'oakvalley', eden: 'edenvalley' };
+    const resortSlugs = list.map((c) => camToResort[c.slug] || c.slug);
+    const resorts = await prisma.overseasResort.findMany({
+      where: { slug: { in: resortSlugs } },
+      select: { slug: true, image: true },
+    });
+    const imageBySlug = new Map(resorts.map((r) => [r.slug, r.image]));
+    const withImage = list.map((c) => ({ ...c, image: imageBySlug.get(camToResort[c.slug] || c.slug) || null }));
+    res.json(withImage);
   } catch (error) {
     console.error('Webcam list error:', error);
     res.status(500).json({ error: '웹캠 목록 조회 중 오류가 발생했습니다.' });
