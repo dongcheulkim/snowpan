@@ -341,6 +341,11 @@ export function imageUrl(src: string, width?: number): string {
   if (src.startsWith('http://') && !src.includes('localhost')) src = 'https://' + src.slice('http://'.length);
   if (src.includes('picsum.photos')) return LOCAL_PLACEHOLDER;
   if (src.includes('.b-cdn.net')) return transformBunny(src, width);
+  // 위키미디어 공용 — Special:FilePath 는 원본(수 MB)을 주므로 width 파라미터로 썸네일 요청.
+  // (스키장 투어·웹캠 사진 로딩 지연 해소)
+  if (src.includes('wikimedia.org') && width) {
+    return src.includes('?') ? src : `${src}?width=${width}`;
+  }
   if (src.startsWith('http')) return transformCloudinary(src, width);
   if (src.startsWith('/')) {
     if (src.startsWith('/icons/')) return src; // 프론트 번들 정적 자산 → 앱 오리진 그대로
