@@ -405,44 +405,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 방금 올라온 중고거래 — 카테고리 바로 아래(매물 우선 노출). 비어도 섹션 항상 표시 */}
-      {isSnow && (
-        <div className="px-4 pt-2 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">방금 올라온 중고거래</h2>
-            <Link to="/used" className="text-xs text-gray-500">전체 보기 &gt;</Link>
-          </div>
-          {usedLoaded && usedItems.length === 0 ? (
-            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
-              <p className="text-sm text-gray-500">아직 매물이 없어요.</p>
-              <p className="text-xs text-sky-600 font-bold mt-1.5">첫 매물을 올려보세요 &gt;</p>
-            </Link>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {usedItems.map((it) => (
-                <Link key={it.id} to={`/used/${it.id}`} className="block active:scale-[0.98] transition-transform">
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
-                    {it.image && (it.image.startsWith('/') || it.image.startsWith('http')) && (
-                      <img src={imageUrl(it.image, 400)} alt={it.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                    )}
-                  </div>
-                  <p className="text-[13px] text-gray-900 truncate mt-1.5 px-0.5">{it.name}</p>
-                  <p className="text-sm font-bold text-gray-900 px-0.5">{it.price.toLocaleString()}원</p>
-                </Link>
-              ))}
-            </div>
-          )}
-          {/* 무한 스크롤 센티널 — 근처에 오면 다음 페이지 자동 로드 */}
-          <div ref={usedSentinelRef} />
-          {usedLoaded && !usedHasMore && usedItems.length > 0 && (
-            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-5 text-center mt-3 active:bg-gray-50 transition-colors">
-              <p className="text-sm text-gray-500">매물을 다 봤어요.</p>
-              <p className="text-xs text-sky-600 font-bold mt-1">내 장비도 판매해보세요 &gt;</p>
-            </Link>
-          )}
-        </div>
-      )}
-
       {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5. 비어도 섹션은 항상 표시 */}
       {isSnow && (
         <div className="px-4 pt-2 pb-4">
@@ -539,6 +501,44 @@ const Home = () => {
               );
             })}
           </div>
+          )}
+        </div>
+      )}
+
+      {/* 방금 올라온 중고거래 — 맨 아래 — 무한 스크롤은 페이지 끝에 있어야 정상 동작. 비어도 섹션 항상 표시 */}
+      {isSnow && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">방금 올라온 중고거래</h2>
+            <Link to="/used" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+          </div>
+          {usedLoaded && usedItems.length === 0 ? (
+            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
+              <p className="text-sm text-gray-500">아직 매물이 없어요.</p>
+              <p className="text-xs text-sky-600 font-bold mt-1.5">첫 매물을 올려보세요 &gt;</p>
+            </Link>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {usedItems.map((it) => (
+                <Link key={it.id} to={`/used/${it.id}`} className="block active:scale-[0.98] transition-transform">
+                  <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                    {it.image && (it.image.startsWith('/') || it.image.startsWith('http')) && (
+                      <img src={imageUrl(it.image, 400)} alt={it.name} loading="lazy" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
+                  </div>
+                  <p className="text-[13px] text-gray-900 truncate mt-1.5 px-0.5">{it.name}</p>
+                  <p className="text-sm font-bold text-gray-900 px-0.5">{it.price.toLocaleString()}원</p>
+                </Link>
+              ))}
+            </div>
+          )}
+          {/* 무한 스크롤 센티널 — 근처에 오면 다음 페이지 자동 로드 */}
+          <div ref={usedSentinelRef} />
+          {usedLoaded && !usedHasMore && usedItems.length > 0 && (
+            <Link to="/used/register" className="block bg-snow rounded-2xl border border-gray-200 p-5 text-center mt-3 active:bg-gray-50 transition-colors">
+              <p className="text-sm text-gray-500">매물을 다 봤어요.</p>
+              <p className="text-xs text-sky-600 font-bold mt-1">내 장비도 판매해보세요 &gt;</p>
+            </Link>
           )}
         </div>
       )}
