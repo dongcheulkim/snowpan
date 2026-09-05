@@ -236,7 +236,8 @@ const Home = () => {
   }, [isSnow]);
 
   // snow: 브랜드 1 + 광고 N + 광고모집 1 (상시 회전). 다른 판: 브랜드 슬라이드만.
-  const totalSlides = isSnow ? 2 + banners.length : 1;
+  // snow: 브랜드 소개 슬라이드 제거(요청) — 광고 N + 모집 1. 다른 버티컬은 소개 1장 유지.
+  const totalSlides = isSnow ? banners.length + 1 : 1;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
@@ -271,7 +272,7 @@ const Home = () => {
     <div className="min-h-screen bg-sky-50">
       <h1 className="sr-only">{isSnow ? '스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에' : `${vertical.name} — ${vertical.tagline}`}</h1>
 
-      {/* Hero — 브랜드 소개 슬라이드 + 광고 rotator (브랜드는 항상 슬라이드 #0)
+      {/* Hero — 광고 rotator (스노우판 소개 슬라이드는 요청으로 제거, 광고부터 시작)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
           어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피.
           모바일에서 임팩트 위해 정사각형 가까운 비율(5/4), 데스크탑은 슬림 유지. */}
@@ -280,19 +281,21 @@ const Home = () => {
           className="relative overflow-hidden rounded-2xl border aspect-[5/4]"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
         >
-          {/* Slide #0: 브랜드 소개 — translate-only 슬라이드 (opacity 페이드 제거 → 두 슬라이드 동시 노출 버그 해소) */}
-          <div
-            aria-hidden={currentBanner !== 0}
-            className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-              currentBanner === 0 ? 'translate-x-0' : '-translate-x-full pointer-events-none'
-            }`}
-          >
-            <BrandHero />
-          </div>
+          {/* 다른 버티컬만 소개 슬라이드 유지 (snow 는 광고부터) */}
+          {!isSnow && (
+            <div
+              aria-hidden={currentBanner !== 0}
+              className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+                currentBanner === 0 ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+              }`}
+            >
+              <BrandHero />
+            </div>
+          )}
 
-          {/* Slide #1~N: 광고 */}
+          {/* Slide #0~N-1: 광고 */}
           {banners.map((banner, idx) => {
-            const slideIdx = idx + 1;
+            const slideIdx = idx;
             const inactive = slideIdx !== currentBanner;
             return (
               <a
@@ -342,7 +345,7 @@ const Home = () => {
 
           {/* 마지막 슬라이드: 광고 모집 (snow 전용, 상시) — 눌리면 광고 신청으로 */}
           {isSnow && (() => {
-            const slideIdx = banners.length + 1;
+            const slideIdx = banners.length;
             const inactive = slideIdx !== currentBanner;
             return (
               <Link
