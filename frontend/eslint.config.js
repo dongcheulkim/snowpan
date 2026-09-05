@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'android']), // android/ = Capacitor 네이티브 빌드 산출물 (린트 대상 아님)
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

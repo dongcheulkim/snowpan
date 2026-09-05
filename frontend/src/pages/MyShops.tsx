@@ -131,7 +131,7 @@ export default function MyShops() {
                 <Link to={`/shop-post/${p.id}`} className="flex-1 min-w-0">
                   <p className="text-xs text-gray-800 truncate">{p.title}</p>
                   <p className="text-[10px] text-gray-400">
-                    {new Date(p.createdAt).toLocaleDateString('ko-KR')} · 조회 {p.viewCount.toLocaleString()}
+                    {new Date(p.createdAt).toLocaleDateString('ko-KR')} · 조회 {(p.viewCount ?? 0).toLocaleString()}
                   </p>
                 </Link>
                 <button onClick={() => navigate(`/shop-post/${p.id}/edit`)} className="shrink-0 text-[11px] font-bold text-sky-600 px-1.5 py-1">수정</button>

@@ -233,17 +233,8 @@ const Chat = () => {
       }).then(room => safeConnect(room.id)).catch((e) => {
         if (!cancelled) toastError(e instanceof Error ? e.message : '채팅방 연결에 실패했습니다.');
       });
-    } else if (chatId && chatId !== 'new') {
-      // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
-      safeConnect(chatId);
-      api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
-        if (cancelled) return;
-        const other = room.user1.id === user.id ? room.user2 : room.user1;
-        setOtherName(other.name);
-        setOtherProfileImage(other.profileImage || null);
-        setOtherId(other.id);
-      }).catch(() => {});
     } else {
+      // (chatId 방 우선 분기는 위에서 처리됨 — 여기 도달 = 방도 없고 sellerId 도 없음)
       // /chat/new 를 라우터 state 없이 직접 열면 연결할 방이 없음 — 가짜 방('new') 접속 대신 목록으로
       navigate('/chat', { replace: true });
     }
