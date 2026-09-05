@@ -31,6 +31,8 @@ export default function CategoryAdBanner({ category }: { category: string }) {
   const vertical = useVertical();
   const [banners, setBanners] = useState<AdItem[]>([]);
   const [current, setCurrent] = useState(0);
+  // 슬롯 정원 — 광고가 있어도 자리가 남았으면 로테이션 끝에 "광고 모집" 슬라이드를 붙임
+  const [maxConcurrent, setMaxConcurrent] = useState(2);
   const user = getUser();
   // 광고 시스템은 snow 전용 — 다른 판에선 표시 안 함 (스노우 광고 누수 방지).
   const isSnow = vertical.slug === 'snow';
@@ -55,14 +57,25 @@ export default function CategoryAdBanner({ category }: { category: string }) {
         })));
       })
       .catch(() => {});
+    // 슬롯 정원 조회 (공개) — 실패 시 기본 2 유지
+    api<{ slotType: string; category: string; maxConcurrent: number }[]>('/ad-booking/slots')
+      .then((slots) => {
+        if (cancelled) return;
+        const slot = (Array.isArray(slots) ? slots : []).find((sl) => sl.slotType === 'category' && sl.category === category);
+        if (slot && typeof slot.maxConcurrent === 'number' && slot.maxConcurrent > 0) setMaxConcurrent(slot.maxConcurrent);
+      })
+      .catch(() => {});
+    setCurrent(0); // 카테고리 전환 시 슬라이드 인덱스 초기화
     return () => { cancelled = true; };
   }, [category]);
 
+  const hasVacancy = banners.length < maxConcurrent; // 자리 남음 → 모집 슬라이드 표시
+  const totalSlides = banners.length + (banners.length > 0 && hasVacancy ? 1 : 0);
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const t = setInterval(() => setCurrent((p) => (p + 1) % banners.length), 4000);
+    if (totalSlides <= 1) return;
+    const t = setInterval(() => setCurrent((p) => (p + 1) % totalSlides), 4000);
     return () => clearInterval(t);
-  }, [banners.length]);
+  }, [totalSlides]);
 
   if (!isSnow) return null;
 
@@ -133,9 +146,33 @@ export default function CategoryAdBanner({ category }: { category: string }) {
           </a>
         );
       })}
-      {banners.length > 1 && (
+      {/* 잔여 자리 모집 슬라이드 — 광고가 있어도 다음 광고주를 상시 유도 (요청) */}
+      {banners.length > 0 && hasVacancy && (() => {
+        const slideIdx = banners.length;
+        const inactive = slideIdx !== current;
+        return (
+          <Link
+            to={adLink}
+            aria-hidden={inactive}
+            tabIndex={inactive ? -1 : 0}
+            className={`absolute inset-0 flex items-center justify-between px-6 transition-transform duration-500 ease-in-out bg-white ${
+              slideIdx === current ? 'translate-x-0' : slideIdx < current ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">AD</span>
+                <span className="text-sm font-bold text-gray-700">이 자리 광고 모집 중</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">카테고리 상단 노출 · 클릭해서 신청</p>
+            </div>
+            <span className="text-xs text-gray-500 ml-3 flex-shrink-0 hidden sm:inline">광고 신청 →</span>
+          </Link>
+        );
+      })()}
+      {totalSlides > 1 && (
         <div className="absolute bottom-0 right-0 flex z-10">
-          {banners.map((_, idx) => (
+          {Array.from({ length: totalSlides }).map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrent(idx)}
