@@ -86,7 +86,7 @@ const accomTypeLabels: Record<string, string> = {
   hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트',
 };
 
-const AdminApproval = () => {
+const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [activeTab, setActiveTab] = useState<TabId>('rental');
   const [pendingRentals, setPendingRentals] = useState<PendingItem[]>([]);
   const [pendingLessons, setPendingLessons] = useState<PendingItem[]>([]);
@@ -439,12 +439,14 @@ const AdminApproval = () => {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">관리자 승인</h1>
-        <Link to="/mypage" className="text-sm text-gray-500">← 내정보</Link>
-      </div>
+      {!embedded && (
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">관리자 승인</h1>
+          <Link to="/mypage" className="text-sm text-gray-500">← 내정보</Link>
+        </div>
+      )}
 
-      <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
+      <div className="flex gap-1 bg-gray-50 rounded-xl p-1 overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab.id}

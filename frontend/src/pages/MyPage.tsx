@@ -214,16 +214,8 @@ const MyPage = () => {
       {/* Admin */}
       {user.role === 'admin' && (
         <div className="card overflow-hidden">
-          <Link to="/admin-approval" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
-            <span className="text-sm font-medium text-coral">{t('mypage.adminApproval')}</span>
-            <span className="text-coral text-xs">→</span>
-          </Link>
-          <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
-            <span className="text-sm font-medium text-coral">{t('mypage.adminDashboard')}</span>
-            <span className="text-coral text-xs">→</span>
-          </Link>
-          <Link to="/admin/overseas" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
-            <span className="text-sm font-medium text-coral">해외 스키 관리</span>
+          <Link to="/admin" className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block">
+            <span className="text-sm font-medium text-coral">관리자 대시보드</span>
             <span className="text-coral text-xs">→</span>
           </Link>
         </div>

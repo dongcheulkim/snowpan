@@ -5,8 +5,9 @@ import { api, getUser, uploadImages, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { CalendarIcon, ChartIcon, ChatIcon, CloseIcon, DocumentIcon, PackageIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
+import AdminApproval from './AdminApproval';
 
-type TabId = 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
+type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'banners' | 'premium' | 'adBookings' | 'adPricing';
 
 interface ReportItem {
   id: string;
@@ -99,7 +100,7 @@ interface RevenueData {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const user = getUser();
-  const [tab, setTab] = useState<TabId>('reports');
+  const [tab, setTab] = useState<TabId>('approval');
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -306,6 +307,7 @@ const AdminDashboard = () => {
   };
 
   const tabs: Array<{ id: TabId; label: string }> = [
+    { id: 'approval', label: '승인관리' },
     { id: 'reports', label: '신고관리' },
     { id: 'stats', label: '통계' },
     { id: 'users', label: '유저관리' },
@@ -359,6 +361,9 @@ const AdminDashboard = () => {
       ) : (
         <>
           {/* Reports Tab */}
+          {tab === 'approval' && (
+            <AdminApproval embedded />
+          )}
           {tab === 'reports' && (
             <div className="space-y-3">
               {reports.length === 0 ? (

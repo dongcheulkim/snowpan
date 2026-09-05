@@ -59,7 +59,6 @@ const CommunityWrite = lazy(() => import('./pages/CommunityWrite'));
 const SellerProfile = lazy(() => import('./pages/SellerProfile'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 const Welcome = lazy(() => import('./pages/Welcome'));
-const AdminApproval = lazy(() => import('./pages/AdminApproval'));
 const EditProfile = lazy(() => import('./pages/EditProfile'));
 const MySales = lazy(() => import('./pages/MySales'));
 const UsedEdit = lazy(() => import('./pages/UsedEdit'));
@@ -82,7 +81,6 @@ const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
 const Overseas = lazy(() => import('./pages/Overseas'));
 const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
-const AdminOverseas = lazy(() => import('./pages/AdminOverseas'));
 const AgencyRegister = lazy(() => import('./pages/AgencyRegister'));
 const AgencyManage = lazy(() => import('./pages/AgencyManage'));
 const AgencyPayResult = lazy(() => import('./pages/AgencyPayResult'));
@@ -169,7 +167,7 @@ function App() {
             <Route path="oauth/callback" element={<OAuthCallback />} />
             <Route path="welcome" element={<Welcome />} />
             <Route path="signup" element={<Navigate to="/login" replace />} />
-            <Route path="admin-approval" element={<RequireAdmin><AdminApproval /></RequireAdmin>} />
+            <Route path="admin-approval" element={<Navigate to="/admin" replace />} />
             <Route path="mypage/edit" element={<RequireAuth><EditProfile /></RequireAuth>} />
             <Route path="mypage/sales" element={<RequireAuth><MySales /></RequireAuth>} />
             <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
@@ -204,7 +202,6 @@ function App() {
             <Route path="ad-booking/pay/fail" element={<AdPayResult />} />
             <Route path="ad-booking/pay/:id" element={<RequireAuth><AdPay /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-            <Route path="admin/overseas" element={<RequireAdmin><AdminOverseas /></RequireAdmin>} />
             <Route path="marketplace" element={<Navigate to="/used" replace />} />
             <Route path="marketplace/*" element={<Navigate to="/used" replace />} />
             <Route path="lodging" element={<Navigate to="/accommodation" replace />} />
