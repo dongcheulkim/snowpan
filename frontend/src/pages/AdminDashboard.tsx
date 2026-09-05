@@ -31,6 +31,7 @@ interface StatsData {
   today?: { visitors: number; pageviews: number };
   week?: { uniqueVisitors: number; pageviews: number };
   daily?: { date: string; users: number; products: number; visitors: number; pageviews: number }[];
+  dbSizeBytes?: number | null;
 }
 
 interface UserItem {
@@ -440,6 +441,24 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
+
+              {/* DB 용량 — Render Basic-256mb 스토리지 1GB 기준 */}
+              {typeof stats.dbSizeBytes === 'number' && stats.dbSizeBytes > 0 && (
+                <div className="card p-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-gray-700">DB 사용량</span>
+                    <span className="text-xs text-gray-500">
+                      {(stats.dbSizeBytes / 1024 / 1024).toFixed(1)} MB / 1 GB ({((stats.dbSizeBytes / (1024 * 1024 * 1024)) * 100).toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${stats.dbSizeBytes / (1024 * 1024 * 1024) > 0.8 ? 'bg-coral' : 'bg-sky-500'}`}
+                      style={{ width: `${Math.min(100, (stats.dbSizeBytes / (1024 * 1024 * 1024)) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* 일별 방문자 + PV 차트 */}
               {stats.daily && stats.daily.length > 0 && (

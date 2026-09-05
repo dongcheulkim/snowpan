@@ -159,6 +159,13 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       if (dayIndex >= dateList.length - 7) wau.add(v.ip);
     }
 
+    // DB 용량 — Render Basic-256mb(스토리지 1GB) 한도 추적용. 실패해도 통계는 정상 반환.
+    let dbSizeBytes: number | null = null;
+    try {
+      const r = await prisma.$queryRaw<{ size: bigint }[]>`SELECT pg_database_size(current_database()) AS size`;
+      dbSizeBytes = Number(r[0]?.size ?? 0) || null;
+    } catch { /* ignore */ }
+
     res.json({
       // 누적
       users, products, posts, chatRooms,
@@ -170,6 +177,8 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       week: { uniqueVisitors: wau.size, pageviews: last7.reduce((s, b) => s + b.pageviews, 0) },
       // 14일 차트 데이터
       daily: buckets,
+      // DB 사용량 (bytes)
+      dbSizeBytes,
     });
   } catch (error) {
     console.error('Get stats error:', error);
