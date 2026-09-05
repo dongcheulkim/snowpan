@@ -342,7 +342,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* 탭 — 7개가 눌리지 않게 스크롤 필 방식 */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex flex-wrap gap-1.5 pb-1">
         {tabs.map((t) => (
           <button
             key={t.id}
