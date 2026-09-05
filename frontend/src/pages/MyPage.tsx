@@ -151,7 +151,7 @@ const MyPage = () => {
             <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center border-2 border-white pointer-events-none">
               <CameraIcon size={11} strokeWidth={2} />
             </div>
-            <input ref={profileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfilePhoto} />
+            <input ref={profileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePhoto} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">

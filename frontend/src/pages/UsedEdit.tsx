@@ -178,7 +178,7 @@ const UsedEdit = () => {
             <label className={labelClass}>이미지 추가</label>
             <input
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/*"
               multiple
               id="photo-upload"
               className="hidden"

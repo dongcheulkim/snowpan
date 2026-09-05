@@ -183,7 +183,7 @@ const UsedRegister = () => {
             <label className={labelClass}>사진</label>
             <input
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/*"
               multiple
               id="photo-upload"
               className="hidden"

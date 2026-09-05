@@ -138,7 +138,7 @@ const EditProfile = () => {
           <div className="absolute bottom-0 right-0 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center border-2 border-white">
             <CameraIcon size={16} strokeWidth={2} />
           </div>
-          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleProfileImage} />
+          <input type="file" accept="image/*" className="hidden" onChange={handleProfileImage} />
         </label>
         <div className="flex items-center gap-3">
           <p className="text-xs text-gray-500">사진을 클릭하여 변경</p>
