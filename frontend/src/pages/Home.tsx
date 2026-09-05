@@ -253,10 +253,10 @@ const Home = () => {
   // snow 는 기존 9개 (스키 도메인 특화). 다른 vertical 은 config 의 homeCategories.
   const categories: { id: keyof typeof categoryIcons | string; title: string; link: string }[] = isSnow
     ? [
-        { id: 'skishop', title: '스키샵', link: '/new-equipment' },
-        { id: 'repair', title: '정비', link: '/repair' },
+        { id: 'skishop', title: '스키·보드샵', link: '/new-equipment' },
+        { id: 'repair', title: '정비샵', link: '/repair' },
         { id: 'used', title: t('cat.used'), link: '/used' },
-        { id: 'rental', title: t('cat.rental'), link: '/rental' },
+        { id: 'rental', title: '렌탈샵', link: '/rental' },
         { id: 'lesson', title: t('cat.lesson'), link: '/lesson' },
         { id: 'accommodation', title: t('cat.accommodation'), link: '/accommodation' },
         { id: 'community', title: t('cat.community'), link: '/community' },
