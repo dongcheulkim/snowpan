@@ -264,28 +264,6 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
   }
 };
 
-// ===== 프리미엄 관리 =====
-// (위 banUser, adminDeleteUser 의 token invalidation 은 별도 import + 호출)
-
-export const setProductPremium = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
-    const { id } = req.params;
-    const { isPremium, premiumUntil } = req.body as { isPremium: boolean; premiumUntil?: string };
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        isPremium,
-        premiumUntil: premiumUntil ? new Date(premiumUntil) : null,
-      },
-    });
-    res.json({ ...product, message: isPremium ? '프리미엄이 설정되었습니다.' : '프리미엄이 해제되었습니다.' });
-  } catch (error) {
-    console.error('Set product premium error:', error);
-    res.status(500).json({ error: '프리미엄 설정 중 오류가 발생했습니다.' });
-  }
-};
-
 // ===== 배너 관리 (Admin CRUD) =====
 export const getBannersAdmin = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
