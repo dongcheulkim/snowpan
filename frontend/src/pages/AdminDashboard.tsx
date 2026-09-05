@@ -74,6 +74,7 @@ interface AdBookingItem {
   endDate: string;
   totalDays: number;
   totalPrice: number;
+  clickCount?: number;
   createdAt: string;
   user: { id: string; name: string; email: string; phone: string };
   payment: { paymentId: string; payMethod: string; amount: number; status: string; paidAt: string } | null;
@@ -742,7 +743,12 @@ const AdminDashboard = () => {
                                   <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">{adSlotLabelKr(b.slotType, b.category)}</span>
                                   <span className="text-[10px] text-gray-400 ml-auto">{new Date(b.createdAt).toLocaleDateString('ko-KR')}</span>
                                 </div>
-                                <p className="text-sm font-bold text-gray-900 mt-1 truncate">{b.title || '(이미지 광고)'}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <p className="text-sm font-bold text-gray-900 truncate flex-1">{b.title || '(이미지 광고)'}</p>
+                                  {['active', 'paid', 'completed'].includes(b.status) && (
+                                    <span className="flex-shrink-0 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">클릭 {(b.clickCount ?? 0).toLocaleString()}</span>
+                                  )}
+                                </div>
                                 <p className="text-[11px] text-gray-500 mt-0.5">
                                   {startD.getMonth() + 1}/{startD.getDate()} ~ {endD.getMonth() + 1}/{endD.getDate()} ({b.totalDays}일) · <span className="font-bold text-gray-900">{b.totalPrice.toLocaleString()}원</span>
                                 </p>

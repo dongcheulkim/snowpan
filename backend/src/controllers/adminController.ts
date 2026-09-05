@@ -373,7 +373,8 @@ export const getPublicBanners = async (_req: Request, res: Response): Promise<vo
       orderBy: { order: 'asc' },
       take: 5,
     });
-    const cleaned = banners.map(b => ({ ...b, tag: b.tag.startsWith('ad:') ? 'AD' : b.tag }));
+    // adBookingId — 광고 클릭 추적용(프론트가 클릭 시 이 id 로 카운트). 광고주 식별정보 아님.
+    const cleaned = banners.map(b => ({ ...b, adBookingId: b.tag.startsWith('ad:') ? b.tag.slice(3) : null, tag: b.tag.startsWith('ad:') ? 'AD' : b.tag }));
     cacheSet(cacheKey, cleaned, 30);
     res.json(cleaned);
   } catch (error) {

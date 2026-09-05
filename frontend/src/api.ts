@@ -335,6 +335,14 @@ function transformCloudinary(url: string, width?: number): string {
 // 기존 DB row 들이 가진 picsum URL 도 자동 교체.
 const LOCAL_PLACEHOLDER = '/icons/placeholder-card.svg';
 
+// 광고 클릭 추적 — fire-and-forget (실패해도 사용자 이동 안 막음). 관리자 통계용.
+export function trackAdClick(adBookingId?: string | null): void {
+  if (!adBookingId) return;
+  try {
+    fetch(`${API_BASE}/ad-booking/${adBookingId}/click`, { method: 'POST', keepalive: true }).catch(() => {});
+  } catch { /* ignore */ }
+}
+
 export function imageUrl(src: string, width?: number): string {
   if (!src) return src;
   // 외부 http 이미지 → https (https 페이지에서 mixed-content 로 차단되는 것 방지, 예: 카카오 프로필 http URL)

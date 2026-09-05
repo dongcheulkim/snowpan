@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getUser, imageUrl } from '../api';
+import { api, getUser, imageUrl, trackAdClick } from '../api';
 import { useVertical } from '../hooks/useVertical';
 
 interface AdItem {
+  id?: string;
   title: string;
   description: string;
   url?: string;
@@ -14,6 +15,7 @@ interface AdItem {
 }
 
 interface RawAd {
+  id?: string;
   title: string;
   description: string;
   url?: string;
@@ -42,6 +44,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
         if (cancelled) return;
         const arr = Array.isArray(ads) ? ads : [];
         setBanners(arr.map((a) => ({
+          id: a.id,
           title: a.title,
           description: a.description,
           url: a.url,
@@ -99,7 +102,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
             href={banner.url || undefined}
             target={banner.url ? '_blank' : undefined}
             rel={banner.url ? 'noopener noreferrer' : undefined}
-            onClick={banner.url ? undefined : (e) => e.preventDefault()}
+            onClick={banner.url ? () => trackAdClick(banner.id) : (e) => e.preventDefault()}
             aria-hidden={inactive}
             tabIndex={inactive ? -1 : 0}
             className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out ${

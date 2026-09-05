@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { trackAdClick, api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
@@ -9,6 +9,7 @@ import HScroll from '../components/HScroll';
 
 interface BannerData {
   id: string;
+  adBookingId?: string | null;
   title: string;
   description: string;
   tag: string;
@@ -295,7 +296,7 @@ const Home = () => {
                 href={banner.url || undefined}
                 target={banner.url ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                onClick={banner.url ? undefined : (e) => e.preventDefault()}
+                onClick={banner.url ? () => trackAdClick(banner.adBookingId) : (e) => e.preventDefault()}
                 aria-hidden={inactive}
                 tabIndex={inactive ? -1 : 0}
                 className={`absolute inset-0 flex items-center px-5 transition-transform duration-500 ease-in-out cursor-pointer ${

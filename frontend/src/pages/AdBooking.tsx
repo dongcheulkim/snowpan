@@ -474,6 +474,11 @@ export default function AdBooking() {
               <span className="font-bold text-sky-700 text-lg">{formatPrice(totalPrice)}원</span>
             </div>
           )}
+          {selectedPeriod && currentPricing && (
+            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+              광고는 <strong>12개월(1년) 계약</strong>으로, 게시 시작 후에는 중도 해지·환불이 되지 않습니다. 신중히 신청해주세요.
+            </p>
+          )}
 
           <button
             disabled={!canProceedStep2}

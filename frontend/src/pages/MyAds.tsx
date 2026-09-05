@@ -150,7 +150,10 @@ export default function MyAds() {
                       <Link to={`/ad-booking/pay/${ad.id}`} className="text-[11px] font-bold text-white bg-sky-500 rounded-lg px-2.5 py-1.5 transition-colors">카드 결제</Link>
                     )}
                     <button onClick={() => openEdit(ad)} className="text-[11px] font-bold text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 transition-colors">수정</button>
-                    <button onClick={() => handleCancel(ad)} className="text-[11px] font-bold text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-2.5 py-1.5 transition-colors">취소</button>
+                    {/* 결제 전(pending_payment)만 취소 가능. 결제된 광고는 1년 계약이라 중도 해지 불가 */}
+                    {ad.status === 'pending_payment' && (
+                      <button onClick={() => handleCancel(ad)} className="text-[11px] font-bold text-gray-500 hover:text-red-500 border border-gray-200 rounded-lg px-2.5 py-1.5 transition-colors">취소</button>
+                    )}
                   </div>
                 ) : (
                   <button onClick={() => handleDelete(ad.id)} aria-label="삭제" className="text-gray-500 hover:text-red-400 transition-colors p-1 flex-shrink-0"><CloseIcon size={14} /></button>

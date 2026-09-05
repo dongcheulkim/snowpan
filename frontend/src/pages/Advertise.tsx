@@ -100,7 +100,7 @@ const Advertise = () => {
       <section className="card p-5 text-xs text-gray-500 leading-relaxed space-y-1.5">
         <h2 className="text-sm font-bold text-gray-900 mb-1">결제 · 환불 안내</h2>
         <p>· 광고 신청 후 안내되는 방법으로 결제하면 검수를 거쳐 게시됩니다.</p>
-        <p>· 게시 시작 전 취소 시 전액 환불됩니다. 게시 중 취소는 잔여 기간 기준으로 환불되며 자세한 내용은 고객센터로 문의해 주세요.</p>
+        <p>· 광고는 12개월(1년) 계약입니다. 게시 시작 후에는 중도 해지·환불이 되지 않으니 신중히 신청해 주세요. (결제 전 신청 건은 취소 가능)</p>
         <p>· 문의: <a href="mailto:help.snowpan@gmail.com" className="text-sky-600 hover:underline">help.snowpan@gmail.com</a></p>
       </section>
 

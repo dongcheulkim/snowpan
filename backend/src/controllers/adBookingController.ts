@@ -603,59 +603,8 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     if (booking.status === 'paid' || booking.status === 'active') {
-      if (!booking.payment || booking.payment.status !== 'paid') {
-        res.status(400).json({ error: '환불할 결제 정보가 없습니다.' });
-        return;
-      }
-
-      // 이미 시작된 광고는 남은 일수만 환불
-      const now = new Date();
-      let refundAmount = booking.totalPrice;
-      if (booking.status === 'active' && booking.startDate < now) {
-        const elapsed = Math.ceil((now.getTime() - booking.startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const remaining = booking.totalDays - elapsed;
-        refundAmount = remaining > 0 ? remaining * (booking.totalPrice / booking.totalDays) : 0;
-      }
-
-      // 무료승인 광고(totalPrice=0)는 환불액 0이 정상 — 취소 자체는 허용해야 함(배너/프리미엄 내려감).
-      // 유료 광고인데 남은 환불액이 0이면(전 기간 소진) 거절.
-      if (booking.totalPrice > 0 && refundAmount <= 0) {
-        res.status(400).json({ error: '환불 가능한 금액이 없습니다.' });
-        return;
-      }
-
-      // 카드 결제(토스) 건은 PG 취소 API 를 먼저 호출 — 실패하면 DB 상태를 바꾸지 않음
-      // (DB 만 환불 처리되고 실제 돈은 안 돌아가는 불일치 방지)
-      if (booking.payment.pgProvider === 'tosspayments') {
-        const r = await refundTossPayment(booking.payment.paymentId, refundAmount, booking.payment.amount, '사용자 취소');
-        if (!r.ok) {
-          res.status(502).json({ error: r.message || '결제사 환불 처리에 실패했습니다. 고객센터로 문의해주세요.' });
-          return;
-        }
-      }
-
-      await prisma.$transaction([
-        prisma.adBooking.update({
-          where: { id },
-          data: { status: 'refunded' },
-        }),
-        prisma.adPayment.update({
-          where: { bookingId: id },
-          data: {
-            status: 'refunded',
-            cancelledAt: new Date(),
-            cancelReason: '사용자 취소',
-            refundAmount: Math.round(refundAmount),
-          },
-        }),
-      ]);
-
-      // 배너 삭제 + 프리미엄 즉시 해제
-      await prisma.banner.deleteMany({ where: { tag: `ad:${id}` } });
-      await revokePremiumFromBooking(booking);
-      cacheDel('banners:public');
-
-      res.json({ success: true, message: '환불이 처리되었습니다.', refundAmount: Math.round(refundAmount) });
+      // 광고는 12개월(1년) 계약 — 중도 해지 불가. 환불·해지 문의는 고객센터를 통해서만.
+      res.status(400).json({ error: '광고는 1년 계약으로 중도 해지가 불가합니다. 문의는 고객센터로 연락해주세요.' });
       return;
     }
 
@@ -663,6 +612,19 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
   } catch (error) {
     console.error('예약 취소 오류:', error);
     res.status(500).json({ error: '예약 취소 실패' });
+  }
+};
+
+// 광고 클릭 추적 (공개) — 관리자 대시보드 통계용. 광고주엔 미노출.
+export const trackAdClick = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) { res.status(400).json({ error: 'id 필요' }); return; }
+    // 존재하는 예약만 카운트 (임의 id 로 카운터 오염 방지). updateMany 로 없으면 무시.
+    await prisma.adBooking.updateMany({ where: { id }, data: { clickCount: { increment: 1 } } });
+    res.json({ ok: true });
+  } catch {
+    res.json({ ok: true }); // 추적 실패가 사용자 이동을 막지 않도록 항상 200
   }
 };
 

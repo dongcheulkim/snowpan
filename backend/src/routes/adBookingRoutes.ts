@@ -21,6 +21,7 @@ import {
   adminFreeApprove,
   getBookingPayInfo,
   confirmTossPayment,
+  trackAdClick,
 } from '../controllers/adBookingController';
 
 const router = Router();
@@ -29,6 +30,7 @@ const router = Router();
 router.get('/slots', getSlotPricings);
 router.get('/availability', getAvailability);
 router.get('/active', getActiveAds);
+router.post('/:id/click', trackAdClick); // 광고 클릭 추적 (공개)
 router.get('/deposit-info', getDepositInfo); // 입금계좌 (env 단일 소스)
 
 // 사용자 API (인증 필요)
