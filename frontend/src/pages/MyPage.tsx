@@ -115,7 +115,7 @@ const MyPage = () => {
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
-    ...(isOwner ? [{ label: '내 매장 관리 (사장님)', link: '/mypage/shops' }] : []),
+    ...(isOwner ? [{ label: '사장님 대시보드', link: '/mypage/shops' }] : []),
     ...(hasAgency ? [{ label: '여행사 관리', link: '/overseas/agency/manage' }] : []),
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },

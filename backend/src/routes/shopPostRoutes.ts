@@ -2,7 +2,7 @@
 // polymorphic ref: shopType + shopId. 소유자만 create/update/delete, 조회는 공개.
 
 import { Router, Request, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, optionalAuth } from '../middleware/auth';
 import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { sanitizeText } from '../utils/sanitize';
@@ -54,7 +54,7 @@ async function getShopInfo(shopType: string, shopId: string): Promise<{ userId: 
 
 // GET /api/shop-posts?shopType=&shopId=&limit=&cursor=  — 목록 (공개).
 // pinned 우선, 그 다음 최신순.
-router.get('/', async (req: Request, res: Response): Promise<void> => {
+router.get('/', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const shopType = String(req.query.shopType || '');
     const shopId = String(req.query.shopId || '');
@@ -65,9 +65,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const limit = Math.min(parseInt(String(req.query.limit || '20'), 10) || 20, 50);
     const cursor = req.query.cursor as string | undefined;
 
-    // 미승인(심사 대기·재심사) 매장의 소식은 비공개 — 홈 피드(/recent)와 정책 통일
+    // 미승인(심사 대기·재심사) 매장의 소식은 비공개 — 홈 피드(/recent)와 정책 통일.
+    // 단 매장 소유자 본인·관리자는 대시보드에서 자기 소식을 계속 관리할 수 있게 예외.
     const shopInfo = await getShopInfo(shopType, shopId);
-    if (!shopInfo?.approved) {
+    const isOwner = !!req.user && !!shopInfo && (req.user.id === shopInfo.userId || req.user.role === 'admin');
+    if (!shopInfo?.approved && !isOwner) {
       res.json({ items: [], nextCursor: null });
       return;
     }
