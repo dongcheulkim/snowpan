@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking } from '../utils/adBookingScheduler';
+import { shouldCountClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins, createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -620,6 +621,8 @@ export const trackAdClick = async (req: Request, res: Response): Promise<void> =
   try {
     const { id } = req.params;
     if (!id) { res.status(400).json({ error: 'id 필요' }); return; }
+    // 같은 IP 의 같은 광고 반복 클릭은 10분 창에서 1회만 (새로고침 연타·봇 부풀리기 방지)
+    if (!shouldCountClick(req.ip, id)) { res.json({ ok: true }); return; }
     // 노출 중인 광고만 카운트 — 취소/대기/환불 예약 id 로 통계 오염 방지. updateMany 로 없으면 무시.
     await prisma.adBooking.updateMany({ where: { id, status: 'active' }, data: { clickCount: { increment: 1 } } });
     res.json({ ok: true });

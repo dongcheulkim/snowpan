@@ -13,8 +13,8 @@ router.get('/rooms', async (req: any, res: Response) => {
       include: {
         user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
         user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
-        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
-        _count: { select: { messages: true } },
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 }, // 목록 미리보기용 마지막 메시지
+        // _count 제거 — 방마다 전체 메시지 카운트 서브쿼리를 돌렸으나 응답에서 버려지던 순수 낭비
       },
       orderBy: { updatedAt: 'desc' },
       take: 50,
@@ -25,69 +25,27 @@ router.get('/rooms', async (req: any, res: Response) => {
     const unreadCounts: Record<string, number> = {};
 
     if (roomIds.length > 0) {
-      // Build conditions per room based on lastReadAt
-      const countResults = await Promise.all(
-        // Use groupBy to count unread messages for all rooms at once
-        // Since each room has a different lastReadAt, we batch into a single grouped query
-        [prisma.message.groupBy({
-          by: ['roomId'],
-          where: {
-            roomId: { in: roomIds },
-            senderId: { not: userId },
-          },
-          _count: { id: true },
-        })]
-      );
-
-      const totalPerRoom: Record<string, number> = {};
-      for (const row of countResults[0]) {
-        totalPerRoom[row.roomId] = row._count.id;
-      }
-
-      // Now count messages before lastReadAt to subtract
-      const roomsWithLastRead = rooms
-        .map(room => {
-          const isUser1 = room.user1Id === userId;
-          const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
-          return { roomId: room.id, lastReadAt };
-        })
-        .filter(r => r.lastReadAt != null);
-
-      if (roomsWithLastRead.length > 0) {
-        const readCountResults = await Promise.all(
-          roomsWithLastRead.map(r =>
-            prisma.message.count({
-              where: {
-                roomId: r.roomId,
-                senderId: { not: userId },
-                createdAt: { lte: r.lastReadAt! },
-              },
-            }).then(count => ({ roomId: r.roomId, count }))
-          )
-        );
-
-        for (const { roomId, count } of readCountResults) {
-          unreadCounts[roomId] = Math.max(0, (totalPerRoom[roomId] || 0) - count);
-        }
-      }
-
-      // For rooms without lastReadAt, all messages from other user are unread
-      for (const room of rooms) {
-        if (!(room.id in unreadCounts)) {
-          const isUser1 = room.user1Id === userId;
-          const lastReadAt = isUser1 ? room.user1LastReadAt : room.user2LastReadAt;
-          if (!lastReadAt) {
-            unreadCounts[room.id] = totalPerRoom[room.id] || 0;
-          }
-        }
-      }
+      // 방별 lastReadAt 이 달라 Prisma groupBy 로는 한 방에 못 세던 것 →
+      // 단일 raw 쿼리로 통합. (기존: groupBy 1회 + 방마다 count 병렬 최대 50쿼리 →
+      // 목록 요청당 최대 51쿼리이던 최다 핫패스가 2쿼리로)
+      // lastReadAt 이 NULL 이면 epoch 취급 = 상대가 보낸 전부가 안읽음 (기존 로직과 동일).
+      const raw = await prisma.$queryRaw<{ roomId: string; cnt: bigint }[]>`
+        SELECT m."roomId", COUNT(*) AS cnt
+        FROM "messages" m
+        JOIN "chat_rooms" r ON r.id = m."roomId"
+        WHERE m."roomId" = ANY(${roomIds})
+          AND m."senderId" <> ${userId}
+          AND m."createdAt" > COALESCE(
+            CASE WHEN r."user1Id" = ${userId} THEN r."user1LastReadAt" ELSE r."user2LastReadAt" END,
+            'epoch'::timestamptz)
+        GROUP BY m."roomId"`;
+      for (const row of raw) unreadCounts[row.roomId] = Number(row.cnt);
     }
 
     const roomsWithUnread = rooms.map(room => ({
       ...room,
       user1: { ...room.user1, name: displayName(room.user1) },
       user2: { ...room.user2, name: displayName(room.user2) },
-      _count: undefined,
       unreadCount: unreadCounts[room.id] || 0,
     }));
 

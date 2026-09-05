@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';
+import { shouldCountClick } from '../utils/clickDedup';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { isAgencyActive, agencyActiveWhere } from '../utils/agencyActive';
@@ -109,7 +110,8 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
 // 딜 클릭 추적 — 중개 성과. 링크는 프론트가 이미 가지고 있으니 카운트만.
 router.post('/deals/:id/click', async (req: Request, res: Response): Promise<void> => {
   try {
-    // active 딜만 카운트 — 이 수치는 여행사에 성과 지표로 노출되므로 비활성 딜 id 로 부풀리기 방지
+    // 같은 IP 반복 클릭 10분 1회 + active 딜만 — 여행사 성과 지표 부풀리기 방지
+    if (!shouldCountClick(req.ip, req.params.id)) { res.json({ ok: true }); return; }
     await prisma.overseasDeal.updateMany({ where: { id: req.params.id, active: true }, data: { clickCount: { increment: 1 } } });
     res.json({ ok: true });
   } catch {
