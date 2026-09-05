@@ -8,4 +8,3 @@ export const SITE_URL: string =
   (import.meta.env.VITE_SITE_URL as string | undefined) || 'https://snowpan.kr';
 
 export const SITE_NAME = '스노우판';
-export const SITE_DESCRIPTION = '스키·보드 중고거래·렌탈·레슨·숙소를 한 곳에. 시즌의 모든 것.';

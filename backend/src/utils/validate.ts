@@ -73,18 +73,6 @@ export function isAllowedImageUrl(url: unknown): boolean {
   }
 }
 
-// 양수 정수 (인원, 수량 등)
-export function parsePositiveInt(raw: unknown, max = 1_000_000): ParsedPrice | ParseError {
-  if (raw === undefined || raw === null || raw === '') {
-    return { ok: false, error: '값을 입력해주세요.' };
-  }
-  const n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
-  if (!Number.isFinite(n) || Number.isNaN(n) || n <= 0 || n > max) {
-    return { ok: false, error: '유효한 값을 입력해주세요.' };
-  }
-  return { ok: true, value: Math.floor(n) };
-}
-
 // http(s) URL 만 허용 — javascript:/data: 스킴 저장 차단용 공용 검증
 export function isHttpUrl(url: unknown): boolean {
   if (typeof url !== 'string' || !url.trim()) return false;

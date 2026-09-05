@@ -38,14 +38,6 @@ export function communityCategoryLabel(id: string, sport?: Sport): string {
   return sport === 'board' ? entry.board : entry.ski;
 }
 
-// 카테고리 옵션 배열 — sport 파라미터에 따라 라벨이 달라짐.
-export function communityCategories(sport?: Sport, includePoll = false): { id: string; name: string }[] {
-  const ids = includePoll
-    ? ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek', 'poll']
-    : ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek'];
-  return ids.map((id) => ({ id, name: communityCategoryLabel(id, sport) }));
-}
-
 // 커뮤니티 대분류 → 소분류 (목록 탭·글쓰기 폼 공용)
 export const COMMUNITY_GROUPS: { id: string; name: string; subs: string[] }[] = [
   { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },

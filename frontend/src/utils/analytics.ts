@@ -57,7 +57,3 @@ export function trackPageView(path: string, title?: string) {
   });
 }
 
-export function trackEvent(name: string, params?: Record<string, unknown>) {
-  if (!loaded || !window.gtag) return;
-  window.gtag('event', name, params || {});
-}

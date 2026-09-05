@@ -10,9 +10,3 @@ export function sanitizeText(input: unknown, maxLen?: number): string | undefine
   if (maxLen && trimmed.length > maxLen) return trimmed.slice(0, maxLen);
   return trimmed;
 }
-
-// Same but returns null instead of undefined when caller wants explicit null for DB
-export function sanitizeTextOrNull(input: unknown, maxLen?: number): string | null {
-  const v = sanitizeText(input, maxLen);
-  return v === undefined ? null : v;
-}

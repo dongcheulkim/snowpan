@@ -9,11 +9,6 @@ export function isPushSupported(): boolean {
   return typeof window !== 'undefined' && 'Notification' in window;
 }
 
-export function getPushPermission(): NotificationPermission | 'unsupported' {
-  if (!isPushSupported()) return 'unsupported';
-  return Notification.permission;
-}
-
 export async function requestPushPermission(): Promise<boolean> {
   if (!isPushSupported()) return false;
   if (Notification.permission === 'granted') return true;

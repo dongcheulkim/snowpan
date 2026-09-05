@@ -238,16 +238,8 @@ export function t(key: string): string {
   return translations['ko'][key] || key;
 }
 
-export function getLang(): Lang {
-  return 'ko';
-}
-
-// setLang / onLangChange 는 한국어 고정이라 no-op 이지만 기존 호출부(MyPage,
-// Home, Community 등) 호환 위해 시그니처 유지.
-export function setLang(_lang: Lang): void {
-  /* noop — 한국어만 지원 */
-}
-
-export function onLangChange(_cb: () => void): () => void {
+// onLangChange 는 한국어 고정이라 no-op 이지만 기존 호출부(Home 등) 호환 위해 시그니처 유지.
+export function onLangChange(cb: () => void): () => void {
+  void cb; // 한국어 고정 — 콜백은 호출되지 않지만 호출부 시그니처 호환 위해 유지
   return () => { /* noop */ };
 }

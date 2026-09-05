@@ -105,13 +105,3 @@ export async function sendPushToUser(userId: string, title: string, body: string
   }
 }
 
-export async function sendPushToAdmins(title: string, body: string, link?: string): Promise<void> {
-  try {
-    const admins = await prisma.user.findMany({ where: { role: 'admin', fcmToken: { not: null } }, select: { id: true } });
-    for (const admin of admins) {
-      await sendPushToUser(admin.id, title, body, link);
-    }
-  } catch (error) {
-    console.error('Admin push failed:', error);
-  }
-}

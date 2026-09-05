@@ -22,10 +22,3 @@ export function useVertical(): Vertical {
   return getActiveVertical();
 }
 
-// API URL 에 vertical 쿼리 파라미터 자동 부착 — 컴포넌트가 활성 vertical 의
-// 데이터만 받도록 보장.
-export function appendVertical(url: string, slug: string): string {
-  if (slug === 'snow') return url; // default — no need to send
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}vertical=${encodeURIComponent(slug)}`;
-}

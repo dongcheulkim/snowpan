@@ -26,6 +26,3 @@ export async function confirmTossPayment(
     return { ok: false, error: '결제 승인 중 오류가 발생했습니다.' };
   }
 }
-
-// 토스 결제 사용 가능 여부 (심사/키 준비 완료 시 true). 프론트에 노출 판단용.
-export const TOSS_ENABLED = !!process.env.TOSS_SECRET_KEY;

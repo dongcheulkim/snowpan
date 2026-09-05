@@ -18,17 +18,3 @@ export function validateUUIDParam(paramName: string = 'id') {
     next();
   };
 }
-
-// 다중 파라미터 검증
-export function validateUUIDParams(...names: string[]) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    for (const name of names) {
-      const value = req.params[name];
-      if (value && !UUID_V4.test(value)) {
-        res.status(400).json({ error: `잘못된 ${name} 형식입니다.` });
-        return;
-      }
-    }
-    next();
-  };
-}
