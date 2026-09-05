@@ -48,29 +48,24 @@ export default function CookieConsent() {
       aria-describedby="cookie-desc"
       className="fixed left-0 right-0 z-[60] bottom-[calc(4rem+env(safe-area-inset-bottom))] md:left-4 md:right-4 md:bottom-4 md:max-w-lg md:mx-auto"
     >
-      <div className="bg-white border-t border-gray-200 md:border md:rounded-2xl shadow-2xl px-5 py-4">
-        <h2 id="cookie-title" className="text-sm font-bold text-gray-900 mb-1">
-          쿠키 사용 안내
-        </h2>
-        <p id="cookie-desc" className="text-xs text-gray-600 leading-relaxed mb-3">
-          스노우판은 서비스 운영에 꼭 필요한 <strong>필수 쿠키</strong>와 사용성 개선을 위한 <strong>분석 쿠키</strong>를 사용합니다.
-          분석 쿠키는 거부하실 수 있으며, 자세한 내용은{' '}
-          <Link to="/privacy" className="text-sky-600 underline">개인정보처리방침</Link>에서 확인하실 수 있습니다.
+      {/* 컴팩트 한 줄 배너 — 화면 점유 최소화. 안내 문구 1줄 + 인라인 버튼 */}
+      <div className="bg-white border-t border-gray-200 md:border md:rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3">
+        <p id="cookie-desc" className="flex-1 text-[11px] text-gray-600 leading-tight">
+          <span id="cookie-title" className="font-bold text-gray-900">쿠키 사용 안내</span> · 분석 쿠키로 사용성을 개선해요.{' '}
+          <Link to="/privacy" className="text-sky-600 underline">자세히</Link>
         </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => accept('essential')}
-            className="flex-1 min-h-11 px-3 py-2 text-xs font-bold border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-          >
-            필수만 허용
-          </button>
-          <button
-            onClick={() => accept('all')}
-            className="flex-1 min-h-11 px-3 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          >
-            전체 동의
-          </button>
-        </div>
+        <button
+          onClick={() => accept('essential')}
+          className="flex-shrink-0 min-h-9 px-2.5 py-1.5 text-[11px] font-bold text-gray-500 rounded-lg hover:bg-gray-50"
+        >
+          필수만
+        </button>
+        <button
+          onClick={() => accept('all')}
+          className="flex-shrink-0 min-h-9 px-3.5 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+        >
+          동의
+        </button>
       </div>
     </div>
   );

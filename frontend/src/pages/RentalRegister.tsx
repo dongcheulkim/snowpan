@@ -68,7 +68,7 @@ const RentalRegister = () => {
         <h1 className="text-2xl font-bold text-gray-900">렌탈샵 등록</h1>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
-      <p className="text-xs text-coral">* 관리자 승인 후 노출됩니다</p>
+      <p className="text-xs text-coral">* 관리자 승인 후 노출됩니다 (보통 1~2 영업일)</p>
 
       <div>
         <label className={labelClass}>상호명 *</label>

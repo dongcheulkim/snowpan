@@ -185,8 +185,8 @@ const UsedEdit = () => {
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
                 const total = existingImages.length + images.length;
-                const remaining = 5 - total;
-                if (remaining <= 0) { toastError('사진은 최대 5장까지 가능합니다.'); return; }
+                const remaining = 10 - total;
+                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); return; }
                 files.slice(0, remaining).forEach(file => {
                   const reader = new FileReader();
                   reader.onload = (ev) => {
@@ -214,7 +214,7 @@ const UsedEdit = () => {
             )}
             <label htmlFor="photo-upload" className="bg-gray-50 rounded-lg p-6 text-center border-2 border-dashed border-sky-200 hover:border-sky-400 transition-all cursor-pointer block">
               <div className="text-sm text-gray-500">클릭하여 사진 추가</div>
-              <div className="text-xs text-gray-500 mt-1">{existingImages.length + images.length}/5장</div>
+              <div className="text-xs text-gray-500 mt-1">{existingImages.length + images.length}/10장</div>
             </label>
           </div>
 

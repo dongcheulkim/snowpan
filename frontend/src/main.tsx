@@ -166,7 +166,9 @@ import('./native').then(m => m.initNative()).catch(() => {});
   } catch { /* 무시 */ }
   if (skip) { splash.remove(); return; }
   const start = performance.now();
-  const MIN_MS = 1850; // 로고 리빌(1.1s) + 샤인·빔 스윕까지
+  // 리빌 애니메이션 완성 시점(0.25s 지연 + 1.15s = 1.4s)까지만 최소 노출 — 그 뒤 죽은 대기 제거.
+  // 애니메이션이 온전히 보이는 선에서 콘텐츠로 최대한 빨리 넘김 (매 콜드로드 ~0.45s 단축).
+  const MIN_MS = 1400;
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {

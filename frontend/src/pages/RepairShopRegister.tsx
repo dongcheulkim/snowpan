@@ -64,6 +64,8 @@ export default function RepairShopRegister() {
         <h1 className="text-xl font-bold text-gray-900">정비샵 등록</h1>
       </div>
 
+      <p className="text-xs text-coral mb-3">* 관리자 승인 후 노출됩니다 (보통 1~2 영업일)</p>
+
       <div className="card p-6">
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>

@@ -239,6 +239,21 @@ const Used = () => {
         </select>
       </div>
 
+      {/* 검색 안 할 때 — 키워드 알림 상시 진입 배너 (원하는 매물 없을 때 재방문 유도) */}
+      {vertical.slug === 'snow' && getUser() && debouncedSearch.trim().length < 2 && (
+        <Link
+          to="/mypage/keywords"
+          className="flex items-center gap-2.5 w-full px-3.5 py-2.5 bg-sky-50 rounded-xl border border-sky-100 hover:bg-sky-100 transition-colors"
+        >
+          <span className="text-lg" aria-hidden>🔔</span>
+          <span className="flex-1 text-left">
+            <span className="block text-xs font-bold text-sky-700">찾는 장비가 없나요? 키워드 알림 받기</span>
+            <span className="block text-[11px] text-sky-600/80">예: "155 보드", "살로몬 부츠" — 새 매물 올라오면 알려드려요</span>
+          </span>
+          <span className="text-sky-400 text-sm">›</span>
+        </Link>
+      )}
+
       {/* 현재 검색어 키워드 알림 등록 — 로그인 + 검색어 있을 때만 */}
       {vertical.slug === 'snow' && getUser() && debouncedSearch.trim().length >= 2 && (
         <button
@@ -412,9 +427,9 @@ const Used = () => {
         <EmptyState
           icon={<PackageIcon size={48} strokeWidth={1.4} />}
           title={t('used.noItems')}
-          description="다른 키워드로 검색하거나 직접 장비를 등록해보세요."
-          ctaLabel="+ 내 장비 등록하기"
-          ctaTo={`${vbase}/used/register`}
+          description={getUser() ? "키워드 알림을 걸어두면 원하는 매물이 올라올 때 바로 알려드려요." : "다른 키워드로 검색하거나 직접 장비를 등록해보세요."}
+          ctaLabel={getUser() ? "🔔 키워드 알림 설정하기" : "+ 내 장비 등록하기"}
+          ctaTo={getUser() ? "/mypage/keywords" : `${vbase}/used/register`}
         />
       )}
 

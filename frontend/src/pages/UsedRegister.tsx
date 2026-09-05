@@ -189,8 +189,8 @@ const UsedRegister = () => {
               className="hidden"
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
-                const remaining = 5 - images.length;
-                if (remaining <= 0) { toastError('사진은 최대 5장까지 가능합니다.'); return; }
+                const remaining = 10 - images.length;
+                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); return; }
                 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
                 const tooBig = files.filter(f => f.size > MAX_SIZE);
                 if (tooBig.length > 0) {
@@ -203,10 +203,10 @@ const UsedRegister = () => {
                   const reader = new FileReader();
                   reader.onload = (ev) => {
                     setImages((prev) => {
-                      if (prev.length >= 5) return prev;
+                      if (prev.length >= 10) return prev;
                       return [...prev, ev.target?.result as string];
                     });
-                    setImageFiles((prev) => (prev.length >= 5 ? prev : [...prev, file])); // 미리보기와 동일 가드 — desync 방지
+                    setImageFiles((prev) => (prev.length >= 10 ? prev : [...prev, file])); // 미리보기와 동일 가드 — desync 방지
                   };
                   reader.readAsDataURL(file);
                 });
@@ -242,7 +242,7 @@ const UsedRegister = () => {
               className="bg-gray-100 rounded-lg p-8 text-center border-2 border-dashed border-gray-300 hover:border-accent/50 transition-all cursor-pointer block"
             >
               <div className="text-sm text-gray-500">클릭하여 사진을 업로드하세요</div>
-              <div className="text-xs text-gray-500 mt-1">{images.length}/5장 · JPG, PNG</div>
+              <div className="text-xs text-gray-500 mt-1">{images.length}/10장 · JPG, PNG, HEIC</div>
             </label>
           </div>
 
