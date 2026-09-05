@@ -23,6 +23,10 @@ interface Product {
   description: string | null;
   condition: string | null;
   usageCount: string | null;
+  length?: string | null;   // 길이(cm) - 스키/보드
+  radius?: string | null;   // 회전반경(m) - 스키
+  flex?: string | null;     // 플렉스 - 부츠/보드
+  size?: string | null;     // 사이즈 - 부츠/바인딩/헬멧/의류
   tradeMethod?: string | null;
   location?: string | null;
   status: string;
@@ -429,6 +433,30 @@ const UsedDetail = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-xs text-gray-500">{t('usedDetail.condition')}</span>
                   <span className="text-sm text-gray-900 font-medium">{conditionLabels[product.condition] || product.condition}</span>
+                </div>
+              )}
+              {product.length && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">길이</span>
+                  <span className="text-sm text-gray-900 font-medium">{/[a-z]/i.test(product.length) ? product.length : `${product.length}cm`}</span>
+                </div>
+              )}
+              {product.radius && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">회전반경</span>
+                  <span className="text-sm text-gray-900 font-medium">{/[a-z]/i.test(product.radius) ? product.radius : `${product.radius}m`}</span>
+                </div>
+              )}
+              {product.flex && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">플렉스</span>
+                  <span className="text-sm text-gray-900 font-medium">{product.flex}</span>
+                </div>
+              )}
+              {product.size && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-xs text-gray-500">사이즈</span>
+                  <span className="text-sm text-gray-900 font-medium">{product.size}</span>
                 </div>
               )}
               {product.usageCount && (
