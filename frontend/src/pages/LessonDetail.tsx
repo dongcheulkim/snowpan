@@ -8,6 +8,7 @@ import { SadIcon } from '../components/Icons';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
+import ShopReviews from '../components/ShopReviews';
 
 interface LessonData {
   id: string;
@@ -110,6 +111,8 @@ const LessonDetail = () => {
 
       {item.userId && <ShopPostsFeed shopType="lesson" shopId={item.id} ownerId={item.userId} />}
       <ShopReportButton shopType="lesson" shopId={item.id} ownerId={item.userId} />
+
+      <ShopReviews shopType="lesson" shopId={item.id} ownerId={item.userId} />
     </div>
   );
 };

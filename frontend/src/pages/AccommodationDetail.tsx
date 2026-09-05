@@ -8,6 +8,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import { SadIcon } from '../components/Icons';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
+import ShopReviews from '../components/ShopReviews';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -175,6 +176,8 @@ const AccommodationDetail = () => {
 
       {item.userId && <ShopPostsFeed shopType="accommodation" shopId={item.id} ownerId={item.userId} />}
       <ShopReportButton shopType="accommodation" shopId={item.id} ownerId={item.userId} />
+
+      <ShopReviews shopType="accommodation" shopId={item.id} ownerId={item.userId} />
     </div>
   );
 };

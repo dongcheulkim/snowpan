@@ -52,53 +52,38 @@ const Webcam = () => {
       ) : webcams.length === 0 ? (
         <div className="text-center py-12 text-gray-500 text-sm">웹캠 정보가 없어요.</div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {webcams.map((cam) => {
             const hasStream = cam.camCount > 0;
             const cardContent = (
               <>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-700">
-                    <MountainIcon size={22} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                      {cam.name}
-                      {temps[cam.slug] !== undefined && (
-                        <span className={`text-[11px] font-bold ${temps[cam.slug] <= 0 ? 'text-sky-600' : 'text-gray-500'}`}>{temps[cam.slug]}°</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
-                      <span className="text-[10px] text-gray-500">
-                        {cam.slopes}면{cam.elevation ? ` · ${cam.elevation}` : ''}
-                      </span>
-                      {hasStream ? (
-                        <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-medium">{cam.camCount}캠</span>
-                      ) : (
-                        <span className="text-[10px] text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">외부 링크</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
+                {/* 상단 설산 블록 — LIVE·기온 배지 오버레이 */}
+                <div className="relative h-24 bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                  <MountainIcon size={30} />
                   {hasStream ? (
-                    <>
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                      </span>
-                      <span className="text-xs text-gray-500">LIVE</span>
-                    </>
+                    <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-green-500/90 px-1.5 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
+                    </span>
                   ) : (
-                    <span className="text-xs text-gray-500">공식사이트</span>
+                    <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">외부 링크</span>
                   )}
-                  <span className="text-gray-500">›</span>
+                  {temps[cam.slug] !== undefined && (
+                    <span className={`absolute top-2 right-2 text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full ${temps[cam.slug] <= 0 ? 'bg-blue-600' : 'bg-black/50'}`}>
+                      {temps[cam.slug]}°
+                    </span>
+                  )}
+                </div>
+                <div className="p-2.5">
+                  <p className="text-sm font-bold text-gray-900 leading-tight truncate">{cam.name}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[10px] text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{cam.region}</span>
+                    <span className="text-[10px] text-gray-500 truncate">{cam.slopes}면{hasStream ? ` · ${cam.camCount}캠` : ''}</span>
+                  </div>
                 </div>
               </>
             );
 
-            const className = "card rounded-xl p-4 flex items-center justify-between hover:shadow-md transition-all active:scale-[0.99]";
+            const className = "card rounded-2xl overflow-hidden hover:shadow-md transition-all active:scale-[0.98]";
 
             return hasStream ? (
               <Link key={cam.id} to={`/webcam/${cam.slug}`} className={className}>

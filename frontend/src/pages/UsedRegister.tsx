@@ -39,6 +39,7 @@ const UsedRegister = () => {
     year: '',
     condition: '새상품',
     price: '',
+    retailPrice: '',
     tradeMethod: '둘 다 가능',
     location: '',
     description: '',
@@ -98,6 +99,7 @@ const UsedRegister = () => {
           brand: form.brand,
           subcategory: form.subcategory,
           price: form.price,
+          retailPrice: form.retailPrice || undefined,
           image: imgUrl,
           images: allImageUrls || undefined,
           description: form.description,
@@ -402,6 +404,24 @@ const UsedRegister = () => {
                 price={Number(form.price)}
                 variant="inline"
               />
+            )}
+          </div>
+
+          {/* 신품 정가 (선택) — 상세에서 '정가 대비 %' 로 구매자에게 할인율 표시 */}
+          <div>
+            <label className={labelClass}>신품 정가 (원) <span className="text-gray-400 font-normal">· 선택</span></label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={form.retailPrice ? Number(form.retailPrice).toLocaleString() : ''}
+              onChange={e => setForm({ ...form, retailPrice: e.target.value.replace(/[^0-9]/g, '') })}
+              placeholder="예: 900,000 (구매 당시 신품 가격)"
+              className={inputClass}
+            />
+            {form.retailPrice && form.price && Number(form.retailPrice) > Number(form.price) && (
+              <p className="text-[11px] text-emerald-600 font-bold mt-1">
+                정가 대비 {Math.round((1 - Number(form.price) / Number(form.retailPrice)) * 100)}% 저렴하게 표시돼요
+              </p>
             )}
           </div>
 

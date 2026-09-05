@@ -16,6 +16,7 @@ interface Product {
   brand: string;
   subcategory: string | null;
   price: number;
+  retailPrice?: number | null;
   image: string;
   images: string | null;
   category: string;
@@ -356,6 +357,14 @@ const UsedDetail = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-3xl font-black text-mint">{product.price.toLocaleString()}원</span>
+                {product.retailPrice && product.retailPrice > product.price && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-1.5 py-0.5">
+                      정가 대비 {Math.round((1 - product.price / product.retailPrice) * 100)}%↓
+                    </span>
+                    <span className="text-xs text-gray-400 line-through">신품 {product.retailPrice.toLocaleString()}원</span>
+                  </span>
+                )}
                 <MarketPriceBadge subcategory={product.subcategory} brand={product.brand} price={product.price} variant="badge" />
                 {isMyProduct ? (
                   <>

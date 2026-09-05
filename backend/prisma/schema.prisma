@@ -54,6 +54,7 @@ model User {
   wishlists        Wishlist[]
   reviewsGiven     Review[]   @relation("reviewBuyer")
   reviewsReceived  Review[]   @relation("reviewSeller")
+  shopReviews      ShopReview[]
   reports          Report[]
   savedSearches    SavedSearch[]
   adRequests       AdRequest[]
@@ -221,6 +222,7 @@ model Product {
   flex        String?  // 플렉스 - 부츠/보드
   size        String?  // 사이즈 - 부츠/바인딩/헬멧/의류
   status      String?  @default("selling") // 'selling' | 'reserved' | 'sold'
+  retailPrice Int?     // 신품 정가(판매자 입력, 선택) — 상세에서 '정가 대비 %' 표시
   isPremium   Boolean? @default(false)
   premiumUntil DateTime?
   bumpedAt    DateTime? @default(now())
@@ -528,6 +530,21 @@ model DailyVisit {
   @@unique([ip, date])
   @@index([date])
   @@map("daily_visits")
+}
+
+model ShopReview {
+  id        String   @id @default(uuid())
+  shopType  String   // 'skishop' | 'repair' | 'rental' | 'lesson' | 'accommodation'
+  shopId    String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int      // 1-5
+  content   String
+  createdAt DateTime @default(now())
+
+  @@unique([shopType, shopId, userId]) // 매장별 1인 1리뷰 — 조작 방지 핵심
+  @@index([shopType, shopId, createdAt])
+  @@map("shop_reviews")
 }
 
 model Review {

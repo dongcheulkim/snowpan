@@ -302,7 +302,7 @@ const VALID_USED_SUBS = new Set(['ski', 'ski_boots', 'pole', 'board', 'board_boo
 export const createUsedProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size, vertical, tradeMethod, location } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, length, radius, flex, size, vertical, tradeMethod, location, retailPrice } = req.body;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -348,6 +348,7 @@ export const createUsedProduct = async (req: AuthRequest, res: Response): Promis
         brand: sanitizeText(brand, 60) || '',
         subcategory: subcategory && VALID_USED_SUBS.has(String(subcategory)) ? String(subcategory) : null,
         price: priceResult.value,
+        retailPrice: (() => { const r = parsePrice(retailPrice); return r.ok && r.value > priceResult.value ? r.value : null; })(),
         image,
         images: images || null,
         category: 'used',
@@ -471,7 +472,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size, tradeMethod, location } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size, tradeMethod, location, retailPrice } = req.body;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const priceResult = parsePrice(price);
@@ -511,6 +512,7 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(brand !== undefined && { brand: sanitizeText(brand, 60) || '' }),
         ...(subcategory !== undefined && { subcategory: subcategory && VALID_USED_SUBS.has(String(subcategory)) ? String(subcategory) : null }),
         ...(priceUpdate !== undefined && { price: priceUpdate }),
+        ...(retailPrice !== undefined && (() => { const r = parsePrice(retailPrice); return { retailPrice: r.ok && r.value > (priceUpdate ?? product.price) ? r.value : null }; })()),
         ...(image && { image }),
         ...(images !== undefined && { images }),
         ...(description !== undefined && { description: sanitizeText(description, 5000) }),

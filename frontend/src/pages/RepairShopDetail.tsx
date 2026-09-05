@@ -8,6 +8,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import { MaintenanceIcon } from '../components/CategoryIcons';
+import ShopReviews from '../components/ShopReviews';
 
 interface Shop {
   id: string;
@@ -181,6 +182,8 @@ export default function RepairShopDetail() {
           </div>
         </div>
       )}
+
+      <ShopReviews shopType="repair" shopId={shop.id} ownerId={shop.user?.id} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ interface Product {
   brand: string;
   subcategory: string | null;
   price: number;
+  retailPrice?: number | null;
   image: string;
   images: string | null;
   description: string | null;
@@ -45,6 +46,7 @@ const UsedEdit = () => {
     subcategory: '',
     brand: '',
     price: '',
+    retailPrice: '',
     condition: '사용감 적음',
     usageCount: '',
     description: '',
@@ -61,6 +63,7 @@ const UsedEdit = () => {
           subcategory: p.subcategory || (subcategories[0]?.id ?? 'ski'),
           brand: p.brand || '',
           price: String(p.price),
+          retailPrice: p.retailPrice ? String(p.retailPrice) : '',
           condition: codeToCondition[p.condition || '중'] || '사용감 적음',
           usageCount: p.usageCount?.replace('년식', '') || '',
           description: p.description || '',
@@ -108,6 +111,7 @@ const UsedEdit = () => {
           subcategory: form.subcategory,
           brand: form.brand,
           price: form.price,
+          retailPrice: form.retailPrice || undefined,
           image: imageUrl,
           images: allImageUrls || undefined,
           description: form.description,
@@ -302,6 +306,12 @@ const UsedEdit = () => {
           <div>
             <label className={labelClass}>판매 가격 (원)</label>
             <input type="text" inputMode="numeric" name="price" value={form.price ? Number(form.price).toLocaleString() : ''} onChange={e => setForm({ ...form, price: e.target.value.replace(/[^0-9]/g, '') })} required className={inputClass} />
+          </div>
+
+          {/* 신품 정가 (선택) */}
+          <div>
+            <label className={labelClass}>신품 정가 (원) <span className="text-gray-400 font-normal">· 선택</span></label>
+            <input type="text" inputMode="numeric" value={form.retailPrice ? Number(form.retailPrice).toLocaleString() : ''} onChange={e => setForm({ ...form, retailPrice: e.target.value.replace(/[^0-9]/g, '') })} placeholder="예: 900,000" className={inputClass} />
           </div>
 
           {/* 설명 */}

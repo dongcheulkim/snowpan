@@ -7,6 +7,7 @@ import ShareButton from '../components/ShareButton';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
+import ShopReviews from '../components/ShopReviews';
 
 interface Shop {
   id: string;
@@ -176,6 +177,8 @@ export default function SkiShopDetail() {
           </div>
         </div>
       )}
+
+      <ShopReviews shopType="skishop" shopId={shop.id} ownerId={shop.user?.id} />
     </div>
   );
 }

@@ -56,6 +56,7 @@ import { displayName } from './utils/displayName';
 import { isTokenIatStale } from './utils/tokens';
 import { isAllowedImageUrl } from './utils/validate';
 import reviewRoutes from './routes/reviewRoutes';
+import shopReviewRoutes from './routes/shopReviewRoutes';
 import reportRoutes from './routes/reportRoutes';
 import savedSearchRoutes from './routes/savedSearchRoutes';
 import shopClaimRoutes from './routes/shopClaimRoutes';
@@ -319,6 +320,7 @@ app.get('/api/home/hot-deals', (req, res, next) => {
 app.use('/api/upload', authenticate, uploadRoutes);
 app.use('/api/chat', authenticate, chatRoutes);
 app.use('/api/reviews', strictWriteLimiter, reviewRoutes);
+app.use('/api/shop-reviews', strictWriteLimiter, shopReviewRoutes);
 app.use('/api/reports', strictWriteLimiter, reportRoutes);
 app.use('/api/saved-searches', savedSearchRoutes);
 app.use('/api/shop-claims', strictWriteLimiter, shopClaimRoutes);
