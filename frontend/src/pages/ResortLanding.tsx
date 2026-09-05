@@ -73,7 +73,7 @@ export default function ResortLanding() {
       {totalCount === 0 ? (
         <div className="card p-8 text-center">
           <p className="text-sm text-gray-500 mb-3">아직 {decoded}에 등록된 업체가 없어요.</p>
-          <Link to="/skishop/register" className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">+ 우리 매장 등록하기</Link>
+          <Link to="/mypage/shops" className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">사장님 대시보드에서 등록하기</Link>
         </div>
       ) : (
         sections.filter(s => s.items.length > 0).map(section => (

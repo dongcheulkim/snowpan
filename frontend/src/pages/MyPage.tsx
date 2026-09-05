@@ -115,7 +115,8 @@ const MyPage = () => {
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },
-    ...(isOwner ? [{ label: '사장님 대시보드', link: '/mypage/shops' }] : []),
+    // 매장 등록·수정·소식 관리가 전부 대시보드로 일원화 — 누구나 진입 가능해야 첫 매장 등록이 가능.
+    { label: '사장님 대시보드', link: '/mypage/shops' },
     ...(hasAgency ? [{ label: '여행사 관리', link: '/overseas/agency/manage' }] : []),
     { label: '광고 관리', link: '/mypage/ads' },
     { label: t('mypage.chatList'), link: '/chat/rooms' },

@@ -61,22 +61,15 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
 
   return (
     <section className="pt-6">
+      {/* 소식 작성·관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-base font-black text-gray-900">매장 소식</h2>
-        {isOwner && (
-          <Link
-            to={`/shop/${shopType}/${shopId}/post/new`}
-            className="text-xs font-bold text-gray-900 border border-gray-900 rounded-full px-3 py-1 hover:bg-gray-900 hover:text-white transition-colors"
-          >
-            + 새 소식
-          </Link>
-        )}
       </div>
 
       {posts.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-2xl">
           <p className="text-xs text-gray-500">
-            {isOwner ? '아직 등록한 소식이 없어요. 첫 소식을 올려보세요.' : '아직 등록된 소식이 없어요.'}
+            {isOwner ? '아직 등록한 소식이 없어요. 마이 탭의 사장님 대시보드에서 올릴 수 있어요.' : '아직 등록된 소식이 없어요.'}
           </p>
         </div>
       ) : (

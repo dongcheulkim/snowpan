@@ -1,6 +1,6 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl, getUser, uploadImages } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
@@ -30,7 +30,6 @@ interface Shop {
 
 export default function SkiShopDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const me = getUser();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,18 +39,6 @@ export default function SkiShopDetail() {
   const [claimFile, setClaimFile] = useState<File | null>(null);
   const [claimMsg, setClaimMsg] = useState('');
   const [claimSubmitting, setClaimSubmitting] = useState(false);
-
-  const handleDelete = async () => {
-    if (!shop) return;
-    if (!confirm('이 스키샵을 삭제하시겠습니까?')) return;
-    try {
-      await api(`/ski-shops/${shop.id}`, { method: 'DELETE' });
-      toastSuccess('삭제되었습니다.');
-      navigate('/skishop');
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '삭제 실패');
-    }
-  };
 
   const handleClaim = async () => {
     if (!shop || !claimFile) { toastError('사업자등록증을 업로드해주세요.'); return; }
@@ -121,12 +108,7 @@ export default function SkiShopDetail() {
         <h1 className="text-xl font-bold text-gray-900">{shop.name}</h1>
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{shop.description}</p>
 
-        {me && (shop.user.id === me.id || me.role === 'admin') && (
-          <div className="flex gap-2 pt-1">
-            <button onClick={() => navigate(`/skishop/${shop.id}/edit`)} className="flex-1 py-2 text-xs font-bold text-sky-600 bg-sky-50 rounded-lg hover:bg-sky-100 transition-colors">수정</button>
-            <button onClick={handleDelete} className="flex-1 py-2 text-xs font-bold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">삭제</button>
-          </div>
-        )}
+        {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
         {me && shop.user.id !== me.id && me.role !== 'admin' && (
           <button onClick={() => setShowClaim(true)} className="w-full py-2 text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
             이 매장 사장님이신가요? 직접 관리하기 →

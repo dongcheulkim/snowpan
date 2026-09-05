@@ -539,7 +539,7 @@ export default function AdBooking() {
                 ) : myListings.length === 0 ? (
                   <div className="px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-snow text-sm text-gray-500">
                     이 카테고리에 등록한 항목이 없습니다.{' '}
-                    <Link to={({ used: '/used/register', skishop: '/skishop/register', repair: '/repair/register', rental: '/rental/register', lesson: '/lesson/register', accommodation: '/accommodation/register', community: '/community', overseas: '/overseas/agency/register' } as Record<string, string>)[selectedCategory] || '/used/register'} className="text-sky-600 underline">
+                    <Link to={({ used: '/used/register', skishop: '/mypage/shops', repair: '/mypage/shops', rental: '/mypage/shops', lesson: '/mypage/shops', accommodation: '/mypage/shops', community: '/community', overseas: '/overseas/agency/register' } as Record<string, string>)[selectedCategory] || '/used/register'} className="text-sky-600 underline">
                       먼저 등록
                     </Link>
                     하고 다시 와주세요.

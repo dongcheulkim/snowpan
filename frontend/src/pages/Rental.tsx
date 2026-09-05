@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
-import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
@@ -84,7 +83,6 @@ const Rental = () => {
     <div className="space-y-5">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.rental || '렌탈'}</h1>
-        <RegisterCTA to="/rental/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
       <CategoryAdBanner category="rental" />
@@ -167,8 +165,8 @@ const Rental = () => {
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
             첫 번째로 등록해서 {vertical.audience || '사용자'}들에게 노출 기회를<br/>가져가세요. 등록은 무료입니다.
           </p>
-          <Link to="/rental/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
-            + 첫 렌탈샵 등록하기
+          <Link to="/mypage/shops" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+            사장님 대시보드에서 등록하기
           </Link>
         </div>
       )}

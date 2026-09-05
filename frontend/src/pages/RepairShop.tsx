@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
-import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
@@ -65,7 +64,6 @@ export default function RepairShop() {
           <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">{vertical.pageLabels?.repair || '정비샵'}</h1>
         </div>
-        <RegisterCTA to="/repair/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
       {/* Ad Banner — 광고 있을 때만 노출 */}
@@ -115,9 +113,9 @@ export default function RepairShop() {
               <p className="text-xs text-gray-500 mb-5 leading-relaxed">
                 정비·전문가라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
               </p>
-              <RegisterCTA to="/repair/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
-                + 첫 정비샵 등록하기
-              </RegisterCTA>
+              <Link to="/mypage/shops" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+                사장님 대시보드에서 등록하기
+              </Link>
             </>
           )}
         </div>

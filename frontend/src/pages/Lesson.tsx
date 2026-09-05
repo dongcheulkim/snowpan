@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
-import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { SkiIcon, SnowboardIcon } from '../components/Icons';
@@ -91,7 +90,6 @@ const Lesson = () => {
     <div className="space-y-5">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.lesson || '레슨'}</h1>
-        <RegisterCTA to="/lesson/register" className="px-4 py-1.5 bg-primary text-white rounded-lg font-bold text-xs hover:bg-primary-dark transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
       <CategoryAdBanner category="lesson" />
@@ -221,8 +219,8 @@ const Lesson = () => {
               <p className="text-xs text-gray-500 mb-5 leading-relaxed">
                 자격을 가진 분이라면 첫 등록자가 되어<br/>{vertical.audience || '스키어'}들을 만나보세요. 등록은 무료입니다.
               </p>
-              <Link to="/lesson/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
-                + 첫 레슨 등록하기
+              <Link to="/mypage/shops" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+                사장님 대시보드에서 등록하기
               </Link>
             </>
           )}

@@ -1,4 +1,3 @@
-import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, openExternal } from '../api';
@@ -109,15 +108,7 @@ const RentalDetail = () => {
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
       )}
 
-      {user && (item.userId === user.id || user.role === 'admin') && (
-        <div className="flex gap-2">
-          {item.userId === user.id && (
-            <button onClick={() => navigate(`/rental/${item.id}/edit`)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 active:bg-gray-200">수정</button>
-          )}
-          <button onClick={async () => { if (!confirm(item.userId !== user.id ? '관리자 권한으로 삭제하시겠습니까?' : '정말 삭제하시겠습니까?')) return; try { await api(`/rentals/${item.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate('/rental'); } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{item.userId !== user.id && user.role === 'admin' ? '관리자 삭제' : '삭제'}</button>
-        </div>
-      )}
-
+      {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
       {item.userId && <ShopPostsFeed shopType="rental" shopId={item.id} ownerId={item.userId} />}
       <ShopReportButton shopType="rental" shopId={item.id} ownerId={item.userId} />
 

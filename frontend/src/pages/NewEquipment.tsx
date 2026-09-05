@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
-import RegisterCTA from '../components/RegisterCTA';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
@@ -62,7 +61,6 @@ export default function NewEquipment() {
           <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">{vertical.pageLabels?.shop || '스키샵'}</h1>
         </div>
-        <RegisterCTA to="/skishop/register" className="px-3 py-1.5 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors cursor-pointer">+ 등록</RegisterCTA>
       </div>
 
       {/* Ad Banner — 광고 있을 때만 노출 */}
@@ -106,9 +104,9 @@ export default function NewEquipment() {
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
             첫 번째로 등록해서 손님들에게 노출 기회를<br/>가져가세요. 등록은 무료입니다.
           </p>
-          <RegisterCTA to="/skishop/register" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs cursor-pointer">
-            + 첫 스키샵 등록하기
-          </RegisterCTA>
+          <Link to="/mypage/shops" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">
+            사장님 대시보드에서 등록하기
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
