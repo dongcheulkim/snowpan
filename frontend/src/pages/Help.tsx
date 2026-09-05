@@ -198,7 +198,7 @@ export default function Help() {
             <p>상호 스노우판 · 대표 김동철</p>
             <p>사업자등록번호 333-12-03287</p>
             <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
-            <p>이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-700 underline underline-offset-2">help.snowpan@gmail.com</a> · 전화 070-8027-4757</p>
+            <p>이메일 <a href="mailto:info@snowpan.kr" className="hover:text-gray-700 underline underline-offset-2">info@snowpan.kr</a> · 전화 070-8027-4757</p>
           </div>
         )}
         <p className="mt-2.5">

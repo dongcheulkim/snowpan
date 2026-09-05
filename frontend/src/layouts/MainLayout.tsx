@@ -86,7 +86,7 @@ const MainLayout = () => {
                 <p>상호 스노우판 · 대표자 김동철</p>
                 <p>사업자등록번호 333-12-03287</p>
                 <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
-                <p>유선번호 070-8027-4757 · 이메일 <a href="mailto:help.snowpan@gmail.com" className="hover:text-gray-600">help.snowpan@gmail.com</a></p>
+                <p>유선번호 070-8027-4757 · 이메일 <a href="mailto:info@snowpan.kr" className="hover:text-gray-600">info@snowpan.kr</a></p>
               </div>
             )}
             <p className="mt-1.5">

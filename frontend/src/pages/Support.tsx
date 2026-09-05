@@ -60,7 +60,7 @@ const Support = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between py-1">
             <span className="text-sm text-gray-500">이메일</span>
-            <a href="mailto:help.snowpan@gmail.com" className="text-sm font-medium text-sky-600">help.snowpan@gmail.com</a>
+            <a href="mailto:info@snowpan.kr" className="text-sm font-medium text-sky-600">info@snowpan.kr</a>
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="text-sm text-gray-500">운영시간</span>

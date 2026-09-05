@@ -107,7 +107,7 @@ export default function About() {
 
           <dt className="col-span-1 text-gray-500">대표 이메일</dt>
           <dd className="col-span-2 text-gray-900 font-medium">
-            <a href="mailto:help.snowpan@gmail.com" className="hover:underline">help.snowpan@gmail.com</a>
+            <a href="mailto:info@snowpan.kr" className="hover:underline">info@snowpan.kr</a>
           </dd>
 
           <dt className="col-span-1 text-gray-500">대표 전화</dt>
