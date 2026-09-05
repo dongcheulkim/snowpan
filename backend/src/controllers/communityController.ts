@@ -261,7 +261,12 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       res.status(403).json({ error: '공지사항은 관리자만 작성할 수 있습니다.' });
       return;
     }
-    // sport: snow=ski/board, bike=road/mtb, run=road/trail, etc. — vertical 안에서 자유롭게 (검증 약화)
+    // sport: snow 는 ski/board 만 (그 외 값이면 어느 필터에도 안 잡히는 고아 글이 됨).
+    // 다른 vertical 은 config 종목이 다양해 길이 제한만.
+    if (verticalSlug === 'snow' && !isNotice && !['ski', 'board'].includes(String(sport))) {
+      res.status(400).json({ error: '종목은 스키 또는 보드만 선택할 수 있습니다.' });
+      return;
+    }
     if (typeof sport !== 'string' || sport.length > 20) {
       res.status(400).json({ error: '유효하지 않은 종목입니다.' });
       return;

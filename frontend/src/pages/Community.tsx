@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, Navigate } from 'react-router-dom';
 import { api, imageUrl as toImageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
@@ -60,6 +60,9 @@ const PAGE_SIZE = 20;
 const Community = () => {
   const { sport } = useParams<{ sport: string }>();
   const navigate = useNavigate();
+  // 잘못된 종목 URL(/community/xxx)은 선택 화면으로 — 고아 필터 화면 방지
+  const validSports = ['ski', 'board'];
+  const sportInvalid = !!sport && !validSports.includes(sport);
   // ?tab= 딥링크 지원 (투표 삭제 후 복귀 등) — 유효한 탭 id 만 수용
   const initialTab = (() => {
     try {
@@ -204,6 +207,8 @@ const Community = () => {
     ].sort((a, b) => at(b) - at(a));
     feedItems = [...pinnedItems, ...restItems];
   }
+
+  if (sportInvalid) return <Navigate to="/community" replace />;
 
   return (
     <div className="space-y-5 animate-fade-in">

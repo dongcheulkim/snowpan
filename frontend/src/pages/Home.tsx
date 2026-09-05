@@ -25,6 +25,7 @@ interface PopularPost {
   id: string;
   title: string;
   category: string;
+  sport?: string;
   likes: number;
   views: number;
   images?: string | null;
@@ -43,7 +44,7 @@ interface HotPoll {
 
 // 글·투표 공통 핫함 점수 — 좋아요 > 참여(댓글/투표) > 조회 순 가중치.
 type HotItem =
-  | { kind: 'post'; id: string; title: string; category: string; likes: number; views: number; comments: number; thumb?: string; score: number }
+  | { kind: 'post'; id: string; title: string; category: string; sport?: string; likes: number; views: number; comments: number; thumb?: string; score: number }
   | { kind: 'poll'; id: string; title: string; likes: number; views: number; votes: number; score: number };
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
@@ -177,7 +178,7 @@ const Home = () => {
         ...(Array.isArray(posts) ? posts : []).map((p): HotItem => {
           const comments = p.commentCount ?? p._count?.comments ?? 0;
           const thumb = (p.images || '').split(',').filter(Boolean)[0];
-          return { kind: 'post', id: p.id, title: p.title, category: p.category, likes: p.likes, views: p.views ?? 0, comments, thumb, score: p.likes * 10 + comments * 5 + (p.views ?? 0) };
+          return { kind: 'post', id: p.id, title: p.title, category: p.category, sport: p.sport, likes: p.likes, views: p.views ?? 0, comments, thumb, score: p.likes * 10 + comments * 5 + (p.views ?? 0) };
         }),
         // 투표는 최근 2주 것만 랭킹 (오래된 투표가 계속 남는 것 방지)
         ...polls.filter((p) => new Date(p.createdAt).getTime() >= twoWeeksAgo).map((p): HotItem => (
@@ -457,6 +458,16 @@ const Home = () => {
                   <p className="text-[13px] font-medium text-gray-900 truncate">
                     {item.kind === 'poll' && (
                       <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 mr-1.5 align-middle">투표</span>
+                    )}
+                    {/* 스키/보드 출처 표시 — 통합 랭킹이라 어느 판 글인지 한눈에 */}
+                    {item.kind === 'post' && item.sport === 'ski' && (
+                      <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 mr-1.5 align-middle">스키</span>
+                    )}
+                    {item.kind === 'post' && item.sport === 'board' && (
+                      <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 mr-1.5 align-middle">보드</span>
+                    )}
+                    {item.kind === 'post' && item.sport === 'all' && (
+                      <span className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 mr-1.5 align-middle">공통</span>
                     )}
                     {item.title}
                   </p>
