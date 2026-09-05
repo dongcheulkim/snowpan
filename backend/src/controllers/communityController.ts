@@ -81,7 +81,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
           user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: 'snow' }, select: { badgeType: true } } } },
           _count: { select: { comments: true } },
         },
-        orderBy: [{ pinned: 'desc' }, { createdAt: 'desc' }], // 공지(pinned) 상단 고정
+        orderBy: [{ pinned: 'desc' }, { isPremium: 'desc' }, { createdAt: 'desc' }], // 공지 → 프리미엄 → 최신순
       }),
       prisma.post.count({ where }),
     ]);

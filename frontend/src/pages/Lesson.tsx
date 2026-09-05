@@ -12,6 +12,7 @@ import HScroll from '../components/HScroll';
 import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
 interface LessonItem {
+  isPremium?: boolean;
   id: string;
   name: string;
   type?: string | null;
@@ -174,6 +175,7 @@ const Lesson = () => {
                 className="bg-snow border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors"
               >
                 <div className="relative aspect-[4/5] bg-gradient-to-br from-sky-400 to-indigo-500 overflow-hidden">
+                  {item.isPremium && <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
                   {cover && (cover.startsWith('/') || cover.startsWith('http')) ? (
                     <img src={imageUrl(cover, 500)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                   ) : (

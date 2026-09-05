@@ -13,6 +13,7 @@ import HScroll from '../components/HScroll';
 import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
 interface RentalItem {
+  isPremium?: boolean;
   id: string;
   name: string;
   area?: string | null;
@@ -130,10 +131,11 @@ const Rental = () => {
             return (
             <Link to={`/rental/${item.id}`} key={item.id} className="card p-4 block card-hover">
               <div className="flex items-center gap-3">
-                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                   {cover
                     ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                     : <RentalIcon size={30} className="text-gray-300" />}
+                  {item.isPremium && <span className="absolute top-1 left-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

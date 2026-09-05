@@ -48,7 +48,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
           resort: true,
           user: { select: { id: true, name: true, nickname: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], // 프리미엄 최상단
         take,
         ...(skip !== undefined && { skip }),
       }),
@@ -89,6 +89,9 @@ export const getAccommodationById = async (req: AuthRequest, res: Response): Pro
       res.status(404).json({ error: '숙소를 찾을 수 없습니다.' });
       return;
     }
+
+    // 조회수 증가 — 카테고리 인기 통계용 (실패 무시)
+    prisma.accommodation.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
 
     res.json(maskRowUser(stripPrivate(accommodation as any)));
   } catch (error) {

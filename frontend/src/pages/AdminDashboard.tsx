@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { CalendarIcon, ChartIcon, ChatIcon, CloseIcon, DocumentIcon, PackageIcon, UsersIcon } from '../components/Icons';
+import { CalendarIcon, ChartIcon, CloseIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
 
@@ -32,6 +32,7 @@ interface StatsData {
   week?: { uniqueVisitors: number; pageviews: number };
   daily?: { date: string; users: number; products: number; visitors: number; pageviews: number }[];
   dbSizeBytes?: number | null;
+  categoryViews?: { key: string; label: string; views: number }[];
 }
 
 interface UserItem {
@@ -427,20 +428,28 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* 누적 카운트 */}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: '총 상품', value: stats.products, Icon: PackageIcon },
-                  { label: '총 게시글', value: stats.posts, Icon: DocumentIcon },
-                  { label: '총 채팅방', value: stats.chatRooms, Icon: ChatIcon },
-                ].map((s) => (
-                  <div key={s.label} className="card p-4 text-center">
-                    <div className="mx-auto mb-1 flex justify-center text-gray-700"><s.Icon size={20} /></div>
-                    <div className="text-lg font-bold text-gray-900">{s.value.toLocaleString()}</div>
-                    <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+              {/* 카테고리별 인기 (누적 조회수) — 어느 카테고리가 잘 나가는지 랭킹 */}
+              {stats.categoryViews && stats.categoryViews.length > 0 && (() => {
+                const max = Math.max(1, ...stats.categoryViews.map((c) => c.views));
+                return (
+                  <div className="card p-4">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3">카테고리별 조회수</h3>
+                    <div className="space-y-2">
+                      {stats.categoryViews.map((c, i) => (
+                        <div key={c.key} className="flex items-center gap-2">
+                          <span className={`w-4 text-center text-xs font-black flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
+                          <span className="w-20 text-xs font-medium text-gray-700 flex-shrink-0 truncate">{c.label}</span>
+                          <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-sky-400 rounded-full" style={{ width: `${Math.max(2, (c.views / max) * 100)}%` }} />
+                          </div>
+                          <span className="w-14 text-right text-xs font-bold text-gray-900 flex-shrink-0">{c.views.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2.5">누적 상세 조회수 기준 (렌탈·레슨·숙소는 2026-09-06부터 집계)</p>
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {/* DB 용량 — Render Basic-256mb 스토리지 1GB 기준 */}
               {typeof stats.dbSizeBytes === 'number' && stats.dbSizeBytes > 0 && (

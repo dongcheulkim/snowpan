@@ -8,7 +8,8 @@ import prisma from '../config/database';
 // 프리미엄: 3개만 (Product/SkiShop/RepairShop 모델만 isPremium 필드 보유).
 //   → rental/lesson/accommodation/community 는 "최상단 고정" 의미가 약하고 모델도 미지원.
 const BANNER_CATEGORIES = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
-const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
+// 프리미엄 확장 (2026-09): 모든 광고 카테고리 지원 — 렌탈·레슨·숙소·커뮤글·여행사 포함
+const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
 
 const SEEDS: Array<{
   slotType: string;

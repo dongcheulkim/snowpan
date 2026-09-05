@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking } from '../utils/adBookingScheduler';
+import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking, parsePremiumTarget } from '../utils/adBookingScheduler';
 import { shouldCountClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins, createNotification } from './notificationController';
@@ -304,25 +304,25 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     // 프리미엄 슬롯: URL 이 가리키는 상품/샵이 본인 소유인지 검증.
     // 남의 등록물을 임의로 프리미엄 띄우는 것 방지.
     if (slotType === 'premium') {
-      const match = String(url).match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
-      if (!match) {
+      const target = parsePremiumTarget(String(url));
+      if (!target) {
         res.status(400).json({ error: '프리미엄 광고 URL 은 본인 등록물의 상세 페이지여야 합니다 (예: /used/<id>).' });
         return;
       }
-      const [, kind, targetId] = match;
-      let owned = false;
-      if (kind === 'used') {
-        const p = await prisma.product.findUnique({ where: { id: targetId }, select: { userId: true } });
-        owned = !!p && p.userId === userId;
-      } else if (kind === 'skishop') {
-        const s = await prisma.skiShop.findUnique({ where: { id: targetId }, select: { userId: true } });
-        owned = !!s && s.userId === userId;
-      } else if (kind === 'repair') {
-        const r = await prisma.repairShop.findUnique({ where: { id: targetId }, select: { userId: true } });
-        owned = !!r && r.userId === userId;
-      }
-      if (!owned) {
-        res.status(403).json({ error: '본인이 등록한 상품/샵만 프리미엄으로 띄울 수 있습니다.' });
+      // kind → 소유자 조회 (8종: 상품·샵·렌탈·레슨·숙소·커뮤글·여행사)
+      const ownerOf: Record<string, () => Promise<{ userId: string | null } | null>> = {
+        'used': () => prisma.product.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'skishop': () => prisma.skiShop.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'repair': () => prisma.repairShop.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'rental': () => prisma.rental.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'lesson': () => prisma.lesson.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'accommodation': () => prisma.accommodation.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'community/post': () => prisma.post.findUnique({ where: { id: target.id }, select: { userId: true } }),
+        'overseas/agency': () => prisma.travelAgency.findUnique({ where: { id: target.id }, select: { userId: true } }),
+      };
+      const row = ownerOf[target.kind] ? await ownerOf[target.kind]() : null;
+      if (!row || row.userId !== userId) {
+        res.status(403).json({ error: '본인이 등록한 상품/샵/글만 프리미엄으로 띄울 수 있습니다.' });
         return;
       }
     }

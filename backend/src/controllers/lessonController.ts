@@ -51,7 +51,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
           resort: true,
           user: { select: { id: true, name: true, nickname: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], // 프리미엄 최상단
         take,
         ...(skip !== undefined && { skip }),
       }),
@@ -139,6 +139,9 @@ export const getLessonById = async (req: AuthRequest, res: Response): Promise<vo
       res.status(404).json({ error: '레슨 정보를 찾을 수 없습니다.' });
       return;
     }
+
+    // 조회수 증가 — 카테고리 인기 통계용 (실패 무시)
+    prisma.lesson.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
 
     res.json(maskRowUser(stripPrivate(lesson as any)));
   } catch (error) {

@@ -29,7 +29,7 @@ const SLOT_LABELS: Record<string, string> = {
 const SLOT_DESCRIPTIONS: Record<string, string> = {
   main_banner: '홈 화면 최상단 회전 배너 — 가장 많이 노출',
   category: '카테고리 페이지 상단 배너',
-  premium: '내 상품/샵을 리스트 최상단에 고정 노출',
+  premium: '내 상품·샵·글을 리스트 최상단에 고정 노출',
 };
 
 
@@ -45,7 +45,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 // 프리미엄 노출이 가능한 카테고리 — Product/SkiShop/RepairShop 모델만 isPremium 지원.
-const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair'];
+// 프리미엄 확장 (2026-09): 광고 카테고리 전부 지원 — 커뮤니티=내 글, 투어=내 여행사
+const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
 
 // 본인 등록물 dropdown 에 쓰일 entity API 경로 + URL 형식.
 interface MyListing { id: string; name: string; image?: string }
@@ -56,11 +57,26 @@ const MY_LISTINGS_API: Record<string, { url: string; pickArray: (data: any) => a
   },
   skishop: { url: '/ski-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
   repair: { url: '/repair-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
+  rental: { url: '/rentals/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
+  lesson: { url: '/lessons/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
+  accommodation: { url: '/accommodations/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
+  // 커뮤니티 = 내가 쓴 글 (title→name, 첫 이미지)
+  community: {
+    url: '/community?userId=__ME__&limit=50',
+    pickArray: (d) => ((d?.posts || []) as any[]).map((p) => ({ id: p.id, name: p.title, image: (p.images || '').split(',').filter(Boolean)[0] })),
+  },
+  // 투어 = 내 여행사
+  overseas: { url: '/agencies/my', pickArray: (d) => (Array.isArray(d) ? d : []).map((a: any) => ({ id: a.id, name: a.name, image: a.image })) },
 };
 const URL_PREFIX: Record<string, string> = {
   used: '/used/',
   skishop: '/skishop/',
   repair: '/repair/',
+  rental: '/rental/',
+  lesson: '/lesson/',
+  accommodation: '/accommodation/',
+  community: '/community/post/',
+  overseas: '/overseas/agency/',
 };
 
 function formatPrice(n: number): string {

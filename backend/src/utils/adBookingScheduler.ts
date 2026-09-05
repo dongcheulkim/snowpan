@@ -65,6 +65,12 @@ export async function updateAdBookingStatuses(): Promise<void> {
       where: { isPremium: true, premiumUntil: { lt: now } },
       data: { isPremium: false, premiumUntil: null },
     });
+    // 프리미엄 확장 모델 (렌탈·레슨·숙소·커뮤글·여행사)도 동일 만료 처리
+    await prisma.rental.updateMany({ where: { isPremium: true, premiumUntil: { lt: now } }, data: { isPremium: false, premiumUntil: null } });
+    await prisma.lesson.updateMany({ where: { isPremium: true, premiumUntil: { lt: now } }, data: { isPremium: false, premiumUntil: null } });
+    await prisma.accommodation.updateMany({ where: { isPremium: true, premiumUntil: { lt: now } }, data: { isPremium: false, premiumUntil: null } });
+    await prisma.post.updateMany({ where: { isPremium: true, premiumUntil: { lt: now } }, data: { isPremium: false, premiumUntil: null } });
+    await prisma.travelAgency.updateMany({ where: { isPremium: true, premiumUntil: { lt: now } }, data: { isPremium: false, premiumUntil: null } });
   } catch (error) {
     console.error('광고 상태 업데이트 오류:', error);
   }
@@ -80,50 +86,47 @@ export async function applyPremiumFromBooking(booking: {
   endDate: Date;
 }): Promise<void> {
   if (booking.slotType !== 'premium' || !booking.url) return;
-  // 절대 URL 이어도 path 만 추출
-  const match = booking.url.match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
-  if (!match) {
+  const target = parsePremiumTarget(booking.url);
+  if (!target) {
     console.warn(`프리미엄 광고 URL 파싱 실패: ${booking.url}`);
     return;
   }
-  const kind = match[1];
-  const targetId = match[2];
   try {
-    if (kind === 'used') {
-      await prisma.product.update({
-        where: { id: targetId },
-        data: { isPremium: true, premiumUntil: booking.endDate },
-      });
-    } else if (kind === 'skishop') {
-      await prisma.skiShop.update({
-        where: { id: targetId },
-        data: { isPremium: true, premiumUntil: booking.endDate },
-      });
-    } else if (kind === 'repair') {
-      await prisma.repairShop.update({
-        where: { id: targetId },
-        data: { isPremium: true, premiumUntil: booking.endDate },
-      });
-    }
+    await setPremiumOnTarget(target.kind, target.id, { isPremium: true, premiumUntil: booking.endDate });
   } catch (error) {
-    console.error(`프리미엄 적용 실패 (${kind}/${targetId}):`, error);
+    console.error(`프리미엄 적용 실패 (${target.kind}/${target.id}):`, error);
   }
+}
+
+// 프리미엄 대상 URL 파싱 — 카테고리별 상세 경로. (커뮤니티=내 글, 투어=내 여행사)
+export function parsePremiumTarget(url: string): { kind: string; id: string } | null {
+  const m = url.match(/\/(community\/post|overseas\/agency|used|skishop|repair|rental|lesson|accommodation)\/([A-Za-z0-9_-]+)/);
+  if (!m) return null;
+  return { kind: m[1], id: m[2] };
+}
+
+// kind → 모델 업데이트 (적용·해제 공용)
+async function setPremiumOnTarget(kind: string, id: string, data: { isPremium: boolean; premiumUntil: Date | null }): Promise<void> {
+  if (kind === 'used') await prisma.product.update({ where: { id }, data });
+  else if (kind === 'skishop') await prisma.skiShop.update({ where: { id }, data });
+  else if (kind === 'repair') await prisma.repairShop.update({ where: { id }, data });
+  else if (kind === 'rental') await prisma.rental.update({ where: { id }, data });
+  else if (kind === 'lesson') await prisma.lesson.update({ where: { id }, data });
+  else if (kind === 'accommodation') await prisma.accommodation.update({ where: { id }, data });
+  else if (kind === 'community/post') await prisma.post.update({ where: { id }, data });
+  else if (kind === 'overseas/agency') await prisma.travelAgency.update({ where: { id }, data });
 }
 
 // 프리미엄 광고 취소/환불 시 대상 상품·샵의 프리미엄 즉시 해제.
 // (기존엔 premiumUntil 만료까지 프리미엄이 유지되어 "결제→활성화→즉시 환불" 악용 가능했음)
 export async function revokePremiumFromBooking(booking: { slotType: string; url: string }): Promise<void> {
   if (booking.slotType !== 'premium' || !booking.url) return;
-  const match = booking.url.match(/\/(used|skishop|repair)\/([A-Za-z0-9_-]+)/);
-  if (!match) return;
-  const [, kind, targetId] = match;
-  const data = { isPremium: false, premiumUntil: null };
+  const target = parsePremiumTarget(booking.url);
+  if (!target) return;
   try {
-    if (kind === 'used') await prisma.product.update({ where: { id: targetId }, data });
-    else if (kind === 'skishop') await prisma.skiShop.update({ where: { id: targetId }, data });
-    else if (kind === 'repair') await prisma.repairShop.update({ where: { id: targetId }, data });
+    await setPremiumOnTarget(target.kind, target.id, { isPremium: false, premiumUntil: null });
   } catch (error) {
-    console.error(`프리미엄 해제 실패 (${kind}/${targetId}):`, error);
+    console.error(`프리미엄 해제 실패 (${target.kind}/${target.id}):`, error);
   }
 }
 

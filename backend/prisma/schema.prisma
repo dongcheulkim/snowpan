@@ -273,6 +273,10 @@ model Rental {
   equipment             String?
   resortId              String?
   resort                SkiResort? @relation(fields: [resortId], references: [id], onDelete: SetNull)
+  // 프리미엄 노출 (광고) — 리스트 최상단 고정. 광고 승인 시 설정, 만료 시 자동 해제.
+  viewCount    Int       @default(0) // 상세 조회수 — 카테고리 인기 통계용
+  isPremium    Boolean   @default(false)
+  premiumUntil DateTime?
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
@@ -309,6 +313,10 @@ model Lesson {
   maxStudents           Int?
   resortId              String
   resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+  // 프리미엄 노출 (광고) — 리스트 최상단 고정. 광고 승인 시 설정, 만료 시 자동 해제.
+  viewCount    Int       @default(0) // 상세 조회수 — 카테고리 인기 통계용
+  isPremium    Boolean   @default(false)
+  premiumUntil DateTime?
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false) // 관리자 승인 필요
@@ -340,6 +348,10 @@ model Accommodation {
   accommodationPermit   String?   // 숙박업 신고증 이미지 URL
   resortId              String
   resort                SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+  // 프리미엄 노출 (광고) — 리스트 최상단 고정. 광고 승인 시 설정, 만료 시 자동 해제.
+  viewCount    Int       @default(0) // 상세 조회수 — 카테고리 인기 통계용
+  isPremium    Boolean   @default(false)
+  premiumUntil DateTime?
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
   approved              Boolean   @default(false)
@@ -423,6 +435,9 @@ model Post {
   pinned    Boolean   @default(false) // 공지 상단 고정 (관리자만)
   likes     Int       @default(0)
   views     Int       @default(0)
+  // 프리미엄 노출 (광고) — 리스트 최상단 고정. 광고 승인 시 설정, 만료 시 자동 해제.
+  isPremium    Boolean   @default(false)
+  premiumUntil DateTime?
   userId    String
   user      User      @relation(fields: [userId], references: [id])
   comments  Comment[]

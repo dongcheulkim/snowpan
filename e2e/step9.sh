@@ -18,6 +18,7 @@ api() {
   CODE=$(printf '%s' "$out" | tail -n1); RESP=$(printf '%s' "$out" | sed '$d')
 }
 
+YONGPYONG=2808048b-a13b-42da-bb92-b24e6ed990b5
 echo "===== STEP 9: 광고 흐름 (신청→승인→프리미엄→클릭→해지차단) ====="
 
 # 어드민 확보 — buyer2 를 승격
@@ -85,6 +86,24 @@ api POST "/ad-booking/admin/bookings/$BK/cancel" '{"reason":"E2E 테스트 취�
 [ "$CODE" = "200" ] && ok "어드민 취소 (200)" || bad "어드민 취소 CODE=$CODE RESP=$RESP"
 IP=$(pq "SELECT \"isPremium\" FROM products WHERE id='$P3';")
 [ "$IP" = "f" ] && ok "취소 시 프리미엄 즉시 해제 (isPremium=f)" || bad "취소 후 isPremium=$IP"
+
+# ---- 프리미엄 확장 (렌탈) — 신규 모델 apply/revoke 경로 검증 ----
+api POST /rentals "{\"name\":\"E2E렌탈샵\",\"area\":\"용평\",\"businessLicense\":\"/uploads/e2e.jpg\",\"resortId\":\"$YONGPYONG\"}" "$SELLER_TOKEN"
+RID=$(echo "$RESP" | jq -r '.id // empty')
+[ "$CODE" = "201" ] && [ -n "$RID" ] && ok "렌탈 등록 (201)" || bad "렌탈 등록 CODE=$CODE RESP=$(echo $RESP|head -c 120)"
+api POST /ad-booking/create "{\"slotType\":\"premium\",\"category\":\"rental\",\"title\":\"E2E렌탈프리미엄\",\"description\":\"t\",\"url\":\"/rental/$RID\",\"payMethod\":\"transfer\",\"periodMonths\":12,\"desiredStart\":\"$TODAY\"}" "$SELLER_TOKEN"
+RBK=$(echo "$RESP" | jq -r '.bookingId // .booking.id // .id // empty')
+[ "$CODE" = "201" ] && [ -n "$RBK" ] && ok "렌탈 프리미엄 신청 (201)" || bad "렌탈 프리미엄 신청 CODE=$CODE RESP=$(echo $RESP|head -c 150)"
+# 타인 등록물 프리미엄 시도 차단 (buyer2=admin 토큰으로 seller 렌탈)
+api POST /ad-booking/create "{\"slotType\":\"premium\",\"category\":\"rental\",\"title\":\"x\",\"description\":\"t\",\"url\":\"/rental/$RID\",\"payMethod\":\"transfer\",\"periodMonths\":12}" "$ADMIN_TOKEN"
+[ "$CODE" = "403" ] && ok "타인 등록물 프리미엄 차단 (403)" || bad "타인 프리미엄 CODE=$CODE"
+api POST "/ad-booking/admin/bookings/$RBK/free" "{}" "$ADMIN_TOKEN"
+[ "$CODE" = "200" ] && ok "렌탈 프리미엄 무료 승인" || bad "렌탈 승인 CODE=$CODE RESP=$(echo $RESP|head -c 120)"
+RIP=$(pq "SELECT \"isPremium\" FROM rentals WHERE id='$RID';")
+[ "$RIP" = "t" ] && ok "렌탈 isPremium 적용" || bad "렌탈 isPremium=$RIP"
+api POST "/ad-booking/admin/bookings/$RBK/cancel" '{"reason":"E2E"}' "$ADMIN_TOKEN"
+RIP=$(pq "SELECT \"isPremium\" FROM rentals WHERE id='$RID';")
+[ "$RIP" = "f" ] && ok "렌탈 프리미엄 취소 해제" || bad "취소 후 렌탈 isPremium=$RIP"
 
 # ---- 배너(메인) 광고 신청 → 입금 확인 승인 → 공개 배너 생성 ----
 api POST /ad-booking/create "{\"slotType\":\"main_banner\",\"title\":\"E2E배너\",\"description\":\"테스트\",\"url\":\"https://snowpan.kr\",\"payMethod\":\"transfer\",\"periodMonths\":12,\"desiredStart\":\"$TODAY\"}" "$SELLER_TOKEN"

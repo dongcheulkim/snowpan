@@ -159,6 +159,30 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       if (dayIndex >= dateList.length - 7) wau.add(v.ip);
     }
 
+    // 카테고리별 누적 조회수 — 어느 카테고리가 인기 있는지 랭킹용.
+    // (렌탈·레슨·숙소는 2026-09-06 부터 집계 시작 — 그 전 조회는 없음)
+    const [pv, sv, rv, rev, lev, av, cv, ov] = await Promise.all([
+      prisma.product.aggregate({ _sum: { viewCount: true }, where: { category: 'used' } }),
+      prisma.skiShop.aggregate({ _sum: { viewCount: true } }),
+      prisma.repairShop.aggregate({ _sum: { viewCount: true } }),
+      prisma.rental.aggregate({ _sum: { viewCount: true } }),
+      prisma.lesson.aggregate({ _sum: { viewCount: true } }),
+      prisma.accommodation.aggregate({ _sum: { viewCount: true } }),
+      prisma.post.aggregate({ _sum: { views: true } }),
+      prisma.overseasResort.aggregate({ _sum: { viewCount: true } }),
+    ]);
+    const pollV = await prisma.poll.aggregate({ _sum: { views: true } });
+    const categoryViews = [
+      { key: 'used', label: '중고거래', views: pv._sum.viewCount || 0 },
+      { key: 'skishop', label: '스키샵', views: sv._sum.viewCount || 0 },
+      { key: 'repair', label: '정비', views: rv._sum.viewCount || 0 },
+      { key: 'rental', label: '렌탈', views: rev._sum.viewCount || 0 },
+      { key: 'lesson', label: '레슨', views: lev._sum.viewCount || 0 },
+      { key: 'accommodation', label: '숙소', views: av._sum.viewCount || 0 },
+      { key: 'community', label: '커뮤니티', views: (cv._sum.views || 0) + (pollV._sum.views || 0) },
+      { key: 'overseas', label: '스키장 투어', views: ov._sum.viewCount || 0 },
+    ].sort((a, b) => b.views - a.views);
+
     // DB 용량 — Render Basic-256mb(스토리지 1GB) 한도 추적용. 실패해도 통계는 정상 반환.
     let dbSizeBytes: number | null = null;
     try {
@@ -177,6 +201,8 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
       week: { uniqueVisitors: wau.size, pageviews: last7.reduce((s, b) => s + b.pageviews, 0) },
       // 14일 차트 데이터
       daily: buckets,
+      // 카테고리별 누적 조회수 (인기 랭킹)
+      categoryViews,
       // DB 사용량 (bytes)
       dbSizeBytes,
     });
