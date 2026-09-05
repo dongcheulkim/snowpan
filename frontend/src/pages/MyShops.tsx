@@ -12,6 +12,7 @@ interface Shop {
   area?: string;
   price?: number;
   approved: boolean;
+  claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전 (관리자 대시보드에서만 보임)
   viewCount?: number;
   createdAt: string;
 }
@@ -160,8 +161,8 @@ export default function MyShops() {
               {sub && <p className="text-[10px] text-gray-500">{sub}</p>}
             </div>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-            {shop.approved ? '승인됨' : '대기중'}
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.claimable ? 'bg-gray-100 text-gray-600' : shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+            {shop.claimable ? '사장님 확인 전' : shop.approved ? '승인됨' : '대기중'}
           </span>
         </div>
         <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">

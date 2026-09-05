@@ -217,7 +217,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         <div key={item.id} className="card p-4">
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{item.shopType === 'skishop' ? '스키샵' : '정비샵'}</span>
+              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{({ skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', accommodation: '숙소' } as Record<string, string>)[item.shopType || ''] || item.shopType}</span>
               <span className="font-bold text-sm text-gray-900">{item.shopName}</span>
             </div>
             <div className="text-xs text-gray-500">요청자: {item.requesterName} ({item.requesterEmail})</div>

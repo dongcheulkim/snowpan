@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { PhoneIcon } from '../components/Icons';
@@ -13,6 +14,7 @@ import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
 interface RentalItem {
   isPremium?: boolean;
+  claimable?: boolean;
   id: string;
   name: string;
   area?: string | null;
@@ -138,6 +140,7 @@ const Rental = () => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
+                    <UnverifiedShopBadge claimable={item.claimable} compact />
                     {(item.area || item.resort?.name) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.area || item.resort?.name}</span>}
                   </div>
                   {item.phone && (

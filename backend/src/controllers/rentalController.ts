@@ -57,7 +57,9 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
     const verticalSlug = pickVertical(b.vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    if (!b.name || !b.area || !b.businessLicense) {
+    // 관리자 시딩 — 공개 영업정보만으로 기본 등록, 사업자등록증 없이 즉시 공개 + claimable(사장님 확인 전). 일반 유저의 claimable 은 무시.
+    const seeding = req.user!.role === 'admin' && b.claimable === true;
+    if (!b.name || !b.area || (!b.businessLicense && !seeding)) {
       res.status(400).json({ error: '상호명, 지역, 사업자등록증은 필수입니다.' });
       return;
     }
@@ -81,11 +83,12 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         resortId: b.resortId || null,
         userId,
         vertical: verticalSlug,
-        approved: false,
+        approved: seeding, claimable: seeding,
       },
       include: { resort: true, user: { select: { name: true } } },
     });
 
+    if (seeding) { res.status(201).json({ ...rental, message: '시딩 매장이 등록되었습니다 (사장님 확인 전 상태로 즉시 공개).' }); return; }
     await notifyAdmins('system', '새 렌탈샵 등록', `"${rental.name}" 렌탈샵이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({ ...rental, message: '렌탈샵 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.' });
   } catch (error) {

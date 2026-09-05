@@ -1,3 +1,5 @@
+// 매장 소유권 이전(claim) — 관리자가 공개 영업정보로 시딩한 매장(claimable=true, "사장님 확인 전")을
+// 실제 사장님이 사업자등록증 인증으로 가져가는 흐름. 스키샵·정비샵·렌탈샵·숙소 지원 (레슨은 개인 강사라 시딩 대상 아님).
 import { Router, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
@@ -7,10 +9,28 @@ import { sanitizeText } from '../utils/sanitize';
 
 const router = Router();
 
+const CLAIM_TYPES = ['skishop', 'repair', 'rental', 'accommodation'];
+const sel = { id: true, name: true, userId: true, claimable: true } as const;
+
 async function getShop(shopType: string, shopId: string) {
-  if (shopType === 'skishop') return prisma.skiShop.findUnique({ where: { id: shopId }, select: { id: true, name: true, userId: true } });
-  if (shopType === 'repair') return prisma.repairShop.findUnique({ where: { id: shopId }, select: { id: true, name: true, userId: true } });
-  return null;
+  switch (shopType) {
+    case 'skishop': return prisma.skiShop.findUnique({ where: { id: shopId }, select: sel });
+    case 'repair': return prisma.repairShop.findUnique({ where: { id: shopId }, select: sel });
+    case 'rental': return prisma.rental.findUnique({ where: { id: shopId }, select: sel });
+    case 'accommodation': return prisma.accommodation.findUnique({ where: { id: shopId }, select: sel });
+    default: return null;
+  }
+}
+
+// 소유권 이전 + 승인 + claimable 해제 — 4개 모델 공통
+async function transferOwnership(shopType: string, shopId: string, userId: string) {
+  const data = { userId, approved: true, claimable: false };
+  switch (shopType) {
+    case 'skishop': return prisma.skiShop.update({ where: { id: shopId }, data });
+    case 'repair': return prisma.repairShop.update({ where: { id: shopId }, data });
+    case 'rental': return prisma.rental.update({ where: { id: shopId }, data });
+    case 'accommodation': return prisma.accommodation.update({ where: { id: shopId }, data });
+  }
 }
 
 // 소유권 이전 요청 생성
@@ -18,7 +38,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
   try {
     const userId = req.user!.id;
     const { shopType, shopId, businessLicense, message } = req.body;
-    if (!['skishop', 'repair'].includes(shopType) || !shopId || !businessLicense) {
+    if (!CLAIM_TYPES.includes(shopType) || typeof shopId !== 'string' || !shopId || !businessLicense) {
       res.status(400).json({ error: '매장 정보와 사업자등록증은 필수입니다.' });
       return;
     }
@@ -55,7 +75,14 @@ router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response
     const enriched = await Promise.all(claims.map(async (c) => {
       const shop = await getShop(c.shopType, c.shopId);
       const user = await prisma.user.findUnique({ where: { id: c.userId }, select: { name: true, email: true } });
-      return { ...c, shopName: shop?.name || '(삭제됨)', requesterName: user?.name || '', requesterEmail: user?.email || '' };
+      return {
+        ...c,
+        shopName: shop?.name || '(삭제됨)',
+        // 시딩 매장(확인 전)인지 — 이미 사장님이 관리 중인 매장을 가져가려는 요청이면 관리자가 더 신중히 봐야 함
+        shopClaimable: shop?.claimable ?? null,
+        requesterName: user?.name || '',
+        requesterEmail: user?.email || '',
+      };
     }));
     res.json(enriched);
   } catch (error) {
@@ -63,7 +90,7 @@ router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response
   }
 });
 
-// 관리자: 승인 → 매장 소유권을 요청자에게 이전
+// 관리자: 승인 → 매장 소유권을 요청자에게 이전 (+ 승인 상태, claimable 해제)
 router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
@@ -73,12 +100,7 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
     const shop = await getShop(claim.shopType, claim.shopId);
     if (!shop) { res.status(404).json({ error: '매장을 찾을 수 없습니다.' }); return; }
 
-    // 소유권 이전 + 승인 상태로 (사장이 직접 수정 가능해짐).
-    if (claim.shopType === 'skishop') {
-      await prisma.skiShop.update({ where: { id: claim.shopId }, data: { userId: claim.userId, approved: true } });
-    } else {
-      await prisma.repairShop.update({ where: { id: claim.shopId }, data: { userId: claim.userId, approved: true } });
-    }
+    await transferOwnership(claim.shopType, claim.shopId, claim.userId);
     await prisma.shopClaim.update({ where: { id: claim.id }, data: { status: 'approved' } });
     await createNotification(claim.userId, 'system', '매장 소유권 이전 완료', `"${shop.name}" 매장을 이제 직접 관리할 수 있어요.`, '/mypage/shops').catch(() => {});
     sendPushToUser(claim.userId, '매장 소유권 이전 완료', `"${shop.name}" 매장을 이제 직접 관리할 수 있어요.`, '/mypage/shops').catch(() => {});

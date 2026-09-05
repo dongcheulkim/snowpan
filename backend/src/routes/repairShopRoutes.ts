@@ -26,7 +26,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, address: true, description: true, services: true,
         phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
@@ -42,9 +42,11 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical } = req.body;
+    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical, claimable } = req.body;
+    // 관리자 시딩 — 공개 영업정보만으로 기본 등록, 사업자등록증 없이 즉시 공개 + claimable(사장님 확인 전). 일반 유저의 claimable 은 무시.
+    const seeding = req.user!.role === 'admin' && claimable === true;
 
-    if (!name || !area || !address || !description || !businessLicense) {
+    if (!name || !area || !address || !description || (!businessLicense && !seeding)) {
       res.status(400).json({ error: '상호명, 지역, 주소, 설명, 사업자등록증은 필수입니다.' });
       return;
     }
@@ -64,11 +66,13 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         website: isHttpUrl(website) ? sanitizeText(website, 300) || null : null,
         naverMap: isHttpUrl(naverMap) ? sanitizeText(naverMap, 300) || null : null,
         hours: sanitizeText(hours, 200) || null,
-        image: image || null, images: sanitizeImages(images), businessLicense, userId, approved: false,
+        image: image || null, images: sanitizeImages(images), businessLicense: businessLicense || null, userId,
+        approved: seeding, claimable: seeding,
         vertical: verticalSlug,
       },
     });
 
+    if (seeding) { res.status(201).json({ ...shop, message: '시딩 매장이 등록되었습니다 (사장님 확인 전 상태로 즉시 공개).' }); return; }
     await notifyAdmins('system', '새 정비샵 등록 신청', `"${name}" 정비샵이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({ ...shop, message: '정비샵 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.' });
   } catch (error) {
@@ -118,7 +122,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, address: true, description: true, services: true,
         phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
     });

@@ -8,6 +8,8 @@ import { SadIcon } from '../components/Icons';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
+import ClaimShopButton from '../components/ClaimShopButton';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -25,6 +27,7 @@ interface AccommodationData {
   resort?: { id: string; name: string; location: string };
   user?: { id: string; name: string; nickname?: string | null; phone: string };
   createdAt: string;
+  claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
 }
 
 const AccommodationDetail = () => {
@@ -97,6 +100,8 @@ const AccommodationDetail = () => {
         </span>
       </div>
 
+      <UnverifiedShopBadge claimable={item.claimable} />
+
       {/* Info */}
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-2">
@@ -152,8 +157,9 @@ const AccommodationDetail = () => {
         </div>
       )}
 
-      {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
-      {user && item.userId && item.userId !== user.id && (
+      {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지.
+          시딩(사장님 확인 전) 매장은 채팅이 관리자에게 가서 오해를 만들므로 숨김 */}
+      {!item.claimable && user && item.userId && item.userId !== user.id && (
         <button
           onClick={() => navigate(`/chat/new`, {
             state: { seller: item.user?.nickname || item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/accommodation/${item.id}`, productPath: `/accommodation/${item.id}` }
@@ -161,9 +167,10 @@ const AccommodationDetail = () => {
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
         >채팅하기</button>
       )}
-      {!user && (
+      {!item.claimable && !user && (
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
       )}
+      <ClaimShopButton shopType="accommodation" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 
       {item.userId && <ShopPostsFeed shopType="accommodation" shopId={item.id} ownerId={item.userId} />}
       <ShopReportButton shopType="accommodation" shopId={item.id} ownerId={item.userId} />

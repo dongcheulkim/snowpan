@@ -107,14 +107,16 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
 
     // businessLicense 는 선택 — 개인 시즌방 등도 등록 가능 (등록자 법령 준수 책임은 약관/동의로 이전).
     // features(편의시설)도 선택 — UI에 필수 표시 없고, 편의시설 미선택 매물도 정상.
-    if (!name || !type || !guests || !image || !resortId) {
+    // 관리자 시딩 — 공개 영업정보만으로 기본 등록(사진 없이 가능), 즉시 공개 + claimable(사장님 확인 전). 일반 유저의 claimable 은 무시.
+    const seeding = req.user!.role === 'admin' && req.body.claimable === true;
+    if (!name || !type || !guests || (!image && !seeding) || !resortId) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
       return;
     }
     const cleanType = cleanAccomType(type);
     if (!cleanType) { res.status(400).json({ error: '숙소 유형이 올바르지 않습니다.' }); return; }
     if (!validGuests(guests)) { res.status(400).json({ error: '최대 인원은 1~50 사이여야 합니다.' }); return; }
-    if (!isAllowedImageUrl(image)) {
+    if (image && !isAllowedImageUrl(image)) {
       res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
       return;
     }
@@ -139,13 +141,13 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
         originalPrice: originalParsed,
         guests: String(guests),
         features: sanitizeText(features, 500) || '',
-        image,
+        image: image || '',
         images: sanitizeImages(images),
         businessLicense: businessLicense || null,
         accommodationPermit: accommodationPermit || null,
         resortId,
         userId,
-        approved: false,
+        approved: seeding, claimable: seeding,
         vertical: verticalSlug,
       },
       include: {

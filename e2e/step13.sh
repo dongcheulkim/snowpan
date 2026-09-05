@@ -236,4 +236,35 @@ api DELETE "/saved-searches/$SS" "" "$OWNER_TOKEN"
 api DELETE "/saved-searches/$SS" "" "$VISITOR_TOKEN"
 [ "$CODE" = "200" ] && ok "본인 키워드 삭제 200" || bad "키워드 삭제 CODE=$CODE"
 
+# ── 시딩(사장님 확인 전) 매장: 관리자 claimable 등록 → 즉시 공개 → 일반유저 claim → 승인 → claimable 해제 + 소유권 이전
+api POST /ski-shops '{"name":"시딩스키샵","area":"용평","address":"평창","description":"공개 영업정보 기반","claimable":true}' "$ADM_TOKEN"
+SEED=$(echo "$RESP" | jq -r '.id // empty'); SA=$(echo "$RESP" | jq -r '.approved'); SC=$(echo "$RESP" | jq -r '.claimable')
+[ "$CODE" = "201" ] && [ "$SA" = "true" ] && [ "$SC" = "true" ] && ok "관리자 시딩 등록 (사업자등록증 없이 즉시 공개, claimable)" || bad "시딩 CODE=$CODE appr=$SA claim=$SC RESP=$(echo $RESP|head -c 120)"
+api GET "/ski-shops/$SEED" ""; PC=$(echo "$RESP" | jq -r '.claimable'); [ "$CODE" = "200" ] && [ "$PC" = "true" ] && ok "공개 상세에 claimable=true" || bad "상세 claimable=$PC CODE=$CODE"
+api GET "/ski-shops" ""; LC=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$SEED\")][0].claimable"); [ "$LC" = "true" ] && ok "공개 목록에 claimable=true" || bad "목록 claimable=$LC"
+# 일반유저가 claimable 을 보내도 무시 (미승인·claimable=false), 사업자등록증 누락은 여전히 400
+api POST /ski-shops '{"name":"가짜시딩","area":"용평","address":"평창","description":"d","businessLicense":"/uploads/e2e.jpg","claimable":true}' "$VISITOR_TOKEN"
+FA=$(echo "$RESP" | jq -r '.approved'); FC=$(echo "$RESP" | jq -r '.claimable'); [ "$CODE" = "201" ] && [ "$FA" = "false" ] && [ "$FC" = "false" ] && ok "일반유저 claimable 요청 무시" || bad "일반 claimable CODE=$CODE appr=$FA claim=$FC"
+api POST /ski-shops '{"name":"x","area":"용평","address":"평창","description":"d","claimable":true}' "$VISITOR_TOKEN"; [ "$CODE" = "400" ] && ok "일반유저 사업자등록증 누락 400 유지" || bad "누락 CODE=$CODE"
+# claim → 승인 → claimable false + 소유권
+api POST /shop-claims "{\"shopType\":\"skishop\",\"shopId\":\"$SEED\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$VISITOR_TOKEN"
+CL2=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && ok "시딩 매장 claim 요청" || bad "시딩 claim CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api GET /shop-claims/pending "" "$ADM_TOKEN"; SCL=$(echo "$RESP" | jq -r ".[] | select(.id==\"$CL2\") | .shopClaimable"); [ "$SCL" = "true" ] && ok "관리자 대기목록에 시딩 여부(shopClaimable) 표시" || bad "shopClaimable=$SCL"
+api PUT "/shop-claims/$CL2/approve" "{}" "$ADM_TOKEN"; [ "$CODE" = "200" ] && ok "시딩 claim 승인" || bad "승인 CODE=$CODE"
+api GET "/ski-shops/$SEED" ""; PC2=$(echo "$RESP" | jq -r '.claimable'); OW=$(echo "$RESP" | jq -r '.user.id'); [ "$PC2" = "false" ] && [ "$OW" = "$VISITOR_ID" ] && ok "승인 후 claimable 해제 + 소유권 이전" || bad "승인 후 claimable=$PC2 owner=$OW"
+# 렌탈·숙소도 시딩 + claim 지원 / 레슨은 미지원
+api POST /rentals "{\"name\":\"시딩렌탈\",\"area\":\"용평\",\"claimable\":true,\"resortId\":\"$YONGPYONG\"}" "$ADM_TOKEN"
+SR=$(echo "$RESP" | jq -r '.id // empty'); RA=$(echo "$RESP" | jq -r '.approved'); [ "$CODE" = "201" ] && [ "$RA" = "true" ] && ok "렌탈 시딩 등록(즉시 공개)" || bad "렌탈 시딩 CODE=$CODE appr=$RA RESP=$(echo $RESP|head -c 100)"
+api GET "/rentals/$SR" ""; RC=$(echo "$RESP" | jq -r '.claimable'); [ "$RC" = "true" ] && ok "렌탈 공개 상세 claimable=true" || bad "렌탈 claimable=$RC"
+api POST /shop-claims "{\"shopType\":\"rental\",\"shopId\":\"$SR\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$CLAIMER_TOKEN"
+CL3=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && ok "렌탈 claim 요청" || bad "렌탈 claim CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api PUT "/shop-claims/$CL3/approve" "{}" "$ADM_TOKEN"
+RO=$(pq "SELECT \"userId\" || ':' || claimable::text FROM rentals WHERE id='$SR'"); [ "$RO" = "$CLAIMER_ID:false" ] && ok "렌탈 소유권 이전 + claimable 해제" || bad "렌탈 승인 후 $RO (기대 $CLAIMER_ID:false)"
+api POST /accommodations "{\"name\":\"시딩숙소\",\"type\":\"pension\",\"price\":50000,\"guests\":\"4\",\"resortId\":\"$YONGPYONG\",\"claimable\":true}" "$ADM_TOKEN"
+SAC=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && [ -n "$SAC" ] && ok "숙소 시딩 등록(사진 없이)" || bad "숙소 시딩 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api POST /shop-claims "{\"shopType\":\"accommodation\",\"shopId\":\"$SAC\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$CLAIMER_TOKEN"; [ "$CODE" = "201" ] && ok "숙소 claim 요청" || bad "숙소 claim CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api POST /shop-claims "{\"shopType\":\"lesson\",\"shopId\":\"$SAC\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$CLAIMER_TOKEN"; [ "$CODE" = "400" ] && ok "레슨 claim 미지원 400" || bad "레슨 claim CODE=$CODE"
+# 일반유저 숙소 등록은 여전히 사진 필수
+api POST /accommodations "{\"name\":\"x\",\"type\":\"pension\",\"price\":50000,\"guests\":\"4\",\"resortId\":\"$YONGPYONG\",\"claimable\":true}" "$VISITOR_TOKEN"; [ "$CODE" = "400" ] && ok "일반유저 숙소 사진 누락 400 유지" || bad "숙소 사진 누락 CODE=$CODE"
+
 echo "----- STEP13: PASS=$PASS FAIL=$FAIL -----"

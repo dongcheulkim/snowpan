@@ -11,6 +11,7 @@ import HScroll from '../components/HScroll';
 
 interface AccommodationItem {
   isPremium?: boolean;
+  claimable?: boolean;
   id: string;
   name: string;
   type: string;
@@ -157,6 +158,7 @@ const Accommodation = () => {
             <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
               <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {item.isPremium && <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
+                {item.claimable && <span className="absolute bottom-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gray-700/70 text-white">확인 전</span>}
                 {item.image.startsWith('/') || item.image.startsWith('http') ? (
                   <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
                 ) : (

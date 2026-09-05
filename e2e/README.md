@@ -6,7 +6,7 @@
 ## 실행
 
 ```bash
-./e2e/run.sh        # 전체 (DB 초기화 후 step1~14, 530+ 케이스)
+./e2e/run.sh        # 전체 (DB 초기화 후 step1~14, 550 케이스)
 ./e2e/run.sh 9      # 특정 스텝만 (state 재사용, DB 초기화 안 함)
 ```
 

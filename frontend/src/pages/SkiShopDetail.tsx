@@ -8,6 +8,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 
 interface Shop {
   id: string;
@@ -25,6 +26,7 @@ interface Shop {
   hours: string | null;
   image: string | null;
   isPremium?: boolean;
+  claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
   user: { id: string; name: string; nickname?: string | null };
 }
 
@@ -108,11 +110,18 @@ export default function SkiShopDetail() {
         <h1 className="text-xl font-bold text-gray-900">{shop.name}</h1>
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{shop.description}</p>
 
-        {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
-        {me && shop.user.id !== me.id && me.role !== 'admin' && (
+        <UnverifiedShopBadge claimable={shop.claimable} />
+        {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지.
+            "직접 관리하기"는 시딩(사장님 확인 전) 매장에만 — 이미 사장님이 관리 중인 매장엔 노출 안 함 */}
+        {shop.claimable && me && shop.user.id !== me.id && me.role !== 'admin' && (
           <button onClick={() => setShowClaim(true)} className="w-full py-2 text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
             이 매장 사장님이신가요? 직접 관리하기 →
           </button>
+        )}
+        {shop.claimable && !me && (
+          <Link to="/login" className="block w-full py-2 text-center text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            이 매장 사장님이신가요? 로그인 후 직접 관리하기 →
+          </Link>
         )}
       </div>
 

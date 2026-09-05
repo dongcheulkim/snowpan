@@ -6,6 +6,8 @@ import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
+import ClaimShopButton from '../components/ClaimShopButton';
 
 interface RentalData {
   id: string;
@@ -24,6 +26,7 @@ interface RentalData {
   naverMap?: string | null;
   resort?: { id: string; name: string; location?: string } | null;
   user?: { id?: string; name: string; nickname?: string | null };
+  claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
 }
 
 const RentalDetail = () => {
@@ -56,6 +59,8 @@ const RentalDetail = () => {
       <Link to="/rental" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 렌탈샵 목록</Link>
 
       {gallery && <PhotoGallery images={gallery} />}
+
+      <UnverifiedShopBadge claimable={item.claimable} />
 
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-1">
@@ -95,8 +100,9 @@ const RentalDetail = () => {
         {item.instagram && <button onClick={() => openExternal(`https://instagram.com/${item.instagram}`)} className="px-4 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm">인스타</button>}
       </div>
 
-      {/* 문의 채팅 — 전화/링크가 없는 매장도 연락 가능하게 (레슨과 동일 UX) */}
-      {user && item.userId && item.userId !== user.id && (
+      {/* 문의 채팅 — 전화/링크가 없는 매장도 연락 가능하게 (레슨과 동일 UX).
+          시딩(사장님 확인 전) 매장은 채팅이 관리자에게 가서 매장과 대화하는 것처럼 오해되므로 숨김 — 전화만 */}
+      {!item.claimable && user && item.userId && item.userId !== user.id && (
         <button
           onClick={() => navigate(`/chat/new`, {
             state: { seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
@@ -104,9 +110,10 @@ const RentalDetail = () => {
           className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
         >문의 채팅하기</button>
       )}
-      {!user && (
+      {!item.claimable && !user && (
         <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
       )}
+      <ClaimShopButton shopType="rental" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 
       {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
       {item.userId && <ShopPostsFeed shopType="rental" shopId={item.id} ownerId={item.userId} />}

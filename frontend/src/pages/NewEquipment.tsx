@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
@@ -26,6 +27,7 @@ interface Shop {
   image?: string | null;
   images?: string | null;
   isPremium?: boolean;
+  claimable?: boolean;
 }
 
 const areas = [
@@ -126,6 +128,7 @@ export default function NewEquipment() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
+                    <UnverifiedShopBadge claimable={shop.claimable} compact />
                     {shop.area && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shop.area}</span>}
                   </div>
                   {shop.phone && (
