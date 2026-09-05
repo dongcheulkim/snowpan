@@ -21,10 +21,12 @@ interface ChatRoomInfo {
   id: string;
   user1Id: string;
   user2Id: string;
+  status?: string;        // 'accepted' | 'pending' | 'declined' — 채팅 요청 게이트
+  requestedBy?: string | null;
   user1LastReadAt: string | null;
   user2LastReadAt: string | null;
-  user1: { id: string; name: string };
-  user2: { id: string; name: string };
+  user1: { id: string; name: string; profileImage?: string | null };
+  user2: { id: string; name: string; profileImage?: string | null };
 }
 
 // 메시지 그룹 사이 날짜 구분선
@@ -51,7 +53,12 @@ const Chat = () => {
   const [uploading, setUploading] = useState(false);
   const [fullImage, setFullImage] = useState<string | null>(null);
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
+  const [otherProfileImage, setOtherProfileImage] = useState<string | null>(null);
+  const [otherId, setOtherId] = useState<string | null>(null);
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
+  // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
+  const [roomStatus, setRoomStatus] = useState<string>('accepted');
+  const [requestedBy, setRequestedBy] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const firstScrollRef = useRef(true); // 첫 스크롤은 즉시(히스토리 훑는 애니메이션 방지)
   const socketRef = useRef<Socket | null>(null);
@@ -145,6 +152,12 @@ const Chat = () => {
       if (!user) return;
       const isUser1 = room.user1Id === user.id;
       setOtherLastReadAt(isUser1 ? room.user2LastReadAt : room.user1LastReadAt);
+      setRoomStatus(room.status || 'accepted');
+      setRequestedBy(room.requestedBy || null);
+      const other = isUser1 ? room.user2 : room.user1;
+      setOtherName(other.name);
+      setOtherProfileImage(other.profileImage || null);
+      setOtherId(other.id);
     }).catch(() => {});
     markAsRead(id);
 
@@ -209,6 +222,8 @@ const Chat = () => {
         if (cancelled) return;
         const other = room.user1.id === user.id ? room.user2 : room.user1;
         setOtherName(other.name);
+        setOtherProfileImage(other.profileImage || null);
+        setOtherId(other.id);
       }).catch(() => {});
     } else if (state?.sellerId) {
       // 상품에서 채팅하기로 진입 -> 방 생성/조회
@@ -225,6 +240,8 @@ const Chat = () => {
         if (cancelled) return;
         const other = room.user1.id === user.id ? room.user2 : room.user1;
         setOtherName(other.name);
+        setOtherProfileImage(other.profileImage || null);
+        setOtherId(other.id);
       }).catch(() => {});
     } else {
       // /chat/new 를 라우터 state 없이 직접 열면 연결할 방이 없음 — 가짜 방('new') 접속 대신 목록으로
@@ -339,9 +356,10 @@ const Chat = () => {
           <Link to={backPath} aria-label="뒤로" className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </Link>
-          <div className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
-            <UserIcon size={18} />
-          </div>
+          {/* 상대 아바타 — 프로필 사진 표시, 탭하면 프로필로 */}
+          <Link to={otherId ? `/seller/${otherId}` : '#'} className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
+            {otherProfileImage ? <img src={imageUrl(otherProfileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={18} />}
+          </Link>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
             <div className="text-[10px] text-gray-500">{connected ? '연결됨' : '연결 중…'}</div>
@@ -587,6 +605,37 @@ const Chat = () => {
       {/* Sticky Input Bar — 하나의 pill 안에 모든 컨트롤 통합 */}
       <div className="flex-shrink-0 border-t border-gray-100 bg-snow safe-area-bottom">
         <div className="max-w-2xl mx-auto px-3 py-2.5">
+          {/* 채팅 요청 게이트 — 수락 전엔 입력 대신 배너 */}
+          {roomStatus === 'pending' && user && requestedBy && requestedBy !== user.id && (
+            <div className="mb-2 p-3 bg-sky-50 border border-sky-200 rounded-2xl">
+              <p className="text-xs font-bold text-gray-900 mb-0.5">{otherName}님이 채팅을 요청했어요</p>
+              <p className="text-[11px] text-gray-500 mb-2.5">수락하면 대화를 시작할 수 있어요.</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      await api(`/chat/rooms/${roomId}/accept`, { method: 'POST' });
+                      setRoomStatus('accepted'); setRequestedBy(null);
+                      toastSuccess('채팅 요청을 수락했어요.');
+                    } catch (e) { toastError(e instanceof Error ? e.message : '수락 실패'); }
+                  }}
+                  className="flex-1 py-2 bg-sky-500 text-white rounded-xl text-xs font-bold"
+                >수락</button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api(`/chat/rooms/${roomId}/decline`, { method: 'POST' });
+                      navigate('/chat', { replace: true });
+                    } catch (e) { toastError(e instanceof Error ? e.message : '거절 실패'); }
+                  }}
+                  className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold border border-gray-200"
+                >거절</button>
+              </div>
+            </div>
+          )}
+          {roomStatus === 'pending' && user && requestedBy === user.id && (
+            <p className="mb-2 text-center text-[11px] text-gray-500 bg-gray-50 rounded-xl py-2">상대가 채팅 요청을 수락하면 대화할 수 있어요.</p>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -599,7 +648,7 @@ const Chat = () => {
           <div className="flex items-end gap-1 bg-gray-100 rounded-3xl pl-1.5 pr-1.5 py-1.5 transition-colors focus-within:bg-gray-200/70">
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={!connected || uploading}
+              disabled={!connected || uploading || roomStatus === 'pending'}
               aria-label="사진 첨부"
               className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-snow transition-colors active:scale-95 disabled:opacity-30 flex-shrink-0"
             >
@@ -619,13 +668,14 @@ const Chat = () => {
                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
               onKeyDown={handleKeyDown}
-              placeholder={t('chat.inputPlaceholder')}
+              disabled={roomStatus === 'pending'}
+              placeholder={roomStatus === 'pending' ? '수락 후 대화할 수 있어요' : t('chat.inputPlaceholder')}
               className="flex-1 bg-transparent px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none overflow-y-auto leading-relaxed min-h-[32px]"
               style={{ maxHeight: 120 }}
             />
             <button
               onClick={sendMessage}
-              disabled={!input.trim() || !connected}
+              disabled={!input.trim() || !connected || roomStatus === 'pending'}
               aria-label="전송"
               className={`min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-95 flex-shrink-0 ${
                 input.trim() && connected

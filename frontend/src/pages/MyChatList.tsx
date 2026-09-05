@@ -14,6 +14,8 @@ interface ChatRoom {
   messages: { content: string; createdAt: string; type?: string }[];
   unreadCount: number;
   updatedAt: string;
+  status?: string;        // 'accepted' | 'pending' — 채팅 요청 게이트
+  requestedBy?: string | null;
 }
 
 const renderPreview = (msg: { content: string; type?: string }): string => {
@@ -126,6 +128,11 @@ const MyChatList = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-bold text-gray-900 truncate">{other.name}</div>
+                    {room.status === 'pending' && (
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${room.requestedBy === user.id ? 'bg-gray-100 text-gray-500' : 'bg-sky-100 text-sky-700'}`}>
+                        {room.requestedBy === user.id ? '수락 대기' : '채팅 요청'}
+                      </span>
+                    )}
                     {room.unreadCount > 0 && (
                       <span className="bg-coral text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                         {room.unreadCount > 99 ? '99+' : room.unreadCount}

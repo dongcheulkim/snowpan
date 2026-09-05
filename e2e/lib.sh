@@ -12,11 +12,11 @@ pq() { psql -h localhost -p 5433 -U snowtest -d snowpan_test -tA -c "$1"; }
 register_verified() {
   local phone="$1" email="$2" name="$3" nick="${4:-}"
   local pass='Re!pass1234'
-  curl -s -X POST "$BASE/auth/phone/send" -H 'Content-Type: application/json' \
+  curl -s -X POST "$BASE/auth/phone/send" -H 'Content-Type: application/json' -H 'X-Loadtest-Key: e2e-local-bypass' \
     -d "{\"phone\":\"$phone\"}" >/dev/null
   local code
   code=$(pq "select code from phone_verifications where phone='$phone' order by \"createdAt\" desc limit 1")
-  curl -s -X POST "$BASE/auth/phone/verify" -H 'Content-Type: application/json' \
+  curl -s -X POST "$BASE/auth/phone/verify" -H 'Content-Type: application/json' -H 'X-Loadtest-Key: e2e-local-bypass' \
     -d "{\"phone\":\"$phone\",\"code\":\"$code\"}" >/dev/null
   local body
   if [ -n "$nick" ]; then
@@ -24,11 +24,11 @@ register_verified() {
   else
     body="{\"email\":\"$email\",\"password\":\"$pass\",\"name\":\"$name\",\"phone\":\"$phone\"}"
   fi
-  curl -s -X POST "$BASE/auth/register" -H 'Content-Type: application/json' -d "$body" | jq -r '.token // empty'
+  curl -s -X POST "$BASE/auth/register" -H 'Content-Type: application/json' -H 'X-Loadtest-Key: e2e-local-bypass' -d "$body" | jq -r '.token // empty'
 }
 
 # login <email> <password> -> token
 login() {
-  curl -s -X POST "$BASE/auth/login" -H 'Content-Type: application/json' \
+  curl -s -X POST "$BASE/auth/login" -H 'Content-Type: application/json' -H 'X-Loadtest-Key: e2e-local-bypass' \
     -d "{\"email\":\"$1\",\"password\":\"$2\"}" | jq -r '.token // empty'
 }

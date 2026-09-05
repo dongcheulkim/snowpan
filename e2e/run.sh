@@ -60,19 +60,28 @@ if [ "$(psql "$PGURL" -tAc 'SELECT count(*) FROM ad_slot_pricings')" = "0" ]; th
     || { echo "ERROR: 광고 가격 시드 실패"; exit 1; }
 fi
 
-# ── 백엔드 기동 (이미 4001 이 떠 있으면 그대로 사용)
-STARTED_BACKEND=""
-if ! curl -s -o /dev/null -m 2 "http://localhost:$APIPORT/api/webcams"; then
-  echo "[setup] backend 기동 (port $APIPORT, test DB)"
-  ( cd "$REPO/backend" && DATABASE_URL="$PGURL" PORT=$APIPORT LOADTEST_BYPASS_KEY=e2e-local-bypass \
-      npx tsx src/index.ts > "$E2E_STATE_DIR/backend.log" 2>&1 ) &
-  STARTED_BACKEND=$!
-  for i in $(seq 1 30); do
-    curl -s -o /dev/null -m 2 "http://localhost:$APIPORT/api/webcams" && break
-    sleep 1
-  done
+# ── 백엔드 기동 — 항상 최신 코드로 새로 띄움.
+#    (기존 리스너 재사용은 옛 코드로 테스트하는 함정 + 서브셸 kill 이 node 자식을
+#     못 죽여 다음 실행에 좀비가 남던 문제 → 4001 리스너를 정리하고 시작)
+OLD_PIDS=$(lsof -ti :$APIPORT -sTCP:LISTEN 2>/dev/null || true)
+if [ -n "$OLD_PIDS" ]; then
+  echo "[setup] 4001 기존 프로세스 정리 ($OLD_PIDS)"
+  kill $OLD_PIDS 2>/dev/null; sleep 1
+  kill -9 $(lsof -ti :$APIPORT -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
 fi
-cleanup() { [ -n "$STARTED_BACKEND" ] && kill "$STARTED_BACKEND" 2>/dev/null; }
+echo "[setup] backend 기동 (port $APIPORT, test DB)"
+( cd "$REPO/backend" && DATABASE_URL="$PGURL" PORT=$APIPORT LOADTEST_BYPASS_KEY=e2e-local-bypass \
+    npx tsx src/index.ts > "$E2E_STATE_DIR/backend.log" 2>&1 ) &
+STARTED_BACKEND=$!
+for i in $(seq 1 30); do
+  curl -s -o /dev/null -m 2 "http://localhost:$APIPORT/api/webcams" && break
+  sleep 1
+done
+cleanup() {
+  # 서브셸이 아니라 실제 리스너(node)까지 정리 — 좀비 방지
+  [ -n "$STARTED_BACKEND" ] && kill "$STARTED_BACKEND" 2>/dev/null
+  kill $(lsof -ti :$APIPORT -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
+}
 trap cleanup EXIT
 
 # ── 리조트 시드 (lib.sh 하드코딩 ID) — 없으면 삽입
@@ -106,7 +115,7 @@ OUT="$E2E_STATE_DIR/last-run.txt"
 if [ -n "$ONLY" ]; then
   bash "$E2E_DIR/step$ONLY.sh" 2>&1 | tee -a "$OUT"
 else
-  for i in 1 2 3 4 5 6 7 8 9 10; do
+  for i in 1 2 3 4 5 6 7 8 9 10 11; do
     [ -f "$E2E_DIR/step$i.sh" ] && bash "$E2E_DIR/step$i.sh" >> "$OUT" 2>&1
   done
 fi

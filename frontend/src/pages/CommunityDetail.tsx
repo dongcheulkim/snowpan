@@ -227,10 +227,13 @@ const CommunityDetail = () => {
         <h1 className="text-xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden">
-            {post.user.profileImage ? <img src={imageUrl(post.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={16} />}
-          </div>
-          <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
+          {/* 작성자 프로필 링크 — 프로필에서 채팅 요청 가능 */}
+          <Link to={`/seller/${post.user.id}`} className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
+              {post.user.profileImage ? <img src={imageUrl(post.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={16} />}
+            </div>
+            <span className="text-sm font-medium text-gray-900">{post.user.name}</span>
+          </Link>
           <UserBadges badges={post.user.badges} />
           <span className="text-[11px] text-gray-500">· 조회 {post.views}</span>
         </div>
@@ -273,12 +276,12 @@ const CommunityDetail = () => {
             const repliesOf = (pid: string) => post.comments.filter(c => c.parentId === pid);
             const renderComment = (comment: Comment, isReply: boolean) => (
               <div key={comment.id} className="flex gap-3">
-                <div className={`${isReply ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden`}>
+                <Link to={`/seller/${comment.user.id}`} className={`${isReply ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0 mt-0.5 overflow-hidden`}>
                   {comment.user.profileImage ? <img src={imageUrl(comment.user.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={isReply ? 12 : 14} />}
-                </div>
+                </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-gray-900">{comment.user.name}</span>
+                    <Link to={`/seller/${comment.user.id}`} className="text-xs font-bold text-gray-900">{comment.user.name}</Link>
                     <UserBadges badges={comment.user.badges} />
                     <span className="text-[10px] text-gray-500">{formatTime(comment.createdAt)}</span>
                     {user && (

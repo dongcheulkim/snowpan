@@ -26,10 +26,11 @@
 | 8 | 회원 탈퇴 → 익명화 (공개 표면 실명 비노출) |
 | 9 | 광고 흐름 — 신청→승인→프리미엄 자동적용→클릭 추적→1년 계약 취소차단→배너 자동생성 |
 | 10 | tokenVersion 세션 무효화 — 비번 변경 시 옛 토큰 즉시 거절 + 같은 초 재로그인 정상 |
+| 11 | 채팅 요청 게이트 — 요청→수락 전 전송차단→수락→대화, 거절→재요청 차단, 매물 문의 승격 |
 
 ## 구조
 
 - `lib.sh` — 공용 헬퍼 (휴대폰 인증 우회 가입, 로그인, psql)
-- `chat.js` / `chatnotif.js` — Socket.IO 실연결 헬퍼 (backend 의 socket.io-client 사용)
+- `chat.js` / `chatnotif.js` / `chatgate.js` — Socket.IO 실연결 헬퍼 (backend 의 socket.io-client 사용)
 - `.state/` — 실행 간 상태 (토큰·ID·로그, gitignore)
 - 시드 유지 테이블: `ski_resorts`(용평·곤지암 자동 시드)·`overseas_resorts`·`ad_slot_pricings` — 나머지는 전체 실행 시 초기화

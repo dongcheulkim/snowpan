@@ -471,6 +471,16 @@ io.on('connection', (socket) => {
         socket.emit('room_error', { roomId: data.roomId, error: '채팅방을 찾을 수 없어요. 목록을 새로고침해주세요.' });
         return;
       }
+      // 채팅 요청 게이트 — 수락 전(pending)/거절(declined) 방은 추가 전송 불가.
+      // (요청 첫 메시지는 /chat/requests 가 생성. 수락 전 폭탄 메시지 방지)
+      if (room.status === 'pending') {
+        socket.emit('room_error', { roomId: data.roomId, error: '상대가 채팅 요청을 수락하면 대화할 수 있어요.' });
+        return;
+      }
+      if (room.status === 'declined') {
+        socket.emit('room_error', { roomId: data.roomId, error: '대화할 수 없는 채팅방입니다.' });
+        return;
+      }
 
       const message = await prisma.message.create({
         data: { roomId: data.roomId, senderId: userId, content, imageUrl, type },

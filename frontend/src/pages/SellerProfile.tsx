@@ -1,6 +1,6 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
@@ -78,6 +78,33 @@ const SellerProfile = () => {
   const [postTotalCount, setPostTotalCount] = useState(0);
   const user = getUser();
   const [showReport, setShowReport] = useState(false);
+  // 채팅 요청 모달 — 커뮤니티 등에서 프로필로 들어와 콜드 DM 을 보낼 때 (수락 게이트)
+  const [showChatRequest, setShowChatRequest] = useState(false);
+  const [chatRequestMsg, setChatRequestMsg] = useState('');
+  const [chatRequestBusy, setChatRequestBusy] = useState(false);
+  const navigate = useNavigate();
+
+  const sendChatRequest = async () => {
+    if (!chatRequestMsg.trim() || chatRequestBusy) return;
+    setChatRequestBusy(true);
+    try {
+      const r = await api<{ id: string; status: string }>('/chat/requests', {
+        method: 'POST',
+        body: { targetUserId: sellerId, message: chatRequestMsg.trim() },
+      });
+      if (r.status === 'accepted') {
+        navigate(`/chat/${r.id}`);
+      } else {
+        toastSuccess('채팅 요청을 보냈어요. 상대가 수락하면 대화할 수 있어요.');
+        setShowChatRequest(false);
+        setChatRequestMsg('');
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '채팅 요청 실패');
+    } finally {
+      setChatRequestBusy(false);
+    }
+  };
   const [reportReason, setReportReason] = useState('');
   const [reportDesc, setReportDesc] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
@@ -250,6 +277,11 @@ const SellerProfile = () => {
           </div>
         )}
         {user && user.id !== sellerId && (
+          <div className="mt-3">
+            <button onClick={() => setShowChatRequest(true)} className="inline-block px-5 py-2 bg-sky-500 text-white rounded-lg text-xs font-bold hover:bg-sky-600 transition-colors">채팅 요청하기</button>
+          </div>
+        )}
+        {user && user.id !== sellerId && (
           <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-400 hover:text-coral transition-colors mt-1.5">이 사용자 신고</button>
         )}
         <div className="grid grid-cols-4 gap-2 mt-4">
@@ -401,6 +433,30 @@ const SellerProfile = () => {
       </div>
 
       {/* 유저 신고 모달 */}
+      {showChatRequest && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45" onClick={() => setShowChatRequest(false)}>
+          <div className="w-full max-w-md bg-white rounded-t-2xl p-5 space-y-3 animate-[slideUp_.25s_ease-out]" onClick={e => e.stopPropagation()}>
+            <style>{`@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}`}</style>
+            <h3 className="text-sm font-bold text-gray-900">{seller?.name}님에게 채팅 요청</h3>
+            <p className="text-[11px] text-gray-500">첫 메시지를 보내면 상대가 수락한 뒤 대화할 수 있어요.</p>
+            <textarea
+              value={chatRequestMsg}
+              onChange={(e) => setChatRequestMsg(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="안녕하세요! 채팅 가능하실까요?"
+              className="w-full px-3 py-2.5 bg-snow border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 resize-none"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => { setShowChatRequest(false); setChatRequestMsg(''); }} className="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold border border-gray-200">취소</button>
+              <button onClick={sendChatRequest} disabled={!chatRequestMsg.trim() || chatRequestBusy} className="flex-1 py-2.5 bg-sky-500 text-white rounded-xl text-xs font-bold disabled:opacity-30">
+                {chatRequestBusy ? '보내는 중...' : '요청 보내기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showReport && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45" onClick={() => setShowReport(false)}>
           <div className="w-full max-w-md bg-white rounded-t-2xl p-5 space-y-3 animate-[slideUp_.25s_ease-out]" onClick={e => e.stopPropagation()}>
