@@ -303,14 +303,17 @@ export const updateBanner = async (req: AuthRequest, res: Response): Promise<voi
     const { title, description, tag, url, image, order, active } = req.body as {
       title?: string; description?: string; tag?: string; url?: string; image?: string; order?: number; active?: boolean;
     };
+    // create 와 동일 검증 — 수정 경로로 빈 제목/javascript: URL 이 라이브 배너에 들어가던 구멍 차단
+    if (title !== undefined && !String(title).trim()) { res.status(400).json({ error: '배너 제목을 입력해주세요.' }); return; }
+    if (url && !/^(https?:\/\/|\/)/.test(String(url))) { res.status(400).json({ error: '링크는 http(s):// 또는 / 로 시작해야 합니다.' }); return; }
     const banner = await prisma.banner.update({
       where: { id },
       data: {
-        ...(title !== undefined && { title }),
+        ...(title !== undefined && { title: String(title).trim() }),
         ...(description !== undefined && { description }),
         ...(tag !== undefined && { tag }),
         ...(url !== undefined && { url }),
-        ...(image !== undefined && { image }),
+        ...(image !== undefined && { image: image || null }), // '' → null (string|null 계약 유지)
         ...(order !== undefined && { order }),
         ...(active !== undefined && { active }),
       },

@@ -225,7 +225,9 @@ const UsedDetail = () => {
     const io = new IntersectionObserver(([e]) => setShowStickyBar(!e.isIntersecting), { rootMargin: '0px 0px -80px 0px' });
     io.observe(el);
     return () => io.disconnect();
-  });
+    // product 로드 후 ref 가 채워질 때만 재구성 — deps 없으면 매 렌더(키 입력 포함)마다 observer 재생성
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
   const [bumping, setBumping] = useState(false);
   const handleBump = async () => {

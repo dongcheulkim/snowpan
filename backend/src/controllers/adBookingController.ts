@@ -204,10 +204,10 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     const { slotType, category, title, description, url, image, textColor, textAlign, imagePos, payMethod, periodMonths, desiredStart } = req.body;
     let { startDate, endDate } = req.body;
 
-    // 기간제 신청 (신규 방식): periodMonths 로 시작/종료일 계산.
-    // desiredStart 미지정 시 오늘 기준으로 잡되, 실제 노출 시작은 관리자 입금 확인 시점에 재조정됨.
+    // 기간제 신청: periodMonths 필수 — 직접 startDate/endDate 를 보내 12개월 정책과
+    // 월단가 일할계산을 우회하던 레거시 경로 차단 (1일짜리 배너를 1/30 가격에 신청 가능했음)
     const months = Number(periodMonths);
-    if (periodMonths !== undefined) {
+    {
       if (!PERIOD_DAYS[months]) {
         res.status(400).json({ error: '광고는 12개월(1년) 단위로 신청할 수 있습니다.' });
         return;
@@ -620,8 +620,8 @@ export const trackAdClick = async (req: Request, res: Response): Promise<void> =
   try {
     const { id } = req.params;
     if (!id) { res.status(400).json({ error: 'id 필요' }); return; }
-    // 존재하는 예약만 카운트 (임의 id 로 카운터 오염 방지). updateMany 로 없으면 무시.
-    await prisma.adBooking.updateMany({ where: { id }, data: { clickCount: { increment: 1 } } });
+    // 노출 중인 광고만 카운트 — 취소/대기/환불 예약 id 로 통계 오염 방지. updateMany 로 없으면 무시.
+    await prisma.adBooking.updateMany({ where: { id, status: 'active' }, data: { clickCount: { increment: 1 } } });
     res.json({ ok: true });
   } catch {
     res.json({ ok: true }); // 추적 실패가 사용자 이동을 막지 않도록 항상 200
@@ -702,7 +702,8 @@ export const adminGetRevenue = async (_req: AuthRequest, res: Response): Promise
       .filter((p) => p.paidAt >= thisMonth)
       .reduce((sum, p) => sum + p.amount - (p.refundAmount || 0), 0);
 
-    res.json({ totalRevenue, monthlyRevenue, totalPayments: payments.length });
+    // 결제 건수는 실결제(금액>0)만 — 0원 무료승인이 결제로 집계되던 것 제외
+    res.json({ totalRevenue, monthlyRevenue, totalPayments: payments.filter((p) => p.amount > 0).length });
   } catch (error) {
     res.status(500).json({ error: '매출 조회 실패' });
   }
@@ -790,6 +791,8 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
 // 관리자: 입금 확인 → 바로 active + 배너 생성
 // 승인 시점의 광고 기간 재조정 — 관리자 지정 시작일 > 유저 희망 시작일(미래) > 오늘(승인 즉시) 순.
 // 기간(totalDays)은 그대로 유지되어 입금 확인이 늦어도 광고주가 기간 손해를 안 봄.
+// NOTE: 이 파일의 날짜 계산(setHours(0,0,0,0)·toISOString 등)은 서버가 UTC 로 돈다는
+// 전제(Render 기본). KST 로 설정된 호스트로 이전하면 가용성·승인일이 하루 밀림 — 이전 금지.
 function resolveApprovedDates(booking: { startDate: Date; totalDays: number }, startDateOverride?: unknown): { start: Date; end: Date } | null {
   let start: Date;
   if (startDateOverride) {
@@ -843,10 +846,14 @@ export const adminApproveBooking = async (req: AuthRequest, res: Response): Prom
     // 시작일이 미래면 즉시 노출하지 않고 paid 로만 — 스케줄러가 startDate 도래 시 활성화.
     // (이전엔 미래 광고도 승인 즉시 active + 배너 생성되어 광고비 기간 전 무료 노출)
     const startsInFuture = dates.start > new Date();
-    const updated = await prisma.adBooking.update({
-      where: { id },
+    // 원자적 CAS — 동시 더블클릭/두 관리자 승인 시 한 요청만 상태를 바꾸고
+    // 배너/프리미엄 생성. (paid 유지되는 미래시작 재승인은 날짜 변경 용도로 허용)
+    const claimed = await prisma.adBooking.updateMany({
+      where: { id, status: { in: ['pending_payment', 'paid'] } },
       data: { status: startsInFuture ? 'paid' : 'active', approvedAt: new Date(), startDate: dates.start, endDate: dates.end },
     });
+    if (claimed.count === 0) { res.status(409).json({ error: '이미 처리된 예약입니다.' }); return; }
+    const updated = (await prisma.adBooking.findUnique({ where: { id } }))!;
     if (!startsInFuture) {
       // slotType 별 활성화 분기:
       // - premium: 대상 상품/샵 isPremium=true (배너 X)
@@ -901,10 +908,13 @@ export const adminFreeApprove = async (req: AuthRequest, res: Response): Promise
 
     // 미래 시작일이면 paid 로만 (스케줄러가 활성화). 즉시 시작이면 바로 active + 노출.
     const startsInFuture = dates.start > new Date();
-    const updated = await prisma.adBooking.update({
-      where: { id },
+    // 원자적 CAS — 더블클릭/두 관리자 동시 무료승인 시 한 요청만 처리 (배너 중복 방지)
+    const claimed = await prisma.adBooking.updateMany({
+      where: { id, status: 'pending_payment' },
       data: { status: startsInFuture ? 'paid' : 'active', totalPrice: 0, adminNote: '무료 승인', startDate: dates.start, endDate: dates.end },
     });
+    if (claimed.count === 0) { res.status(409).json({ error: '이미 처리된 예약입니다.' }); return; }
+    const updated = (await prisma.adBooking.findUnique({ where: { id } }))!;
     if (!startsInFuture) {
       if (updated.slotType === 'premium') {
         await applyPremiumFromBooking(updated);
@@ -950,6 +960,15 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
       res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
       return;
     }
+    // 이미 취소/종료된 예약 재취소 방지 — 상태 재변경·중복 알림·중복 PG 환불 시도 차단
+    if (['refunded', 'cancelled'].includes(booking.status)) {
+      res.status(400).json({ error: '이미 취소된 예약입니다.' });
+      return;
+    }
+    if (booking.status === 'completed') {
+      res.status(400).json({ error: '이미 종료된 광고입니다.' });
+      return;
+    }
 
     if (booking.payment && booking.payment.status === 'paid') {
       // 토스 카드 결제 건은 PG 취소를 먼저 — 실패 시 DB 를 바꾸지 않음
@@ -971,10 +990,12 @@ export const adminCancelBooking = async (req: AuthRequest, res: Response): Promi
       });
     }
 
+    // 실결제(금액>0)가 있었으면 '환불', 아니면 '취소' — 돈 안 오간 건에 환불 표시 방지
+    const wasPaid = !!booking.payment && booking.payment.status === 'paid' && booking.payment.amount > 0;
     await prisma.$transaction([
       prisma.adBooking.update({
         where: { id },
-        data: { status: 'refunded', adminNote: reason || 'none' },
+        data: { status: wasPaid ? 'refunded' : 'cancelled', adminNote: reason || 'none' },
       }),
       prisma.notification.create({
         data: {
@@ -1029,6 +1050,7 @@ export const getBookingPayInfo = async (req: AuthRequest, res: Response): Promis
 // 결제 승인 — successUrl 에서 받은 paymentKey/orderId/amount 로 토스 승인 API 호출.
 // 시크릿 키: 운영은 TOSS_SECRET_KEY env, 미설정 시 문서용 테스트 키 (실청구 없음).
 export const confirmTossPayment = async (req: AuthRequest, res: Response): Promise<void> => {
+  let casClaimed = false; // pending_payment → paid 선점 여부 (catch 에서 되돌림 판단)
   try {
     const { id } = req.params;
     const { paymentKey, orderId, amount } = req.body;
@@ -1059,6 +1081,7 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
       res.status(400).json({ error: '이미 처리 중이거나 완료된 결제입니다.' });
       return;
     }
+    casClaimed = true;
     const secret = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
     if (!process.env.TOSS_SECRET_KEY && process.env.NODE_ENV === 'production') {
       console.warn('[toss] TOSS_SECRET_KEY 미설정 — 문서용 테스트 키로 승인 (실청구 없음). 운영 전 env 설정 필요.');
@@ -1093,10 +1116,21 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
       }),
       // booking.status 는 위 CAS 선점에서 이미 'paid'
     ]);
-    await notifyAdmins('system', '광고 카드 결제 완료', `"${booking.title || '(이미지 광고)'}" ${booking.totalPrice.toLocaleString()}원 카드 결제가 완료되었습니다. 검수 후 게재 승인해주세요.`, '/admin');
+    // 알림 실패가 결제 성공 응답을 막지 않게 fire-and-forget
+    notifyAdmins('system', '광고 카드 결제 완료', `"${booking.title || '(이미지 광고)'}" ${booking.totalPrice.toLocaleString()}원 카드 결제가 완료되었습니다. 검수 후 게재 승인해주세요.`, '/admin').catch(() => {});
     res.json({ ok: true });
   } catch (e) {
     console.error('Toss confirm error:', e);
+    // CAS 선점 후 예외(토스 API 네트워크 오류 등) 시 상태를 되돌려 재시도 가능하게.
+    // 결제가 실제 확정된 뒤(payment=paid)라면 되돌리지 않음 — 활성 결제 유지.
+    if (casClaimed) {
+      try {
+        const pay = await prisma.adPayment.findUnique({ where: { bookingId: req.params.id } });
+        if (pay?.status !== 'paid') {
+          await prisma.adBooking.updateMany({ where: { id: req.params.id, status: 'paid' }, data: { status: 'pending_payment' } });
+        }
+      } catch { /* 되돌림 실패 시 어드민 수동 처리 (로그로 추적) */ }
+    }
     res.status(500).json({ error: '결제 승인 처리 중 오류가 발생했습니다.' });
   }
 };

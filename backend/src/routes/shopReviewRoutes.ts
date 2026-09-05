@@ -34,6 +34,12 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'shopType 과 shopId 가 필요합니다.' });
       return;
     }
+    // 미승인 매장 리뷰는 비노출 — 작성 게이트(approved)와 일관 (매장소식 조회 정책과 동일)
+    const shopGate = await getShopOwner(shopType, shopId);
+    if (!shopGate.exists || !shopGate.approved) {
+      res.json({ reviews: [], averageRating: 0, totalCount: 0 });
+      return;
+    }
     const [reviews, agg] = await Promise.all([
       prisma.shopReview.findMany({
         where: { shopType, shopId },

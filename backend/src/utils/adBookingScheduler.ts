@@ -127,9 +127,11 @@ export async function revokePremiumFromBooking(booking: { slotType: string; url:
   }
 }
 
-// 광고 예약 → 배너 생성
+// 광고 예약 → 배너 생성 (멱등 — 같은 예약의 배너가 이미 있으면 스킵, 중복 노출 방지)
 export async function createBannerFromBooking(booking: { id: string; title: string; description: string; url: string; image: string | null; textColor?: string | null; textAlign?: string | null; imagePos?: string | null }) {
   try {
+    const exists = await prisma.banner.findFirst({ where: { tag: `ad:${booking.id}` }, select: { id: true } });
+    if (exists) return;
     const maxOrder = await prisma.banner.aggregate({ _max: { order: true } });
     await prisma.banner.create({
       data: {

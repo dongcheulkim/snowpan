@@ -6,6 +6,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { sanitizeText } from '../utils/sanitize';
+import { isAllowedImageUrl } from '../utils/validate';
 
 const router = Router();
 
@@ -214,10 +215,14 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       }
     }
 
-    // images 검증 — 콤마 구분 URL, 최대 5장.
+    // images 검증 — 콤마 구분 URL, 최대 5장, 허용 호스트만 (외부 추적픽셀·오프사이트 URL 차단)
     let imagesClean: string | null = null;
     if (typeof images === 'string' && images.trim()) {
       const list = images.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
+      if (list.some((u) => !isAllowedImageUrl(u))) {
+        res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
+        return;
+      }
       imagesClean = list.length ? list.join(',') : null;
     }
 
@@ -289,6 +294,10 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (images !== undefined) {
       if (typeof images === 'string' && images.trim()) {
         const list = images.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5);
+        if (list.some((u) => !isAllowedImageUrl(u))) {
+          res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
+          return;
+        }
         data.images = list.length ? list.join(',') : null;
       } else {
         data.images = null;

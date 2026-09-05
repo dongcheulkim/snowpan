@@ -536,12 +536,15 @@ export const sendPhoneVerification = async (
 
 export const verifyPhone = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { phone, code } = req.body;
+    const { phone: rawPhone, code } = req.body;
 
-    if (typeof phone !== 'string' || typeof code !== 'string') {
+    if (typeof rawPhone !== 'string' || typeof code !== 'string') {
       res.status(400).json({ error: '입력 형식이 올바르지 않습니다.' });
       return;
     }
+    // send 와 동일하게 숫자만 — 하이픈 포함 번호("010-1234-5678")로 verify 하면
+    // send 가 저장한 레코드와 영원히 불일치하던 비대칭 해소
+    const phone = rawPhone.replace(/[^0-9]/g, '');
 
     // phone 별 실패 카운터 — 6자리 코드 무한 시도(brute force) 차단.
     const now = Date.now();
@@ -640,7 +643,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           email: anonEmail,
           phone: anonPhone,
           name: '탈퇴한 회원',
-          nickname: null,
+          // 닉네임도 '탈퇴한 회원'으로 — null 이면 공개 마스킹(maskRowUser)이
+          // '스노우판 회원' 폴백을 써서 탈퇴 여부가 안 보임
+          nickname: '탈퇴한 회원',
           profileImage: null,
           fcmToken: null,
           activeBadge: null,
@@ -652,9 +657,10 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           providerId: null,
         },
       });
-      // 판매중 매물은 자동으로 거두기 (예약/판매완료 매물은 거래 기록 유지)
+      // 판매중·예약중 매물은 자동으로 거두기 — reserved 를 남기면 연락 불가 판매자의
+      // 매물이 활성 목록에 영구 잔류 (판매완료 매물은 거래 기록 유지)
       await tx.product.updateMany({
-        where: { userId, status: 'selling' },
+        where: { userId, status: { in: ['selling', 'reserved'] } },
         data: { status: 'sold' },
       });
     });

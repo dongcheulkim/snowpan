@@ -392,12 +392,34 @@ export const createNewProduct = async (req: AuthRequest, res: Response): Promise
       res.status(400).json({ error: priceResult.error });
       return;
     }
+    // 중고 등록과 동일 방어층 — sanitize·이미지 화이트리스트·NaN 가드 (기존엔 이 경로만 원본 저장)
+    const cleanName = sanitizeText(name, 100);
+    if (!cleanName) { res.status(400).json({ error: '상품명을 입력해주세요.' }); return; }
+    if (image && !isAllowedImageUrl(String(image))) {
+      res.status(400).json({ error: '허용되지 않은 이미지입니다.' });
+      return;
+    }
+    const ratingNum = rating !== undefined && rating !== null && rating !== '' ? parseFloat(String(rating)) : undefined;
+    if (ratingNum !== undefined && (isNaN(ratingNum) || ratingNum < 0 || ratingNum > 5)) {
+      res.status(400).json({ error: '평점은 0~5 사이 숫자여야 합니다.' });
+      return;
+    }
+    const reviewCountNum = reviewCount !== undefined && reviewCount !== null && reviewCount !== '' ? parseInt(String(reviewCount), 10) : undefined;
+    if (reviewCountNum !== undefined && (isNaN(reviewCountNum) || reviewCountNum < 0)) {
+      res.status(400).json({ error: '리뷰 수는 0 이상 정수여야 합니다.' });
+      return;
+    }
 
     const product = await prisma.product.create({
       data: {
-        name, brand, price: priceResult.value, image, category: 'new', description,
-        rating: rating ? parseFloat(rating) : undefined,
-        reviewCount: reviewCount ? parseInt(reviewCount) : undefined,
+        name: cleanName,
+        brand: sanitizeText(brand, 50) || '',
+        price: priceResult.value,
+        image,
+        category: 'new',
+        description: sanitizeText(description, 2000) || null,
+        rating: ratingNum,
+        reviewCount: reviewCountNum,
       },
     });
 

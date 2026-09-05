@@ -84,7 +84,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       id: c.id,
       content: c.content,
       createdAt: c.createdAt,
-      user: { id: c.user.id, name: c.user.nickname || c.user.name, badges: c.user.activeBadge ? [c.user.activeBadge] : [], profileImage: c.user.profileImage },
+      user: { id: c.user.id, name: c.user.nickname || '스노우판 회원', badges: c.user.activeBadge ? [c.user.activeBadge] : [], profileImage: c.user.profileImage },
     }));
     res.json({ ...shapePoll(poll), myVote, myLike, comments });
   } catch (err) {
@@ -176,10 +176,14 @@ router.post('/:id/like', authenticateToken, pollActionLimiter, async (req: AuthR
     // 기존 create/P2002→delete 방식은 동시 더블탭 시 이미 삭제된 행 delete(P2025)로 500 나던 것 수정.
     const existing = await prisma.pollLike.findUnique({ where: { pollId_userId: { pollId, userId } }, select: { id: true } });
     if (existing) {
-      const [, updated] = await prisma.$transaction([
-        prisma.pollLike.deleteMany({ where: { pollId, userId } }),
-        prisma.poll.update({ where: { id: pollId }, data: { likes: { decrement: 1 } }, select: { likes: true } }),
-      ]);
+      // 동시 언라이크 더블탭: 실제 삭제된 경우에만 감소 — 무조건 감소 시 카운터 음수 드리프트
+      const updated = await prisma.$transaction(async (tx) => {
+        const del = await tx.pollLike.deleteMany({ where: { pollId, userId } });
+        if (del.count > 0) {
+          return tx.poll.update({ where: { id: pollId }, data: { likes: { decrement: 1 } }, select: { likes: true } });
+        }
+        return tx.poll.findUniqueOrThrow({ where: { id: pollId }, select: { likes: true } });
+      });
       res.json({ likes: Math.max(0, updated.likes), liked: false });
     } else {
       try {
@@ -229,7 +233,7 @@ router.post('/:id/comments', authenticateToken, commentCreateLimiter, async (req
       id: comment.id,
       content: comment.content,
       createdAt: comment.createdAt,
-      user: { id: comment.user.id, name: comment.user.nickname || comment.user.name, badges: comment.user.activeBadge ? [comment.user.activeBadge] : [], profileImage: comment.user.profileImage },
+      user: { id: comment.user.id, name: comment.user.nickname || '스노우판 회원', badges: comment.user.activeBadge ? [comment.user.activeBadge] : [], profileImage: comment.user.profileImage },
     });
   } catch (err) {
     console.error('Create poll comment error:', err);
@@ -277,7 +281,7 @@ function shapePoll(poll: PollWithCounts) {
   return {
     id: poll.id,
     title: poll.title,
-    author: poll.user.nickname || poll.user.name,
+    author: poll.user.nickname || '스노우판 회원',
     authorId: poll.user.id,
     likes: poll.likes,
     views: poll.views,

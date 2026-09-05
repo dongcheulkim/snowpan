@@ -109,7 +109,8 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
 // 딜 클릭 추적 — 중개 성과. 링크는 프론트가 이미 가지고 있으니 카운트만.
 router.post('/deals/:id/click', async (req: Request, res: Response): Promise<void> => {
   try {
-    await prisma.overseasDeal.update({ where: { id: req.params.id }, data: { clickCount: { increment: 1 } } });
+    // active 딜만 카운트 — 이 수치는 여행사에 성과 지표로 노출되므로 비활성 딜 id 로 부풀리기 방지
+    await prisma.overseasDeal.updateMany({ where: { id: req.params.id, active: true }, data: { clickCount: { increment: 1 } } });
     res.json({ ok: true });
   } catch {
     res.json({ ok: false }); // 실패해도 UX 막지 않음

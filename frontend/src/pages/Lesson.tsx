@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
@@ -52,7 +52,9 @@ const Lesson = () => {
   // 필터 변경 시 페이지 리셋
   useEffect(() => { setPage(1); }, [selectedResort, selectedRegion, selectedSpec, sport]);
 
+  const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
+    const seq = ++reqSeqRef.current;
     const fetchLessons = async () => {
       setLoading(true);
       try {
@@ -66,14 +68,16 @@ const Lesson = () => {
         }
         if (selectedSpec !== 'all') params.set('specialty', selectedSpec);
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
+        if (seq !== reqSeqRef.current) return; // 늦게 도착한 이전 요청 무시
         setLessonItems(data.items);
         setTotalCount(data.totalCount);
       } catch (err) {
+        if (seq !== reqSeqRef.current) return;
         setLessonItems([]);
         setTotalCount(0);
         toastError(err instanceof Error ? err.message : '레슨 목록을 불러오지 못했습니다');
       } finally {
-        setLoading(false);
+        if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchLessons();
@@ -201,11 +205,11 @@ const Lesson = () => {
               <circle cx="12" cy="7" r="3"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/>
             </svg>
           </div>
-          {(selectedSpec !== 'all' || selectedResort !== 'all') ? (
+          {(selectedSpec !== 'all' || selectedResort !== 'all' || selectedRegion !== 'all') ? (
             <>
               <h3 className="text-base font-bold text-gray-900 mb-1.5">조건에 맞는 {sport} {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
               <p className="text-xs text-gray-500 mb-5 leading-relaxed">다른 분야·스키장을 선택하거나 필터를 해제해보세요.</p>
-              <button onClick={() => { setSelectedSpec('all'); setSelectedResort('all'); }} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
+              <button onClick={() => { setSelectedSpec('all'); setSelectedResort('all'); setSelectedRegion('all'); }} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
                 필터 해제
               </button>
             </>

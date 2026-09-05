@@ -106,11 +106,16 @@ const Home = () => {
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
-  if (usedFeedCache && Date.now() - usedFeedCachedAt > USED_FEED_TTL) {
-    usedFeedCache = null;
-    usedFeedHasMoreCache = true;
-    homeScrollYCache = 0;
-  }
+  // TTL 무효화는 마운트 시 1회만 — 렌더마다 돌리면(배너 4초 인터벌로 상시 재렌더)
+  // 화면에 떠 있는 동안 캐시가 날아가 다음 페이지 로드 시 피드 앞부분이 통째로 잘림
+  useState(() => {
+    if (usedFeedCache && Date.now() - usedFeedCachedAt > USED_FEED_TTL) {
+      usedFeedCache = null;
+      usedFeedHasMoreCache = true;
+      homeScrollYCache = 0;
+    }
+    return null;
+  });
   const [usedItems, setUsedItems] = useState<HomeUsedItem[]>(usedFeedCache || []);
   const [usedHasMore, setUsedHasMore] = useState(usedFeedHasMoreCache);
   const [usedLoaded, setUsedLoaded] = useState(!!usedFeedCache);

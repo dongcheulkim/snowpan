@@ -28,8 +28,9 @@ setInterval(() => {
   }
 }, 5 * 60_000);
 
+// 공개 표면 표시명 — 닉네임 없으면 실명 대신 익명 라벨 (실명 폴백 유출 차단)
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
-  user.nickname || user.name;
+  user.nickname || '스노우판 회원';
 
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {

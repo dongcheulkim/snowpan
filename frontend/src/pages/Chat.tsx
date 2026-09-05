@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -37,6 +37,7 @@ const DateSeparator = ({ label }: { label: string }) => (
 const Chat = () => {
   const { chatId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state as {
     seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean; initialMessage?: string;
   } | null;
@@ -217,7 +218,7 @@ const Chat = () => {
       }).then(room => safeConnect(room.id)).catch((e) => {
         if (!cancelled) toastError(e instanceof Error ? e.message : '채팅방 연결에 실패했습니다.');
       });
-    } else if (chatId) {
+    } else if (chatId && chatId !== 'new') {
       // 채팅 목록에서 진입 -> roomId로 바로 연결 + 상대방 정보 조회
       safeConnect(chatId);
       api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
@@ -225,6 +226,9 @@ const Chat = () => {
         const other = room.user1.id === user.id ? room.user2 : room.user1;
         setOtherName(other.name);
       }).catch(() => {});
+    } else {
+      // /chat/new 를 라우터 state 없이 직접 열면 연결할 방이 없음 — 가짜 방('new') 접속 대신 목록으로
+      navigate('/chat', { replace: true });
     }
 
     return () => {

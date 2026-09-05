@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
@@ -48,7 +48,9 @@ const Rental = () => {
   // 필터 변경 시 페이지 리셋
   useEffect(() => { setPage(1); }, [selectedResort, selectedRegion]);
 
+  const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
+    const seq = ++reqSeqRef.current;
     const fetchRentals = async () => {
       setLoading(true);
       try {
@@ -60,14 +62,16 @@ const Rental = () => {
           if (ids.length) params.set('resortId', ids.join(','));
         }
         const data = await api<{ items: RentalItem[]; totalCount: number }>(`/rentals?${params}`);
+        if (seq !== reqSeqRef.current) return; // 늦게 도착한 이전 요청 무시
         setRentalItems(data.items);
         setTotalCount(data.totalCount);
       } catch (err) {
+        if (seq !== reqSeqRef.current) return;
         setRentalItems([]);
         setTotalCount(0);
         toastError(err instanceof Error ? err.message : '렌탈샵 목록을 불러오지 못했습니다');
       } finally {
-        setLoading(false);
+        if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchRentals();

@@ -128,6 +128,11 @@ router.post('/rooms', async (req: any, res: Response) => {
       res.status(410).json({ error: '탈퇴한 사용자입니다.' });
       return;
     }
+    if (target.role === 'banned') {
+      // 정지 계정은 답할 수 없음 — 응답 불가능한 채팅방 생성 방지
+      res.status(410).json({ error: '이용이 정지된 사용자입니다.' });
+      return;
+    }
 
     const [u1, u2] = [userId, targetUserId].sort();
 

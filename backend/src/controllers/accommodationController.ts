@@ -5,6 +5,7 @@ import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins } from './notificationController';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { sanitizeImages } from '../utils/images';
+import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 
@@ -125,14 +126,16 @@ export const createAccommodation = async (req: AuthRequest, res: Response): Prom
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
+    const cleanName = sanitizeText(name, 100);
+    if (!cleanName) { res.status(400).json({ error: '숙소명을 입력해주세요.' }); return; }
     const accommodation = await prisma.accommodation.create({
       data: {
-        name,
+        name: cleanName,
         type: cleanType,
         price: priceResult.value,
         originalPrice: originalParsed,
         guests: String(guests),
-        features: features || '',
+        features: sanitizeText(features, 500) || '',
         image,
         images: sanitizeImages(images),
         businessLicense: businessLicense || null,
@@ -192,8 +195,8 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     const updated = await prisma.accommodation.update({
       where: { id },
       data: {
-        ...(name && { name }), ...(type && { type: cleanAccomType(type) }), ...(priceUpdate !== undefined && { price: priceUpdate }),
-        ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests: String(guests) }), ...(features && { features }),
+        ...(name && { name: sanitizeText(name, 100) || undefined }), ...(type && { type: cleanAccomType(type) }), ...(priceUpdate !== undefined && { price: priceUpdate }),
+        ...(originalUpdate !== undefined && { originalPrice: originalUpdate }), ...(guests && { guests: String(guests) }), ...(features && { features: sanitizeText(features, 500) || '' }),
         ...(resortId && { resortId }), ...(image && { image }), ...(images !== undefined && { images: sanitizeImages(images) }),
         ...(ownerEdit && { approved: false }),
       },

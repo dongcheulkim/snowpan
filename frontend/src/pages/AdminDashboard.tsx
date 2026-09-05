@@ -146,6 +146,7 @@ const AdminDashboard = () => {
           api<AdPricingItem[]>('/ad-booking/admin/pricings'),
         ]);
         if (bookings.status === 'fulfilled') setAdBookings(bookings.value);
+        else toastError('광고 예약 목록을 불러오지 못했습니다.'); // 조용한 실패 시 "예약 없음"으로 오인 방지
         if (revenue.status === 'fulfilled') setAdRevenue(revenue.value);
         if (bannerList.status === 'fulfilled') setBanners(bannerList.value);
         if (pricings.status === 'fulfilled') setAdPricings(pricings.value);
@@ -273,7 +274,8 @@ const AdminDashboard = () => {
     if (!confirm('이 광고 예약을 취소하고 환불하시겠습니까?')) return;
     try {
       await api(`/ad-booking/admin/bookings/${id}/cancel`, { method: 'POST', body: { reason: '관리자 취소' } });
-      setAdBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'refunded' } : b)));
+      // 서버가 결정한 최종 상태(실결제=refunded/무결제=cancelled)와 매출·배너 목록까지 갱신
+      fetchData();
     } catch (err) {
       toastError(err instanceof Error ? err.message : '취소 실패');
     }
@@ -723,7 +725,7 @@ const AdminDashboard = () => {
                               </p>
                               <p className="text-[10px] text-gray-400 truncate">{b.user.name} · {b.user.phone}</p>
                               <p className="text-[10px] text-gray-400 truncate">{b.user.email}</p>
-                              {b.payment && (
+                              {b.payment && b.payment.status === 'paid' && (
                                 <p className="text-[9px] text-gray-400 mt-0.5">결제 {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}</p>
                               )}
                               {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
@@ -739,6 +741,14 @@ const AdminDashboard = () => {
                                         className="flex-1 py-1.5 bg-sky-100 text-sky-700 rounded-lg font-bold text-[11px] hover:bg-sky-200 transition-colors"
                                       >무료</button>
                                     </>
+                                  )}
+                                  {b.status === 'paid' && (
+                                    // 카드 결제 완료(검수 대기) 또는 미래 시작 승인 건 — 게재 승인/시작일 변경.
+                                    // 이 버튼이 없으면 카드 결제 광고는 영영 활성화 못 함
+                                    <button
+                                      onClick={() => handleAdBookingApprove(b.id)}
+                                      className="flex-1 py-1.5 bg-emerald-500 text-white rounded-lg font-bold text-[11px] hover:bg-emerald-600 transition-colors"
+                                    >게재 승인</button>
                                   )}
                                   <button
                                     onClick={() => handleAdBookingCancel(b.id)}

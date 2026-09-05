@@ -85,7 +85,8 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
     });
 
     const title = '새 리뷰';
-    const body = `${review.buyer.nickname || review.buyer.name}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
+    // 알림 본문도 익명 라벨 — 리뷰 응답은 익명인데 알림으로 실명이 새면 리뷰어 특정 가능
+    const body = `${review.buyer.nickname || '스노우판 회원'}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
     const link = `/seller/${sellerId}`;
     await createNotification(sellerId, 'system', title, body, link);
     sendPushToUser(sellerId, title, body, link);

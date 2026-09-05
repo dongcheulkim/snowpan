@@ -1,13 +1,13 @@
 // 리퍼럴 시스템 — 본인 추천 코드 + 추천 통계.
 // 코드는 lazy 생성 (첫 조회 시 발급). 가입 시 ?ref=CODE 받으면 referredById 저장.
 
+import prisma from '../config/database';
 import { Router, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import crypto from 'crypto';
 
 const router = Router();
-const prisma = new PrismaClient();
+
 
 // 6글자 영숫자 (대문자) — base32 변형, 혼동 글자 (0/O, 1/I/L) 제외.
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -60,7 +60,8 @@ router.get('/lookup/:code', async (req, res) => {
       res.status(404).json({ error: '존재하지 않는 추천 코드입니다.' });
       return;
     }
-    const displayName = user.nickname || user.name; // 닉네임 우선 (전체 통일)
+    // 공개(비인증) 응답 — 닉네임 없으면 실명 대신 익명 라벨 (실명 폴백 유출 차단)
+    const displayName = user.nickname || '스노우판 회원';
     res.json({ referrerId: user.id, referrerName: displayName });
   } catch (error) {
     console.error('Referral lookup error:', error);

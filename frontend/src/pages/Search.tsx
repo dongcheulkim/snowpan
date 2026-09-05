@@ -97,7 +97,7 @@ export default function Search() {
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><SecondHandIcon size={16} /> 중고장비</h2>
-            <Link to={`${vbase}/used?search=${encodeURIComponent(debounced)}`} className="text-xs text-sky-600">더보기</Link>
+            <Link to={`${vbase}/used?q=${encodeURIComponent(debounced)}`} className="text-xs text-sky-600">더보기</Link>
           </div>
           <div className="space-y-2">
             {results.products.map(p => (

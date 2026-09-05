@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
@@ -61,7 +61,9 @@ const Accommodation = () => {
   useEffect(() => { setPage(1); }, [selectedRegion, selectedResort, selectedType]);
   useEffect(() => { setSelectedResort('all'); }, [selectedRegion]);
 
+  const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
+    const seq = ++reqSeqRef.current;
     const fetchAccommodations = async () => {
       setLoading(true);
       try {
@@ -74,14 +76,16 @@ const Accommodation = () => {
         }
         if (selectedType !== 'all') params.set('type', selectedType);
         const data = await api<{ items: AccommodationItem[]; totalCount: number }>(`/accommodations?${params}`);
+        if (seq !== reqSeqRef.current) return; // 늦게 도착한 이전 요청 무시
         setAccommodations(data.items);
         setTotalCount(data.totalCount);
       } catch (err) {
+        if (seq !== reqSeqRef.current) return;
         setAccommodations([]);
         setTotalCount(0);
         toastError(err instanceof Error ? err.message : '숙소 목록을 불러오지 못했습니다');
       } finally {
-        setLoading(false);
+        if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchAccommodations();
