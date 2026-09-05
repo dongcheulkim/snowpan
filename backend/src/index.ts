@@ -478,7 +478,8 @@ io.on('connection', (socket) => {
         return;
       }
       if (room.status === 'declined') {
-        socket.emit('room_error', { roomId: data.roomId, error: '대화할 수 없는 채팅방입니다.' });
+        // 거절 비노출 — pending 과 동일 문구 (차등 에러 메시지로 거절이 확인되던 것 차단)
+        socket.emit('room_error', { roomId: data.roomId, error: '상대가 채팅 요청을 수락하면 대화할 수 있어요.' });
         return;
       }
 

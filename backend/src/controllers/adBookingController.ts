@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking, parsePremiumTarget } from '../utils/adBookingScheduler';
-import { shouldCountClick } from '../utils/clickDedup';
+import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
 import { notifyAdmins, createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -325,6 +325,17 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         res.status(403).json({ error: '본인이 등록한 상품/샵/글만 프리미엄으로 띄울 수 있습니다.' });
         return;
       }
+      // URL 대상 종류와 선택 카테고리 일치 강제 — 불일치 시 카테고리별 동시수/가격
+      // 회계가 오염됨 (예: category=used 로 결제하고 렌탈을 프리미엄 거는 조합)
+      const KIND_TO_CATEGORY: Record<string, string> = {
+        'used': 'used', 'skishop': 'skishop', 'repair': 'repair', 'rental': 'rental',
+        'lesson': 'lesson', 'accommodation': 'accommodation',
+        'community/post': 'community', 'overseas/agency': 'overseas',
+      };
+      if (KIND_TO_CATEGORY[target.kind] !== (category || 'none')) {
+        res.status(400).json({ error: '선택한 카테고리와 등록물 종류가 일치하지 않습니다.' });
+        return;
+      }
     }
 
     // 오래된 pending_payment 정리 — 무통장 입금·관리자 확인 시간을 고려해 72시간
@@ -622,9 +633,12 @@ export const trackAdClick = async (req: Request, res: Response): Promise<void> =
     const { id } = req.params;
     if (!id) { res.status(400).json({ error: 'id 필요' }); return; }
     // 같은 IP 의 같은 광고 반복 클릭은 10분 창에서 1회만 (새로고침 연타·봇 부풀리기 방지)
-    if (!shouldCountClick(req.ip, id)) { res.json({ ok: true }); return; }
+    if (isDuplicateClick(req.ip, id)) { res.json({ ok: true }); return; }
     // 노출 중인 광고만 카운트 — 취소/대기/환불 예약 id 로 통계 오염 방지. updateMany 로 없으면 무시.
-    await prisma.adBooking.updateMany({ where: { id, status: 'active' }, data: { clickCount: { increment: 1 } } });
+    const r = await prisma.adBooking.updateMany({ where: { id, status: 'active' }, data: { clickCount: { increment: 1 } } });
+    // 실제 카운트된 경우에만 dedup 키 기록 — 가짜 id 연타로 맵(5만 상한)을 채워
+    // 정상 키를 밀어내는 오염 차단
+    if (r.count > 0) recordClick(req.ip, id);
     res.json({ ok: true });
   } catch {
     res.json({ ok: true }); // 추적 실패가 사용자 이동을 막지 않도록 항상 200

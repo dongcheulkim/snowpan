@@ -119,7 +119,7 @@ export const validateAuthHeaderIfPresent = (req: Request, res: Response, next: N
 
 // 선택적 인증 — 토큰이 있고 유효하면 req.user 세팅, 없거나 무효면 익명으로 통과(거절 안 함).
 // 공개 상세 조회에서 "소유자/관리자면 미승인도 보이게" 같은 분기용.
-export const optionalAuth = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ') || !process.env.JWT_SECRET) { next(); return; }
   const token = auth.slice(7).trim();
@@ -128,10 +128,25 @@ export const optionalAuth = (req: AuthRequest, _res: Response, next: NextFunctio
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as { userId: string; email?: string; role?: string; type?: string; iat?: number };
+    }) as { userId: string; email?: string; role?: string; type?: string; iat?: number; tv?: number };
     // 비번 변경/로그아웃 등으로 무효화된 토큰이면 익명 취급 (인증 미들웨어와 동일 기준).
     if ((!decoded.type || decoded.type === 'access') && !isTokenIatStale(decoded.userId, decoded.iat)) {
-      req.user = { id: decoded.userId, email: decoded.email || '', role: decoded.role || 'user' };
+      let role = decoded.role || 'user';
+      // admin 클레임만 DB 재확인 — optionalAuth 는 성능상 DB 를 안 타지만, admin 은
+      // 미승인 매물 가시성 게이트라 강등/밴/토큰무효화가 즉시 반영돼야 함.
+      // (일반 유저 경로는 개인화뿐이라 기존대로 무쿼리 유지)
+      if (role === 'admin') {
+        try {
+          const u = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { role: true, tokenVersion: true, sessionInvalidBefore: true },
+          });
+          const tvOk = u && (decoded.tv ?? 0) === u.tokenVersion;
+          const iatOk = u && !isIatBeforeInvalidation(decoded.iat, u.sessionInvalidBefore);
+          role = u && u.role === 'admin' && tvOk && iatOk ? 'admin' : 'user';
+        } catch { role = 'user'; }
+      }
+      req.user = { id: decoded.userId, email: decoded.email || '', role };
     }
   } catch { /* 무효 토큰 → 익명으로 진행 */ }
   next();

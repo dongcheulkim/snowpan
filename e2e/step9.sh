@@ -97,6 +97,9 @@ RBK=$(echo "$RESP" | jq -r '.bookingId // .booking.id // .id // empty')
 # 타인 등록물 프리미엄 시도 차단 (buyer2=admin 토큰으로 seller 렌탈)
 api POST /ad-booking/create "{\"slotType\":\"premium\",\"category\":\"rental\",\"title\":\"x\",\"description\":\"t\",\"url\":\"/rental/$RID\",\"payMethod\":\"transfer\",\"periodMonths\":12}" "$ADMIN_TOKEN"
 [ "$CODE" = "403" ] && ok "타인 등록물 프리미엄 차단 (403)" || bad "타인 프리미엄 CODE=$CODE"
+# kind-category 불일치 차단 (category=used 인데 url 은 렌탈 → 회계 오염 방지)
+api POST /ad-booking/create "{\"slotType\":\"premium\",\"category\":\"used\",\"title\":\"x\",\"description\":\"t\",\"url\":\"/rental/$RID\",\"payMethod\":\"transfer\",\"periodMonths\":12}" "$SELLER_TOKEN"
+[ "$CODE" = "400" ] && ok "프리미엄 kind-category 불일치 차단 (400)" || bad "불일치 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
 api POST "/ad-booking/admin/bookings/$RBK/free" "{}" "$ADMIN_TOKEN"
 [ "$CODE" = "200" ] && ok "렌탈 프리미엄 무료 승인" || bad "렌탈 승인 CODE=$CODE RESP=$(echo $RESP|head -c 120)"
 RIP=$(pq "SELECT \"isPremium\" FROM rentals WHERE id='$RID';")

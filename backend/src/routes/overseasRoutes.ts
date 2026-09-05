@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';
-import { shouldCountClick } from '../utils/clickDedup';
+import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { isAgencyActive, agencyActiveWhere } from '../utils/agencyActive';
@@ -111,8 +111,9 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
 router.post('/deals/:id/click', async (req: Request, res: Response): Promise<void> => {
   try {
     // 같은 IP 반복 클릭 10분 1회 + active 딜만 — 여행사 성과 지표 부풀리기 방지
-    if (!shouldCountClick(req.ip, req.params.id)) { res.json({ ok: true }); return; }
-    await prisma.overseasDeal.updateMany({ where: { id: req.params.id, active: true }, data: { clickCount: { increment: 1 } } });
+    if (isDuplicateClick(req.ip, req.params.id)) { res.json({ ok: true }); return; }
+    const r = await prisma.overseasDeal.updateMany({ where: { id: req.params.id, active: true }, data: { clickCount: { increment: 1 } } });
+    if (r.count > 0) recordClick(req.ip, req.params.id);
     res.json({ ok: true });
   } catch {
     res.json({ ok: false }); // 실패해도 UX 막지 않음

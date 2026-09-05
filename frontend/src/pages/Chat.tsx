@@ -356,10 +356,16 @@ const Chat = () => {
           <Link to={backPath} aria-label="뒤로" className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </Link>
-          {/* 상대 아바타 — 프로필 사진 표시, 탭하면 프로필로 */}
-          <Link to={otherId ? `/seller/${otherId}` : '#'} className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
-            {otherProfileImage ? <img src={imageUrl(otherProfileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={18} />}
-          </Link>
+          {/* 상대 아바타 — 프로필 사진 표시, 탭하면 프로필로 (id 로드 전엔 링크 아님) */}
+          {otherId ? (
+            <Link to={`/seller/${otherId}`} className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
+              {otherProfileImage ? <img src={imageUrl(otherProfileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={18} />}
+            </Link>
+          ) : (
+            <span className="relative w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 overflow-hidden flex-shrink-0">
+              {otherProfileImage ? <img src={imageUrl(otherProfileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={18} />}
+            </span>
+          )}
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
             <div className="text-[10px] text-gray-500">{connected ? '연결됨' : '연결 중…'}</div>

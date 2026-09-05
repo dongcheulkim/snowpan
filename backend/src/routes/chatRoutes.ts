@@ -6,12 +6,34 @@ import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
+// 채팅 요청 남발 방지 — 유저당 1시간에 신규 요청 10건 (콜드 DM 스팸 캡).
+// 인메모리 (재시작 초기화 OK — 남발 억제가 목적이지 정확한 회계가 아님).
+const requestBuckets = new Map<string, { count: number; resetAt: number }>();
+const REQ_CAP = 10;
+const REQ_WINDOW_MS = 60 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of requestBuckets) if (now >= v.resetAt) requestBuckets.delete(k);
+}, 10 * 60 * 1000);
+function takeRequestToken(userId: string): boolean {
+  const now = Date.now();
+  let b = requestBuckets.get(userId);
+  if (!b || now >= b.resetAt) { b = { count: 0, resetAt: now + REQ_WINDOW_MS }; requestBuckets.set(userId, b); }
+  if (b.count >= REQ_CAP) return false;
+  b.count++;
+  return true;
+}
+
 // 내 채팅방 목록 (with unread count)
 router.get('/rooms', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
     const rooms = await prisma.chatRoom.findMany({
-      where: { OR: [{ user1Id: userId }, { user2Id: userId }], status: { not: 'declined' } },
+      where: {
+        OR: [{ user1Id: userId }, { user2Id: userId }],
+        // 거절 방은 거절한 쪽에서만 숨김 — 요청자에겐 계속 보여야 '목록에서 사라짐=거절' 신호가 안 샘
+        NOT: { status: 'declined', requestedBy: { not: userId } },
+      },
       include: {
         user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
         user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
@@ -46,6 +68,8 @@ router.get('/rooms', async (req: any, res: Response) => {
 
     const roomsWithUnread = rooms.map(room => ({
       ...room,
+      // 요청자에게 거절 사실 비노출 — declined 를 pending 으로 위장 (여기 도달한 declined 는 전부 요청자 본인 것)
+      status: room.status === 'declined' ? 'pending' : room.status,
       user1: { ...room.user1, name: displayName(room.user1) },
       user2: { ...room.user2, name: displayName(room.user2) },
       unreadCount: unreadCounts[room.id] || 0,
@@ -84,13 +108,9 @@ router.post('/rooms', async (req: any, res: Response) => {
       res.status(404).json({ error: '대상 사용자를 찾을 수 없습니다.' });
       return;
     }
-    if (target.role === 'deleted') {
-      res.status(410).json({ error: '탈퇴한 사용자입니다.' });
-      return;
-    }
-    if (target.role === 'banned') {
-      // 정지 계정은 답할 수 없음 — 응답 불가능한 채팅방 생성 방지
-      res.status(410).json({ error: '이용이 정지된 사용자입니다.' });
+    // 탈퇴/정지 구분 비노출 — 제재 상태 조회 오라클 차단 (둘 다 대화 불가)
+    if (target.role === 'deleted' || target.role === 'banned') {
+      res.status(410).json({ error: '대화할 수 없는 사용자입니다.' });
       return;
     }
 
@@ -108,10 +128,18 @@ router.post('/rooms', async (req: any, res: Response) => {
       create: { user1Id: u1, user2Id: u2 },
       update: {},
     });
-    // 요청 대기/거절 방 승격 — 상대방이 대화를 개시했거나(=동의) 매물 문의 맥락일 때만.
-    // 요청자 본인이 이 구 엔드포인트로 수락 게이트를 우회하는 것은 차단.
-    if (existing && existing.status !== 'accepted' && (existing.requestedBy !== userId || productName)) {
+    // 요청 대기/거절 방 승격 — 상대방(수신자)이 직접 대화를 개시한 경우만 (=동의).
+    // productName 은 클라이언트 임의 문자열이라 승격 근거가 될 수 없음 (검증 감사에서
+    // 요청자가 아무 문자열로 수락 게이트를 우회하던 CRITICAL 확인 → 조건에서 제거).
+    if (existing && existing.status !== 'accepted' && existing.requestedBy !== userId) {
       room = await prisma.chatRoom.update({ where: { id: room.id }, data: { status: 'accepted', requestedBy: null } });
+    }
+    // 성사 전(pending/declined) 방엔 어떤 메시지도 새로 만들지 않음 — 요청자가
+    // 매물문의 메시지로 수락 전 메시지를 밀어넣던 구멍 차단. 방 정보만 반환.
+    // (거절 비노출 — 요청자에겐 declined 도 pending 으로 위장)
+    if (room.status !== 'accepted') {
+      res.json({ ...room, status: room.status === 'declined' && room.requestedBy === userId ? 'pending' : room.status });
+      return;
     }
 
     // 관리자 채팅방 새로 생성 시 관리자 자동 인사 (위에서 이미 fetch 한 target 재사용).
@@ -174,8 +202,11 @@ router.post('/requests', async (req: any, res: Response) => {
     }
     const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true, role: true } });
     if (!target) { res.status(404).json({ error: '대상 사용자를 찾을 수 없습니다.' }); return; }
-    if (target.role === 'deleted') { res.status(410).json({ error: '탈퇴한 사용자입니다.' }); return; }
-    if (target.role === 'banned') { res.status(410).json({ error: '이용이 정지된 사용자입니다.' }); return; }
+    // 탈퇴/정지 를 구분 노출하지 않음 — 임의 userId 의 제재 상태를 조회하는 오라클 차단
+    if (target.role === 'deleted' || target.role === 'banned') {
+      res.status(410).json({ error: '대화할 수 없는 사용자입니다.' });
+      return;
+    }
 
     const [u1, u2] = [userId, targetUserId].sort();
     const existing = await prisma.chatRoom.findUnique({
@@ -195,18 +226,47 @@ router.post('/requests', async (req: any, res: Response) => {
         return;
       }
       // 상대가 먼저 보낸 요청이 있던 것 — 상호 관심 = 즉시 성사 + 내 메시지 추가
-      await prisma.$transaction([
+      const [, mutualMsg] = await prisma.$transaction([
         prisma.chatRoom.update({ where: { id: existing.id }, data: { status: 'accepted', requestedBy: null, updatedAt: new Date() } }),
-        prisma.message.create({ data: { roomId: existing.id, senderId: userId, content: firstMsg, type: 'text' } }),
+        prisma.message.create({
+          data: { roomId: existing.id, senderId: userId, content: firstMsg, type: 'text' },
+          include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
+        }),
       ]);
+      // 상호성사도 알림·소켓 전달 — 기존엔 조용히 성사돼 상대(원요청자)가 모르던 것
+      {
+        const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
+        const myName = me ? displayName(me) : '스노우판 회원';
+        createNotification(targetUserId, 'chat', '채팅 요청 수락', `${myName}님과의 채팅이 시작됐어요.`, `/chat/${existing.id}`).catch(() => {});
+        sendPushToUser(targetUserId, '채팅 시작', `${myName}님과의 채팅이 시작됐어요`, `/chat/${existing.id}`).catch(() => {});
+        const io2 = req.app.get('io');
+        if (io2) io2.to(`room:${existing.id}`).emit('new_message', { ...mutualMsg, sender: { ...mutualMsg.sender, name: mutualMsg.sender.nickname || mutualMsg.sender.name } });
+      }
       res.json({ id: existing.id, status: 'accepted' });
       return;
     }
 
-    const room = await prisma.chatRoom.create({
-      data: { user1Id: u1, user2Id: u2, status: 'pending', requestedBy: userId },
-    });
-    await prisma.message.create({ data: { roomId: room.id, senderId: userId, content: firstMsg, type: 'text' } });
+    // 유저당 신규 요청 캡 — 여기서 소모 (기존 방 경로는 캡 미소모)
+    if (!takeRequestToken(userId)) {
+      res.status(429).json({ error: '채팅 요청이 너무 많아요. 잠시 후 다시 시도해주세요.' });
+      return;
+    }
+
+    // 방+첫 메시지 원자 생성. 동시 더블탭 → 두 번째가 unique(P2002) → 409 로 처리 (500 아님)
+    let room;
+    try {
+      [room] = await prisma.$transaction(async (tx) => {
+        const r = await tx.chatRoom.create({ data: { user1Id: u1, user2Id: u2, status: 'pending', requestedBy: userId } });
+        await tx.message.create({ data: { roomId: r.id, senderId: userId, content: firstMsg, type: 'text' } });
+        return [r];
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2002') {
+        res.status(409).json({ error: '이미 채팅 요청을 보냈어요. 상대가 수락하면 대화할 수 있어요.' });
+        return;
+      }
+      throw e;
+    }
 
     // 상대에게 알림 + 푸시 (닉네임 표시)
     const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
@@ -236,7 +296,9 @@ router.post('/rooms/:roomId/accept', async (req: any, res: Response) => {
     if (room.status !== 'pending') { res.status(400).json({ error: '수락 대기 중인 요청이 아닙니다.' }); return; }
     if (room.requestedBy === userId) { res.status(403).json({ error: '요청을 보낸 쪽은 수락할 수 없습니다.' }); return; }
     const requesterId = room.requestedBy!;
-    await prisma.chatRoom.update({ where: { id: roomId }, data: { status: 'accepted', requestedBy: null, updatedAt: new Date() } });
+    // 원자적 CAS — 수락/거절 동시 탭이 상태를 뒤섞던 레이스 차단 (pending 인 경우에만 전이)
+    const claimed = await prisma.chatRoom.updateMany({ where: { id: roomId, status: 'pending' }, data: { status: 'accepted', requestedBy: null, updatedAt: new Date() } });
+    if (claimed.count === 0) { res.status(409).json({ error: '이미 처리된 요청입니다.' }); return; }
     // 요청자에게 수락 알림
     const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
     const myName = me ? displayName(me) : '스노우판 회원';
@@ -261,7 +323,8 @@ router.post('/rooms/:roomId/decline', async (req: any, res: Response) => {
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
     if (room.status !== 'pending') { res.status(400).json({ error: '수락 대기 중인 요청이 아닙니다.' }); return; }
     if (room.requestedBy === userId) { res.status(403).json({ error: '요청을 보낸 쪽은 거절할 수 없습니다.' }); return; }
-    await prisma.chatRoom.update({ where: { id: roomId }, data: { status: 'declined' } });
+    const claimed = await prisma.chatRoom.updateMany({ where: { id: roomId, status: 'pending' }, data: { status: 'declined' } });
+    if (claimed.count === 0) { res.status(409).json({ error: '이미 처리된 요청입니다.' }); return; }
     res.json({ id: roomId, status: 'declined' });
   } catch (error) {
     console.error('Chat request decline error:', error);
@@ -280,6 +343,12 @@ router.delete('/rooms/:roomId', async (req: any, res: Response) => {
     });
     if (!room) {
       res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' });
+      return;
+    }
+    // 성사 전(pending/declined) 방은 요청자가 삭제 불가 — 삭제 후 재요청으로
+    // 거절당한 상대에게 알림 스팸을 반복하는 루프 차단 (수신자 삭제는 허용)
+    if (room.status !== 'accepted' && room.requestedBy === userId) {
+      res.status(403).json({ error: '수락 대기 중인 채팅 요청은 삭제할 수 없습니다.' });
       return;
     }
     // Message.roomId 에 onDelete:Cascade 가 없어서 수동 삭제. 트랜잭션으로 묶어 원자성 보장.
@@ -307,7 +376,9 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
       },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
-    res.json({ ...room, user1: { ...room.user1, name: displayName(room.user1) }, user2: { ...room.user2, name: displayName(room.user2) } });
+    // 거절 비노출 — 요청자가 단건 조회해도 pending 으로 보임
+    const shownStatus = room.status === 'declined' && room.requestedBy === userId ? 'pending' : room.status;
+    res.json({ ...room, status: shownStatus, user1: { ...room.user1, name: displayName(room.user1) }, user2: { ...room.user2, name: displayName(room.user2) } });
   } catch (error) {
     console.error('Get chat room error:', error);
     res.status(500).json({ error: '채팅방 조회 실패' });
@@ -354,7 +425,9 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user2LastReadAt: now } });
     }
     const io = req.app.get('io');
-    if (io) io.to(`room:${roomId}`).emit('room_read', { roomId, userId, readAt: now.toISOString() });
+    // 성사 전(pending/declined) 방은 read receipt 미방출 — 수신자가 요청을 '봤다'는
+    // 사실이 요청자에게 새는 것 차단 (lastReadAt 자체는 갱신해 뱃지 정리는 정상)
+    if (io && room.status === 'accepted') io.to(`room:${roomId}`).emit('room_read', { roomId, userId, readAt: now.toISOString() });
     res.json({ message: '읽음 처리 완료' });
   } catch (error) {
     console.error('Mark as read error:', error);

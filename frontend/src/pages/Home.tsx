@@ -170,7 +170,8 @@ const Home = () => {
   useEffect(() => {
     if (!isSnow) return;
     Promise.all([
-      api<PopularPost[]>('/community/popular?sport=ski').catch(() => [] as PopularPost[]),
+      // sport 미지정 = 스키·보드·공용 통합 랭킹 (이전 커밋에서 수정 누락됐던 것 — 보드 글 배제 해소)
+      api<PopularPost[]>('/community/popular').catch(() => [] as PopularPost[]),
       api<{ items: HotPoll[] }>('/polls?limit=10').then((d) => d.items || []).catch(() => [] as HotPoll[]),
     ]).then(([posts, polls]) => {
       const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;

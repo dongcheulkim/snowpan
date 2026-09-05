@@ -86,9 +86,26 @@ HID=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$ROOM2\")] | length")
 GATE=$(node "$E2E_DIR/chatgate.js" "$C_TOKEN" "$ROOM2")
 case "$GATE" in RESULT:BLOCKED*) ok "거절된 방 전송 차단" ;; *) bad "거절 방 전송: $GATE";; esac
 
-# ── 매물 문의 승격: A 가 C 에게 매물 문의(POST /rooms + productName) → declined 방이 accepted 로
+# ── [게이트 강화] 요청자(C)가 productName 으로 승격 우회 시도 → 차단 + 응답은 pending 위장
+api POST /chat/rooms "{\"targetUserId\":\"$A_ID\",\"productName\":\"우회시도\",\"productPath\":\"/used/x\"}" "$C_TOKEN"
+RSTAT=$(echo "$RESP" | jq -r '.status')
+DBST=$(pq "SELECT status FROM chat_rooms WHERE id='$ROOM2'")
+[ "$DBST" = "declined" ] && [ "$RSTAT" = "pending" ] && ok "요청자 productName 우회 차단 (DB=declined, 응답 pending 위장)" || bad "우회 차단 실패 DB=$DBST 응답=$RSTAT"
+MC2=$(pq "SELECT count(*) FROM messages WHERE \"roomId\"='$ROOM2' AND type='product_inquiry'")
+[ "$MC2" = "0" ] && ok "우회 시도 시 매물문의 메시지 미생성" || bad "우회 메시지 생성됨 ($MC2)"
+
+# 요청자는 성사 전 방 삭제 불가 (삭제→재요청 스팸 루프 차단)
+api DELETE "/chat/rooms/$ROOM2" "" "$C_TOKEN"
+[ "$CODE" = "403" ] && ok "요청자 성사전 방 삭제 차단 (403)" || bad "삭제 차단 CODE=$CODE"
+
+# 요청자 목록엔 거절 방이 pending 으로 위장 노출 (사라짐=거절 신호 차단)
+api GET /chat/rooms "" "$C_TOKEN"
+LSTAT=$(echo "$RESP" | jq -r ".[] | select(.id==\"$ROOM2\") | .status")
+[ "$LSTAT" = "pending" ] && ok "요청자 목록에 거절 방 pending 위장" || bad "요청자 목록 status=$LSTAT"
+
+# ── 매물 문의 승격: A(수신자였던 쪽)가 C 에게 매물 문의 → declined 방이 accepted 로 (동의)
 api POST /chat/rooms "{\"targetUserId\":\"$C_ID\",\"productName\":\"E2E 매물\",\"productPath\":\"/used/x\"}" "$A_TOKEN"
 UST=$(pq "SELECT status FROM chat_rooms WHERE id='$ROOM2'")
-[ "$CODE" = "200" ] && [ "$UST" = "accepted" ] && ok "매물 문의로 방 승격 (accepted)" || bad "승격 CODE=$CODE status=$UST"
+[ "$CODE" = "200" ] && [ "$UST" = "accepted" ] && ok "수신자 매물 문의로 방 승격 (accepted)" || bad "승격 CODE=$CODE status=$UST"
 
 echo "----- STEP11: PASS=$PASS FAIL=$FAIL -----"

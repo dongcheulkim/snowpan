@@ -11,17 +11,18 @@ setInterval(() => {
   for (const [k, ts] of seen) if (now - ts > DEDUP_WINDOW_MS) seen.delete(k);
 }, 5 * 60 * 1000);
 
-/** true = 이번 클릭 카운트해도 됨 (창 내 첫 클릭), false = 중복이라 스킵 */
-export function shouldCountClick(ip: string | undefined, targetId: string): boolean {
+/** 창 내 중복 클릭인지 검사만 (기록 안 함) */
+export function isDuplicateClick(ip: string | undefined, targetId: string): boolean {
+  const prev = seen.get(`${ip || 'unknown'}:${targetId}`);
+  return prev !== undefined && Date.now() - prev < DEDUP_WINDOW_MS;
+}
+
+/** 실제 카운트가 반영된 뒤에만 호출 — 가짜 id 로 맵을 채우는 오염 방지 (검사/기록 분리) */
+export function recordClick(ip: string | undefined, targetId: string): void {
   const key = `${ip || 'unknown'}:${targetId}`;
-  const now = Date.now();
-  const prev = seen.get(key);
-  if (prev !== undefined && now - prev < DEDUP_WINDOW_MS) return false;
   if (seen.size >= MAX_ENTRIES) {
-    // 드문 경로 — 가장 오래된 항목 일부 제거
     let n = 0;
     for (const k of seen.keys()) { seen.delete(k); if (++n >= 1000) break; }
   }
-  seen.set(key, now);
-  return true;
+  seen.set(key, Date.now());
 }
