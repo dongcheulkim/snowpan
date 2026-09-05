@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -268,6 +268,34 @@ const UsedDetail = () => {
   const sellerImage = product.user?.profileImage || '';
   const isMyProduct = user && product.userId === user.id;
 
+  // 하단 sticky 액션바 — 인라인 버튼이 화면 밖으로 스크롤되면 노출 (모바일 전환 마찰 감소)
+  const inlineActionsRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  useEffect(() => {
+    const el = inlineActionsRef.current;
+    if (!el) { setShowStickyBar(false); return; }
+    const io = new IntersectionObserver(([e]) => setShowStickyBar(!e.isIntersecting), { rootMargin: '0px 0px -80px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [product?.id, isMyProduct, product?.status]);
+
+  const startChat = () => {
+    // 탈퇴한 판매자 매물 — sellerId 없이 채팅방 열면 죽은 방이 생김.
+    if (!sellerId) { toastError('판매자가 탈퇴하여 채팅할 수 없습니다.'); return; }
+    navigate(`/chat/new`, {
+      state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `${vbase}/used/${product.id}`, productPath: `${vbase}/used/${product.id}` }
+    });
+  };
+  const toggleWish = async () => {
+    if (!user) { navigate('/login'); return; }
+    try {
+      const res = await api<{ wishlisted: boolean }>(`/products/${product!.id}/wishlist`, { method: 'POST' });
+      setWishlisted(res.wishlisted);
+      setProduct(p => p ? { ...p, wishlistCount: Math.max(0, (p.wishlistCount ?? 0) + (res.wishlisted ? 1 : -1)) } : p);
+      toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
+    } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <Link to={`${vbase}/used`} className="inline-flex items-center text-gray-500 hover:text-gray-900 text-sm transition-colors">
@@ -448,30 +476,16 @@ const UsedDetail = () => {
 
           {/* Chat + Wishlist Button — 찜 하트를 크게 노출 (내 매물이 아닐 때) */}
           {!isMyProduct && product.status !== 'sold' && (
-            <div className="flex gap-2">
+            <div ref={inlineActionsRef} className="flex gap-2">
               <button
-                onClick={async () => {
-                  if (!user) { navigate('/login'); return; }
-                  try {
-                    const res = await api<{ wishlisted: boolean }>(`/products/${product.id}/wishlist`, { method: 'POST' });
-                    setWishlisted(res.wishlisted);
-                    setProduct(p => p ? { ...p, wishlistCount: Math.max(0, (p.wishlistCount ?? 0) + (res.wishlisted ? 1 : -1)) } : p);
-                    toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
-                  } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
-                }}
+                onClick={toggleWish}
                 aria-label={wishlisted ? '찜 해제' : '찜하기'}
                 className={`w-14 flex-shrink-0 py-3.5 rounded-xl border-2 flex items-center justify-center active:scale-95 transition-transform ${wishlisted ? 'border-coral text-coral bg-coral/5' : 'border-gray-200 text-gray-500'}`}
               >
                 {wishlisted ? <HeartFilledIcon size={24} /> : <HeartOutlineIcon size={24} />}
               </button>
               <button
-                onClick={() => {
-                  // 탈퇴한 판매자 매물 — sellerId 없이 채팅방 열면 죽은 방이 생김.
-                  if (!sellerId) { toastError('판매자가 탈퇴하여 채팅할 수 없습니다.'); return; }
-                  navigate(`/chat/new`, {
-                    state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `${vbase}/used/${product.id}`, productPath: `${vbase}/used/${product.id}` }
-                  });
-                }}
+                onClick={startChat}
                 className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
               >
                 {t('usedDetail.startChat')}
@@ -557,6 +571,32 @@ const UsedDetail = () => {
                 {reportSubmitting ? '처리 중...' : t('usedDetail.report')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 하단 sticky 액션바 — 채팅 버튼이 스크롤로 사라지면 화면 하단에 고정 노출.
+          당근·번개장터식 — 거래 시작까지의 스크롤 마찰 제거 (하단 네비 위에 안착) */}
+      {!isMyProduct && product.status !== 'sold' && showStickyBar && (
+        <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 bg-snow/95 backdrop-blur border-t border-gray-200 px-4 py-2.5 animate-fade-in-up">
+          <div className="max-w-4xl mx-auto flex items-center gap-2.5">
+            <div className="flex-shrink-0">
+              <p className="text-[11px] text-gray-400 leading-none">{product.status === 'reserved' ? '예약중' : '판매중'}</p>
+              <p className="text-base font-bold text-gray-900 leading-tight">{product.price.toLocaleString()}원</p>
+            </div>
+            <button
+              onClick={toggleWish}
+              aria-label={wishlisted ? '찜 해제' : '찜하기'}
+              className={`w-12 flex-shrink-0 py-2.5 rounded-xl border-2 flex items-center justify-center active:scale-95 transition-transform ${wishlisted ? 'border-coral text-coral bg-coral/5' : 'border-gray-200 text-gray-500'}`}
+            >
+              {wishlisted ? <HeartFilledIcon size={20} /> : <HeartOutlineIcon size={20} />}
+            </button>
+            <button
+              onClick={startChat}
+              className="flex-1 py-2.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
+            >
+              {t('usedDetail.startChat')}
+            </button>
           </div>
         </div>
       )}
