@@ -676,15 +676,23 @@ const AdminDashboard = () => {
               {/* 카테고리(슬롯)별 필터 — 들어온 예약에서 자동 생성, 건수 표시 */}
               {(() => {
                 const catKey = (b: AdBookingItem) => (b.slotType === 'main_banner' ? 'main_banner' : `cat:${b.category || 'none'}`);
-                const catCounts = new Map<string, number>();
-                adBookings.forEach((b) => catCounts.set(catKey(b), (catCounts.get(catKey(b)) || 0) + 1));
-                const catChips = [
-                  { id: 'all', label: `전체 ${adBookings.length}` },
-                  ...Array.from(catCounts.entries()).map(([id, n]) => {
-                    const sample = adBookings.find((b) => catKey(b) === id)!;
-                    return { id, label: `${adSlotLabelKr(sample.slotType, sample.category)} ${n}` };
-                  }),
+                const countOf = (id: string) => adBookings.filter((b) => catKey(b) === id).length;
+                // 모든 카테고리를 항상 노출(등록 0건이어도) — 관리자가 카테고리별로 광고 관리.
+                // 선택하면 아래 목록이 그 카테고리 광고만 표시.
+                const AD_CAT_ORDER = ['skishop', 'repair', 'used', 'rental', 'lesson', 'accommodation', 'community', 'overseas'];
+                const fixedChips = [
+                  { id: 'main_banner', label: `메인 배너 ${countOf('main_banner')}` },
+                  ...AD_CAT_ORDER.map((c) => ({ id: `cat:${c}`, label: `${AD_CATEGORY_LABELS[c] || c} ${countOf(`cat:${c}`)}` })),
                 ];
+                // 고정 목록에 없는 카테고리 값이 실제 예약에 있으면 뒤에 덧붙여 누락 방지(미분류 등)
+                const extraChips = Array.from(new Set(adBookings.map(catKey)))
+                  .filter((k) => k !== 'main_banner' && !AD_CAT_ORDER.includes(k.slice(4)))
+                  .map((k) => {
+                    const cat = k.slice(4);
+                    const lbl = cat && cat !== 'none' ? (AD_CATEGORY_LABELS[cat] || cat) : '미분류';
+                    return { id: k, label: `${lbl} ${countOf(k)}` };
+                  });
+                const catChips = [{ id: 'all', label: `전체 ${adBookings.length}` }, ...fixedChips, ...extraChips];
                 const statusChips = [
                   { id: 'all', label: '전체' },
                   { id: 'pending_payment', label: '결제 대기' },
