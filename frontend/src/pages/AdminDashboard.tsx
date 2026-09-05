@@ -7,7 +7,7 @@ import { CalendarIcon, ChartIcon, ChatIcon, CloseIcon, DocumentIcon, PackageIcon
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
 
-type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'premium' | 'adBookings' | 'adPricing';
+type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings';
 
 interface ReportItem {
   id: string;
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
   // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
   const [adCatFilter, setAdCatFilter] = useState('all');
-  const [adSection, setAdSection] = useState<'bookings' | 'banners'>('bookings'); // 광고관리 내 서브탭(예약/배너)
+  const [adSection, setAdSection] = useState<'bookings' | 'banners' | 'pricing' | 'premium'>('bookings'); // 광고관리 내 서브탭(예약/배너/가격/프리미엄)
   const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
@@ -143,22 +143,21 @@ const AdminDashboard = () => {
       } else if (tab === 'users') {
         const data = await api<UserItem[]>('/admin/users');
         setUsers(data);
-      } else if (tab === 'premium') {
-        const data = await api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50');
-        setProducts(data.products);
       } else if (tab === 'adBookings') {
-        // 광고관리 탭 — 예약·매출·배너를 함께 로드 (서브탭 전환 시 추가 요청 없이 즉시 표시)
-        const [bookings, revenue, bannerList] = await Promise.all([
+        // 광고관리 탭 — 예약·매출·배너·가격·프리미엄을 함께 로드
+        // (서브탭 예약/배너/가격/프리미엄 전환 시 추가 요청 없이 즉시 표시)
+        const [bookings, revenue, bannerList, pricings, prod] = await Promise.all([
           api<AdBookingItem[]>('/ad-booking/admin/bookings'),
           api<RevenueData>('/ad-booking/admin/revenue'),
           api<BannerItem[]>('/admin/banners'),
+          api<AdPricingItem[]>('/ad-booking/admin/pricings'),
+          api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50'),
         ]);
         setAdBookings(bookings);
         setAdRevenue(revenue);
         setBanners(bannerList);
-      } else if (tab === 'adPricing') {
-        const data = await api<AdPricingItem[]>('/ad-booking/admin/pricings');
-        setAdPricings(data);
+        setAdPricings(pricings);
+        setProducts(prod.products);
       }
     } catch {
       /* ignore */
@@ -312,9 +311,7 @@ const AdminDashboard = () => {
     { id: 'reports', label: '신고관리' },
     { id: 'stats', label: '통계' },
     { id: 'users', label: '유저관리' },
-    { id: 'premium', label: '프리미엄' },
     { id: 'adBookings', label: '광고관리' },
-    { id: 'adPricing', label: '광고가격' },
   ];
 
   const inputClass = "w-full px-3 py-2 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
@@ -357,10 +354,10 @@ const AdminDashboard = () => {
       </div>
 
       {tab === 'adBookings' && (
-        <div className="flex gap-1.5 mb-1">
-          {([['bookings','광고 예약·결제'],['banners','배너 관리']] as const).map(([id,label]) => (
+        <div className="flex gap-1 mb-1">
+          {([['bookings','예약·결제'],['banners','배너'],['pricing','광고 가격'],['premium','프리미엄']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setAdSection(id)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+              className={`flex-1 py-2 px-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {label}
             </button>
           ))}
@@ -627,7 +624,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Premium Tab */}
-          {tab === 'premium' && (
+          {tab === 'adBookings' && adSection === 'premium' && (
             <div className="grid grid-cols-2 gap-2">
               {products.length === 0 && !loading && (
                 <div className="col-span-2 text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">등록된 중고 상품이 없습니다.</div>
@@ -800,7 +797,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Ad Pricing Tab */}
-          {tab === 'adPricing' && (
+          {tab === 'adBookings' && adSection === 'pricing' && (
             <div className="space-y-4">
               {adPricings.length === 0 ? (
                 <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">광고 가격 설정이 없습니다.</div>
