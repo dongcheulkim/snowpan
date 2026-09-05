@@ -54,13 +54,6 @@ interface BannerItem {
   createdAt: string;
 }
 
-interface ProductItem {
-  id: string;
-  name: string;
-  price: number;
-  isPremium: boolean;
-  premiumUntil: string | null;
-}
 
 interface AdBookingItem {
   id: string;
@@ -108,11 +101,10 @@ const AdminDashboard = () => {
   const [userPage, setUserPage] = useState(0);
   const USERS_PER_PAGE = 30;
   const [banners, setBanners] = useState<BannerItem[]>([]);
-  const [products, setProducts] = useState<ProductItem[]>([]);
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
   // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
   const [adCatFilter, setAdCatFilter] = useState('all');
-  const [adSection, setAdSection] = useState<'bookings' | 'banners' | 'pricing' | 'premium'>('bookings'); // 광고관리 내 서브탭(예약/배너/가격/프리미엄)
+  const [adSection, setAdSection] = useState<'bookings' | 'banners' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/배너/가격)
   const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
@@ -144,21 +136,19 @@ const AdminDashboard = () => {
         const data = await api<UserItem[]>('/admin/users');
         setUsers(data);
       } else if (tab === 'adBookings') {
-        // 광고관리 탭 — 예약·매출·배너·가격·프리미엄을 함께 로드
-        // (서브탭 예약/배너/가격/프리미엄 전환 시 추가 요청 없이 즉시 표시)
+        // 광고관리 탭 — 예약·매출·배너·가격을 함께 로드
+        // (서브탭 예약/배너/가격 전환 시 추가 요청 없이 즉시 표시)
         // allSettled: 하나가 실패해도 나머지 서브탭은 정상 표시(부분 실패 허용).
-        const [bookings, revenue, bannerList, pricings, prod] = await Promise.allSettled([
+        const [bookings, revenue, bannerList, pricings] = await Promise.allSettled([
           api<AdBookingItem[]>('/ad-booking/admin/bookings'),
           api<RevenueData>('/ad-booking/admin/revenue'),
           api<BannerItem[]>('/admin/banners'),
           api<AdPricingItem[]>('/ad-booking/admin/pricings'),
-          api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50'),
         ]);
         if (bookings.status === 'fulfilled') setAdBookings(bookings.value);
         if (revenue.status === 'fulfilled') setAdRevenue(revenue.value);
         if (bannerList.status === 'fulfilled') setBanners(bannerList.value);
         if (pricings.status === 'fulfilled') setAdPricings(pricings.value);
-        if (prod.status === 'fulfilled') setProducts(prod.value.products);
       }
     } catch {
       /* ignore */
@@ -231,15 +221,6 @@ const AdminDashboard = () => {
     setBannerImageFile(null);
     setBannerImagePreview(banner.image ? imageUrl(banner.image) : '');
     setShowBannerForm(true);
-  };
-
-  const handleTogglePremium = async (id: string, current: boolean) => {
-    try {
-      await api(`/admin/products/${id}/premium`, { method: 'PUT', body: { isPremium: !current } });
-      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isPremium: !current } : p)));
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '설정 실패');
-    }
   };
 
   // 승인 시 시작일 지정 (선택) — 비우면 즉시 시작, YYYY-MM-DD 입력 시 그 날부터 노출.
@@ -356,7 +337,7 @@ const AdminDashboard = () => {
 
       {tab === 'adBookings' && (
         <div className="flex gap-1 mb-1">
-          {([['bookings','예약·결제'],['banners','배너'],['pricing','광고 가격'],['premium','프리미엄']] as const).map(([id,label]) => (
+          {([['bookings','예약·결제'],['banners','배너'],['pricing','광고 가격']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setAdSection(id)}
               className={`flex-1 py-2 px-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {label}
@@ -624,35 +605,6 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Premium Tab */}
-          {tab === 'adBookings' && adSection === 'premium' && (
-            <div className="grid grid-cols-2 gap-2">
-              {products.length === 0 && !loading && (
-                <div className="col-span-2 text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">등록된 중고 상품이 없습니다.</div>
-              )}
-              {products.map((p) => (
-                <div key={p.id} className="card p-3 flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-gray-900 truncate">{p.name}</span>
-                      {p.isPremium && (
-                        <span className="shrink-0 text-[9px] font-bold px-1 py-0.5 rounded bg-gold/20 text-yellow-700">P</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">{p.price.toLocaleString()}원</p>
-                  </div>
-                  <button
-                    onClick={() => handleTogglePremium(p.id, p.isPremium)}
-                    className={`shrink-0 px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${
-                      p.isPremium ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gold/10 text-yellow-700 hover:bg-gold/20'
-                    }`}
-                  >
-                    {p.isPremium ? '해제' : '설정'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
           {/* Ad Bookings Tab */}
           {tab === 'adBookings' && adSection === 'bookings' && (
             <div className="space-y-3">
