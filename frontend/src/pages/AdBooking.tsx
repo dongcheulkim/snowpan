@@ -2,8 +2,7 @@ import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
-import { BankIcon, CloseIcon, MountainIcon, StarIcon } from '../components/Icons';
-import type { ComponentType } from 'react';
+import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
 
 interface SlotPricing {
@@ -33,11 +32,6 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
   premium: '내 상품/샵을 리스트 최상단에 고정 노출',
 };
 
-const SLOT_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {
-  main_banner: MountainIcon,
-  category: StarIcon,
-  premium: StarIcon,
-};
 
 const CATEGORY_LABELS: Record<string, string> = {
   skishop: SHARED_CATEGORY_LABELS.skishop,
@@ -336,7 +330,6 @@ export default function AdBooking() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {(() => { const Icon = SLOT_ICONS[slotType]; return Icon ? <Icon size={22} className="text-gray-700" /> : null; })()}
                     <div className="flex-1">
                       <div className="font-bold text-gray-800">
                         {SLOT_LABELS[slotType]}
@@ -769,8 +762,7 @@ export default function AdBooking() {
             if (!bank || !account || !holder) {
               return (
                 <div className="bg-sky-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BankIcon size={18} className="text-gray-700" />
+                  <div className="mb-1">
                     <span className="text-sm font-bold text-sky-800">입금 계좌 안내</span>
                   </div>
                   <p className="text-xs text-sky-700 mt-2 leading-relaxed">
@@ -782,8 +774,7 @@ export default function AdBooking() {
             }
             return (
               <div className="bg-sky-50 rounded-xl p-4 space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <BankIcon size={18} className="text-gray-700" />
+                <div className="mb-1">
                   <span className="text-sm font-bold text-sky-800">입금 계좌 안내</span>
                 </div>
                 <div className="bg-white rounded-lg p-3 space-y-1.5">
