@@ -76,7 +76,7 @@ export const VERTICALS: Vertical[] = [
       { label: '시즌권 트래커', desc: '오픈/마감 알림 + 전년 대비 가격 추이' },
     ],
     pageLabels: {
-      used: '중고거래', shop: '스키샵', repair: '정비', rental: '렌탈',
+      used: '중고거래', shop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵',
       lesson: '레슨', accommodation: '숙소', webcam: '실시간 웹캠',
     },
     audience: '스키어',

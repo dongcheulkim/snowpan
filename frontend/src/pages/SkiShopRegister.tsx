@@ -54,7 +54,7 @@ export default function SkiShopRegister() {
         },
       });
 
-      toastSuccess('스키샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
+      toastSuccess('스키·보드샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
       navigate('/new-equipment');
     } catch (err) {
       toastError(err instanceof Error ? err.message : '등록에 실패했습니다.');
@@ -70,7 +70,7 @@ export default function SkiShopRegister() {
     <div className="max-w-lg mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/new-equipment" className="text-gray-500 text-lg">←</Link>
-        <h1 className="text-xl font-bold text-gray-900">스키샵 등록</h1>
+        <h1 className="text-xl font-bold text-gray-900">스키·보드샵 등록</h1>
       </div>
 
       <p className="text-xs text-coral mb-3">* 관리자 승인 후 노출됩니다 (보통 1~2 영업일)</p>

@@ -52,7 +52,7 @@ export default function NewEquipment() {
     if (selectedResort !== 'all') params.set('resort', selectedResort);
     api<Shop[]>(`/ski-shops?${params}`)
       .then(data => setShops(Array.isArray(data) ? data : []))
-      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키샵 목록을 불러오지 못했습니다'); })
+      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키·보드샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
   }, [selectedArea, selectedResort]);
 
@@ -61,7 +61,7 @@ export default function NewEquipment() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-gray-500 text-lg">←</Link>
-          <h1 className="text-xl font-bold text-gray-900">{vertical.pageLabels?.shop || '스키샵'}</h1>
+          <h1 className="text-xl font-bold text-gray-900">{vertical.pageLabels?.shop || '스키·보드샵'}</h1>
         </div>
       </div>
 
@@ -101,7 +101,7 @@ export default function NewEquipment() {
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><SkiShopIcon size={44} /></div>
           <h3 className="text-base font-bold text-gray-900 mb-1.5">
-            {selectedArea !== 'all' || selectedResort !== 'all' ? '이 지역엔 아직 스키샵이 없어요' : '아직 등록된 스키샵이 없어요'}
+            {selectedArea !== 'all' || selectedResort !== 'all' ? '이 지역엔 아직 스키·보드샵이 없어요' : '아직 등록된 스키·보드샵이 없어요'}
           </h3>
           <p className="text-xs text-gray-500 mb-5 leading-relaxed">
             첫 번째로 등록해서 손님들에게 노출 기회를<br/>가져가세요. 등록은 무료입니다.

@@ -499,7 +499,7 @@ const Home = () => {
           {news.length === 0 ? (
             <div className="bg-snow rounded-2xl border border-gray-200 p-6 text-center">
               <p className="text-sm text-gray-500">입점 매장들의 소식과 이벤트가 곧 올라와요.</p>
-              <p className="text-xs text-gray-400 mt-1.5">스키샵·렌탈·레슨·정비·숙소의 프로모션 소식이 여기에 표시됩니다.</p>
+              <p className="text-xs text-gray-400 mt-1.5">스키·보드샵, 렌탈샵, 레슨, 정비샵, 숙소의 프로모션 소식이 여기에 표시됩니다.</p>
             </div>
           ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">

@@ -87,7 +87,7 @@ export default function SkiShopEdit() {
     <div className="max-w-lg mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/mypage/shops" className="text-gray-500 text-lg">←</Link>
-        <h1 className="text-xl font-bold text-gray-900">스키샵 수정</h1>
+        <h1 className="text-xl font-bold text-gray-900">스키·보드샵 수정</h1>
       </div>
 
       <div className="card p-6">

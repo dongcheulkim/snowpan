@@ -21,13 +21,13 @@ export default function ResortLanding() {
   const [loading, setLoading] = useState(true);
 
   useMeta({
-    title: decoded ? `${decoded} 스키샵·렌탈·레슨·숙소` : undefined,
-    description: decoded ? `${decoded} 근처 스키샵, 장비 렌탈, 강습, 숙소를 스노우판에서 한눈에 비교하세요.` : undefined,
+    title: decoded ? `${decoded} 스키·보드샵, 렌탈샵, 레슨, 숙소` : undefined,
+    description: decoded ? `${decoded} 근처 스키·보드샵, 렌탈샵, 레슨, 숙소를 스노우판에서 한눈에 비교하세요.` : undefined,
     jsonLd: decoded ? {
       '@context': 'https://schema.org',
       '@type': 'Place',
       name: decoded,
-      description: `${decoded} 근처 스키샵·렌탈·레슨·숙소 정보`,
+      description: `${decoded} 근처 스키·보드샵, 렌탈샵, 레슨, 숙소 정보`,
     } : null,
   });
 
@@ -43,7 +43,7 @@ export default function ResortLanding() {
   if (loading) return <div className="text-center py-20 text-sm text-gray-500">로딩 중...</div>;
 
   const sections: { title: string; items: MiniItem[]; to: (i: MiniItem) => string; listTo: string }[] = data ? [
-    { title: '스키샵', items: data.skiShops, to: i => `/skishop/${i.id}`, listTo: '/skishop' },
+    { title: '스키·보드샵', items: data.skiShops, to: i => `/skishop/${i.id}`, listTo: '/skishop' },
     { title: '렌탈샵', items: data.rentals, to: i => `/rental/${i.id}`, listTo: '/rental' },
     { title: '레슨', items: data.lessons, to: i => `/lesson/${i.id}`, listTo: '/lesson' },
     { title: '숙소', items: data.accommodations, to: i => `/accommodation/${i.id}`, listTo: '/accommodation' },
@@ -61,7 +61,7 @@ export default function ResortLanding() {
 
       <div className="card p-5">
         <p className="text-sm text-gray-600">
-          <span className="font-bold text-gray-900">{decoded}</span> 근처 스키샵·렌탈·레슨·숙소를 한눈에.
+          <span className="font-bold text-gray-900">{decoded}</span> 근처 스키·보드샵, 렌탈샵, 레슨, 숙소를 한눈에.
         </p>
         <p className="text-xs text-gray-400 mt-1">등록된 업체 {totalCount}곳</p>
         <div className="flex gap-2 mt-3">

@@ -3,7 +3,7 @@ import { SadIcon } from '../components/Icons';
 
 const QUICK_LINKS = [
   { to: '/used', label: '중고거래', desc: '스키·보드 중고 매물' },
-  { to: '/rental', label: '렌탈', desc: '시즌·당일 렌탈샵' },
+  { to: '/rental', label: '렌탈샵', desc: '시즌·당일 렌탈샵' },
   { to: '/lesson', label: '레슨', desc: '강사·자격 매칭' },
   { to: '/accommodation', label: '숙소', desc: '리조트·펜션·시즌방' },
   { to: '/community/ski', label: '커뮤니티', desc: '후기·팁·카풀' },

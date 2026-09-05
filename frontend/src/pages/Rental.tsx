@@ -84,7 +84,7 @@ const Rental = () => {
   return (
     <div className="space-y-5">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.rental || '렌탈'}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{vertical.pageLabels?.rental || '렌탈샵'}</h1>
       </div>
 
       <CategoryAdBanner category="rental" />

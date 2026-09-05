@@ -29,7 +29,7 @@ interface ShopPostItem {
 // 사장님이 등록/관리하는 5개 업종. endpoint=목록조회, registerPath=등록,
 // editBase=수정경로 prefix(/edit 붙음), deleteBase=삭제 API prefix.
 const CATEGORIES = [
-  { key: 'skishop', label: '스키샵', Icon: SkiShopIcon, endpoint: '/ski-shops/my', registerPath: '/skishop/register', editBase: '/skishop', deleteBase: '/ski-shops', hasViews: true },
+  { key: 'skishop', label: '스키·보드샵', Icon: SkiShopIcon, endpoint: '/ski-shops/my', registerPath: '/skishop/register', editBase: '/skishop', deleteBase: '/ski-shops', hasViews: true },
   { key: 'repair', label: '정비샵', Icon: MaintenanceIcon, endpoint: '/repair-shops/my', registerPath: '/repair/register', editBase: '/repair', deleteBase: '/repair-shops', hasViews: true },
   { key: 'rental', label: '렌탈샵', Icon: RentalIcon, endpoint: '/rentals/my', registerPath: '/rental/register', editBase: '/rental', deleteBase: '/rentals', hasViews: false },
   { key: 'lesson', label: '레슨', Icon: LessonIcon, endpoint: '/lessons/my', registerPath: '/lesson/register', editBase: '/lesson', deleteBase: '/lessons', hasViews: false },

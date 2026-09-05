@@ -370,7 +370,7 @@ const AdminDashboard = () => {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.status === 'resolved' ? 'bg-mint/20 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
                           {r.status === 'resolved' ? '처리완료' : '대기중'}
                         </span>
-                        <span className="text-xs text-gray-500 ml-2">{({ product: '상품', post: '게시글', user: '유저', skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' } as Record<string, string>)[r.type] || r.type}</span>
+                        <span className="text-xs text-gray-500 ml-2">{({ product: '상품', post: '게시글', user: '유저', skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' } as Record<string, string>)[r.type] || r.type}</span>
                       </div>
                       <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
                     </div>

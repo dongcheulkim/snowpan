@@ -35,14 +35,14 @@ const FILTERS = [
 // 매장 종류별 필터 — 스키샵/렌탈 소식이 섞여 보이지 않게.
 const SHOP_FILTERS = [
   { id: 'all', label: '전체' },
-  { id: 'skishop', label: '스키샵' },
+  { id: 'skishop', label: '스키·보드샵' },
   { id: 'repair', label: '정비샵' },
   { id: 'rental', label: '렌탈샵' },
   { id: 'lesson', label: '레슨' },
   { id: 'accommodation', label: '숙소' },
 ];
 const SHOP_TYPE_LABEL: Record<string, string> = {
-  skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소',
+  skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소',
 };
 
 export default function ShopNewsPage() {

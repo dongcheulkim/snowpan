@@ -11,7 +11,7 @@ type IconComp = ComponentType<{ size?: number; className?: string }>;
 const categories: Record<string, { label: string; Icon: IconComp; subs: string[] }> = {
   trade:    { label: '거래 관련',    Icon: SecondHandIcon, subs: ['상품 문의', '거래 분쟁', '환불/취소', '사기 신고'] },
   account:  { label: '계정/인증',    Icon: UserIcon,       subs: ['로그인 문제', '비밀번호 변경', '자격증 뱃지', '회원 탈퇴'] },
-  business: { label: '사업자 등록',  Icon: SkiShopIcon,    subs: ['스키샵 등록', '정비샵 등록', '렌탈/레슨 등록', '숙소 등록'] },
+  business: { label: '사업자 등록',  Icon: SkiShopIcon,    subs: ['스키·보드샵 등록', '정비샵 등록', '렌탈샵/레슨 등록', '숙소 등록'] },
   ad:       { label: '광고',         Icon: MegaphoneIcon,  subs: ['광고 신청 방법', '광고 비용', '광고 수정/취소', '프리미엄 문의'] },
   report:   { label: '신고/불편',    Icon: AlertIcon,      subs: ['게시글 신고', '유저 신고', '버그/오류', '서비스 건의'] },
   other:    { label: '기타',         Icon: ChatIcon,       subs: ['제휴/협력', '기타 문의'] },

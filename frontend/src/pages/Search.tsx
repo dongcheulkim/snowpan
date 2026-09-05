@@ -65,7 +65,7 @@ export default function Search() {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder={isSnow ? "장비, 게시글, 스키샵 검색..." : "장비, 게시글 검색..."}
+          placeholder={isSnow ? "장비, 게시글, 스키·보드샵 검색..." : "장비, 게시글 검색..."}
           className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
         />
         {query && (
@@ -77,7 +77,7 @@ export default function Search() {
       {!debounced && !loading && (
         <div className="text-center py-12">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SearchIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-500">{isSnow ? '중고장비, 커뮤니티 글, 스키샵을 검색해보세요' : '중고장비, 커뮤니티 글을 검색해보세요'}</p>
+          <p className="text-sm text-gray-500">{isSnow ? '중고장비, 커뮤니티 글, 스키·보드샵을 검색해보세요' : '중고장비, 커뮤니티 글을 검색해보세요'}</p>
         </div>
       )}
 
@@ -136,7 +136,7 @@ export default function Search() {
       {/* 샵 결과 */}
       {!loading && isSnow && results?.shops && results.shops.length > 0 && (
         <div>
-          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><SkiShopIcon size={16} /> 스키샵 · 정비샵</h2>
+          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><SkiShopIcon size={16} /> 스키·보드샵 · 정비샵</h2>
           <div className="space-y-2">
             {results.shops.map(s => (
               <Link key={`${s.type}-${s.id}`} to={s.type === 'ski' ? `/skishop/${s.id}` : `/repair/${s.id}`} className="card p-3 flex items-center gap-3 card-hover block">

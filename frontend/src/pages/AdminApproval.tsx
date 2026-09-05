@@ -191,11 +191,11 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   };
 
   const tabs = [
-    { id: 'rental' as const, name: '렌탈', count: pendingRentals.length },
+    { id: 'rental' as const, name: '렌탈샵', count: pendingRentals.length },
     { id: 'lesson' as const, name: '레슨', count: pendingLessons.length },
     { id: 'accommodation' as const, name: '숙소', count: pendingAccom.length },
     { id: 'badge' as const, name: '자격증', count: pendingBadges.length },
-    { id: 'skishop' as const, name: '스키샵', count: pendingShops.length },
+    { id: 'skishop' as const, name: '스키·보드샵', count: pendingShops.length },
     { id: 'repair' as const, name: '정비샵', count: pendingRepair.length },
     { id: 'claim' as const, name: '매장이전', count: pendingClaims.length },
     { id: 'agency' as const, name: '여행사', count: pendingAgencies.length },
@@ -217,7 +217,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         <div key={item.id} className="card p-4">
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{({ skishop: '스키샵', repair: '정비샵', rental: '렌탈샵', accommodation: '숙소' } as Record<string, string>)[item.shopType || ''] || item.shopType}</span>
+              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{({ skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', accommodation: '숙소' } as Record<string, string>)[item.shopType || ''] || item.shopType}</span>
               <span className="font-bold text-sm text-gray-900">{item.shopName}</span>
             </div>
             <div className="text-xs text-gray-500">요청자: {item.requesterName} ({item.requesterEmail})</div>

@@ -13,7 +13,7 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Home categories
     'cat.used': '중고거래',
-    'cat.rental': '렌탈',
+    'cat.rental': '렌탈샵',
     'cat.lesson': '레슨',
     'cat.accommodation': '숙소',
     'cat.community': '커뮤니티',

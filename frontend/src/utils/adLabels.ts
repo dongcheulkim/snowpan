@@ -15,11 +15,11 @@ export const SLOT_DESCRIPTIONS: Record<string, string> = {
 
 export const AD_CATEGORY_LABELS: Record<string, string> = {
   used: '중고거래',
-  rental: '렌탈',
+  rental: '렌탈샵',
   lesson: '레슨',
   accommodation: '숙소',
-  skishop: '스키샵',
-  repair: '정비',
+  skishop: '스키·보드샵',
+  repair: '정비샵',
   community: '커뮤니티',
   overseas: '해외 여행',
   none: '전체',
