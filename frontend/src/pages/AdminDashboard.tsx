@@ -146,18 +146,19 @@ const AdminDashboard = () => {
       } else if (tab === 'adBookings') {
         // 광고관리 탭 — 예약·매출·배너·가격·프리미엄을 함께 로드
         // (서브탭 예약/배너/가격/프리미엄 전환 시 추가 요청 없이 즉시 표시)
-        const [bookings, revenue, bannerList, pricings, prod] = await Promise.all([
+        // allSettled: 하나가 실패해도 나머지 서브탭은 정상 표시(부분 실패 허용).
+        const [bookings, revenue, bannerList, pricings, prod] = await Promise.allSettled([
           api<AdBookingItem[]>('/ad-booking/admin/bookings'),
           api<RevenueData>('/ad-booking/admin/revenue'),
           api<BannerItem[]>('/admin/banners'),
           api<AdPricingItem[]>('/ad-booking/admin/pricings'),
           api<{ products: ProductItem[]; totalCount: number }>('/products?category=used&limit=50'),
         ]);
-        setAdBookings(bookings);
-        setAdRevenue(revenue);
-        setBanners(bannerList);
-        setAdPricings(pricings);
-        setProducts(prod.products);
+        if (bookings.status === 'fulfilled') setAdBookings(bookings.value);
+        if (revenue.status === 'fulfilled') setAdRevenue(revenue.value);
+        if (bannerList.status === 'fulfilled') setBanners(bannerList.value);
+        if (pricings.status === 'fulfilled') setAdPricings(pricings.value);
+        if (prod.status === 'fulfilled') setProducts(prod.value.products);
       }
     } catch {
       /* ignore */
