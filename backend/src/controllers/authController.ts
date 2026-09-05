@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens } from '../utils/tokens';
+import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens, isTokenVersionStale } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
 import { isHttpUrl, normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
@@ -148,7 +148,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d (HttpOnly 쿠키).
     const token = signAccessToken(user);
     // 가입 직후엔 자동 로그인 끔 (세션 쿠키 — 브라우저 닫으면 만료).
-    setRefreshCookie(res, user.id, false);
+    setRefreshCookie(res, user.id, false, undefined, user.tokenVersion);
 
     res.status(201).json({
       message: '회원가입이 완료되었습니다.',
@@ -232,7 +232,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const remember = req.body?.remember === true;
     const token = signAccessToken(user);
     const isAppClient = req.body?.platform === 'app'; // Capacitor 앱 — 쿠키 대신 body 채널로 지속 로그인
-    const loginRefresh = signRefreshToken(user.id, undefined, remember);
+    const loginRefresh = signRefreshToken(user.id, undefined, remember, user.tokenVersion);
     res.cookie(REFRESH_COOKIE_NAME, loginRefresh, refreshCookieOptions(remember));
 
     res.json({
@@ -972,7 +972,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true, sessionInvalidBefore: true },
+      select: { id: true, email: true, role: true, name: true, nickname: true, displayName: true, profileImage: true, phone: true, phoneVerified: true, createdAt: true, sessionInvalidBefore: true, tokenVersion: true },
     });
     if (!user || user.role === 'deleted' || user.role === 'banned') {
       clearRefreshCookie(res);
@@ -985,12 +985,18 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
       return;
     }
+    // 토큰 세대(tv) 검사 — 무효화 이후의 옛 refresh 는 rotation 불가, 재로그인 강제.
+    if (isTokenVersionStale(payload.tv, user.tokenVersion)) {
+      clearRefreshCookie(res);
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
+      return;
+    }
 
     // 새 access + 새 refresh (같은 family 유지) — rotation.
     // remember 는 최초 로그인 선택을 그대로 계승 (자동로그인 미선택이 14일로 승격되지 않게).
     const token = signAccessToken(user);
     const remember = payload.rem !== false;
-    const newRefresh = signRefreshToken(user.id, payload.fam, remember);
+    const newRefresh = signRefreshToken(user.id, payload.fam, remember, user.tokenVersion);
     res.cookie(REFRESH_COOKIE_NAME, newRefresh, refreshCookieOptions(remember));
 
     res.json({

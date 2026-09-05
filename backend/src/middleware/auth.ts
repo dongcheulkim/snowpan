@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { isTokenIatStale, isIatBeforeInvalidation } from '../utils/tokens';
+import { isTokenIatStale, isIatBeforeInvalidation, isTokenVersionStale } from '../utils/tokens';
 
 interface JwtPayload {
   userId: string;
@@ -42,7 +42,7 @@ export const authMiddleware = async (
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as JwtPayload & { type?: string; iat?: number };
+    }) as JwtPayload & { type?: string; iat?: number; tv?: number };
     if (decoded.type && decoded.type !== 'access') {
       res.status(401).json({ error: '잘못된 토큰 타입입니다.' });
       return;
@@ -56,11 +56,18 @@ export const authMiddleware = async (
     // DB에서 최신 role 확인 (banned 체크)
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, role: true, sessionInvalidBefore: true },
+      select: { id: true, email: true, role: true, sessionInvalidBefore: true, tokenVersion: true },
     });
 
     if (!user) {
       res.status(401).json({ error: '존재하지 않는 사용자입니다.' });
+      return;
+    }
+
+    // 토큰 세대(tv) 검사 — 비번변경·밴·탈퇴로 tokenVersion 이 올라가면 옛 토큰 즉시 거절.
+    // (iat 초단위 비교의 같은-초 경계 문제 없음, 재시작에도 영속)
+    if (isTokenVersionStale(decoded.tv, user.tokenVersion)) {
+      res.status(401).json({ error: '세션이 만료되었습니다. 다시 로그인해주세요.' });
       return;
     }
 

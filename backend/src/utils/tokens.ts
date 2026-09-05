@@ -23,20 +23,21 @@ function getSecrets(): { access: string; refresh: string } {
   return { access, refresh };
 }
 
-export interface AccessPayload { userId: string; email: string; role: string; type: 'access'; }
+export interface AccessPayload { userId: string; email: string; role: string; type: 'access'; tv?: number; }
 // jti = unique token ID, fam = token family (rotation 추적용). rem = 자동로그인 선택 여부.
-export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; rem?: boolean; }
+export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; rem?: boolean; tv?: number; }
 
-export function signAccessToken(user: { id: string; email: string; role: string }): string {
+export function signAccessToken(user: { id: string; email: string; role: string; tokenVersion?: number }): string {
   const { access } = getSecrets();
-  return jwt.sign({ userId: user.id, email: user.email, role: user.role, type: 'access' }, access, { expiresIn: ACCESS_TTL });
+  // tv = 세션 세대. 무효화(비번변경 등) 시 User.tokenVersion 이 +1 되고 기존 토큰은 전부 불일치로 거절.
+  return jwt.sign({ userId: user.id, email: user.email, role: user.role, type: 'access', tv: user.tokenVersion ?? 0 }, access, { expiresIn: ACCESS_TTL });
 }
 
-export function signRefreshToken(userId: string, family?: string, remember = true): string {
+export function signRefreshToken(userId: string, family?: string, remember = true, tokenVersion = 0): string {
   const { refresh } = getSecrets();
   const jti = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const fam = family || `${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return jwt.sign({ userId, type: 'refresh', jti, fam, rem: remember }, refresh, { expiresIn: REFRESH_TTL });
+  return jwt.sign({ userId, type: 'refresh', jti, fam, rem: remember, tv: tokenVersion }, refresh, { expiresIn: REFRESH_TTL });
 }
 
 export function verifyRefreshToken(token: string): RefreshPayload {
@@ -96,8 +97,9 @@ setInterval(() => {
 
 export function invalidateUserTokens(userId: string): void {
   userInvalidatedAt.set(userId, Math.floor(Date.now() / 1000));
-  // 서버 재시작에도 유지 — DB 에 무효화 시각 기록 (fire-and-forget, 인메모리가 1차).
-  prisma.user.update({ where: { id: userId }, data: { sessionInvalidBefore: new Date() } }).catch(() => {});
+  // tokenVersion +1 이 1차 (즉시·영속·같은-초 경계 없음) — 이후 발급 토큰만 새 tv 를 가짐.
+  // sessionInvalidBefore 는 tv 클레임 없는 전환기 구토큰 차단용으로 병행 유지.
+  prisma.user.update({ where: { id: userId }, data: { sessionInvalidBefore: new Date(), tokenVersion: { increment: 1 } } }).catch(() => {});
 }
 
 // 토큰 iat 가 사용자 무효화 시각보다 이전이면 → 무효 (인메모리 캐시 기준, 빠른 경로).
@@ -110,6 +112,12 @@ export function isTokenIatStale(userId: string, iat: number | undefined): boolea
   // (<= 로 하면 비번변경 직후 재로그인 세션까지 튕겨내 실사용을 깨뜨림 — E2E 로 확인)
   // 같은 초에 발급된 '탈취' 토큰만 통과하는 극히 드문 창은 tokenVersion 도입으로 후속 해결.
   return iat < cutoff;
+}
+
+// tv(토큰 세대) 불일치 판정 — tv 없는 구토큰은 0 으로 간주 (User.tokenVersion 기본 0 과 일치해
+// 무효화 이력 없는 유저의 기존 세션은 그대로 유효, 한 번이라도 무효화된 유저의 구토큰은 거절).
+export function isTokenVersionStale(tokenTv: number | undefined, userTokenVersion: number): boolean {
+  return (tokenTv ?? 0) !== userTokenVersion;
 }
 
 // DB 의 sessionInvalidBefore 기준 판정 (재시작 후에도 유효한 영속 경로).
@@ -136,8 +144,8 @@ export const REFRESH_COOKIE_NAME = 'snowpan_rt';
 
 // 로그인/등록 시 쿠키 설정 헬퍼. family 미지정 → 새 family 생성 (새 로그인).
 // rotation 시는 같은 family 유지 → 도난 감지 가능.
-export function setRefreshCookie(res: Response, userId: string, remember: boolean, family?: string): void {
-  const token = signRefreshToken(userId, family, remember);
+export function setRefreshCookie(res: Response, userId: string, remember: boolean, family?: string, tokenVersion = 0): void {
+  const token = signRefreshToken(userId, family, remember, tokenVersion);
   res.cookie(REFRESH_COOKIE_NAME, token, refreshCookieOptions(remember));
 }
 

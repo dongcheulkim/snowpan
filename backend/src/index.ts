@@ -382,11 +382,11 @@ io.use((socket, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ['HS256'],
       ignoreExpiration: false,
-    }) as { userId: string; type?: string; iat?: number };
+    }) as { userId: string; type?: string; iat?: number; tv?: number };
     if (decoded.type && decoded.type !== 'access') return next(new Error('잘못된 토큰 타입'));
     // HTTP authMiddleware 와 동일한 게이트 — 세션무효화/차단/탈퇴/존재확인. 소켓만 우회하던 구멍 차단.
     if (isTokenIatStale(decoded.userId, decoded.iat)) return next(new Error('세션 만료'));
-    prisma.user.findUnique({ where: { id: decoded.userId }, select: { id: true, role: true, sessionInvalidBefore: true } })
+    prisma.user.findUnique({ where: { id: decoded.userId }, select: { id: true, role: true, sessionInvalidBefore: true, tokenVersion: true } })
       .then((user) => {
         if (!user) return next(new Error('존재하지 않는 사용자'));
         if (user.role === 'banned' || user.role === 'deleted') return next(new Error('이용이 제한된 계정'));
@@ -394,6 +394,8 @@ io.use((socket, next) => {
         if (user.sessionInvalidBefore && decoded.iat && decoded.iat * 1000 < user.sessionInvalidBefore.getTime()) {
           return next(new Error('세션 만료'));
         }
+        // 토큰 세대(tv) 검사 — HTTP 경로와 동일 (무효화 시 즉시 거절)
+        if ((decoded.tv ?? 0) !== user.tokenVersion) return next(new Error('세션 만료'));
         socket.data.userId = user.id;
         next();
       })
