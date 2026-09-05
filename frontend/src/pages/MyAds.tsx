@@ -2,6 +2,7 @@ import { toastError, toastSuccess } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl } from '../api';
+import { adSlotLabelKr } from '../utils/adLabels';
 import { CloseIcon, MegaphoneIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
 
@@ -128,12 +129,18 @@ export default function MyAds() {
       ) : (
         <div className="space-y-2">
           {ads.map((ad) => {
-            const slotLabel = ad.slotType === 'main_banner' ? '메인 배너' : ad.slotType === 'premium' ? '프리미엄' : '카테고리';
+            // 어떤 지면·어떤 카테고리 광고인지 명시 — 예: "카테고리 배너 · 중고거래"
+            const slotLabel = adSlotLabelKr(ad.slotType, ad.category);
             const startD = new Date(ad.startDate);
             const endD = new Date(ad.endDate);
             const dateRange = `${startD.getMonth() + 1}.${startD.getDate()} ~ ${endD.getMonth() + 1}.${endD.getDate()}`;
             return (
-              <div key={ad.id} className="card p-4 flex items-start justify-between">
+              <div key={ad.id} className="card p-4 flex items-start justify-between gap-3">
+                {ad.image && (
+                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                    <img src={imageUrl(ad.image, 200)} alt="광고 소재" className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${statusColor[ad.status] || 'bg-gray-100 text-gray-600'}`}>
