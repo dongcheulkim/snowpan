@@ -92,7 +92,7 @@ const MainLayout = () => {
             <p className="mt-1.5">
               <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
               <span className="mx-1.5">·</span>
-              <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-600">광고안내</Link>
+              <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-600">광고안내</Link> · <Link to="/partners" className="underline underline-offset-2 hover:text-gray-600">입점안내</Link>
               <span className="mx-1.5">·</span>
               <Link to="/help" className="underline underline-offset-2 hover:text-gray-600">고객센터</Link>
             </p>

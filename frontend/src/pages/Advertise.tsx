@@ -112,6 +112,11 @@ const Advertise = () => {
         광고 신청하기
       </Link>
       <p className="text-center text-[11px] text-gray-400 pb-2">신청은 로그인 후 진행됩니다.</p>
+      <section className="card p-5 text-center">
+        <p className="text-sm font-bold text-gray-900">매장 사장님이신가요?</p>
+        <p className="text-xs text-gray-500 mt-1">매장 등록과 소식·이벤트는 무료입니다. 광고는 원할 때만 선택하세요.</p>
+        <Link to="/partners" className="inline-block mt-3 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold hover:bg-gray-50 transition-colors">입점 안내 보기</Link>
+      </section>
     </div>
   );
 };

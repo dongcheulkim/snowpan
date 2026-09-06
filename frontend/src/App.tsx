@@ -79,6 +79,7 @@ const AdBooking = lazy(() => import('./pages/AdBooking'));
 const AdPay = lazy(() => import('./pages/AdPay'));
 const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
+const Partners = lazy(() => import('./pages/Partners'));
 const Overseas = lazy(() => import('./pages/Overseas'));
 const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
 const AgencyRegister = lazy(() => import('./pages/AgencyRegister'));
@@ -189,6 +190,7 @@ function App() {
             <Route path="webcam/:id" element={<WebcamDetail />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="advertise" element={<Advertise />} />
+            <Route path="partners" element={<Partners />} />
             <Route path="overseas" element={<Overseas />} />
             <Route path="overseas/agency/register" element={<RequireAuth><AgencyRegister /></RequireAuth>} />
             <Route path="overseas/agency/manage" element={<RequireAuth><AgencyManage /></RequireAuth>} />
