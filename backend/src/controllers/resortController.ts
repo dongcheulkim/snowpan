@@ -39,11 +39,11 @@ export const getResortLanding = async (req: Request, res: Response): Promise<voi
     if (matched) {
       // 스키샵·정비샵도 렌탈과 같은 리조트 FK 기준 (예전엔 텍스트 매칭·지역 근사치)
       [skiShops, repairShops, rentals, lessons, accommodations] = await Promise.all([
-        prisma.skiShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true, phone: true, isPremium: true }, orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], take: 20 }),
-        prisma.repairShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true }, take: 20 }),
-        prisma.rental.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }),
-        prisma.lesson.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }).catch(() => []),
-        prisma.accommodation.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }).catch(() => []),
+        prisma.skiShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true, phone: true, isPremium: true }, orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], take: 100 }),
+        prisma.repairShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true }, take: 100 }),
+        prisma.rental.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 100 }),
+        prisma.lesson.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 100 }).catch(() => []),
+        prisma.accommodation.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 100 }).catch(() => []),
       ]);
     }
 
