@@ -11,20 +11,30 @@ import { pickVertical } from '../utils/vertical';
 
 const router = Router();
 
+// resortId 정리 — 빈 값은 null(시내 매장), 존재하지 않는 id 는 undefined(호출부에서 400)
+async function resolveResortId(v: unknown): Promise<string | null | undefined> {
+  if (v === undefined || v === null || v === '') return null;
+  if (typeof v !== 'string') return undefined;
+  const r = await prisma.skiResort.findUnique({ where: { id: v }, select: { id: true } });
+  return r ? r.id : undefined;
+}
+
 // 승인된 정비샵 목록 (공개)
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { area, vertical } = req.query;
+    const { area, resortId, vertical } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
     const where: any = { approved: true, vertical: verticalSlug };
     if (area) where.area = area as string;
+    // resortId=none → 리조트 없는 시내 매장(필터 '외')
+    if (resortId) where.resortId = resortId === 'none' ? null : String(resortId);
 
     // select 로 공개 필드만 — businessLicense 비공개 유지.
     const shops = await prisma.repairShop.findMany({
       where,
       select: {
-        id: true, name: true, area: true, address: true, description: true, services: true,
+        id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true, services: true,
         phone: true, instagram: true, website: true, naverMap: true, hours: true,
         image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
         user: { select: { id: true, name: true, nickname: true } },
@@ -42,7 +52,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical, claimable } = req.body;
+    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical, claimable } = req.body;
     // 관리자 시딩 — 공개 영업정보만으로 기본 등록, 사업자등록증 없이 즉시 공개 + claimable(사장님 확인 전). 일반 유저의 claimable 은 무시.
     const seeding = req.user!.role === 'admin' && claimable === true;
 
@@ -54,6 +64,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
+    const resortIdClean = await resolveResortId(resortId);
+    if (resortIdClean === undefined) { res.status(400).json({ error: '존재하지 않는 리조트입니다.' }); return; }
     const shop = await prisma.repairShop.create({
       data: {
         name: sanitizeText(name, 100) || name,
@@ -61,6 +73,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         address: sanitizeText(address, 200) || address,
         description: sanitizeText(description, 2000) || description,
         services: sanitizeText(services, 500) || null,
+        resortId: resortIdClean,
         phone: sanitizeText(phone, 40) || null,
         instagram: sanitizeText(instagram, 60) || null,
         website: isHttpUrl(website) ? sanitizeText(website, 300) || null : null,
@@ -120,7 +133,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const shop = await prisma.repairShop.findFirst({
       where: { id: req.params.id, approved: true },
       select: {
-        id: true, name: true, area: true, address: true, description: true, services: true,
+        id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true, services: true,
         phone: true, instagram: true, website: true, naverMap: true, hours: true,
         image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
         user: { select: { id: true, name: true, nickname: true } },
@@ -141,13 +154,18 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
     if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, area, address, description, services, phone, instagram, website, naverMap, hours, image, images } = req.body;
+    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images } = req.body;
     const data: any = {};
     if (name !== undefined) data.name = sanitizeText(name, 100) || name;
     if (area !== undefined) data.area = sanitizeText(area, 40) || area;
     if (address !== undefined) data.address = sanitizeText(address, 200) || address;
     if (description !== undefined) data.description = sanitizeText(description, 2000) || description;
     if (services !== undefined) data.services = services ? (sanitizeText(services, 500) || services) : null;
+    if (resortId !== undefined) {
+      const rid = await resolveResortId(resortId);
+      if (rid === undefined) { res.status(400).json({ error: '존재하지 않는 리조트입니다.' }); return; }
+      data.resortId = rid;
+    }
     if (phone !== undefined) data.phone = phone ? (sanitizeText(phone, 40) || phone) : null;
     if (instagram !== undefined) data.instagram = instagram ? (sanitizeText(instagram, 60) || instagram) : null;
     if (website !== undefined) data.website = isHttpUrl(website) ? (sanitizeText(website, 300) || null) : null;

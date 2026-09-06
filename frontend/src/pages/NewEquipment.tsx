@@ -8,14 +8,14 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
-import { REGION_RESORTS, ALL_RESORTS } from '../utils/regionResorts';
-import HScroll from '../components/HScroll';
+import LocationFilter from '../components/LocationFilter';
+import { shopLocationLabel } from '../utils/location';
 
 interface Shop {
   id: string;
   name: string;
   area: string;
-  resort?: string | null;
+  resort?: { id: string; name: string } | null;
   address: string;
   description: string;
   brands?: string | null;
@@ -30,14 +30,6 @@ interface Shop {
   claimable?: boolean;
 }
 
-const areas = [
-  { id: 'all', name: '전체' },
-  { id: '강원', name: '강원' }, { id: '경기', name: '경기' }, { id: '서울', name: '서울' },
-  { id: '충청', name: '충청' }, { id: '경상', name: '경상' }, { id: '전라', name: '전라' },
-];
-
-
-
 export default function NewEquipment() {
   const vertical = useVertical();
   const [selectedArea, setSelectedArea] = useState('all');
@@ -49,7 +41,7 @@ export default function NewEquipment() {
     setLoading(true);
     const params = new URLSearchParams();
     if (selectedArea !== 'all') params.set('area', selectedArea);
-    if (selectedResort !== 'all') params.set('resort', selectedResort);
+    if (selectedResort !== 'all') params.set('resortId', selectedResort);
     api<Shop[]>(`/ski-shops?${params}`)
       .then(data => setShops(Array.isArray(data) ? data : []))
       .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키·보드샵 목록을 불러오지 못했습니다'); })
@@ -68,31 +60,8 @@ export default function NewEquipment() {
       {/* Ad Banner — 광고 있을 때만 노출 */}
       <CategoryAdBanner category="skishop" />
 
-      {/* 지역 필터 */}
-      <HScroll className="flex gap-2 overflow-x-auto pb-1">
-        {areas.map(a => (
-          <button key={a.id} onClick={() => { setSelectedArea(a.id); setSelectedResort('all'); }}
-            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
-            {a.name}
-          </button>
-        ))}
-      </HScroll>
-
-      {/* 소분류: 리조트 — 선택한 지역 소속만 (리조트 없는 지역은 줄 숨김) */}
-      {(selectedArea === 'all' ? ALL_RESORTS : (REGION_RESORTS[selectedArea] || [])).length > 0 && (
-        <HScroll className="flex gap-2 overflow-x-auto pb-1">
-          <button onClick={() => setSelectedResort('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === 'all' ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
-            전체
-          </button>
-          {(selectedArea === 'all' ? ALL_RESORTS : (REGION_RESORTS[selectedArea] || [])).map(r => (
-            <button key={r} onClick={() => setSelectedResort(r)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedResort === r ? 'bg-sky-100 text-sky-700 border border-sky-300' : 'bg-snow text-gray-500 border border-gray-200'}`}>
-              {r}
-            </button>
-          ))}
-        </HScroll>
-      )}
+      {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
+      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
 
       {/* 목록 */}
       {loading ? (
@@ -129,7 +98,7 @@ export default function NewEquipment() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
-                    {shop.area && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shop.area}</span>}
+                    {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
                   </div>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">

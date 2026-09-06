@@ -6,6 +6,8 @@ import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { ClipboardIcon, CloseIcon } from '../components/Icons';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { REPAIR_SERVICES } from '../utils/repairServices';
+import { resortRegion } from '../utils/resortRegion';
+import { type ResortLite } from '../utils/location';
 
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
@@ -17,12 +19,14 @@ export default function RepairShopRegister() {
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [licensePreview, setLicensePreview] = useState('');
   const [images, setImages] = useState('');
+  const [resorts, setResorts] = useState<ResortLite[]>([]);
   const [form, setForm] = useState({
-    name: '', area: '서울', address: '', description: '',
+    name: '', area: '서울', resortId: '', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
   });
 
   useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
+  useEffect(() => { api<ResortLite[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -44,7 +48,7 @@ export default function RepairShopRegister() {
 
       await api('/repair-shops', {
         method: 'POST',
-        body: { ...form, images: images || null, image: images ? images.split(',')[0] : null, businessLicense: licenseUrls[0] },
+        body: { ...form, resortId: form.resortId || null, images: images || null, image: images ? images.split(',')[0] : null, businessLicense: licenseUrls[0] },
       });
 
       toastSuccess('정비샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
@@ -94,11 +98,20 @@ export default function RepairShopRegister() {
             <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="예: 스키닥터 튜닝샵" required className={inputClass} />
           </div>
 
-          <div>
-            <label className={labelClass}>지역 *</label>
-            <select name="area" value={form.area} onChange={handleChange} className={inputClass}>
-              {areas.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>지역 *</label>
+              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resortId: '' })} className={inputClass}>
+                {areas.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>인근 리조트</label>
+              <select name="resortId" value={form.resortId} onChange={handleChange} className={inputClass}>
+                <option value="">없음 (시내 매장)</option>
+                {resorts.filter(r => resortRegion(r.location) === form.area || r.id === form.resortId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
           </div>
 
           <div>

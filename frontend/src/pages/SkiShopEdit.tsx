@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
-import { REGION_RESORTS } from '../utils/regionResorts';
+import { resortRegion } from '../utils/resortRegion';
+import { type ResortLite } from '../utils/location';
 
 // 소유자 본인이 자기 스키샵 정보를 수정. 사업자등록증은 재업로드 불필요(등록 시 검증 완료).
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
@@ -11,7 +12,7 @@ const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
 interface Shop {
   id: string;
-  name: string; area: string; resort: string | null; address: string; description: string;
+  name: string; area: string; resortId?: string | null; resort?: { id: string; name: string } | null; address: string; description: string;
   brands: string | null; phone: string | null; instagram: string | null;
   website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null;
 }
@@ -22,8 +23,10 @@ export default function SkiShopEdit() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [images, setImages] = useState('');
+  const [resorts, setResorts] = useState<ResortLite[]>([]);
+  useEffect(() => { api<ResortLite[]>('/resorts').then(setResorts).catch(() => {}); }, []);
   const [form, setForm] = useState({
-    name: '', area: '강원', resort: '', address: '', description: '',
+    name: '', area: '강원', resortId: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
   });
 
@@ -39,7 +42,7 @@ export default function SkiShopEdit() {
         }
         if (!s) { navigate('/mypage/shops'); return; }
         setForm({
-          name: s.name || '', area: s.area || '강원', resort: s.resort || '',
+          name: s.name || '', area: s.area || '강원', resortId: s.resortId || s.resort?.id || '',
           address: s.address || '', description: s.description || '', brands: s.brands || '',
           phone: s.phone || '', instagram: s.instagram || '', website: s.website || '',
           naverMap: s.naverMap || '', hours: s.hours || '',
@@ -64,7 +67,7 @@ export default function SkiShopEdit() {
         method: 'PUT',
         body: {
           ...form,
-          resort: form.resort === '기타/없음' ? null : form.resort || null,
+          resortId: form.resortId || null,
           images: images || null,
           image: images ? images.split(',')[0] : null,
         },
@@ -106,15 +109,15 @@ export default function SkiShopEdit() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>지역 *</label>
-              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resort: '' })} className={inputClass}>
+              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resortId: '' })} className={inputClass}>
                 {areas.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelClass}>소속 스키장</label>
-              <select name="resort" value={form.resort} onChange={handleChange} className={inputClass}>
-                <option value="">선택 안 함</option>
-                {[...(REGION_RESORTS[form.area] || []), '기타/없음'].map(r => <option key={r} value={r}>{r}</option>)}
+              <label className={labelClass}>인근 리조트</label>
+              <select name="resortId" value={form.resortId} onChange={handleChange} className={inputClass}>
+                <option value="">없음 (시내 매장)</option>
+                {resorts.filter(r => resortRegion(r.location) === form.area || r.id === form.resortId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
           </div>

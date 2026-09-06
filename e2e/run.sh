@@ -48,7 +48,7 @@ psql -h localhost -p $PGPORT -U "$USER" -d postgres -tAc "SELECT 1 FROM pg_datab
   || psql -h localhost -p $PGPORT -U "$USER" -d postgres -c "CREATE DATABASE snowpan_test OWNER snowtest" >/dev/null
 
 # ── 스키마 동기화 (Prisma 스키마 기준)
-( cd "$REPO/backend" && DATABASE_URL="$PGURL" npx prisma db push --skip-generate >/dev/null 2>&1 ) \
+( cd "$REPO/backend" && DATABASE_URL="$PGURL" npx prisma db push --skip-generate --accept-data-loss >/dev/null 2>&1 ) \
   || { echo "ERROR: prisma db push 실패"; exit 1; }
 
 # ── 광고 슬롯 가격 시드 — 서버 기동 시에도 돌지만, 이미 떠 있는 백엔드를 재사용하는

@@ -244,4 +244,16 @@ UPC=$(curl -s -m 20 -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local
 # ── 404 fallback JSON
 api GET /no-such-route ""; expect 404 "없는 API 경로 404"
 
+# ── 위치 모델: 리조트 연결(resortId) + '외'(none) 필터 — 스키샵·정비샵·렌탈 공통
+api POST /ski-shops "{\"name\":\"리조트스키샵\",\"area\":\"강원\",\"address\":\"강원 평창군 대관령면 올림픽로 1\",\"description\":\"d\",\"businessLicense\":\"/uploads/e2e.jpg\",\"resortId\":\"$YONGPYONG\"}" "$U_TOKEN"
+RS=$(echo "$RESP" | jq -r '.id // empty'); RN=$(echo "$RESP" | jq -r '.resortId'); [ "$CODE" = "201" ] && [ "$RN" = "$YONGPYONG" ] && ok "스키샵 리조트 연결 등록" || bad "스키샵 resortId CODE=$CODE rid=$RN RESP=$(echo $RESP|head -c 100)"
+api POST /ski-shops '{"name":"x","area":"강원","address":"평창","description":"d","businessLicense":"/uploads/e2e.jpg","resortId":"11111111-1111-4111-8111-111111111111"}' "$U_TOKEN"; expect 400 "없는 리조트 id 400"
+pq "UPDATE ski_shops SET approved=true WHERE id='$RS'" >/dev/null
+api GET "/ski-shops?resortId=$YONGPYONG" ""; C1=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$RS\")] | length"); N1=$(echo "$RESP" | jq -r ".[] | select(.id==\"$RS\") | .resort.name"); [ "$C1" = "1" ] && [ -n "$N1" ] && ok "리조트 필터 + resort.name 응답 ($N1)" || bad "리조트 필터 cnt=$C1 name=$N1"
+api GET "/ski-shops?resortId=none" ""; C2=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$RS\")] | length"); [ "$CODE" = "200" ] && [ "$C2" = "0" ] && ok "'외'(none) 필터에 리조트 매장 미포함" || bad "none 필터 CODE=$CODE cnt=$C2"
+api GET "/repair-shops?resortId=none" ""; expect 200 "정비샵 none 필터"
+api GET "/rentals?area=%EA%B0%95%EC%9B%90&resortId=none" ""; expect 200 "렌탈 area+none 필터"
+api POST /repair-shops "{\"name\":\"리조트정비\",\"area\":\"강원\",\"address\":\"평창\",\"description\":\"d\",\"businessLicense\":\"/uploads/e2e.jpg\",\"resortId\":\"$YONGPYONG\"}" "$U_TOKEN"; RR=$(echo "$RESP" | jq -r '.resortId'); [ "$CODE" = "201" ] && [ "$RR" = "$YONGPYONG" ] && ok "정비샵 리조트 연결 등록" || bad "정비샵 resortId CODE=$CODE rid=$RR"
+api GET "/resorts/landing/%EC%9A%A9%ED%8F%89" ""; LS=$(echo "$RESP" | jq -r "[.skiShops[]? | select(.id==\"$RS\")] | length"); [ "$LS" = "1" ] && ok "리조트 랜딩에 연결 스키샵 노출" || bad "랜딩 skiShops cnt=$LS CODE=$CODE"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

@@ -10,11 +10,13 @@ import ShopReportButton from '../components/ShopReportButton';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import ShopReviews from '../components/ShopReviews';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
+import { districtFromAddress } from '../utils/location';
 
 interface Shop {
   id: string;
   name: string;
   area: string;
+  resort?: { id: string; name: string } | null;
   address: string;
   description: string;
   services: string | null;
@@ -104,6 +106,8 @@ export default function RepairShopDetail() {
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded">{shop.area}</span>
+          {shop.resort?.name && <span className="text-[10px] text-gray-500">{shop.resort.name} 인근</span>}
+          {districtFromAddress(shop.address) && <span className="text-[10px] text-gray-500">{districtFromAddress(shop.address)}</span>}
           {shop.isPremium && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">AD</span>}
         </div>
         <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><MaintenanceIcon size={22} /> {shop.name}</h1>

@@ -10,11 +10,14 @@ import { toastError } from '../components/Toast';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 import HScroll from '../components/HScroll';
+import LocationFilter from '../components/LocationFilter';
+import { shopLocationLabel } from '../utils/location';
 
 interface Shop {
   id: string;
   name: string;
   area: string;
+  resort?: { id: string; name: string } | null;
   address: string;
   description: string;
   services?: string | null;
@@ -29,15 +32,10 @@ interface Shop {
   claimable?: boolean;
 }
 
-const areas = [
-  { id: 'all', name: '전체' },
-  { id: '서울', name: '서울' }, { id: '경기', name: '경기' }, { id: '강원', name: '강원' },
-  { id: '충청', name: '충청' }, { id: '경상', name: '경상' }, { id: '전라', name: '전라' },
-];
-
 export default function RepairShop() {
   const vertical = useVertical();
   const [selectedArea, setSelectedArea] = useState('all');
+  const [selectedResort, setSelectedResort] = useState('all');
   const [selectedService, setSelectedService] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,11 +44,12 @@ export default function RepairShop() {
     setLoading(true);
     const params = new URLSearchParams();
     if (selectedArea !== 'all') params.set('area', selectedArea);
+    if (selectedResort !== 'all') params.set('resortId', selectedResort);
     api<Shop[]>(`/repair-shops?${params}`)
       .then(data => setShops(Array.isArray(data) ? data : []))
       .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '정비샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
-  }, [selectedArea]);
+  }, [selectedArea, selectedResort]);
 
   // 서비스 필터는 클라이언트에서 — 목록이 통짜 배열이라 재요청 불필요 (services 는 콤마 텍스트)
   const shownShops = selectedService === 'all' ? shops : shops.filter(sh => {
@@ -71,15 +70,8 @@ export default function RepairShop() {
       {/* Ad Banner — 광고 있을 때만 노출 */}
       <CategoryAdBanner category="repair" />
 
-      {/* 지역 필터 */}
-      <HScroll className="flex gap-2 overflow-x-auto pb-1">
-        {areas.map(a => (
-          <button key={a.id} onClick={() => setSelectedArea(a.id)}
-            className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${selectedArea === a.id ? 'bg-accent text-white' : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'}`}>
-            {a.name}
-          </button>
-        ))}
-      </HScroll>
+      {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
+      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
 
       {/* 서비스 종류 필터 — 부츠피팅 등 원하는 정비만 골라 보기 */}
       <HScroll className="flex gap-1.5 overflow-x-auto pb-1">
@@ -138,7 +130,7 @@ export default function RepairShop() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
-                    {shop.area && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shop.area}</span>}
+                    {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
                   </div>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">

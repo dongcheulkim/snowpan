@@ -28,14 +28,15 @@ def payload(r):
     base = {'name': r['상호'], 'address': r['주소'], 'claimable': True}
     for k, col in (('phone', '전화'), ('instagram', '인스타'), ('website', '홈페이지'), ('naverMap', '네이버링크'), ('hours', '영업시간')):
         if r[col]: base[k] = r[col][:200]
+    # 위치 규칙(세 업종 공통): area = 시/도 칩값, resortId = 인근 리조트 연결(없으면 시내 매장 = 필터 '외')
+    loc = {'area': r['지역']}
+    if r['리조트ID']: loc['resortId'] = r['리조트ID']
     if kind == 'skishop':
-        return '/ski-shops', {**base, 'area': r['지역'], 'resort': r['리조트'] or None, 'description': desc}
+        return '/ski-shops', {**base, **loc, 'description': desc}
     if kind == 'repair':
-        return '/repair-shops', {**base, 'area': r['지역'], 'description': desc}
+        return '/repair-shops', {**base, **loc, 'description': desc}
     if kind == 'rental':
-        p = {**base, 'area': r['리조트'] or r['지역']}
-        if r['리조트ID']: p['resortId'] = r['리조트ID']
-        return '/rentals', p
+        return '/rentals', {**base, **loc}
     raise ValueError(kind)
 
 rows = [r for r in csv.DictReader(open(CSV, encoding='utf-8-sig')) if r['처리'] == '등록' and r['네이버ID'] not in SKIP_DONE]

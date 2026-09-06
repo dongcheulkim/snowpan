@@ -11,12 +11,15 @@ import { sanitizeImages } from '../utils/images';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, limit, offset, vertical } = req.query;
+    const { resortId, area, limit, offset, vertical } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
     const where: any = { approved: true, vertical: verticalSlug };
-    if (resortId) {
+    if (typeof area === 'string' && area) where.area = area;
+    if (resortId === 'none') {
+      where.resortId = null; // 리조트 없는 시내 매장 (필터 '외')
+    } else if (resortId) {
       // 지역(대분류) 선택 시 그 지역 리조트 콤마 목록 → in 필터 (레슨·숙소와 통일)
       const ids = String(resortId).split(',').filter(Boolean);
       where.resortId = ids.length > 1 ? { in: ids } : ids[0];

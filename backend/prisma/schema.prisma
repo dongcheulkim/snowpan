@@ -199,6 +199,8 @@ model SkiResort {
   rentals        Rental[]
   lessons        Lesson[]
   accommodations Accommodation[]
+  skiShops       SkiShop[]
+  repairShops    RepairShop[]
 
   @@map("ski_resorts")
 }
@@ -755,7 +757,8 @@ model SkiShop {
   id              String   @id @default(uuid())
   name            String
   area            String   // '강원' | '경기' | '서울' 등
-  resort          String?  // 소속 스키장
+  resortId        String?  // 인근 리조트 (없으면 시내 매장 = 필터 '외')
+  resort          SkiResort? @relation(fields: [resortId], references: [id])
   address         String
   description     String
   brands          String?  // 콤마 구분 브랜드
@@ -793,6 +796,8 @@ model RepairShop {
   id              String   @id @default(uuid())
   name            String
   area            String
+  resortId        String?  // 인근 리조트 (없으면 시내 매장 = 필터 '외')
+  resort          SkiResort? @relation(fields: [resortId], references: [id])
   address         String
   description     String
   services        String?  // 콤마 구분 (튜닝, 왁싱, 바인딩, 엣지 등)

@@ -13,11 +13,11 @@ const BATCH = 10;
 
 async function processOne(
   type: 'skishop' | 'repair',
-  shop: { id: string; name: string; phone: string | null; address: string; resort?: string | null },
+  shop: { id: string; name: string; phone: string | null; address: string; resort?: { name: string } | null },
   autoApprove: boolean,
 ): Promise<void> {
   // 상호 + (있으면) 리조트명으로 검색 정확도 향상.
-  const query = shop.resort ? `${shop.name} ${shop.resort}` : shop.name;
+  const query = shop.resort?.name ? `${shop.name} ${shop.resort.name}` : shop.name;
   const places = await naverLocalSearch(query);
   const result = matchShopWithNaver(shop, places);
 
@@ -69,14 +69,14 @@ async function verifyPendingShopsInner(): Promise<void> {
   try {
     const skiShops = await prisma.skiShop.findMany({
       where: { approved: false, aiReviewedAt: null },
-      select: { id: true, name: true, phone: true, address: true, resort: true },
+      select: { id: true, name: true, phone: true, address: true, resort: { select: { name: true } } },
       take: BATCH,
     });
     for (const s of skiShops) await processOne('skishop', s, autoApprove);
 
     const repairShops = await prisma.repairShop.findMany({
       where: { approved: false, aiReviewedAt: null },
-      select: { id: true, name: true, phone: true, address: true },
+      select: { id: true, name: true, phone: true, address: true, resort: { select: { name: true } } },
       take: BATCH,
     });
     for (const s of repairShops) await processOne('repair', s, autoApprove);

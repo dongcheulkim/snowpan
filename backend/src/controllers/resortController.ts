@@ -35,31 +35,16 @@ export const getResortLanding = async (req: Request, res: Response): Promise<voi
       return rn === norm || rn.includes(norm) || norm.includes(rn);
     });
 
-    // 스키샵은 free-text resort 필드 — 원본 이름과 매칭되는 것 모두 (정규화 비교).
-    const allSkiShops = await prisma.skiShop.findMany({
-      where: { approved: true },
-      select: { id: true, name: true, area: true, resort: true, address: true, image: true, phone: true, isPremium: true },
-      orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
-    });
-    const skiShops = allSkiShops.filter(s => s.resort && normalizeResort(s.resort) && (
-      normalizeResort(s.resort) === norm || normalizeResort(s.resort).includes(norm) || norm.includes(normalizeResort(s.resort))
-    ));
-
-    let rentals: any[] = [], lessons: any[] = [], accommodations: any[] = [], repairShops: any[] = [];
+    let skiShops: any[] = [], rentals: any[] = [], lessons: any[] = [], accommodations: any[] = [], repairShops: any[] = [];
     if (matched) {
-      [rentals, lessons, accommodations] = await Promise.all([
+      // 스키샵·정비샵도 렌탈과 같은 리조트 FK 기준 (예전엔 텍스트 매칭·지역 근사치)
+      [skiShops, repairShops, rentals, lessons, accommodations] = await Promise.all([
+        prisma.skiShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true, phone: true, isPremium: true }, orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], take: 20 }),
+        prisma.repairShop.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, area: true, address: true, image: true }, take: 20 }),
         prisma.rental.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }),
         prisma.lesson.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }).catch(() => []),
         prisma.accommodation.findMany({ where: { resortId: matched.id, approved: true }, select: { id: true, name: true, price: true, image: true }, take: 20 }).catch(() => []),
       ]);
-      // 정비샵은 리조트 FK 가 없어 지역(area) 기준으로 근처 표시.
-      if (matched.location) {
-        repairShops = await prisma.repairShop.findMany({
-          where: { approved: true, area: { contains: matched.location.slice(0, 2) } },
-          select: { id: true, name: true, area: true, address: true, image: true },
-          take: 20,
-        }).catch(() => []);
-      }
     }
 
     res.json({

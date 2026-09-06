@@ -4,13 +4,15 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { REPAIR_SERVICES } from '../utils/repairServices';
+import { resortRegion } from '../utils/resortRegion';
+import { type ResortLite } from '../utils/location';
 
 // 소유자 본인이 자기 정비샵 정보를 수정. 사업자등록증 재업로드 불필요.
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
 interface Shop {
   id: string;
-  name: string; area: string; address: string; description: string;
+  name: string; area: string; resortId?: string | null; resort?: { id: string; name: string } | null; address: string; description: string;
   services: string | null; phone: string | null; instagram: string | null;
   website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null;
 }
@@ -21,8 +23,10 @@ export default function RepairShopEdit() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [images, setImages] = useState('');
+  const [resorts, setResorts] = useState<ResortLite[]>([]);
+  useEffect(() => { api<ResortLite[]>('/resorts').then(setResorts).catch(() => {}); }, []);
   const [form, setForm] = useState({
-    name: '', area: '서울', address: '', description: '',
+    name: '', area: '서울', resortId: '', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
   });
 
@@ -36,7 +40,7 @@ export default function RepairShopEdit() {
         }
         if (!s) { navigate('/mypage/shops'); return; }
         setForm({
-          name: s.name || '', area: s.area || '서울', address: s.address || '',
+          name: s.name || '', area: s.area || '서울', resortId: s.resortId || s.resort?.id || '', address: s.address || '',
           description: s.description || '', services: s.services || '',
           phone: s.phone || '', instagram: s.instagram || '', website: s.website || '',
           naverMap: s.naverMap || '', hours: s.hours || '',
@@ -59,7 +63,7 @@ export default function RepairShopEdit() {
     try {
       await api(`/repair-shops/${id}`, {
         method: 'PUT',
-        body: { ...form, images: images || null, image: images ? images.split(',')[0] : null },
+        body: { ...form, resortId: form.resortId || null, images: images || null, image: images ? images.split(',')[0] : null },
       });
       toastSuccess('수정되었습니다!');
       navigate('/mypage/shops');
@@ -95,11 +99,20 @@ export default function RepairShopEdit() {
             <input type="text" name="name" value={form.name} onChange={handleChange} required className={inputClass} />
           </div>
 
-          <div>
-            <label className={labelClass}>지역 *</label>
-            <select name="area" value={form.area} onChange={handleChange} className={inputClass}>
-              {areas.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>지역 *</label>
+              <select name="area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value, resortId: '' })} className={inputClass}>
+                {areas.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>인근 리조트</label>
+              <select name="resortId" value={form.resortId} onChange={handleChange} className={inputClass}>
+                <option value="">없음 (시내 매장)</option>
+                {resorts.filter(r => resortRegion(r.location) === form.area || r.id === form.resortId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
           </div>
 
           <div>
