@@ -1,0 +1,483 @@
+<title>스노우판 연락 보드</title>
+<style>
+  :root {
+    --bg: #F4F6F9; --panel: #FFFFFF; --panel-2: #F9FAFC; --ink: #16202B; --muted: #66727F; --line: #DEE3E9; --line-2: #EDF0F4;
+    --accent: #1F6BD8; --accent-ink: #FFFFFF; --accent-soft: #E7F0FD;
+    --ski: #6D4AE0; --ski-soft: #EFEBFC; --rep: #B8620A; --rep-soft: #FDF0E0; --ren: #12875E; --ren-soft: #E3F5EC;
+    --s-none: #8A94A0; --s-absent: #C98A0B; --s-called: #1F6BD8; --s-yes: #12875E; --s-no: #5B6672; --s-del: #D13B3B;
+    --s-none-soft: #EEF1F4; --s-absent-soft: #FBF1DC; --s-called-soft: #E7F0FD; --s-yes-soft: #E3F5EC; --s-no-soft: #E9ECEF; --s-del-soft: #FBE5E5;
+    --shadow: 0 1px 2px rgba(22,32,43,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F141A; --panel: #171D25; --panel-2: #1C232C; --ink: #E8ECF1; --muted: #8B96A3; --line: #2A3441; --line-2: #222B36;
+      --accent: #5B9CF5; --accent-ink: #0B1220; --accent-soft: #17283E;
+      --ski: #A08BF0; --ski-soft: #2A2444; --rep: #E6A052; --rep-soft: #3A2A16; --ren: #4FC79A; --ren-soft: #143427;
+      --s-none: #8A94A0; --s-absent: #E0A93A; --s-called: #5B9CF5; --s-yes: #4FC79A; --s-no: #98A3AF; --s-del: #EF6B6B;
+      --s-none-soft: #232B35; --s-absent-soft: #3A2E14; --s-called-soft: #17283E; --s-yes-soft: #143427; --s-no-soft: #262E38; --s-del-soft: #3E1E1E;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F141A; --panel: #171D25; --panel-2: #1C232C; --ink: #E8ECF1; --muted: #8B96A3; --line: #2A3441; --line-2: #222B36;
+    --accent: #5B9CF5; --accent-ink: #0B1220; --accent-soft: #17283E;
+    --ski: #A08BF0; --ski-soft: #2A2444; --rep: #E6A052; --rep-soft: #3A2A16; --ren: #4FC79A; --ren-soft: #143427;
+    --s-none: #8A94A0; --s-absent: #E0A93A; --s-called: #5B9CF5; --s-yes: #4FC79A; --s-no: #98A3AF; --s-del: #EF6B6B;
+    --s-none-soft: #232B35; --s-absent-soft: #3A2E14; --s-called-soft: #17283E; --s-yes-soft: #143427; --s-no-soft: #262E38; --s-del-soft: #3E1E1E;
+    --shadow: none;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: inherit; }
+  .app { max-width: 780px; margin: 0 auto; padding: 12px 12px 80px; }
+
+  /* ---- header ---- */
+  .top { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 12px; box-shadow: var(--shadow); }
+  .brand { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .brand h1 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+  .brand .sub { color: var(--muted); font-size: 12px; }
+  .sync { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+  .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--s-none); display: inline-block; }
+  .sync.on i { background: var(--s-yes); }
+  .progress { margin-top: 10px; }
+  .progress .track { height: 8px; border-radius: 99px; background: var(--line-2); overflow: hidden; display: flex; }
+  .progress .seg { height: 100%; }
+  .progress .label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .progress .label b { color: var(--ink); }
+
+  .stats { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .stats::-webkit-scrollbar { display: none; }
+  .stat { flex: 0 0 auto; border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 5px 9px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+  .stat i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .stat b { font-weight: 700; }
+  .stat.active { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+  .stat.active i { outline: 1px solid var(--bg); }
+
+  .filters { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .chip.k-skishop.active { background: var(--ski-soft); border-color: var(--ski); color: var(--ski); }
+  .chip.k-repair.active { background: var(--rep-soft); border-color: var(--rep); color: var(--rep); }
+  .chip.k-rental.active { background: var(--ren-soft); border-color: var(--ren); color: var(--ren); }
+  .filters .grow { flex: 1 1 160px; display: flex; gap: 6px; }
+  .filters input[type=search] { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; background: var(--panel-2); font-size: 13px; }
+  .filters select { border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; background: var(--panel-2); font-size: 12px; }
+  .filters input:focus, .filters select:focus, .row select:focus, .row input:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---- script panel ---- */
+  details.script { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  details.script summary { cursor: pointer; padding: 11px 14px; font-weight: 700; font-size: 13px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.script summary::-webkit-details-marker { display: none; }
+  details.script summary::after { content: "펼치기"; font-weight: 500; font-size: 12px; color: var(--muted); }
+  details.script[open] summary::after { content: "접기"; }
+  .script-body { padding: 0 14px 14px; display: grid; gap: 12px; }
+  .script-body h3 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .02em; }
+  .script-body p { margin: 0; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .script-body textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--panel-2); font-size: 13px; line-height: 1.55; resize: vertical; }
+  .script-body .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .script-body .tips { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+
+  /* ---- groups ---- */
+  .groups { margin-top: 12px; display: grid; gap: 8px; }
+  .group { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+  .ghead { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: none; border: 0; text-align: left; cursor: pointer; }
+  .ghead .name { font-weight: 800; font-size: 15px; flex: 1; letter-spacing: -0.01em; }
+  .ghead .name small { font-weight: 500; color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .ghead .meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ghead .meta b { color: var(--ink); }
+  .ghead .mini { width: 64px; height: 6px; border-radius: 99px; background: var(--line-2); overflow: hidden; display: flex; }
+  .ghead .mini span { height: 100%; }
+  .ghead .chev { width: 18px; height: 18px; color: var(--muted); transition: transform .15s; flex: 0 0 auto; }
+  .group.open .ghead .chev { transform: rotate(180deg); }
+  .gbody { display: none; border-top: 1px solid var(--line-2); }
+  .group.open .gbody { display: block; }
+  .empty { padding: 30px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  /* ---- rows ---- */
+  .row { padding: 11px 14px; border-bottom: 1px solid var(--line-2); display: grid; gap: 8px; border-left: 3px solid transparent; }
+  .row:last-child { border-bottom: 0; }
+  .row.st-absent { border-left-color: var(--s-absent); }
+  .row.st-called { border-left-color: var(--s-called); }
+  .row.st-yes { border-left-color: var(--s-yes); }
+  .row.st-no { border-left-color: var(--s-no); }
+  .row.st-del { border-left-color: var(--s-del); }
+  .row.st-del .name { text-decoration: line-through; color: var(--muted); }
+  .row.st-done-owner { border-left-color: var(--s-yes); }
+  .rtitle { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .rtitle .n { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 18px; }
+  .rtitle .name { font-weight: 700; font-size: 14.5px; }
+  .kind { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 6px; letter-spacing: .02em; }
+  .kind.skishop { background: var(--ski-soft); color: var(--ski); }
+  .kind.repair { background: var(--rep-soft); color: var(--rep); }
+  .kind.rental { background: var(--ren-soft); color: var(--ren); }
+  .kind.extra { background: transparent; border: 1px dashed var(--line); color: var(--muted); font-weight: 600; }
+  .rev { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rev.hot { color: var(--rep); font-weight: 700; }
+  .owner { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: var(--s-yes-soft); color: var(--s-yes); }
+  .rsub { font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .rsub span + span::before { content: " · "; }
+  .racts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 9px; padding: 6px 10px; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .btn.call { background: var(--ink); color: var(--bg); border-color: var(--ink); font-variant-numeric: tabular-nums; }
+  .btn.nophone { opacity: .55; cursor: default; }
+  .btn svg { width: 13px; height: 13px; }
+  .rstate { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .rstate select { border: 1px solid var(--line); border-radius: 9px; padding: 6px 8px; font-size: 12px; font-weight: 700; background: var(--s-none-soft); color: var(--s-none); }
+  .rstate select.absent { background: var(--s-absent-soft); color: var(--s-absent); border-color: transparent; }
+  .rstate select.called { background: var(--s-called-soft); color: var(--s-called); border-color: transparent; }
+  .rstate select.yes { background: var(--s-yes-soft); color: var(--s-yes); border-color: transparent; }
+  .rstate select.no { background: var(--s-no-soft); color: var(--s-no); border-color: transparent; }
+  .rstate select.del { background: var(--s-del-soft); color: var(--s-del); border-color: transparent; }
+  .rstate input { flex: 1 1 140px; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 6px 9px; font-size: 12px; background: var(--panel); }
+  .rstate .when { font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* ---- modal / toast ---- */
+  .modal { position: fixed; inset: 0; background: rgba(10,14,20,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 20; padding: 12px; }
+  .modal[hidden] { display: none !important; }
+  .sheet { background: var(--panel); border-radius: 16px; width: 100%; max-width: 560px; padding: 16px; display: grid; gap: 10px; }
+  .sheet h3 { margin: 0; font-size: 14px; }
+  .sheet textarea { width: 100%; min-height: 140px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 13px; background: var(--panel-2); }
+  .sheet .acts { display: flex; gap: 6px; justify-content: flex-end; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 10px; font-size: 13px; z-index: 30; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .totop { position: fixed; right: 14px; bottom: 18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.12); cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 10; }
+  .totop.show { display: flex; }
+  @media (min-width: 640px) {
+    .row { grid-template-columns: 1fr auto; grid-template-areas: "title acts" "sub acts" "state state"; align-items: start; }
+    .rtitle { grid-area: title; } .rsub { grid-area: sub; } .racts { grid-area: acts; justify-content: flex-end; } .rstate { grid-area: state; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ghead .chev, .toast { transition: none; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>스노우판 매장 연락 보드</h1>
+      <span class="sync" id="sync"><i></i><span>이 기기에만 저장</span></span>
+    </div>
+    <div class="progress">
+      <div class="track" id="ptrack"></div>
+      <div class="label"><span>처리한 매장 <b id="pdone">0</b> / <b id="ptotal">0</b></span><span id="pleft"></span></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="filters">
+      <button class="chip k-all active" data-kind="all">전체</button>
+      <button class="chip k-skishop" data-kind="skishop">스키·보드샵</button>
+      <button class="chip k-repair" data-kind="repair">정비샵</button>
+      <button class="chip k-rental" data-kind="rental">렌탈샵</button>
+      <div class="grow">
+        <input type="search" id="q" placeholder="상호·주소·전화 검색" autocomplete="off">
+        <select id="sort" aria-label="정렬">
+          <option value="rev">리뷰 많은 순</option>
+          <option value="revasc">리뷰 적은 순</option>
+          <option value="name">가나다순</option>
+          <option value="recent">최근 변경순</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <details class="script" id="scriptPanel">
+    <summary>통화 스크립트 · 문자 템플릿</summary>
+    <div class="script-body">
+      <div>
+        <h3>30초 통화 (전화 받았을 때)</h3>
+        <p>안녕하세요, 스키·보드 앱 '스노우판'입니다. 스키어들이 리조트별로 근처 렌탈샵·정비샵·스키샵을 찾는 앱인데요, 사장님 매장이 지금 [리조트] 목록에 기본 정보만 올라가 있어요.
+사진이랑 매장 소식을 무료로 직접 올리실 수 있게 관리 링크를 문자로 보내드려도 될까요? 사업자등록증 한 장만 올리시면 되고 1~2분이면 끝납니다.</p>
+      </div>
+      <div>
+        <h3>문자 템플릿 (매장별 '문자 복사'를 누르면 상호·링크가 자동으로 들어갑니다)</h3>
+        <textarea id="smsTpl" spellcheck="false"></textarea>
+        <div class="hint">쓸 수 있는 자리표시자: {상호} {링크} {리조트}. 고친 내용은 자동 저장됩니다.</div>
+      </div>
+      <div>
+        <h3>순서 제안</h3>
+        <ul class="tips">
+          <li>리조트 한 곳씩 끝내기. 곤지암 → 지산 → 비발디 → 휘닉스 → 용평·알펜시아 → 하이원 → 무주 순으로, 리뷰 많은 매장부터.</li>
+          <li>부재중이면 바로 문자만 보내고 '부재중'으로 표시. 이틀 뒤 한 번만 다시 걸기.</li>
+          <li>내려 달라는 매장은 '삭제 요청'으로 표시. 모아서 한 번에 처리합니다.</li>
+          <li>이미 문 닫은 매장도 '삭제 요청'. 상호·전화가 다르면 메모에 적어 두기.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <main class="groups" id="groups"></main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+    <h3 id="mtitle">문자 내용</h3>
+    <textarea id="mtext" readonly></textarea>
+    <div class="acts">
+      <button class="btn" id="mselect">전체 선택</button>
+      <button class="btn primary" id="mclose">닫기</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<button class="totop" id="totop" aria-label="맨 위로"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+
+<script>
+const DATA = __DATA__;
+const GROUPS = __GROUPS__;
+const SITE = 'https://snowpan.kr';
+const KIND_PATH = { skishop: '/skishop', repair: '/repair', rental: '/rental' };
+const KIND_LABEL = { skishop: '판매', repair: '정비', rental: '렌탈' };
+const KIND_FULL = { skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵' };
+const STATUS = [
+  { v: 'none', label: '미연락', color: 'var(--s-none)' },
+  { v: 'absent', label: '부재중', color: 'var(--s-absent)' },
+  { v: 'called', label: '통화 완료', color: 'var(--s-called)' },
+  { v: 'yes', label: '등록하기로 함', color: 'var(--s-yes)' },
+  { v: 'no', label: '거절', color: 'var(--s-no)' },
+  { v: 'del', label: '삭제 요청', color: 'var(--s-del)' },
+];
+const DEFAULT_SMS = `[스노우판] 안녕하세요, {상호} 사장님. 스키어들이 리조트 근처 매장을 찾는 앱 '스노우판'에 매장 기본 정보가 올라가 있습니다.
+아래 매장 페이지에서 '직접 관리하기'를 누르고 사업자등록증만 올리시면 사진·소식을 무료로 직접 관리하실 수 있어요.
+매장 페이지: {링크}
+입점 안내: https://snowpan.kr/partners
+문의 070-8027-4757 (스노우판)`;
+
+const LS_KEY = 'snowpan-outreach-v1';
+const LS_UI = 'snowpan-outreach-ui';
+let state = {};          // id -> { status, memo, updatedAt }
+let tpl = { sms: DEFAULT_SMS };
+let db = null;
+let ui = { kind: 'all', status: 'all', q: '', sort: 'rev', open: {} };
+try { const u = JSON.parse(localStorage.getItem(LS_UI) || 'null'); if (u && typeof u === 'object') ui = Object.assign(ui, u, { q: '' }); } catch {}
+try { const s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (s && typeof s === 'object') { state = s.state || {}; if (s.tpl && s.tpl.sms) tpl = s.tpl; } } catch {}
+
+const byId = new Map(DATA.map((d) => [d.id, d]));
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shortAddr = (a) => a.replace(/^(강원특별자치도|전북특별자치도|경기도|서울특별시|충청북도|충청남도|경상남도|경상북도|전라남도|부산광역시|대구광역시|인천광역시|울산광역시|강원도)\s+/, '');
+const shortHours = (h) => { if (!h) return ''; const first = h.split(/,\s*/)[0]; return first.length > 24 ? first.slice(0, 24) + '…' : first; };
+const shopUrl = (d) => SITE + KIND_PATH[d.kind] + '/' + d.id;
+const fmtWhen = (iso) => { if (!iso) return ''; const dt = new Date(iso); if (isNaN(dt)) return ''; return (dt.getMonth() + 1) + '/' + dt.getDate(); };
+const statusOf = (d) => (d.owner ? 'owner' : (state[d.id]?.status || 'none'));
+const contacted = (d) => { const s = statusOf(d); return s !== 'none'; };
+
+function persistLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify({ state, tpl })); } catch {} }
+function persistUi() { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch {} }
+
+async function save(id, patch) {
+  const d = byId.get(id); if (!d) return;
+  const next = Object.assign({}, state[id] || {}, patch, { updatedAt: new Date().toISOString(), name: d.name, kind: d.kind });
+  state[id] = next; persistLocal(); refreshRow(id); refreshStats();
+  if (db) {
+    try { await db.doc('shops/' + id).set(next); }
+    catch (e) { toast('저장 실패: ' + (e && e.message ? e.message : '다시 시도해 주세요')); }
+  }
+}
+async function saveTpl() {
+  persistLocal();
+  if (db) { try { await db.doc('settings/templates').set({ sms: tpl.sms, updatedAt: new Date().toISOString() }); } catch {} }
+}
+
+/* ---------- rendering ---------- */
+function visible() {
+  const q = ui.q.trim().replace(/-/g, '');
+  return DATA.filter((d) => {
+    if (ui.kind !== 'all' && d.kind !== ui.kind) return false;
+    if (ui.status !== 'all') {
+      const s = statusOf(d);
+      if (ui.status === 'owner' ? s !== 'owner' : s !== ui.status) return false;
+    }
+    if (q) {
+      const hay = (d.name + ' ' + d.address + ' ' + d.phone.replace(/-/g, '') + ' ' + d.resort).toLowerCase();
+      if (!hay.includes(q.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+function sorted(rows) {
+  const s = ui.sort;
+  return rows.slice().sort((a, b) => {
+    if (s === 'name') return a.name.localeCompare(b.name, 'ko');
+    if (s === 'revasc') return a.reviews - b.reviews || a.name.localeCompare(b.name, 'ko');
+    if (s === 'recent') return (state[b.id]?.updatedAt || '').localeCompare(state[a.id]?.updatedAt || '') || b.reviews - a.reviews;
+    return b.reviews - a.reviews || a.name.localeCompare(b.name, 'ko');
+  });
+}
+function statusSelect(d) {
+  const cur = state[d.id]?.status || 'none';
+  return `<select class="${esc(cur)}" data-act="status" aria-label="상태">${STATUS.map((s) => `<option value="${s.v}"${s.v === cur ? ' selected' : ''}>${s.label}</option>`).join('')}</select>`;
+}
+function rowHtml(d, n) {
+  const st = statusOf(d);
+  const extra = (d.extraKinds || '').split(',').filter((k) => k && k !== d.kind && KIND_LABEL[k]);
+  const phone = d.phone;
+  const memo = state[d.id]?.memo || '';
+  const when = fmtWhen(state[d.id]?.updatedAt);
+  return `<div class="row st-${st === 'owner' ? 'done-owner' : st}" data-id="${d.id}">
+    <div class="rtitle">
+      <span class="n">${n}</span>
+      <span class="kind ${d.kind}">${KIND_LABEL[d.kind]}</span>
+      <span class="name">${esc(d.name)}</span>
+      ${extra.map((k) => `<span class="kind extra">+${KIND_LABEL[k]}</span>`).join('')}
+      <span class="rev${d.reviews >= 100 ? ' hot' : ''}">리뷰 ${d.reviews}</span>
+      ${d.owner ? '<span class="owner">사장님 등록 완료</span>' : ''}
+    </div>
+    <div class="rsub">${d.address ? `<span>${esc(shortAddr(d.address))}</span>` : ''}${d.hours ? `<span>${esc(shortHours(d.hours))}</span>` : ''}${!d.resort && d.area ? `<span>${esc(d.area)}</span>` : ''}</div>
+    <div class="racts">
+      ${phone ? `<a class="btn call" href="tel:${esc(phone.replace(/[^0-9+]/g, ''))}">${icon('phone')}${esc(phone)}</a>` : `<span class="btn nophone">전화번호 없음</span>`}
+      ${d.naver ? `<a class="btn" href="${esc(d.naver)}" target="_blank" rel="noopener">네이버</a>` : ''}
+      <a class="btn" href="${esc(shopUrl(d))}" target="_blank" rel="noopener">스노우판</a>
+      ${d.owner ? '' : `<button class="btn" data-act="sms">${icon('msg')}문자 복사</button>`}
+    </div>
+    ${d.owner ? '' : `<div class="rstate">${statusSelect(d)}<input data-act="memo" value="${esc(memo)}" placeholder="메모 (예: 9/8 다시 전화, 사진 받음)"><span class="when">${when}</span></div>`}
+  </div>`;
+}
+function icon(n) {
+  if (n === 'phone') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.6a2 2 0 0 1-.5 2.1L8.1 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2z"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+}
+function groupProgress(rows) {
+  const counts = {}; rows.forEach((d) => { const s = statusOf(d); counts[s] = (counts[s] || 0) + 1; });
+  const total = rows.length; if (!total) return '';
+  const order = ['yes', 'owner', 'called', 'absent', 'no', 'del'];
+  const col = { yes: 'var(--s-yes)', owner: 'var(--s-yes)', called: 'var(--s-called)', absent: 'var(--s-absent)', no: 'var(--s-no)', del: 'var(--s-del)' };
+  return order.filter((k) => counts[k]).map((k) => `<span style="width:${(counts[k] / total * 100).toFixed(1)}%;background:${col[k]}"></span>`).join('');
+}
+function render() {
+  const rows = visible();
+  const filtering = ui.kind !== 'all' || ui.status !== 'all' || ui.q.trim();
+  const groupsEl = $('#groups');
+  const parts = [];
+  for (const g of GROUPS) {
+    const mine = sorted(rows.filter((d) => g.ids.includes(d.resortId || '')));
+    if (!mine.length) { if (filtering) continue; }
+    const done = mine.filter(contacted).length;
+    const open = filtering ? true : !!ui.open[g.key];
+    parts.push(`<section class="group${open ? ' open' : ''}" data-g="${esc(g.key)}">
+      <button class="ghead" aria-expanded="${open}">
+        <span class="name">${esc(g.name)}<small>${g.hint ? esc(g.hint) : ''}</small></span>
+        <span class="mini">${groupProgress(mine)}</span>
+        <span class="meta"><b>${done}</b>/${mine.length}</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="gbody">${mine.length ? mine.map((d, i) => rowHtml(d, i + 1)).join('') : '<div class="empty">해당하는 매장이 없습니다</div>'}</div>
+    </section>`);
+  }
+  groupsEl.innerHTML = parts.length ? parts.join('') : '<div class="empty">조건에 맞는 매장이 없습니다</div>';
+  refreshStats();
+}
+function refreshRow(id) {
+  const d = byId.get(id); const el = document.querySelector(`.row[data-id="${id}"]`); if (!d || !el) return;
+  const st = statusOf(d);
+  el.className = 'row st-' + (st === 'owner' ? 'done-owner' : st);
+  const sel = el.querySelector('select[data-act="status"]'); if (sel) { const v = state[id]?.status || 'none'; if (sel.value !== v) sel.value = v; sel.className = v; }
+  const memo = el.querySelector('input[data-act="memo"]'); if (memo && document.activeElement !== memo) { const m = state[id]?.memo || ''; if (memo.value !== m) memo.value = m; }
+  const when = el.querySelector('.when'); if (when) when.textContent = fmtWhen(state[id]?.updatedAt);
+  // group header progress
+  const g = el.closest('.group'); if (g) {
+    const key = g.dataset.g; const grp = GROUPS.find((x) => x.key === key); if (!grp) return;
+    const mine = visible().filter((x) => grp.ids.includes(x.resortId || ''));
+    g.querySelector('.mini').innerHTML = groupProgress(mine);
+    g.querySelector('.meta').innerHTML = `<b>${mine.filter(contacted).length}</b>/${mine.length}`;
+  }
+}
+function refreshStats() {
+  const scope = DATA.filter((d) => ui.kind === 'all' || d.kind === ui.kind);
+  const counts = { all: scope.length, owner: 0 }; STATUS.forEach((s) => counts[s.v] = 0);
+  scope.forEach((d) => { counts[statusOf(d)]++; });
+  const done = scope.length - counts.none;
+  $('#pdone').textContent = done; $('#ptotal').textContent = scope.length;
+  $('#pleft').textContent = counts.none ? `미연락 ${counts.none}곳` : '전부 연락했습니다';
+  $('#ptrack').innerHTML = groupProgress(scope);
+  const chips = [{ v: 'all', label: '전체', color: 'transparent' }, ...STATUS, { v: 'owner', label: '사장님 등록', color: 'var(--s-yes)' }]
+    .filter((s) => s.v === 'all' || s.v === 'none' || counts[s.v] > 0 || s.v === ui.status)
+    .map((s) => `<button class="stat${ui.status === s.v ? ' active' : ''}" data-status="${s.v}">${s.v === 'all' ? '' : `<i style="background:${s.color}"></i>`}${s.label} <b>${counts[s.v]}</b></button>`);
+  $('#stats').innerHTML = chips.join('');
+}
+
+/* ---------- SMS ---------- */
+function smsFor(d) {
+  return (tpl.sms || DEFAULT_SMS).replace(/\{상호\}/g, d.name).replace(/\{링크\}/g, shopUrl(d)).replace(/\{리조트\}/g, d.resort || '리조트');
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { return false; }
+}
+function showModal(text) { $('#mtext').value = text; $('#modal').hidden = false; $('#mtext').focus(); $('#mtext').select(); }
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+
+/* ---------- events ---------- */
+document.addEventListener('click', async (e) => {
+  const kindBtn = e.target.closest('.chip[data-kind]');
+  if (kindBtn) { ui.kind = kindBtn.dataset.kind; document.querySelectorAll('.chip[data-kind]').forEach((c) => c.classList.toggle('active', c === kindBtn)); persistUi(); render(); return; }
+  const statBtn = e.target.closest('.stat[data-status]');
+  if (statBtn) { ui.status = ui.status === statBtn.dataset.status ? 'all' : statBtn.dataset.status; persistUi(); render(); return; }
+  const head = e.target.closest('.ghead');
+  if (head) { const g = head.closest('.group'); const key = g.dataset.g; const open = !g.classList.contains('open'); g.classList.toggle('open', open); head.setAttribute('aria-expanded', open); ui.open[key] = open; persistUi(); return; }
+  const sms = e.target.closest('button[data-act="sms"]');
+  if (sms) {
+    const id = sms.closest('.row').dataset.id; const d = byId.get(id); const text = smsFor(d);
+    if (await copyText(text)) toast('문자 내용을 복사했습니다'); else showModal(text);
+    return;
+  }
+  if (e.target.closest('#mclose') || (e.target.id === 'modal')) { $('#modal').hidden = true; return; }
+  if (e.target.closest('#mselect')) { $('#mtext').focus(); $('#mtext').select(); return; }
+  if (e.target.closest('#totop')) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+});
+document.addEventListener('change', (e) => {
+  const sel = e.target.closest('select[data-act="status"]');
+  if (sel) { const id = sel.closest('.row').dataset.id; save(id, { status: sel.value }); return; }
+  const memo = e.target.closest('input[data-act="memo"]');
+  if (memo) { const id = memo.closest('.row').dataset.id; save(id, { memo: memo.value.trim() }); return; }
+  if (e.target.id === 'sort') { ui.sort = e.target.value; persistUi(); render(); return; }
+  if (e.target.id === 'smsTpl') { tpl.sms = e.target.value; saveTpl(); toast('문자 템플릿을 저장했습니다'); return; }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.matches('input[data-act="memo"]')) { e.target.blur(); }
+  if (e.key === 'Escape' && !$('#modal').hidden) { $('#modal').hidden = true; }
+});
+let qTimer;
+$('#q').addEventListener('input', (e) => { clearTimeout(qTimer); qTimer = setTimeout(() => { ui.q = e.target.value; render(); }, 120); });
+window.addEventListener('scroll', () => { $('#totop').classList.toggle('show', window.scrollY > 600); }, { passive: true });
+
+/* ---------- init ---------- */
+$('#sort').value = ui.sort;
+document.querySelectorAll('.chip[data-kind]').forEach((c) => c.classList.toggle('active', c.dataset.kind === ui.kind));
+$('#smsTpl').value = tpl.sms;
+render();
+
+(async () => {
+  try {
+    db = await window.claude.use('db');
+  } catch { db = null; }
+  if (!db) return;
+  const syncEl = $('#sync');
+  let first = true;
+  db.collection('shops').onSnapshot((snap) => {
+    if (first) {
+      first = false;
+      syncEl.classList.add('on'); syncEl.lastElementChild.textContent = '어디서 열어도 같은 상태로 저장';
+      if (snap.empty && Object.keys(state).length) {
+        // 이 기기에만 있던 기록을 한 번 올려 둔다
+        const entries = Object.entries(state);
+        (async () => { for (const [id, v] of entries) { if (!byId.has(id)) continue; try { await db.doc('shops/' + id).set(v); } catch {} } })();
+      }
+    }
+    for (const ch of snap.docChanges()) {
+      const id = ch.doc.id;
+      if (ch.type === 'removed') { delete state[id]; refreshRow(id); continue; }
+      const data = ch.doc.data(); if (!data || typeof data !== 'object') continue;
+      const local = state[id];
+      if (!local || (data.updatedAt || '') >= (local.updatedAt || '')) { state[id] = { status: data.status, memo: data.memo || '', updatedAt: data.updatedAt || '' }; refreshRow(id); }
+    }
+    persistLocal(); refreshStats();
+  }, (err) => { syncEl.classList.remove('on'); syncEl.lastElementChild.textContent = '동기화 끊김 · 이 기기에만 저장 (' + (err && err.code ? err.code : 'unavailable') + ')'; });
+  db.doc('settings/templates').onSnapshot((snap) => {
+    const data = snap.exists ? snap.data() : null;
+    if (data && typeof data.sms === 'string' && data.sms.trim()) { tpl.sms = data.sms; const ta = $('#smsTpl'); if (document.activeElement !== ta) ta.value = tpl.sms; persistLocal(); }
+    else if (tpl.sms && tpl.sms !== DEFAULT_SMS) { saveTpl(); }
+  }, () => {});
+})();
+</script>
