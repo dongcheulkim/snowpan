@@ -105,14 +105,20 @@ export default function Partners() {
         ))}
       </section>
 
+      {/* 문의는 전화 대신 관리자 1:1 채팅(고객센터)으로 — 사용자 결정 */}
       <section className="card p-5 text-center">
-        <p className="text-sm font-bold text-gray-900">궁금한 점이 있으면 연락 주세요</p>
+        <p className="text-sm font-bold text-gray-900">궁금한 점이 있으면 채팅으로 물어보세요</p>
         <p className="text-xs text-gray-500 mt-1">
-          이메일 <a href="mailto:info@snowpan.kr" className="text-sky-600 underline">info@snowpan.kr</a> · 전화 <a href="tel:070-8027-4757" className="text-sky-600 underline">070-8027-4757</a>
+          고객센터에서 관리자와 1:1 채팅으로 바로 답해 드립니다. 이메일 <a href="mailto:info@snowpan.kr" className="text-sky-600 underline">info@snowpan.kr</a>도 됩니다.
         </p>
-        <Link to="/mypage/shops" className="inline-block mt-3 px-5 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors">
-          사장님 대시보드로 가기
-        </Link>
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <Link to="/mypage/support" className="py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold text-center hover:bg-gray-50 transition-colors">
+            관리자 채팅 문의
+          </Link>
+          <Link to="/mypage/shops" className="py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">
+            사장님 대시보드
+          </Link>
+        </div>
       </section>
     </div>
   );
