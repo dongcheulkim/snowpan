@@ -8,6 +8,9 @@ import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
+import { useMyLocation } from '../hooks/useMyLocation';
+import { distanceKm, formatDistance } from '../utils/geo';
+
 
 interface RentalData {
   id: string;
@@ -27,6 +30,8 @@ interface RentalData {
   resort?: { id: string; name: string; location?: string } | null;
   user?: { id?: string; name: string; nickname?: string | null };
   claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
+  lat?: number | null;
+  lng?: number | null;
 }
 
 const RentalDetail = () => {
@@ -35,6 +40,7 @@ const RentalDetail = () => {
   const [item, setItem] = useState<RentalData | null>(null);
   const [loading, setLoading] = useState(true);
   const user = getUser();
+  const my = useMyLocation();
 
   useEffect(() => {
     if (!id) return;
@@ -66,6 +72,7 @@ const RentalDetail = () => {
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
           {item.area && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.area}</span>}
+          {my.coords && item.lat != null && item.lng != null && <span className="text-[10px] font-bold text-emerald-700">내 위치에서 {formatDistance(distanceKm(my.coords, { lat: item.lat, lng: item.lng }))}</span>}
         </div>
         {item.resort?.name && <p className="text-xs text-gray-500">{item.resort.name} 인근</p>}
         <div className="mt-3 space-y-1.5">

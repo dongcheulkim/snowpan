@@ -27,6 +27,7 @@ import {
   rejectAdRequest,
 } from '../controllers/adminController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { geocodeBackfill } from '../controllers/geocodeController';
 import { isFcmConfigured, sendPushToUser } from '../utils/push';
 import prisma from '../config/database';
 
@@ -93,5 +94,8 @@ router.delete('/banners/:id', deleteBanner);
 router.get('/ad-requests', getAdRequests);
 router.put('/ad-requests/:id/approve', approveAdRequest);
 router.put('/ad-requests/:id/reject', rejectAdRequest);
+
+// 좌표 일괄 변환 — lat 없는 매장(스키샵·정비샵·렌탈) 주소를 카카오 로컬 API 로 지오코딩
+router.post('/geocode-backfill', geocodeBackfill);
 
 export default router;

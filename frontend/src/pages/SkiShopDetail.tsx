@@ -10,6 +10,9 @@ import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
+import { useMyLocation } from '../hooks/useMyLocation';
+import { distanceKm, formatDistance } from '../utils/geo';
+
 
 interface Shop {
   id: string;
@@ -28,12 +31,15 @@ interface Shop {
   image: string | null;
   isPremium?: boolean;
   claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
+  lat?: number | null;
+  lng?: number | null;
   user: { id: string; name: string; nickname?: string | null };
 }
 
 export default function SkiShopDetail() {
   const { id } = useParams();
   const me = getUser();
+  const my = useMyLocation();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -107,6 +113,7 @@ export default function SkiShopDetail() {
           <span className="text-[10px] font-bold px-2 py-0.5 bg-sky-50 text-sky-600 rounded">{shop.area}</span>
           {shop.resort?.name && <span className="text-[10px] text-gray-500">{shop.resort.name} 인근</span>}
           {districtFromAddress(shop.address) && <span className="text-[10px] text-gray-500">{districtFromAddress(shop.address)}</span>}
+          {my.coords && shop.lat != null && shop.lng != null && <span className="text-[10px] font-bold text-emerald-700">내 위치에서 {formatDistance(distanceKm(my.coords, { lat: shop.lat, lng: shop.lng }))}</span>}
           {shop.isPremium && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">AD</span>}
         </div>
         <h1 className="text-xl font-bold text-gray-900">{shop.name}</h1>

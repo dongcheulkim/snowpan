@@ -8,6 +8,7 @@ import { pickVertical } from '../utils/vertical';
 import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
+import { geocodeAndStore } from '../utils/geocode';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -91,6 +92,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
       include: { resort: true, user: { select: { name: true } } },
     });
 
+    geocodeAndStore('rental', rental.id, rental.address).catch(() => {}); // 좌표는 비동기로 채움
     if (seeding) { res.status(201).json({ ...rental, message: '시딩 매장이 등록되었습니다 (사장님 확인 전 상태로 즉시 공개).' }); return; }
     await notifyAdmins('system', '새 렌탈샵 등록', `"${rental.name}" 렌탈샵이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({ ...rental, message: '렌탈샵 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.' });
@@ -162,6 +164,7 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (ownerEdit) data.approved = false;
     const updated = await prisma.rental.update({ where: { id }, data });
     if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (b.address !== undefined) geocodeAndStore('rental', id, typeof data.address === 'string' ? data.address : null).catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
 };

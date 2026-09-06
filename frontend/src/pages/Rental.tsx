@@ -11,6 +11,9 @@ import { RentalIcon } from '../components/CategoryIcons';
 import { RowListSkeleton } from '../components/Skeleton';
 import LocationFilter from '../components/LocationFilter';
 import { shopLocationLabel } from '../utils/location';
+import { useMyLocation } from '../hooks/useMyLocation';
+import NearMeButton from '../components/NearMeButton';
+import { withDistance, formatDistance } from '../utils/geo';
 
 interface RentalItem {
   isPremium?: boolean;
@@ -23,6 +26,8 @@ interface RentalItem {
   image?: string | null;
   images?: string | null;
   resort?: { id: string; name: string } | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 const PAGE_SIZE = 12;
@@ -36,6 +41,7 @@ const Rental = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const my = useMyLocation();
   // 필터 변경 시 페이지 리셋
   useEffect(() => { setPage(1); }, [selectedResort, selectedRegion]);
 
@@ -65,6 +71,7 @@ const Rental = () => {
   }, [selectedResort, selectedRegion, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const shown = withDistance(rentalItems, my.coords);
 
   return (
     <div className="space-y-5">
@@ -76,13 +83,14 @@ const Rental = () => {
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (스키·보드샵·정비샵과 공통) */}
       <LocationFilter region={selectedRegion} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedRegion(rg); setSelectedResort(rs); }} />
+      <NearMeButton my={my} note={totalPages > 1 ? '현재 페이지 안에서 가까운 순' : undefined} />
 
       {/* Rental Items */}
       {loading ? (
         <RowListSkeleton count={5} />
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {rentalItems.map((item) => {
+          {shown.map((item) => {
             const cover = (item.images || item.image || '').split(',')[0]?.trim();
             return (
             <Link to={`/rental/${item.id}`} key={item.id} className="card p-4 block card-hover">
@@ -98,6 +106,7 @@ const Rental = () => {
                     <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
                     <UnverifiedShopBadge claimable={item.claimable} compact />
                     {shopLocationLabel(item) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(item)}</span>}
+                    {item.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(item.distanceKm)}</span>}
                   </div>
                   {item.phone && (
                     <a href={`tel:${item.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">

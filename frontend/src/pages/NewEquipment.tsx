@@ -10,6 +10,9 @@ import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 import LocationFilter from '../components/LocationFilter';
 import { shopLocationLabel } from '../utils/location';
+import { useMyLocation } from '../hooks/useMyLocation';
+import NearMeButton from '../components/NearMeButton';
+import { withDistance, formatDistance } from '../utils/geo';
 
 interface Shop {
   id: string;
@@ -28,6 +31,8 @@ interface Shop {
   images?: string | null;
   isPremium?: boolean;
   claimable?: boolean;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export default function NewEquipment() {
@@ -36,6 +41,7 @@ export default function NewEquipment() {
   const [selectedResort, setSelectedResort] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const my = useMyLocation();
 
   useEffect(() => {
     setLoading(true);
@@ -47,6 +53,8 @@ export default function NewEquipment() {
       .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키·보드샵 목록을 불러오지 못했습니다'); })
       .finally(() => setLoading(false));
   }, [selectedArea, selectedResort]);
+
+  const shown = withDistance(shops, my.coords);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -62,6 +70,7 @@ export default function NewEquipment() {
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
       <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
+      <NearMeButton my={my} />
 
       {/* 목록 */}
       {loading ? (
@@ -81,7 +90,7 @@ export default function NewEquipment() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
-          {shops.map((shop) => {
+          {shown.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
             <Link to={`/skishop/${shop.id}`} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
@@ -99,6 +108,7 @@ export default function NewEquipment() {
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
                     {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
+                    {shop.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(shop.distanceKm)}</span>}
                   </div>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">

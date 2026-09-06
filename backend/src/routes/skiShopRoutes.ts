@@ -8,6 +8,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
+import { geocodeAndStore } from '../utils/geocode';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true,
         brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
       orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
@@ -86,6 +87,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       },
     });
 
+    geocodeAndStore('skishop', shop.id, shop.address).catch(() => {}); // 좌표는 비동기로 채움 (응답 지연 없음)
     if (seeding) { res.status(201).json({ ...shop, message: '시딩 매장이 등록되었습니다 (사장님 확인 전 상태로 즉시 공개).' }); return; }
     await notifyAdmins('system', '새 스키샵 등록 신청', `"${name}" 스키샵이 등록 신청되었습니다.`, '/admin-approval');
     res.status(201).json({ ...shop, message: '스키샵 등록이 완료되었습니다. 관리자 승인 후 게시됩니다.' });
@@ -145,7 +147,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true,
         brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
     });
@@ -190,6 +192,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (ownerEdit) data.approved = false;
 
     const updated = await prisma.skiShop.update({ where: { id: req.params.id }, data });
+    if (address !== undefined) geocodeAndStore('skishop', updated.id, updated.address).catch(() => {});
     if (ownerEdit) notifyAdmins('system', '스키샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) {

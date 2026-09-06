@@ -256,4 +256,9 @@ api GET "/rentals?area=%EA%B0%95%EC%9B%90&resortId=none" ""; expect 200 "렌탈 
 api POST /repair-shops "{\"name\":\"리조트정비\",\"area\":\"강원\",\"address\":\"평창\",\"description\":\"d\",\"businessLicense\":\"/uploads/e2e.jpg\",\"resortId\":\"$YONGPYONG\"}" "$U_TOKEN"; RR=$(echo "$RESP" | jq -r '.resortId'); [ "$CODE" = "201" ] && [ "$RR" = "$YONGPYONG" ] && ok "정비샵 리조트 연결 등록" || bad "정비샵 resortId CODE=$CODE rid=$RR"
 api GET "/resorts/landing/%EC%9A%A9%ED%8F%89" ""; LS=$(echo "$RESP" | jq -r "[.skiShops[]? | select(.id==\"$RS\")] | length"); [ "$LS" = "1" ] && ok "리조트 랜딩에 연결 스키샵 노출" || bad "랜딩 skiShops cnt=$LS CODE=$CODE"
 
+# ── 좌표(lat/lng) 필드 + 관리자 일괄 지오코딩 (로컬은 카카오 키 없음 → configured=false)
+api GET "/ski-shops/$RS" ""; HL=$(echo "$RESP" | jq -r 'has("lat") and has("lng")'); [ "$CODE" = "200" ] && [ "$HL" = "true" ] && ok "스키샵 응답에 lat/lng 필드" || bad "lat/lng 필드 CODE=$CODE has=$HL"
+api POST /admin/geocode-backfill "{}" "$U_TOKEN"; expect 403 "일반유저 지오코딩 백필 403"
+api POST /admin/geocode-backfill "{}" "$A_TOKEN"; GC=$(echo "$RESP" | jq -r '.configured'); [ "$CODE" = "200" ] && [ "$GC" = "false" ] && ok "관리자 백필 200 (키 없음 → configured=false)" || bad "백필 CODE=$CODE configured=$GC"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

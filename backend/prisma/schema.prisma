@@ -279,6 +279,8 @@ model Rental {
   viewCount    Int       @default(0) // 상세 조회수 — 카테고리 인기 통계용
   isPremium    Boolean   @default(false)
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
+  lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
+  lng             Float?
   premiumUntil DateTime?
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
@@ -773,6 +775,8 @@ model SkiShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
+  lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
+  lng             Float?
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)
@@ -812,6 +816,8 @@ model RepairShop {
   approved        Boolean  @default(false)
   isPremium       Boolean  @default(false)
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
+  lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
+  lng             Float?
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)

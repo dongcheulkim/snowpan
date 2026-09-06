@@ -12,6 +12,9 @@ import { RowListSkeleton } from '../components/Skeleton';
 import HScroll from '../components/HScroll';
 import LocationFilter from '../components/LocationFilter';
 import { shopLocationLabel } from '../utils/location';
+import { useMyLocation } from '../hooks/useMyLocation';
+import NearMeButton from '../components/NearMeButton';
+import { withDistance, formatDistance } from '../utils/geo';
 
 interface Shop {
   id: string;
@@ -30,6 +33,8 @@ interface Shop {
   images?: string | null;
   isPremium?: boolean;
   claimable?: boolean;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export default function RepairShop() {
@@ -39,6 +44,7 @@ export default function RepairShop() {
   const [selectedService, setSelectedService] = useState('all');
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const my = useMyLocation();
 
   useEffect(() => {
     setLoading(true);
@@ -52,11 +58,12 @@ export default function RepairShop() {
   }, [selectedArea, selectedResort]);
 
   // 서비스 필터는 클라이언트에서 — 목록이 통짜 배열이라 재요청 불필요 (services 는 콤마 텍스트)
-  const shownShops = selectedService === 'all' ? shops : shops.filter(sh => {
+  const filteredShops = selectedService === 'all' ? shops : shops.filter(sh => {
     const sv = sh.services || '';
     // '튜닝' 은 예전 자유입력(왁싱·엣지·바인딩·정비 등)까지 포괄 매칭
     return selectedService === '튜닝' ? TUNING_ALIASES.some(a => sv.includes(a)) : sv.includes(selectedService);
   });
+  const shownShops = withDistance(filteredShops, my.coords);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -72,6 +79,7 @@ export default function RepairShop() {
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
       <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
+      <NearMeButton my={my} />
 
       {/* 서비스 종류 필터 — 부츠피팅 등 원하는 정비만 골라 보기 */}
       <HScroll className="flex gap-1.5 overflow-x-auto pb-1">
@@ -131,6 +139,7 @@ export default function RepairShop() {
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
                     {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
+                    {shop.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(shop.distanceKm)}</span>}
                   </div>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">
