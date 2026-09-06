@@ -235,7 +235,8 @@ export default function MyShops() {
       </div>
 
       <p className="text-xs text-gray-500 -mt-2">
-        매장 정보 수정, 소식·이벤트 등록, 신규 등록까지 여기서 한번에 관리하세요.
+        매장 정보 수정, 소식·이벤트 등록, 신규 등록까지 여기서 한번에 관리하세요.{' '}
+        <Link to="/partners/find" className="text-gray-700 underline underline-offset-2">이미 올라온 내 매장 찾기</Link>
       </p>
 
       {totalShops > 0 && (

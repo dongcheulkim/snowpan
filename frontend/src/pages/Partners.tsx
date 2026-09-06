@@ -27,7 +27,7 @@ const FAQ = [
   { q: '카카오 계정만 있으면 되나요?', a: '네. 카카오 로그인 후 마이 탭의 사장님 대시보드에서 바로 시작할 수 있습니다.' },
   { q: '지점이 여러 개예요.', a: '지점마다 따로 등록하면 됩니다. 각 지점은 가까운 리조트에 자동으로 묶여 그 리조트 목록에 나옵니다.' },
   { q: '판매도 하고 정비도 해요.', a: '한 번만 등록하고 "겸업"에서 판매·렌탈·정비를 선택하세요. 새로 추가하는 겸업은 매장 사진이나 영상 링크로 확인한 뒤 반영됩니다.' },
-  { q: '제 매장이 이미 올라와 있는데 정보가 달라요.', a: '"직접 관리하기"로 가져가서 직접 고치시면 됩니다. 내리길 원하시면 고객센터로 알려주세요. 바로 처리합니다.' },
+  { q: '제 매장이 이미 올라와 있는데 정보가 달라요.', a: '"매장 등록하기"를 누르면 먼저 내 매장이 있는지 찾아 줍니다. 찾은 매장을 "직접 관리하기"로 가져가서 직접 고치시면 됩니다. 내리길 원하시면 고객센터로 알려주세요. 바로 처리합니다.' },
 ];
 
 export default function Partners() {
@@ -47,7 +47,7 @@ export default function Partners() {
       </header>
 
       <div className="grid grid-cols-2 gap-2">
-        <Link to="/mypage/shops" className="py-3 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">
+        <Link to="/partners/find" className="py-3 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">
           매장 등록하기
         </Link>
         <Link to="/advertise" className="py-3 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold text-center hover:bg-gray-50 transition-colors">
@@ -75,6 +75,9 @@ export default function Partners() {
           이런 매장에는 "사장님 확인 전" 표시가 붙고, 사장님이 가져가기 전까지는 사진·소식 없이 기본 정보만 보입니다. 안내를 드린 뒤 2주 안에 등록이 없으면 매장 정보는 내립니다.
           매장 페이지에서 <b>이 매장 사장님이신가요? 직접 관리하기</b>를 눌러 사업자등록증을 올리면 승인 후 대시보드에서 관리할 수 있습니다.
         </p>
+        <Link to="/partners/find" className="block mt-3 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">
+          내 매장이 있는지 먼저 찾기
+        </Link>
         <div className="grid grid-cols-3 gap-2 mt-3">
           <Link to="/skishop" className="py-2 rounded-lg bg-snow border border-gray-200 text-xs font-bold text-gray-700 text-center">스키·보드샵</Link>
           <Link to="/repair" className="py-2 rounded-lg bg-snow border border-gray-200 text-xs font-bold text-gray-700 text-center">정비샵</Link>

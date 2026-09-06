@@ -28,7 +28,7 @@ A_ID=$(pq "SELECT id FROM users WHERE email='smoke_admin@re.test'")
 [ -n "$U_TOKEN" ] && [ -n "$A_TOKEN" ] && ok "유저·관리자 준비" || bad "준비 실패"
 
 # ── 공개 GET 전부 200 + JSON
-for p in "/products" "/products/market-stats?subcategory=%EC%8A%A4%ED%82%A4" "/rentals" "/lessons" "/accommodations" "/ski-shops" "/repair-shops" "/resorts" "/community" "/community/popular" "/polls" "/banners" "/webcams" "/webcams/weather" "/overseas/resorts" "/overseas/deals" "/agencies" "/ad-booking/slots" "/ad-booking/active" "/ad-booking/deposit-info" "/search?q=%EC%8A%A4%ED%82%A4" "/shop-posts/recent" "/contact/admin-id"; do
+for p in "/products" "/products/market-stats?subcategory=%EC%8A%A4%ED%82%A4" "/rentals" "/lessons" "/accommodations" "/ski-shops" "/repair-shops" "/resorts" "/community" "/community/popular" "/polls" "/banners" "/webcams" "/webcams/weather" "/overseas/resorts" "/overseas/deals" "/agencies" "/ad-booking/slots" "/ad-booking/active" "/ad-booking/deposit-info" "/search?q=%EC%8A%A4%ED%82%A4" "/shop-posts/recent" "/shop-claims/find?q=%EC%8A%A4%ED%82%A4" "/contact/admin-id"; do
   api GET "$p" ""
   if [ "$CODE" = "200" ] && echo "$RESP" | jq -e . >/dev/null 2>&1; then ok "공개 GET $p 200 JSON"; else bad "공개 GET $p CODE=$CODE"; fi
 done

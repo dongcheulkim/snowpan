@@ -1,7 +1,7 @@
 // 매장 소유권 이전(claim) — 관리자가 공개 영업정보로 시딩한 매장(claimable=true, "사장님 확인 전")을
 // 실제 사장님이 사업자등록증 인증으로 가져가는 흐름. 스키샵·정비샵·렌탈샵·숙소 지원 (레슨은 개인 강사라 시딩 대상 아님).
 import { Router, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, optionalAuth } from '../middleware/auth';
 import prisma from '../config/database';
 import { sendPushToUser } from '../utils/push';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
@@ -66,6 +66,49 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 });
 
 // 관리자: 대기중 요청 목록 (매장명·요청자 정보 조인)
+// 내 매장 먼저 찾기 — 사장님이 새로 등록하기 전에 스노우판이 미리 올려 둔 매장(사장님 확인 전)이 있는지 상호·전화로 검색.
+// 공개 목록에 이미 있는 정보(상호·주소·전화·리조트)만 돌려주고, 로그인돼 있으면 내 매장 여부(mine)를 표시.
+// 매장 수가 수백이라 4개 테이블을 한 번에 읽어 메모리에서 띄어쓰기 무시·전화 숫자만 비교(DB contains 로는 "곤지암 렌탈"/"곤지암렌탈" 을 못 맞춤).
+router.get('/find', optionalAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const raw = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
+    const q = typeof raw === 'string' ? raw.trim() : '';
+    if (q.length < 2 || q.length > 60) { res.status(400).json({ error: '상호 또는 전화번호를 2자 이상 입력하세요.' }); return; }
+    const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+    const digits = (s: string) => s.replace(/\D/g, '');
+    const qn = norm(q); const qd = digits(q);
+    const byPhone = qd.length >= 7 && qd.length >= qn.length - 3; // 숫자 위주 입력이면 전화번호 검색
+    const shopSel = { id: true, name: true, address: true, phone: true, claimable: true, userId: true, resort: { select: { name: true } } } as const;
+    const [ski, rep, ren, acc] = await Promise.all([
+      prisma.skiShop.findMany({ where: { approved: true }, select: shopSel, take: 3000 }),
+      prisma.repairShop.findMany({ where: { approved: true }, select: shopSel, take: 3000 }),
+      prisma.rental.findMany({ where: { approved: true }, select: shopSel, take: 3000 }),
+      prisma.accommodation.findMany({ where: { approved: true }, select: { id: true, name: true, claimable: true, userId: true, resort: { select: { name: true } } }, take: 3000 }),
+    ]);
+    type Row = { id: string; name: string; address?: string | null; phone?: string | null; claimable: boolean; userId: string; resort: { name: string } | null };
+    const tag = (rows: Row[], kind: string) => rows.map((r) => ({ kind, ...r }));
+    const all = [...tag(ski, 'skishop'), ...tag(rep, 'repair'), ...tag(ren, 'rental'), ...tag(acc, 'accommodation')];
+    const score = (r: Row & { kind: string }): number => {
+      if (byPhone) return r.phone && digits(r.phone).includes(qd) ? 100 : 0;
+      const n = norm(r.name);
+      if (n === qn) return 100;
+      if (n.startsWith(qn)) return 60;
+      if (n.includes(qn)) return 30;
+      return 0;
+    };
+    const me = req.user?.id;
+    const hits = all.map((r) => ({ r, s: score(r) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s || a.r.name.localeCompare(b.r.name, 'ko')).slice(0, 30)
+      .map(({ r }) => ({
+        kind: r.kind, id: r.id, name: r.name, address: r.address || null, phone: r.phone || null, resort: r.resort?.name || null,
+        claimable: r.claimable, mine: !!me && r.userId === me, ownerManaged: !r.claimable,
+      }));
+    res.json(hits);
+  } catch (error) {
+    console.error('Shop find error:', error);
+    res.status(500).json({ error: '매장 검색에 실패했습니다.' });
+  }
+});
+
 router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }

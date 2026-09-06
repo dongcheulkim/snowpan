@@ -263,6 +263,14 @@ OB2=$(echo "$RESP" | jq -r ".shops[] | select(.id==\"$SEED\") | .status + \":\" 
 api GET /admin/outreach "" "$VISITOR_TOKEN"; [ "$CODE" = "403" ] && ok "일반유저 연락 보드 403" || bad "일반 연락 보드 CODE=$CODE"
 api GET "/ski-shops/$SEED" ""; LEAK=$(echo "$RESP" | jq -r 'has("memo") or has("status") | tostring'); [ "$LEAK" = "false" ] && ok "연락 상태·메모는 공개 상세에 새지 않음" || bad "공개 상세 누출 $LEAK"
 
+# ── 내 매장 먼저 찾기 (GET /shop-claims/find): 상호(띄어쓰기 무시)·전화번호로 시딩 매장 검색, 로그인 시 mine 표시
+api GET "/shop-claims/find?q=%EC%8B%9C%EB%94%A9%20%EC%8A%A4%ED%82%A4" ""; FH=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$SEED\")][0] | .kind + \":\" + (.claimable|tostring) + \":\" + (.mine|tostring)")
+[ "$CODE" = "200" ] && [ "$FH" = "skishop:true:false" ] && ok "내 매장 찾기 — 상호(띄어쓰기 무시) 검색, 비로그인 mine=false" || bad "찾기 CODE=$CODE $FH $(echo $RESP|head -c 120)"
+api GET "/shop-claims/find?q=%EC%8B%9C" ""; [ "$CODE" = "400" ] && ok "찾기 1자 검색 400" || bad "찾기 1자 CODE=$CODE"
+api GET "/shop-claims/find?q=%EC%97%86%EB%8A%94%EC%83%81%ED%98%B8zzz" ""; FN=$(echo "$RESP" | jq -r 'length'); [ "$CODE" = "200" ] && [ "$FN" = "0" ] && ok "찾기 결과 없음 = 빈 배열" || bad "찾기 없음 CODE=$CODE n=$FN"
+api GET "/shop-claims/find?q=%EC%8B%9C%EB%94%A9" "" "$ADM_TOKEN"; FM=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$SEED\")][0].mine"); [ "$FM" = "true" ] && ok "찾기 — 등록한 계정으로 조회 시 mine=true" || bad "찾기 mine=$FM"
+api GET "/shop-claims/find?q=%EC%8B%9C%EB%94%A9" ""; LEAK=$(echo "$RESP" | jq -r '[.[] | (has("userId") or has("businessLicense") or has("email"))] | any'); [ "$LEAK" = "false" ] && ok "찾기 응답에 소유자 id·사업자등록증 없음" || bad "찾기 누출 $LEAK"
+
 # 일반유저가 claimable 을 보내도 무시 (미승인·claimable=false), 사업자등록증 누락은 여전히 400
 api POST /ski-shops '{"name":"가짜시딩","area":"용평","address":"평창","description":"d","businessLicense":"/uploads/e2e.jpg","claimable":true}' "$VISITOR_TOKEN"
 FA=$(echo "$RESP" | jq -r '.approved'); FC=$(echo "$RESP" | jq -r '.claimable'); [ "$CODE" = "201" ] && [ "$FA" = "false" ] && [ "$FC" = "false" ] && ok "일반유저 claimable 요청 무시" || bad "일반 claimable CODE=$CODE appr=$FA claim=$FC"
