@@ -261,4 +261,10 @@ api GET "/ski-shops/$RS" ""; HL=$(echo "$RESP" | jq -r 'has("lat") and has("lng"
 api POST /admin/geocode-backfill "{}" "$U_TOKEN"; expect 403 "일반유저 지오코딩 백필 403"
 api POST /admin/geocode-backfill "{}" "$A_TOKEN"; GC=$(echo "$RESP" | jq -r '.configured'); [ "$CODE" = "200" ] && [ "$GC" = "false" ] && ok "관리자 백필 200 (키 없음 → configured=false)" || bad "백필 CODE=$CODE configured=$GC"
 
+# ── 새니타이즈: & ' " 는 원문 그대로 저장(엔티티 X), 태그·엔티티 위장 태그는 제거
+api POST /repair-shops '{"name":"비비드왁스 & 풋풋 \"용평\"","area":"강원","address":"평창","description":"엣지 & 왁싱 <b>전문</b> &lt;script&gt;alert(1)&lt;/script&gt;","businessLicense":"/uploads/e2e.jpg"}' "$U_TOKEN"
+SN=$(echo "$RESP" | jq -r '.name'); SD=$(echo "$RESP" | jq -r '.description')
+[ "$CODE" = "201" ] && [ "$SN" = '비비드왁스 & 풋풋 "용평"' ] && ok "상호의 & 와 따옴표 원문 저장" || bad "새니타이즈 CODE=$CODE name=$SN"
+case "$SD" in *"<"*|*"&lt;"*|*"&amp;"*) bad "설명에 태그/엔티티 잔존: $SD";; *"엣지 & 왁싱 전문"*) ok "설명 태그 제거 + & 원문 유지 ($SD)";; *) bad "설명 결과 예상밖: $SD";; esac
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"
