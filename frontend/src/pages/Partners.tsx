@@ -72,7 +72,7 @@ export default function Partners() {
         <h2 className="text-sm font-bold text-gray-900 mb-2">내 매장이 이미 올라와 있다면</h2>
         <p className="text-xs text-gray-600 leading-relaxed">
           스노우판은 공개된 영업 정보(상호·주소·전화·영업시간)로 리조트 주변 매장을 먼저 등록해 두고 있습니다.
-          이런 매장에는 "사장님 확인 전" 표시가 붙고, 사장님이 가져가기 전까지는 사진·소식 없이 기본 정보만 보입니다.
+          이런 매장에는 "사장님 확인 전" 표시가 붙고, 사장님이 가져가기 전까지는 사진·소식 없이 기본 정보만 보입니다. 안내를 드린 뒤 2주 안에 등록이 없으면 매장 정보는 내립니다.
           매장 페이지에서 <b>이 매장 사장님이신가요? 직접 관리하기</b>를 눌러 사업자등록증을 올리면 승인 후 대시보드에서 관리할 수 있습니다.
         </p>
         <div className="grid grid-cols-3 gap-2 mt-3">
