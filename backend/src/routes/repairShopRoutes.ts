@@ -27,13 +27,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const { area, resortId, vertical } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
-    const where: any = { approved: true, vertical: verticalSlug };
-    if (area) where.area = area as string;
-    // resortId=none → 리조트 없는 시내 매장(필터 '외')
-    if (resortId) where.resortId = resortId === 'none' ? null : String(resortId);
-
     // 본 업종 + 겸업(extraKinds 에 repair)인 스키샵·렌탈샵까지 합쳐서 (공개 필드만)
-    void where;
     res.json(await listShopsForKind('repair', { vertical: verticalSlug, area: area ? String(area) : undefined, resortId: resortId ? String(resortId) : undefined }));
   } catch (error) {
     console.error('Get repair shops error:', error);

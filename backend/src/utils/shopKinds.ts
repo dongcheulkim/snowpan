@@ -50,7 +50,11 @@ const REPAIR_SELECT = {
 function baseWhere(f: ShopListFilter): Record<string, unknown> {
   const w: Record<string, unknown> = { approved: true, vertical: f.vertical };
   if (f.area) w.area = f.area;
-  if (f.resortId) w.resortId = f.resortId === 'none' ? null : f.resortId; // none = 리조트 없는 시내 매장('외')
+  if (f.resortId === 'none') w.resortId = null; // 리조트 없는 시내 매장('외')
+  else if (f.resortId) {
+    const ids = f.resortId.split(',').filter(Boolean); // 콤마 목록도 허용 (레슨·숙소 페이지 패턴과 호환)
+    w.resortId = ids.length > 1 ? { in: ids } : ids[0];
+  }
   return w;
 }
 

@@ -17,16 +17,6 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const where: any = { approved: true, vertical: verticalSlug };
-    if (typeof area === 'string' && area) where.area = area;
-    if (resortId === 'none') {
-      where.resortId = null; // 리조트 없는 시내 매장 (필터 '외')
-    } else if (resortId) {
-      // 지역(대분류) 선택 시 그 지역 리조트 콤마 목록 → in 필터 (레슨·숙소와 통일)
-      const ids = String(resortId).split(',').filter(Boolean);
-      where.resortId = ids.length > 1 ? { in: ids } : ids[0];
-    }
-
     // 검증 — NaN/음수/거대값이 Prisma take/skip 예외(500)로 이어지던 것 차단 (products 와 통일)
     const takeParsed = limit ? parseInt(limit as string, 10) : 50;
     const take = Number.isFinite(takeParsed) && takeParsed > 0 ? Math.min(takeParsed, 100) : 50;
@@ -35,7 +25,6 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
 
     // 본 업종 + 겸업(extraKinds 에 rental)인 스키샵·정비샵까지 합친 뒤 메모리에서 페이지 분할.
     // (수백 건 규모라 충분하고 목록은 publicCache 로 2분 캐시됨. 수천 건 넘으면 DB 페이지네이션으로 전환)
-    void where;
     const all = await listShopsForKind('rental', { vertical: verticalSlug, area: typeof area === 'string' ? area : undefined, resortId: resortId ? String(resortId) : undefined });
     const start = skip ?? 0;
     res.json({ items: all.slice(start, start + take), totalCount: all.length });
