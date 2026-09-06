@@ -630,6 +630,32 @@ model ShopClaim {
   @@map("shop_claims")
 }
 
+// 매장 연락 보드(관리자 대시보드) — 시딩 매장 사장님에게 전화·문자한 상태와 메모.
+// 매장 행(ski_shops/repair_shops/rentals)과 (shopType, shopId) 로 느슨히 연결. 매장이 지워지면 목록 조인에서 자연히 빠진다.
+model ShopOutreach {
+  id        String   @id @default(uuid())
+  shopType  String   // 'skishop' | 'repair' | 'rental'
+  shopId    String
+  status    String   @default("none") // none(미연락) | absent(부재중) | called(통화 완료) | yes(등록하기로 함) | no(거절) | del(삭제 요청)
+  memo      String?
+  priority  Int      @default(0) // 연락 우선순위 숫자(수집 시점 네이버 리뷰 수 등) — 정렬 전용, 내용은 저장하지 않음
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopType, shopId])
+  @@index([status])
+  @@map("shop_outreach")
+}
+
+// 관리자 화면 설정(키-값). 연락 보드 문자 템플릿 등 — 기기 상관없이 같은 값을 쓰기 위해 DB 에 둔다.
+model AdminSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_settings")
+}
+
 // 키워드 알림 — 등록한 키워드가 포함된 중고매물이 올라오면 푸시/알림.
 model SavedSearch {
   id        String   @id @default(uuid())

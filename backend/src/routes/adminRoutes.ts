@@ -28,6 +28,7 @@ import {
 } from '../controllers/adminController';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { geocodeBackfill, resortsGeocode, autoResort } from '../controllers/geocodeController';
+import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from '../controllers/outreachController';
 import { isFcmConfigured, sendPushToUser } from '../utils/push';
 import prisma from '../config/database';
 
@@ -100,5 +101,11 @@ router.post('/geocode-backfill', geocodeBackfill);
 // 리조트 좌표 채우기 / 리조트 미연결 매장을 반경 내 리조트에 자동 연결
 router.post('/resorts/geocode', resortsGeocode);
 router.post('/shops/auto-resort', autoResort);
+
+// 매장 연락 보드 — 시딩 매장 사장님 연락 상태·메모 (관리자 대시보드 "매장연락보드" 탭)
+router.get('/outreach', listOutreach);
+router.put('/outreach/template', putOutreachTemplate);
+router.post('/outreach/bulk', bulkOutreach);
+router.put('/outreach/:shopType/:shopId', upsertOutreach);
 
 export default router;

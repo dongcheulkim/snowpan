@@ -242,6 +242,27 @@ SEED=$(echo "$RESP" | jq -r '.id // empty'); SA=$(echo "$RESP" | jq -r '.approve
 [ "$CODE" = "201" ] && [ "$SA" = "true" ] && [ "$SC" = "true" ] && ok "관리자 시딩 등록 (사업자등록증 없이 즉시 공개, claimable)" || bad "시딩 CODE=$CODE appr=$SA claim=$SC RESP=$(echo $RESP|head -c 120)"
 api GET "/ski-shops/$SEED" ""; PC=$(echo "$RESP" | jq -r '.claimable'); [ "$CODE" = "200" ] && [ "$PC" = "true" ] && ok "공개 상세에 claimable=true" || bad "상세 claimable=$PC CODE=$CODE"
 api GET "/ski-shops" ""; LC=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$SEED\")][0].claimable"); [ "$LC" = "true" ] && ok "공개 목록에 claimable=true" || bad "목록 claimable=$LC"
+# ── 매장 연락 보드(관리자): 목록에 시딩 매장이 미연락으로 보이고, 상태·메모·우선순위·문자 템플릿이 저장된다
+api GET /admin/outreach "" "$ADM_TOKEN"
+OB=$(echo "$RESP" | jq -r ".shops[] | select(.id==\"$SEED\") | .kind + \":\" + .status + \":\" + (.owner|tostring)"); HASR=$(echo "$RESP" | jq -r '.resorts | length')
+[ "$CODE" = "200" ] && [ "$OB" = "skishop:none:false" ] && [ "$HASR" -gt 0 ] && ok "연락 보드 목록 (시딩 매장 미연락·owner=false·리조트 포함)" || bad "연락 보드 CODE=$CODE row=$OB resorts=$HASR"
+api PUT "/admin/outreach/skishop/$SEED" '{"status":"del","memo":"폐업 <b>확인</b>"}' "$ADM_TOKEN"
+OS=$(echo "$RESP" | jq -r '.status + ":" + .memo'); [ "$CODE" = "200" ] && [ "$OS" = "del:폐업 확인" ] && ok "연락 상태·메모 저장(태그 제거)" || bad "상태 저장 CODE=$CODE $OS"
+api PUT "/admin/outreach/skishop/$SEED" '{"status":"maybe"}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "잘못된 상태값 400" || bad "상태값 CODE=$CODE"
+api PUT "/admin/outreach/lesson/$SEED" '{"status":"called"}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "지원하지 않는 업종 400" || bad "업종 CODE=$CODE"
+api PUT "/admin/outreach/skishop/00000000-0000-4000-8000-000000000000" '{"status":"called"}' "$ADM_TOKEN"; [ "$CODE" = "404" ] && ok "없는 매장 404" || bad "없는 매장 CODE=$CODE"
+api PUT "/admin/outreach/skishop/$SEED" '{}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "빈 수정 400" || bad "빈 수정 CODE=$CODE"
+api POST /admin/outreach/bulk "{\"items\":[{\"shopType\":\"skishop\",\"shopId\":\"$SEED\",\"priority\":42},{\"shopType\":\"rental\",\"shopId\":\"nope\",\"priority\":1}]}" "$ADM_TOKEN"
+BU=$(echo "$RESP" | jq -r '(.updated|tostring) + ":" + (.skipped|length|tostring)'); [ "$CODE" = "200" ] && [ "$BU" = "1:1" ] && ok "일괄 우선순위 저장(없는 매장은 건너뜀)" || bad "bulk CODE=$CODE $BU"
+api POST /admin/outreach/bulk '{"items":[]}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "빈 일괄 400" || bad "빈 일괄 CODE=$CODE"
+api PUT /admin/outreach/template '{"sms":"[E2E] {상호} {링크}"}' "$ADM_TOKEN"; [ "$CODE" = "200" ] && ok "문자 템플릿 저장" || bad "템플릿 CODE=$CODE"
+api PUT /admin/outreach/template '{"sms":"   "}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "빈 템플릿 400" || bad "빈 템플릿 CODE=$CODE"
+api GET /admin/outreach "" "$ADM_TOKEN"
+OB2=$(echo "$RESP" | jq -r ".shops[] | select(.id==\"$SEED\") | .status + \":\" + .memo + \":\" + (.priority|tostring)"); TP=$(echo "$RESP" | jq -r '.template')
+[ "$OB2" = "del:폐업 확인:42" ] && [ "$TP" = "[E2E] {상호} {링크}" ] && ok "재조회에 상태·메모·우선순위·템플릿 반영" || bad "재조회 $OB2 tpl=$TP"
+api GET /admin/outreach "" "$VISITOR_TOKEN"; [ "$CODE" = "403" ] && ok "일반유저 연락 보드 403" || bad "일반 연락 보드 CODE=$CODE"
+api GET "/ski-shops/$SEED" ""; LEAK=$(echo "$RESP" | jq -r 'has("memo") or has("status") | tostring'); [ "$LEAK" = "false" ] && ok "연락 상태·메모는 공개 상세에 새지 않음" || bad "공개 상세 누출 $LEAK"
+
 # 일반유저가 claimable 을 보내도 무시 (미승인·claimable=false), 사업자등록증 누락은 여전히 400
 api POST /ski-shops '{"name":"가짜시딩","area":"용평","address":"평창","description":"d","businessLicense":"/uploads/e2e.jpg","claimable":true}' "$VISITOR_TOKEN"
 FA=$(echo "$RESP" | jq -r '.approved'); FC=$(echo "$RESP" | jq -r '.claimable'); [ "$CODE" = "201" ] && [ "$FA" = "false" ] && [ "$FC" = "false" ] && ok "일반유저 claimable 요청 무시" || bad "일반 claimable CODE=$CODE appr=$FA claim=$FC"

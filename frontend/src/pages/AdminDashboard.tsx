@@ -6,8 +6,9 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { CalendarIcon, ChartIcon, CloseIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
+import OutreachBoard from '../components/OutreachBoard';
 
-type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings';
+type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach';
 
 interface ReportItem {
   id: string;
@@ -298,6 +299,7 @@ const AdminDashboard = () => {
     { id: 'stats', label: '통계' },
     { id: 'users', label: '유저관리' },
     { id: 'adBookings', label: '광고관리' },
+    { id: 'outreach', label: '매장연락보드' },
   ];
 
   const inputClass = "w-full px-3 py-2 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
@@ -357,6 +359,10 @@ const AdminDashboard = () => {
           {/* Reports Tab */}
           {tab === 'approval' && (
             <AdminApproval embedded />
+          )}
+          {/* 매장연락보드 — 시딩 매장 사장님 전화·문자 작업판 (자체 로딩·저장) */}
+          {tab === 'outreach' && (
+            <OutreachBoard />
           )}
           {tab === 'reports' && (
             <div className="space-y-3">

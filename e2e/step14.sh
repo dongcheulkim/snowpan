@@ -66,7 +66,7 @@ RF=$(curl -s -c - -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: applic
 if [ -n "$RF" ]; then api GET /auth/profile "" "$RF"; expect 401 "refresh 토큰을 access 로 사용"; fi
 
 # ── 관리자 라우트: 일반유저 403 (adminRoutes 전역 + 개별 가드)
-for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/banners" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "POST /admin/banners" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
+for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/banners" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "GET /admin/outreach" "POST /admin/outreach/bulk" "POST /admin/banners" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
   set -- $m_p; api "$1" "$2" '{}' "$U_TOKEN"
   [ "$CODE" = "403" ] && ok "일반유저 $1 $2 403" || bad "일반유저 $1 $2 CODE=$CODE"
 done
