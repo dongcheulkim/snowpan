@@ -13,7 +13,6 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
-import KindTags from '../components/KindTags';
 
 
 interface Shop {
@@ -118,7 +117,6 @@ export default function RepairShopDetail() {
           {districtFromAddress(shop.address) && <span className="text-[10px] text-gray-500">{districtFromAddress(shop.address)}</span>}
           {my.coords && shop.lat != null && shop.lng != null && <span className="text-[10px] font-bold text-emerald-700">내 위치에서 {formatDistance(distanceKm(my.coords, { lat: shop.lat, lng: shop.lng }))}</span>}
           {shop.isPremium && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gold/20 text-yellow-700">AD</span>}
-          <KindTags shop={shop} own="repair" />
         </div>
         <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><MaintenanceIcon size={22} /> {shop.name}</h1>
         <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{shop.description}</p>

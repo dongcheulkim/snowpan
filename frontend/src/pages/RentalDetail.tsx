@@ -10,7 +10,6 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
-import KindTags from '../components/KindTags';
 
 
 interface RentalData {
@@ -74,7 +73,6 @@ const RentalDetail = () => {
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
           {item.area && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.area}</span>}
-          <KindTags shop={item} own="rental" />
           {my.coords && item.lat != null && item.lng != null && <span className="text-[10px] font-bold text-emerald-700">내 위치에서 {formatDistance(distanceKm(my.coords, { lat: item.lat, lng: item.lng }))}</span>}
         </div>
         {item.resort?.name && <p className="text-xs text-gray-500">{item.resort.name} 인근</p>}

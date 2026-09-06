@@ -14,7 +14,6 @@ import { shopLocationLabel } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
 import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
-import KindTags from '../components/KindTags';
 import { shopPath } from '../utils/shopKinds';
 
 interface RentalItem {
@@ -109,7 +108,6 @@ const Rental = () => {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
                     <UnverifiedShopBadge claimable={item.claimable} compact />
-                    <KindTags shop={item} own="rental" />
                     {shopLocationLabel(item) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(item)}</span>}
                     {item.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(item.distanceKm)}</span>}
                   </div>
