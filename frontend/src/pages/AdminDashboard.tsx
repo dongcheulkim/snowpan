@@ -1,9 +1,9 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getUser, uploadImages, imageUrl } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { CalendarIcon, ChartIcon, CloseIcon, UsersIcon } from '../components/Icons';
+import { CalendarIcon, ChartIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
@@ -44,19 +44,6 @@ interface UserItem {
   phone: string;
   createdAt: string;
 }
-
-interface BannerItem {
-  id: string;
-  title: string;
-  description: string;
-  tag: string;
-  url: string;
-  image: string | null;
-  order: number;
-  active: boolean;
-  createdAt: string;
-}
-
 
 interface AdBookingItem {
   id: string;
@@ -103,22 +90,14 @@ const AdminDashboard = () => {
   const [userSearch, setUserSearch] = useState('');
   const [userPage, setUserPage] = useState(0);
   const USERS_PER_PAGE = 30;
-  const [banners, setBanners] = useState<BannerItem[]>([]);
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
   // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
   const [adCatFilter, setAdCatFilter] = useState('all');
-  const [adSection, setAdSection] = useState<'bookings' | 'banners' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/배너/가격)
+  const [adSection, setAdSection] = useState<'bookings' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/가격). 홈 배너는 광고 승인 시 자동 생성·만료 시 자동 삭제라 수동 관리 화면 없음
   const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Banner form state
-  const [showBannerForm, setShowBannerForm] = useState(false);
-  const [bannerForm, setBannerForm] = useState({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true });
-  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
-  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState('');
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -139,19 +118,17 @@ const AdminDashboard = () => {
         const data = await api<UserItem[]>('/admin/users');
         setUsers(data);
       } else if (tab === 'adBookings') {
-        // 광고관리 탭 — 예약·매출·배너·가격을 함께 로드
-        // (서브탭 예약/배너/가격 전환 시 추가 요청 없이 즉시 표시)
+        // 광고관리 탭 — 예약·매출·가격을 함께 로드
+        // (서브탭 예약/가격 전환 시 추가 요청 없이 즉시 표시)
         // allSettled: 하나가 실패해도 나머지 서브탭은 정상 표시(부분 실패 허용).
-        const [bookings, revenue, bannerList, pricings] = await Promise.allSettled([
+        const [bookings, revenue, pricings] = await Promise.allSettled([
           api<AdBookingItem[]>('/ad-booking/admin/bookings'),
           api<RevenueData>('/ad-booking/admin/revenue'),
-          api<BannerItem[]>('/admin/banners'),
           api<AdPricingItem[]>('/ad-booking/admin/pricings'),
         ]);
         if (bookings.status === 'fulfilled') setAdBookings(bookings.value);
         else toastError('광고 예약 목록을 불러오지 못했습니다.'); // 조용한 실패 시 "예약 없음"으로 오인 방지
         if (revenue.status === 'fulfilled') setAdRevenue(revenue.value);
-        if (bannerList.status === 'fulfilled') setBanners(bannerList.value);
         if (pricings.status === 'fulfilled') setAdPricings(pricings.value);
       }
     } catch {
@@ -183,48 +160,6 @@ const AdminDashboard = () => {
     } catch (err) {
       toastError(err instanceof Error ? err.message : `${action} 실패`);
     }
-  };
-
-  const handleBannerSubmit = async () => {
-    try {
-      let imgUrl = bannerForm.image;
-      if (bannerImageFile) {
-        const urls = await uploadImages([bannerImageFile]);
-        imgUrl = urls[0];
-      }
-      const body = { ...bannerForm, image: imgUrl };
-      if (editingBannerId) {
-        await api(`/admin/banners/${editingBannerId}`, { method: 'PUT', body });
-      } else {
-        await api('/admin/banners', { method: 'POST', body });
-      }
-      setShowBannerForm(false);
-      setBannerForm({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true });
-      setEditingBannerId(null);
-      setBannerImageFile(null);
-      setBannerImagePreview('');
-      fetchData();
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '저장 실패');
-    }
-  };
-
-  const handleDeleteBanner = async (id: string) => {
-    if (!confirm('배너를 삭제하시겠습니까?')) return;
-    try {
-      await api(`/admin/banners/${id}`, { method: 'DELETE' });
-      fetchData();
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '삭제 실패');
-    }
-  };
-
-  const handleEditBanner = (banner: BannerItem) => {
-    setBannerForm({ title: banner.title, description: banner.description, tag: banner.tag, url: banner.url, image: banner.image || '', order: banner.order, active: banner.active });
-    setEditingBannerId(banner.id);
-    setBannerImageFile(null);
-    setBannerImagePreview(banner.image ? imageUrl(banner.image) : '');
-    setShowBannerForm(true);
   };
 
   // 승인 시 시작일 지정 (선택) — 비우면 즉시 시작, YYYY-MM-DD 입력 시 그 날부터 노출.
@@ -343,7 +278,7 @@ const AdminDashboard = () => {
 
       {tab === 'adBookings' && (
         <div className="flex gap-1 mb-1">
-          {([['bookings','예약·결제'],['banners','배너'],['pricing','광고 가격']] as const).map(([id,label]) => (
+          {([['bookings','예약·결제'],['pricing','광고 가격']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setAdSection(id)}
               className={`flex-1 py-2 px-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {label}
@@ -573,73 +508,6 @@ const AdminDashboard = () => {
               </div>
             );
           })()}
-
-          {/* Banners Tab */}
-          {tab === 'adBookings' && adSection === 'banners' && (
-            <div className="space-y-3">
-              <button
-                onClick={() => { setShowBannerForm(true); setEditingBannerId(null); setBannerForm({ title: '', description: '', tag: 'AD', url: '', image: '', order: 0, active: true }); setBannerImageFile(null); setBannerImagePreview(''); }}
-                className="px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors"
-              >
-                + 배너 추가
-              </button>
-
-              {showBannerForm && (
-                <div className="card p-4 space-y-3">
-                  <h3 className="text-sm font-bold text-gray-900">{editingBannerId ? '배너 수정' : '새 배너'}</h3>
-                  <input placeholder="제목" value={bannerForm.title} onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })} className={inputClass} />
-                  <input placeholder="설명" value={bannerForm.description} onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })} className={inputClass} />
-                  <input placeholder="태그 (예: AD)" value={bannerForm.tag} onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })} className={inputClass} />
-                  <input placeholder="URL" value={bannerForm.url} onChange={(e) => setBannerForm({ ...bannerForm, url: e.target.value })} className={inputClass} />
-                  <input type="number" placeholder="순서" value={bannerForm.order} onChange={(e) => setBannerForm({ ...bannerForm, order: parseInt(e.target.value) || 0 })} className={inputClass} />
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">배너 이미지</label>
-                    {bannerImagePreview ? (
-                      <div className="relative">
-                        <img src={bannerImagePreview} alt="preview" className="w-full max-h-48 object-contain rounded-lg bg-gray-100" />
-                        <button onClick={() => { setBannerImageFile(null); setBannerImagePreview(''); setBannerForm({ ...bannerForm, image: '' }); }} aria-label="제거" className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center"><CloseIcon size={12} /></button>
-                      </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-sky-400 transition-colors">
-                        <span className="text-xs text-gray-500">이미지 업로드</span>
-                        <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBannerImageFile(f); setBannerImagePreview(URL.createObjectURL(f)); } }} className="hidden" />
-                      </label>
-                    )}
-                  </div>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={bannerForm.active} onChange={(e) => setBannerForm({ ...bannerForm, active: e.target.checked })} />
-                    활성화
-                  </label>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setShowBannerForm(false); setEditingBannerId(null); }} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs">취소</button>
-                    <button onClick={handleBannerSubmit} className="flex-1 py-2 bg-accent text-white rounded-lg font-bold text-xs">저장</button>
-                  </div>
-                </div>
-              )}
-
-              {banners.map((b) => (
-                <div key={b.id} className="card p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${b.active ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {b.active ? '활성' : '비활성'}
-                        </span>
-                        <span className="text-[10px] text-gray-500">순서: {b.order}</span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-900">{b.title}</p>
-                      <p className="text-xs text-gray-500">{b.description}</p>
-                      {b.image && <img src={imageUrl(b.image)} alt="" className="w-32 h-16 object-contain rounded mt-1 bg-gray-50" />}
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => handleEditBanner(b)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">수정</button>
-                      <button onClick={() => handleDeleteBanner(b.id)} className="px-2 py-1 bg-coral/10 text-coral rounded text-[10px] font-bold">삭제</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Ad Bookings Tab */}
           {tab === 'adBookings' && adSection === 'bookings' && (

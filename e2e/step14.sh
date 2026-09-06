@@ -66,7 +66,7 @@ RF=$(curl -s -c - -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: applic
 if [ -n "$RF" ]; then api GET /auth/profile "" "$RF"; expect 401 "refresh 토큰을 access 로 사용"; fi
 
 # ── 관리자 라우트: 일반유저 403 (adminRoutes 전역 + 개별 가드)
-for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/banners" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "GET /admin/outreach" "POST /admin/outreach/bulk" "POST /admin/banners" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
+for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "GET /admin/outreach" "POST /admin/outreach/bulk" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
   set -- $m_p; api "$1" "$2" '{}' "$U_TOKEN"
   [ "$CODE" = "403" ] && ok "일반유저 $1 $2 403" || bad "일반유저 $1 $2 CODE=$CODE"
 done
@@ -94,15 +94,6 @@ U_TOKEN=$(login "smoke_user@re.test" 'Re!pass1234')
 # 관리자끼리 밴 불가
 api PUT "/admin/users/$A_ID/ban" "{}" "$A_TOKEN"; expect 400 "관리자 계정 밴 차단"
 
-# 배너 CRUD + 검증
-api POST /admin/banners '{"title":""}' "$A_TOKEN"; expect 400 "배너 빈 제목"
-api POST /admin/banners '{"title":"E2E배너","url":"javascript:alert(1)"}' "$A_TOKEN"; expect 400 "배너 javascript: URL 거부"
-api POST /admin/banners '{"title":"E2E배너","url":"/used","active":true}' "$A_TOKEN"
-BN=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] || [ "$CODE" = "200" ] && [ -n "$BN" ] && ok "배너 생성 ($CODE)" || bad "배너 생성 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
-api GET /banners ""; BC=$(echo "$RESP" | jq -r "[.[]? | select(.id==\"$BN\")] | length"); [ "$BC" = "1" ] && ok "공개 배너 목록 노출" || bad "공개 배너 cnt=$BC"
-api PUT "/admin/banners/$BN" '{"active":false}' "$A_TOKEN"; expect 200 "배너 비활성"
-api GET /banners ""; BC=$(echo "$RESP" | jq -r "[.[]? | select(.id==\"$BN\")] | length"); [ "$BC" = "0" ] && ok "비활성 배너 공개 목록 제외" || bad "비활성 배너 노출 cnt=$BC"
-api DELETE "/admin/banners/$BN" "" "$A_TOKEN"; expect 200 "배너 삭제"
 
 # 광고 가격 관리
 api GET /ad-booking/admin/pricings "" "$A_TOKEN"; PR=$(echo "$RESP" | jq -r 'length'); [ "$CODE" = "200" ] && [ "$PR" -ge 10 ] && ok "광고 가격표 목록 ($PR)" || bad "가격표 CODE=$CODE n=$PR"

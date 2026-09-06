@@ -18,10 +18,6 @@ import {
   getUsers,
   banUser,
   adminDeleteUser,
-  getBannersAdmin,
-  createBanner,
-  updateBanner,
-  deleteBanner,
   getAdRequests,
   approveAdRequest,
   rejectAdRequest,
@@ -84,12 +80,6 @@ router.get('/stats', getStats);
 router.get('/users', getUsers);
 router.put('/users/:id/ban', banUser);
 router.delete('/users/:id', adminDeleteUser);
-
-// 배너 관리 (관리자)
-router.get('/banners', getBannersAdmin);
-router.post('/banners', createBanner);
-router.put('/banners/:id', updateBanner);
-router.delete('/banners/:id', deleteBanner);
 
 // 광고 신청 관리
 router.get('/ad-requests', getAdRequests);
