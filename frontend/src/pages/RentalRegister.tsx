@@ -5,6 +5,7 @@ import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 interface Resort { id: string; name: string; location?: string | null }
 
@@ -20,6 +21,8 @@ const RentalRegister = () => {
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', phone: '', hours: '',
     brands: '', description: '', website: '', instagram: '', naverMap: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
 
   useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
@@ -43,7 +46,7 @@ const RentalRegister = () => {
       await api('/rentals', {
         method: 'POST',
         body: {
-          name: form.name.trim(), area: form.area, resortId: form.resortId || undefined,
+          name: form.name.trim(), area: form.area, resortId: form.resortId || undefined, extraKinds: form.extraKinds, extraKindsProof: form.extraKindsProof || undefined,
           address: form.address.trim() || undefined, phone: form.phone.trim() || undefined,
           hours: form.hours.trim() || undefined, brands: form.brands.trim() || undefined,
           description: form.description.trim() || undefined, website: form.website.trim() || undefined,
@@ -111,6 +114,8 @@ const RentalRegister = () => {
         <label className={labelClass}>취급 장비 · 브랜드</label>
         <input type="text" value={form.brands} onChange={e => setForm({ ...form, brands: e.target.value })} placeholder="예: 스키, 보드, 부츠 / 살로몬, 버튼 (콤마 구분)" className={inputClass} />
       </div>
+
+      <ExtraKindsPicker own="rental" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
       <div>
         <label className={labelClass}>매장 소개</label>

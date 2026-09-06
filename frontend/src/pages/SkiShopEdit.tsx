@@ -5,6 +5,7 @@ import { api } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 // 소유자 본인이 자기 스키샵 정보를 수정. 사업자등록증은 재업로드 불필요(등록 시 검증 완료).
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
@@ -14,7 +15,7 @@ interface Shop {
   id: string;
   name: string; area: string; resortId?: string | null; resort?: { id: string; name: string } | null; address: string; description: string;
   brands: string | null; phone: string | null; instagram: string | null;
-  website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null;
+  website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null; extraKinds?: string | null;
 }
 
 export default function SkiShopEdit() {
@@ -28,7 +29,10 @@ export default function SkiShopEdit() {
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
+  const [loadedKinds, setLoadedKinds] = useState<string[]>([]); // 이미 승인된 겸업 — 증빙 불필요
 
   useEffect(() => {
     if (!id) return;
@@ -46,7 +50,10 @@ export default function SkiShopEdit() {
           address: s.address || '', description: s.description || '', brands: s.brands || '',
           phone: s.phone || '', instagram: s.instagram || '', website: s.website || '',
           naverMap: s.naverMap || '', hours: s.hours || '',
+          extraKinds: (s.extraKinds || '').split(',').filter(Boolean),
+          extraKindsProof: '',
         });
+        setLoadedKinds((s.extraKinds || '').split(',').filter(Boolean));
         setImages(s.images || s.image || '');
       })
       .catch(() => navigate('/mypage/shops'))
@@ -141,6 +148,8 @@ export default function SkiShopEdit() {
             <label className={labelClass}>취급 브랜드 <span className="text-xs text-gray-500">(콤마로 구분)</span></label>
             <input type="text" name="brands" value={form.brands} onChange={handleChange} placeholder="예: Rossignol, Atomic, Salomon" className={inputClass} />
           </div>
+
+          <ExtraKindsPicker own="skishop" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} initial={loadedKinds} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
           <div className="grid grid-cols-2 gap-3">
             <div>

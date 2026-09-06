@@ -14,6 +14,8 @@ import { shopLocationLabel } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
 import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
+import KindTags from '../components/KindTags';
+import { shopPath } from '../utils/shopKinds';
 
 interface RentalItem {
   isPremium?: boolean;
@@ -28,6 +30,8 @@ interface RentalItem {
   resort?: { id: string; name: string } | null;
   lat?: number | null;
   lng?: number | null;
+  kind?: string;
+  extraKinds?: string | null;
 }
 
 const PAGE_SIZE = 12;
@@ -93,7 +97,7 @@ const Rental = () => {
           {shown.map((item) => {
             const cover = (item.images || item.image || '').split(',')[0]?.trim();
             return (
-            <Link to={`/rental/${item.id}`} key={item.id} className="card p-4 block card-hover">
+            <Link to={shopPath(item.kind, item.id, 'rental')} key={item.id} className="card p-4 block card-hover">
               <div className="flex items-center gap-3">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                   {cover
@@ -105,6 +109,7 @@ const Rental = () => {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
                     <UnverifiedShopBadge claimable={item.claimable} compact />
+                    <KindTags shop={item} own="rental" />
                     {shopLocationLabel(item) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(item)}</span>}
                     {item.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(item.distanceKm)}</span>}
                   </div>

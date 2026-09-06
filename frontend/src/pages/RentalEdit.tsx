@@ -4,11 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 interface Resort { id: string; name: string; location?: string | null }
 interface RentalData {
   id: string; userId?: string; name: string; area?: string | null; address?: string | null;
-  phone?: string | null; hours?: string | null; brands?: string | null; description?: string | null;
+  phone?: string | null; hours?: string | null; brands?: string | null; description?: string | null; extraKinds?: string | null;
   website?: string | null; instagram?: string | null; naverMap?: string | null; images?: string | null;
   image?: string | null; resort?: { id: string } | null;
 }
@@ -24,7 +25,10 @@ const RentalEdit = () => {
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', phone: '', hours: '',
     brands: '', description: '', website: '', instagram: '', naverMap: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
+  const [loadedKinds, setLoadedKinds] = useState<string[]>([]); // 이미 승인된 겸업 — 증빙 불필요
 
   useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
@@ -33,8 +37,9 @@ const RentalEdit = () => {
     api<RentalData>(`/rentals/${id}`).then(d => {
       const me = getUser();
       if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/rental/${id}`, { replace: true }); return; }
+        setLoadedKinds((d.extraKinds || '').split(',').filter(Boolean));
       setForm({
-        name: d.name || '', area: d.area || '강원', resortId: d.resort?.id || '',
+        name: d.name || '', area: d.area || '강원', resortId: d.resort?.id || '', extraKinds: (d.extraKinds || '').split(',').filter(Boolean), extraKindsProof: '',
         address: d.address || '', phone: d.phone || '', hours: d.hours || '',
         brands: d.brands || '', description: d.description || '', website: d.website || '',
         instagram: d.instagram || '', naverMap: d.naverMap || '',
@@ -50,7 +55,7 @@ const RentalEdit = () => {
       await api(`/rentals/${id}`, {
         method: 'PUT',
         body: {
-          name: form.name.trim(), area: form.area, resortId: form.resortId || null,
+          name: form.name.trim(), area: form.area, resortId: form.resortId || null, extraKinds: form.extraKinds, extraKindsProof: form.extraKindsProof || undefined,
           address: form.address.trim(), phone: form.phone.trim(), hours: form.hours.trim(),
           brands: form.brands.trim(), description: form.description.trim(), website: form.website.trim(),
           instagram: form.instagram.trim(), naverMap: form.naverMap.trim(),
@@ -99,6 +104,7 @@ const RentalEdit = () => {
         <div><label className={labelClass}>영업시간</label><input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} className={inputClass} /></div>
       </div>
       <div><label className={labelClass}>취급 장비 · 브랜드</label><input type="text" value={form.brands} onChange={e => setForm({ ...form, brands: e.target.value })} className={inputClass} /></div>
+      <ExtraKindsPicker own="rental" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} initial={loadedKinds} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
       <div><label className={labelClass}>매장 소개</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={4} className={`${inputClass} resize-none`} /></div>
       <div><label className={labelClass}>사진 (포스터)</label><MultiImageUpload value={images} onChange={setImages} /></div>
       <div className="grid grid-cols-2 gap-3">

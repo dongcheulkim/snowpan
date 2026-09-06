@@ -13,6 +13,8 @@ import { shopLocationLabel } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
 import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
+import KindTags from '../components/KindTags';
+import { shopPath } from '../utils/shopKinds';
 
 interface Shop {
   id: string;
@@ -33,6 +35,8 @@ interface Shop {
   claimable?: boolean;
   lat?: number | null;
   lng?: number | null;
+  kind?: string;
+  extraKinds?: string | null;
 }
 
 export default function NewEquipment() {
@@ -93,7 +97,7 @@ export default function NewEquipment() {
           {shown.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
-            <Link to={`/skishop/${shop.id}`} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+            <Link to={shopPath(shop.kind, shop.id, 'skishop')} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && (
                 <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
               )}
@@ -107,6 +111,7 @@ export default function NewEquipment() {
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
+                    <KindTags shop={shop} own="skishop" />
                     {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
                     {shop.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(shop.distanceKm)}</span>}
                   </div>

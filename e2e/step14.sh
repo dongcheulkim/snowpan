@@ -267,4 +267,18 @@ SN=$(echo "$RESP" | jq -r '.name'); SD=$(echo "$RESP" | jq -r '.description')
 [ "$CODE" = "201" ] && [ "$SN" = '비비드왁스 & 풋풋 "용평"' ] && ok "상호의 & 와 따옴표 원문 저장" || bad "새니타이즈 CODE=$CODE name=$SN"
 case "$SD" in *"<"*|*"&lt;"*|*"&amp;"*) bad "설명에 태그/엔티티 잔존: $SD";; *"엣지 & 왁싱 전문"*) ok "설명 태그 제거 + & 원문 유지 ($SD)";; *) bad "설명 결과 예상밖: $SD";; esac
 
+# ── 겸업 칩: 렌탈샵이 extraKinds=repair 면 정비샵 목록에도 노출(kind=rental), 본인 업종·잘못된 값은 버림
+api POST /rentals '{"name":"겸업렌탈","area":"강원","businessLicense":"/uploads/e2e.jpg","extraKinds":["repair"]}' "$U_TOKEN"; expect 400 "사장님 겸업 추가 — 증빙 없으면 400"
+api POST /rentals '{"name":"겸업렌탈","area":"강원","businessLicense":"/uploads/e2e.jpg","extraKinds":["repair","rental","bogus"],"extraKindsProof":"https://www.instagram.com/p/abc"}' "$U_TOKEN"
+XR=$(echo "$RESP" | jq -r '.id // empty'); XK=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "201" ] && [ "$XK" = "repair" ] && ok "겸업 저장 (증빙 링크, 본인 업종·잘못된 값 제거 → repair)" || bad "겸업 CODE=$CODE extraKinds=$XK RESP=$(echo $RESP|head -c 100)"
+XP=$(echo "$RESP" | jq -r '.extraKindsProof // "none"'); api GET "/rentals/$XR" "" "$A_TOKEN"; PUBP=$(echo "$RESP" | jq -r 'has("extraKindsProof")'); [ "$PUBP" = "false" ] && ok "증빙은 공개 상세에 비노출" || bad "증빙 공개 노출 has=$PUBP"
+pq "UPDATE rentals SET approved=true WHERE id='$XR'" >/dev/null
+api GET /repair-shops ""; XC=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$XR\")] | length"); XKIND=$(echo "$RESP" | jq -r ".[] | select(.id==\"$XR\") | .kind"); XKS=$(echo "$RESP" | jq -c ".[] | select(.id==\"$XR\") | .kinds"); [ "$XC" = "1" ] && [ "$XKIND" = "rental" ] && ok "정비샵 목록에 겸업 렌탈 노출 (kind=rental, kinds=$XKS)" || bad "겸업 노출 cnt=$XC kind=$XKIND"
+api GET /ski-shops ""; XS=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$XR\")] | length"); [ "$XS" = "0" ] && ok "선택 안 한 업종(스키샵) 목록엔 미노출" || bad "스키샵 목록 노출 cnt=$XS"
+api GET "/rentals?limit=100" ""; XT=$(echo "$RESP" | jq -r "[.items[] | select(.id==\"$XR\")] | length"); [ "$XT" = "1" ] && ok "본 업종 렌탈 목록 정상 노출" || bad "렌탈 목록 cnt=$XT"
+api PUT "/rentals/$XR" '{"extraKinds":["repair","skishop"]}' "$U_TOKEN"; expect 400 "겸업 추가(판매) 증빙 없으면 400"
+api PUT "/rentals/$XR" '{"extraKinds":["repair","skishop"],"extraKindsProof":"/uploads/e2e.jpg"}' "$U_TOKEN"; XK3=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK3" = "repair,skishop" ] && ok "겸업 추가 + 사진 증빙 200 (재심사)" || bad "겸업 추가 CODE=$CODE extraKinds=$XK3"
+api PUT "/rentals/$XR" '{"extraKinds":[]}' "$U_TOKEN"; XK2=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK2" = "null" ] && ok "겸업 해제는 증빙 없이 가능 (null)" || bad "겸업 해제 CODE=$CODE extraKinds=$XK2"
+api PUT "/rentals/$XR" '{"extraKinds":["skishop"]}' "$A_TOKEN"; XK4=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK4" = "skishop" ] && ok "관리자는 증빙 없이 겸업 지정" || bad "관리자 겸업 CODE=$CODE extraKinds=$XK4"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

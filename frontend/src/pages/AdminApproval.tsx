@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import ExtraKindsNote from '../components/ExtraKindsNote';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
@@ -38,6 +39,8 @@ interface PendingItem {
   requesterEmail?: string;
   message?: string | null;
   shopType?: string;
+  extraKinds?: string | null;
+  extraKindsProof?: string | null;
   // AI 직원 네이버 더블체크 결과
   aiVerified?: boolean;
   aiNote?: string | null;
@@ -255,6 +258,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </a>
               )}
               <AiBadge item={item} />
+              <ExtraKindsNote item={item} />
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
@@ -284,6 +288,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </a>
               )}
               <AiBadge item={item} />
+              <ExtraKindsNote item={item} />
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
@@ -428,6 +433,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         )}
 
         {(activeTab === 'rental' || activeTab === 'lesson' || activeTab === 'accommodation') && <AiBadge item={item} />}
+        {activeTab === 'rental' && <ExtraKindsNote item={item} />}
 
         <div className="flex gap-2 pt-3 border-t border-gray-50">
           <button onClick={() => handleReject(activeTab, item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>

@@ -7,6 +7,7 @@ import { ClipboardIcon, CloseIcon } from '../components/Icons';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
@@ -23,6 +24,8 @@ export default function SkiShopRegister() {
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
 
   useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
@@ -146,6 +149,8 @@ export default function SkiShopRegister() {
             <label className={labelClass}>취급 브랜드 <span className="text-xs text-gray-500">(콤마로 구분)</span></label>
             <input type="text" name="brands" value={form.brands} onChange={handleChange} placeholder="예: Rossignol, Atomic, Salomon" className={inputClass} />
           </div>
+
+          <ExtraKindsPicker own="skishop" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
           <div className="grid grid-cols-2 gap-3">
             <div>

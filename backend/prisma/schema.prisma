@@ -281,6 +281,8 @@ model Rental {
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
   lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
   lng             Float?
+  extraKinds      String?  // 겸업 (콤마: skishop|repair|rental, 본인 업종 제외) — 해당 카테고리 목록에도 함께 노출
+  extraKindsProof String?  // 겸업 증빙 (업로드 사진 URL 또는 영상 링크) — 사장님이 겸업을 추가할 때 필수, 관리자 심사용(비공개)
   premiumUntil DateTime?
   userId                String
   user                  User      @relation(fields: [userId], references: [id])
@@ -777,6 +779,8 @@ model SkiShop {
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
   lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
   lng             Float?
+  extraKinds      String?  // 겸업 (콤마: skishop|repair|rental, 본인 업종 제외) — 해당 카테고리 목록에도 함께 노출
+  extraKindsProof String?  // 겸업 증빙 (업로드 사진 URL 또는 영상 링크) — 사장님이 겸업을 추가할 때 필수, 관리자 심사용(비공개)
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)
@@ -818,6 +822,8 @@ model RepairShop {
   claimable       Boolean  @default(false) // 관리자 시딩(공개 영업정보 기반) 매장 — 사장님 확인 전. "직접 관리하기"(사업자등록증 인증)로 소유권 이전 시 false
   lat             Float?   // 주소 지오코딩 좌표 (카카오 로컬 API, 등록·수정 시 자동) — '내 주변' 거리 표시용
   lng             Float?
+  extraKinds      String?  // 겸업 (콤마: skishop|repair|rental, 본인 업종 제외) — 해당 카테고리 목록에도 함께 노출
+  extraKindsProof String?  // 겸업 증빙 (업로드 사진 URL 또는 영상 링크) — 사장님이 겸업을 추가할 때 필수, 관리자 심사용(비공개)
   premiumUntil    DateTime?
   viewCount       Int      @default(0) // 상세 조회수 (사장님 대시보드용)
   aiReviewedAt    DateTime? // AI 직원이 네이버 대조 검증한 시각 (null=미검증)

@@ -31,6 +31,10 @@ def payload(r):
     # 위치 규칙(세 업종 공통): area = 시/도 칩값, resortId = 인근 리조트 연결(없으면 시내 매장 = 필터 '외')
     loc = {'area': r['지역']}
     if r['리조트ID']: loc['resortId'] = r['리조트ID']
+    # 겸업 → extraKinds (원본 '겸업' 열: '판매+렌탈', '정비 병행', '렌탈 병행' 등). 본인 업종은 서버가 걸러냄.
+    g = r.get('겸업') or ''
+    ek = [k for word, k in (('판매', 'skishop'), ('렌탈', 'rental'), ('정비', 'repair')) if word in g and k != kind]
+    if ek: loc['extraKinds'] = ek
     if kind == 'skishop':
         return '/ski-shops', {**base, **loc, 'description': desc}
     if kind == 'repair':

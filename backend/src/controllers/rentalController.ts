@@ -9,6 +9,7 @@ import { stripPrivate, stripPrivateAll } from '../utils/publicFields';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { geocodeAndStore } from '../utils/geocode';
+import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -32,21 +33,12 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
     const skipParsed = offset ? parseInt(offset as string, 10) : 0;
     const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
-    const [rentals, totalCount] = await Promise.all([
-      prisma.rental.findMany({
-        where,
-        include: {
-          resort: true,
-          user: { select: { id: true, name: true, nickname: true } },
-        },
-        orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], // 프리미엄 최상단
-        take,
-        ...(skip !== undefined && { skip }),
-      }),
-      prisma.rental.count({ where }),
-    ]);
-
-    res.json({ items: maskRowUserAll(stripPrivateAll(rentals as any)), totalCount });
+    // 본 업종 + 겸업(extraKinds 에 rental)인 스키샵·정비샵까지 합친 뒤 메모리에서 페이지 분할.
+    // (수백 건 규모라 충분하고 목록은 publicCache 로 2분 캐시됨. 수천 건 넘으면 DB 페이지네이션으로 전환)
+    void where;
+    const all = await listShopsForKind('rental', { vertical: verticalSlug, area: typeof area === 'string' ? area : undefined, resortId: resortId ? String(resortId) : undefined });
+    const start = skip ?? 0;
+    res.json({ items: all.slice(start, start + take), totalCount: all.length });
   } catch (error) {
     console.error('Get rentals error:', error);
     res.status(500).json({ error: '렌탈 조회 중 오류가 발생했습니다.' });
@@ -68,6 +60,9 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
       return;
     }
     if (b.image && !isAllowedImageUrl(b.image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
+    const ek = parseExtraKinds(b.extraKinds, 'rental');
+    const proof = validProof(b.extraKindsProof);
+    if (ek && req.user!.role !== 'admin' && !proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·정비 사진 또는 영상 링크)이 필요합니다.' }); return; }
 
     const rental = await prisma.rental.create({
       data: {
@@ -85,6 +80,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         images: sanitizeImages(b.images),
         businessLicense: b.businessLicense || null,
         resortId: b.resortId || null,
+        extraKinds: ek, extraKindsProof: ek ? proof : null,
         userId,
         vertical: verticalSlug,
         approved: seeding, claimable: seeding,
@@ -161,6 +157,15 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     if (b.image !== undefined) data.image = b.image || null;
     if (b.images !== undefined) data.images = sanitizeImages(b.images);
     if (b.resortId !== undefined) data.resortId = b.resortId || null;
+    if (b.extraKinds !== undefined) {
+      const ek = parseExtraKinds(b.extraKinds, 'rental');
+      if (addsKinds(item.extraKinds, ek) && req.user!.role !== 'admin') {
+        const proof = validProof(b.extraKindsProof);
+        if (!proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·정비 사진 또는 영상 링크)이 필요합니다.' }); return; }
+        data.extraKindsProof = proof;
+      }
+      data.extraKinds = ek;
+    }
     if (ownerEdit) data.approved = false;
     const updated = await prisma.rental.update({ where: { id }, data });
     if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});

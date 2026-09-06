@@ -8,6 +8,7 @@ import MultiImageUpload from '../components/MultiImageUpload';
 import { REPAIR_SERVICES } from '../utils/repairServices';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
@@ -23,6 +24,8 @@ export default function RepairShopRegister() {
   const [form, setForm] = useState({
     name: '', area: '서울', resortId: '', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
 
   useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
@@ -118,6 +121,8 @@ export default function RepairShopRegister() {
             <label className={labelClass}>주소 *</label>
             <input type="text" name="address" value={form.address} onChange={handleChange} placeholder="예: 서울시 강남구 역삼동 123-4" required className={inputClass} />
           </div>
+
+          <ExtraKindsPicker own="repair" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
           <div>
             <label className={labelClass}>영업시간</label>

@@ -6,6 +6,7 @@ import MultiImageUpload from '../components/MultiImageUpload';
 import { REPAIR_SERVICES } from '../utils/repairServices';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
+import ExtraKindsPicker from '../components/ExtraKindsPicker';
 
 // 소유자 본인이 자기 정비샵 정보를 수정. 사업자등록증 재업로드 불필요.
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
@@ -13,6 +14,7 @@ const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 interface Shop {
   id: string;
   name: string; area: string; resortId?: string | null; resort?: { id: string; name: string } | null; address: string; description: string;
+  extraKinds?: string | null;
   services: string | null; phone: string | null; instagram: string | null;
   website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null;
 }
@@ -28,7 +30,10 @@ export default function RepairShopEdit() {
   const [form, setForm] = useState({
     name: '', area: '서울', resortId: '', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
+    extraKinds: [] as string[],
+    extraKindsProof: '',
   });
+  const [loadedKinds, setLoadedKinds] = useState<string[]>([]); // 이미 승인된 겸업 — 증빙 불필요
 
   useEffect(() => {
     if (!id) return;
@@ -44,7 +49,10 @@ export default function RepairShopEdit() {
           description: s.description || '', services: s.services || '',
           phone: s.phone || '', instagram: s.instagram || '', website: s.website || '',
           naverMap: s.naverMap || '', hours: s.hours || '',
+          extraKinds: (s.extraKinds || '').split(',').filter(Boolean),
+          extraKindsProof: '',
         });
+        setLoadedKinds((s.extraKinds || '').split(',').filter(Boolean));
         setImages(s.images || s.image || '');
       })
       .catch(() => navigate('/mypage/shops'))
@@ -119,6 +127,8 @@ export default function RepairShopEdit() {
             <label className={labelClass}>주소 *</label>
             <input type="text" name="address" value={form.address} onChange={handleChange} required className={inputClass} />
           </div>
+
+          <ExtraKindsPicker own="repair" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} initial={loadedKinds} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
           <div>
             <label className={labelClass}>영업시간</label>

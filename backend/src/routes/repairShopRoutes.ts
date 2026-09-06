@@ -9,6 +9,7 @@ import { sanitizeImages } from '../utils/images';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { geocodeAndStore } from '../utils/geocode';
+import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
 
 const router = Router();
 
@@ -31,18 +32,9 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     // resortId=none → 리조트 없는 시내 매장(필터 '외')
     if (resortId) where.resortId = resortId === 'none' ? null : String(resortId);
 
-    // select 로 공개 필드만 — businessLicense 비공개 유지.
-    const shops = await prisma.repairShop.findMany({
-      where,
-      select: {
-        id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true, services: true,
-        phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true,
-        user: { select: { id: true, name: true, nickname: true } },
-      },
-      orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }],
-    });
-    res.json(maskRowUserAll(shops));
+    // 본 업종 + 겸업(extraKinds 에 repair)인 스키샵·렌탈샵까지 합쳐서 (공개 필드만)
+    void where;
+    res.json(await listShopsForKind('repair', { vertical: verticalSlug, area: area ? String(area) : undefined, resortId: resortId ? String(resortId) : undefined }));
   } catch (error) {
     console.error('Get repair shops error:', error);
     res.status(500).json({ error: '정비샵 조회 중 오류가 발생했습니다.' });
@@ -53,7 +45,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical, claimable } = req.body;
+    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images, businessLicense, vertical, claimable, extraKinds, extraKindsProof } = req.body;
     // 관리자 시딩 — 공개 영업정보만으로 기본 등록, 사업자등록증 없이 즉시 공개 + claimable(사장님 확인 전). 일반 유저의 claimable 은 무시.
     const seeding = req.user!.role === 'admin' && claimable === true;
 
@@ -67,6 +59,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     const resortIdClean = await resolveResortId(resortId);
     if (resortIdClean === undefined) { res.status(400).json({ error: '존재하지 않는 리조트입니다.' }); return; }
+    const ek = parseExtraKinds(extraKinds, 'repair');
+    const proof = validProof(extraKindsProof);
+    if (ek && req.user!.role !== 'admin' && !proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·렌탈 사진 또는 영상 링크)이 필요합니다.' }); return; }
     const shop = await prisma.repairShop.create({
       data: {
         name: sanitizeText(name, 100) || name,
@@ -75,6 +70,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         description: sanitizeText(description, 2000) || description,
         services: sanitizeText(services, 500) || null,
         resortId: resortIdClean,
+        extraKinds: ek, extraKindsProof: ek ? proof : null,
         phone: sanitizeText(phone, 40) || null,
         instagram: sanitizeText(instagram, 60) || null,
         website: isHttpUrl(website) ? sanitizeText(website, 300) || null : null,
@@ -137,7 +133,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       select: {
         id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true, services: true,
         phone: true, instagram: true, website: true, naverMap: true, hours: true,
-        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true,
+        image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true, extraKinds: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
     });
@@ -156,13 +152,22 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
     if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images } = req.body;
+    const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images, extraKinds, extraKindsProof } = req.body;
     const data: any = {};
     if (name !== undefined) data.name = sanitizeText(name, 100) || name;
     if (area !== undefined) data.area = sanitizeText(area, 40) || area;
     if (address !== undefined) data.address = sanitizeText(address, 200) || address;
     if (description !== undefined) data.description = sanitizeText(description, 2000) || description;
     if (services !== undefined) data.services = services ? (sanitizeText(services, 500) || services) : null;
+    if (extraKinds !== undefined) {
+      const ek = parseExtraKinds(extraKinds, 'repair');
+      if (addsKinds(shop.extraKinds, ek) && req.user!.role !== 'admin') {
+        const proof = validProof(extraKindsProof);
+        if (!proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·렌탈 사진 또는 영상 링크)이 필요합니다.' }); return; }
+        data.extraKindsProof = proof;
+      }
+      data.extraKinds = ek;
+    }
     if (resortId !== undefined) {
       const rid = await resolveResortId(resortId);
       if (rid === undefined) { res.status(400).json({ error: '존재하지 않는 리조트입니다.' }); return; }
