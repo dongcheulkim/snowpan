@@ -261,8 +261,9 @@ def score(o): return sum(bool(o[k]) for k in ('전화','영업시간','인스타
 groups = collections.defaultdict(list)
 for o in out:
     if o['처리'] != '등록': continue
-    groups[('addr', o['주소키'])].append(o)
-    groups[('name', o['상호'].replace(' ',''), o['리조트'])].append(o)
+    # 같은 업종끼리만 병합 — 한 건물에 렌탈샵과 정비샵이 따로 있는 경우는 별개 매장
+    groups[('addr', o['업종'], o['주소키'])].append(o)
+    groups[('name', o['업종'], o['상호'].replace(' ',''), o['리조트'])].append(o)
 seen_drop = set()
 for key, g in groups.items():
     if len(g) < 2: continue
