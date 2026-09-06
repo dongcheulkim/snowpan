@@ -5,6 +5,8 @@ import { api } from '../api';
 import {
   MaintenanceIcon, SkiShopIcon, RentalIcon, LessonIcon, AccommodationIcon,
 } from '../components/CategoryIcons';
+import KindTags from '../components/KindTags';
+import type { ShopKind } from '../utils/shopKinds';
 
 interface Shop {
   id: string;
@@ -13,6 +15,7 @@ interface Shop {
   price?: number;
   approved: boolean;
   claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전 (관리자 대시보드에서만 보임)
+  extraKinds?: string | null; // 겸업 칩 (스키샵·정비샵·렌탈샵만)
   viewCount?: number;
   createdAt: string;
 }
@@ -157,7 +160,10 @@ export default function MyShops() {
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <span className="text-gray-700"><cat.Icon size={20} /></span>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{shop.name}</p>
+                {(cat.key === 'skishop' || cat.key === 'repair' || cat.key === 'rental') && <KindTags shop={shop} own={cat.key as ShopKind} />}
+              </div>
               {sub && <p className="text-[10px] text-gray-500">{sub}</p>}
             </div>
           </div>
