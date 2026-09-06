@@ -182,11 +182,12 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (image !== undefined) data.image = image || null;
     if (images !== undefined) data.images = sanitizeImages(images);
     const ownerEdit = req.user!.role !== 'admin';
-    if (ownerEdit) data.approved = false;
+    const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(shop.extraKinds, data.extraKinds);
+    if (ownerEdit && !onlyKindRemoval) data.approved = false;
 
     const updated = await prisma.repairShop.update({ where: { id: req.params.id }, data });
     if (address !== undefined) geocodeAndStore('repair', updated.id, updated.address).catch(() => {});
-    if (ownerEdit) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (ownerEdit && !onlyKindRemoval) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update repair shop error:', error);

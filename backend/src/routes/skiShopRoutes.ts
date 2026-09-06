@@ -195,11 +195,13 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (images !== undefined) data.images = sanitizeImages(images);
     // 소유자 수정은 재심사 — 승인 후 콘텐츠 바꿔치기 차단. 관리자 수정은 승인 유지.
     const ownerEdit = req.user!.role !== 'admin';
-    if (ownerEdit) data.approved = false;
+    // 겸업 칩만 빼는 수정은 공개 정보가 줄어들 뿐이라 재심사 없이 반영 (추가는 증빙 + 재심사)
+    const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(shop.extraKinds, data.extraKinds);
+    if (ownerEdit && !onlyKindRemoval) data.approved = false;
 
     const updated = await prisma.skiShop.update({ where: { id: req.params.id }, data });
     if (address !== undefined) geocodeAndStore('skishop', updated.id, updated.address).catch(() => {});
-    if (ownerEdit) notifyAdmins('system', '스키샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (ownerEdit && !onlyKindRemoval) notifyAdmins('system', '스키샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update ski shop error:', error);

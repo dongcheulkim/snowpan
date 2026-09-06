@@ -16,6 +16,7 @@ interface Shop {
   approved: boolean;
   claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전 (관리자 대시보드에서만 보임)
   extraKinds?: string | null; // 겸업 칩 (스키샵·정비샵·렌탈샵만)
+  _src?: CatKey; // 원래 등록된 카테고리 — 겸업으로 다른 섹션에 표시될 때 수정·소식·삭제는 이 카테고리 기준
   viewCount?: number;
   createdAt: string;
 }
@@ -65,8 +66,16 @@ export default function MyShops() {
     ).then((results) => {
       const next = {} as Record<CatKey, Shop[]>;
       CATEGORIES.forEach((c, i) => {
-        next[c.key] = Array.isArray(results[i]) ? results[i] : [];
+        next[c.key] = (Array.isArray(results[i]) ? results[i] : []).map((s) => ({ ...s, _src: c.key }));
       });
+      // 겸업 매장은 겸업 카테고리 섹션에도 같이 표시 — 같은 매장(같은 데이터)을 카테고리별로 따로 관리하는 느낌으로
+      for (const k of ['skishop', 'repair', 'rental'] as const) {
+        for (const s of next[k]) {
+          for (const ek of (s.extraKinds || '').split(',').filter(Boolean) as CatKey[]) {
+            if (ek !== k && next[ek]) next[ek].push(s);
+          }
+        }
+      }
       setShops(next);
     }).finally(() => setLoading(false));
   }, []);
@@ -75,20 +84,40 @@ export default function MyShops() {
     if (!confirm(`"${shop.name}"을(를) 삭제하시겠습니까?`)) return;
     try {
       await api(`${cat.deleteBase}/${shop.id}`, { method: 'DELETE' });
-      setShops((prev) => ({ ...prev, [cat.key]: prev[cat.key].filter((s) => s.id !== shop.id) }));
+      // 원 카테고리에서 삭제되면 겸업으로 표시되던 다른 섹션에서도 사라짐
+      setShops((prev) => Object.fromEntries(Object.entries(prev).map(([k, list]) => [k, list.filter((s) => s.id !== shop.id)])) as Record<CatKey, Shop[]>);
     } catch (err) {
       toastError(err instanceof Error ? err.message : '삭제 실패');
     }
   };
 
+  // 겸업 섹션에서 "여기서 내리기" — 겸업 칩만 빼는 수정 (증빙·재심사 없음)
+  const handleUnlink = async (src: typeof CATEGORIES[number], cat: typeof CATEGORIES[number], shop: Shop) => {
+    if (!confirm(`"${shop.name}"을(를) ${cat.label} 목록에서 내릴까요? (${src.label} 등록은 그대로 유지됩니다)`)) return;
+    try {
+      const remaining = (shop.extraKinds || '').split(',').filter((k) => k && k !== cat.key);
+      await api(`${src.deleteBase}/${shop.id}`, { method: 'PUT', body: { extraKinds: remaining } });
+      const nextExtra = remaining.join(',') || null;
+      setShops((prev) => {
+        const out = { ...prev } as Record<CatKey, Shop[]>;
+        out[cat.key] = prev[cat.key].filter((s) => !(s.id === shop.id && s._src === src.key));
+        for (const k of Object.keys(out) as CatKey[]) out[k] = out[k].map((s) => (s.id === shop.id ? { ...s, extraKinds: nextExtra } : s));
+        return out;
+      });
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '변경 실패');
+    }
+  };
+
   const toggleNews = async (cat: typeof CATEGORIES[number], shop: Shop) => {
     const key = `${cat.key}:${shop.id}`;
+    const srcKey = shop._src || cat.key; // 소식은 원 카테고리 기준 (한 매장 = 하나의 소식 피드)
     if (openNews === key) { setOpenNews(null); return; }
     setOpenNews(key);
     if (posts[key]) return; // 이미 불러옴
     setPostsLoading(key);
     try {
-      const res = await api<{ items: ShopPostItem[] }>(`/shop-posts?shopType=${cat.key}&shopId=${shop.id}&limit=20`);
+      const res = await api<{ items: ShopPostItem[] }>(`/shop-posts?shopType=${srcKey}&shopId=${shop.id}&limit=20`);
       setPosts((prev) => ({ ...prev, [key]: Array.isArray(res?.items) ? res.items : [] }));
     } catch {
       setPosts((prev) => ({ ...prev, [key]: [] }));
@@ -109,12 +138,13 @@ export default function MyShops() {
 
   const NewsPanel = ({ shop, cat }: { shop: Shop; cat: typeof CATEGORIES[number] }) => {
     const key = `${cat.key}:${shop.id}`;
+    const srcKey = shop._src || cat.key;
     const list = posts[key] || [];
     return (
       <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
         {shop.approved ? (
           <Link
-            to={`/shop/${cat.key}/${shop.id}/post/new`}
+            to={`/shop/${srcKey}/${shop.id}/post/new`}
             className="block w-full py-2 text-center text-xs font-bold text-white bg-sky-500 rounded-md hover:bg-sky-600 transition-colors"
           >
             + 소식·이벤트 쓰기
@@ -150,6 +180,8 @@ export default function MyShops() {
 
   const ShopCard = ({ shop, cat }: { shop: Shop; cat: typeof CATEGORIES[number] }) => {
     const key = `${cat.key}:${shop.id}`;
+    const src = CATEGORIES.find((c) => c.key === (shop._src || cat.key)) || cat; // 수정·삭제·소식은 원 카테고리 API
+    const isGuest = src.key !== cat.key; // 겸업으로 이 섹션에 표시된 매장
     const sub = [
       shop.area,
       cat.hasViews ? `조회 ${(shop.viewCount ?? 0).toLocaleString()}` : (shop.price ? `${shop.price.toLocaleString()}원` : null),
@@ -165,6 +197,7 @@ export default function MyShops() {
                 {(cat.key === 'skishop' || cat.key === 'repair' || cat.key === 'rental') && <KindTags shop={shop} own={cat.key as ShopKind} />}
               </div>
               {sub && <p className="text-[10px] text-gray-500">{sub}</p>}
+              {isGuest && <p className="text-[10px] text-violet-700">{src.label}으로 등록된 매장 · {cat.label} 겸업</p>}
             </div>
           </div>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.claimable ? 'bg-gray-100 text-gray-600' : shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
@@ -172,9 +205,11 @@ export default function MyShops() {
           </span>
         </div>
         <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
-          <button onClick={() => navigate(`${cat.editBase}/${shop.id}/edit`)} className="flex-1 py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
+          <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className="flex-1 py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
           <button onClick={() => toggleNews(cat, shop)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
-          <button onClick={() => handleDelete(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
+          {isGuest
+            ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
+            : <button onClick={() => handleDelete(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>}
         </div>
         {openNews === key && <NewsPanel shop={shop} cat={cat} />}
       </div>
@@ -183,7 +218,7 @@ export default function MyShops() {
 
   if (loading) return <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>;
 
-  const all = CATEGORIES.flatMap((c) => shops[c.key]);
+  const all = CATEGORIES.flatMap((c) => shops[c.key].filter((s) => (s._src || c.key) === c.key)); // 겸업 중복 제외
   const totalShops = all.length;
   const totalViews = all.reduce((n, s) => n + (s.viewCount ?? 0), 0);
   // 내가 등록한 업종만 노출 (등록 안 한 카테고리는 숨김).
@@ -232,7 +267,7 @@ export default function MyShops() {
             <Link to={cat.registerPath} className="text-xs text-sky-600 font-bold">+ 추가 등록</Link>
           </div>
           <div className="space-y-2">
-            {shops[cat.key].map((s) => <ShopCard key={s.id} shop={s} cat={cat} />)}
+            {shops[cat.key].map((s) => <ShopCard key={`${s._src || cat.key}:${s.id}`} shop={s} cat={cat} />)}
           </div>
         </div>
       ))}

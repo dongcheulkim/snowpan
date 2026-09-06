@@ -278,7 +278,8 @@ api GET /ski-shops ""; XS=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$XR\")] |
 api GET "/rentals?limit=100" ""; XT=$(echo "$RESP" | jq -r "[.items[] | select(.id==\"$XR\")] | length"); [ "$XT" = "1" ] && ok "본 업종 렌탈 목록 정상 노출" || bad "렌탈 목록 cnt=$XT"
 api PUT "/rentals/$XR" '{"extraKinds":["repair","skishop"]}' "$U_TOKEN"; expect 400 "겸업 추가(판매) 증빙 없으면 400"
 api PUT "/rentals/$XR" '{"extraKinds":["repair","skishop"],"extraKindsProof":"/uploads/e2e.jpg"}' "$U_TOKEN"; XK3=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK3" = "repair,skishop" ] && ok "겸업 추가 + 사진 증빙 200 (재심사)" || bad "겸업 추가 CODE=$CODE extraKinds=$XK3"
-api PUT "/rentals/$XR" '{"extraKinds":[]}' "$U_TOKEN"; XK2=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK2" = "null" ] && ok "겸업 해제는 증빙 없이 가능 (null)" || bad "겸업 해제 CODE=$CODE extraKinds=$XK2"
+pq "UPDATE rentals SET approved=true WHERE id='$XR'" >/dev/null
+api PUT "/rentals/$XR" '{"extraKinds":[]}' "$U_TOKEN"; XK2=$(echo "$RESP" | jq -r '.extraKinds'); XA=$(pq "SELECT approved FROM rentals WHERE id='$XR'"); [ "$CODE" = "200" ] && [ "$XK2" = "null" ] && [ "$XA" = "t" ] && ok "겸업 해제는 증빙 없이 + 재심사 없이 (approved 유지)" || bad "겸업 해제 CODE=$CODE extraKinds=$XK2 approved=$XA"
 api PUT "/rentals/$XR" '{"extraKinds":["skishop"]}' "$A_TOKEN"; XK4=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK4" = "skishop" ] && ok "관리자는 증빙 없이 겸업 지정" || bad "관리자 겸업 CODE=$CODE extraKinds=$XK4"
 
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

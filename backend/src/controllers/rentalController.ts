@@ -166,9 +166,11 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
       }
       data.extraKinds = ek;
     }
-    if (ownerEdit) data.approved = false;
+    // 겸업 칩만 빼는 수정은 재심사 없이 반영 (추가는 증빙 + 재심사)
+    const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(item.extraKinds, data.extraKinds as string | null);
+    if (ownerEdit && !onlyKindRemoval) data.approved = false;
     const updated = await prisma.rental.update({ where: { id }, data });
-    if (ownerEdit) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (ownerEdit && !onlyKindRemoval) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     if (b.address !== undefined) geocodeAndStore('rental', id, typeof data.address === 'string' ? data.address : null).catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
