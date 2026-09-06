@@ -29,3 +29,7 @@ npm-debug.log*
 nul
 .vercel
 e2e/.state/
+
+# 시딩 실행 결과 (등록 ID 로그) — 커밋 안 함
+scripts/seed/seed_result*.csv
+scripts/seed/seed_rollback*.txt
