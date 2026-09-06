@@ -193,6 +193,8 @@ model SkiResort {
   name      String
   location  String
   image     String?
+  lat       Float?   // 리조트 좌표 — 근처 매장 자동 연결(약 7km)·거리 계산용
+  lng       Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

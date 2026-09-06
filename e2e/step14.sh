@@ -282,4 +282,15 @@ pq "UPDATE rentals SET approved=true WHERE id='$XR'" >/dev/null
 api PUT "/rentals/$XR" '{"extraKinds":[]}' "$U_TOKEN"; XK2=$(echo "$RESP" | jq -r '.extraKinds'); XA=$(pq "SELECT approved FROM rentals WHERE id='$XR'"); [ "$CODE" = "200" ] && [ "$XK2" = "null" ] && [ "$XA" = "t" ] && ok "겸업 해제는 증빙 없이 + 재심사 없이 (approved 유지)" || bad "겸업 해제 CODE=$CODE extraKinds=$XK2 approved=$XA"
 api PUT "/rentals/$XR" '{"extraKinds":["skishop"]}' "$A_TOKEN"; XK4=$(echo "$RESP" | jq -r '.extraKinds'); [ "$CODE" = "200" ] && [ "$XK4" = "skishop" ] && ok "관리자는 증빙 없이 겸업 지정" || bad "관리자 겸업 CODE=$CODE extraKinds=$XK4"
 
+# ── 리조트 좌표·자동 연결 관리자 API (로컬은 카카오 키 없음)
+api POST /admin/resorts/geocode "{}" "$U_TOKEN"; expect 403 "일반유저 리조트 좌표 403"
+api POST /admin/shops/auto-resort '{"dryRun":true}' "$U_TOKEN"; expect 403 "일반유저 자동연결 403"
+api POST /admin/shops/auto-resort '{"dryRun":true}' "$A_TOKEN"; AR=$(echo "$RESP" | jq -r '.dryRun'); [ "$CODE" = "200" ] && [ "$AR" = "true" ] && ok "관리자 자동연결 dryRun 200" || bad "자동연결 CODE=$CODE $RESP"
+# 리조트 좌표를 직접 넣고 반경 내 매장이 자동 연결되는지 (좌표는 pq 로 주입)
+pq "UPDATE ski_resorts SET lat=37.6435, lng=128.6786 WHERE id='$YONGPYONG'" >/dev/null
+pq "UPDATE ski_shops SET lat=37.6500, lng=128.6900, \"resortId\"=NULL WHERE id='$RS'" >/dev/null
+api POST /admin/shops/auto-resort "{}" "$A_TOKEN"; LK=$(echo "$RESP" | jq -r "[.plan[] | select(.id==\"$RS\")] | length"); NR=$(pq "SELECT \"resortId\" FROM ski_shops WHERE id='$RS'"); [ "$CODE" = "200" ] && [ "$LK" = "1" ] && [ "$NR" = "$YONGPYONG" ] && ok "반경 내 매장 리조트 자동 연결 (용평)" || bad "자동연결 CODE=$CODE linked=$LK resortId=$NR"
+pq "UPDATE ski_shops SET lat=37.5665, lng=126.9780, \"resortId\"=NULL WHERE id='$RS'" >/dev/null
+api POST /admin/shops/auto-resort "{}" "$A_TOKEN"; NR2=$(pq "SELECT COALESCE(\"resortId\",'') FROM ski_shops WHERE id='$RS'"); [ -z "$NR2" ] && ok "반경 밖(서울) 매장은 미연결 유지" || bad "서울 매장 연결됨 resortId=$NR2"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"
