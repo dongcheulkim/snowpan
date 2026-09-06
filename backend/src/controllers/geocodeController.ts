@@ -2,13 +2,14 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { geocodeAddress, geocodeConfigured } from '../utils/geocode';
+import { geocodeAddress, geocodeConfigured, geocodeDebug } from '../utils/geocode';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const geocodeBackfill = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!geocodeConfigured()) { res.json({ configured: false, processed: 0, found: 0, remaining: 0 }); return; }
+    if (req.body?.debug) { res.json(await geocodeDebug(String(req.body.debug))); return; }
     const limit = Math.min(Math.max(parseInt(String(req.body?.limit ?? '150'), 10) || 150, 1), 500);
     // 스키샵·정비샵은 주소 필수(non-null), 렌탈은 주소 선택 — where 를 나눔
     const whereShop = { lat: null } as const;

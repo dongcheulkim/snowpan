@@ -32,6 +32,13 @@ export async function geocodeAddress(address: string): Promise<LatLng | null> {
   }
 }
 
+// 진단용 — 카카오 응답 상태/본문을 그대로 (키 미활성화 등 원인 파악). 관리자 백필 API 의 debug 옵션에서만 사용.
+export async function geocodeDebug(address: string): Promise<{ status: number; body: string; keyConfigured: boolean }> {
+  if (!KEY) return { status: 0, body: 'no key', keyConfigured: false };
+  const r = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`, { headers: { Authorization: `KakaoAK ${KEY}` }, signal: AbortSignal.timeout(6000) });
+  return { status: r.status, body: (await r.text()).slice(0, 400), keyConfigured: true };
+}
+
 export type GeoShopKind = 'skishop' | 'repair' | 'rental';
 
 // 등록·수정 직후 fire-and-forget 으로 좌표 저장 (실패해도 응답엔 영향 없음)
