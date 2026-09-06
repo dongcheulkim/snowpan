@@ -272,7 +272,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-sky-50">
-      <h1 className="sr-only">{isSnow ? '스노우판 — 스키·보드 중고거래, 렌탈, 레슨, 숙소를 한 곳에' : `${vertical.name} — ${vertical.tagline}`}</h1>
+      <h1 className="sr-only">{isSnow ? '스노우판 — 스키장 근처 매장 찾기와 스키·보드 중고거래' : `${vertical.name} — ${vertical.tagline}`}</h1>
 
       {/* Hero — 광고 rotator (스노우판 소개 슬라이드는 요청으로 제거, 광고부터 시작)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가

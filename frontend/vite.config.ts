@@ -1,3 +1,4 @@
+import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -7,11 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['snowpan-icon.svg', 'icons/og-image.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-16.png', 'robots.txt'],
+      includeAssets: ['snowpan-icon.svg', 'icons/og-image.png', 'icons/og-image-v2.png', 'icons/og-partners.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-16.png', 'robots.txt'],
       manifest: {
         name: '스노우판',
         short_name: '스노우판',
-        description: '스키 장비부터 레슨까지, 한눈에 비교하세요',
+        description: '리조트별 스키·보드 매장 찾기와 스키·보드 중고거래',
         lang: 'ko',
         dir: 'ltr',
         theme_color: '#0ea5e9',
@@ -122,6 +123,8 @@ export default defineConfig({
     target: 'es2020',
     cssCodeSplit: true,
     rollupOptions: {
+      // /partners 는 공유 카드(og:*)만 다른 partners.html 로 진입 (vercel.json rewrite)
+      input: { main: resolve(__dirname, 'index.html'), partners: resolve(__dirname, 'partners.html') },
       output: {
         manualChunks(id) {
           if (id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor';

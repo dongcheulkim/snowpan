@@ -15,6 +15,10 @@
       "destination": "http://konjiam.live.cdn.cloudn.co.kr/:path*"
     },
     {
+      "source": "/partners",
+      "destination": "/partners.html"
+    },
+    {
       "source": "/((?!api/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
       "destination": "/index.html"
     }
