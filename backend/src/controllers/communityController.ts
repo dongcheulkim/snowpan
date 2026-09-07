@@ -32,13 +32,31 @@ setInterval(() => {
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || '스노우판 회원';
 
+// 카테고리 화이트리스트. 'notice'(공지)·'news'(스키장 소식)는 관리자 전용.
+// 스키장 소식: 시즌권 판매·개장일·할인 같은 리조트 뉴스를 사장님이 올리는 채널. 공용(sport='all')이라 스키·보드 양쪽에 보이고,
+// resortIds 로 리조트 페이지에도 붙는다. 공지와 달리 상단 고정은 안 함(홈에 별도 섹션).
+const ALLOWED_CATEGORIES = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek', 'notice', 'news'];
+const ADMIN_ONLY_CATEGORIES = ['notice', 'news'];
+
+// 스키장 소식의 resortIds 검증 — 콤마 목록, 최대 20개, 전부 실제 리조트여야 함. 빈 값이면 null.
+async function parseResortIds(raw: unknown): Promise<{ value: string | null; error?: string }> {
+  if (raw === undefined || raw === null || raw === '') return { value: null };
+  const ids = Array.isArray(raw) ? raw.map(String) : String(raw).split(',');
+  const list = [...new Set(ids.map((x) => x.trim()).filter(Boolean))];
+  if (!list.length) return { value: null };
+  if (list.length > 20) return { value: null, error: '리조트는 20개까지 선택할 수 있습니다.' };
+  const found = await prisma.skiResort.count({ where: { id: { in: list } } });
+  if (found !== list.length) return { value: null, error: '존재하지 않는 리조트가 포함되어 있습니다.' };
+  return { value: list.join(',') };
+}
+
 export const getPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { sport, category, userId, search, limit, offset, vertical } = req.query;
+    const { sport, category, userId, search, limit, offset, vertical, resortId } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const cacheKey = `posts:${verticalSlug}:${JSON.stringify({ sport, category, userId, search, limit, offset })}`;
+    const cacheKey = `posts:${verticalSlug}:${JSON.stringify({ sport, category, userId, search, limit, offset, resortId })}`;
     const cached = cacheGet<{ posts: unknown[]; totalCount: number }>(cacheKey);
     if (cached) {
       res.json(cached);
@@ -60,6 +78,8 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       where.category = cats.length > 1 ? { in: cats } : cats[0];
     }
     if (userIdStr) where.userId = userIdStr;
+    // 리조트 페이지 '스키장 소식' — resortIds 콤마 목록에 포함된 글만
+    if (typeof resortId === 'string' && resortId) where.resortIds = { contains: resortId };
     if (searchStr) {
       where.OR = [
         { title: { contains: searchStr, mode: 'insensitive' } },
@@ -116,7 +136,8 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
-    const where: any = { vertical: verticalSlug };
+    // 스키장 소식(news)은 홈에 별도 섹션이 있어 핫 랭킹에서 제외(중복 노출 방지)
+    const where: any = { vertical: verticalSlug, category: { not: 'news' } };
     // getPosts 와 동일하게 공용(sport='all') 글 포함 — 공지가 핫 랭킹에서 빠지던 비일관 해소
     if (sportStr) where.sport = { in: [sportStr, 'all'] };
 
@@ -241,7 +262,7 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { title, content, category, sport, images, vertical } = req.body;
+    const { title, content, category, sport, images, vertical, resortIds } = req.body;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -250,17 +271,18 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    // 카테고리 화이트리스트. 'notice'(공지)는 관리자 전용.
-    const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek', 'notice'];
-    if (!allowedCategories.includes(category)) {
+    if (!ALLOWED_CATEGORIES.includes(category)) {
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;
     }
-    const isNotice = category === 'notice';
+    // 공지·스키장 소식은 관리자 전용, 공용(sport='all'). 공지만 상단 고정.
+    const isNotice = ADMIN_ONLY_CATEGORIES.includes(category);
     if (isNotice && req.user!.role !== 'admin') {
-      res.status(403).json({ error: '공지사항은 관리자만 작성할 수 있습니다.' });
+      res.status(403).json({ error: category === 'news' ? '스키장 소식은 관리자만 작성할 수 있습니다.' : '공지사항은 관리자만 작성할 수 있습니다.' });
       return;
     }
+    const resortParsed = category === 'news' ? await parseResortIds(resortIds) : { value: null };
+    if (resortParsed.error) { res.status(400).json({ error: resortParsed.error }); return; }
     // sport: snow 는 ski/board 만 (그 외 값이면 어느 필터에도 안 잡히는 고아 글이 됨).
     // 다른 vertical 은 config 종목이 다양해 길이 제한만.
     if (verticalSlug === 'snow' && !isNotice && !['ski', 'board'].includes(String(sport))) {
@@ -278,7 +300,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
     // 공지는 스키·보드 공용(sport='all')으로 저장하고 상단 고정.
     const finalSport = isNotice ? 'all' : sport;
-    const finalPinned = isNotice;
+    const finalPinned = category === 'notice';
 
     // 클라이언트와 한도 일치: 제목 50자, 본문 5000자.
     // sanitize 전 원본 길이 검증 — 사용자가 의도적으로 큰 입력 보낸 경우 truncate 대신 거절.
@@ -328,7 +350,7 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     }
 
     const post = await prisma.post.create({
-      data: { title: cleanTitle, content: cleanContent, category, sport: finalSport, pinned: finalPinned, vertical: verticalSlug, userId, images: images || null },
+      data: { title: cleanTitle, content: cleanContent, category, sport: finalSport, pinned: finalPinned, vertical: verticalSlug, userId, images: images || null, resortIds: resortParsed.value },
       include: { user: { select: { id: true, name: true, nickname: true, activeBadge: true, profileImage: true, badgeRequests: { where: { status: 'approved', vertical: verticalSlug }, select: { badgeType: true } } } } },
     });
 
@@ -518,7 +540,7 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
     if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { title, content, category, images } = req.body;
+    const { title, content, category, images, resortIds } = req.body;
     // create 와 동일한 검증 — sanitize + 길이 제한 + 카테고리 화이트리스트.
     // (이전엔 update 만 검증 누락되어 저장형 XSS/남용 경로였음)
     const data: { title?: string; content?: string; category?: string; images?: string | null } = {};
@@ -539,13 +561,21 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       data.content = clean;
     }
     if (category !== undefined) {
-      const allowedCategories = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek', 'notice'];
-      if (!allowedCategories.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
-      if (category === 'notice' && req.user!.role !== 'admin') { res.status(403).json({ error: '공지사항은 관리자만 지정할 수 있습니다.' }); return; }
+      if (!ALLOWED_CATEGORIES.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
+      if (ADMIN_ONLY_CATEGORIES.includes(category) && req.user!.role !== 'admin') { res.status(403).json({ error: '공지·스키장 소식은 관리자만 지정할 수 있습니다.' }); return; }
       data.category = category;
-      // 공지 지정/해제 시 고정·공용 상태 동기화 (공지 해제됐는데 상단 고정 남는 것 방지).
+      // 공지 지정/해제 시 고정·공용 상태 동기화 (공지 해제됐는데 상단 고정 남는 것 방지). 스키장 소식은 공용이되 고정 안 함.
       if (category === 'notice') { (data as any).pinned = true; (data as any).sport = 'all'; }
+      else if (category === 'news') { (data as any).pinned = false; (data as any).sport = 'all'; }
       else if (post.category === 'notice') { (data as any).pinned = false; }
+      if (category !== 'news' && post.category === 'news') { (data as any).resortIds = null; }
+    }
+    // 스키장 소식의 리조트 목록 수정 (관리자만 news 를 쓸 수 있으므로 별도 권한 체크 불필요)
+    const nextCategory = category !== undefined ? category : post.category;
+    if (resortIds !== undefined && nextCategory === 'news') {
+      const parsed = await parseResortIds(resortIds);
+      if (parsed.error) { res.status(400).json({ error: parsed.error }); return; }
+      (data as any).resortIds = parsed.value;
     }
     const updated = await prisma.post.update({ where: { id }, data });
     res.json(updated);

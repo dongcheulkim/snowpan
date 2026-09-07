@@ -21,12 +21,16 @@ const CommunityWrite = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 수정 모드 — 기존 업로드 이미지
+  // 스키장 소식(news) 전용 — 관련 리조트 선택 (리조트 페이지에도 표시됨)
+  const [resortSel, setResortSel] = useState<string[]>([]);
+  const [resorts, setResorts] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => { api<{ id: string; name: string }[]>('/resorts').then(setResorts).catch(() => {}); }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 수정 모드: 기존 글 프리필 (작성자/관리자만)
   useEffect(() => {
     if (!editId) return;
-    api<{ userId?: string; title: string; content: string; category: string; images?: string | null }>(`/community/${editId}`)
+    api<{ userId?: string; title: string; content: string; category: string; images?: string | null; resortIds?: string | null }>(`/community/${editId}`)
       .then(p => {
         const me = getUser();
         if (!me || (p.userId && p.userId !== me.id && me.role !== 'admin')) {
@@ -37,6 +41,7 @@ const CommunityWrite = () => {
         setTitle(p.title || '');
         setContent(p.content || '');
         setCategory(p.category || 'free');
+        setResortSel((p.resortIds || '').split(',').filter(Boolean));
         setExistingImages(p.images ? p.images.split(',').filter(Boolean) : []);
         setAgreed(true); // 최초 작성 시 이미 동의함
       })
@@ -56,10 +61,10 @@ const CommunityWrite = () => {
   );
 
   const isAdmin = getUser()?.role === 'admin';
-  // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 공지(notice)는 관리자 전용 대분류.
+  // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 공지(notice)·스키장 소식(news)은 관리자 전용.
   const writeGroups = isAdmin
     ? [...COMMUNITY_GROUPS, { id: 'notice', name: '공지', subs: ['notice'] }]
-    : COMMUNITY_GROUPS;
+    : COMMUNITY_GROUPS.filter((g) => !g.subs.includes('news'));
   const activeWriteGroup = writeGroups.find((g) => g.subs.includes(category));
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,13 +121,13 @@ const CommunityWrite = () => {
         const merged = [...existingImages, ...newUrls].join(',');
         await api(`/community/${editId}`, {
           method: 'PUT',
-          body: { title: title.trim(), content: content.trim(), category, images: merged },
+          body: { title: title.trim(), content: content.trim(), category, images: merged, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
         });
         navigate(`${vbase}/community/post/${editId}`);
       } else {
         await api('/community', {
           method: 'POST',
-          body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined },
+          body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
         });
         navigate(`${vbase}/community/${sport}`);
       }
@@ -180,6 +185,23 @@ const CommunityWrite = () => {
         </div>
         {category === 'notice' && (
           <p className="text-[11px] text-sky-600 mt-2 font-medium">공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
+        )}
+        {category === 'news' && (
+          <div className="mt-3">
+            <p className="text-[11px] text-sky-600 font-medium">스키장 소식은 스키·보드 양쪽 목록과 홈 "스키장 소식"에 노출됩니다. 관련 리조트를 고르면 그 리조트 페이지에도 표시됩니다.</p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {resorts.map((r) => {
+                const on = resortSel.includes(r.id);
+                return (
+                  <button key={r.id} type="button" onClick={() => setResortSel((prev) => (on ? prev.filter((x) => x !== r.id) : [...prev, r.id]))}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${on ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>
+                    {r.name}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-gray-500 mt-2">본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건) 쓰면 인스타 카드에 그대로 들어갑니다. 출처 링크는 마지막 줄에.</p>
+          </div>
         )}
         <p className="text-[11px] text-gray-500 mt-2">
           투표 글은 별도로 작성합니다.{' '}

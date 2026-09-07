@@ -438,11 +438,12 @@ model Post {
   id        String    @id @default(uuid())
   title     String
   content   String
-  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'meetup' | 'poll' | 'notice'
+  category  String    // 'free' | 'review' | 'resort' | 'tip' | 'carpool' | 'meetup' | 'poll' | 'notice' | 'news'(스키장 소식, 관리자 전용)
   sport     String    // snow: 'ski' | 'board' / bike: 'road' | 'mtb' / 'all'=공용(공지)
   vertical  String    @default("snow")
   images    String?   // 콤마 구분 이미지 URLs
   pinned    Boolean   @default(false) // 공지 상단 고정 (관리자만)
+  resortIds String?   // 스키장 소식(category='news') 전용 — 관련 리조트 id 콤마 목록. 리조트 페이지 '스키장 소식' 표시용
   likes     Int       @default(0)
   views     Int       @default(0)
   // 프리미엄 노출 (광고) — 리스트 최상단 고정. 광고 승인 시 설정, 만료 시 자동 해제.

@@ -15,6 +15,7 @@ const BASE: Record<string, { ski: string; board: string }> = {
   jobseek: { ski: '구직',     board: '구직' },     // 일자리 구해요 (강사·알바 지원)
   poll:    { ski: '투표',     board: '투표' },
   notice:  { ski: '공지',     board: '공지' },
+  news:    { ski: '스키장 소식', board: '스키장 소식' }, // 관리자 전용 — 시즌권·개장·할인 뉴스
 };
 
 // 다른 판 종목별 라벨 오버라이드 — 명시 안 된 카테고리는 ski 라벨(범용) 재사용.
@@ -40,6 +41,7 @@ export function communityCategoryLabel(id: string, sport?: Sport): string {
 
 // 커뮤니티 대분류 → 소분류 (목록 탭·글쓰기 폼 공용)
 export const COMMUNITY_GROUPS: { id: string; name: string; subs: string[] }[] = [
+  { id: 'g_news', name: '스키장 소식', subs: ['news'] }, // 읽기는 전체, 쓰기는 관리자만 (CommunityWrite 에서 제외)
   { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },
   { id: 'g_gear', name: '장비', subs: ['review', 'gear'] },
   { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'] },

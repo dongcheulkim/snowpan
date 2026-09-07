@@ -48,6 +48,9 @@ type HotItem =
   | { kind: 'poll'; id: string; title: string; likes: number; views: number; votes: number; score: number };
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
+// 홈 "스키장 소식" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
+interface ResortNews { id: string; title: string; content: string; resortIds?: string | null; createdAt: string }
+
 interface ShopNews {
   id: string;
   title: string;
@@ -107,6 +110,8 @@ const Home = () => {
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
+  const [resortNews, setResortNews] = useState<ResortNews[]>([]);
+  const [resortNameById, setResortNameById] = useState<Record<string, string>>({});
   // TTL 무효화는 마운트 시 1회만 — 렌더마다 돌리면(배너 4초 인터벌로 상시 재렌더)
   // 화면에 떠 있는 동안 캐시가 날아가 다음 페이지 로드 시 피드 앞부분이 통째로 잘림
   useState(() => {
@@ -191,6 +196,12 @@ const Home = () => {
     });
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
+      .catch(() => {});
+    api<{ posts: ResortNews[] }>('/community?category=news&limit=3')
+      .then((d) => setResortNews(d.posts || []))
+      .catch(() => {});
+    api<{ id: string; name: string }[]>('/resorts')
+      .then((rs) => setResortNameById(Object.fromEntries(rs.map((r) => [r.id, r.name]))))
       .catch(() => {});
     if (!usedFeedCache) {
       loadMoreUsed(true);
@@ -415,6 +426,32 @@ const Home = () => {
           })}
         </div>
       </div>
+
+      {/* 스키장 소식 — 시즌권 판매·개장일·할인 같은 리조트 뉴스(관리자 작성). 핫한 커뮤니티 위(사용자 요청). 글이 없으면 숨김 */}
+      {isSnow && resortNews.length > 0 && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">스키장 소식</h2>
+            <Link to="/community/ski?tab=g_news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+          </div>
+          <div className="space-y-2">
+            {resortNews.map((p) => {
+              const names = (p.resortIds || '').split(',').filter(Boolean).map((id) => resortNameById[id]).filter(Boolean);
+              const d = new Date(p.createdAt);
+              return (
+                <Link key={p.id} to={`/community/post/${p.id}`} className="card p-4 block active:bg-gray-50 transition-colors">
+                  <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{p.content}</p>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {names.slice(0, 6).map((n) => <span key={n} className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-300 text-gray-700">{n}</span>)}
+                    <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5. 비어도 섹션은 항상 표시 */}
       {isSnow && (

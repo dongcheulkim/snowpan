@@ -95,6 +95,21 @@ U_TOKEN=$(login "smoke_user@re.test" 'Re!pass1234')
 api PUT "/admin/users/$A_ID/ban" "{}" "$A_TOKEN"; expect 400 "관리자 계정 밴 차단"
 
 
+# ── 스키장 소식(community category=news): 관리자 전용, 공용(sport=all)·고정 아님, 리조트 연결, 리조트 필터, 핫 랭킹 제외
+RID=$(pq "SELECT id FROM ski_resorts ORDER BY name LIMIT 1")
+api POST /community "{\"title\":\"E2E 시즌권 소식\",\"content\":\"9/9 판매 시작\\n59만원대\",\"category\":\"news\",\"sport\":\"ski\",\"resortIds\":\"$RID\"}" "$U_TOKEN"; expect 403 "일반유저 스키장 소식 작성 403"
+api POST /community "{\"title\":\"E2E 시즌권 소식\",\"content\":\"9/9 판매 시작\\n59만원대\",\"category\":\"news\",\"sport\":\"ski\",\"resortIds\":\"nope,$RID\"}" "$A_TOKEN"; expect 400 "없는 리조트 id 400"
+api POST /community "{\"title\":\"E2E 시즌권 소식\",\"content\":\"9/9 판매 시작\\n59만원대\",\"category\":\"news\",\"sport\":\"ski\",\"resortIds\":\"$RID\"}" "$A_TOKEN"
+NP=$(echo "$RESP" | jq -r '.id // empty'); NS=$(echo "$RESP" | jq -r '.sport + ":" + (.pinned|tostring) + ":" + (.resortIds // "null")')
+[ "$CODE" = "201" ] && [ "$NS" = "all:false:$RID" ] && ok "관리자 스키장 소식 201 (sport=all, 고정 아님, 리조트 저장)" || bad "소식 작성 CODE=$CODE $NS $(echo $RESP|head -c 100)"
+api GET "/community?category=news&resortId=$RID" ""; NC=$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$NP\")] | length"); [ "$CODE" = "200" ] && [ "$NC" = "1" ] && ok "리조트별 스키장 소식 조회" || bad "리조트 소식 CODE=$CODE n=$NC"
+api GET "/community?category=news&resortId=00000000-0000-4000-8000-000000000000" ""; NC2=$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$NP\")] | length"); [ "$NC2" = "0" ] && ok "다른 리조트 필터에는 안 잡힘" || bad "다른 리조트 n=$NC2"
+api GET "/community?sport=board&category=news" ""; NC3=$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$NP\")] | length"); [ "$NC3" = "1" ] && ok "보드 목록에도 노출(공용)" || bad "보드 노출 n=$NC3"
+api GET "/community/popular" ""; NPOP=$(echo "$RESP" | jq -r "[.[]? | select(.category==\"news\")] | length"); [ "$NPOP" = "0" ] && ok "핫 랭킹에서 스키장 소식 제외" || bad "핫 랭킹 news=$NPOP"
+api PUT "/community/$NP" '{"resortIds":""}' "$A_TOKEN"; NR=$(echo "$RESP" | jq -r '.resortIds // "null"'); [ "$CODE" = "200" ] && [ "$NR" = "null" ] && ok "리조트 연결 해제" || bad "해제 CODE=$CODE r=$NR"
+api PUT "/community/$NP" '{"category":"free"}' "$U_TOKEN"; expect 403 "일반유저가 남의 소식 수정 403"
+api DELETE "/community/$NP" "" "$A_TOKEN"; expect 200 "스키장 소식 삭제"
+
 # 광고 가격 관리
 api GET /ad-booking/admin/pricings "" "$A_TOKEN"; PR=$(echo "$RESP" | jq -r 'length'); [ "$CODE" = "200" ] && [ "$PR" -ge 10 ] && ok "광고 가격표 목록 ($PR)" || bad "가격표 CODE=$CODE n=$PR"
 PID=$(echo "$RESP" | jq -r '.[0].id')
