@@ -81,6 +81,7 @@ const AdPay = lazy(() => import('./pages/AdPay'));
 const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
 const Partners = lazy(() => import('./pages/Partners'));
+const AccountDeletion = lazy(() => import('./pages/AccountDeletion'));
 const PartnerFind = lazy(() => import('./pages/PartnerFind'));
 const Overseas = lazy(() => import('./pages/Overseas'));
 const OverseasDetail = lazy(() => import('./pages/OverseasDetail'));
@@ -148,6 +149,8 @@ function App() {
               <Route key={v} path={`${v}/*`} element={<Navigate to="/" replace />} />
             ))}
             <Route path="privacy" element={<Privacy />} />
+            {/* 계정 삭제 안내 — 구글 플레이 데이터 보안 양식용 공개 URL */}
+            <Route path="account-deletion" element={<AccountDeletion />} />
             <Route path="resort/:name" element={<ResortLanding />} />
             <Route path="skishop" element={<NewEquipment />} />
             <Route path="skishop/register" element={<RequireAuth><SkiShopRegister /></RequireAuth>} />

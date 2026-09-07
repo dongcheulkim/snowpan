@@ -9,6 +9,7 @@ const STATIC_ROUTES: { path: string; priority: number; changefreq: string }[] = 
   { path: '/', priority: 1.0, changefreq: 'daily' },
   { path: '/partners', priority: 0.6, changefreq: 'monthly' },
   { path: '/news', priority: 0.7, changefreq: 'daily' },
+  { path: '/account-deletion', priority: 0.3, changefreq: 'yearly' },
   { path: '/used', priority: 0.9, changefreq: 'daily' },
   { path: '/rental', priority: 0.8, changefreq: 'daily' },
   { path: '/lesson', priority: 0.8, changefreq: 'daily' },
