@@ -66,7 +66,7 @@ RF=$(curl -s -c - -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: applic
 if [ -n "$RF" ]; then api GET /auth/profile "" "$RF"; expect 401 "refresh 토큰을 access 로 사용"; fi
 
 # ── 관리자 라우트: 일반유저 403 (adminRoutes 전역 + 개별 가드)
-for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "GET /admin/outreach" "POST /admin/outreach/bulk" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
+for m_p in "GET /admin/stats" "GET /admin/users" "GET /admin/reports" "GET /admin/rentals/pending" "GET /admin/lessons/pending" "GET /admin/accommodations/pending" "GET /admin/badges/pending" "GET /admin/ad-requests" "GET /admin/outreach" "POST /admin/outreach/bulk" "POST /admin/review-account" "GET /ad-booking/admin/bookings" "GET /ad-booking/admin/revenue" "GET /ad-booking/admin/pricings" "POST /ad-booking/admin/pricings" "GET /overseas/admin/resorts" "GET /overseas/admin/deals" "POST /overseas/resorts" "POST /overseas/deals" "GET /agencies/pending" "GET /agencies/subscriptions/pending" "GET /ski-shops/pending" "GET /repair-shops/pending" "GET /shop-claims/pending" "POST /products/new"; do
   set -- $m_p; api "$1" "$2" '{}' "$U_TOKEN"
   [ "$CODE" = "403" ] && ok "일반유저 $1 $2 403" || bad "일반유저 $1 $2 CODE=$CODE"
 done
@@ -94,6 +94,17 @@ U_TOKEN=$(login "smoke_user@re.test" 'Re!pass1234')
 # 관리자끼리 밴 불가
 api PUT "/admin/users/$A_ID/ban" "{}" "$A_TOKEN"; expect 400 "관리자 계정 밴 차단"
 
+
+# ── 앱 심사용 계정 (POST /admin/review-account): 관리자만, 휴대폰 인증 없이 이메일 로그인 계정 생성·비번 재설정
+api POST /admin/review-account '{"email":"reviewer@re.test","password":"Review!2026"}' "$U_TOKEN"; expect 403 "일반유저 심사 계정 생성 403"
+api POST /admin/review-account '{"email":"bad","password":"Review!2026"}' "$A_TOKEN"; expect 400 "심사 계정 잘못된 이메일 400"
+api POST /admin/review-account '{"email":"reviewer@re.test","password":"short"}' "$A_TOKEN"; expect 400 "심사 계정 짧은 비밀번호 400"
+api POST /admin/review-account '{"email":"reviewer@re.test","password":"Review!2026"}' "$A_TOKEN"; RC=$(echo "$RESP" | jq -r '.created'); [ "$CODE" = "200" ] && [ "$RC" = "true" ] && ok "심사 계정 생성" || bad "심사 계정 CODE=$CODE $RESP"
+RV_TOKEN=$(login "reviewer@re.test" 'Review!2026'); [ -n "$RV_TOKEN" ] && ok "심사 계정 이메일 로그인" || bad "심사 계정 로그인 실패"
+api POST /admin/review-account '{"email":"reviewer@re.test","password":"Review!2027"}' "$A_TOKEN"; RC2=$(echo "$RESP" | jq -r '.created'); [ "$CODE" = "200" ] && [ "$RC2" = "false" ] && ok "심사 계정 비밀번호 재설정" || bad "재설정 CODE=$CODE $RESP"
+RV2=$(login "reviewer@re.test" 'Review!2027'); [ -n "$RV2" ] && ok "재설정 비밀번호로 로그인" || bad "재설정 로그인 실패"
+api POST /admin/review-account "{\"email\":\"smoke_admin@re.test\",\"password\":\"Review!2026\"}" "$A_TOKEN"; expect 400 "관리자 계정은 심사용 불가 400"
+api GET /admin/stats "" "$RV2"; expect 403 "심사 계정은 일반 권한"
 
 # ── 공지(community category=notice): 관리자 전용, 공용(sport=all)·상단 고정, 목록 맨 위
 api POST /community '{"title":"E2E 공지","content":"점검 안내","category":"notice","sport":"ski"}' "$U_TOKEN"; expect 403 "일반유저 공지 작성 403"

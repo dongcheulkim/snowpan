@@ -7,6 +7,7 @@ import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
 import { disconnectUser } from '../realtime';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
+import bcrypt from 'bcryptjs';
 
 // ===== 신고 관리 =====
 export const getReports = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -662,5 +663,36 @@ export const rejectAdRequest = async (req: AuthRequest, res: Response): Promise<
   } catch (error) {
     console.error('Reject ad request error:', error);
     res.status(500).json({ error: '거부 중 오류가 발생했습니다.' });
+  }
+};
+
+// ===== 앱 심사용 테스트 계정 =====
+// 구글 플레이·앱스토어 심사관은 카카오 계정을 만들 수 없어 이메일 로그인 계정이 필요하다(로그인 화면의 "이메일로 로그인" 링크).
+// 휴대폰 인증 게이트를 거치지 않고 관리자가 직접 만들거나 비밀번호를 다시 설정한다. 일반 유저 권한이며 role 은 항상 'user'.
+export const createReviewAccount = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    const nickname = typeof req.body?.nickname === 'string' && req.body.nickname.trim() ? req.body.nickname.trim().slice(0, 20) : '심사용계정';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { res.status(400).json({ error: '이메일 형식이 올바르지 않습니다.' }); return; }
+    if (password.length < 8 || password.length > 72) { res.status(400).json({ error: '비밀번호는 8~72자여야 합니다.' }); return; }
+    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+    if (existing && existing.role !== 'user') { res.status(400).json({ error: '일반 유저 계정만 심사용으로 쓸 수 있습니다.' }); return; }
+    const hashed = await bcrypt.hash(password, 12);
+    if (existing) {
+      await prisma.user.update({ where: { id: existing.id }, data: { password: hashed, tokenVersion: { increment: 1 } } });
+      res.json({ email, created: false });
+      return;
+    }
+    // 닉네임 유니크 — 겹치면 숫자 붙임
+    let nick = nickname;
+    for (let i = 2; await prisma.user.findFirst({ where: { nickname: { equals: nick, mode: 'insensitive' } }, select: { id: true } }); i++) nick = `${nickname}${i}`;
+    await prisma.user.create({
+      data: { email, password: hashed, name: '앱 심사용 계정', nickname: nick, role: 'user', phoneVerified: false, termsAgreedAt: new Date(), privacyAgreedAt: new Date() },
+    });
+    res.json({ email, created: true });
+  } catch (error) {
+    console.error('Review account error:', error);
+    res.status(500).json({ error: '심사용 계정을 만들지 못했습니다.' });
   }
 };

@@ -18,6 +18,7 @@ import {
   getUsers,
   banUser,
   adminDeleteUser,
+  createReviewAccount,
   getAdRequests,
   approveAdRequest,
   rejectAdRequest,
@@ -80,6 +81,8 @@ router.get('/stats', getStats);
 router.get('/users', getUsers);
 router.put('/users/:id/ban', banUser);
 router.delete('/users/:id', adminDeleteUser);
+// 앱 심사용 이메일 로그인 계정 생성/비밀번호 재설정 (스토어 심사관 제공용)
+router.post('/review-account', createReviewAccount);
 
 // 광고 신청 관리
 router.get('/ad-requests', getAdRequests);
