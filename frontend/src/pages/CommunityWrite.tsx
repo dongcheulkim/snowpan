@@ -12,7 +12,14 @@ const CommunityWrite = () => {
   const { sport } = useParams<{ sport: string }>();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit'); // 수정 모드 — 기존 글 불러와 PUT
-  const [category, setCategory] = useState('free');
+  // ?category=notice|news 딥링크 — 관리자 대시보드 "공지 쓰기"/"스키장 소식 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
+  const presetCategory = (() => {
+    const c = searchParams.get('category') || '';
+    const admin = getUser()?.role === 'admin';
+    if (['notice', 'news'].includes(c)) return admin ? c : 'free';
+    return COMMUNITY_GROUPS.some((g) => g.subs.includes(c) && c !== 'news') ? c : 'free';
+  })();
+  const [category, setCategory] = useState(presetCategory);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [agreed, setAgreed] = useState(false);

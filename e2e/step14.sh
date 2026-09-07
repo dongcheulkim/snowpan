@@ -95,6 +95,15 @@ U_TOKEN=$(login "smoke_user@re.test" 'Re!pass1234')
 api PUT "/admin/users/$A_ID/ban" "{}" "$A_TOKEN"; expect 400 "관리자 계정 밴 차단"
 
 
+# ── 공지(community category=notice): 관리자 전용, 공용(sport=all)·상단 고정, 목록 맨 위
+api POST /community '{"title":"E2E 공지","content":"점검 안내","category":"notice","sport":"ski"}' "$U_TOKEN"; expect 403 "일반유저 공지 작성 403"
+api POST /community '{"title":"E2E 공지","content":"점검 안내","category":"notice","sport":"ski"}' "$A_TOKEN"
+NT=$(echo "$RESP" | jq -r '.id // empty'); NTS=$(echo "$RESP" | jq -r '.sport + ":" + (.pinned|tostring)')
+[ "$CODE" = "201" ] && [ "$NTS" = "all:true" ] && ok "관리자 공지 201 (sport=all, 상단 고정)" || bad "공지 CODE=$CODE $NTS $(echo $RESP|head -c 100)"
+api GET "/community?sport=board" ""; TOP=$(echo "$RESP" | jq -r '.posts[0].id'); [ "$TOP" = "$NT" ] && ok "공지가 보드 목록에서도 맨 위" || bad "목록 맨 위=$TOP (기대 $NT)"
+api PUT "/community/$NT" '{"category":"free"}' "$A_TOKEN"; NP2=$(echo "$RESP" | jq -r '.pinned'); [ "$CODE" = "200" ] && [ "$NP2" = "false" ] && ok "공지 해제 시 고정 풀림" || bad "공지 해제 CODE=$CODE pinned=$NP2"
+api DELETE "/community/$NT" "" "$A_TOKEN"; expect 200 "공지 삭제"
+
 # ── 스키장 소식(community category=news): 관리자 전용, 공용(sport=all)·고정 아님, 리조트 연결, 리조트 필터, 핫 랭킹 제외
 RID=$(pq "SELECT id FROM ski_resorts ORDER BY name LIMIT 1")
 api POST /community "{\"title\":\"E2E 시즌권 소식\",\"content\":\"9/9 판매 시작\\n59만원대\",\"category\":\"news\",\"sport\":\"ski\",\"resortIds\":\"$RID\"}" "$U_TOKEN"; expect 403 "일반유저 스키장 소식 작성 403"
