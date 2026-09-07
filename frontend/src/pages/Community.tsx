@@ -69,7 +69,7 @@ const Community = () => {
   const initialTab = (() => {
     try {
       const t = new URLSearchParams(window.location.search).get('tab');
-      return t && ['all', 'popular', 'g_news', 'g_talk', 'g_gear', 'g_info', 'g_jobs', 'poll'].includes(t) ? t : 'all';
+      return t && ['all', 'popular', 'g_talk', 'g_gear', 'g_info', 'g_jobs', 'poll'].includes(t) ? t : 'all';
     } catch { return 'all'; }
   })();
   const [selectedTab, setSelectedTab] = useState(initialTab);
@@ -221,7 +221,7 @@ const Community = () => {
         </div>
         <div className="flex gap-2">
           {selectedTab === 'poll' && (
-            <Link to="/poll/create" className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs transition-colors whitespace-nowrap">
+            <Link to={`${vbase}/community/${sport}/write?category=poll`} className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs transition-colors whitespace-nowrap">
               + 투표
             </Link>
           )}
@@ -276,7 +276,7 @@ const Community = () => {
             title="아직 진행 중인 투표가 없어요"
             description={"첫 투표를 만들어\n다른 스키어들의 의견을 모아보세요."}
             ctaLabel="+ 투표 만들기"
-            ctaTo="/poll/create"
+            ctaTo={`${vbase}/community/${sport}/write?category=poll`}
           />
         ) : (
           <div className="space-y-2">

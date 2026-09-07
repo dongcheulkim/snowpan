@@ -7,7 +7,6 @@ import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import { HeartFilledIcon, UserIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
-import { renderNewsCard, buildCaption, downloadDataUrl } from '../utils/newsCard';
 
 interface Comment {
   id: string;
@@ -66,8 +65,6 @@ const CommunityDetail = () => {
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
   const navigate = useNavigate();
   const [post, setPost] = useState<PostData | null>(null);
-  const [resortNames, setResortNames] = useState<Record<string, string>>({}); // 스키장 소식 리조트 칩용
-  useEffect(() => { api<{ id: string; name: string }[]>('/resorts').then((rs) => setResortNames(Object.fromEntries(rs.map((r) => [r.id, r.name])))).catch(() => {}); }, []);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null); // 답글 대상 댓글
@@ -261,40 +258,6 @@ const CommunityDetail = () => {
           <span className="text-sm text-gray-500">{t('communityDetail.comments')} {post.comments.length}</span>
         </div>
       </div>
-
-      {/* 스키장 소식 — 관련 리조트 칩 (리조트 페이지로) */}
-      {post.category === 'news' && post.resortIds && (
-        <div className="flex flex-wrap gap-1.5">
-          {post.resortIds.split(',').filter(Boolean).map((rid) => (
-            <Link key={rid} to={`/resort/${encodeURIComponent(resortNames[rid] || '')}`} className="text-[11px] font-bold px-2 py-1 rounded-lg border border-gray-300 text-gray-800 bg-white">{resortNames[rid] || '리조트'}</Link>
-          ))}
-        </div>
-      )}
-      {/* 관리자: 같은 글을 인스타그램에도 — 카드 이미지(1080×1350)와 캡션을 바로 뽑는다 */}
-      {user?.role === 'admin' && post.category === 'news' && (
-        <div className="flex gap-2">
-          <button
-            onClick={async () => {
-              try {
-                const resorts = (post.resortIds || '').split(',').filter(Boolean).map((rid) => resortNames[rid]).filter(Boolean);
-                const url = await renderNewsCard({ title: post.title, content: post.content, resorts, date: post.createdAt });
-                downloadDataUrl(url, `snowpan-news-${post.createdAt.slice(0, 10)}.png`);
-                toastSuccess('인스타 카드를 내려받았습니다.');
-              } catch (err) { toastError(err instanceof Error ? err.message : '카드를 만들지 못했습니다.'); }
-            }}
-            className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm"
-          >인스타 카드 받기</button>
-          <button
-            onClick={async () => {
-              const resorts = (post.resortIds || '').split(',').filter(Boolean).map((rid) => resortNames[rid]).filter(Boolean);
-              const text = buildCaption({ title: post.title, content: post.content, resorts, date: post.createdAt });
-              try { await navigator.clipboard.writeText(text); toastSuccess('캡션을 복사했습니다.'); }
-              catch { window.prompt('캡션을 복사하세요:', text); }
-            }}
-            className="flex-1 py-3 bg-white text-gray-800 rounded-xl font-bold text-sm border border-gray-200"
-          >캡션 복사</button>
-        </div>
-      )}
 
       {user && (post.userId === user.id || user.role === 'admin') && (
         <div className="flex gap-2">

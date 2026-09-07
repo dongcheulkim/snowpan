@@ -432,14 +432,14 @@ const Home = () => {
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">스키장 소식</h2>
-            <Link to="/community/ski?tab=g_news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+            <Link to="/news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           <div className="space-y-2">
             {resortNews.map((p) => {
               const names = (p.resortIds || '').split(',').filter(Boolean).map((id) => resortNameById[id]).filter(Boolean);
               const d = new Date(p.createdAt);
               return (
-                <Link key={p.id} to={`/community/post/${p.id}`} className="card p-4 block active:bg-gray-50 transition-colors">
+                <Link key={p.id} to={`/news/${p.id}`} className="card p-4 block active:bg-gray-50 transition-colors">
                   <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.title}</p>
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{p.content}</p>
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">

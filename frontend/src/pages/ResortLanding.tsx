@@ -73,14 +73,14 @@ export default function ResortLanding() {
         <div className="card p-5">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-gray-900">스키장 소식</h2>
-            <Link to="/community/ski?tab=g_news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+            <Link to="/news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           <ul className="divide-y divide-gray-100">
             {news.map((n) => {
               const d = new Date(n.createdAt);
               return (
                 <li key={n.id}>
-                  <Link to={`/community/post/${n.id}`} className="flex items-center justify-between gap-3 py-2">
+                  <Link to={`/news/${n.id}`} className="flex items-center justify-between gap-3 py-2">
                     <span className="text-sm text-gray-800 line-clamp-1">{n.title}</span>
                     <span className="text-[11px] text-gray-400 tabular-nums flex-shrink-0">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
                   </Link>

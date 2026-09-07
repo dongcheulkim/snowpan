@@ -68,7 +68,8 @@ const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Support = lazy(() => import('./pages/Support'));
 const NewEquipment = lazy(() => import('./pages/NewEquipment'));
-const PollCreate = lazy(() => import('./pages/PollCreate'));
+const News = lazy(() => import('./pages/News'));
+const NewsDetail = lazy(() => import('./pages/NewsDetail'));
 const PollDetail = lazy(() => import('./pages/PollDetail'));
 const Webcam = lazy(() => import('./pages/Webcam'));
 const WebcamDetail = lazy(() => import('./pages/WebcamDetail'));
@@ -160,6 +161,9 @@ function App() {
             <Route path="competitions/:id" element={<CompetitionDetail />} />
             <Route path="community" element={<CommunitySelect />} />
             <Route path="community/post/:id" element={<CommunityDetail />} />
+            {/* 스키장 소식 — 홈 섹션 전용 채널(커뮤니티 탭 아님) */}
+            <Route path="news" element={<News />} />
+            <Route path="news/:id" element={<NewsDetail />} />
             <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="community/:sport" element={<Community />} />
             <Route path="mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
@@ -185,7 +189,8 @@ function App() {
             <Route path="terms" element={<Terms />} />
             <Route path="mypage/support" element={<RequireAuth><Support /></RequireAuth>} />
             <Route path="new-equipment" element={<NewEquipment />} />
-            <Route path="poll/create" element={<RequireAuth><PollCreate /></RequireAuth>} />
+            {/* 투표는 커뮤니티 글쓰기 안의 "투표" 카테고리로 통합 — 옛 링크는 그쪽으로 */}
+            <Route path="poll/create" element={<Navigate to="/community/ski/write?category=poll" replace />} />
             <Route path="poll/:id" element={<PollDetail />} />
             <Route path="webcam" element={<Webcam />} />
             <Route path="webcam/:id" element={<WebcamDetail />} />

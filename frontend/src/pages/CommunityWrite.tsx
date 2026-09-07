@@ -17,7 +17,8 @@ const CommunityWrite = () => {
     const c = searchParams.get('category') || '';
     const admin = getUser()?.role === 'admin';
     if (['notice', 'news'].includes(c)) return admin ? c : 'free';
-    return COMMUNITY_GROUPS.some((g) => g.subs.includes(c) && c !== 'news') ? c : 'free';
+    if (c === 'poll') return c;
+    return COMMUNITY_GROUPS.some((g) => g.subs.includes(c)) ? c : 'free';
   })();
   const [category, setCategory] = useState(presetCategory);
   const [title, setTitle] = useState('');
@@ -30,6 +31,8 @@ const CommunityWrite = () => {
   const [existingImages, setExistingImages] = useState<string[]>([]); // 수정 모드 — 기존 업로드 이미지
   // 스키장 소식(news) 전용 — 관련 리조트 선택 (리조트 페이지에도 표시됨)
   const [resortSel, setResortSel] = useState<string[]>([]);
+  // 투표(poll) — 별도 페이지 대신 글쓰기 안에서 '투표'를 고르면 아래 폼이 선택지 입력으로 바뀐다 (사용자 요청)
+  const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const [resorts, setResorts] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => { api<{ id: string; name: string }[]>('/resorts').then(setResorts).catch(() => {}); }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,10 +71,15 @@ const CommunityWrite = () => {
   );
 
   const isAdmin = getUser()?.role === 'admin';
-  // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 공지(notice)·스키장 소식(news)은 관리자 전용.
-  const writeGroups = isAdmin
-    ? [...COMMUNITY_GROUPS, { id: 'notice', name: '공지', subs: ['notice'] }]
-    : COMMUNITY_GROUPS.filter((g) => !g.subs.includes('news'));
+  // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 투표는 snow 전용·새 글만(수정 불가). 공지는 관리자 전용.
+  // 스키장 소식(news)은 관리자 대시보드 바로가기(?category=news)로만 진입하는 잠금 모드 — 카테고리 선택 없이 소식 폼만.
+  const isPoll = category === 'poll';
+  const isNews = category === 'news';
+  const writeGroups = [
+    ...COMMUNITY_GROUPS,
+    ...(vertical.slug === 'snow' && !editId ? [{ id: 'poll', name: '투표', subs: ['poll'] }] : []),
+    ...(isAdmin ? [{ id: 'notice', name: '공지', subs: ['notice'] }] : []),
+  ];
   const activeWriteGroup = writeGroups.find((g) => g.subs.includes(category));
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +108,7 @@ const CommunityWrite = () => {
 
   // 작성 중인데 실수로 페이지 떠나면 경고 — 카테고리 변경/sport 전환 시도 시 데이터 보호.
   const isDirty = !submitting && (
-    title.trim() !== '' || content.trim() !== '' || imageFiles.length > 0
+    title.trim() !== '' || content.trim() !== '' || imageFiles.length > 0 || pollOptions.some((o) => o.trim() !== '')
   );
   useUnloadGuard(isDirty);
   // <script>·이벤트 핸들러 등 sanitize 대상 패턴 — 사전 안내용 (백엔드가 실제 정화).
@@ -112,6 +120,19 @@ const CommunityWrite = () => {
     if (!title.trim()) { toastError('제목을 입력해주세요.'); return; }
     if (title.trim().length < 2) { toastError('제목은 2자 이상이어야 합니다.'); return; }
     if (titleOver) { toastError(`제목은 ${TITLE_MAX}자 이내여야 합니다. (현재 ${title.length}자)`); return; }
+    if (isPoll) {
+      // 투표 — 본문 대신 선택지. POST /polls 로 가고 투표 상세로 이동.
+      const validOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+      if (validOptions.length < 2) { toastError('선택지를 최소 2개 입력해주세요.'); return; }
+      if (!agreed) { toastError('커뮤니티 이용규칙에 동의해주세요.'); return; }
+      setSubmitting(true);
+      try {
+        const poll = await api<{ id: string }>('/polls', { method: 'POST', body: { title: title.trim(), options: validOptions } });
+        navigate(`/poll/${poll.id}`, { replace: true });
+      } catch (e) { toastError(e instanceof Error ? e.message : '투표 생성 실패'); }
+      finally { setSubmitting(false); }
+      return;
+    }
     if (!content.trim()) { toastError('내용을 입력해주세요.'); return; }
     if (contentOver) { toastError(`내용은 ${CONTENT_MAX}자 이내여야 합니다. (현재 ${content.length}자)`); return; }
     if (!agreed) { toastError('커뮤니티 이용규칙에 동의해주세요.'); return; }
@@ -130,13 +151,13 @@ const CommunityWrite = () => {
           method: 'PUT',
           body: { title: title.trim(), content: content.trim(), category, images: merged, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
         });
-        navigate(`${vbase}/community/post/${editId}`);
+        navigate(isNews ? `/news/${editId}` : `${vbase}/community/post/${editId}`);
       } else {
-        await api('/community', {
+        const created = await api<{ id: string }>('/community', {
           method: 'POST',
           body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
         });
-        navigate(`${vbase}/community/${sport}`);
+        navigate(isNews ? `/news/${created.id}` : `${vbase}/community/${sport}`);
       }
     } catch (err) {
       toastError(err instanceof Error ? err.message : editId ? '수정에 실패했습니다.' : '등록에 실패했습니다.');
@@ -150,12 +171,12 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2"><SportLabel /> {editId ? '글 수정' : '글쓰기'}</h1>
+          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2">{isNews ? (editId ? '스키장 소식 수정' : '스키장 소식 쓰기') : <><SportLabel /> {editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</>}</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
 
-      <div>
+      <div hidden={isNews}>
         <span id="cw-category-label" className="text-sm font-semibold text-gray-700 block mb-2">카테고리</span>
         <div role="radiogroup" aria-labelledby="cw-category-label" className="space-y-1.5">
           <div className="flex gap-1.5 flex-wrap">
@@ -193,44 +214,38 @@ const CommunityWrite = () => {
         {category === 'notice' && (
           <p className="text-[11px] text-sky-600 mt-2 font-medium">공지는 스키·보드 양쪽 목록 맨 위에 고정으로 노출됩니다.</p>
         )}
-        {category === 'news' && (
-          <div className="mt-3">
-            <p className="text-[11px] text-sky-600 font-medium">스키장 소식은 스키·보드 양쪽 목록과 홈 "스키장 소식"에 노출됩니다. 관련 리조트를 고르면 그 리조트 페이지에도 표시됩니다.</p>
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {resorts.map((r) => {
-                const on = resortSel.includes(r.id);
-                return (
-                  <button key={r.id} type="button" onClick={() => setResortSel((prev) => (on ? prev.filter((x) => x !== r.id) : [...prev, r.id]))}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${on ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>
-                    {r.name}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-gray-500 mt-2">본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건) 쓰면 인스타 카드에 그대로 들어갑니다. 출처 링크는 마지막 줄에.</p>
-          </div>
+
+        {isPoll && (
+          <p className="text-[11px] text-sky-600 mt-2 font-medium">투표는 제목과 선택지만 씁니다. 선택지는 2~6개, 만든 뒤에는 수정할 수 없어요.</p>
         )}
-        <p className="text-[11px] text-gray-500 mt-2">
-          투표 글은 별도로 작성합니다.{' '}
-          <button
-            type="button"
-            onClick={() => navigate('/poll/create')}
-            className="text-accent font-medium underline underline-offset-2"
-          >
-            투표 만들기 →
-          </button>
-        </p>
       </div>
 
+      {isNews && (
+        <div className="text-xs text-gray-600 bg-snow border border-gray-200 rounded-lg px-3 py-2.5 leading-relaxed">
+          홈 "스키장 소식"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에. 저장하면 인스타 카드와 캡션을 바로 받을 수 있습니다.
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {resorts.map((r) => {
+              const on = resortSel.includes(r.id);
+              return (
+                <button key={r.id} type="button" onClick={() => setResortSel((prev) => (on ? prev.filter((x) => x !== r.id) : [...prev, r.id]))}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${on ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>
+                  {r.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div>
-        <label htmlFor="cw-title" className="text-sm font-semibold text-gray-700 block mb-2">제목</label>
+        <label htmlFor="cw-title" className="text-sm font-semibold text-gray-700 block mb-2">{isPoll ? '투표 제목' : '제목'}</label>
         <input
           id="cw-title"
           name="title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="제목을 입력하세요"
+          placeholder={isPoll ? '예: 이번 시즌 첫 라이딩, 어디로?' : '제목을 입력하세요'}
           required
           minLength={2}
           aria-invalid={titleOver}
@@ -243,7 +258,33 @@ const CommunityWrite = () => {
         </div>
       </div>
 
-      <div>
+      {isPoll && (
+        <div>
+          <span className="text-sm font-semibold text-gray-700 block mb-2">선택지 (2~6개)</span>
+          <div className="space-y-2">
+            {pollOptions.map((opt, idx) => (
+              <div key={idx} className="flex gap-2">
+                <input
+                  type="text"
+                  value={opt}
+                  onChange={(e) => setPollOptions((prev) => prev.map((o, i) => (i === idx ? e.target.value : o)))}
+                  placeholder={`선택지 ${idx + 1}`}
+                  maxLength={30}
+                  className="flex-1 h-11 px-3.5 rounded-lg text-sm border bg-gray-50 border-gray-100 text-gray-900 placeholder-gray-400"
+                />
+                {pollOptions.length > 2 && (
+                  <button type="button" onClick={() => setPollOptions((prev) => prev.filter((_, i) => i !== idx))} aria-label="선택지 삭제" className="w-11 h-11 rounded-lg border border-gray-200 text-gray-500 flex items-center justify-center"><CloseIcon size={14} /></button>
+                )}
+              </div>
+            ))}
+          </div>
+          {pollOptions.length < 6 && (
+            <button type="button" onClick={() => setPollOptions((prev) => [...prev, ''])} className="mt-2 w-full h-10 rounded-lg border-2 border-dashed border-gray-300 text-xs font-bold text-gray-500">+ 선택지 추가</button>
+          )}
+        </div>
+      )}
+
+      <div hidden={isPoll}>
         <label htmlFor="cw-content" className="text-sm font-semibold text-gray-700 block mb-2">내용</label>
         <textarea
           id="cw-content"
@@ -268,8 +309,8 @@ const CommunityWrite = () => {
         )}
       </div>
 
-      {/* Image Upload */}
-      <div>
+      {/* Image Upload — 투표는 사진 없음 */}
+      <div hidden={isPoll}>
         <label className="text-sm font-semibold text-gray-700 block mb-2">사진 (최대 5장)</label>
         <input
           ref={fileInputRef}
@@ -329,7 +370,7 @@ const CommunityWrite = () => {
       </div>
 
       <button onClick={handleSubmit} disabled={!agreed || submitting} className={`w-full h-12 rounded-xl font-bold text-sm transition-colors ${agreed ? 'bg-primary text-white active:bg-primary-dark' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
-        {submitting ? (editId ? '수정 중...' : '등록 중...') : (editId ? '수정하기' : '등록하기')}
+        {submitting ? (editId ? '수정 중...' : isPoll ? '만드는 중...' : '등록 중...') : (editId ? '수정하기' : isPoll ? '투표 만들기' : '등록하기')}
       </button>
     </div>
   );

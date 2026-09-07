@@ -76,6 +76,9 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       // 콤마 목록 지원 — 구인구직 통합 탭(job,jobseek) 등
       const cats = categoryStr.split(',').filter(Boolean);
       where.category = cats.length > 1 ? { in: cats } : cats[0];
+    } else if (!userIdStr) {
+      // 스키장 소식(news)은 커뮤니티가 아니라 홈 섹션·/news 채널 — 카테고리를 명시하지 않은 목록·검색에서는 제외
+      where.category = { not: 'news' };
     }
     if (userIdStr) where.userId = userIdStr;
     // 리조트 페이지 '스키장 소식' — resortIds 콤마 목록에 포함된 글만
