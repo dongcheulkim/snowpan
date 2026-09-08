@@ -136,5 +136,11 @@ api GET /ad-booking/admin/invites "" "$ADMIN_TOKEN"; IS=$(echo "$RESP" | jq -r "
 api POST /ad-booking/admin/invites '{"slotType":"category","category":"rental","periodMonths":1,"price":0}' "$ADMIN_TOKEN"; IV2=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && ok "무료(0원) 초대 발급" || bad "0원 초대 CODE=$CODE"
 api POST "/ad-booking/admin/invites/$IV2/cancel" "{}" "$ADMIN_TOKEN"; [ "$CODE" = "200" ] && ok "초대 취소" || bad "초대 취소 CODE=$CODE"
 api GET "/ad-booking/invite/$IV2" "" "$SELLER_TOKEN"; [ "$CODE" = "410" ] && ok "취소된 초대 410" || bad "취소 초대 CODE=$CODE"
+# 고객센터 채팅에서 발급 → 그 방에 링크 메시지 자동 전송
+api POST /chat/rooms "{\"targetUserId\":\"$SELLER_ID\"}" "$ADMIN_TOKEN"; CR=$(echo "$RESP" | jq -r '.id // empty'); [ -n "$CR" ] && ok "관리자→광고주 채팅방 생성" || bad "채팅방 CODE=$CODE $(echo $RESP|head -c 100)"
+api POST /ad-booking/admin/invites "{\"slotType\":\"premium\",\"category\":\"rental\",\"periodMonths\":12,\"price\":2200000,\"plan\":\"일시불\",\"chatRoomId\":\"$CR\"}" "$ADMIN_TOKEN"
+IV3=$(echo "$RESP" | jq -r '.id // empty'); ST=$(echo "$RESP" | jq -r '.sentToChat'); [ "$CODE" = "201" ] && [ "$ST" = "true" ] && ok "채팅방으로 초대 발급 (sentToChat)" || bad "채팅 초대 CODE=$CODE sent=$ST $(echo $RESP|head -c 120)"
+MC=$(pq "SELECT count(*) FROM messages WHERE \"roomId\"='$CR' AND content LIKE '%/ad-booking/invite/$IV3%'"); [ "$MC" = "1" ] && ok "채팅방에 링크 메시지 1건" || bad "링크 메시지 count=$MC"
+api POST /ad-booking/admin/invites '{"slotType":"premium","category":"rental","periodMonths":12,"price":1,"chatRoomId":"00000000-0000-4000-8000-000000000000"}' "$ADMIN_TOKEN"; [ "$CODE" = "400" ] && ok "없는 채팅방 지정 400" || bad "없는 방 CODE=$CODE"
 
 echo "----- STEP9: PASS=$PASS FAIL=$FAIL -----"

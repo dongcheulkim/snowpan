@@ -14,7 +14,14 @@ interface Invite {
 const STATUS_LABEL: Record<string, string> = { sent: '보냄', used: '소재 접수됨', cancelled: '취소', expired: '기한 지남' };
 const CATS = ['skishop', 'repair', 'rental', 'lesson', 'accommodation', 'used', 'community', 'overseas'];
 
-export default function AdInvitePanel() {
+interface Props {
+  chatRoomId?: string;        // 고객센터 채팅에서 발급 — 만들면서 그 방에 링크 메시지를 보낸다
+  advertiserDefault?: string; // 채팅 상대 이름으로 미리 채움
+  compact?: boolean;          // 목록 없이 발급 폼만
+  onCreated?: () => void;
+}
+
+export default function AdInvitePanel({ chatRoomId, advertiserDefault = '', compact = false, onCreated }: Props = {}) {
   const [list, setList] = useState<Invite[]>([]);
   const [slotType, setSlotType] = useState('main_banner');
   const [category, setCategory] = useState('skishop');
@@ -22,12 +29,12 @@ export default function AdInvitePanel() {
   const [startDate, setStartDate] = useState('');
   const [price, setPrice] = useState('');
   const [plan, setPlan] = useState(''); // 결제 방식 라벨 (프리셋 누르면 채워짐, 직접 바꿔도 됨)
-  const [advertiser, setAdvertiser] = useState('');
+  const [advertiser, setAdvertiser] = useState(advertiserDefault);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [lastLink, setLastLink] = useState('');
 
-  const load = useCallback(() => { api<Invite[]>('/ad-booking/admin/invites').then(setList).catch(() => {}); }, []);
+  const load = useCallback(() => { if (compact) return; api<Invite[]>('/ad-booking/admin/invites').then(setList).catch(() => {}); }, [compact]);
   useEffect(() => { load(); }, [load]);
 
   const copy = async (text: string) => {
@@ -42,9 +49,11 @@ export default function AdInvitePanel() {
     try {
       const inv = await api<Invite>('/ad-booking/admin/invites', {
         method: 'POST',
-        body: { slotType, category: slotType === 'main_banner' ? 'none' : category, periodMonths: months, startDate: startDate || undefined, price: p, plan: plan || undefined, advertiser: advertiser || undefined, note: note || undefined },
+        body: { slotType, category: slotType === 'main_banner' ? 'none' : category, periodMonths: months, startDate: startDate || undefined, price: p, plan: plan || undefined, advertiser: advertiser || undefined, note: note || undefined, chatRoomId },
       });
-      setLastLink(inv.link); await copy(inv.link); setPrice(''); setPlan(''); setAdvertiser(''); setNote(''); load();
+      if (chatRoomId) { toastSuccess('링크를 채팅방에 보냈습니다.'); onCreated?.(); }
+      else { setLastLink(inv.link); await copy(inv.link); }
+      setPrice(''); setPlan(''); setNote(''); load();
     } catch (e) { toastError(e instanceof Error ? e.message : '초대 링크를 만들지 못했습니다.'); }
     finally { setBusy(false); }
   };
@@ -61,8 +70,8 @@ export default function AdInvitePanel() {
     <div className="space-y-4">
       <div className="card p-4 space-y-3">
         <div>
-          <p className="text-sm font-bold text-gray-900">초대 링크 만들기</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">전화·채팅으로 정한 조건을 넣고 만들면 링크가 복사됩니다. 광고주에게 보내면 그 링크에서 광고 문구·이미지만 작성합니다.</p>
+          <p className="text-sm font-bold text-gray-900">{chatRoomId ? '이 광고주에게 소재 작성 링크 보내기' : '초대 링크 만들기'}</p>
+          <p className="text-[11px] text-gray-500 mt-0.5">{chatRoomId ? '상담한 조건을 넣고 만들면 이 채팅방에 링크가 메시지로 들어갑니다. 광고주는 그 링크에서 문구·이미지만 작성합니다.' : '전화·채팅으로 정한 조건을 넣고 만들면 링크가 복사됩니다. 광고주에게 보내면 그 링크에서 광고 문구·이미지만 작성합니다.'}</p>
         </div>
         {/* 공식 요금 프리셋 — 누르면 기간·금액·결제 방식이 채워진다. 협의 금액이 다르면 아래에서 고쳐도 됨 */}
         <div className="flex flex-wrap gap-1.5">
@@ -105,7 +114,7 @@ export default function AdInvitePanel() {
           </label>
         </div>
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="메모 (선택, 관리자만 봄)" className={input} />
-        <button onClick={create} disabled={busy} className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">{busy ? '만드는 중...' : '링크 만들고 복사'}</button>
+        <button onClick={create} disabled={busy} className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">{busy ? '만드는 중...' : chatRoomId ? '링크 만들어 채팅으로 보내기' : '링크 만들고 복사'}</button>
         {lastLink && (
           <div className="flex items-center gap-2 text-[11px] text-gray-600 bg-snow border border-gray-200 rounded-lg px-3 py-2">
             <span className="truncate flex-1">{lastLink}</span>
@@ -114,6 +123,7 @@ export default function AdInvitePanel() {
         )}
       </div>
 
+      {!compact && (
       <div className="space-y-2">
         <p className="text-xs font-bold text-gray-900">보낸 링크 {list.length}</p>
         {list.length === 0 && <div className="text-center py-8 bg-gray-50 rounded-xl text-gray-500 text-sm">아직 만든 링크가 없습니다.</div>}
@@ -136,6 +146,7 @@ export default function AdInvitePanel() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

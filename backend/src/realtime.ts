@@ -15,3 +15,9 @@ export function disconnectUser(userId: string): void {
     ioRef.in(`user:${userId}`).disconnectSockets(true);
   } catch { /* 소켓 없거나 이미 종료됨 — 무시 */ }
 }
+
+// 서버가 만든 메시지(광고 초대 링크 등)를 그 방을 보고 있는 소켓에 바로 전달 — 소켓 핸들러의 new_message 와 같은 모양으로 보낼 것.
+export function emitToRoom(roomId: string, event: string, payload: unknown): void {
+  if (!ioRef) return;
+  try { ioRef.to(`room:${roomId}`).emit(event, payload); } catch { /* 소켓 없음 — 무시 */ }
+}

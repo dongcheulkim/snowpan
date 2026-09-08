@@ -6,6 +6,7 @@ import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../components/Toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
+import AdInvitePanel from '../components/AdInvitePanel';
 
 interface Message {
   id: string;
@@ -55,6 +56,7 @@ const Chat = () => {
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
   const [otherProfileImage, setOtherProfileImage] = useState<string | null>(null);
   const [otherId, setOtherId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false); // 관리자: 고객센터 상담 후 광고 소재 작성 링크 발급 모달
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
   const [roomStatus, setRoomStatus] = useState<string>('accepted');
@@ -341,6 +343,18 @@ const Chat = () => {
       className="fixed inset-0 flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >
+      {inviteOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/45 flex items-end sm:items-center justify-center p-3" onClick={() => setInviteOpen(false)}>
+          <div className="w-full max-w-md max-h-[88vh] overflow-y-auto bg-snow rounded-2xl p-3" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-1 pb-2">
+              <span className="text-sm font-bold text-gray-900">광고 소재 작성 링크</span>
+              <button onClick={() => setInviteOpen(false)} aria-label="닫기" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500"><CloseIcon size={16} /></button>
+            </div>
+            <AdInvitePanel compact chatRoomId={chatId} advertiserDefault={otherName} onCreated={() => setInviteOpen(false)} />
+          </div>
+        </div>
+      )}
+
       {/* Sticky Header */}
       <header className="flex-shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200 pt-[env(safe-area-inset-top)]">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
@@ -361,6 +375,10 @@ const Chat = () => {
             <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
             <div className="text-[10px] text-gray-500">{connected ? '연결됨' : '연결 중…'}</div>
           </div>
+          {/* 관리자: 광고 상담이 끝나면 여기서 바로 소재 작성 링크를 만들어 이 방에 보낸다 */}
+          {user?.role === 'admin' && chatId && (
+            <button onClick={() => setInviteOpen(true)} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold">광고 링크</button>
+          )}
         </div>
 
         {/* 상품 정보 — 헤더 바로 아래 고정 (상품 문의에서 진입한 경우만) */}
