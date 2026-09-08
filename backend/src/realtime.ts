@@ -21,3 +21,9 @@ export function emitToRoom(roomId: string, event: string, payload: unknown): voi
   if (!ioRef) return;
   try { ioRef.to(`room:${roomId}`).emit(event, payload); } catch { /* 소켓 없음 — 무시 */ }
 }
+
+// 특정 유저의 모든 소켓(user 채널)에 전달 — 다른 화면에 있을 때 포그라운드 알림용(new_notification 등).
+export function emitToUser(userId: string, event: string, payload: unknown): void {
+  if (!ioRef) return;
+  try { ioRef.to(`user:${userId}`).emit(event, payload); } catch { /* 소켓 없음 — 무시 */ }
+}

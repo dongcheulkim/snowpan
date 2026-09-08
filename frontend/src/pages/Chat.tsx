@@ -512,6 +512,48 @@ const Chat = () => {
             const isFirstInGroup = !prevMsg || prevMsg.senderId !== msg.senderId || showDateSep;
             const showRead = isMe && otherLastReadAt && new Date(otherLastReadAt).getTime() >= new Date(msg.createdAt).getTime();
 
+            if (msg.type === 'ad_invite') {
+              // 관리자가 상담 후 보낸 광고 소재 작성 링크 — 주소 대신 카드 + "메인 배너 신청 바로가기" 버튼
+              let inv: { path?: string; slotLabel?: string; periodMonths?: number; plan?: string | null; price?: number; expiresAt?: string } = {};
+              try { inv = JSON.parse(msg.content); } catch { inv = {}; }
+              const safePath = typeof inv.path === 'string' && inv.path.startsWith('/ad-booking/invite/') ? inv.path : null;
+              const slot = inv.slotLabel || '광고';
+              const exp = inv.expiresAt ? new Date(inv.expiresAt) : null;
+              const expStr = exp && !isNaN(exp.getTime()) ? `${exp.getMonth() + 1}월 ${exp.getDate()}일까지 열려요` : '';
+              const cond = [inv.periodMonths ? `${inv.periodMonths}개월` : '', typeof inv.price === 'number' ? `${inv.plan ? inv.plan + ' ' : ''}${inv.price.toLocaleString()}원` : ''].filter(Boolean).join(' · ');
+              return (
+                <div key={msg.id}>
+                  {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
+                  <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[85%] w-[320px]">
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      <div className={`rounded-2xl px-4 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
+                        <div className={`text-[10px] font-semibold tracking-wide mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>광고 신청</div>
+                        <p className="text-base font-bold leading-snug">{slot} 광고</p>
+                        {cond && <p className={`text-sm mt-0.5 ${isMe ? 'text-white/80' : 'text-gray-700'}`}>{cond}</p>}
+                        <p className={`text-xs mt-2 leading-relaxed ${isMe ? 'text-white/70' : 'text-gray-600'}`}>
+                          상담한 조건이 들어가 있어요. 광고 문구와 이미지만 작성해 주시면 돼요. 작성이 끝나면 입금 안내가 이 채팅방으로 와요.
+                        </p>
+                        {safePath && (
+                          <Link
+                            to={safePath}
+                            className={`mt-3 block w-full text-center py-3 rounded-xl text-sm font-bold transition-colors ${isMe ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
+                          >
+                            {slot} 신청 바로가기
+                          </Link>
+                        )}
+                        {expStr && <p className={`text-[10px] mt-2 ${isMe ? 'text-white/50' : 'text-gray-500'}`}>{expStr}</p>}
+                      </div>
+                      <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                        {showRead && <span className="text-gray-900 font-medium">읽음</span>}
+                        <span>{formatTime(msg.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             if (isProductInquiry) {
               let parsed: { productName?: string; productPath?: string } = {};
               try { parsed = JSON.parse(msg.content); } catch { parsed = { productName: msg.content }; }

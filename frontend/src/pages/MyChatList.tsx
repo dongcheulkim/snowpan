@@ -31,6 +31,12 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
     return Number.isFinite(n) ? `[가격] ${n.toLocaleString()}원 제안` : '[가격] 가격 제안';
   }
   if (msg.type === 'image') return '[사진]';
+  if (msg.type === 'ad_invite') {
+    try {
+      const parsed = JSON.parse(msg.content) as { slotLabel?: string };
+      return `[광고] ${parsed.slotLabel || '광고'} 신청 링크`;
+    } catch { return '[광고] 광고 신청 링크'; }
+  }
   return msg.content;
 };
 

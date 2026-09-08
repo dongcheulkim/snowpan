@@ -140,7 +140,8 @@ api GET "/ad-booking/invite/$IV2" "" "$SELLER_TOKEN"; [ "$CODE" = "410" ] && ok 
 api POST /chat/rooms "{\"targetUserId\":\"$SELLER_ID\"}" "$ADMIN_TOKEN"; CR=$(echo "$RESP" | jq -r '.id // empty'); [ -n "$CR" ] && ok "관리자→광고주 채팅방 생성" || bad "채팅방 CODE=$CODE $(echo $RESP|head -c 100)"
 api POST /ad-booking/admin/invites "{\"slotType\":\"premium\",\"category\":\"rental\",\"periodMonths\":12,\"price\":2200000,\"plan\":\"일시불\",\"chatRoomId\":\"$CR\"}" "$ADMIN_TOKEN"
 IV3=$(echo "$RESP" | jq -r '.id // empty'); ST=$(echo "$RESP" | jq -r '.sentToChat'); [ "$CODE" = "201" ] && [ "$ST" = "true" ] && ok "채팅방으로 초대 발급 (sentToChat)" || bad "채팅 초대 CODE=$CODE sent=$ST $(echo $RESP|head -c 120)"
-MC=$(pq "SELECT count(*) FROM messages WHERE \"roomId\"='$CR' AND content LIKE '%/ad-booking/invite/$IV3%'"); [ "$MC" = "1" ] && ok "채팅방에 링크 메시지 1건" || bad "링크 메시지 count=$MC"
+MC=$(pq "SELECT count(*) FROM messages WHERE \"roomId\"='$CR' AND type='ad_invite' AND content LIKE '%\"token\":\"$IV3\"%' AND content LIKE '%\"slotLabel\":\"프리미엄 노출\"%'"); [ "$MC" = "1" ] && ok "채팅방에 광고 신청 카드 메시지 1건 (type ad_invite, 토큰·자리 포함)" || bad "카드 메시지 count=$MC"
+api GET "/chat/rooms/$CR/messages" "" "$SELLER_TOKEN"; MT=$(echo "$RESP" | jq -r '.[-1].type // empty'); MP=$(echo "$RESP" | jq -r '.[-1].content | fromjson | .path // empty'); [ "$MT" = "ad_invite" ] && [ "$MP" = "/ad-booking/invite/$IV3" ] && ok "광고주가 카드 메시지 조회 (path 내부 경로)" || bad "카드 조회 type=$MT path=$MP"
 api POST /ad-booking/admin/invites '{"slotType":"premium","category":"rental","periodMonths":12,"price":1,"chatRoomId":"00000000-0000-4000-8000-000000000000"}' "$ADMIN_TOKEN"; [ "$CODE" = "400" ] && ok "없는 채팅방 지정 400" || bad "없는 방 CODE=$CODE"
 
 echo "----- STEP9: PASS=$PASS FAIL=$FAIL -----"

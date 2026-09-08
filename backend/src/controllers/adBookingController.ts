@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { emitToRoom } from '../realtime';
+import { emitToRoom, emitToUser } from '../realtime';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking, parsePremiumTarget } from '../utils/adBookingScheduler';
 import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
@@ -1215,18 +1215,32 @@ export const adminCreateInvite = async (req: AuthRequest, res: Response): Promis
       const room = await prisma.chatRoom.findUnique({ where: { id: chatRoomId }, select: { id: true, user1Id: true, user2Id: true } });
       if (!room || (room.user1Id !== req.user!.id && room.user2Id !== req.user!.id)) { res.status(400).json({ error: '보낼 채팅방이 없거나 관리자가 참여한 방이 아닙니다.' }); return; }
       const SLOT_KR: Record<string, string> = { main_banner: '메인 배너', category: '카테고리 배너', premium: '프리미엄 노출' };
-      const expires = invite.expiresAt; const expStr = `${expires.getMonth() + 1}월 ${expires.getDate()}일`;
-      const content =
-        `광고 소재 작성 링크예요.\n` +
-        `아래 링크를 열고 로그인하면 상담한 조건(${SLOT_KR[invite.slotType] || invite.slotType} · ${invite.periodMonths}개월 · ${invite.plan ? invite.plan + ' ' : ''}${invite.price.toLocaleString()}원)이 들어가 있어요. 광고 문구와 이미지만 작성해 주시면 돼요.\n` +
-        `${inviteLink(invite.id)}\n` +
-        `링크는 ${expStr}까지 열려요. 작성이 끝나면 입금 안내가 이 채팅방으로 와요.`;
+      const slotLabel = SLOT_KR[invite.slotType] || invite.slotType;
+      // 주소를 그대로 보여 주지 않고 카드 메시지(type ad_invite)로 — 프론트가 "메인 배너 신청 바로가기" 버튼으로 그린다(사용자 요청 2026-09-09).
+      // content 는 JSON. path 는 내부 경로만(프론트가 외부 URL 을 링크로 만들지 않도록).
+      const content = JSON.stringify({
+        token: invite.id,
+        path: `/ad-booking/invite/${invite.id}`,
+        slotType: invite.slotType,
+        slotLabel,
+        category: invite.category,
+        periodMonths: invite.periodMonths,
+        plan: invite.plan,
+        price: invite.price,
+        expiresAt: invite.expiresAt.toISOString(),
+      });
       const message = await prisma.message.create({
-        data: { roomId: room.id, senderId: req.user!.id, content, type: 'text' },
+        data: { roomId: room.id, senderId: req.user!.id, content, type: 'ad_invite' },
         include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       });
       await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
       emitToRoom(room.id, 'new_message', { ...message, sender: { ...message.sender, name: message.sender.nickname || message.sender.name } });
+      // 광고주가 방을 안 보고 있을 수 있으니 알림·푸시도 함께
+      const guestId = room.user1Id === req.user!.id ? room.user2Id : room.user1Id;
+      const noticeBody = `${slotLabel} 광고 신청 링크가 도착했어요. 채팅방에서 버튼을 눌러 작성해 주세요.`;
+      createNotification(guestId, 'chat', '스노우판 고객센터', noticeBody, `/chat/${room.id}`).catch(() => {});
+      emitToUser(guestId, 'new_notification', { type: 'chat', title: '스노우판 고객센터', message: noticeBody, link: `/chat/${room.id}` });
+      sendPushToUser(guestId, '스노우판 고객센터', noticeBody, `/chat/${room.id}`).catch(() => {});
       sentToChat = true;
     }
     res.status(201).json({ ...invite, link: inviteLink(invite.id), sentToChat });
