@@ -211,6 +211,7 @@ function App() {
             <Route path="agency/:id" element={<AgencyPage />} />
             <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
+            <Route path="ad-booking/invite/:token" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="ad-booking/pay/success" element={<RequireAuth><AdPayResult /></RequireAuth>} />
             <Route path="ad-booking/pay/fail" element={<AdPayResult />} />
             <Route path="ad-booking/pay/:id" element={<RequireAuth><AdPay /></RequireAuth>} />

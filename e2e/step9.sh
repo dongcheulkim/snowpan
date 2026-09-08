@@ -122,4 +122,19 @@ api GET "/banners" "" ""
 ABID=$(echo "$RESP" | jq -r ".[] | select(.tag==\"ad:$BK2\" or .adBookingId==\"$BK2\") | .adBookingId // empty" 2>/dev/null | head -1)
 [ "$ABID" = "$BK2" ] && ok "공개 배너에 adBookingId 포함" || bad "공개 배너 adBookingId=$ABID"
 
+# ---- 광고 초대 링크: 관리자가 조건(자리·기간·금액) 발급 → 광고주가 소재만 제출 → 협의 금액으로 예약 ----
+api POST /ad-booking/admin/invites '{"slotType":"main_banner","periodMonths":3,"price":1500000,"advertiser":"E2E광고주"}' "$SELLER_TOKEN"; [ "$CODE" = "403" ] && ok "일반 유저 초대 발급 403" || bad "초대 403 기대 CODE=$CODE"
+api POST /ad-booking/admin/invites '{"slotType":"main_banner","periodMonths":3,"price":1500000,"advertiser":"E2E광고주"}' "$ADMIN_TOKEN"
+IV=$(echo "$RESP" | jq -r '.id // empty'); IL=$(echo "$RESP" | jq -r '.link // empty'); [ "$CODE" = "201" ] && [ -n "$IV" ] && echo "$IL" | grep -q "/ad-booking/invite/$IV" && ok "관리자 초대 링크 발급 (201, 링크 포함)" || bad "초대 발급 CODE=$CODE $(echo $RESP|head -c 120)"
+api POST /ad-booking/admin/invites '{"slotType":"main_banner","periodMonths":13,"price":1}' "$ADMIN_TOKEN"; [ "$CODE" = "400" ] && ok "초대 기간 13개월 400" || bad "초대 기간 CODE=$CODE"
+api GET "/ad-booking/invite/$IV" "" "$SELLER_TOKEN"; IP=$(echo "$RESP" | jq -r '.price'); [ "$CODE" = "200" ] && [ "$IP" = "1500000" ] && ok "광고주 초대 조회 (협의 금액 노출)" || bad "초대 조회 CODE=$CODE price=$IP"
+api GET "/ad-booking/invite/00000000-0000-4000-8000-000000000000" "" "$SELLER_TOKEN"; [ "$CODE" = "404" ] && ok "없는 초대 404" || bad "없는 초대 CODE=$CODE"
+api POST "/ad-booking/invite/$IV/submit" '{"title":"E2E초대배너","description":"초대로 접수","url":"https://snowpan.kr","payMethod":"transfer"}' "$SELLER_TOKEN"
+IB=$(echo "$RESP" | jq -r '.bookingId // empty'); IT=$(echo "$RESP" | jq -r '.totalPrice'); [ "$CODE" = "201" ] && [ -n "$IB" ] && [ "$IT" = "1500000" ] && ok "초대 링크로 메인 배너 소재 제출 → 협의 금액 예약 (201)" || bad "초대 제출 CODE=$CODE price=$IT $(echo $RESP|head -c 120)"
+api GET "/ad-booking/invite/$IV" "" "$SELLER_TOKEN"; [ "$CODE" = "410" ] && ok "사용된 초대 410" || bad "사용된 초대 CODE=$CODE"
+api GET /ad-booking/admin/invites "" "$ADMIN_TOKEN"; IS=$(echo "$RESP" | jq -r ".[] | select(.id==\"$IV\") | .effectiveStatus + \":\" + (.booking.id // \"\")"); [ "$IS" = "used:$IB" ] && ok "초대 목록에 사용됨·예약 연결" || bad "초대 목록 $IS"
+api POST /ad-booking/admin/invites '{"slotType":"category","category":"rental","periodMonths":1,"price":0}' "$ADMIN_TOKEN"; IV2=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && ok "무료(0원) 초대 발급" || bad "0원 초대 CODE=$CODE"
+api POST "/ad-booking/admin/invites/$IV2/cancel" "{}" "$ADMIN_TOKEN"; [ "$CODE" = "200" ] && ok "초대 취소" || bad "초대 취소 CODE=$CODE"
+api GET "/ad-booking/invite/$IV2" "" "$SELLER_TOKEN"; [ "$CODE" = "410" ] && ok "취소된 초대 410" || bad "취소 초대 CODE=$CODE"
+
 echo "----- STEP9: PASS=$PASS FAIL=$FAIL -----"

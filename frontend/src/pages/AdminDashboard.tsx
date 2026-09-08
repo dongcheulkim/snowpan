@@ -7,6 +7,8 @@ import { CalendarIcon, ChartIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
+import AdInvitePanel from '../components/AdInvitePanel';
+import { Link } from 'react-router-dom';
 
 type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach';
 
@@ -93,7 +95,7 @@ const AdminDashboard = () => {
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
   // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
   const [adCatFilter, setAdCatFilter] = useState('all');
-  const [adSection, setAdSection] = useState<'bookings' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/가격). 홈 배너는 광고 승인 시 자동 생성·만료 시 자동 삭제라 수동 관리 화면 없음
+  const [adSection, setAdSection] = useState<'bookings' | 'invites' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/가격). 홈 배너는 광고 승인 시 자동 생성·만료 시 자동 삭제라 수동 관리 화면 없음
   const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
@@ -146,6 +148,16 @@ const AdminDashboard = () => {
       setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'resolved' } : r)));
     } catch (err) {
       toastError(err instanceof Error ? err.message : '처리 실패');
+    }
+  };
+
+  // 관리자가 유저에게 먼저 1:1 대화 걸기 — 기존 채팅방이 있으면 그 방으로
+  const startChat = async (u: UserItem) => {
+    try {
+      const room = await api<{ id: string }>('/chat/rooms', { method: 'POST', body: { targetUserId: u.id } });
+      navigate(`/chat/${room.id}`, { state: { seller: (u as { nickname?: string }).nickname || u.name, sellerId: u.id } });
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '대화방을 열지 못했습니다.');
     }
   };
 
@@ -285,7 +297,7 @@ const AdminDashboard = () => {
 
       {tab === 'adBookings' && (
         <div className="flex gap-1 mb-1">
-          {([['bookings','예약·결제'],['pricing','광고 가격']] as const).map(([id,label]) => (
+          {([['bookings','예약·결제'],['invites','초대 링크'],['pricing','광고 가격']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setAdSection(id)}
               className={`flex-1 py-2 px-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {label}
@@ -498,11 +510,18 @@ const AdminDashboard = () => {
                       </div>
                       <p className="text-xs text-gray-500">{u.email}</p>
                     </div>
-                    {u.role !== 'admin' && (
-                      <button onClick={() => handleBan(u.id)} className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
-                        {u.role === 'banned' ? '정지 해제' : '정지'}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {/* 프로필(공개 페이지: 닉네임·리뷰·글) · 1:1 대화(관리자 → 유저 채팅방) — 사용자 요청 2026-09-09 */}
+                      <Link to={`/seller/${u.id}`} className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">프로필</Link>
+                      {u.role !== 'admin' && u.role !== 'deleted' && (
+                        <button onClick={() => startChat(u)} className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">1:1 대화</button>
+                      )}
+                      {u.role !== 'admin' && (
+                        <button onClick={() => handleBan(u.id)} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${u.role === 'banned' ? 'bg-mint/10 text-emerald-700 hover:bg-mint/20' : 'bg-coral/10 text-coral hover:bg-coral/20'}`}>
+                          {u.role === 'banned' ? '정지 해제' : '정지'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {totalPages > 1 && (
@@ -515,6 +534,11 @@ const AdminDashboard = () => {
               </div>
             );
           })()}
+
+          {/* 광고 초대 링크 — 상담 후 조건을 정해 광고주에게 소재 작성 링크 발급 */}
+          {tab === 'adBookings' && adSection === 'invites' && (
+            <AdInvitePanel />
+          )}
 
           {/* Ad Bookings Tab */}
           {tab === 'adBookings' && adSection === 'bookings' && (

@@ -704,6 +704,28 @@ model AdSlotPricing {
   @@map("ad_slot_pricings")
 }
 
+// 광고 초대 링크 — 고객센터 상담 후 관리자가 조건(자리·기간·금액)을 정해 만들고 광고주에게 보낸다.
+// 광고주는 링크에서 소재(문구·이미지·URL)만 작성 → AdBooking 생성(협의 금액) → 입금 확인 → 게시. 사용자 결정 2026-09-09: 셀프 신청·가격 표시 없음.
+model AdInvite {
+  id           String    @id @default(uuid()) // 링크 토큰
+  slotType     String    // 'main_banner' | 'category' | 'premium'
+  category     String    @default("none")
+  periodMonths Int       @default(12)
+  startDate    DateTime? // null = 입금 확인 즉시
+  price        Int       // 협의 금액(원), 0 가능(무료 게재)
+  advertiser   String?   // 광고주 상호·담당자 (관리자 메모, 광고주에게도 표시)
+  note         String?   // 관리자 메모
+  status       String    @default("sent") // 'sent' | 'used' | 'cancelled'
+  bookingId    String?
+  createdById  String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([status, createdAt])
+  @@map("ad_invites")
+}
+
 model AdBooking {
   id          String   @id @default(uuid())
   slotType    String   // 'main_banner' | 'category' | 'premium'

@@ -26,9 +26,7 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
 
 
 
-const won = (n: number) => n.toLocaleString('ko-KR');
-// 메인·카테고리 배너는 문의형(가격 비공개, 고객센터 → 전화 안내). 셀프 신청은 프리미엄만. 백엔드 INQUIRY_ONLY_SLOTS 와 짝.
-const INQUIRY_SLOTS = ['main_banner', 'category'];
+// 모든 광고는 상담형(가격 비공개) — 고객센터 상담 → 관리자가 초대 링크 발급 → 광고주가 소재만 작성.
 
 const Advertise = () => {
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
@@ -70,30 +68,18 @@ const Advertise = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {groups.map(({ slot, minMonthly }) => (
+          {groups.map(({ slot }) => (
             <div key={slot} className="card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-gray-900">{SLOT_LABELS[slot] || slot}</h2>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">{SLOT_DESCRIPTIONS[slot]}</p>
                 </div>
-                {INQUIRY_SLOTS.includes(slot) ? (
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-bold text-gray-900">가격 문의</div>
-                    <div className="text-[11px] text-gray-400">전화 상담 후 계약</div>
-                  </div>
-                ) : minMonthly != null && (
-                  <div className="text-right shrink-0">
-                    <div className="text-lg font-bold text-sky-600">{won(minMonthly)}원</div>
-                    <div className="text-[11px] text-gray-400">월 / 부터</div>
-                  </div>
-                )}
+                <div className="text-right shrink-0">
+                  <div className="text-sm font-bold text-gray-900">상담 후 안내</div>
+                  <div className="text-[11px] text-gray-400">기간·금액 협의</div>
+                </div>
               </div>
-              {INQUIRY_SLOTS.includes(slot) ? (
-                <Link to="/mypage/support" className="block mt-3 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">고객센터 문의하기</Link>
-              ) : (
-                <Link to="/ad-booking" className="block mt-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold text-center hover:bg-gray-50 transition-colors">신청하기</Link>
-              )}
             </div>
           ))}
         </div>
@@ -103,35 +89,26 @@ const Advertise = () => {
       <section className="card p-5">
         <h2 className="text-sm font-bold text-gray-900 mb-2">계약 단위</h2>
         <p className="text-xs text-gray-600 leading-relaxed">
-          광고는 <span className="font-bold text-gray-900">12개월(1년)</span> 단위로 게재됩니다.
-          프리미엄 노출은 표기된 월 단가 × 12개월로 신청하고, 메인 배너·카테고리 배너는 고객센터 문의 후 담당자와 기간·금액을 정해 계약합니다. 게재 기간 동안 소재(문구·이미지) 교체가 가능합니다.
+          고객센터에 문의하면 담당자가 자리·기간·금액을 안내하고, 상담이 끝나면 광고 문구와 이미지를 작성하는 링크를 보내 드립니다.
+          그 링크에서 작성하면 접수되고, 입금 확인 후 게시됩니다. 게재 기간 동안 소재(문구·이미지) 교체가 가능합니다.
         </p>
       </section>
 
       {/* 결제 · 환불 */}
       <section className="card p-5 text-xs text-gray-500 leading-relaxed space-y-1.5">
         <h2 className="text-sm font-bold text-gray-900 mb-1">결제 · 환불 안내</h2>
-        <p>· 프리미엄 노출은 신청 후 안내되는 계좌로 입금하면 검수를 거쳐 게시됩니다.</p>
-        <p>· 메인 배너·카테고리 배너는 고객센터 문의 후 담당자가 전화로 기간과 금액을 안내하고, 계좌이체와 세금계산서로 진행합니다.</p>
-        <p>· 광고는 12개월(1년) 계약입니다. 게시 시작 후에는 중도 해지·환불이 되지 않으니 신중히 결정해 주세요. (입금 전 신청 건은 취소 가능)</p>
+        <p>· 결제는 계좌이체로 하고 세금계산서를 발행합니다. 금액과 기간은 상담에서 정합니다.</p>
+        <p>· 게시 시작 후에는 중도 해지·환불이 되지 않으니 신중히 결정해 주세요. (입금 전 신청 건은 취소 가능)</p>
         <p>· 문의: 고객센터 채팅 또는 <a href="mailto:info@snowpan.kr" className="text-sky-600 hover:underline">info@snowpan.kr</a></p>
       </section>
 
-      {/* CTA — 프리미엄은 셀프 신청, 배너는 문의 */}
-      <div className="grid grid-cols-2 gap-2">
-        <Link
-          to="/mypage/support"
-          className="block w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm text-center hover:bg-accent-light transition-colors active:scale-[0.98]"
-        >
-          배너 광고 문의하기
-        </Link>
-        <Link
-          to="/ad-booking"
-          className="block w-full py-3.5 bg-white border border-gray-200 text-gray-800 rounded-lg font-bold text-sm text-center hover:bg-gray-50 transition-colors active:scale-[0.98]"
-        >
-          프리미엄 노출 신청
-        </Link>
-      </div>
+      {/* CTA — 모든 광고는 고객센터 상담으로 */}
+      <Link
+        to="/mypage/support"
+        className="block w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm text-center hover:bg-accent-light transition-colors active:scale-[0.98]"
+      >
+        고객센터 채팅으로 광고 문의하기
+      </Link>
       <p className="text-center text-[11px] text-gray-400 pb-2">신청은 로그인 후 진행됩니다.</p>
       <section className="card p-5 text-center">
         <p className="text-sm font-bold text-gray-900">매장 사장님이신가요?</p>

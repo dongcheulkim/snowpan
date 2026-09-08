@@ -94,7 +94,7 @@ export default function Partners() {
           <li>· 손님 리뷰 확인, 겸업 설정으로 여러 카테고리 노출</li>
         </ul>
         <p className="text-xs text-gray-500 mt-3">
-          더 크게 보이고 싶다면 광고 상품이 있습니다. 프리미엄 노출은 바로 신청할 수 있고, 카테고리 배너와 메인 배너는 고객센터로 문의하면 담당자가 전화로 안내합니다. 자세한 내용은 <Link to="/advertise" className="text-sky-600 underline">광고 안내</Link>에서 확인하세요.
+          더 크게 보이고 싶다면 광고 상품(프리미엄 노출, 카테고리 배너, 메인 배너)이 있습니다. 고객센터로 문의하면 담당자가 자리와 기간, 금액을 안내하고 광고 문구를 작성할 링크를 보내 드립니다. 자세한 내용은 <Link to="/advertise" className="text-sky-600 underline">광고 안내</Link>에서 확인하세요.
         </p>
       </section>
 

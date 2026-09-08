@@ -17,6 +17,11 @@ import {
   adminUpsertPricing,
   adminUpdatePricing,
   adminCancelBooking,
+  adminCreateInvite,
+  adminListInvites,
+  adminCancelInvite,
+  getInvite,
+  submitInvite,
   adminApproveBooking,
   adminFreeApprove,
   getBookingPayInfo,
@@ -53,5 +58,11 @@ router.put('/admin/pricings/:id', adminGuard, adminUpdatePricing);
 router.post('/admin/bookings/:id/approve', adminGuard, adminApproveBooking);
 router.post('/admin/bookings/:id/free', adminGuard, adminFreeApprove);
 router.post('/admin/bookings/:id/cancel', adminGuard, adminCancelBooking);
+// 광고 초대 링크 — 상담 후 관리자가 발급, 광고주는 링크에서 소재만 작성
+router.post('/admin/invites', adminGuard, adminCreateInvite);
+router.get('/admin/invites', adminGuard, adminListInvites);
+router.post('/admin/invites/:id/cancel', adminGuard, adminCancelInvite);
+router.get('/invite/:token', authenticateToken, getInvite);
+router.post('/invite/:token/submit', authenticateToken, submitInvite);
 
 export default router;

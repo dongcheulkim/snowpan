@@ -202,17 +202,28 @@ const PERIOD_DISCOUNT: Record<number, number> = { 12: 0 };
 // 문의형 슬롯 — 일반 사용자는 신청 불가(관리자 대리 등록만)
 const INQUIRY_ONLY_SLOTS = ['main_banner', 'category'];
 
-export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+type AdInviteRow = { id: string; slotType: string; category: string; periodMonths: number; startDate: Date | null; price: number };
+
+// 초대 링크로 들어온 광고주는 자리·기간·금액이 이미 정해져 있음 — 소재만 받고 나머지는 초대 조건으로 채운다.
+export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => createBookingWith(req, res);
+
+async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInviteRow): Promise<void> {
   try {
     const userId = req.user!.id;
-    const { slotType, category, title, description, url, image, textColor, textAlign, imagePos, payMethod, periodMonths, desiredStart } = req.body;
-    let { startDate, endDate } = req.body;
+    const body = invite
+      ? { ...req.body, slotType: invite.slotType, category: invite.category, periodMonths: invite.periodMonths, desiredStart: invite.startDate ? invite.startDate.toISOString() : undefined, payMethod: 'transfer' }
+      : req.body;
+    const { slotType, category, title, description, url, image, textColor, textAlign, imagePos, payMethod, periodMonths, desiredStart } = body;
+    let { startDate, endDate } = body;
 
     // 기간제 신청: periodMonths 필수 — 직접 startDate/endDate 를 보내 12개월 정책과
     // 월단가 일할계산을 우회하던 레거시 경로 차단 (1일짜리 배너를 1/30 가격에 신청 가능했음)
     const months = Number(periodMonths);
     {
-      if (!PERIOD_DAYS[months]) {
+      // 초대 링크는 상담에서 정한 1~12개월 자유, 셀프 신청(관리자 대리 포함)은 12개월 정책
+      if (invite ? !(Number.isInteger(months) && months >= 1 && months <= 12) : !PERIOD_DAYS[months]) {
         res.status(400).json({ error: '광고는 12개월(1년) 단위로 신청할 수 있습니다.' });
         return;
       }
@@ -222,7 +233,9 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         return;
       }
       base.setHours(0, 0, 0, 0);
-      const endBase = new Date(base.getTime() + (PERIOD_DAYS[months] - 1) * 86400000);
+      const endBase = invite
+        ? (() => { const e = new Date(base); e.setMonth(e.getMonth() + months); e.setDate(e.getDate() - 1); return e; })()
+        : new Date(base.getTime() + (PERIOD_DAYS[months] - 1) * 86400000);
       endBase.setHours(23, 59, 59, 999); // 마지막 날 끝까지 노출 (off-by-one 방지)
       startDate = base.toISOString();
       endDate = endBase.toISOString();
@@ -234,7 +247,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     }
     // 메인 배너·카테고리 배너는 가격 비공개 문의형 (사용자 결정 2026-09-09): 고객센터 문의 → 전화 협의 → 관리자가 대신 등록·승인.
     // 셀프 신청(가격 표시·무통장)은 프리미엄 노출만. 대형 계약은 카드 결제 PG 없이도 계좌이체·세금계산서로 처리.
-    if (INQUIRY_ONLY_SLOTS.includes(String(slotType)) && req.user!.role !== 'admin') {
+    if (!invite && INQUIRY_ONLY_SLOTS.includes(String(slotType)) && req.user!.role !== 'admin') {
       res.status(400).json({ error: '메인 배너와 카테고리 배너는 고객센터 문의로 진행합니다. 담당자가 연락드려 안내합니다.' });
       return;
     }
@@ -408,7 +421,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
         ? months * pricing.pricePerDay
         : Math.round(totalDays * (pricing.pricePerDay / 30));
       const discountAmount = 0;
-      const totalPrice = basePrice - discountAmount;
+      const totalPrice = invite ? invite.price : basePrice - discountAmount; // 초대 링크는 협의 금액
       const merchantUid = `snowpan_ad_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
       // 계좌이체 방식: 모든 예약은 pending_payment 로 시작하고 관리자가 입금 확인 후 승인
@@ -444,7 +457,10 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
-    await notifyAdmins('system', '새 광고 신청', `"${cleanTitle || '(이미지 광고)'}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
+    if (invite) {
+      await prisma.adInvite.update({ where: { id: invite.id }, data: { status: 'used', bookingId: booking.id, usedAt: new Date() } });
+    }
+    await notifyAdmins('system', invite ? '초대 링크 광고 소재 접수' : '새 광고 신청', `"${cleanTitle || '(이미지 광고)'}" 광고가 신청되었습니다. (${booking.totalPrice.toLocaleString()}원)`, '/admin');
 
     // 관리자와 채팅방 자동 생성 + 입금 안내 메시지 자동 발송. 실패해도 예약은 성공.
     let chatRoomId: string | null = null;
@@ -527,7 +543,7 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
       res.status(500).json({ error: '예약 생성 실패' });
     }
   }
-};
+}
 
 // 내 광고 예약 목록 조회
 export const getMyBookings = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -1153,5 +1169,110 @@ export const confirmTossPayment = async (req: AuthRequest, res: Response): Promi
       } catch { /* 되돌림 실패 시 어드민 수동 처리 (로그로 추적) */ }
     }
     res.status(500).json({ error: '결제 승인 처리 중 오류가 발생했습니다.' });
+  }
+};
+
+
+// ===== 광고 초대 링크 (관리자 상담 후 발급) =====
+const INVITE_SLOTS = ['main_banner', 'category', 'premium'];
+const inviteLink = (id: string) => `${process.env.FRONTEND_URL || 'https://snowpan.kr'}/ad-booking/invite/${id}`;
+
+export const adminCreateInvite = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { slotType, category, periodMonths, startDate, price, advertiser, note, expiresDays } = req.body || {};
+    if (!INVITE_SLOTS.includes(String(slotType))) { res.status(400).json({ error: '광고 자리를 선택하세요.' }); return; }
+    const cat = slotType === 'main_banner' ? 'none' : String(category || '');
+    if (slotType !== 'main_banner' && !cat) { res.status(400).json({ error: '카테고리를 선택하세요.' }); return; }
+    const months = Number(periodMonths);
+    if (!Number.isInteger(months) || months < 1 || months > 12) { res.status(400).json({ error: '기간은 1~12개월이어야 합니다.' }); return; }
+    const p = Number(price);
+    if (!Number.isFinite(p) || p < 0 || p > 100_000_000) { res.status(400).json({ error: '금액이 올바르지 않습니다.' }); return; }
+    let start: Date | null = null;
+    if (startDate) {
+      start = new Date(String(startDate));
+      if (isNaN(start.getTime())) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다.' }); return; }
+      start.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (start < today) { res.status(400).json({ error: '시작일은 오늘 이후여야 합니다.' }); return; }
+    }
+    const pricing = await prisma.adSlotPricing.findFirst({ where: { slotType: String(slotType), category: cat, active: true }, select: { id: true } });
+    if (!pricing) { res.status(404).json({ error: '해당 광고 슬롯이 없습니다.' }); return; }
+    const days = Math.min(Math.max(parseInt(String(expiresDays ?? '14'), 10) || 14, 1), 60);
+    const invite = await prisma.adInvite.create({
+      data: {
+        slotType: String(slotType), category: cat, periodMonths: months, startDate: start, price: Math.round(p),
+        advertiser: sanitizeText(advertiser, 60) || null, note: sanitizeText(note, 300) || null,
+        createdById: req.user!.id, expiresAt: new Date(Date.now() + days * 86400000),
+      },
+    });
+    res.status(201).json({ ...invite, link: inviteLink(invite.id) });
+  } catch (error) {
+    console.error('Create ad invite error:', error);
+    res.status(500).json({ error: '초대 링크를 만들지 못했습니다.' });
+  }
+};
+
+export const adminListInvites = async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const rows = await prisma.adInvite.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
+    const bookingIds = rows.map((r) => r.bookingId).filter((x): x is string => !!x);
+    const bookings = bookingIds.length ? await prisma.adBooking.findMany({ where: { id: { in: bookingIds } }, select: { id: true, status: true, title: true } }) : [];
+    const bMap = new Map(bookings.map((b) => [b.id, b]));
+    const now = Date.now();
+    res.json(rows.map((r) => ({
+      ...r, link: inviteLink(r.id),
+      effectiveStatus: r.status === 'sent' && r.expiresAt.getTime() < now ? 'expired' : r.status,
+      booking: r.bookingId ? bMap.get(r.bookingId) || null : null,
+    })));
+  } catch (error) {
+    console.error('List ad invites error:', error);
+    res.status(500).json({ error: '초대 목록을 불러오지 못했습니다.' });
+  }
+};
+
+export const adminCancelInvite = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const inv = await prisma.adInvite.findUnique({ where: { id: String(req.params.id) } });
+    if (!inv) { res.status(404).json({ error: '초대를 찾을 수 없습니다.' }); return; }
+    if (inv.status === 'used') { res.status(400).json({ error: '이미 사용된 초대는 취소할 수 없습니다.' }); return; }
+    await prisma.adInvite.update({ where: { id: inv.id }, data: { status: 'cancelled' } });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Cancel ad invite error:', error);
+    res.status(500).json({ error: '초대를 취소하지 못했습니다.' });
+  }
+};
+
+// 광고주: 초대 조건 조회 — 사용됨/취소/만료는 410
+async function loadLiveInvite(id: string, res: Response): Promise<AdInviteRow | null> {
+  if (!UUID_RE.test(id)) { res.status(404).json({ error: '초대 링크가 올바르지 않습니다.' }); return null; }
+  const inv = await prisma.adInvite.findUnique({ where: { id } });
+  if (!inv) { res.status(404).json({ error: '초대 링크를 찾을 수 없습니다.' }); return null; }
+  if (inv.status === 'used') { res.status(410).json({ error: '이미 사용된 초대 링크입니다. 광고는 내 광고에서 확인하세요.' }); return null; }
+  if (inv.status === 'cancelled') { res.status(410).json({ error: '취소된 초대 링크입니다. 고객센터에 문의해 주세요.' }); return null; }
+  if (inv.expiresAt.getTime() < Date.now()) { res.status(410).json({ error: '초대 링크 기한이 지났습니다. 고객센터에 새 링크를 요청해 주세요.' }); return null; }
+  return inv;
+}
+
+export const getInvite = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const inv = await loadLiveInvite(String(req.params.token), res);
+    if (!inv) return;
+    const full = await prisma.adInvite.findUnique({ where: { id: inv.id }, select: { id: true, slotType: true, category: true, periodMonths: true, startDate: true, price: true, advertiser: true, expiresAt: true } });
+    res.json(full);
+  } catch (error) {
+    console.error('Get ad invite error:', error);
+    res.status(500).json({ error: '초대 정보를 불러오지 못했습니다.' });
+  }
+};
+
+export const submitInvite = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const inv = await loadLiveInvite(String(req.params.token), res);
+    if (!inv) return;
+    await createBookingWith(req, res, inv);
+  } catch (error) {
+    console.error('Submit ad invite error:', error);
+    res.status(500).json({ error: '광고 소재를 접수하지 못했습니다.' });
   }
 };

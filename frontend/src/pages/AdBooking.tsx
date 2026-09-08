@@ -1,6 +1,6 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 // 문의형 슬롯 — 가격 비공개, 셀프 신청 불가 (Advertise.tsx·백엔드 INQUIRY_ONLY_SLOTS 와 짝)
 const INQUIRY_SLOTS = ['main_banner', 'category'];
@@ -93,7 +93,12 @@ function formatDate(dateStr: string): string {
 export default function AdBooking() {
   const navigate = useNavigate();
   getUser(); // auth check
-  const isAdmin = getUser()?.role === 'admin'; // 관리자는 전화 협의한 메인·카테고리 배너를 대신 등록
+  const isAdmin = getUser()?.role === 'admin'; // 관리자는 전화 협의한 광고를 대신 등록
+  // 초대 링크 모드 — 관리자가 상담 후 만든 조건(자리·기간·금액)이 정해져 있고 광고주는 소재만 작성 (사용자 결정 2026-09-09)
+  const { token } = useParams<{ token: string }>();
+  interface InviteInfo { id: string; slotType: string; category: string; periodMonths: number; startDate: string | null; price: number; advertiser: string | null; expiresAt: string }
+  const [invite, setInvite] = useState<InviteInfo | null>(null);
+  const [inviteError, setInviteError] = useState('');
   const [step, setStep] = useState(1);
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
   // 입금 계좌 — 백엔드 env 단일 소스 (Render 만 갱신하면 반영). VITE_ env 는 레거시 폴백.
@@ -181,6 +186,20 @@ export default function AdBooking() {
   }, [selectedSlot, selectedCategory, me?.id]);
 
   useEffect(() => {
+    if (!token) return;
+    api<InviteInfo>(`/ad-booking/invite/${token}`)
+      .then((inv) => {
+        setInvite(inv);
+        setSelectedSlot(inv.slotType);
+        setSelectedCategory(inv.category === 'none' ? '' : inv.category);
+        setPeriodMonths(inv.periodMonths);
+        setDesiredStart(inv.startDate ? inv.startDate.slice(0, 10) : '');
+        setStep(3);
+      })
+      .catch((e) => setInviteError(e instanceof Error ? e.message : '초대 링크를 열 수 없습니다.'));
+  }, [token]);
+
+  useEffect(() => {
     api<SlotPricing[]>('/ad-booking/slots')
       .then(setPricings)
       .catch(() => {})
@@ -202,7 +221,7 @@ export default function AdBooking() {
   const totalDays = selectedPeriod?.days || 0;
   const originalPrice = currentPricing && selectedPeriod ? selectedPeriod.months * currentPricing.pricePerDay : 0;
   const discountAmount = selectedPeriod ? Math.round(originalPrice * selectedPeriod.discount) : 0;
-  const totalPrice = originalPrice - discountAmount;
+  const totalPrice = invite ? invite.price : originalPrice - discountAmount; // 초대 링크는 협의 금액
 
   const handleSlotSelect = (slotType: string) => {
     setSelectedSlot(slotType);
@@ -252,7 +271,7 @@ export default function AdBooking() {
       }
 
       // 2. 예약 생성 — 백엔드가 관리자 채팅방에 입금 안내 메시지 자동 발송.
-      const result = await api<{ bookingId: string; totalPrice: number; chatRoomId: string | null }>('/ad-booking/create', {
+      const result = await api<{ bookingId: string; totalPrice: number; chatRoomId: string | null }>(invite ? `/ad-booking/invite/${token}/submit` : '/ad-booking/create', {
         method: 'POST',
         body: {
           slotType: selectedSlot,
@@ -293,11 +312,46 @@ export default function AdBooking() {
     );
   }
 
+  // 초대 링크 없이 온 일반 사용자 — 셀프 신청 없음, 고객센터 상담으로 (사용자 결정: 금액·기간은 상담에서 안내)
+  if (!isAdmin && !token) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-6 pb-24 space-y-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-1"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+          <h1 className="text-xl font-bold">광고 신청</h1>
+        </div>
+        <div className="card p-5 space-y-3">
+          <p className="text-sm font-bold text-gray-900">광고는 고객센터 상담 후 진행합니다</p>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            원하는 자리(메인 배너, 카테고리 배너, 프리미엄 노출)와 기간을 말씀해 주시면 담당자가 금액을 안내해 드립니다.
+            상담이 끝나면 광고 문구와 이미지를 작성할 수 있는 링크를 보내 드리고, 그 링크에서 작성하면 접수됩니다. 결제는 계좌이체와 세금계산서로 진행합니다.
+          </p>
+          <button onClick={handleInquiry} className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold">고객센터 채팅으로 문의하기</button>
+          <Link to="/advertise" className="block w-full py-3 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold text-center">광고 자리 안내 보기</Link>
+        </div>
+      </div>
+    );
+  }
+  if (token && inviteError) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-6 pb-24 space-y-4">
+        <h1 className="text-xl font-bold">광고 소재 작성</h1>
+        <div className="card p-5 space-y-3">
+          <p className="text-sm font-bold text-gray-900">{inviteError}</p>
+          <button onClick={handleInquiry} className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold">고객센터 채팅으로 문의하기</button>
+        </div>
+      </div>
+    );
+  }
+  if (token && !invite) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" /></div>;
+  }
+
   return (
     <div className="max-w-lg mx-auto px-4 py-6 pb-24">
       {/* 상단 헤더 */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))} className="p-1">
+        <button onClick={() => (step > (invite ? 3 : 1) ? setStep(step - 1) : navigate(-1))} className="p-1">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -305,8 +359,20 @@ export default function AdBooking() {
         <h1 className="text-xl font-bold">광고 신청</h1>
       </div>
 
-      {/* 스텝 인디케이터 */}
-      <div className="flex items-center gap-2 mb-6">
+      {/* 초대 링크: 협의 조건 요약 (자리·기간·금액은 담당자가 정한 대로) */}
+      {invite && (
+        <div className="card p-4 mb-5 text-xs text-gray-700 space-y-1">
+          <p className="text-sm font-bold text-gray-900">담당자와 협의한 조건</p>
+          {invite.advertiser && <p>광고주: <b>{invite.advertiser}</b></p>}
+          <p>자리: <b>{SLOT_LABELS[invite.slotType]}{invite.category !== 'none' ? ` · ${CATEGORY_LABELS[invite.category] || invite.category}` : ''}</b></p>
+          <p>기간: <b>{invite.periodMonths}개월</b>{invite.startDate ? ` · ${formatDate(invite.startDate)} 시작` : ' · 입금 확인 즉시 시작'}</p>
+          <p>금액: <b>{formatPrice(invite.price)}원</b>{invite.price === 0 ? ' (무료 게재)' : ''}</p>
+          <p className="text-[11px] text-gray-500">아래에서 광고에 들어갈 문구와 이미지만 작성하면 됩니다. 조건 변경은 고객센터로 알려 주세요.</p>
+        </div>
+      )}
+
+      {/* 스텝 인디케이터 — 초대 링크는 소재·확인 두 단계만이라 숨김 */}
+      <div className={`flex items-center gap-2 mb-6 ${invite ? 'hidden' : ''}`}>
         {[1, 2, 3, 4].map((s) => (
           <div key={s} className="flex-1 flex items-center">
             <div
@@ -783,10 +849,12 @@ export default function AdBooking() {
               <span className="text-gray-500">시작일</span>
               <span className="font-medium">{desiredStart ? formatDate(desiredStart) : '입금 확인 즉시'}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">단가</span>
-              <span className="font-medium">{currentPricing && formatPrice(currentPricing.pricePerDay)}원/월</span>
-            </div>
+            {!invite && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">단가</span>
+                <span className="font-medium">{currentPricing && formatPrice(currentPricing.pricePerDay)}원/월</span>
+              </div>
+            )}
             {discountAmount > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-500">장기 할인 ({selectedPeriod && Math.round(selectedPeriod.discount * 100)}%)</span>
