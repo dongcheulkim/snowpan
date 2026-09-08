@@ -2,7 +2,7 @@
 // 데이터는 community API 의 category=news(관리자 전용 글)를 그대로 쓴다. 작성·수정은 관리자 대시보드 "스키장 소식 쓰기".
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import { RowListSkeleton } from '../components/Skeleton';
 
@@ -41,14 +41,18 @@ export default function News() {
         <div className="space-y-2">
           {posts.map((p) => {
             const names = (p.resortIds || '').split(',').filter(Boolean).map((id) => resortNames[id]).filter(Boolean);
+            const thumb = (p.images || '').split(',').filter(Boolean)[0];
             return (
-              <Link key={p.id} to={`/news/${p.id}`} className="card p-4 block active:bg-gray-50 transition-colors">
-                <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.title}</p>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{p.content}</p>
-                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  {names.slice(0, 6).map((n) => <span key={n} className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-300 text-gray-700">{n}</span>)}
-                  <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{fmtNewsDate(p.createdAt)}</span>
+              <Link key={p.id} to={`/news/${p.id}`} className="card p-4 flex gap-3 active:bg-gray-50 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{p.content}</p>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {names.slice(0, 6).map((n) => <span key={n} className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-300 text-gray-700">{n}</span>)}
+                    <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{fmtNewsDate(p.createdAt)}</span>
+                  </div>
                 </div>
+                {thumb && <img src={imageUrl(thumb, 300)} alt="" className="w-24 h-20 rounded-lg object-cover flex-shrink-0 border border-gray-100" loading="lazy" />}
               </Link>
             );
           })}

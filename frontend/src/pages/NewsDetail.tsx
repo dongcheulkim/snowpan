@@ -44,7 +44,10 @@ export default function NewsDetail() {
     <div className="max-w-2xl mx-auto space-y-4 animate-fade-in pb-4">
       <Link to="/news" className="inline-flex items-center gap-2 text-gray-500 text-sm">← 스키장 소식</Link>
 
-      <div className="card p-5 space-y-3">
+      <div className="card overflow-hidden">
+        {/* 첫 사진은 제목 위 히어로 (사용자 요청: 사진 + 제목 + 설명) */}
+        {images[0] && <img src={imageUrl(images[0], 1000)} alt="" className="w-full aspect-[4/3] object-cover" />}
+        <div className="p-5 space-y-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700">스키장 소식</span>
           <span className="text-[11px] text-gray-400 tabular-nums">{fmtNewsDate(post.createdAt)}</span>
@@ -58,11 +61,12 @@ export default function NewsDetail() {
           </div>
         )}
         <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"><LinkifyText text={post.content} /></p>
-        {images.length > 0 && (
+        {images.length > 1 && (
           <div className="grid grid-cols-2 gap-2">
-            {images.map((src) => <img key={src} src={imageUrl(src, 800)} alt="" className="w-full rounded-lg border border-gray-100" />)}
+            {images.slice(1).map((src) => <img key={src} src={imageUrl(src, 800)} alt="" className="w-full rounded-lg border border-gray-100" />)}
           </div>
         )}
+        </div>
       </div>
 
       {isAdmin && (

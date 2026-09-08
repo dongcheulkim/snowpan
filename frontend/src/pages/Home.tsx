@@ -49,7 +49,7 @@ type HotItem =
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
 // 홈 "스키장 소식" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
-interface ResortNews { id: string; title: string; content: string; resortIds?: string | null; createdAt: string }
+interface ResortNews { id: string; title: string; content: string; resortIds?: string | null; images?: string | null; createdAt: string }
 
 interface ShopNews {
   id: string;
@@ -197,7 +197,7 @@ const Home = () => {
     api<{ items: ShopNews[] }>('/shop-posts/recent?limit=5')
       .then((d) => setNews(d.items || []))
       .catch(() => {});
-    api<{ posts: ResortNews[] }>('/community?category=news&limit=3')
+    api<{ posts: ResortNews[] }>('/community?category=news&limit=8')
       .then((d) => setResortNews(d.posts || []))
       .catch(() => {});
     api<{ id: string; name: string }[]>('/resorts')
@@ -462,22 +462,33 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">스키장 소식</h2>
             <Link to="/news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
-          <div className="space-y-2">
+          {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래 (사용자 요청). 사진 없는 글은 워드마크 톤의 회색 상자 */}
+          <HScroll className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
             {resortNews.map((p) => {
               const names = (p.resortIds || '').split(',').filter(Boolean).map((id) => resortNameById[id]).filter(Boolean);
+              const thumb = (p.images || '').split(',').filter(Boolean)[0];
               const d = new Date(p.createdAt);
               return (
-                <Link key={p.id} to={`/news/${p.id}`} className="card p-4 block active:bg-gray-50 transition-colors">
-                  <p className="text-sm font-bold text-gray-900 line-clamp-2">{p.title}</p>
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{p.content}</p>
-                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                    {names.slice(0, 6).map((n) => <span key={n} className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-300 text-gray-700">{n}</span>)}
-                    <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
+                <Link key={p.id} to={`/news/${p.id}`} className="card overflow-hidden flex-shrink-0 w-[74%] max-w-[300px] snap-start active:bg-gray-50 transition-colors">
+                  <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                    {thumb ? (
+                      <img src={imageUrl(thumb, 640)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold tracking-widest">SNOW PAN</div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">{p.title}</p>
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                      {names.slice(0, 3).map((n) => <span key={n} className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-gray-300 text-gray-700">{n}</span>)}
+                      {names.length > 3 && <span className="text-[10px] text-gray-400">+{names.length - 3}</span>}
+                      <span className="text-[10px] text-gray-400 ml-auto tabular-nums">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
+                    </div>
                   </div>
                 </Link>
               );
             })}
-          </div>
+          </HScroll>
         </div>
       )}
 
