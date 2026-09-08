@@ -1,11 +1,10 @@
 // 스키장 소식 상세 (/news/:id) — 커뮤니티 글 화면과 분리된 읽기 전용 페이지(댓글·좋아요 없음).
-// 관리자에게는 수정·삭제와 "인스타 카드 받기"(1080×1350 PNG)·"캡션 복사"가 보인다. 같은 글을 @snowpan.kr 인스타에도 올리는 흐름.
+// 관리자에게는 수정·삭제만 보인다(인스타 카드 받기·캡션 복사는 사용자 요청으로 뺌, 2026-09-09).
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
-import { renderNewsCard, buildCaption, downloadDataUrl } from '../utils/newsCard';
 import { fmtNewsDate } from './News';
 import LinkifyText from '../components/LinkifyText';
 
@@ -36,7 +35,6 @@ export default function NewsDetail() {
   }
 
   const resortIds = (post.resortIds || '').split(',').filter(Boolean);
-  const resorts = resortIds.map((rid) => resortNames[rid]).filter(Boolean);
   const images = (post.images || '').split(',').filter(Boolean);
   const isAdmin = user?.role === 'admin';
 
@@ -70,39 +68,17 @@ export default function NewsDetail() {
       </div>
 
       {isAdmin && (
-        <>
-          <div className="flex gap-2">
-            <button
-              onClick={async () => {
-                try {
-                  const url = await renderNewsCard({ title: post.title, content: post.content, resorts, date: post.createdAt });
-                  downloadDataUrl(url, `snowpan-news-${post.createdAt.slice(0, 10)}.png`);
-                  toastSuccess('인스타 카드를 내려받았습니다.');
-                } catch (err) { toastError(err instanceof Error ? err.message : '카드를 만들지 못했습니다.'); }
-              }}
-              className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm"
-            >인스타 카드 받기</button>
-            <button
-              onClick={async () => {
-                const text = buildCaption({ title: post.title, content: post.content, resorts, date: post.createdAt });
-                try { await navigator.clipboard.writeText(text); toastSuccess('캡션을 복사했습니다.'); }
-                catch { window.prompt('캡션을 복사하세요:', text); }
-              }}
-              className="flex-1 py-3 bg-white text-gray-800 rounded-xl font-bold text-sm border border-gray-200"
-            >캡션 복사</button>
-          </div>
-          <div className="flex gap-2">
-            <Link to={`/community/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center">수정</Link>
-            <button
-              onClick={async () => {
-                if (!confirm('이 소식을 삭제할까요?')) return;
-                try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate('/news', { replace: true }); }
-                catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
-              }}
-              className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200"
-            >삭제</button>
-          </div>
-        </>
+        <div className="flex gap-2">
+          <Link to={`/community/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center">수정</Link>
+          <button
+            onClick={async () => {
+              if (!confirm('이 소식을 삭제할까요?')) return;
+              try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate('/news', { replace: true }); }
+              catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); }
+            }}
+            className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200"
+          >삭제</button>
+        </div>
       )}
     </div>
   );

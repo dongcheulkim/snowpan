@@ -240,7 +240,7 @@ const CommunityWrite = () => {
 
       {isNews && (
         <div className="text-xs text-gray-600 bg-snow border border-gray-200 rounded-lg px-3 py-2.5 leading-relaxed">
-          홈 "스키장 소식"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에. 저장하면 인스타 카드와 캡션을 바로 받을 수 있습니다.
+          홈 "스키장 소식"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에.
           <div className="flex flex-wrap gap-1.5 mt-2">
             {resorts.map((r) => {
               const on = resortSel.includes(r.id);
