@@ -78,4 +78,12 @@ export POST_ID="$POST_ID"
 export POLL_ID="$POLL_ID"
 export CMT_ID="$CMT_ID"
 EOF
+# ── 공개 범위 '전체'(sport=all): 일반 유저도 가능, 스키·보드 필터 양쪽에 노출, 목록 무필터 조회
+api POST /community '{"title":"E2E 전체 공개 글","content":"스키 보드 모두","category":"free","sport":"all","vertical":"snow"}' "$BUYER_TOKEN"
+AP=$(echo "$RESP" | jq -r '.id // empty'); AS=$(echo "$RESP" | jq -r '.sport'); [ "$CODE" = "201" ] && [ "$AS" = "all" ] && ok "일반 유저 전체 공개 글 201 (sport=all)" || bad "전체 공개 CODE=$CODE sport=$AS $(echo $RESP|head -c 100)"
+api GET "/community?sport=board&category=free" ""; AB=$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$AP\")] | length"); [ "$AB" = "1" ] && ok "전체 공개 글이 보드 필터에도 노출" || bad "보드 필터 n=$AB"
+api GET "/community?category=free" ""; AN=$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$AP\")] | length"); [ "$AN" = "1" ] && ok "종목 무필터 목록에 노출" || bad "무필터 n=$AN"
+api PUT "/community/$AP" '{"sport":"ski"}' "$BUYER_TOKEN"; PS=$(echo "$RESP" | jq -r '.sport'); [ "$CODE" = "200" ] && [ "$PS" = "ski" ] && ok "공개 범위 수정 (all → ski)" || bad "공개 범위 수정 CODE=$CODE $PS"
+api PUT "/community/$AP" '{"sport":"golf"}' "$BUYER_TOKEN"; [ "$CODE" = "400" ] && ok "잘못된 공개 범위 400" || bad "공개 범위 400 기대, CODE=$CODE"
+
 echo "----- STEP7: PASS=$PASS FAIL=$FAIL -----"

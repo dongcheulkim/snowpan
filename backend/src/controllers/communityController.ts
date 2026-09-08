@@ -288,17 +288,13 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
     if (resortParsed.error) { res.status(400).json({ error: resortParsed.error }); return; }
     // sport: snow 는 ski/board 만 (그 외 값이면 어느 필터에도 안 잡히는 고아 글이 됨).
     // 다른 vertical 은 config 종목이 다양해 길이 제한만.
-    if (verticalSlug === 'snow' && !isNotice && !['ski', 'board'].includes(String(sport))) {
-      res.status(400).json({ error: '종목은 스키 또는 보드만 선택할 수 있습니다.' });
+    // 공개 범위: 전체(all)·스키·보드 — 글쓰기에서 고른다 (사용자 결정 2026-09-09: 커뮤니티 입구에서 종목을 나누지 않음)
+    if (verticalSlug === 'snow' && !isNotice && !['ski', 'board', 'all'].includes(String(sport))) {
+      res.status(400).json({ error: '공개 범위는 전체·스키·보드 중 하나여야 합니다.' });
       return;
     }
     if (typeof sport !== 'string' || sport.length > 20) {
       res.status(400).json({ error: '유효하지 않은 종목입니다.' });
-      return;
-    }
-    // 'all'(모든 필터에 노출)은 관리자 공지 전용 — 일반 유저가 sport='all'로 전 필터 도배하는 것 차단.
-    if (!isNotice && sport === 'all') {
-      res.status(400).json({ error: '종목을 선택해주세요.' });
       return;
     }
     // 공지는 스키·보드 공용(sport='all')으로 저장하고 상단 고정.
@@ -543,7 +539,7 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
     if (!post) { res.status(404).json({ error: '게시글을 찾을 수 없습니다.' }); return; }
     if (post.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { title, content, category, images, resortIds } = req.body;
+    const { title, content, category, images, resortIds, sport } = req.body;
     // create 와 동일한 검증 — sanitize + 길이 제한 + 카테고리 화이트리스트.
     // (이전엔 update 만 검증 누락되어 저장형 XSS/남용 경로였음)
     const data: { title?: string; content?: string; category?: string; images?: string | null } = {};
@@ -573,8 +569,13 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       else if (post.category === 'notice') { (data as any).pinned = false; }
       if (category !== 'news' && post.category === 'news') { (data as any).resortIds = null; }
     }
-    // 스키장 소식의 리조트 목록 수정 (관리자만 news 를 쓸 수 있으므로 별도 권한 체크 불필요)
+    // 공개 범위(전체·스키·보드) 수정 — 공지·소식은 항상 공용이라 무시
     const nextCategory = category !== undefined ? category : post.category;
+    if (sport !== undefined && !ADMIN_ONLY_CATEGORIES.includes(nextCategory)) {
+      if (!['ski', 'board', 'all'].includes(String(sport))) { res.status(400).json({ error: '공개 범위는 전체·스키·보드 중 하나여야 합니다.' }); return; }
+      (data as any).sport = sport;
+    }
+    // 스키장 소식의 리조트 목록 수정 (관리자만 news 를 쓸 수 있으므로 별도 권한 체크 불필요)
     if (resortIds !== undefined && nextCategory === 'news') {
       const parsed = await parseResortIds(resortIds);
       if (parsed.error) { res.status(400).json({ error: parsed.error }); return; }

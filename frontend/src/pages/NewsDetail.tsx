@@ -87,7 +87,7 @@ export default function NewsDetail() {
             >캡션 복사</button>
           </div>
           <div className="flex gap-2">
-            <Link to={`/community/ski/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center">수정</Link>
+            <Link to={`/community/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center">수정</Link>
             <button
               onClick={async () => {
                 if (!confirm('이 소식을 삭제할까요?')) return;

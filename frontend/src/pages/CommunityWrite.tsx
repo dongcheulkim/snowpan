@@ -9,8 +9,13 @@ import { useVertical } from '../hooks/useVertical';
 
 const CommunityWrite = () => {
   const navigate = useNavigate();
-  const { sport } = useParams<{ sport: string }>();
+  // 공개 범위(전체·스키·보드)는 폼에서 고른다. /community/:sport/write 와 ?sport= 는 초기값으로만.
+  const { sport: routeSport } = useParams<{ sport: string }>();
   const [searchParams] = useSearchParams();
+  const [sport, setSport] = useState<'all' | 'ski' | 'board'>(() => {
+    const q = routeSport || searchParams.get('sport') || '';
+    return q === 'ski' || q === 'board' ? q : 'all';
+  });
   const editId = searchParams.get('edit'); // 수정 모드 — 기존 글 불러와 PUT
   // ?category=notice|news 딥링크 — 관리자 대시보드 "공지 쓰기"/"스키장 소식 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
   const presetCategory = (() => {
@@ -40,7 +45,7 @@ const CommunityWrite = () => {
   // 수정 모드: 기존 글 프리필 (작성자/관리자만)
   useEffect(() => {
     if (!editId) return;
-    api<{ userId?: string; title: string; content: string; category: string; images?: string | null; resortIds?: string | null }>(`/community/${editId}`)
+    api<{ userId?: string; title: string; content: string; category: string; sport?: string; images?: string | null; resortIds?: string | null }>(`/community/${editId}`)
       .then(p => {
         const me = getUser();
         if (!me || (p.userId && p.userId !== me.id && me.role !== 'admin')) {
@@ -51,6 +56,7 @@ const CommunityWrite = () => {
         setTitle(p.title || '');
         setContent(p.content || '');
         setCategory(p.category || 'free');
+        if (p.sport === 'ski' || p.sport === 'board' || p.sport === 'all') setSport(p.sport);
         setResortSel((p.resortIds || '').split(',').filter(Boolean));
         setExistingImages(p.images ? p.images.split(',').filter(Boolean) : []);
         setAgreed(true); // 최초 작성 시 이미 동의함
@@ -61,14 +67,6 @@ const CommunityWrite = () => {
 
   const vertical = useVertical();
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
-  const sportConf = vertical.sports?.find((s) => s.id === sport);
-  const SportLabel = () => (
-    <span className="inline-flex items-center gap-1.5">
-      {sport === 'ski' && <SkiIcon size={14} />}
-      {sport === 'board' && <SnowboardIcon size={14} />}
-      {sport === 'ski' ? '스키' : sport === 'board' ? '보드' : (sportConf?.label || sport)}
-    </span>
-  );
 
   const isAdmin = getUser()?.role === 'admin';
   // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 투표는 snow 전용·새 글만(수정 불가). 공지는 관리자 전용.
@@ -149,7 +147,7 @@ const CommunityWrite = () => {
         const merged = [...existingImages, ...newUrls].join(',');
         await api(`/community/${editId}`, {
           method: 'PUT',
-          body: { title: title.trim(), content: content.trim(), category, images: merged, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
+          body: { title: title.trim(), content: content.trim(), category, images: merged, ...(category === 'news' ? { resortIds: resortSel.join(',') } : { sport }) },
         });
         navigate(isNews ? `/news/${editId}` : `${vbase}/community/post/${editId}`);
       } else {
@@ -157,7 +155,7 @@ const CommunityWrite = () => {
           method: 'POST',
           body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
         });
-        navigate(isNews ? `/news/${created.id}` : `${vbase}/community/${sport}`);
+        navigate(isNews ? `/news/${created.id}` : `${vbase}/community${sport !== 'all' ? `?sport=${sport}` : ''}`);
       }
     } catch (err) {
       toastError(err instanceof Error ? err.message : editId ? '수정에 실패했습니다.' : '등록에 실패했습니다.');
@@ -171,10 +169,30 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2">{isNews ? (editId ? '스키장 소식 수정' : '스키장 소식 쓰기') : <><SportLabel /> {editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</>}</h1>
+          <h1 className="text-xl font-bold text-gray-900">{isNews ? (editId ? '스키장 소식 수정' : '스키장 소식 쓰기') : editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
+
+      {/* 공개 범위 — 전체(스키·보드 모두에게) / 스키 / 보드. 제목 앞에 태그로 붙고 목록 칩으로 걸러진다. 공지·소식·투표는 해당 없음 */}
+      {vertical.slug === 'snow' && !isNews && !isPoll && category !== 'notice' && (
+        <div>
+          <span className="text-sm font-semibold text-gray-700 block mb-2">누구에게 보일까요?</span>
+          <div className="flex gap-1.5">
+            {([['all', '전체'], ['ski', '스키'], ['board', '보드']] as const).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setSport(id)}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${sport === id ? 'bg-gray-900 text-white border-gray-900' : 'bg-snow text-gray-600 border-gray-200'}`}
+              >
+                {id === 'ski' && <SkiIcon size={13} />}{id === 'board' && <SnowboardIcon size={13} />}{label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-gray-500 mt-1.5">{sport === 'all' ? '스키·보드 모두에게 보입니다.' : `${sport === 'ski' ? '스키' : '보드'} 탭에 보이고 제목 앞에 ${sport === 'ski' ? '스키' : '보드'} 표시가 붙습니다. 전체 목록에서도 보입니다.`}</p>
+        </div>
+      )}
 
       <div hidden={isNews}>
         <span id="cw-category-label" className="text-sm font-semibold text-gray-700 block mb-2">카테고리</span>
@@ -205,7 +223,7 @@ const CommunityWrite = () => {
                   onClick={() => setCategory(id)}
                   className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${category === id ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
                 >
-                  {communityCategoryLabel(id, sport)}
+                  {communityCategoryLabel(id, sport === 'all' ? undefined : sport)}
                 </button>
               ))}
             </div>

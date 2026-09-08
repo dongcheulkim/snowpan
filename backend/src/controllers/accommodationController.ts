@@ -48,7 +48,7 @@ export const getAccommodations = async (req: Request, res: Response): Promise<vo
           resort: true,
           user: { select: { id: true, name: true, nickname: true } },
         },
-        orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], // 프리미엄 최상단
+        orderBy: [{ isPremium: 'desc' }, { claimable: 'asc' }, { createdAt: 'desc' }], // 프리미엄 → 사장님 인증(claimable=false) → 최신
         take,
         ...(skip !== undefined && { skip }),
       }),

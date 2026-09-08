@@ -274,7 +274,7 @@ const PollDetail = () => {
             try {
               await api(`/polls/${poll.id}`, { method: 'DELETE' });
               toastSuccess('삭제되었습니다.');
-              navigate('/community/ski?tab=poll');
+              navigate('/community?tab=poll');
             } catch (e) { toastError(e instanceof Error ? e.message : '삭제 실패'); }
           }}
           className="w-full py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50"

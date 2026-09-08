@@ -12,7 +12,7 @@ const FEATURES = [
   { label: '렌탈샵', desc: '리조트별·풀세트/단품 검색', to: '/rental' },
   { label: '레슨', desc: '강사 자격·레벨별 매칭', to: '/lesson' },
   { label: '숙소', desc: '리조트 인근 펜션·콘도·시즌방', to: '/accommodation' },
-  { label: '커뮤니티', desc: '후기·팁·카풀·실시간 리프트 정보', to: '/community/ski' },
+  { label: '커뮤니티', desc: '후기·팁·카풀·실시간 리프트 정보', to: '/community' },
   { label: '실시간 웹캠', desc: '리조트 슬로프 컨디션 라이브', to: '/webcam' },
 ];
 
@@ -132,7 +132,7 @@ export default function About() {
         </p>
         <div className="flex flex-wrap justify-center gap-2 pt-2">
           <Link to="/used" className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs">중고장비 둘러보기</Link>
-          <Link to="/community/ski" className="inline-block px-5 py-2.5 bg-snow border border-gray-300 text-gray-700 rounded-lg font-bold text-xs">커뮤니티 살펴보기</Link>
+          <Link to="/community" className="inline-block px-5 py-2.5 bg-snow border border-gray-300 text-gray-700 rounded-lg font-bold text-xs">커뮤니티 살펴보기</Link>
         </div>
       </section>
     </article>

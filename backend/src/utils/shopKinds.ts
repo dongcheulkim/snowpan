@@ -78,8 +78,10 @@ export async function listShopsForKind(kind: ShopKind, f: ShopListFilter): Promi
     ...tag(rep as unknown as Record<string, unknown>[], 'repair'),
     ...tag(stripPrivateAll(ren as unknown as Record<string, unknown>[]), 'rental'),
   ];
+  // 정렬: 프리미엄 → 사장님 인증 매장(claimable=false, 직접 등록·소유권 이전) → 본 업종 → 최신 (사용자 결정 2026-09-09: 인증 매장 맨 위)
   all.sort((a, b) =>
     (Number(Boolean(b.isPremium)) - Number(Boolean(a.isPremium)))
+    || (Number(Boolean(a.claimable)) - Number(Boolean(b.claimable)))
     || ((a.kind === kind ? 0 : 1) - (b.kind === kind ? 0 : 1))
     || (new Date(String(b.createdAt)).getTime() - new Date(String(a.createdAt)).getTime()));
   return maskRowUserAll(all as { user?: unknown }[]) as Record<string, unknown>[];

@@ -31,7 +31,7 @@ export default function News() {
           <Link to="/" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">스키장 소식</h1>
         </div>
-        {isAdmin && <Link to="/community/ski/write?category=news" className="px-3 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs">소식 쓰기</Link>}
+        {isAdmin && <Link to="/community/write?category=news" className="px-3 py-1.5 bg-gray-900 text-white rounded-lg font-bold text-xs">소식 쓰기</Link>}
       </div>
       <p className="text-xs text-gray-500 -mt-2">시즌권 판매, 개장일, 리프트권·카드 할인처럼 시즌에 필요한 리조트 소식을 스노우판이 모아 올립니다.</p>
 

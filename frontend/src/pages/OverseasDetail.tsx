@@ -148,7 +148,7 @@ export default function OverseasDetail() {
         <div className="px-4 mt-6 grid grid-cols-3 gap-2">
           <Link to={`/resort/${encodeURIComponent(resort.name)}`} className="py-3 bg-sky-500 text-white rounded-xl text-xs font-bold text-center">근처 업체 보기</Link>
           <Link to="/webcam" className="py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold text-center">실시간 웹캠</Link>
-          <Link to="/community/ski" className="py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold text-center">커뮤니티</Link>
+          <Link to="/community" className="py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold text-center">커뮤니티</Link>
         </div>
       )}
 

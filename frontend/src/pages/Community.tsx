@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useParams, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { api, imageUrl as toImageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
@@ -60,11 +60,18 @@ const badgeColor: Record<string, string> = {
 const PAGE_SIZE = 20;
 
 const Community = () => {
-  const { sport } = useParams<{ sport: string }>();
+  // 종목은 URL 로 나누지 않고 목록 안 칩(전체·스키·보드)으로 거른다. /community/:sport, ?sport= 는 초기값으로만 사용.
+  const { sport: routeSport } = useParams<{ sport: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  // 잘못된 종목 URL(/community/xxx)은 선택 화면으로 — 고아 필터 화면 방지
   const validSports = ['ski', 'board'];
-  const sportInvalid = !!sport && !validSports.includes(sport);
+  const sportInvalid = !!routeSport && !validSports.includes(routeSport);
+  const [sportFilter, setSportFilter] = useState<'all' | 'ski' | 'board'>(() => {
+    const q = searchParams.get('sport') || '';
+    if (routeSport && validSports.includes(routeSport)) return routeSport as 'ski' | 'board';
+    return validSports.includes(q) ? (q as 'ski' | 'board') : 'all';
+  });
+  const sport = sportFilter === 'all' ? undefined : sportFilter; // API 필터 (없으면 전체)
   // ?tab= 딥링크 지원 (투표 삭제 후 복귀 등) — 유효한 탭 id 만 수용
   const initialTab = (() => {
     try {
@@ -92,14 +99,12 @@ const Community = () => {
   // 판(vertical)별 종목 라벨 — snow 는 스키/보드 아이콘, run 등은 config 의 sports 라벨.
   const vertical = useVertical();
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
-  const sportConf = vertical.sports?.find((s) => s.id === sport);
-  const SportLabel = () => (
-    <span className="inline-flex items-center gap-1.5">
-      {sport === 'ski' && <SkiIcon size={16} />}
-      {sport === 'board' && <SnowboardIcon size={16} />}
-      {sport === 'ski' ? t('used.cat.ski') : sport === 'board' ? t('used.cat.board') : (sportConf?.label || sport)}
-    </span>
-  );
+  // 종목 칩 — 전체(공용 글 포함) / 스키 / 보드. 스키·보드를 고르면 '전체'로 올린 글도 같이 보인다.
+  const SPORT_CHIPS: { id: 'all' | 'ski' | 'board'; label: string; Icon?: typeof SkiIcon }[] = [
+    { id: 'all', label: '전체' },
+    { id: 'ski', label: '스키', Icon: SkiIcon },
+    { id: 'board', label: '보드', Icon: SnowboardIcon },
+  ];
 
   // 카테고리 라벨은 종목별로 다름 — 보드 커뮤니티에선 'resort' 가 '라이딩 장소' 로 표시.
   // 대분류 → 소분류 2단계 (중고거래와 동일 UX). 대분류 선택 시 소분류 칩이 아래로 펼쳐짐.
@@ -216,22 +221,37 @@ const Community = () => {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`${vbase}/community`)} className="text-gray-500 text-lg">←</button>
-          <h1 className="text-xl font-bold text-gray-900 inline-flex items-center gap-2">{SportLabel()} {t('community.title')}</h1>
+          <button onClick={() => navigate(`${vbase}/`)} className="text-gray-500 text-lg">←</button>
+          <h1 className="text-xl font-bold text-gray-900">{t('community.title')}</h1>
         </div>
         <div className="flex gap-2">
           {selectedTab === 'poll' && (
-            <Link to={`${vbase}/community/${sport}/write?category=poll`} className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs transition-colors whitespace-nowrap">
+            <Link to={`${vbase}/community/write?category=poll`} className="px-3 py-1.5 bg-orange-500 text-white rounded-lg font-bold text-xs transition-colors whitespace-nowrap">
               + 투표
             </Link>
           )}
-          <Link to={`${vbase}/community/${sport}/write`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
+          <Link to={`${vbase}/community/write${sport ? `?sport=${sport}` : ''}`} className="px-3 py-1.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors whitespace-nowrap">
             + {t('community.write')}
           </Link>
         </div>
       </div>
 
       <CategoryAdBanner category="community" />
+
+      {/* 종목 필터 — 전체 / 스키 / 보드 (글은 글쓰기에서 고른 공개 범위대로 태그가 붙는다) */}
+      {vertical.slug === 'snow' && (
+        <div className="flex gap-1.5">
+          {SPORT_CHIPS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => setSportFilter(id)}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${sportFilter === id ? 'bg-gray-900 text-white border-gray-900' : 'bg-snow text-gray-600 border-gray-200'}`}
+            >
+              {Icon && <Icon size={13} />}{label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="relative">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,7 +329,7 @@ const Community = () => {
                     </span>
                     <span className="text-[10px] text-gray-500">{formatTime(post.createdAt)}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.pinned && <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 rounded px-1 py-0.5 mr-1.5 align-middle">공지</span>}{post.isPremium && <span className="text-[10px] font-bold text-white bg-gold/80 rounded px-1 py-0.5 mr-1.5 align-middle">AD</span>}{post.title}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{post.pinned && <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 rounded px-1 py-0.5 mr-1.5 align-middle">공지</span>}{post.sport === 'ski' && <span className="text-[10px] font-bold text-sky-700 bg-sky-50 border border-sky-200 rounded px-1 py-0.5 mr-1.5 align-middle">스키</span>}{post.sport === 'board' && <span className="text-[10px] font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded px-1 py-0.5 mr-1.5 align-middle">보드</span>}{post.isPremium && <span className="text-[10px] font-bold text-white bg-gold/80 rounded px-1 py-0.5 mr-1.5 align-middle">AD</span>}{post.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{post.content}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-gray-500 flex items-center gap-1">{post.user.name} <UserBadges badges={post.user.badges} /></span>

@@ -262,9 +262,9 @@ const CommunityDetail = () => {
       {user && (post.userId === user.id || user.role === 'admin') && (
         <div className="flex gap-2">
           {post.userId === user.id && (
-            <Link to={`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center active:bg-gray-200">수정</Link>
+            <Link to={`${vbase}/community/write?edit=${post.id}`} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm border border-gray-200 text-center active:bg-gray-200">수정</Link>
           )}
-          <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate(`${vbase}/community/${post.sport === 'all' ? 'ski' : post.sport}`, { replace: true }); } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
+          <button onClick={async () => { if (!confirm('정말 삭제하시겠습니까?')) return; try { await api(`/community/${post.id}`, { method: 'DELETE' }); toastSuccess('삭제되었습니다.'); navigate(`${vbase}/community`, { replace: true }); } catch (err) { toastError(err instanceof Error ? err.message : '삭제 실패'); } }} className="flex-1 py-3 bg-gray-100 text-red-500 rounded-xl font-bold text-sm border border-gray-200 active:bg-red-50">{user.role === 'admin' && post.userId !== user.id ? '관리자 삭제' : t('btn.delete')}</button>
         </div>
       )}
 

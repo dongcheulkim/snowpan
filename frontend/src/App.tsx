@@ -26,7 +26,6 @@ const LessonDetail = lazy(() => import('./pages/LessonDetail'));
 const Accommodation = lazy(() => import('./pages/Accommodation'));
 const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
-const CommunitySelect = lazy(() => import('./pages/CommunitySelect'));
 const Chat = lazy(() => import('./pages/Chat'));
 const MyChatList = lazy(() => import('./pages/MyChatList'));
 const Notifications = lazy(() => import('./pages/Notifications'));
@@ -162,7 +161,9 @@ function App() {
             <Route path="repair/:id" element={<RepairShopDetail />} />
             <Route path="competitions" element={<Competitions />} />
             <Route path="competitions/:id" element={<CompetitionDetail />} />
-            <Route path="community" element={<CommunitySelect />} />
+            {/* 커뮤니티는 한 목록 — 종목(전체·스키·보드)은 글쓰기에서 고르고 목록에서 칩으로 거른다. /community/:sport 는 옛 링크 호환 */}
+            <Route path="community" element={<Community />} />
+            <Route path="community/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="community/post/:id" element={<CommunityDetail />} />
             {/* 스키장 소식 — 홈 섹션 전용 채널(커뮤니티 탭 아님) */}
             <Route path="news" element={<News />} />
@@ -193,7 +194,7 @@ function App() {
             <Route path="mypage/support" element={<RequireAuth><Support /></RequireAuth>} />
             <Route path="new-equipment" element={<NewEquipment />} />
             {/* 투표는 커뮤니티 글쓰기 안의 "투표" 카테고리로 통합 — 옛 링크는 그쪽으로 */}
-            <Route path="poll/create" element={<Navigate to="/community/ski/write?category=poll" replace />} />
+            <Route path="poll/create" element={<Navigate to="/community/write?category=poll" replace />} />
             <Route path="poll/:id" element={<PollDetail />} />
             <Route path="webcam" element={<Webcam />} />
             <Route path="webcam/:id" element={<WebcamDetail />} />

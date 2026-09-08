@@ -486,7 +486,7 @@ const Home = () => {
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
-            <Link to="/community/ski" className="text-xs text-gray-500">전체 보기 &gt;</Link>
+            <Link to="/community" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           {/* 카테고리 칩 — 골라보기 (투표/자유/장비/스키장후기/초보팁) */}
           <HScroll className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
@@ -502,7 +502,7 @@ const Home = () => {
           </HScroll>
           {hot.length === 0 ? (
             hotTab === 'all' ? (
-              <Link to="/community/ski/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
+              <Link to="/community/write" className="block bg-snow rounded-2xl border border-gray-200 p-6 text-center active:bg-gray-50 transition-colors">
                 <p className="text-sm text-gray-500">아직 인기 글이 없어요.</p>
                 <p className="text-xs text-sky-600 font-bold mt-1.5">첫 글을 올려보세요 &gt;</p>
               </Link>

@@ -6,7 +6,7 @@ const QUICK_LINKS = [
   { to: '/rental', label: '렌탈샵', desc: '시즌·당일 렌탈샵' },
   { to: '/lesson', label: '레슨', desc: '강사·자격 매칭' },
   { to: '/accommodation', label: '숙소', desc: '리조트·펜션·시즌방' },
-  { to: '/community/ski', label: '커뮤니티', desc: '후기·팁·카풀' },
+  { to: '/community', label: '커뮤니티', desc: '후기·팁·카풀' },
   { to: '/webcam', label: '실시간 웹캠', desc: '리조트 슬로프 현황' },
 ];
 
