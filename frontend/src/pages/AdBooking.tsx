@@ -6,7 +6,8 @@ import { api, getUser, uploadImages } from '../api';
 const INQUIRY_SLOTS = ['main_banner', 'category'];
 import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
-import { adImageStyle, formatImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
+import { formatImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
+import AdImage from '../components/AdImage';
 
 interface SlotPricing {
   id: string;
@@ -126,7 +127,8 @@ export default function AdBooking() {
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   // 이미지 초점·확대 — 미리보기에서 드래그로 "사진의 어느 부분을 보여줄지", 슬라이더·두 손가락·휠로 "얼마나 키울지" 지정.
   // 저장 형식은 "X% Y% S"(utils/adImage.ts). 사진이 크면 키워서 원하는 부분만, 작아도 1배가 칸에 꽉 차는 기본.
-  const [imgFocus, setImgFocus] = useState<AdImageFocus>({ x: 50, y: 50, scale: 1 });
+  const [imgFocus, setImgFocus] = useState<AdImageFocus>({ x: 50, y: 50, scale: 1, fit: 'cover' });
+  const setFit = (fit: AdImageFocus['fit']) => setImgFocus((f) => ({ ...f, fit, scale: fit === 'contain' ? 1 : f.scale, x: 50, y: 50 }));
   const imgPos = formatImagePos(imgFocus);
   const setScale = (s: number) => setImgFocus((f) => ({ ...f, scale: Math.round(Math.min(AD_IMAGE_SCALE_MAX, Math.max(AD_IMAGE_SCALE_MIN, s)) * 100) / 100 }));
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -798,7 +800,7 @@ export default function AdBooking() {
                     onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag} onWheel={wheelImgZoom}
                   >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={adImageStyle(imgPos)} />
+                      <AdImage src={imagePreview} imagePos={imgPos} />
                     )}
                     {/* 실노출(홈 배너)과 동일한 가독성 스크림 */}
                     {imagePreview && (title || description) && (
@@ -822,7 +824,7 @@ export default function AdBooking() {
                     onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag} onWheel={wheelImgZoom}
                   >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={adImageStyle(imgPos)} />
+                      <AdImage src={imagePreview} imagePos={imgPos} />
                     )}
                     {(title || description || !imagePreview) ? (
                     <div className={`relative z-10 flex items-center h-full px-6 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
@@ -839,9 +841,19 @@ export default function AdBooking() {
                     )}
                   </div>
                 )}
-                {/* 사진 크기 조절 — 1배가 칸에 꽉 차는 기본, 최대 3배. 두 손가락 벌리기·마우스 휠로도 조절 */}
+                {/* 사진 맞춤: 꽉 채우기(cover, 확대 1~3배·두 손가락·휠) / 전체 보이기(contain, 남는 자리는 흐린 사진으로 채움) */}
                 {imagePreview && (
                   <div className="mt-2 max-w-sm mx-auto">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs text-gray-500 flex-shrink-0">사진 맞춤</span>
+                      <div className="flex gap-1.5">
+                        <button type="button" onClick={() => setFit('cover')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${imgFocus.fit === 'cover' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200'}`}>꽉 채우기</button>
+                        <button type="button" onClick={() => setFit('contain')} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${imgFocus.fit === 'contain' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200'}`}>전체 보이기</button>
+                      </div>
+                    </div>
+                    {imgFocus.fit === 'contain' ? (
+                      <p className="text-[11px] text-gray-400">사진이 잘리지 않고 다 보여요. 남는 자리는 같은 사진을 흐리게 깔아 채우고, 드래그로 위치를 옮길 수 있어요.</p>
+                    ) : (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 flex-shrink-0">사진 크기</span>
                       <button type="button" onClick={() => setScale(imgFocus.scale - 0.1)} disabled={imgFocus.scale <= AD_IMAGE_SCALE_MIN} className="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-bold disabled:opacity-30" aria-label="축소">-</button>
@@ -854,10 +866,11 @@ export default function AdBooking() {
                       <button type="button" onClick={() => setScale(imgFocus.scale + 0.1)} disabled={imgFocus.scale >= AD_IMAGE_SCALE_MAX} className="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-bold disabled:opacity-30" aria-label="확대">+</button>
                       <span className="text-xs text-gray-700 font-medium w-10 text-right tabular-nums">{imgFocus.scale.toFixed(1)}배</span>
                     </div>
+                    )}
                     <div className="flex items-center justify-between mt-1">
-                      <p className="text-[11px] text-gray-400">사진을 키우면 드래그로 보여줄 부분을 다시 맞춰 주세요</p>
-                      {(imgFocus.scale !== 1 || imgFocus.x !== 50 || imgFocus.y !== 50) && (
-                        <button type="button" onClick={() => setImgFocus({ x: 50, y: 50, scale: 1 })} className="text-[11px] text-gray-600 underline underline-offset-2">원래대로</button>
+                      {imgFocus.fit === 'cover' ? <p className="text-[11px] text-gray-400">사진을 키우면 드래그로 보여줄 부분을 다시 맞춰 주세요</p> : <span />}
+                      {(imgFocus.scale !== 1 || imgFocus.x !== 50 || imgFocus.y !== 50 || imgFocus.fit !== 'cover') && (
+                        <button type="button" onClick={() => setImgFocus({ x: 50, y: 50, scale: 1, fit: 'cover' })} className="text-[11px] text-gray-600 underline underline-offset-2">원래대로</button>
                       )}
                     </div>
                   </div>

@@ -15,8 +15,8 @@ import { isAllowedImageUrl } from '../utils/validate';
 // 이미지 초점 'X% Y%' (object-position) 검증 — 드래그로 지정된 값.
 function validImagePos(v: unknown): v is string {
   if (typeof v !== 'string') return false;
-  // "X% Y%" 또는 "X% Y% S" — S 는 확대 배율 1~3(소수 둘째 자리까지). 프론트 utils/adImage.ts 와 같은 형식.
-  const m = v.match(/^(\d{1,3})% (\d{1,3})%(?: (\d(?:\.\d{1,2})?))?$/);
+  // "X% Y%" / "X% Y% S" / "X% Y% [S] fit" — S 는 확대 배율 1~3(소수 둘째 자리까지), fit 은 사진 전체 보이기. 프론트 utils/adImage.ts 와 같은 형식.
+  const m = v.match(/^(\d{1,3})% (\d{1,3})%(?: (\d(?:\.\d{1,2})?))?(?: fit)?$/);
   if (!m) return false;
   if (m[3] !== undefined) { const s = Number(m[3]); if (!(s >= 1 && s <= 3)) return false; }
   const x = Number(m[1]); const y = Number(m[2]);

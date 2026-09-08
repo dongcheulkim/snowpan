@@ -121,6 +121,12 @@ BN=$(pq "SELECT count(*) FROM banners WHERE tag='ad:$BK2';")
 api GET "/banners" "" ""
 ABID=$(echo "$RESP" | jq -r ".[] | select(.tag==\"ad:$BK2\" or .adBookingId==\"$BK2\") | .adBookingId // empty" 2>/dev/null | head -1)
 [ "$ABID" = "$BK2" ] && ok "공개 배너에 adBookingId 포함" || bad "공개 배너 adBookingId=$ABID"
+# 이미지 초점 형식: "X% Y%" / "X% Y% S"(확대 1~3) / "X% Y% [S] fit"(전체 보이기) — 2026-09-09
+api PUT "/ad-booking/$BK2" '{"imagePos":"40% 60% 1.5"}' "$ADMIN_TOKEN"; expect 200 "소재 수정: 초점+확대 1.5"
+api PUT "/ad-booking/$BK2" '{"imagePos":"50% 50% fit"}' "$ADMIN_TOKEN"; expect 200 "소재 수정: 전체 보이기(fit)"
+IPV=$(pq "SELECT \"imagePos\" FROM ad_bookings WHERE id='$BK2'"); [ "$IPV" = "50% 50% fit" ] && ok "imagePos 저장값 그대로" || bad "imagePos=$IPV"
+api PUT "/ad-booking/$BK2" '{"imagePos":"50% 50% 4"}' "$ADMIN_TOKEN"; expect 400 "확대 4배 거부"
+api PUT "/ad-booking/$BK2" '{"imagePos":"50% 50% cover"}' "$ADMIN_TOKEN"; expect 400 "모르는 토큰 거부"
 # 날짜 규칙(KST, 2026-09-09): 날짜 없이 승인 → "지금" 시작(자정으로 내리지 않음), 종료는 KST 23:59:59
 # (컬럼은 timestamp without tz 에 UTC 값 — 'UTC' 로 먼저 붙인 뒤 Seoul 로 바꿔야 한다)
 SDN=$(pq "SELECT extract(epoch from ((now() at time zone 'UTC') - \"startDate\")) BETWEEN 0 AND 300 FROM ad_bookings WHERE id='$BK2'"); [ "$SDN" = "t" ] && ok "날짜 없이 승인 → 시작 시각 = 지금" || bad "승인 시작 시각 now 아님 ($SDN)"
