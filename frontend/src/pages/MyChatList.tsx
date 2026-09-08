@@ -11,6 +11,7 @@ interface ChatRoom {
   id: string;
   user1: { id: string; name: string; profileImage?: string | null };
   user2: { id: string; name: string; profileImage?: string | null };
+  otherUser?: { id: string; name: string; profileImage?: string | null } | null;
   messages: { content: string; createdAt: string; type?: string }[];
   unreadCount: number;
   updatedAt: string;
@@ -113,7 +114,7 @@ const MyChatList = () => {
       ) : (
         <div className="space-y-2">
           {rooms.filter(r => r && r.user1 && r.user2).map((room) => {
-            const other = room.user1.id === user.id ? room.user2 : room.user1;
+            const other = room.otherUser || (room.user1.id === user.id ? room.user2 : room.user1);
             const lastMsg = (room.messages && room.messages[0]) || null;
             return (
               <Link

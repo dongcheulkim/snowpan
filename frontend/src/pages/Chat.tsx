@@ -28,6 +28,10 @@ interface ChatRoomInfo {
   user2LastReadAt: string | null;
   user1: { id: string; name: string; profileImage?: string | null };
   user2: { id: string; name: string; profileImage?: string | null };
+  isSupportRoom?: boolean;                  // 고객센터 방 — 손님에게 안내 메뉴 고정
+  mySide?: 1 | 2 | null;                    // 서버가 정한 내 자리 (관리자 공용 받은편지함)
+  otherUser?: { id: string; name: string; profileImage?: string | null } | null;
+  supportAdminIds?: string[];               // 관리자끼리 보낸 메시지를 내 말풍선으로
 }
 
 // 메시지 그룹 사이 날짜 구분선
@@ -56,6 +60,8 @@ const Chat = () => {
   const [otherName, setOtherName] = useState(state?.seller || '판매자');
   const [otherProfileImage, setOtherProfileImage] = useState<string | null>(null);
   const [otherId, setOtherId] = useState<string | null>(null);
+  const [supportAdminIds, setSupportAdminIds] = useState<string[]>([]);
+  const [guideOpen, setGuideOpen] = useState(true); // 고객센터 안내 메뉴 — 접어도 아래 버튼으로 다시 연다
   const [inviteOpen, setInviteOpen] = useState(false); // 관리자: 고객센터 상담 후 광고 소재 작성 링크 발급 모달
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
@@ -152,11 +158,15 @@ const Chat = () => {
       .catch(() => { setMessagesLoaded(true); toastError('메시지를 불러오지 못했습니다.'); });
     api<ChatRoomInfo>(`/chat/rooms/${id}`).then(room => {
       if (!user) return;
-      const isUser1 = room.user1Id === user.id;
+      // 내 자리: 참여자면 내 id 기준, 관리자가 남의 고객센터 방을 보면 서버가 준 mySide(관리자 쪽)
+      const side = room.mySide ?? (room.user1Id === user.id ? 1 : 2);
+      const isUser1 = side === 1;
       setOtherLastReadAt(isUser1 ? room.user2LastReadAt : room.user1LastReadAt);
       setRoomStatus(room.status || 'accepted');
       setRequestedBy(room.requestedBy || null);
-      const other = isUser1 ? room.user2 : room.user1;
+      setSupportAdminIds(room.supportAdminIds || []);
+      if (room.isSupportRoom && user.role !== 'admin') { setIsAdminChat(true); }
+      const other = room.otherUser || (isUser1 ? room.user2 : room.user1);
       setOtherName(other.name);
       setOtherProfileImage(other.profileImage || null);
       setOtherId(other.id);
@@ -457,12 +467,16 @@ const Chat = () => {
             </span>
           </div>
 
-          {isAdminChat && messages.length <= 2 && (
-            <ChatBotGuide onSelect={(cat, sub) => {
-              if (socketRef.current && roomId && connected) {
-                socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
-              }
-            }} />
+          {/* 고객센터 안내 메뉴 — 처음엔 펼쳐지고, 고른 뒤엔 접히지만 입력창 위 "도움말 메뉴" 버튼으로 언제든 다시 열어 계속 물어볼 수 있다 */}
+          {isAdminChat && user?.role !== 'admin' && guideOpen && (
+            <ChatBotGuide
+              onSelect={(cat, sub) => {
+                if (socketRef.current && roomId && connected) {
+                  socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
+                }
+              }}
+              onClose={() => setGuideOpen(false)}
+            />
           )}
 
           {/* 빈 상태 — 실제 대화 없을 때(상품문의 카드만 있어도) 친근한 안내 + 빠른 답장. 로드 후에만 표시(깜빡임 방지) */}
@@ -492,7 +506,7 @@ const Chat = () => {
           )}
 
           {messages.map((msg, idx) => {
-            const isMe = msg.senderId === user.id;
+            const isMe = msg.senderId === user.id || supportAdminIds.includes(msg.senderId);
             const isPriceOffer = msg.type === 'price_offer';
             const isProductInquiry = msg.type === 'product_inquiry';
             const prevMsg = idx > 0 ? messages[idx - 1] : null;
@@ -673,6 +687,9 @@ const Chat = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
               )}
             </button>
+            {isAdminChat && user?.role !== 'admin' && !guideOpen && (
+              <button type="button" onClick={() => setGuideOpen(true)} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold whitespace-nowrap">도움말 메뉴</button>
+            )}
             <textarea
               ref={textareaRef}
               value={input}

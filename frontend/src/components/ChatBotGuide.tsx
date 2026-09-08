@@ -4,6 +4,7 @@ import { SecondHandIcon, SkiShopIcon } from './CategoryIcons';
 
 interface Props {
   onSelect: (category: string, sub: string) => void;
+  onClose?: () => void; // 고정 메뉴 모드: 선택 후 부모가 접는다
 }
 
 type IconComp = ComponentType<{ size?: number; className?: string }>;
@@ -17,12 +18,9 @@ const categories: Record<string, { label: string; Icon: IconComp; subs: string[]
   other:    { label: '기타',         Icon: ChatIcon,       subs: ['제휴/협력', '기타 문의'] },
 };
 
-export default function ChatBotGuide({ onSelect }: Props) {
+export default function ChatBotGuide({ onSelect, onClose }: Props) {
   const [step, setStep] = useState<'main' | 'sub'>('main');
   const [selectedCat, setSelectedCat] = useState('');
-  const [done, setDone] = useState(false);
-
-  if (done) return null;
 
   return (
     <div className="mx-2 mb-3">
@@ -65,7 +63,8 @@ export default function ChatBotGuide({ onSelect }: Props) {
                   key={sub}
                   onClick={() => {
                     onSelect(label, sub);
-                    setDone(true);
+                    setStep('main');
+                    onClose?.();
                   }}
                   className="w-full text-left px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors border border-gray-100"
                 >

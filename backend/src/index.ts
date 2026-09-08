@@ -53,6 +53,8 @@ import adminRoutes from './routes/adminRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
+import { roomAccessWhere, recipientsOf, getAdminIds } from './utils/supportInbox';
+import { findSupportAnswer } from './utils/supportAnswers';
 import { isTokenIatStale } from './utils/tokens';
 import { isAllowedImageUrl } from './utils/validate';
 import reviewRoutes from './routes/reviewRoutes';
@@ -397,6 +399,7 @@ io.use((socket, next) => {
         // 토큰 세대(tv) 검사 — HTTP 경로와 동일 (무효화 시 즉시 거절)
         if ((decoded.tv ?? 0) !== user.tokenVersion) return next(new Error('세션 만료'));
         socket.data.userId = user.id;
+        socket.data.role = user.role;
         next();
       })
       .catch(() => next(new Error('인증 실패')));
@@ -432,7 +435,7 @@ io.on('connection', (socket) => {
     }
     try {
       const room = await prisma.chatRoom.findFirst({
-        where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+        where: { id: roomId, ...(await roomAccessWhere(userId, socket.data.role)) },
       });
       if (!room) {
         socket.emit('room_error', { roomId, error: '접근할 수 없는 채팅방입니다.' });
@@ -462,9 +465,9 @@ io.on('connection', (socket) => {
       }
       const type = data.type === 'image' ? 'image' : 'text';
 
-      // 채팅방 멤버인지 확인
+      // 채팅방 멤버인지 확인 (관리자는 고객센터 방 전체 — 공용 받은편지함)
       const room = await prisma.chatRoom.findFirst({
-        where: { id: data.roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+        where: { id: data.roomId, ...(await roomAccessWhere(userId, socket.data.role)) },
       });
       if (!room) {
         // 상대가 방을 삭제한 경우 등 — 무음 드롭하면 보낸 내용이 증발한 것처럼 보임
@@ -491,17 +494,34 @@ io.on('connection', (socket) => {
       // sender 실명 비노출 — HTTP 메시지 조회와 동일하게 표시명 치환
       io.to(`room:${data.roomId}`).emit('new_message', { ...message, sender: { ...message.sender, name: message.sender.nickname || message.sender.name } });
 
-      // 수신자 알림 — room(위 findFirst) 재사용 (중복 쿼리 제거).
-      const recipientId = room.user1Id === userId ? room.user2Id : room.user1Id;
+      // 고객센터 안내 메뉴 자동 답변 — 손님이 "[문의] 카테고리 > 세부"를 고르면 고객센터(관리자 참여자) 이름으로 바로 답한다.
+      // 사람이 이어서 답할 수 있게 관리자 알림은 그대로 나간다.
+      try {
+        const adminIdsForAuto = await getAdminIds();
+        const adminSide = adminIdsForAuto.includes(room.user1Id) ? room.user1Id : adminIdsForAuto.includes(room.user2Id) ? room.user2Id : null;
+        const auto = adminSide && !adminIdsForAuto.includes(userId) ? findSupportAnswer(content) : null;
+        if (auto && adminSide) {
+          const reply = await prisma.message.create({
+            data: { roomId: data.roomId, senderId: adminSide, content: auto, type: 'text' },
+            include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
+          });
+          io.to(`room:${data.roomId}`).emit('new_message', { ...reply, sender: { ...reply.sender, name: reply.sender.nickname || reply.sender.name } });
+        }
+      } catch (e) { console.error('support auto answer error:', e); }
+
+      // 수신자 알림 — 고객센터 방에서 손님이 보내면 관리자 전원, 관리자가 보내면 손님에게.
+      const recipients = recipientsOf(room, userId, await getAdminIds());
       // 수신자가 지금 이 방을 보고 있으면(해당 room 소켓 보유) new_message 로 이미 전달됨
       // → DB 알림·토스트·푸시 생략(메시지마다 알림 row 쌓이는 폭주 방지).
       const roomSockets = await io.in(`room:${data.roomId}`).fetchSockets();
-      const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));
-      if (!recipientActive) {
-        // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
-        const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
-        const senderName = sender ? displayName(sender) : '알 수 없음';
-        const preview = content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
+      const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
+      // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
+      const senderName = sender ? displayName(sender) : '알 수 없음';
+      const preview = content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
+      for (const recipientId of recipients) {
+        if (recipientId === userId) continue;
+        const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));
+        if (recipientActive) continue;
         await createNotification(recipientId, 'chat', `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
         io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: `${senderName}님의 메시지`, message: preview });
         sendPushToUser(recipientId, `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);

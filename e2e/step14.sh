@@ -95,6 +95,18 @@ U_TOKEN=$(login "smoke_user@re.test" 'Re!pass1234')
 api PUT "/admin/users/$A_ID/ban" "{}" "$A_TOKEN"; expect 400 "관리자 계정 밴 차단"
 
 
+# ── 고객센터 공용 받은편지함: 손님↔관리자1 방을 관리자2 도 보고·읽고, 제3자는 못 봄
+A2_TOKEN=$(register_verified "01066660004" "smoke_admin2@re.test" "스모크관리자2" "스모크관리자2")
+pq "UPDATE users SET role='admin' WHERE email='smoke_admin2@re.test'" >/dev/null
+A2_TOKEN=$(login "smoke_admin2@re.test" 'Re!pass1234')
+api POST /chat/rooms "{\"targetUserId\":\"$A_ID\"}" "$U_TOKEN"; SR=$(echo "$RESP" | jq -r '.id // empty'); [ -n "$SR" ] && ok "손님→관리자1 고객센터 방 생성" || bad "고객센터 방 CODE=$CODE $(echo $RESP|head -c 100)"
+api GET /chat/rooms "" "$A2_TOKEN"; SRL=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$SR\")][0] | (.mySide|tostring) + \":\" + (.otherUser.id // \"\")"); [ "$SRL" = "2:$U_ID" ] || [ "$SRL" = "1:$U_ID" ] && ok "관리자2 목록에 고객센터 방 (상대=손님)" || bad "관리자2 목록 $SRL"
+api GET "/chat/rooms/$SR" "" "$A2_TOKEN"; SA=$(echo "$RESP" | jq -r '.supportAdminIds | length'); [ "$CODE" = "200" ] && [ "$SA" -ge 2 ] && ok "관리자2 방 단건 조회 + 관리자 id 목록" || bad "단건 CODE=$CODE admins=$SA"
+api GET "/chat/rooms/$SR/messages" "" "$A2_TOKEN"; expect 200 "관리자2 메시지 조회"
+api PUT "/chat/rooms/$SR/read" "{}" "$A2_TOKEN"; expect 200 "관리자2 읽음 처리"
+T_TOKEN=$(register_verified "01066660005" "smoke_third@re.test" "제3자" "제3자")
+api GET "/chat/rooms/$SR/messages" "" "$T_TOKEN"; expect 403 "제3자 고객센터 방 메시지 403"
+
 # ── 앱 심사용 계정 (POST /admin/review-account): 관리자만, 휴대폰 인증 없이 이메일 로그인 계정 생성·비번 재설정
 api POST /admin/review-account '{"email":"reviewer@re.test","password":"Review!2026"}' "$U_TOKEN"; expect 403 "일반유저 심사 계정 생성 403"
 api POST /admin/review-account '{"email":"bad","password":"Review!2026"}' "$A_TOKEN"; expect 400 "심사 계정 잘못된 이메일 400"

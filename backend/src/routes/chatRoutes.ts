@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import prisma from '../config/database';
+import { getAdminIds, roomAccessWhere, mySideOf, adminSideOf } from '../utils/supportInbox';
 import { displayName } from '../utils/displayName';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -28,9 +29,11 @@ function takeRequestToken(userId: string): boolean {
 router.get('/rooms', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    const adminIds = isAdmin ? await getAdminIds() : [userId];
     const rooms = await prisma.chatRoom.findMany({
       where: {
-        OR: [{ user1Id: userId }, { user2Id: userId }],
+        ...(await roomAccessWhere(userId, req.user.role)),
         // 거절 방은 거절한 쪽에서만 숨김 — 요청자에겐 계속 보여야 '목록에서 사라짐=거절' 신호가 안 샘
         NOT: { status: 'declined', requestedBy: { not: userId } },
       },
@@ -53,27 +56,34 @@ router.get('/rooms', async (req: any, res: Response) => {
       // 단일 raw 쿼리로 통합. (기존: groupBy 1회 + 방마다 count 병렬 최대 50쿼리 →
       // 목록 요청당 최대 51쿼리이던 최다 핫패스가 2쿼리로)
       // lastReadAt 이 NULL 이면 epoch 취급 = 상대가 보낸 전부가 안읽음 (기존 로직과 동일).
+      // 관리자는 고객센터 방에서 "내 쪽" = 관리자 쪽(어느 관리자든), 관리자끼리 보낸 메시지는 안읽음에서 제외
       const raw = await prisma.$queryRaw<{ roomId: string; cnt: bigint }[]>`
         SELECT m."roomId", COUNT(*) AS cnt
         FROM "messages" m
         JOIN "chat_rooms" r ON r.id = m."roomId"
         WHERE m."roomId" = ANY(${roomIds})
-          AND m."senderId" <> ${userId}
+          AND m."senderId" <> ALL(${adminIds})
           AND m."createdAt" > COALESCE(
-            CASE WHEN r."user1Id" = ${userId} THEN r."user1LastReadAt" ELSE r."user2LastReadAt" END,
+            CASE WHEN r."user1Id" = ANY(${adminIds}) THEN r."user1LastReadAt" ELSE r."user2LastReadAt" END,
             'epoch'::timestamptz)
         GROUP BY m."roomId"`;
       for (const row of raw) unreadCounts[row.roomId] = Number(row.cnt);
     }
 
-    const roomsWithUnread = rooms.map(room => ({
-      ...room,
-      // 요청자에게 거절 사실 비노출 — declined 를 pending 으로 위장 (여기 도달한 declined 는 전부 요청자 본인 것)
-      status: room.status === 'declined' ? 'pending' : room.status,
-      user1: { ...room.user1, name: displayName(room.user1) },
-      user2: { ...room.user2, name: displayName(room.user2) },
-      unreadCount: unreadCounts[room.id] || 0,
-    }));
+    const roomsWithUnread = rooms.map(room => {
+      const side = mySideOf(room, userId, req.user.role, adminIds);
+      return {
+        ...room,
+        // 요청자에게 거절 사실 비노출 — declined 를 pending 으로 위장 (여기 도달한 declined 는 전부 요청자 본인 것)
+        status: room.status === 'declined' ? 'pending' : room.status,
+        user1: { ...room.user1, name: displayName(room.user1) },
+        user2: { ...room.user2, name: displayName(room.user2) },
+        unreadCount: unreadCounts[room.id] || 0,
+        // 공용 받은편지함: 관리자가 자기 방이 아닌 고객센터 방을 볼 때 "상대"를 서버가 정해준다
+        mySide: side,
+        otherUser: side ? { ...(side === 1 ? room.user2 : room.user1), name: displayName(side === 1 ? room.user2 : room.user1) } : null,
+      };
+    });
 
     res.json(roomsWithUnread);
   } catch (error) {
@@ -369,7 +379,7 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
     const userId = req.user.id;
     const { roomId } = req.params;
     const room = await prisma.chatRoom.findFirst({
-      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+      where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
       include: {
         user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
         user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
@@ -378,7 +388,19 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
     // 거절 비노출 — 요청자가 단건 조회해도 pending 으로 보임
     const shownStatus = room.status === 'declined' && room.requestedBy === userId ? 'pending' : room.status;
-    res.json({ ...room, status: shownStatus, user1: { ...room.user1, name: displayName(room.user1) }, user2: { ...room.user2, name: displayName(room.user2) } });
+    const allAdminIds = await getAdminIds();
+    const adminIds = req.user.role === 'admin' ? allAdminIds : [];
+    const side = mySideOf(room, userId, req.user.role, adminIds);
+    res.json({
+      ...room, status: shownStatus,
+      // 고객센터 방 여부 — 손님 화면에 안내 메뉴(고정)를 띄우는 기준
+      isSupportRoom: adminSideOf(room, allAdminIds) !== null,
+      user1: { ...room.user1, name: displayName(room.user1) }, user2: { ...room.user2, name: displayName(room.user2) },
+      mySide: side,
+      otherUser: side ? { ...(side === 1 ? room.user2 : room.user1), name: displayName(side === 1 ? room.user2 : room.user1) } : null,
+      // 관리자끼리 보낸 메시지는 전부 "내 쪽" 말풍선으로 — 클라이언트가 senderId 로 정렬할 때 씀
+      supportAdminIds: req.user.role === 'admin' && adminSideOf(room, adminIds) ? adminIds : [],
+    });
   } catch (error) {
     console.error('Get chat room error:', error);
     res.status(500).json({ error: '채팅방 조회 실패' });
@@ -390,9 +412,9 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
     const { roomId } = req.params;
-    // 채팅방 멤버인지 확인
+    // 채팅방 멤버인지 확인 (관리자는 고객센터 방 전체)
     const room = await prisma.chatRoom.findFirst({
-      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+      where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
     });
     if (!room) { res.status(403).json({ error: '접근 권한이 없습니다.' }); return; }
     const messages = await prisma.message.findMany({
@@ -414,14 +436,16 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
     const userId = req.user.id;
     const { roomId } = req.params;
     const room = await prisma.chatRoom.findFirst({
-      where: { id: roomId, OR: [{ user1Id: userId }, { user2Id: userId }] },
+      where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
 
     const now = new Date();
-    if (room.user1Id === userId) {
+    // 관리자가 남의 고객센터 방을 읽으면 관리자 쪽 읽음 시각을 갱신 (관리자 전원 공용)
+    const side = mySideOf(room, userId, req.user.role, req.user.role === 'admin' ? await getAdminIds() : []);
+    if (side === 1) {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user1LastReadAt: now } });
-    } else if (room.user2Id === userId) {
+    } else if (side === 2) {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user2LastReadAt: now } });
     }
     const io = req.app.get('io');
