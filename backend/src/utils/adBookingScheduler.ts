@@ -171,7 +171,7 @@ async function removeBannerFromBooking(bookingId: string) {
 export function startAdBookingScheduler(): void {
   // 서버 시작 시 즉시 1회 실행
   updateAdBookingStatuses();
-  // 1시간마다 실행
-  setInterval(updateAdBookingStatuses, 60 * 60 * 1000);
+  // 5분마다 실행 — 미래 시작일(KST 자정) 광고가 최대 5분 안에 노출 시작. 인덱스 있는 작은 조회라 부담 없음.
+  setInterval(updateAdBookingStatuses, 5 * 60 * 1000);
   console.log('📅 광고 예약 스케줄러 시작됨');
 }

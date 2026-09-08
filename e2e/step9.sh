@@ -121,6 +121,17 @@ BN=$(pq "SELECT count(*) FROM banners WHERE tag='ad:$BK2';")
 api GET "/banners" "" ""
 ABID=$(echo "$RESP" | jq -r ".[] | select(.tag==\"ad:$BK2\" or .adBookingId==\"$BK2\") | .adBookingId // empty" 2>/dev/null | head -1)
 [ "$ABID" = "$BK2" ] && ok "공개 배너에 adBookingId 포함" || bad "공개 배너 adBookingId=$ABID"
+# 날짜 규칙(KST, 2026-09-09): 날짜 없이 승인 → "지금" 시작(자정으로 내리지 않음), 종료는 KST 23:59:59
+# (컬럼은 timestamp without tz 에 UTC 값 — 'UTC' 로 먼저 붙인 뒤 Seoul 로 바꿔야 한다)
+SDN=$(pq "SELECT extract(epoch from ((now() at time zone 'UTC') - \"startDate\")) BETWEEN 0 AND 300 FROM ad_bookings WHERE id='$BK2'"); [ "$SDN" = "t" ] && ok "날짜 없이 승인 → 시작 시각 = 지금" || bad "승인 시작 시각 now 아님 ($SDN)"
+EDK=$(pq "SELECT to_char((\"endDate\" at time zone 'UTC') at time zone 'Asia/Seoul', 'HH24:MI:SS') FROM ad_bookings WHERE id='$BK2'"); [ "$EDK" = "23:59:59" ] && ok "종료일은 한국 시간 23:59:59" || bad "종료 시각 KST=$EDK"
+# 오늘(KST) 날짜를 적어 승인 → 즉시 active (예전엔 UTC 자정=KST 09:00 까지 paid 로 대기)
+api POST /ad-booking/create "{\"slotType\":\"category\",\"category\":\"rental\",\"title\":\"E2E오늘시작\",\"description\":\"KST\",\"url\":\"https://snowpan.kr\",\"payMethod\":\"transfer\",\"periodMonths\":12}" "$ADMIN_TOKEN"
+BK3=$(echo "$RESP" | jq -r '.bookingId // .booking.id // .id // empty'); [ "$CODE" = "201" ] && [ -n "$BK3" ] && ok "카테고리 배너 대리 등록 (날짜 없음 → 지금)" || bad "카테고리 신청 CODE=$CODE $(echo $RESP|head -c 120)"
+api POST "/ad-booking/admin/bookings/$BK3/approve" '{"startDate":"2020-01-01"}' "$ADMIN_TOKEN"; ST3=$(pq "SELECT status FROM ad_bookings WHERE id='$BK3'"); [ "$CODE" = "400" ] && [ "$ST3" = "pending_payment" ] && ok "과거 날짜 승인 거부 (400, 상태 유지)" || bad "과거 날짜 CODE=$CODE status=$ST3"
+api POST "/ad-booking/admin/bookings/$BK3/approve" "{\"startDate\":\"$TODAY\"}" "$ADMIN_TOKEN"; ST3=$(pq "SELECT status FROM ad_bookings WHERE id='$BK3'"); [ "$CODE" = "200" ] && [ "$ST3" = "active" ] && ok "오늘(KST) 날짜로 승인 → 즉시 active" || bad "오늘 승인 CODE=$CODE status=$ST3"
+SD3=$(pq "SELECT to_char((\"startDate\" at time zone 'UTC') at time zone 'Asia/Seoul', 'YYYY-MM-DD HH24:MI') FROM ad_bookings WHERE id='$BK3'"); [ "$SD3" = "$TODAY 00:00" ] && ok "날짜 지정 시작 = 그 날 00:00 KST" || bad "시작 KST=$SD3"
+api POST "/ad-booking/admin/bookings/$BK3/cancel" '{"reason":"E2E"}' "$ADMIN_TOKEN"
 
 # ---- 광고 초대 링크: 관리자가 조건(자리·기간·금액) 발급 → 광고주가 소재만 제출 → 협의 금액으로 예약 ----
 api POST /ad-booking/admin/invites '{"slotType":"main_banner","periodMonths":3,"price":1500000,"advertiser":"E2E광고주"}' "$SELLER_TOKEN"; [ "$CODE" = "403" ] && ok "일반 유저 초대 발급 403" || bad "초대 403 기대 CODE=$CODE"

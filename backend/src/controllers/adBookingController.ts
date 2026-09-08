@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { emitToRoom, emitToUser } from '../realtime';
 import { getAdminIds, adminSideOf } from '../utils/supportInbox';
+import { kstDayStart, kstDayEnd, addDays, addMonthsKst, parseKstDate, fmtKstDate } from '../utils/kst';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking, parsePremiumTarget } from '../utils/adBookingScheduler';
 import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
@@ -14,8 +15,10 @@ import { isAllowedImageUrl } from '../utils/validate';
 // 이미지 초점 'X% Y%' (object-position) 검증 — 드래그로 지정된 값.
 function validImagePos(v: unknown): v is string {
   if (typeof v !== 'string') return false;
-  const m = v.match(/^(\d{1,3})% (\d{1,3})%$/);
+  // "X% Y%" 또는 "X% Y% S" — S 는 확대 배율 1~3(소수 둘째 자리까지). 프론트 utils/adImage.ts 와 같은 형식.
+  const m = v.match(/^(\d{1,3})% (\d{1,3})%(?: (\d(?:\.\d{1,2})?))?$/);
   if (!m) return false;
+  if (m[3] !== undefined) { const s = Number(m[3]); if (!(s >= 1 && s <= 3)) return false; }
   const x = Number(m[1]); const y = Number(m[2]);
   return x >= 0 && x <= 100 && y >= 0 && y <= 100;
 }
@@ -229,18 +232,18 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
         res.status(400).json({ error: '광고는 12개월(1년) 단위로 신청할 수 있습니다.' });
         return;
       }
-      const base = desiredStart ? new Date(String(desiredStart)) : new Date();
-      if (isNaN(base.getTime())) {
+      // 날짜가 없으면 "지금 바로"(사용자 규칙 2026-09-09 "날짜 기입 안 되면 바로 시작"), 날짜가 있으면 그 날 00:00 KST.
+      const base = desiredStart ? parseKstDate(desiredStart) : new Date();
+      if (!base) {
         res.status(400).json({ error: '시작일 형식이 올바르지 않습니다.' });
         return;
       }
-      base.setHours(0, 0, 0, 0);
+      const dayStart = kstDayStart(base);
       const endBase = invite
-        ? (() => { const e = new Date(base); e.setMonth(e.getMonth() + months); e.setDate(e.getDate() - 1); return e; })()
-        : new Date(base.getTime() + (PERIOD_DAYS[months] - 1) * 86400000);
-      endBase.setHours(23, 59, 59, 999); // 마지막 날 끝까지 노출 (off-by-one 방지)
+        ? addDays(addMonthsKst(dayStart, months), -1) // 달력 기준 n개월 뒤 전날
+        : addDays(dayStart, PERIOD_DAYS[months] - 1);
       startDate = base.toISOString();
-      endDate = endBase.toISOString();
+      endDate = kstDayEnd(endBase).toISOString(); // 마지막 날 끝까지 노출 (off-by-one 방지)
     }
 
     if (!slotType || !startDate || !endDate) {
@@ -310,9 +313,7 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (start < today) {
+    if (start < kstDayStart()) {
       res.status(400).json({ error: '과거 날짜는 선택할 수 없습니다.' });
       return;
     }
@@ -398,8 +399,8 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
 
       // 각 날짜 체크 — 시작·종료를 자정 기준으로 정규화 후 포함 일수 계산.
       // (기간 경로는 종료가 23:59:59라 기존 ceil+1 이 하루를 이중계산해 30일→31일 과금·게시되던 버그 수정)
-      const sMid = new Date(start.getTime()); sMid.setHours(0, 0, 0, 0);
-      const eMid = new Date(end.getTime()); eMid.setHours(0, 0, 0, 0);
+      const sMid = kstDayStart(start);
+      const eMid = kstDayStart(end);
       const days = Math.round((eMid.getTime() - sMid.getTime()) / 86400000) + 1;
       // 기간 상한 — 비정상 입력(수십 년 등)으로 인한 루프 부하·터무니없는 금액 차단.
       if (days > 370) {
@@ -496,7 +497,7 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
         const bank = process.env.AD_DEPOSIT_BANK;
         const account = process.env.AD_DEPOSIT_ACCOUNT;
         const holder = process.env.AD_DEPOSIT_HOLDER;
-        const fmt = (d: Date) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+        const fmt = fmtKstDate; // 한국 날짜로 (서버 UTC)
         const accountBlock = (bank && account && holder)
           ? `[입금 계좌]\n· ${bank} ${account} (예금주 ${holder})`
           : `입금 계좌는 곧 안내드릴게요.`;
@@ -833,28 +834,23 @@ export const adminUpdatePricing = async (req: AuthRequest, res: Response): Promi
 // 관리자: 입금 확인 → 바로 active + 배너 생성
 // 승인 시점의 광고 기간 재조정 — 관리자 지정 시작일 > 유저 희망 시작일(미래) > 오늘(승인 즉시) 순.
 // 기간(totalDays)은 그대로 유지되어 입금 확인이 늦어도 광고주가 기간 손해를 안 봄.
-// NOTE: 이 파일의 날짜 계산(setHours(0,0,0,0)·toISOString 등)은 서버가 UTC 로 돈다는
-// 전제(Render 기본). KST 로 설정된 호스트로 이전하면 가용성·승인일이 하루 밀림 — 이전 금지.
+// 날짜는 한국(KST) 달력 기준(utils/kst.ts). 관리자가 날짜를 안 적으면 "지금 바로" 시작(사용자 규칙 2026-09-09).
+// 이전엔 '2026-09-09' 를 UTC 자정(=KST 09:00)으로 읽어 새벽에 승인한 광고가 아침 9시까지 안 뜨는 문제가 있었다.
 function resolveApprovedDates(booking: { startDate: Date; totalDays: number }, startDateOverride?: unknown): { start: Date; end: Date } | null {
   let start: Date;
   if (startDateOverride) {
-    const d = new Date(String(startDateOverride));
-    if (isNaN(d.getTime())) return null;
-    d.setHours(0, 0, 0, 0);
+    const d = parseKstDate(startDateOverride);
+    if (!d) return null;
     start = d;
   } else if (new Date(booking.startDate) > new Date()) {
-    start = new Date(booking.startDate);
+    start = new Date(booking.startDate); // 광고주(초대 조건)가 정한 미래 시작일은 유지
   } else {
-    start = new Date();
-    start.setHours(0, 0, 0, 0);
+    start = new Date(); // 날짜 없음 → 지금 바로
   }
-  // 과거 시작일 지정은 거부 (광고 백데이트 방지) — 오늘 00:00 이전이면 무효.
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  if (startDateOverride && start < todayStart) return null;
-  // 종료일 = 마지막 날의 끝(23:59:59.999) — 결제한 마지막 날 하루가 통째로 누락되던 off-by-one 수정.
-  const end = new Date(start.getTime() + (Math.max(1, booking.totalDays) - 1) * 86400000);
-  end.setHours(23, 59, 59, 999);
+  // 과거 시작일 지정은 거부 (광고 백데이트 방지) — 오늘(KST) 00:00 이전이면 무효.
+  if (startDateOverride && start < kstDayStart()) return null;
+  // 종료일 = 마지막 날의 끝(23:59:59.999 KST) — 결제한 마지막 날 하루가 통째로 누락되던 off-by-one 수정.
+  const end = kstDayEnd(addDays(kstDayStart(start), Math.max(1, booking.totalDays) - 1));
   return { start, end };
 }
 
@@ -1194,11 +1190,9 @@ export const adminCreateInvite = async (req: AuthRequest, res: Response): Promis
     if (!Number.isFinite(p) || p < 0 || p > 100_000_000) { res.status(400).json({ error: '금액이 올바르지 않습니다.' }); return; }
     let start: Date | null = null;
     if (startDate) {
-      start = new Date(String(startDate));
-      if (isNaN(start.getTime())) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다.' }); return; }
-      start.setHours(0, 0, 0, 0);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      if (start < today) { res.status(400).json({ error: '시작일은 오늘 이후여야 합니다.' }); return; }
+      start = parseKstDate(startDate); // 'YYYY-MM-DD' → 그 날 00:00 KST. 비우면 입금 확인 즉시 시작
+      if (!start) { res.status(400).json({ error: '시작일 형식이 올바르지 않습니다.' }); return; }
+      if (start < kstDayStart()) { res.status(400).json({ error: '시작일은 오늘 이후여야 합니다.' }); return; }
     }
     const pricing = await prisma.adSlotPricing.findFirst({ where: { slotType: String(slotType), category: cat, active: true }, select: { id: true } });
     if (!pricing) { res.status(404).json({ error: '해당 광고 슬롯이 없습니다.' }); return; }

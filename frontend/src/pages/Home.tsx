@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { trackAdClick, api, imageUrl } from '../api';
+import { adImageStyle } from '../utils/adImage';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
@@ -357,7 +358,7 @@ const Home = () => {
                 }`}
               >
                 {banner.image && (
-                  <img src={imageUrl(banner.image, 900)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={banner.imagePos ? { objectPosition: banner.imagePos } : undefined} />
+                  <img src={imageUrl(banner.image, 900)} alt={banner.title} className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={adImageStyle(banner.imagePos)} />
                 )}
                 {/* 사진 위 텍스트 가독성 스크림 — 에디토리얼 스타일 (사진+텍스트 조합일 때만) */}
                 {banner.image && (banner.title || banner.description) && (

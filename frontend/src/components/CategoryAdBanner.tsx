@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser, imageUrl, trackAdClick } from '../api';
+import { adImageStyle } from '../utils/adImage';
 import { useVertical } from '../hooks/useVertical';
 
 interface AdItem {
@@ -128,7 +129,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
             }`}
           >
             {banner.image && (
-              <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={banner.imagePos ? { objectPosition: banner.imagePos } : undefined} />
+              <img src={imageUrl(banner.image, 800)} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={adImageStyle(banner.imagePos)} />
             )}
             {(banner.title || banner.description) ? (
             <div className={`relative z-10 flex-1 ${align}`}>

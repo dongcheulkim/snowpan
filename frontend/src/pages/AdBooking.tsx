@@ -6,6 +6,7 @@ import { api, getUser, uploadImages } from '../api';
 const INQUIRY_SLOTS = ['main_banner', 'category'];
 import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
+import { adImageStyle, formatImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
 
 interface SlotPricing {
   id: string;
@@ -123,24 +124,53 @@ export default function AdBooking() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [textColor, setTextColor] = useState('#1e293b');
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
-  // 이미지 초점 (object-position) — 미리보기에서 드래그로 "사진의 어느 부분을 보여줄지" 지정.
-  const [imgPos, setImgPos] = useState('50% 50%');
+  // 이미지 초점·확대 — 미리보기에서 드래그로 "사진의 어느 부분을 보여줄지", 슬라이더·두 손가락·휠로 "얼마나 키울지" 지정.
+  // 저장 형식은 "X% Y% S"(utils/adImage.ts). 사진이 크면 키워서 원하는 부분만, 작아도 1배가 칸에 꽉 차는 기본.
+  const [imgFocus, setImgFocus] = useState<AdImageFocus>({ x: 50, y: 50, scale: 1 });
+  const imgPos = formatImagePos(imgFocus);
+  const setScale = (s: number) => setImgFocus((f) => ({ ...f, scale: Math.round(Math.min(AD_IMAGE_SCALE_MAX, Math.max(AD_IMAGE_SCALE_MIN, s)) * 100) / 100 }));
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const pinchRef = useRef<{ dist: number; scale: number } | null>(null);
   const startImgDrag = (e: React.PointerEvent) => {
     if (!imagePreview) return;
-    const [px, py] = imgPos.split(' ').map((v) => parseFloat(v));
-    dragRef.current = { x: e.clientX, y: e.clientY, px, py };
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    if (pointersRef.current.size === 2) {
+      // 두 손가락: 핀치 확대 시작, 드래그는 멈춤
+      const [a, b] = Array.from(pointersRef.current.values());
+      pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale: imgFocus.scale };
+      dragRef.current = null;
+      return;
+    }
+    dragRef.current = { x: e.clientX, y: e.clientY, px: imgFocus.x, py: imgFocus.y };
   };
   const moveImgDrag = (e: React.PointerEvent) => {
+    if (pointersRef.current.has(e.pointerId)) pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pinch = pinchRef.current;
+    if (pinch && pointersRef.current.size >= 2) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch.dist > 0) setScale(pinch.scale * (dist / pinch.dist));
+      return;
+    }
     const d = dragRef.current;
     if (!d) return;
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const nx = Math.min(100, Math.max(0, d.px - ((e.clientX - d.x) / r.width) * 100));
-    const ny = Math.min(100, Math.max(0, d.py - ((e.clientY - d.y) / r.height) * 100));
-    setImgPos(`${Math.round(nx)}% ${Math.round(ny)}%`);
+    // 확대 상태에선 같은 손가락 이동에 사진이 더 많이 움직이므로 배율로 나눠 손가락을 따라오게
+    const nx = Math.min(100, Math.max(0, d.px - ((e.clientX - d.x) / r.width) * 100 / imgFocus.scale));
+    const ny = Math.min(100, Math.max(0, d.py - ((e.clientY - d.y) / r.height) * 100 / imgFocus.scale));
+    setImgFocus((f) => ({ ...f, x: Math.round(nx), y: Math.round(ny) }));
   };
-  const endImgDrag = () => { dragRef.current = null; };
+  const endImgDrag = (e: React.PointerEvent) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    dragRef.current = null;
+  };
+  const wheelImgZoom = (e: React.WheelEvent) => {
+    if (!imagePreview) return;
+    setScale(imgFocus.scale * (e.deltaY < 0 ? 1.08 : 1 / 1.08));
+  };
 
   // Step 4: 결제
   const [paying, setPaying] = useState(false);
@@ -758,17 +788,17 @@ export default function AdBooking() {
               {/* 미리보기 — 선택한 슬롯의 실제 노출 모양 그대로 (비율·AD 칩 포함) */}
               <div>
                 <label className="text-sm font-medium text-gray-600">
-                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일 · 사진을 드래그해 보여줄 부분을 맞춰보세요</span>
+                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일 · 사진을 드래그해 보여줄 부분을 맞추고, 아래에서 크기를 조절하세요</span>
                 </label>
                 {selectedSlot === 'main_banner' ? (
                   /* 홈 메인 배너 — 5:4 큰 카드, AD 칩은 좌하단 (Home.tsx 와 동일) */
                   <div
                     className={`mt-1 relative overflow-hidden rounded-2xl border border-gray-200 aspect-[5/4] max-w-sm mx-auto select-none ${imagePreview ? 'touch-none cursor-grab active:cursor-grabbing' : ''}`}
                     style={{ backgroundColor: '#ffffff' }}
-                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag}
+                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag} onWheel={wheelImgZoom}
                   >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
+                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={adImageStyle(imgPos)} />
                     )}
                     {/* 실노출(홈 배너)과 동일한 가독성 스크림 */}
                     {imagePreview && (title || description) && (
@@ -789,10 +819,10 @@ export default function AdBooking() {
                   <div
                     className={`mt-1 relative overflow-hidden rounded-2xl border border-gray-200 h-24 select-none ${imagePreview ? 'touch-none cursor-grab active:cursor-grabbing' : ''}`}
                     style={{ backgroundColor: '#ffffff' }}
-                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag}
+                    onPointerDown={startImgDrag} onPointerMove={moveImgDrag} onPointerUp={endImgDrag} onPointerCancel={endImgDrag} onWheel={wheelImgZoom}
                   >
                     {imagePreview && (
-                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: imgPos }} />
+                      <img src={imagePreview} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" style={adImageStyle(imgPos)} />
                     )}
                     {(title || description || !imagePreview) ? (
                     <div className={`relative z-10 flex items-center h-full px-6 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
@@ -807,6 +837,29 @@ export default function AdBooking() {
                     ) : (
                       <span className="absolute bottom-1.5 left-3 z-10 text-[9px] font-bold bg-black/55 text-white px-1.5 py-0.5 rounded">AD</span>
                     )}
+                  </div>
+                )}
+                {/* 사진 크기 조절 — 1배가 칸에 꽉 차는 기본, 최대 3배. 두 손가락 벌리기·마우스 휠로도 조절 */}
+                {imagePreview && (
+                  <div className="mt-2 max-w-sm mx-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 flex-shrink-0">사진 크기</span>
+                      <button type="button" onClick={() => setScale(imgFocus.scale - 0.1)} disabled={imgFocus.scale <= AD_IMAGE_SCALE_MIN} className="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-bold disabled:opacity-30" aria-label="축소">-</button>
+                      <input
+                        type="range" min={AD_IMAGE_SCALE_MIN} max={AD_IMAGE_SCALE_MAX} step={0.05} value={imgFocus.scale}
+                        onChange={(e) => setScale(parseFloat(e.target.value))}
+                        className="flex-1 accent-gray-900"
+                        aria-label="사진 크기"
+                      />
+                      <button type="button" onClick={() => setScale(imgFocus.scale + 0.1)} disabled={imgFocus.scale >= AD_IMAGE_SCALE_MAX} className="w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-bold disabled:opacity-30" aria-label="확대">+</button>
+                      <span className="text-xs text-gray-700 font-medium w-10 text-right tabular-nums">{imgFocus.scale.toFixed(1)}배</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-[11px] text-gray-400">사진을 키우면 드래그로 보여줄 부분을 다시 맞춰 주세요</p>
+                      {(imgFocus.scale !== 1 || imgFocus.x !== 50 || imgFocus.y !== 50) && (
+                        <button type="button" onClick={() => setImgFocus({ x: 50, y: 50, scale: 1 })} className="text-[11px] text-gray-600 underline underline-offset-2">원래대로</button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
