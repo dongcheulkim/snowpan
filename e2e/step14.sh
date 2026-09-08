@@ -104,6 +104,10 @@ api GET /chat/rooms "" "$A2_TOKEN"; SRL=$(echo "$RESP" | jq -r "[.[] | select(.i
 api GET "/chat/rooms/$SR" "" "$A2_TOKEN"; SA=$(echo "$RESP" | jq -r '.supportAdminIds | length'); [ "$CODE" = "200" ] && [ "$SA" -ge 2 ] && ok "관리자2 방 단건 조회 + 관리자 id 목록" || bad "단건 CODE=$CODE admins=$SA"
 api GET "/chat/rooms/$SR/messages" "" "$A2_TOKEN"; expect 200 "관리자2 메시지 조회"
 api PUT "/chat/rooms/$SR/read" "{}" "$A2_TOKEN"; expect 200 "관리자2 읽음 처리"
+# 관리자2(방 참여자 아님)가 그 고객센터 방으로 광고 초대 카드 발급 — 참여자 검사 대신 고객센터 방 검사 (2026-09-09 버그: "보낼 채팅방이 없거나 관리자가 참여한 방이 아닙니다")
+api POST /ad-booking/admin/invites "{\"slotType\":\"main_banner\",\"periodMonths\":12,\"price\":7200000,\"plan\":\"월결제\",\"chatRoomId\":\"$SR\"}" "$A2_TOKEN"
+IVS=$(echo "$RESP" | jq -r '.id // empty'); STS=$(echo "$RESP" | jq -r '.sentToChat'); [ "$CODE" = "201" ] && [ "$STS" = "true" ] && ok "관리자2가 남의 고객센터 방에 초대 카드 발급 (201, sentToChat)" || bad "관리자2 초대 CODE=$CODE sent=$STS $(echo $RESP|head -c 140)"
+api GET "/chat/rooms/$SR/messages" "" "$U_TOKEN"; MTS=$(echo "$RESP" | jq -r '.[-1].type // empty'); MSD=$(echo "$RESP" | jq -r '.[-1].senderId // empty'); [ "$MTS" = "ad_invite" ] && [ -n "$MSD" ] && [ "$MSD" != "$U_ID" ] && ok "손님이 카드 메시지 조회 (관리자 발신)" || bad "카드 조회 type=$MTS sender=$MSD"
 T_TOKEN=$(register_verified "01066660005" "smoke_third@re.test" "제3자" "제3자")
 api GET "/chat/rooms/$SR/messages" "" "$T_TOKEN"; expect 403 "제3자 고객센터 방 메시지 403"
 

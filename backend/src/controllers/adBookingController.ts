@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { emitToRoom, emitToUser } from '../realtime';
+import { getAdminIds, adminSideOf } from '../utils/supportInbox';
 import { createBannerFromBooking, applyPremiumFromBooking, revokePremiumFromBooking, parsePremiumTarget } from '../utils/adBookingScheduler';
 import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { cacheDel } from '../utils/cache';
@@ -1212,8 +1213,11 @@ export const adminCreateInvite = async (req: AuthRequest, res: Response): Promis
     // 고객센터 채팅에서 바로 발급 — 링크를 관리자 메시지로 그 방에 보내고, 보고 있는 소켓에도 즉시 전달
     let sentToChat = false;
     if (chatRoomId && typeof chatRoomId === 'string' && UUID_RE.test(chatRoomId)) {
+      // 공용 받은편지함: 이 관리자가 참여자가 아니어도 어느 관리자든 참여한 고객센터 방이면 보낼 수 있다(관리자 계정 2개가 한 방을 같이 씀).
       const room = await prisma.chatRoom.findUnique({ where: { id: chatRoomId }, select: { id: true, user1Id: true, user2Id: true } });
-      if (!room || (room.user1Id !== req.user!.id && room.user2Id !== req.user!.id)) { res.status(400).json({ error: '보낼 채팅방이 없거나 관리자가 참여한 방이 아닙니다.' }); return; }
+      const adminIds = room ? await getAdminIds() : [];
+      const adminSide = room ? adminSideOf(room, adminIds) : null;
+      if (!room || adminSide === null) { res.status(400).json({ error: '보낼 채팅방이 없거나 고객센터(관리자) 방이 아닙니다.' }); return; }
       const SLOT_KR: Record<string, string> = { main_banner: '메인 배너', category: '카테고리 배너', premium: '프리미엄 노출' };
       const slotLabel = SLOT_KR[invite.slotType] || invite.slotType;
       // 주소를 그대로 보여 주지 않고 카드 메시지(type ad_invite)로 — 프론트가 "메인 배너 신청 바로가기" 버튼으로 그린다(사용자 요청 2026-09-09).
@@ -1236,7 +1240,7 @@ export const adminCreateInvite = async (req: AuthRequest, res: Response): Promis
       await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
       emitToRoom(room.id, 'new_message', { ...message, sender: { ...message.sender, name: message.sender.nickname || message.sender.name } });
       // 광고주가 방을 안 보고 있을 수 있으니 알림·푸시도 함께
-      const guestId = room.user1Id === req.user!.id ? room.user2Id : room.user1Id;
+      const guestId = adminSide === 1 ? room.user2Id : room.user1Id;
       const noticeBody = `${slotLabel} 광고 신청 링크가 도착했어요. 채팅방에서 버튼을 눌러 작성해 주세요.`;
       createNotification(guestId, 'chat', '스노우판 고객센터', noticeBody, `/chat/${room.id}`).catch(() => {});
       emitToUser(guestId, 'new_notification', { type: 'chat', title: '스노우판 고객센터', message: noticeBody, link: `/chat/${room.id}` });
