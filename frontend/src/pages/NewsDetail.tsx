@@ -7,6 +7,7 @@ import { toastError, toastSuccess } from '../components/Toast';
 import { useMeta } from '../hooks/useMeta';
 import { renderNewsCard, buildCaption, downloadDataUrl } from '../utils/newsCard';
 import { fmtNewsDate } from './News';
+import LinkifyText from '../components/LinkifyText';
 
 interface NewsPost { id: string; title: string; content: string; category: string; resortIds?: string | null; images?: string | null; createdAt: string }
 
@@ -56,7 +57,7 @@ export default function NewsDetail() {
             ))}
           </div>
         )}
-        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"><LinkifyText text={post.content} /></p>
         {images.length > 0 && (
           <div className="grid grid-cols-2 gap-2">
             {images.map((src) => <img key={src} src={imageUrl(src, 800)} alt="" className="w-full rounded-lg border border-gray-100" />)}

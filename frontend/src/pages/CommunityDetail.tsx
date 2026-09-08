@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
+import LinkifyText from '../components/LinkifyText';
 import { HeartFilledIcon, UserIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 
@@ -240,7 +241,7 @@ const CommunityDetail = () => {
           <span className="text-[11px] text-gray-500">· 조회 {post.views}</span>
         </div>
 
-        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{post.content}</p>
+        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line"><LinkifyText text={post.content} /></p>
 
         {/* Post Images */}
         {postImages.length > 0 && (
