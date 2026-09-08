@@ -5,8 +5,11 @@ import { useEffect } from 'react';
 import { termsSections } from '../pages/Terms';
 import { privacySections } from '../pages/Privacy';
 
+// 'ad-terms' 는 광고 신청 화면용 — 이용약관 중 광고 관련 조항(제13조·제14조)만 보여준다.
+export type LegalSheetType = 'terms' | 'privacy' | 'ad-terms';
+
 interface Props {
-  type: 'terms' | 'privacy' | null;
+  type: LegalSheetType | null;
   onClose: () => void;
 }
 
@@ -25,8 +28,12 @@ export default function LegalSheet({ type, onClose }: Props) {
 
   if (!type) return null;
 
-  const title = type === 'terms' ? '이용약관' : '개인정보처리방침';
-  const sections = type === 'terms' ? termsSections : privacySections;
+  const title = type === 'terms' ? '이용약관' : type === 'ad-terms' ? '광고 약관' : '개인정보처리방침';
+  const sections = type === 'terms'
+    ? termsSections
+    : type === 'ad-terms'
+      ? termsSections.filter((s) => /^제1[34]조/.test(s.title))
+      : privacySections;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>

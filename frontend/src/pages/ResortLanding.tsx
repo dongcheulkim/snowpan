@@ -19,7 +19,7 @@ export default function ResortLanding() {
   const decoded = name ? decodeURIComponent(name) : '';
   const [data, setData] = useState<Landing | null>(null);
   const [loading, setLoading] = useState(true);
-  // 이 리조트 관련 스키장 소식 (community category=news, resortIds 포함 글)
+  // 이 리조트 관련 스노우판 매거진 (community category=news, resortIds 포함 글)
   const [news, setNews] = useState<{ id: string; title: string; createdAt: string }[]>([]);
 
   useMeta({
@@ -68,11 +68,11 @@ export default function ResortLanding() {
         <h1 className="text-xl font-bold text-gray-900">{decoded}</h1>
       </div>
 
-      {/* 스키장 소식 — 이 리조트를 고른 관리자 뉴스 (시즌권·개장일·할인). 없으면 숨김 */}
+      {/* 스노우판 매거진 — 이 리조트를 고른 관리자 뉴스 (시즌권·개장일·할인). 없으면 숨김 */}
       {news.length > 0 && (
         <div className="card p-5">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-bold text-gray-900">스키장 소식</h2>
+            <h2 className="text-sm font-bold text-gray-900">스노우판 매거진</h2>
             <Link to="/news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           <ul className="divide-y divide-gray-100">

@@ -1,13 +1,14 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
-import { api, getUser, uploadImages } from '../api';
+import { api, getUser, uploadImages, imageUrl as cdnImageUrl } from '../api';
 // 문의형 슬롯 — 가격 비공개, 셀프 신청 불가 (Advertise.tsx·백엔드 INQUIRY_ONLY_SLOTS 와 짝)
 const INQUIRY_SLOTS = ['main_banner', 'category'];
 import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
-import { formatImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
+import { formatImagePos, parseImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
 import AdImage from '../components/AdImage';
+import LegalSheet, { type LegalSheetType } from '../components/LegalSheet';
 
 interface SlotPricing {
   id: string;
@@ -97,10 +98,18 @@ export default function AdBooking() {
   getUser(); // auth check
   const isAdmin = getUser()?.role === 'admin'; // 관리자는 전화 협의한 광고를 대신 등록
   // 초대 링크 모드 — 관리자가 상담 후 만든 조건(자리·기간·금액)이 정해져 있고 광고주는 소재만 작성 (사용자 결정 2026-09-09)
-  const { token } = useParams<{ token: string }>();
+  const { token, editId } = useParams<{ token: string; editId: string }>();
   interface InviteInfo { id: string; slotType: string; category: string; periodMonths: number; startDate: string | null; price: number; advertiser: string | null; plan?: string | null; expiresAt: string }
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [inviteError, setInviteError] = useState('');
+  // 수정 모드(/ad-booking/edit/:id) — 마이 → 광고 관리 → 수정. 신청 화면 그대로 열어 문구·이미지·초점·확대·글자색을 세세하게 고친다 (사용자 요청 2026-09-09).
+  // 기간·금액은 바꾸지 않고 소재만 PUT /ad-booking/:id 로 저장. 노출 중이면 링크는 못 바꿈(백엔드 규칙).
+  interface MyBooking { id: string; slotType: string; category: string | null; status: string; title: string; description?: string | null; url?: string | null; image?: string | null; textColor?: string | null; textAlign?: string | null; imagePos?: string | null }
+  const [editAd, setEditAd] = useState<MyBooking | null>(null);
+  const [editError, setEditError] = useState('');
+  const [existingImage, setExistingImage] = useState(''); // 수정 모드: 이미 올라간 이미지 URL (새 파일 없으면 유지)
+  const [saving, setSaving] = useState(false);
+  const [legal, setLegal] = useState<LegalSheetType | null>(null); // 신청 확인 단계 "광고 약관 보기"
   const [step, setStep] = useState(1);
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
   // 입금 계좌 — 백엔드 env 단일 소스 (Render 만 갱신하면 반영). VITE_ env 는 레거시 폴백.
@@ -232,6 +241,29 @@ export default function AdBooking() {
   }, [token]);
 
   useEffect(() => {
+    if (!editId) return;
+    api<MyBooking[]>('/ad-booking/my-bookings')
+      .then((list) => {
+        const ad = (Array.isArray(list) ? list : []).find((b) => b.id === editId);
+        if (!ad) { setEditError('광고를 찾을 수 없습니다.'); return; }
+        if (!['pending_payment', 'paid', 'active'].includes(ad.status)) { setEditError('종료·취소된 광고는 수정할 수 없습니다.'); return; }
+        setEditAd(ad);
+        setSelectedSlot(ad.slotType);
+        setSelectedCategory(ad.category && ad.category !== 'none' ? ad.category : '');
+        setTitle(ad.title || '');
+        setDescription(ad.description || '');
+        setUrl(ad.url || '');
+        setNoUrl(ad.slotType !== 'premium' && !ad.url);
+        if (ad.image) { setExistingImage(ad.image); setImagePreview(cdnImageUrl(ad.image, 900)); }
+        if (ad.textColor) setTextColor(ad.textColor);
+        if (ad.textAlign === 'left' || ad.textAlign === 'center' || ad.textAlign === 'right') setTextAlign(ad.textAlign);
+        setImgFocus(parseImagePos(ad.imagePos));
+        setStep(3);
+      })
+      .catch((e) => setEditError(e instanceof Error ? e.message : '광고를 불러오지 못했습니다.'));
+  }, [editId]);
+
+  useEffect(() => {
     api<SlotPricing[]>('/ad-booking/slots')
       .then(setPricings)
       .catch(() => {})
@@ -336,6 +368,38 @@ export default function AdBooking() {
     }
   };
 
+  // 수정 모드 저장 — 소재만 (기간·금액·자리는 그대로). 새 파일이 있으면 올리고, 없으면 기존 이미지 유지, 미리보기를 지웠으면 이미지 삭제.
+  const handleEditSave = async () => {
+    if (!editAd || saving) return;
+    setSaving(true);
+    setError('');
+    try {
+      let image = imagePreview ? existingImage : '';
+      if (imageFile) {
+        const urls = await uploadImages([imageFile]);
+        image = urls[0];
+      }
+      await api(`/ad-booking/${editAd.id}`, {
+        method: 'PUT',
+        body: {
+          title,
+          description,
+          url: selectedSlot === 'premium' ? (editAd.url || '') : (noUrl ? '' : url),
+          image: image || null,
+          textColor: selectedSlot !== 'premium' ? textColor : undefined,
+          textAlign: selectedSlot !== 'premium' ? textAlign : undefined,
+          imagePos: selectedSlot !== 'premium' && image ? imgPos : undefined,
+        },
+      });
+      toastSuccess(editAd.status === 'active' ? '수정했어요. 노출 중인 광고에 바로 반영돼요.' : '수정했어요.');
+      navigate('/mypage/ads');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '수정 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -344,8 +408,23 @@ export default function AdBooking() {
     );
   }
 
+  if (editId && editError) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-6 pb-24 space-y-4">
+        <h1 className="text-xl font-bold">광고 수정</h1>
+        <div className="card p-5 space-y-3">
+          <p className="text-sm font-bold text-gray-900">{editError}</p>
+          <Link to="/mypage/ads" className="block w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold text-center">광고 관리로 돌아가기</Link>
+        </div>
+      </div>
+    );
+  }
+  if (editId && !editAd) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" /></div>;
+  }
+
   // 초대 링크 없이 온 일반 사용자 — 셀프 신청 없음, 고객센터 상담으로 (사용자 결정: 금액·기간은 상담에서 안내)
-  if (!isAdmin && !token) {
+  if (!isAdmin && !token && !editId) {
     return (
       <div className="max-w-lg mx-auto px-4 py-6 pb-24 space-y-4">
         <div className="flex items-center gap-3">
@@ -383,13 +462,22 @@ export default function AdBooking() {
     <div className="max-w-lg mx-auto px-4 py-6 pb-24">
       {/* 상단 헤더 */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => (step > (invite ? 3 : 1) ? setStep(step - 1) : navigate(-1))} className="p-1">
+        <button onClick={() => (editAd ? navigate(-1) : step > (invite ? 3 : 1) ? setStep(step - 1) : navigate(-1))} className="p-1">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-xl font-bold">광고 신청</h1>
+        <h1 className="text-xl font-bold">{editAd ? '광고 수정' : '광고 신청'}</h1>
       </div>
+
+      {/* 수정 모드: 무엇을 고치는 중인지 + 규칙 */}
+      {editAd && (
+        <div className="card p-4 mb-5 text-xs text-gray-700 space-y-1">
+          <p className="text-sm font-bold text-gray-900">{SLOT_LABELS[editAd.slotType] || editAd.slotType}{selectedCategory ? ` · ${CATEGORY_LABELS[selectedCategory] || selectedCategory}` : ''} 광고</p>
+          <p>{editAd.status === 'active' ? '노출 중인 광고예요. 저장하면 바로 반영돼요.' : '아직 노출 전이라 자유롭게 고칠 수 있어요.'} 기간과 금액은 바뀌지 않아요.</p>
+          {editAd.status === 'active' && selectedSlot !== 'premium' && <p className="text-[11px] text-gray-500">노출 중인 광고의 연결 링크는 바꿀 수 없어요. 링크 변경은 고객센터로 알려 주세요.</p>}
+        </div>
+      )}
 
       {/* 초대 링크: 협의 조건 요약 (자리·기간·금액은 담당자가 정한 대로) */}
       {invite && (
@@ -404,7 +492,7 @@ export default function AdBooking() {
       )}
 
       {/* 스텝 인디케이터 — 초대 링크는 소재·확인 두 단계만이라 숨김 */}
-      <div className={`flex items-center gap-2 mb-6 ${invite ? 'hidden' : ''}`}>
+      <div className={`flex items-center gap-2 mb-6 ${invite || editAd ? 'hidden' : ''}`}>
         {[1, 2, 3, 4].map((s) => (
           <div key={s} className="flex-1 flex items-center">
             <div
@@ -671,7 +759,8 @@ export default function AdBooking() {
                         const id = e.target.value;
                         setUrl(id ? `${URL_PREFIX[selectedCategory]}${id}` : '');
                       }}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none"
+                      disabled={!!editAd}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                     >
                       <option value="">선택해주세요</option>
                       {myListings.map((item) => (
@@ -693,13 +782,14 @@ export default function AdBooking() {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com"
-                  disabled={noUrl}
+                  disabled={noUrl || (!!editAd && editAd.status === 'active')}
                   className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none disabled:bg-gray-100 disabled:text-gray-400"
                 />
                 <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={noUrl}
+                    disabled={!!editAd && editAd.status === 'active'}
                     onChange={(e) => {
                       setNoUrl(e.target.checked);
                       if (e.target.checked) setUrl('');
@@ -732,6 +822,7 @@ export default function AdBooking() {
                     onClick={() => {
                       setImageFile(null);
                       setImagePreview('');
+                      setExistingImage(''); // 수정 모드: 기존 이미지도 삭제
                       // 업로드 시 자동 흰색 전환의 역방향 — 안 되돌리면 흰배경+흰글자 유령 배너
                       setTextColor((prev) => (prev === '#ffffff' ? '#1e293b' : prev));
                     }}
@@ -879,13 +970,26 @@ export default function AdBooking() {
             </>
           )}
 
-          <button
-            disabled={!canProceedStep3}
-            onClick={() => setStep(4)}
-            className="w-full py-3 rounded-xl bg-sky-500 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-600 transition-colors"
-          >
-            다음
-          </button>
+          {editAd && error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm">{error}</div>
+          )}
+          {editAd ? (
+            <button
+              disabled={!canProceedStep3 || saving}
+              onClick={handleEditSave}
+              className="w-full py-3 rounded-xl bg-gray-900 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors"
+            >
+              {saving ? '저장 중...' : '수정 저장'}
+            </button>
+          ) : (
+            <button
+              disabled={!canProceedStep3}
+              onClick={() => setStep(4)}
+              className="w-full py-3 rounded-xl bg-sky-500 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-sky-600 transition-colors"
+            >
+              다음
+            </button>
+          )}
         </div>
       )}
 
@@ -992,12 +1096,22 @@ export default function AdBooking() {
             </div>
           )}
 
-          <label className="flex items-start gap-2 py-2">
-            <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
-            <span className="text-xs text-gray-500">
-              <Link to="/mypage/terms" target="_blank" className="text-sky-600 underline">이용약관</Link> 및 <Link to="/privacy" target="_blank" className="text-sky-600 underline">개인정보처리방침</Link>에 동의합니다.
-            </span>
-          </label>
+          {/* 약관 — 신청 전에 광고 조항(게재·수정·결제·환불)을 같은 화면에서 읽을 수 있게 (사용자 요청 2026-09-09 "약관 볼 수 있게 하면 더 안전") */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-gray-900">광고 약관</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">게재 조건, 수정, 결제와 환불 기준을 확인해 주세요.</p>
+              </div>
+              <button type="button" onClick={() => setLegal('ad-terms')} className="flex-shrink-0 px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-800">광고 약관 보기</button>
+            </div>
+            <label className="flex items-start gap-2">
+              <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} className="w-4 h-4 accent-sky-500 mt-0.5" />
+              <span className="text-xs text-gray-500">
+                광고 약관과 <button type="button" onClick={() => setLegal('terms')} className="text-sky-600 underline">이용약관</button>, <button type="button" onClick={() => setLegal('privacy')} className="text-sky-600 underline">개인정보처리방침</button>을 읽었고 동의합니다.
+              </span>
+            </label>
+          </div>
 
           <button
             disabled={paying || !agreeTerms}
@@ -1019,6 +1133,8 @@ export default function AdBooking() {
           </p>
         </div>
       )}
+
+      <LegalSheet type={legal} onClose={() => setLegal(null)} />
     </div>
   );
 }

@@ -17,7 +17,7 @@ const CommunityWrite = () => {
     return q === 'ski' || q === 'board' ? q : 'all';
   });
   const editId = searchParams.get('edit'); // 수정 모드 — 기존 글 불러와 PUT
-  // ?category=notice|news 딥링크 — 관리자 대시보드 "공지 쓰기"/"스키장 소식 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
+  // ?category=notice|news 딥링크 — 관리자 대시보드 "공지 쓰기"/"스노우판 매거진 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
   const presetCategory = (() => {
     const c = searchParams.get('category') || '';
     const admin = getUser()?.role === 'admin';
@@ -34,7 +34,7 @@ const CommunityWrite = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 수정 모드 — 기존 업로드 이미지
-  // 스키장 소식(news) 전용 — 관련 리조트 선택 (리조트 페이지에도 표시됨)
+  // 스노우판 매거진(news) 전용 — 관련 리조트 선택 (리조트 페이지에도 표시됨)
   const [resortSel, setResortSel] = useState<string[]>([]);
   // 투표(poll) — 별도 페이지 대신 글쓰기 안에서 '투표'를 고르면 아래 폼이 선택지 입력으로 바뀐다 (사용자 요청)
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
@@ -70,7 +70,7 @@ const CommunityWrite = () => {
 
   const isAdmin = getUser()?.role === 'admin';
   // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 투표는 snow 전용·새 글만(수정 불가). 공지는 관리자 전용.
-  // 스키장 소식(news)은 관리자 대시보드 바로가기(?category=news)로만 진입하는 잠금 모드 — 카테고리 선택 없이 소식 폼만.
+  // 스노우판 매거진(news)은 관리자 대시보드 바로가기(?category=news)로만 진입하는 잠금 모드 — 카테고리 선택 없이 소식 폼만.
   const isPoll = category === 'poll';
   const isNews = category === 'news';
   const writeGroups = [
@@ -169,7 +169,7 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900">{isNews ? (editId ? '스키장 소식 수정' : '스키장 소식 쓰기') : editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</h1>
+          <h1 className="text-xl font-bold text-gray-900">{isNews ? (editId ? '스노우판 매거진 수정' : '스노우판 매거진 쓰기') : editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
@@ -240,7 +240,7 @@ const CommunityWrite = () => {
 
       {isNews && (
         <div className="text-xs text-gray-600 bg-snow border border-gray-200 rounded-lg px-3 py-2.5 leading-relaxed">
-          홈 "스키장 소식"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에.
+          홈 "스노우판 매거진"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에.
           <div className="flex flex-wrap gap-1.5 mt-2">
             {resorts.map((r) => {
               const on = resortSel.includes(r.id);

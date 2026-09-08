@@ -32,13 +32,13 @@ setInterval(() => {
 const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
   user.nickname || '스노우판 회원';
 
-// 카테고리 화이트리스트. 'notice'(공지)·'news'(스키장 소식)는 관리자 전용.
-// 스키장 소식: 시즌권 판매·개장일·할인 같은 리조트 뉴스를 사장님이 올리는 채널. 공용(sport='all')이라 스키·보드 양쪽에 보이고,
+// 카테고리 화이트리스트. 'notice'(공지)·'news'(스노우판 매거진)는 관리자 전용.
+// 스노우판 매거진: 시즌권 판매·개장일·할인 같은 리조트 뉴스를 사장님이 올리는 채널. 공용(sport='all')이라 스키·보드 양쪽에 보이고,
 // resortIds 로 리조트 페이지에도 붙는다. 공지와 달리 상단 고정은 안 함(홈에 별도 섹션).
 const ALLOWED_CATEGORIES = ['free', 'review', 'gear', 'resort', 'tip', 'carpool', 'meetup', 'job', 'jobseek', 'notice', 'news'];
 const ADMIN_ONLY_CATEGORIES = ['notice', 'news'];
 
-// 스키장 소식의 resortIds 검증 — 콤마 목록, 최대 20개, 전부 실제 리조트여야 함. 빈 값이면 null.
+// 스노우판 매거진의 resortIds 검증 — 콤마 목록, 최대 20개, 전부 실제 리조트여야 함. 빈 값이면 null.
 async function parseResortIds(raw: unknown): Promise<{ value: string | null; error?: string }> {
   if (raw === undefined || raw === null || raw === '') return { value: null };
   const ids = Array.isArray(raw) ? raw.map(String) : String(raw).split(',');
@@ -77,11 +77,11 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       const cats = categoryStr.split(',').filter(Boolean);
       where.category = cats.length > 1 ? { in: cats } : cats[0];
     } else if (!userIdStr) {
-      // 스키장 소식(news)은 커뮤니티가 아니라 홈 섹션·/news 채널 — 카테고리를 명시하지 않은 목록·검색에서는 제외
+      // 스노우판 매거진(news)은 커뮤니티가 아니라 홈 섹션·/news 채널 — 카테고리를 명시하지 않은 목록·검색에서는 제외
       where.category = { not: 'news' };
     }
     if (userIdStr) where.userId = userIdStr;
-    // 리조트 페이지 '스키장 소식' — resortIds 콤마 목록에 포함된 글만
+    // 리조트 페이지 '스노우판 매거진' — resortIds 콤마 목록에 포함된 글만
     if (typeof resortId === 'string' && resortId) where.resortIds = { contains: resortId };
     if (searchStr) {
       where.OR = [
@@ -139,7 +139,7 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
-    // 스키장 소식(news)은 홈에 별도 섹션이 있어 핫 랭킹에서 제외(중복 노출 방지)
+    // 스노우판 매거진(news)은 홈에 별도 섹션이 있어 핫 랭킹에서 제외(중복 노출 방지)
     const where: any = { vertical: verticalSlug, category: { not: 'news' } };
     // getPosts 와 동일하게 공용(sport='all') 글 포함 — 공지가 핫 랭킹에서 빠지던 비일관 해소
     if (sportStr) where.sport = { in: [sportStr, 'all'] };
@@ -278,10 +278,10 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
       res.status(400).json({ error: '유효하지 않은 카테고리입니다.' });
       return;
     }
-    // 공지·스키장 소식은 관리자 전용, 공용(sport='all'). 공지만 상단 고정.
+    // 공지·스노우판 매거진은 관리자 전용, 공용(sport='all'). 공지만 상단 고정.
     const isNotice = ADMIN_ONLY_CATEGORIES.includes(category);
     if (isNotice && req.user!.role !== 'admin') {
-      res.status(403).json({ error: category === 'news' ? '스키장 소식은 관리자만 작성할 수 있습니다.' : '공지사항은 관리자만 작성할 수 있습니다.' });
+      res.status(403).json({ error: category === 'news' ? '스노우판 매거진은 관리자만 작성할 수 있습니다.' : '공지사항은 관리자만 작성할 수 있습니다.' });
       return;
     }
     const resortParsed = category === 'news' ? await parseResortIds(resortIds) : { value: null };
@@ -561,9 +561,9 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
     }
     if (category !== undefined) {
       if (!ALLOWED_CATEGORIES.includes(category)) { res.status(400).json({ error: '유효하지 않은 카테고리입니다.' }); return; }
-      if (ADMIN_ONLY_CATEGORIES.includes(category) && req.user!.role !== 'admin') { res.status(403).json({ error: '공지·스키장 소식은 관리자만 지정할 수 있습니다.' }); return; }
+      if (ADMIN_ONLY_CATEGORIES.includes(category) && req.user!.role !== 'admin') { res.status(403).json({ error: '공지·매거진은 관리자만 지정할 수 있습니다.' }); return; }
       data.category = category;
-      // 공지 지정/해제 시 고정·공용 상태 동기화 (공지 해제됐는데 상단 고정 남는 것 방지). 스키장 소식은 공용이되 고정 안 함.
+      // 공지 지정/해제 시 고정·공용 상태 동기화 (공지 해제됐는데 상단 고정 남는 것 방지). 스노우판 매거진은 공용이되 고정 안 함.
       if (category === 'notice') { (data as any).pinned = true; (data as any).sport = 'all'; }
       else if (category === 'news') { (data as any).pinned = false; (data as any).sport = 'all'; }
       else if (post.category === 'notice') { (data as any).pinned = false; }
@@ -575,7 +575,7 @@ export const updatePost = async (req: AuthRequest, res: Response): Promise<void>
       if (!['ski', 'board', 'all'].includes(String(sport))) { res.status(400).json({ error: '공개 범위는 전체·스키·보드 중 하나여야 합니다.' }); return; }
       (data as any).sport = sport;
     }
-    // 스키장 소식의 리조트 목록 수정 (관리자만 news 를 쓸 수 있으므로 별도 권한 체크 불필요)
+    // 스노우판 매거진의 리조트 목록 수정 (관리자만 news 를 쓸 수 있으므로 별도 권한 체크 불필요)
     if (resortIds !== undefined && nextCategory === 'news') {
       const parsed = await parseResortIds(resortIds);
       if (parsed.error) { res.status(400).json({ error: parsed.error }); return; }

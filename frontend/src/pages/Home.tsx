@@ -49,7 +49,7 @@ type HotItem =
   | { kind: 'poll'; id: string; title: string; likes: number; views: number; votes: number; score: number };
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
-// 홈 "스키장 소식" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
+// 홈 "스노우판 매거진" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
 interface ResortNews { id: string; title: string; content: string; resortIds?: string | null; images?: string | null; createdAt: string }
 
 interface ShopNews {
@@ -456,11 +456,11 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 스키장 소식 — 시즌권 판매·개장일·할인 같은 리조트 뉴스(관리자 작성). 핫한 커뮤니티 위(사용자 요청). 글이 없으면 숨김 */}
+      {/* 스노우판 매거진 — 시즌권 판매·개장일·할인 같은 리조트 뉴스(관리자 작성). 핫한 커뮤니티 위(사용자 요청). 글이 없으면 숨김 */}
       {isSnow && resortNews.length > 0 && (
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-bold text-gray-900">스키장 소식</h2>
+            <h2 className="text-[15px] font-bold text-gray-900">스노우판 매거진</h2>
             <Link to="/news" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
           {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래 (사용자 요청). 사진 없는 글은 워드마크 톤의 회색 상자 */}

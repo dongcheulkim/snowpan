@@ -15,7 +15,7 @@ const BASE: Record<string, { ski: string; board: string }> = {
   jobseek: { ski: '구직',     board: '구직' },     // 일자리 구해요 (강사·알바 지원)
   poll:    { ski: '투표',     board: '투표' },
   notice:  { ski: '공지',     board: '공지' },
-  news:    { ski: '스키장 소식', board: '스키장 소식' }, // 관리자 전용 — 시즌권·개장·할인 뉴스
+  news:    { ski: '스노우판 매거진', board: '스노우판 매거진' }, // 관리자 전용 — 시즌권·개장·할인 뉴스
 };
 
 // 다른 판 종목별 라벨 오버라이드 — 명시 안 된 카테고리는 ski 라벨(범용) 재사용.

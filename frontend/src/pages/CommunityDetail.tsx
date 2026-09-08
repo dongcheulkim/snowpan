@@ -24,7 +24,7 @@ interface PostData {
   content: string;
   category: string;
   sport: string;
-  resortIds?: string | null; // 스키장 소식 — 관련 리조트 id 콤마 목록
+  resortIds?: string | null; // 스노우판 매거진 — 관련 리조트 id 콤마 목록
   images?: string | null;
   likes: number;
   views: number;
@@ -34,11 +34,11 @@ interface PostData {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', notice: '공지', news: '스키장 소식',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', notice: '공지', news: '스노우판 매거진',
 };
 
 const badgeColor: Record<string, string> = {
-  '스키장 소식': 'text-gray-900 bg-gray-100 border-gray-300',
+  '스노우판 매거진': 'text-gray-900 bg-gray-100 border-gray-300',
   '자유': 'text-accent-light bg-accent/10 border-accent/20',
   '장비리뷰': 'text-mint bg-mint/10 border-mint/20',
   '장비추천': 'text-sky-500 bg-sky-50 border-sky-200',

@@ -165,7 +165,7 @@ function App() {
             <Route path="community" element={<Community />} />
             <Route path="community/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="community/post/:id" element={<CommunityDetail />} />
-            {/* 스키장 소식 — 홈 섹션 전용 채널(커뮤니티 탭 아님) */}
+            {/* 스노우판 매거진 — 홈 섹션 전용 채널(커뮤니티 탭 아님) */}
             <Route path="news" element={<News />} />
             <Route path="news/:id" element={<NewsDetail />} />
             <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
@@ -212,6 +212,7 @@ function App() {
             <Route path="overseas/:slug" element={<OverseasDetail />} />
             <Route path="ad-booking" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="ad-booking/invite/:token" element={<RequireAuth><AdBooking /></RequireAuth>} />
+            <Route path="ad-booking/edit/:editId" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="ad-booking/pay/success" element={<RequireAuth><AdPayResult /></RequireAuth>} />
             <Route path="ad-booking/pay/fail" element={<AdPayResult />} />
             <Route path="ad-booking/pay/:id" element={<RequireAuth><AdPay /></RequireAuth>} />
