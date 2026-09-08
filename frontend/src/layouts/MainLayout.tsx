@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
@@ -18,8 +18,6 @@ import { SITE_URL } from '../config/site';
 
 const MainLayout = () => {
   const location = useLocation();
-  // 사업자 정보 접기 — 기본 접힘. 하단 상시 게재는 토스페이먼츠(카드사) 심사 필수 요건.
-  const [bizOpen, setBizOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -69,27 +67,9 @@ const MainLayout = () => {
         )}
         <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
           <Outlet />
-          {/* 사업자 정보 푸터 — 전자상거래법 표시 의무 + PG(토스) 카드사 심사 요건.
-              기본 접힘(번개장터식) — 펼치면 사업자등록증과 동일 표기 노출 */}
+          {/* 푸터 — 링크만 (사업자 정보 상시 표시는 토스 심사용이었고 심사 거절로 접음. 사업자정보는 /about 에 유지: 전자상거래법 표시는 링크 도달로 충족) */}
           <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-400">
-            <button
-              type="button"
-              onClick={() => setBizOpen(v => !v)}
-              aria-expanded={bizOpen}
-              className="flex items-center gap-1 font-bold text-gray-500"
-            >
-              스노우판 사업자 정보
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${bizOpen ? 'rotate-180' : ''}`}><path d="M6 9l6 6 6-6" /></svg>
-            </button>
-            {bizOpen && (
-              <div className="mt-1">
-                <p>상호 스노우판 · 대표자 김동철</p>
-                <p>사업자등록번호 333-12-03287</p>
-                <p>강원특별자치도 평창군 대관령면 가시머리길 4, 2층</p>
-                <p>유선번호 070-8027-4757 · 이메일 <a href="mailto:info@snowpan.kr" className="hover:text-gray-600">info@snowpan.kr</a></p>
-              </div>
-            )}
-            <p className="mt-1.5">
+            <p>
               <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
               <span className="mx-1.5">·</span>
               <Link to="/advertise" className="underline underline-offset-2 hover:text-gray-600">광고안내</Link> · <Link to="/partners" className="underline underline-offset-2 hover:text-gray-600">입점안내</Link>
