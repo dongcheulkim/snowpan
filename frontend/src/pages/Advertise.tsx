@@ -27,6 +27,8 @@ const SLOT_DESCRIPTIONS: Record<string, string> = {
 
 
 const won = (n: number) => n.toLocaleString('ko-KR');
+// 메인·카테고리 배너는 문의형(가격 비공개, 고객센터 → 전화 안내). 셀프 신청은 프리미엄만. 백엔드 INQUIRY_ONLY_SLOTS 와 짝.
+const INQUIRY_SLOTS = ['main_banner', 'category'];
 
 const Advertise = () => {
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
@@ -75,13 +77,23 @@ const Advertise = () => {
                   <h2 className="text-base font-bold text-gray-900">{SLOT_LABELS[slot] || slot}</h2>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">{SLOT_DESCRIPTIONS[slot]}</p>
                 </div>
-                {minMonthly != null && (
+                {INQUIRY_SLOTS.includes(slot) ? (
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-bold text-gray-900">가격 문의</div>
+                    <div className="text-[11px] text-gray-400">전화 상담 후 계약</div>
+                  </div>
+                ) : minMonthly != null && (
                   <div className="text-right shrink-0">
                     <div className="text-lg font-bold text-sky-600">{won(minMonthly)}원</div>
                     <div className="text-[11px] text-gray-400">월 / 부터</div>
                   </div>
                 )}
               </div>
+              {INQUIRY_SLOTS.includes(slot) ? (
+                <Link to="/mypage/support" className="block mt-3 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">고객센터 문의하기</Link>
+              ) : (
+                <Link to="/ad-booking" className="block mt-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 text-sm font-bold text-center hover:bg-gray-50 transition-colors">신청하기</Link>
+              )}
             </div>
           ))}
         </div>
@@ -92,7 +104,7 @@ const Advertise = () => {
         <h2 className="text-sm font-bold text-gray-900 mb-2">계약 단위</h2>
         <p className="text-xs text-gray-600 leading-relaxed">
           광고는 <span className="font-bold text-gray-900">12개월(1년)</span> 단위로 게재됩니다.
-          표기된 월 단가 × 12개월로 결제되며, 게재 기간 동안 소재(문구·이미지) 교체가 가능합니다.
+          프리미엄 노출은 표기된 월 단가 × 12개월로 신청하고, 메인 배너·카테고리 배너는 고객센터 문의 후 담당자와 기간·금액을 정해 계약합니다. 게재 기간 동안 소재(문구·이미지) 교체가 가능합니다.
         </p>
       </section>
 

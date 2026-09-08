@@ -2,6 +2,8 @@ import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
+// 문의형 슬롯 — 가격 비공개, 셀프 신청 불가 (Advertise.tsx·백엔드 INQUIRY_ONLY_SLOTS 와 짝)
+const INQUIRY_SLOTS = ['main_banner', 'category'];
 import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
 
@@ -91,6 +93,7 @@ function formatDate(dateStr: string): string {
 export default function AdBooking() {
   const navigate = useNavigate();
   getUser(); // auth check
+  const isAdmin = getUser()?.role === 'admin'; // 관리자는 전화 협의한 메인·카테고리 배너를 대신 등록
   const [step, setStep] = useState(1);
   const [pricings, setPricings] = useState<SlotPricing[]>([]);
   // 입금 계좌 — 백엔드 env 단일 소스 (Render 만 갱신하면 반영). VITE_ env 는 레거시 폴백.
@@ -334,6 +337,24 @@ export default function AdBooking() {
               const minPrice = slotPricings.length
                 ? Math.min(...slotPricings.map((p) => p.pricePerDay))
                 : 0;
+              // 메인·카테고리 배너는 문의형 — 일반 사용자는 고객센터로, 관리자만 대리 등록 (백엔드도 동일하게 차단)
+              if (INQUIRY_SLOTS.includes(slotType) && !isAdmin) {
+                return (
+                  <div key={slotType} className="p-4 rounded-xl border-2 border-gray-200 text-left">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-800">{SLOT_LABELS[slotType]}</div>
+                        <div className="text-sm text-gray-500">{SLOT_DESCRIPTIONS[slotType]}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-gray-900">가격 문의</div>
+                        <div className="text-xs text-gray-500">전화 상담 후 계약</div>
+                      </div>
+                    </div>
+                    <Link to="/mypage/support" className="block mt-3 py-2 rounded-lg bg-gray-900 text-white text-xs font-bold text-center">고객센터 문의하기</Link>
+                  </div>
+                );
+              }
 
               return (
                 <button

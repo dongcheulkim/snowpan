@@ -141,7 +141,9 @@ api GET "/ad-booking/availability?slotType=main_banner&month=2030-01" ""; expect
 api GET "/ad-booking/availability?slotType=nope&month=2030-01" ""; expect 404 "없는 슬롯 availability"
 api GET /ad-booking/admin/revenue "" "$A_TOKEN"; expect 200 "매출 집계"
 api GET /ad-booking/my-bookings "" "$U_TOKEN"; expect 200 "내 광고 목록"
-api POST /ad-booking/create '{"slotType":"main_banner","title":"x","description":"d","payMethod":"transfer"}' "$U_TOKEN"; expect 400 "광고 신청 periodMonths 누락"
+api POST /ad-booking/create '{"slotType":"premium","category":"rental","title":"x","description":"d","payMethod":"transfer"}' "$U_TOKEN"; expect 400 "광고 신청 periodMonths 누락"
+api POST /ad-booking/create '{"slotType":"main_banner","title":"x","description":"d","url":"https://snowpan.kr","payMethod":"transfer","periodMonths":12}' "$U_TOKEN"; expect 400 "메인 배너는 문의형 — 일반 사용자 셀프 신청 400"
+api POST /ad-booking/create '{"slotType":"category","category":"rental","title":"x","description":"d","url":"https://snowpan.kr","payMethod":"transfer","periodMonths":12}' "$U_TOKEN"; expect 400 "카테고리 배너 문의형 400"
 
 # ── 알림: 읽음/삭제 — 타인 알림 조작 불가
 pq "INSERT INTO notifications (id, \"userId\", type, title, message, read, \"createdAt\") VALUES (gen_random_uuid(), '$U_ID', 'system', 'E2E알림', 'm', false, now()), (gen_random_uuid(), '$A_ID', 'system', 'E2E관리자알림', 'm', false, now())" >/dev/null

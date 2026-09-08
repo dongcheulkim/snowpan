@@ -199,6 +199,9 @@ const PERIOD_DAYS: Record<number, number> = { 12: 360 };
 // 광고는 12개월(1년) 단일 상품 — 가격은 월 단가(pricePerDay 컬럼을 월 단가로 사용) × 12
 const PERIOD_DISCOUNT: Record<number, number> = { 12: 0 };
 
+// 문의형 슬롯 — 일반 사용자는 신청 불가(관리자 대리 등록만)
+const INQUIRY_ONLY_SLOTS = ['main_banner', 'category'];
+
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -227,6 +230,12 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
 
     if (!slotType || !startDate || !endDate) {
       res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' });
+      return;
+    }
+    // 메인 배너·카테고리 배너는 가격 비공개 문의형 (사용자 결정 2026-09-09): 고객센터 문의 → 전화 협의 → 관리자가 대신 등록·승인.
+    // 셀프 신청(가격 표시·무통장)은 프리미엄 노출만. 대형 계약은 카드 결제 PG 없이도 계좌이체·세금계산서로 처리.
+    if (INQUIRY_ONLY_SLOTS.includes(String(slotType)) && req.user!.role !== 'admin') {
+      res.status(400).json({ error: '메인 배너와 카테고리 배너는 고객센터 문의로 진행합니다. 담당자가 연락드려 안내합니다.' });
       return;
     }
     // update 와 동일한 방어층 — sanitize·길이 제한·이미지 화이트리스트·색상/정렬 enum.

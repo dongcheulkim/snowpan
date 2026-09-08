@@ -109,9 +109,10 @@ RIP=$(pq "SELECT \"isPremium\" FROM rentals WHERE id='$RID';")
 [ "$RIP" = "f" ] && ok "렌탈 프리미엄 취소 해제" || bad "취소 후 렌탈 isPremium=$RIP"
 
 # ---- 배너(메인) 광고 신청 → 입금 확인 승인 → 공개 배너 생성 ----
-api POST /ad-booking/create "{\"slotType\":\"main_banner\",\"title\":\"E2E배너\",\"description\":\"테스트\",\"url\":\"https://snowpan.kr\",\"payMethod\":\"transfer\",\"periodMonths\":12,\"desiredStart\":\"$TODAY\"}" "$SELLER_TOKEN"
+# 메인 배너는 문의형 — 관리자가 전화 협의 후 대리 등록
+api POST /ad-booking/create "{\"slotType\":\"main_banner\",\"title\":\"E2E배너\",\"description\":\"테스트\",\"url\":\"https://snowpan.kr\",\"payMethod\":\"transfer\",\"periodMonths\":12,\"desiredStart\":\"$TODAY\"}" "$ADMIN_TOKEN"
 BK2=$(echo "$RESP" | jq -r '.bookingId // .booking.id // .id // empty')
-[ "$CODE" = "201" ] && [ -n "$BK2" ] && ok "메인 배너 신청 (201)" || bad "배너 신청 CODE=$CODE RESP=$(echo $RESP|head -c 150)"
+[ "$CODE" = "201" ] && [ -n "$BK2" ] && ok "메인 배너 관리자 대리 등록 (201)" || bad "배너 신청 CODE=$CODE RESP=$(echo $RESP|head -c 150)"
 api POST "/ad-booking/admin/bookings/$BK2/approve" "{}" "$ADMIN_TOKEN"
 [ "$CODE" = "200" ] && ok "입금 확인 승인 (200)" || bad "입금 승인 CODE=$CODE RESP=$(echo $RESP|head -c 150)"
 BN=$(pq "SELECT count(*) FROM banners WHERE tag='ad:$BK2';")
