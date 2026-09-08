@@ -96,7 +96,7 @@ export default function AdBooking() {
   const isAdmin = getUser()?.role === 'admin'; // 관리자는 전화 협의한 광고를 대신 등록
   // 초대 링크 모드 — 관리자가 상담 후 만든 조건(자리·기간·금액)이 정해져 있고 광고주는 소재만 작성 (사용자 결정 2026-09-09)
   const { token } = useParams<{ token: string }>();
-  interface InviteInfo { id: string; slotType: string; category: string; periodMonths: number; startDate: string | null; price: number; advertiser: string | null; expiresAt: string }
+  interface InviteInfo { id: string; slotType: string; category: string; periodMonths: number; startDate: string | null; price: number; advertiser: string | null; plan?: string | null; expiresAt: string }
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [inviteError, setInviteError] = useState('');
   const [step, setStep] = useState(1);
@@ -366,7 +366,7 @@ export default function AdBooking() {
           {invite.advertiser && <p>광고주: <b>{invite.advertiser}</b></p>}
           <p>자리: <b>{SLOT_LABELS[invite.slotType]}{invite.category !== 'none' ? ` · ${CATEGORY_LABELS[invite.category] || invite.category}` : ''}</b></p>
           <p>기간: <b>{invite.periodMonths}개월</b>{invite.startDate ? ` · ${formatDate(invite.startDate)} 시작` : ' · 입금 확인 즉시 시작'}</p>
-          <p>금액: <b>{formatPrice(invite.price)}원</b>{invite.price === 0 ? ' (무료 게재)' : ''}</p>
+          <p>결제: <b>{invite.plan ? `${invite.plan} ` : ''}{formatPrice(invite.price)}원</b>{invite.price === 0 ? ' (무료 게재)' : ''}</p>
           <p className="text-[11px] text-gray-500">아래에서 광고에 들어갈 문구와 이미지만 작성하면 됩니다. 조건 변경은 고객센터로 알려 주세요.</p>
         </div>
       )}

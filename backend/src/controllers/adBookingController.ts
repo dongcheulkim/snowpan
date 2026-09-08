@@ -204,7 +204,7 @@ const INQUIRY_ONLY_SLOTS = ['main_banner', 'category'];
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type AdInviteRow = { id: string; slotType: string; category: string; periodMonths: number; startDate: Date | null; price: number };
+type AdInviteRow = { id: string; slotType: string; category: string; periodMonths: number; startDate: Date | null; price: number; plan?: string | null };
 
 // 초대 링크로 들어온 광고주는 자리·기간·금액이 이미 정해져 있음 — 소재만 받고 나머지는 초대 조건으로 채운다.
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => createBookingWith(req, res);
@@ -496,29 +496,32 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
         const holder = process.env.AD_DEPOSIT_HOLDER;
         const fmt = (d: Date) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
         const accountBlock = (bank && account && holder)
-          ? `[입금 계좌]\n  • 은행: ${bank}\n  • 계좌: ${account}\n  • 예금주: ${holder}`
-          : `입금 계좌는 곧 안내드리겠습니다.`;
-        const applicantBlock = applicant
-          ? `[신청자 정보]\n` +
-            `  • 성함: ${applicant.name || '-'}${applicant.nickname ? ` (${applicant.nickname})` : ''}\n` +
-            `  • 연락처: ${applicant.phone || '-'}\n` +
-            `  • 이메일: ${applicant.email || '-'}\n` +
-            `\n`
-          : '';
+          ? `[입금 계좌]\n· ${bank} ${account} (예금주 ${holder})`
+          : `입금 계좌는 곧 안내드릴게요.`;
+        // 토스 말투로 — 광고주가 받는 첫 메시지. 초대 링크(협의 조건)면 결제 방식까지 같이 적는다 (사용자 요청 2026-09-09)
+        const SLOT_KR: Record<string, string> = { main_banner: '메인 배너', category: '카테고리 배너', premium: '프리미엄 노출' };
+        const CAT_KR: Record<string, string> = { used: '중고거래', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소', skishop: '스키·보드샵', repair: '정비샵', community: '커뮤니티', overseas: '해외 여행' };
+        const slotLine = `${SLOT_KR[slotType] || slotType}${category && category !== 'none' ? ` · ${CAT_KR[category] || category}` : ''}`;
+        const monthsLine = invite ? `${invite.periodMonths}개월` : `${months}개월`;
+        const payLine = invite?.plan
+          ? `${invite.plan} ${booking.totalPrice.toLocaleString()}원`
+          : `${booking.totalPrice.toLocaleString()}원`;
+        const applicantLine = applicant ? `신청자 ${applicant.name || '-'}${applicant.phone ? ` · ${applicant.phone}` : ''}` : '';
         const depositMsg =
-          `광고 신청이 접수되었습니다.\n` +
+          `광고 소재가 접수됐어요. 확인하고 바로 안내드릴게요.\n` +
           `\n` +
-          `[신청 내역]\n` +
-          `  • 광고: ${title || '(이미지 광고)'}\n` +
-          `  • 기간: ${fmt(new Date(startDate))} ~ ${fmt(new Date(endDate))} (${booking.totalDays}일)\n` +
-          `  • 금액: ${booking.totalPrice.toLocaleString()}원\n` +
-          `  • 예약번호: ${booking.id.slice(0, 8)}\n` +
+          `[광고 내용]\n` +
+          `· 자리: ${slotLine}\n` +
+          `· 광고: ${title || '(이미지 광고)'}\n` +
+          `· 기간: ${fmt(new Date(startDate))} ~ ${fmt(new Date(endDate))} (${monthsLine})\n` +
+          `· 결제: ${payLine}\n` +
+          (applicantLine ? `· ${applicantLine}\n` : '') +
           `\n` +
-          applicantBlock +
           `${accountBlock}\n` +
           `\n` +
-          `입금자명을 신청자 성함으로 해주시면 빠른 확인이 가능합니다.\n` +
-          `입금 확인 후 관리자가 승인하면 광고가 노출됩니다. 문의는 이 채팅방으로 주세요.`;
+          `입금자명은 신청하신 분 성함으로 해 주세요. 입금이 확인되면 광고가 바로 올라가요.\n` +
+          `세금계산서가 필요하면 사업자등록번호와 받을 이메일을 이 채팅방에 남겨 주세요.\n` +
+          `궁금한 점은 여기에 바로 물어보시면 돼요. (예약번호 ${booking.id.slice(0, 8)})`;
 
         await prisma.message.create({
           data: { roomId: room.id, senderId: admin.id, content: depositMsg, type: 'text' },
@@ -1179,7 +1182,7 @@ const inviteLink = (id: string) => `${process.env.FRONTEND_URL || 'https://snowp
 
 export const adminCreateInvite = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { slotType, category, periodMonths, startDate, price, advertiser, note, expiresDays } = req.body || {};
+    const { slotType, category, periodMonths, startDate, price, advertiser, note, expiresDays, plan } = req.body || {};
     if (!INVITE_SLOTS.includes(String(slotType))) { res.status(400).json({ error: '광고 자리를 선택하세요.' }); return; }
     const cat = slotType === 'main_banner' ? 'none' : String(category || '');
     if (slotType !== 'main_banner' && !cat) { res.status(400).json({ error: '카테고리를 선택하세요.' }); return; }
@@ -1201,7 +1204,7 @@ export const adminCreateInvite = async (req: AuthRequest, res: Response): Promis
     const invite = await prisma.adInvite.create({
       data: {
         slotType: String(slotType), category: cat, periodMonths: months, startDate: start, price: Math.round(p),
-        advertiser: sanitizeText(advertiser, 60) || null, note: sanitizeText(note, 300) || null,
+        advertiser: sanitizeText(advertiser, 60) || null, note: sanitizeText(note, 300) || null, plan: sanitizeText(plan, 30) || null,
         createdById: req.user!.id, expiresAt: new Date(Date.now() + days * 86400000),
       },
     });
@@ -1258,7 +1261,7 @@ export const getInvite = async (req: AuthRequest, res: Response): Promise<void> 
   try {
     const inv = await loadLiveInvite(String(req.params.token), res);
     if (!inv) return;
-    const full = await prisma.adInvite.findUnique({ where: { id: inv.id }, select: { id: true, slotType: true, category: true, periodMonths: true, startDate: true, price: true, advertiser: true, expiresAt: true } });
+    const full = await prisma.adInvite.findUnique({ where: { id: inv.id }, select: { id: true, slotType: true, category: true, periodMonths: true, startDate: true, price: true, advertiser: true, plan: true, expiresAt: true } });
     res.json(full);
   } catch (error) {
     console.error('Get ad invite error:', error);

@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
 import { toastError, toastSuccess } from './Toast';
-import { SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
+import { SLOT_LABELS, AD_CATEGORY_LABELS, AD_PLAN_PRESETS } from '../utils/adLabels';
 
 interface Invite {
   id: string; slotType: string; category: string; periodMonths: number; startDate: string | null; price: number;
-  advertiser: string | null; note: string | null; status: string; effectiveStatus: string; expiresAt: string; createdAt: string; link: string;
+  advertiser: string | null; plan: string | null; note: string | null; status: string; effectiveStatus: string; expiresAt: string; createdAt: string; link: string;
   booking: { id: string; status: string; title: string } | null;
 }
 
@@ -21,6 +21,7 @@ export default function AdInvitePanel() {
   const [months, setMonths] = useState(12);
   const [startDate, setStartDate] = useState('');
   const [price, setPrice] = useState('');
+  const [plan, setPlan] = useState(''); // 결제 방식 라벨 (프리셋 누르면 채워짐, 직접 바꿔도 됨)
   const [advertiser, setAdvertiser] = useState('');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
@@ -41,9 +42,9 @@ export default function AdInvitePanel() {
     try {
       const inv = await api<Invite>('/ad-booking/admin/invites', {
         method: 'POST',
-        body: { slotType, category: slotType === 'main_banner' ? 'none' : category, periodMonths: months, startDate: startDate || undefined, price: p, advertiser: advertiser || undefined, note: note || undefined },
+        body: { slotType, category: slotType === 'main_banner' ? 'none' : category, periodMonths: months, startDate: startDate || undefined, price: p, plan: plan || undefined, advertiser: advertiser || undefined, note: note || undefined },
       });
-      setLastLink(inv.link); await copy(inv.link); setPrice(''); setAdvertiser(''); setNote(''); load();
+      setLastLink(inv.link); await copy(inv.link); setPrice(''); setPlan(''); setAdvertiser(''); setNote(''); load();
     } catch (e) { toastError(e instanceof Error ? e.message : '초대 링크를 만들지 못했습니다.'); }
     finally { setBusy(false); }
   };
@@ -62,6 +63,19 @@ export default function AdInvitePanel() {
         <div>
           <p className="text-sm font-bold text-gray-900">초대 링크 만들기</p>
           <p className="text-[11px] text-gray-500 mt-0.5">전화·채팅으로 정한 조건을 넣고 만들면 링크가 복사됩니다. 광고주에게 보내면 그 링크에서 광고 문구·이미지만 작성합니다.</p>
+        </div>
+        {/* 공식 요금 프리셋 — 누르면 기간·금액·결제 방식이 채워진다. 협의 금액이 다르면 아래에서 고쳐도 됨 */}
+        <div className="flex flex-wrap gap-1.5">
+          {(AD_PLAN_PRESETS[slotType] || []).map((pl) => (
+            <button
+              key={pl.key}
+              type="button"
+              onClick={() => { setMonths(pl.months); setPrice(String(pl.price)); setPlan(pl.label); }}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${plan === pl.label && price === String(pl.price) ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200'}`}
+            >
+              {pl.label} {pl.price.toLocaleString()}원{pl.note ? ` (${pl.note})` : ''}
+            </button>
+          ))}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <label className="text-xs text-gray-600">광고 자리
@@ -82,6 +96,9 @@ export default function AdInvitePanel() {
           </label>
           <label className="text-xs text-gray-600">협의 금액(원)
             <input inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="예: 6000000 (무료면 0)" className={input + ' mt-1'} />
+          </label>
+          <label className="text-xs text-gray-600">결제 방식
+            <input value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="예: 현금 일시불" className={input + ' mt-1'} />
           </label>
           <label className="text-xs text-gray-600">광고주 상호·담당자
             <input value={advertiser} onChange={(e) => setAdvertiser(e.target.value)} placeholder="예: 메가폰 렌탈 김사장" className={input + ' mt-1'} />
@@ -108,7 +125,7 @@ export default function AdInvitePanel() {
               <span className="text-[11px] text-gray-500">{SLOT_LABELS[inv.slotType]}{inv.category !== 'none' ? ` · ${AD_CATEGORY_LABELS[inv.category] || inv.category}` : ''}</span>
             </div>
             <p className="text-[11px] text-gray-500 tabular-nums">
-              {inv.periodMonths}개월 · {inv.startDate ? inv.startDate.slice(0, 10) + ' 시작' : '입금 확인 즉시'} · {inv.price.toLocaleString()}원 · 기한 {inv.expiresAt.slice(0, 10)}
+              {inv.periodMonths}개월 · {inv.startDate ? inv.startDate.slice(0, 10) + ' 시작' : '입금 확인 즉시'} · {inv.plan ? `${inv.plan} ` : ''}{inv.price.toLocaleString()}원 · 기한 {inv.expiresAt.slice(0, 10)}
               {inv.note ? ` · ${inv.note}` : ''}
             </p>
             {inv.booking && <p className="text-[11px] text-gray-700">접수된 광고: {inv.booking.title || '(이미지 광고)'} · {inv.booking.status}</p>}

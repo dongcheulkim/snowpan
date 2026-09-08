@@ -714,6 +714,7 @@ model AdInvite {
   startDate    DateTime? // null = 입금 확인 즉시
   price        Int       // 협의 금액(원), 0 가능(무료 게재)
   advertiser   String?   // 광고주 상호·담당자 (관리자 메모, 광고주에게도 표시)
+  plan         String?   // 결제 방식 라벨 (월결제 / 일시불 / 현금 일시불) — 안내 메시지·요약에 표시
   note         String?   // 관리자 메모
   status       String    @default("sent") // 'sent' | 'used' | 'cancelled'
   bookingId    String?
