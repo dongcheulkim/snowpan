@@ -250,7 +250,8 @@ const Home = () => {
 
   // snow: 브랜드 1 + 광고 N + 광고모집 1 (상시 회전). 다른 판: 브랜드 슬라이드만.
   // snow: 브랜드 소개 슬라이드 제거(요청) — 광고 N + 모집 1. 다른 버티컬은 소개 1장 유지.
-  const totalSlides = isSnow ? banners.length + 1 : 1;
+  // snow: [베타 안내] + 광고 N + [광고 모집]
+  const totalSlides = isSnow ? banners.length + 2 : 1;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
@@ -306,9 +307,36 @@ const Home = () => {
             </div>
           )}
 
-          {/* Slide #0~N-1: 광고 */}
+          {/* Slide #0 (snow): 베타 안내 — 사용자 요청. 승인 전 매장 정보·앱 준비 중임을 알리고 고객센터로 유도 */}
+          {isSnow && (() => {
+            const inactive = currentBanner !== 0;
+            return (
+              <Link
+                to="/mypage/support"
+                aria-hidden={inactive}
+                tabIndex={inactive ? -1 : 0}
+                className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out cursor-pointer ${
+                  currentBanner === 0 ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+                }`}
+                style={{ backgroundColor: '#ffffff' }}
+              >
+                <div className="relative z-10">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1.5">BETA</p>
+                  <p className="text-xl font-bold text-gray-900 leading-snug">지금은 베타 기간입니다</p>
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                    26/27 시즌을 앞두고 리조트별 매장 정보와 기능을 계속 채우고 있습니다.<br />
+                    잘못된 정보나 불편한 점은 고객센터 채팅으로 알려 주세요.<br />
+                    안드로이드 앱은 심사 중이고 iOS 앱도 준비하고 있습니다.
+                  </p>
+                  <span className="inline-block mt-3.5 px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">고객센터에 알려주기 →</span>
+                </div>
+              </Link>
+            );
+          })()}
+
+          {/* Slide #1~N: 광고 (snow 는 베타 안내 뒤) */}
           {banners.map((banner, idx) => {
-            const slideIdx = idx;
+            const slideIdx = isSnow ? idx + 1 : idx;
             const inactive = slideIdx !== currentBanner;
             return (
               <a
@@ -358,7 +386,7 @@ const Home = () => {
 
           {/* 마지막 슬라이드: 광고 모집 (snow 전용, 상시) — 눌리면 광고 신청으로 */}
           {isSnow && (() => {
-            const slideIdx = banners.length;
+            const slideIdx = banners.length + 1;
             const inactive = slideIdx !== currentBanner;
             return (
               <Link
