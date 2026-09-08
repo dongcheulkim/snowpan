@@ -111,18 +111,27 @@ const Advertise = () => {
       {/* 결제 · 환불 */}
       <section className="card p-5 text-xs text-gray-500 leading-relaxed space-y-1.5">
         <h2 className="text-sm font-bold text-gray-900 mb-1">결제 · 환불 안내</h2>
-        <p>· 광고 신청 후 안내되는 방법으로 결제하면 검수를 거쳐 게시됩니다.</p>
-        <p>· 광고는 12개월(1년) 계약입니다. 게시 시작 후에는 중도 해지·환불이 되지 않으니 신중히 신청해 주세요. (결제 전 신청 건은 취소 가능)</p>
-        <p>· 문의: <a href="mailto:info@snowpan.kr" className="text-sky-600 hover:underline">info@snowpan.kr</a></p>
+        <p>· 프리미엄 노출은 신청 후 안내되는 계좌로 입금하면 검수를 거쳐 게시됩니다.</p>
+        <p>· 메인 배너·카테고리 배너는 고객센터 문의 후 담당자가 전화로 기간과 금액을 안내하고, 계좌이체와 세금계산서로 진행합니다.</p>
+        <p>· 광고는 12개월(1년) 계약입니다. 게시 시작 후에는 중도 해지·환불이 되지 않으니 신중히 결정해 주세요. (입금 전 신청 건은 취소 가능)</p>
+        <p>· 문의: 고객센터 채팅 또는 <a href="mailto:info@snowpan.kr" className="text-sky-600 hover:underline">info@snowpan.kr</a></p>
       </section>
 
-      {/* CTA */}
-      <Link
-        to="/ad-booking"
-        className="block w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm text-center hover:bg-accent-light transition-colors active:scale-[0.98]"
-      >
-        광고 신청하기
-      </Link>
+      {/* CTA — 프리미엄은 셀프 신청, 배너는 문의 */}
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          to="/mypage/support"
+          className="block w-full py-3.5 bg-accent text-white rounded-lg font-bold text-sm text-center hover:bg-accent-light transition-colors active:scale-[0.98]"
+        >
+          배너 광고 문의하기
+        </Link>
+        <Link
+          to="/ad-booking"
+          className="block w-full py-3.5 bg-white border border-gray-200 text-gray-800 rounded-lg font-bold text-sm text-center hover:bg-gray-50 transition-colors active:scale-[0.98]"
+        >
+          프리미엄 노출 신청
+        </Link>
+      </div>
       <p className="text-center text-[11px] text-gray-400 pb-2">신청은 로그인 후 진행됩니다.</p>
       <section className="card p-5 text-center">
         <p className="text-sm font-bold text-gray-900">매장 사장님이신가요?</p>
