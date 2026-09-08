@@ -61,7 +61,6 @@ const Chat = () => {
   const [otherProfileImage, setOtherProfileImage] = useState<string | null>(null);
   const [otherId, setOtherId] = useState<string | null>(null);
   const [supportAdminIds, setSupportAdminIds] = useState<string[]>([]);
-  const [guideOpen, setGuideOpen] = useState(true); // 고객센터 안내 메뉴 — 접어도 아래 버튼으로 다시 연다
   const [inviteOpen, setInviteOpen] = useState(false); // 관리자: 고객센터 상담 후 광고 소재 작성 링크 발급 모달
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
@@ -456,6 +455,17 @@ const Chat = () => {
         )}
       </header>
 
+      {/* 고객센터 안내 메뉴 — 스크롤 영역 밖(헤더 바로 아래)에 두어 대화가 길어져도 항상 위에 떠 있다. 손님만 본다 */}
+      {isAdminChat && user?.role !== 'admin' && (
+        <ChatBotGuide
+          onSelect={(cat, sub) => {
+            if (socketRef.current && roomId && connected) {
+              socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
+            }
+          }}
+        />
+      )}
+
       {/* Messages scroll area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
@@ -466,18 +476,6 @@ const Chat = () => {
               안전거래 — 직거래·에스크로 권장
             </span>
           </div>
-
-          {/* 고객센터 안내 메뉴 — 처음엔 펼쳐지고, 고른 뒤엔 접히지만 입력창 위 "도움말 메뉴" 버튼으로 언제든 다시 열어 계속 물어볼 수 있다 */}
-          {isAdminChat && user?.role !== 'admin' && guideOpen && (
-            <ChatBotGuide
-              onSelect={(cat, sub) => {
-                if (socketRef.current && roomId && connected) {
-                  socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
-                }
-              }}
-              onClose={() => setGuideOpen(false)}
-            />
-          )}
 
           {/* 빈 상태 — 실제 대화 없을 때(상품문의 카드만 있어도) 친근한 안내 + 빠른 답장. 로드 후에만 표시(깜빡임 방지) */}
           {!isAdminChat && messagesLoaded && messages.every(m => m.type === 'product_inquiry' || m.type === 'system') && (
@@ -687,9 +685,6 @@ const Chat = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
               )}
             </button>
-            {isAdminChat && user?.role !== 'admin' && !guideOpen && (
-              <button type="button" onClick={() => setGuideOpen(true)} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold whitespace-nowrap">도움말 메뉴</button>
-            )}
             <textarea
               ref={textareaRef}
               value={input}

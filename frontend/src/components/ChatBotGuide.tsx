@@ -2,9 +2,12 @@ import { useState, type ComponentType } from 'react';
 import { AlertIcon, BotIcon, ChatIcon, MegaphoneIcon, UserIcon } from './Icons';
 import { SecondHandIcon, SkiShopIcon } from './CategoryIcons';
 
+// 고객센터 채팅 상단 고정 안내 메뉴 — 메시지 영역 위에 항상 떠 있어(스크롤해도 그대로) 손님이 언제든 다시 눌러 물어볼 수 있다.
+// 세부 항목을 고르면 "[문의] 카테고리 > 세부" 메시지가 나가고 메뉴는 첫 화면으로 돌아온다(계속 펼쳐진 채).
+// 화면이 좁을 때를 위해 접기 버튼만 두고, 접어도 "어떤 도움이 필요하신가요?" 줄은 남는다.
+
 interface Props {
   onSelect: (category: string, sub: string) => void;
-  onClose?: () => void; // 고정 메뉴 모드: 선택 후 부모가 접는다
 }
 
 type IconComp = ComponentType<{ size?: number; className?: string }>;
@@ -18,69 +21,71 @@ const categories: Record<string, { label: string; Icon: IconComp; subs: string[]
   other:    { label: '기타',         Icon: ChatIcon,       subs: ['제휴/협력', '기타 문의'] },
 };
 
-export default function ChatBotGuide({ onSelect, onClose }: Props) {
-  const [step, setStep] = useState<'main' | 'sub'>('main');
-  const [selectedCat, setSelectedCat] = useState('');
+export default function ChatBotGuide({ onSelect }: Props) {
+  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [open, setOpen] = useState(true);
+  const cat = selectedCat ? categories[selectedCat] : null;
 
   return (
-    <div className="mx-2 mb-3">
-      {step === 'main' && (
-        <div className="bg-snow rounded-2xl border border-gray-200 p-4 animate-fade-in">
-          <div className="flex items-center gap-2 mb-3">
-            <BotIcon size={18} className="text-gray-700" />
-            <span className="text-sm font-bold text-gray-900">어떤 도움이 필요하신가요?</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(categories).map(([key, cat]) => {
-              const { Icon } = cat;
+    <div className="flex-shrink-0 border-b border-gray-200 bg-snow/95 backdrop-blur">
+      <div className="max-w-2xl mx-auto px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => { if (cat) setSelectedCat(null); else setOpen(v => !v); }}
+            className="flex items-center gap-2 min-w-0"
+            aria-expanded={open}
+          >
+            <BotIcon size={16} className="text-gray-700 flex-shrink-0" />
+            {cat ? (
+              <span className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5 truncate"><cat.Icon size={14} /> {cat.label}</span>
+            ) : (
+              <span className="text-sm font-bold text-gray-900 truncate">어떤 도움이 필요하신가요?</span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => { if (cat) setSelectedCat(null); else setOpen(v => !v); }}
+            className="flex-shrink-0 text-[11px] text-gray-500 px-2 py-1"
+          >
+            {cat ? '뒤로' : open ? '접기' : '메뉴 열기'}
+          </button>
+        </div>
+
+        {open && !cat && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {Object.entries(categories).map(([key, c]) => {
+              const { Icon } = c;
               return (
                 <button
                   key={key}
-                  onClick={() => { setSelectedCat(key); setStep('sub'); }}
-                  className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl text-left transition-colors border border-gray-200"
+                  type="button"
+                  onClick={() => setSelectedCat(key)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 rounded-full text-xs font-medium text-gray-700 border border-gray-200 transition-colors"
                 >
-                  <Icon size={18} className="text-gray-700" />
-                  <span className="text-xs font-medium text-gray-700">{cat.label}</span>
+                  <Icon size={14} className="text-gray-700" />
+                  {c.label}
                 </button>
               );
             })}
           </div>
-        </div>
-      )}
+        )}
 
-      {step === 'sub' && selectedCat && (() => {
-        const { Icon, label } = categories[selectedCat];
-        return (
-          <div className="bg-snow rounded-2xl border border-gray-200 p-4 animate-fade-in">
-            <div className="flex items-center gap-2 mb-1">
-              <BotIcon size={18} className="text-gray-700" />
-              <span className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><Icon size={16} /> {label}</span>
-            </div>
-            <p className="text-[10px] text-gray-500 mb-3">세부 항목을 선택해주세요</p>
-            <div className="space-y-1.5">
-              {categories[selectedCat].subs.map(sub => (
-                <button
-                  key={sub}
-                  onClick={() => {
-                    onSelect(label, sub);
-                    setStep('main');
-                    onClose?.();
-                  }}
-                  className="w-full text-left px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors border border-gray-100"
-                >
-                  {sub}
-                </button>
-              ))}
+        {open && cat && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {cat.subs.map(sub => (
               <button
-                onClick={() => setStep('main')}
-                className="w-full text-left px-3 py-2 text-xs text-gray-500 hover:text-gray-600"
+                key={sub}
+                type="button"
+                onClick={() => { onSelect(cat.label, sub); setSelectedCat(null); }}
+                className="px-3 py-1.5 bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-700 rounded-full text-xs font-medium transition-colors"
               >
-                ← 뒤로
+                {sub}
               </button>
-            </div>
+            ))}
           </div>
-        );
-      })()}
+        )}
+      </div>
     </div>
   );
 }
