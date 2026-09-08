@@ -3,24 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-// 새 배포 후 옛 chunk 파일이 사라져 dynamic import 가 실패하면
-// 한 번에 한해 강제 새로고침 (무한루프 방지 위해 sessionStorage 가드).
-const CHUNK_ERR_RE = /(ChunkLoadError|Loading chunk [\w-]+ failed|Failed to fetch dynamically imported module|Importing a module script failed)/i;
-function handleStaleChunk(reason: unknown) {
-  const msg = String((reason as { message?: string })?.message ?? reason ?? '');
-  if (!CHUNK_ERR_RE.test(msg)) return false;
-  if (sessionStorage.getItem('chunkReloaded') === '1') return false; // 이미 시도함
-  sessionStorage.setItem('chunkReloaded', '1');
-  // SW 까지 정리해 새 빌드 보장
-  if ('caches' in window) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {});
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
-  }
-  setTimeout(() => window.location.reload(), 50);
-  return true;
-}
-window.addEventListener('error', e => { handleStaleChunk(e.error || e.message); });
-window.addEventListener('unhandledrejection', e => { handleStaleChunk(e.reason); });
+// 새 배포 후 옛 chunk 파일이 사라져 dynamic import 가 실패하면 캐시·SW 를 비우고 새로고침 (utils/staleChunk.ts).
+// 같은 파일이 1분 안에 또 실패할 때만 포기 → 탭을 오래 열어 둔 채 배포가 여러 번 나가도 매번 복구된다.
+import { reloadForStaleChunk } from './utils/staleChunk';
+window.addEventListener('error', e => { reloadForStaleChunk(e.error || e.message); });
+window.addEventListener('unhandledrejection', e => { reloadForStaleChunk(e.reason); });
+// Vite 가 lazy 청크의 의존 청크(모듈 프리로드)를 못 받았을 때 — preventDefault 하면 에러를 던지지 않고 우리가 처리
+window.addEventListener('vite:preloadError', e => {
+  if (reloadForStaleChunk((e as { payload?: Error }).payload ?? 'Failed to fetch dynamically imported module')) e.preventDefault();
+});
 
 // 오래된 캐시 강제 삭제 (API + workbox precache 둘 다).
 // 과거 배포에 섞여 stale 로고 chunk 가 서빙되는 버그 방지.
