@@ -842,10 +842,10 @@ function resolveApprovedDates(booking: { startDate: Date; totalDays: number }, s
     const d = parseKstDate(startDateOverride);
     if (!d) return null;
     start = d;
-  } else if (new Date(booking.startDate) > new Date()) {
-    start = new Date(booking.startDate); // 광고주(초대 조건)가 정한 미래 시작일은 유지
   } else {
-    start = new Date(); // 날짜 없음 → 지금 바로
+    // 날짜 없음 → 지금 바로. 예약에 적힌 희망 시작일이 미래여도 관리자가 승인 창에 날짜를 안 적으면 즉시 시작
+    // (사용자 규칙: "비우면 지금, 적으면 그 날". 미래 시작을 원하면 승인 창에 날짜를 적는다)
+    start = new Date();
   }
   // 과거 시작일 지정은 거부 (광고 백데이트 방지) — 오늘(KST) 00:00 이전이면 무효.
   if (startDateOverride && start < kstDayStart()) return null;
