@@ -116,6 +116,13 @@ function fail(res: Response, msg: string, isApp = false): void {
 }
 
 // ===== 카카오 =====
+// 소셜 프로필 사진 URL 정리 — 카카오가 http 로 주는 경우가 있는데, https 사이트·앱에서 mixed-content 로 차단돼
+// 프로필이 깨져 보인다(2026-09-09 사용자 신고). 저장 시점에 https 로 올려 둔다.
+function httpsProfile(url?: string | null): string | null {
+  if (!url) return null;
+  return url.startsWith('http://') ? 'https://' + url.slice('http://'.length) : url;
+}
+
 export function kakaoConfigured() { return Boolean(process.env.KAKAO_CLIENT_ID); }
 
 export const kakaoStart = (req: Request, res: Response): void => {
@@ -171,7 +178,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
       email: me.kakao_account?.email || null,
       emailVerified: me.kakao_account?.is_email_verified === true,
       name: me.kakao_account?.profile?.nickname || null,
-      profileImage: me.kakao_account?.profile?.profile_image_url || null,
+      profileImage: httpsProfile(me.kakao_account?.profile?.profile_image_url),
     }, isApp);
   } catch (err) {
     console.error('카카오 콜백 에러:', err);
@@ -221,7 +228,7 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
       email: r.email || null,
       emailVerified: !!r.email, // 네이버 로그인 이메일은 인증된 값
       name: r.name || r.nickname || null,
-      profileImage: r.profile_image || null,
+      profileImage: httpsProfile(r.profile_image),
     }, isApp);
   } catch (err) {
     console.error('네이버 콜백 에러:', err);

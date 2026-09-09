@@ -599,6 +599,12 @@ httpServer.listen(PORT, async () => {
   seedOverseas().catch((err) => console.error('해외 시드 실패:', err));
   seedWebcams().catch((err) => console.error('웹캠 시드 실패:', err));
 
+  // 옛 소셜 프로필 사진 URL 정리 — 카카오가 http 로 준 주소는 https 페이지·앱에서 차단돼 프로필이 깨진다.
+  // 저장 시점(socialAuthController)에서 이미 https 로 바꾸지만, 그 전에 가입한 계정은 여기서 한 번 올려 준다(멱등).
+  prisma.$executeRawUnsafe(`UPDATE users SET "profileImage" = 'https://' || substring("profileImage" from 8) WHERE "profileImage" LIKE 'http://%'`)
+    .then((n) => { if (n) console.log(`🖼️  프로필 사진 URL https 로 정리: ${n}건`); })
+    .catch((err) => console.error('프로필 URL 정리 실패:', err));
+
   try {
     startAdBookingScheduler();
   } catch (err) {
