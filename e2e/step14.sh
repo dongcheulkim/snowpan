@@ -349,4 +349,22 @@ api PUT /admin/instagram/token '{"token":"short"}' "$A_TOKEN"; expect 400 "짧�
 api PUT /admin/instagram/token '{"token":"x"}' "$U_TOKEN"; expect 403 "일반유저 토큰 저장 403"
 api DELETE /admin/instagram "" "$U_TOKEN"; expect 403 "일반유저 인스타 해제 403"
 
+# ── 업로드 MIME: 이름·선언은 webp 인데 실제는 PNG 인 파일도 통과해야 함 (2026-09-09 사용자 신고 — 일부 기기가 WebP 인코딩을 못 해 PNG 를 .webp 로 보냄)
+TMPD=$(mktemp -d)
+python3 -c "
+import struct, zlib, sys
+def chunk(t,d):
+    c=t+d; return struct.pack('>I',len(d))+c+struct.pack('>I',zlib.crc32(c)&0xffffffff)
+png=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',1,1,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(b'\x00\xff\xff\xff'))+chunk(b'IEND',b'')
+open('$TMPD/IMG_2326.webp','wb').write(png)
+open('$TMPD/fake.png','wb').write(b'not an image at all, just text')
+"
+UP=$(curl -s -m 30 -w $'\n%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H "Authorization: Bearer $U_TOKEN" -F "images=@$TMPD/IMG_2326.webp;type=image/webp" "$BASE/upload")
+UC=$(printf '%s' "$UP" | tail -n1); UB=$(printf '%s' "$UP" | sed '$d')
+echo "$UB" | grep -q "형식이 일치하지 않습니다" && bad "PNG 를 .webp 로 보내면 거절됨 (회귀)" || ok "선언 webp·실제 PNG 업로드 통과 (CODE=$UC)"
+UP2=$(curl -s -m 30 -w $'\n%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H "Authorization: Bearer $U_TOKEN" -F "images=@$TMPD/fake.png;type=image/png" "$BASE/upload")
+UC2=$(printf '%s' "$UP2" | tail -n1); UB2=$(printf '%s' "$UP2" | sed '$d')
+[ "$UC2" = "400" ] && echo "$UB2" | grep -q "지원하지 않는 파일 형식" && ok "이미지가 아닌 파일은 400 거절" || bad "가짜 이미지 CODE=$UC2 $(echo $UB2|head -c 80)"
+rm -rf "$TMPD"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

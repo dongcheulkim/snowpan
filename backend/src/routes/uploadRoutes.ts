@@ -117,13 +117,9 @@ router.post('/', uploadLimitPerMin, uploadLimitPerHour, uploadImages, async (req
       res.status(400).json({ error: `${file.originalname}: 지원하지 않는 파일 형식입니다.` });
       return;
     }
-    // 선언 mimetype 이 비어있거나(안드로이드 일부) heic 계열이면 실제 감지값을 채택
-    const declared = file.mimetype;
-    const laxDeclared = !declared || declared === 'application/octet-stream' || declared === 'image/heif';
-    if (!laxDeclared && declared !== detected && !(declared === 'image/heic' && detected === 'image/heic')) {
-      res.status(400).json({ error: `${file.originalname}: 파일 형식이 일치하지 않습니다 (선언: ${declared}, 실제: ${detected}).` });
-      return;
-    }
+    // 선언 mimetype 은 클라이언트가 준 값이라 신뢰하지 않고, 매직바이트로 감지한 형식을 그대로 쓴다.
+    // (예전엔 선언과 실제가 다르면 거절했는데, 브라우저가 WebP 인코딩을 못 해 PNG 를 .webp 이름으로 보내는
+    //  기기에서 정상 사진이 막혔다 — 2026-09-09 사용자 신고. 감지된 형식이 허용 목록이면 그것으로 저장한다.)
     file.mimetype = detected;
   }
 

@@ -395,14 +395,16 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
       // WebP 우선 (Safari 14+, Chrome/Firefox 지원 광범위). PNG 는 알파채널 보존 위해 유지.
       // Cloudinary 가 서빙 시 다시 AVIF 로 재변환할 수도 있지만 업로드 시점 대역폭은 이걸로 이미 절감.
       const outputType = file.type === 'image/png' ? 'image/png' : 'image/webp';
-      const ext = outputType === 'image/png' ? '.png' : '.webp';
       // 확장자 교체 — .jpg/.jpeg → .webp
       const nameBase = file.name.replace(/\.(jpe?g|png|webp|avif|heic|heif)$/i, '');
-      const finalName = `${nameBase}${ext}`;
       canvas.toBlob(
         (blob) => {
           if (!blob) { resolve(file); return; }
-          const compressed = new File([blob], finalName, { type: outputType, lastModified: Date.now() });
+          // 브라우저가 WebP 인코딩을 못 하면 조용히 PNG 를 돌려준다(일부 iOS). 이름만 .webp 로 붙으면
+          // 서버 매직바이트 검사와 어긋나 업로드가 막혔음 → 실제 blob.type 기준으로 이름·타입을 다시 맞춘다.
+          const realType = blob.type || outputType;
+          const realExt = realType === 'image/png' ? '.png' : realType === 'image/jpeg' ? '.jpg' : '.webp';
+          const compressed = new File([blob], `${nameBase}${realExt}`, { type: realType, lastModified: Date.now() });
           resolve(compressed);
         },
         outputType,
