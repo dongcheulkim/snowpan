@@ -12,17 +12,18 @@ interface Props {
   children: ReactNode;
   autoScrollMs?: number;
   drag?: boolean;
+  noArrows?: boolean; // 좌우 화살표 숨김 (자동 슬라이드·드래그로 넘기는 행)
 }
 
 const RESUME_DELAY = 4000; // 손 뗀 뒤 이만큼 있다가 자동 슬라이드 재개
 
-export default function HScroll({ className = '', children, autoScrollMs, drag }: Props) {
+export default function HScroll({ className = '', children, autoScrollMs, drag, noArrows }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [canL, setCanL] = useState(false);
   const [canR, setCanR] = useState(false);
 
   useEffect(() => {
-    if (!hasMouse) return;
+    if (!hasMouse || noArrows) return;
     const el = ref.current;
     if (!el) return;
     const update = () => {
@@ -37,7 +38,7 @@ export default function HScroll({ className = '', children, autoScrollMs, drag }
     const mo = new MutationObserver(update);
     mo.observe(el, { childList: true, subtree: true });
     return () => { el.removeEventListener('scroll', update); ro.disconnect(); mo.disconnect(); };
-  }, []);
+  }, [noArrows]);
 
   // ── 자동 슬라이드
   const pausedUntil = useRef(0);
@@ -121,7 +122,7 @@ export default function HScroll({ className = '', children, autoScrollMs, drag }
 
   const dragCls = drag && hasMouse ? ' cursor-grab active:cursor-grabbing select-none' : '';
 
-  if (!hasMouse) return <div ref={ref} className={className}>{children}</div>;
+  if (!hasMouse || noArrows) return <div ref={ref} className={className + dragCls}>{children}</div>;
 
   const nudge = (dir: -1 | 1) => {
     pause();
