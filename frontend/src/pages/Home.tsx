@@ -486,8 +486,11 @@ const Home = () => {
                   onClick={() => openExternal(m.href)}
                   className="card overflow-hidden flex-shrink-0 w-[74%] max-w-[300px] snap-start active:bg-gray-50 transition-colors text-left"
                 >
-                  <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
-                    <img src={m.thumb} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  {/* 인스타 사진은 정사각·세로·가로가 섞여 있어 자르지 않고 전부 보여준다 —
+                      남는 자리는 같은 사진을 흐리게 깔아 채움 (사용자 지적 2026-09-09 "사진이 다 안 보이잖아") */}
+                  <div className="aspect-square bg-gray-100 overflow-hidden relative">
+                    <img src={m.thumb} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-60" loading="lazy" />
+                    <img src={m.thumb} alt="" className="absolute inset-0 w-full h-full object-contain" loading="lazy" />
                     {m.video && (
                       <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/55 flex items-center justify-center">
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
