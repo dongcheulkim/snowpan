@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+const FILTER_DEFAULTS = { region: 'all', resort: 'all', type: 'all' };
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
@@ -35,14 +37,19 @@ const PAGE_SIZE = 12;
 
 const Accommodation = () => {
   const vertical = useVertical();
-  const [selectedResort, setSelectedResort] = useState<string>('all');
-  const [selectedType, setSelectedType] = useState<string>('all');
+  // 필터는 URL 쿼리(?region=&resort=&type=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+  const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
+  const selectedResort = filters.resort;
+  const selectedType = filters.type;
+  const selectedRegion = filters.region; // 대분류: 지역
+  const setSelectedType = (v: string) => setFilters({ type: v });
+  const setSelectedResort = (v: string) => setFilters({ resort: v });
+  const listHere = useListHere();
   const [accommodations, setAccommodations] = useState<AccommodationItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
-  const [selectedRegion, setSelectedRegion] = useState('all'); // 대분류: 지역
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
@@ -60,7 +67,7 @@ const Accommodation = () => {
 
   // 필터 변경 시 페이지 리셋
   useEffect(() => { setPage(1); }, [selectedRegion, selectedResort, selectedType]);
-  useEffect(() => { setSelectedResort('all'); }, [selectedRegion]);
+  // (지역을 바꾸면 리조트를 '전체'로 — 지역 칩 클릭 핸들러에서 함께 처리. 마운트 시 URL 의 리조트가 지워지지 않도록 이펙트로는 하지 않음)
 
   const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
@@ -107,7 +114,7 @@ const Accommodation = () => {
         {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
           <button
             key={rg}
-            onClick={() => { setSelectedRegion(rg); setSelectedResort('all'); }}
+            onClick={() => setFilters({ region: rg, resort: 'all' })}
             className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedRegion === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
@@ -155,7 +162,7 @@ const Accommodation = () => {
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {accommodations.map((item) => (
-            <Link to={`/accommodation/${item.id}`} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
+            <Link to={`/accommodation/${item.id}`} state={{ from: listHere }} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
               <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
                 {item.isPremium && <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
                 {item.claimable && <span className="absolute bottom-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gray-700/70 text-white">확인 전</span>}

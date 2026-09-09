@@ -15,6 +15,10 @@ import { useMyLocation } from '../hooks/useMyLocation';
 import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
 import { shopPath } from '../utils/shopKinds';
+import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+
+// 필터는 URL 쿼리(?region=&resort=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+const FILTER_DEFAULTS = { region: 'all', resort: 'all' };
 
 interface RentalItem {
   isPremium?: boolean;
@@ -37,9 +41,11 @@ const PAGE_SIZE = 12;
 
 const Rental = () => {
   const vertical = useVertical();
-  const [selectedResort, setSelectedResort] = useState<string>('all');
   // 지역(대분류)→리조트(소분류) 2단계 — 리조트 칩이 길어 한 줄로 못 담던 것 (레슨과 통일)
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
+  const selectedResort = filters.resort;
+  const selectedRegion = filters.region;
+  const listHere = useListHere();
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -85,7 +91,7 @@ const Rental = () => {
       <CategoryAdBanner category="rental" />
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (스키·보드샵·정비샵과 공통) */}
-      <LocationFilter region={selectedRegion} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedRegion(rg); setSelectedResort(rs); }} />
+      <LocationFilter region={selectedRegion} resortSel={selectedResort} onChange={(rg, rs) => setFilters({ region: rg, resort: rs })} />
       <NearMeButton my={my} note={totalPages > 1 ? '현재 페이지 안에서 가까운 순' : undefined} />
 
       {/* Rental Items */}
@@ -96,7 +102,7 @@ const Rental = () => {
           {shown.map((item) => {
             const cover = (item.images || item.image || '').split(',')[0]?.trim();
             return (
-            <Link to={shopPath(item.kind, item.id, 'rental')} key={item.id} className="card p-4 block card-hover">
+            <Link to={shopPath(item.kind, item.id, 'rental')} state={{ from: listHere }} key={item.id} className="card p-4 block card-hover">
               <div className="flex items-center gap-3">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                   {cover

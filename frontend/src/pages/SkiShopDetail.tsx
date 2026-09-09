@@ -1,6 +1,7 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useBackTo } from '../hooks/useUrlFilters';
 import { api, imageUrl, getUser, uploadImages } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
@@ -39,6 +40,7 @@ interface Shop {
 
 export default function SkiShopDetail() {
   const { id } = useParams();
+  const backTo = useBackTo('/skishop'); // 목록에서 왔으면 그때의 필터(쿼리)로 돌아간다
   const me = getUser();
   const my = useMyLocation();
   const [shop, setShop] = useState<Shop | null>(null);
@@ -96,14 +98,14 @@ export default function SkiShopDetail() {
   if (!shop) return (
     <div className="text-center py-20">
       <p className="text-sm text-gray-500 mb-3">{error || '스키·보드샵을 찾을 수 없습니다.'}</p>
-      <Link to="/skishop" className="text-sm text-sky-600 underline">← 스키·보드샵 목록</Link>
+      <Link to={backTo} className="text-sm text-sky-600 underline">← 스키·보드샵 목록</Link>
     </div>
   );
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/skishop" className="inline-flex items-center text-gray-500 text-sm hover:text-gray-900">&larr; 스키·보드샵 목록</Link>
+        <Link to={backTo} className="inline-flex items-center text-gray-500 text-sm hover:text-gray-900">&larr; 스키·보드샵 목록</Link>
         <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
       </div>
 

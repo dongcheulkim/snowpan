@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+const FILTER_DEFAULTS = { sport: '스키', region: 'all', resort: 'all', spec: 'all' };
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
@@ -34,16 +36,22 @@ const SPECIALTIES = ['초중급', '인터', '레이싱', '모글', '파크', '�
 
 const Lesson = () => {
   const vertical = useVertical();
-  const [selectedResort, setSelectedResort] = useState<string>('all');
-  const [selectedSpec, setSelectedSpec] = useState<string>('all');
-  const [sport, setSport] = useState<'스키' | '보드'>('스키');
+  // 필터는 URL 쿼리(?sport=&region=&resort=&spec=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+  const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
+  const selectedResort = filters.resort;
+  const selectedSpec = filters.spec;
+  const sport: '스키' | '보드' = filters.sport === '보드' ? '보드' : '스키';
+  const setSelectedResort = (v: string) => setFilters({ resort: v });
+  const setSelectedSpec = (v: string) => setFilters({ spec: v });
+  const setSport = (v: '스키' | '보드') => setFilters({ sport: v });
+  const listHere = useListHere();
   const [lessonItems, setLessonItems] = useState<LessonItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [resorts, setResorts] = useState<Resort[]>([]);
   // 지역(대분류) → 리조트(소분류) 2단계 — 리조트 칩이 길어 한 줄로 못 담던 것
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  const selectedRegion = filters.region;
 
   useEffect(() => {
     api<Resort[]>('/resorts').then(setResorts).catch(() => {});
@@ -115,7 +123,7 @@ const Lesson = () => {
         {['all', ...RESORT_REGION_ORDER.filter((rg) => resorts.some((r) => resortRegion(r.location) === rg))].map((rg) => (
           <button
             key={rg}
-            onClick={() => { setSelectedRegion(rg); setSelectedResort('all'); }}
+            onClick={() => setFilters({ region: rg, resort: 'all' })}
             className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
               selectedRegion === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
             }`}
@@ -167,6 +175,7 @@ const Lesson = () => {
             return (
               <Link
                 to={`/lesson/${item.id}`}
+                state={{ from: listHere }}
                 key={item.id}
                 viewTransition
                 onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
@@ -209,7 +218,7 @@ const Lesson = () => {
             <>
               <h3 className="text-base font-bold text-gray-900 mb-1.5">조건에 맞는 {sport} {vertical.pageLabels?.lesson || '레슨'}이 없어요</h3>
               <p className="text-xs text-gray-500 mb-5 leading-relaxed">다른 분야·스키장을 선택하거나 필터를 해제해보세요.</p>
-              <button onClick={() => { setSelectedSpec('all'); setSelectedResort('all'); setSelectedRegion('all'); }} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
+              <button onClick={() => setFilters({ spec: 'all', resort: 'all', region: 'all' })} className="inline-block px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs border border-gray-200">
                 필터 해제
               </button>
             </>

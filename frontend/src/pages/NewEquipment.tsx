@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+const FILTER_DEFAULTS = { region: 'all', resort: 'all' };
 import { api, imageUrl } from '../api';
 import { SkiShopIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
@@ -40,8 +42,11 @@ interface Shop {
 
 export default function NewEquipment() {
   const vertical = useVertical();
-  const [selectedArea, setSelectedArea] = useState('all');
-  const [selectedResort, setSelectedResort] = useState('all');
+  // 필터는 URL 쿼리(?region=&resort=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+  const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
+  const selectedArea = filters.region;
+  const selectedResort = filters.resort;
+  const listHere = useListHere();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const my = useMyLocation();
@@ -72,7 +77,7 @@ export default function NewEquipment() {
       <CategoryAdBanner category="skishop" />
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
-      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
+      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => setFilters({ region: rg, resort: rs })} />
       <NearMeButton my={my} />
 
       {/* 목록 */}
@@ -96,7 +101,7 @@ export default function NewEquipment() {
           {shown.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
-            <Link to={shopPath(shop.kind, shop.id, 'skishop')} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+            <Link to={shopPath(shop.kind, shop.id, 'skishop')} state={{ from: listHere }} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && (
                 <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
               )}

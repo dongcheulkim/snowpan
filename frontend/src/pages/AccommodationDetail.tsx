@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useBackTo } from '../hooks/useUrlFilters';
 import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
@@ -32,6 +33,7 @@ interface AccommodationData {
 
 const AccommodationDetail = () => {
   const { id } = useParams();
+  const backTo = useBackTo('/accommodation'); // 목록에서 왔으면 그때의 필터(쿼리)로 돌아간다
   const navigate = useNavigate();
   const [item, setItem] = useState<AccommodationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ const AccommodationDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500"><SadIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">숙소 정보를 찾을 수 없습니다</h2>
-        <Link to="/accommodation" className="text-gray-500 hover:text-gray-900 text-sm">
+        <Link to={backTo} className="text-gray-500 hover:text-gray-900 text-sm">
           ← 목록으로 돌아가기
         </Link>
       </div>
@@ -75,7 +77,7 @@ const AccommodationDetail = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <Link to="/accommodation" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">
+        <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">
           ← 숙소 목록
         </Link>
         <ShareButton title={item.name} text={`${item.name} ${item.price.toLocaleString()}원`} />

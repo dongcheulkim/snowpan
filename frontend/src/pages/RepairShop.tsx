@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { REPAIR_SERVICES, TUNING_ALIASES } from '../utils/repairServices';
 import { Link } from 'react-router-dom';
+import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+const FILTER_DEFAULTS = { region: 'all', resort: 'all', service: 'all' };
 import { api, imageUrl } from '../api';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
@@ -42,9 +44,13 @@ interface Shop {
 
 export default function RepairShop() {
   const vertical = useVertical();
-  const [selectedArea, setSelectedArea] = useState('all');
-  const [selectedResort, setSelectedResort] = useState('all');
-  const [selectedService, setSelectedService] = useState('all');
+  // 필터는 URL 쿼리(?region=&resort=&service=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+  const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
+  const selectedArea = filters.region;
+  const selectedResort = filters.resort;
+  const selectedService = filters.service;
+  const setSelectedService = (sv: string) => setFilters({ service: sv });
+  const listHere = useListHere();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const my = useMyLocation();
@@ -81,7 +87,7 @@ export default function RepairShop() {
       <CategoryAdBanner category="repair" />
 
       {/* 위치 필터 — 지역 → 리조트 + 외 (세 업종 공통) */}
-      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => { setSelectedArea(rg); setSelectedResort(rs); }} />
+      <LocationFilter region={selectedArea} resortSel={selectedResort} onChange={(rg, rs) => setFilters({ region: rg, resort: rs })} />
       <NearMeButton my={my} />
 
       {/* 서비스 종류 필터 — 부츠피팅 등 원하는 정비만 골라 보기 */}
@@ -129,7 +135,7 @@ export default function RepairShop() {
           {shownShops.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
-            <Link to={shopPath(shop.kind, shop.id, 'repair')} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+            <Link to={shopPath(shop.kind, shop.id, 'repair')} state={{ from: listHere }} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
               <div className="flex items-center gap-3">
                 <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">

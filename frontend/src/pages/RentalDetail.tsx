@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useBackTo } from '../hooks/useUrlFilters';
 import { api, getUser, openExternal } from '../api';
 import { SadIcon, PhoneIcon, LocationIcon, ClockIcon } from '../components/Icons';
 import PhotoGallery from '../components/PhotoGallery';
@@ -37,6 +38,7 @@ interface RentalData {
 
 const RentalDetail = () => {
   const { id } = useParams();
+  const backTo = useBackTo('/rental'); // 목록에서 왔으면 그때의 필터(쿼리)로 돌아간다
   const navigate = useNavigate();
   const [item, setItem] = useState<RentalData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ const RentalDetail = () => {
       <div className="text-center py-20 animate-fade-in">
         <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500"><SadIcon size={56} strokeWidth={1.4} /></div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">렌탈샵을 찾을 수 없습니다</h2>
-        <Link to="/rental" className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
+        <Link to={backTo} className="text-gray-500 hover:text-gray-900 text-sm">← 목록으로 돌아가기</Link>
       </div>
     );
   }
@@ -63,7 +65,7 @@ const RentalDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
-      <Link to="/rental" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 렌탈샵 목록</Link>
+      <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 렌탈샵 목록</Link>
 
       {gallery && <PhotoGallery images={gallery} />}
 
