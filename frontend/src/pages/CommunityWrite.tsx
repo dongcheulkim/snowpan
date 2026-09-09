@@ -297,6 +297,13 @@ const CommunityWrite = () => {
         <div className={`text-right text-[10px] mt-0.5 font-medium ${contentOver ? 'text-coral' : 'text-gray-500'}`}>
           {content.length}/{CONTENT_MAX}{contentOver ? ` · ${content.length - CONTENT_MAX}자 초과` : ''}
         </div>
+        {/* 협찬·제휴 링크 안내 — 흐린 글씨로 조용히 (사용자 요청 2026-09-09) */}
+        {!isPoll && (
+          <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+            협찬받은 물품 소개는 괜찮아요. 협찬이나 대가를 받았다면 글에 밝혀 주세요.
+            쿠팡 파트너스처럼 수수료를 받는 링크는 올릴 수 없어요.
+          </p>
+        )}
         {looksUnsafe && (
           <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5 mt-2 leading-relaxed">
             주의: HTML 태그·스크립트는 자동으로 제거됩니다. 일반 텍스트로 입력해주세요.
