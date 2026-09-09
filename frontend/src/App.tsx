@@ -1,9 +1,15 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
 import ErrorBoundary from './components/ErrorBoundary';
+
+// 오류 화면이 떠 있어도 경로가 바뀌면(뒤로가기·알림 링크) 다시 정상 화면으로 — 라우터 안에서 경로를 읽어 ErrorBoundary 에 넘긴다
+function RoutedErrorBoundary({ children }: { children: React.ReactNode }) {
+  const loc = useLocation();
+  return <ErrorBoundary resetKey={loc.pathname}>{children}</ErrorBoundary>;
+}
 import NotFound from './pages/NotFound';
 
 // 즉시 로딩 — 랜딩(Home) 만. 나머지 페이지는 lazy 로 초기 번들 축소.
@@ -93,7 +99,7 @@ const AgencyPage = lazy(() => import('./pages/AgencyPage'));
 function App() {
   return (
     <BrowserRouter>
-      <ErrorBoundary>
+      <RoutedErrorBoundary>
       <Suspense fallback={
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="relative w-14 h-14">
@@ -232,7 +238,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
-      </ErrorBoundary>
+      </RoutedErrorBoundary>
     </BrowserRouter>
   );
 }
