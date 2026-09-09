@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>스노우판</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+    <key>UISceneConfigurations</key>
+    <dict>
+      <key>UIWindowSceneSessionRoleApplication</key>
+      <array>
+        <dict>
+            <key>UISceneConfigurationName</key>
+            <string>Default Configuration</string>
+            <key>UISceneDelegateClassName</key>
+            <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+            <key>UISceneStoryboardFile</key>
+            <string>Main</string>
+        </dict>
+      </array>
+    </dict>
+	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	<!-- 소셜 로그인 딥링크 (kr.snowpan.app://...) — 백엔드가 OAuth 토큰을 앱으로 되돌릴 때. 안드로이드 intent-filter 와 짝 -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>kr.snowpan.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kr.snowpan.app</string>
+			</array>
+		</dict>
+	</array>
+	<!-- 카카오 앱으로 로그인 전환 시 설치 여부 확인 -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+	</array>
+	<!-- 권한 안내 문구 — 심사에서 이 문구가 없으면 리젝. 실제 쓰임과 일치해야 함 -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>내 주변 스키·보드샵, 정비샵, 렌탈샵을 거리순으로 보여드리기 위해 사용합니다. 위치는 기기 안에서만 쓰이고 서버로 보내지 않습니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>매물과 매장 사진을 찍어 올릴 때 사용합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>매물, 매장, 게시글에 올릴 사진을 고를 때 사용합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>앱에서 만든 이미지를 사진에 저장할 때 사용합니다.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>동영상을 촬영해 올릴 때 소리를 함께 녹음합니다.</string>
+	<!-- 표준 암호화(HTTPS)만 사용 — 빌드마다 수출 규정 질문이 반복되지 않도록 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

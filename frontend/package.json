@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "app:sync": "npm run build && npx cap sync android",
     "app:open": "npm run build && npx cap sync android && npx cap open android",
-    "app:assets": "npx capacitor-assets generate --android"
+    "app:assets": "npx capacitor-assets generate --android",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npm run build && npx cap sync ios && npx cap open ios",
+    "ios:assets": "npx capacitor-assets generate --ios"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -20,6 +23,7 @@
     "@capacitor/core": "^8.5.0",
     "@capacitor/geolocation": "^8.2.2",
     "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.1",
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/push-notifications": "^8.1.2",
     "@capacitor/splash-screen": "^8.0.2",
