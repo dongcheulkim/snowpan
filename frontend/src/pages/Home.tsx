@@ -173,7 +173,11 @@ const Home = () => {
   }).slice(0, 5);
 
   // 홈 "스노우판 매거진" = 인스타 @snowpan.kr 게시물 (사용자 결정 2026-09-09: "인스타에서 불러오는 스노우판 소식 통이 스노우판 매거진").
-  const magazine = ig.posts.slice(0, 8).map((p) => ({
+  // 최신 7개만 (사용자 요청 2026-09-09). 인스타 API 가 최신순으로 주지만 시간 기준으로 한 번 더 정렬한다.
+  const magazine = [...ig.posts]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 7)
+    .map((p) => ({
     id: p.id,
     // 캡션 첫 줄을 제목처럼 — 해시태그만 있는 줄은 건너뛴다
     title: (p.caption || '').split('\n').map((l) => l.trim()).find((l) => l && !l.startsWith('#')) || '인스타그램 게시물',
@@ -474,7 +478,7 @@ const Home = () => {
             </button>
           </div>
           {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래. 2초마다 한 칸씩 자동으로 넘어가고, 손대면 멈췄다가 다시 돈다 (사용자 요청 2026-09-09) */}
-          <HScroll autoScrollMs={2000} drag noArrows className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+          <HScroll autoScrollMs={3000} drag noArrows className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
             {magazine.map((m) => {
               const d = new Date(m.date);
               return (
