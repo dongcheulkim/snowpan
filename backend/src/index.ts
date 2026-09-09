@@ -50,6 +50,7 @@ import accommodationRoutes from './routes/accommodationRoutes';
 import communityRoutes from './routes/communityRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import adminRoutes from './routes/adminRoutes';
+import instagramRoutes from './routes/instagramRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
@@ -84,6 +85,7 @@ import { sendPushToUser } from './utils/push';
 import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from './middleware/rateLimit';
 import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
+import { startInstagramScheduler } from './utils/instagram';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { seedAdPricing } from './utils/seedAdPricing';
 
@@ -263,6 +265,7 @@ app.use('/api/repair-shops', publicCache(300));        // 정비샵 — 5분
 app.use('/api/webcams', publicCache(600));             // 웹캠 메타 — 10분 (스트림 자체는 라이브)
 app.use('/api/resorts', publicCache(3600));            // 리조트 목록 — 1시간 (거의 안 바뀜)
 app.use('/api/community', publicCache(20, 60));        // 커뮤니티 — 20s (실시간성 ↑)
+app.use('/api/instagram', publicCache(300));         // 인스타 캐시 — 5분 (서버가 1시간마다 인스타에서 받아옴)
 
 app.get('/', (req, res) => {
   res.json({ message: '스노우프라이스 API 서버입니다.' });
@@ -333,6 +336,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/webcams', webcamRoutes);
+app.use('/api/instagram', instagramRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
@@ -605,6 +609,12 @@ httpServer.listen(PORT, async () => {
     startShopVerifyScheduler(); // AI 직원 — 매장 네이버 더블체크
   } catch (err) {
     console.error('AI 직원 스케줄러 시작 실패:', err);
+  }
+
+  try {
+    startInstagramScheduler(); // 인스타 최신 게시물 1시간 주기 + 토큰 자동 연장
+  } catch (err) {
+    console.error('인스타 스케줄러 시작 실패:', err);
   }
 
   try {

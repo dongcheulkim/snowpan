@@ -7,10 +7,11 @@ import { CalendarIcon, ChartIcon, UsersIcon } from '../components/Icons';
 import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } from '../utils/adLabels';
 import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
+import InstagramPanel from '../components/InstagramPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
 import { Link } from 'react-router-dom';
 
-type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach';
+type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach' | 'settings';
 
 interface ReportItem {
   id: string;
@@ -247,6 +248,7 @@ const AdminDashboard = () => {
     { id: 'users', label: '유저관리' },
     { id: 'adBookings', label: '광고관리' },
     { id: 'outreach', label: '매장연락보드' },
+    { id: 'settings', label: '설정' },
   ];
 
   const inputClass = "w-full px-3 py-2 bg-snow border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
@@ -317,6 +319,12 @@ const AdminDashboard = () => {
           {/* 매장연락보드 — 시딩 매장 사장님 전화·문자 작업판 (자체 로딩·저장) */}
           {tab === 'outreach' && (
             <OutreachBoard />
+          )}
+          {/* 설정 — 인스타 연동 등 사이트 전역 설정 */}
+          {tab === 'settings' && (
+            <div className="space-y-3">
+              <InstagramPanel />
+            </div>
           )}
           {tab === 'reports' && (
             <div className="space-y-3">

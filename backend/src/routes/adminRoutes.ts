@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
   getPendingLessons,
@@ -100,5 +101,30 @@ router.get('/outreach', listOutreach);
 router.put('/outreach/template', putOutreachTemplate);
 router.post('/outreach/bulk', bulkOutreach);
 router.put('/outreach/:shopType/:shopId', upsertOutreach);
+
+// 인스타그램 연동 — 토큰은 관리자만 넣고, 값 자체는 어떤 응답에도 실리지 않는다(상태만 조회)
+router.get('/instagram', async (_req, res) => {
+  try { res.json(await getInstagramStatus()); }
+  catch { res.status(500).json({ error: '인스타 상태를 불러오지 못했습니다.' }); }
+});
+router.put('/instagram/token', async (req, res) => {
+  try {
+    const token = String((req.body?.token ?? '')).trim();
+    const appSecret = String((req.body?.appSecret ?? '')).trim() || undefined;
+    if (token.length < 20 || token.length > 500) { res.status(400).json({ error: '토큰 형식이 올바르지 않습니다.' }); return; }
+    const r = await saveInstagramToken(token, appSecret);
+    res.json({ success: true, ...r });
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? `인스타 연결 실패: ${err.message}` : '인스타 연결에 실패했습니다.' });
+  }
+});
+router.post('/instagram/refresh', async (_req, res) => {
+  try { const posts = await refreshInstagramPosts(true); res.json({ success: true, count: posts.length }); }
+  catch (err) { res.status(400).json({ error: err instanceof Error ? err.message : '새로고침 실패' }); }
+});
+router.delete('/instagram', async (_req, res) => {
+  try { await clearInstagramToken(); res.json({ success: true }); }
+  catch { res.status(500).json({ error: '연결 해제에 실패했습니다.' }); }
+});
 
 export default router;

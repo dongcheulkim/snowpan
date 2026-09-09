@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { trackAdClick, api, imageUrl } from '../api';
+import { trackAdClick, api, imageUrl, openExternal } from '../api';
 import AdImage from '../components/AdImage';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
@@ -51,6 +51,9 @@ type HotItem =
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
 // 홈 "스노우판 매거진" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
 interface ResortNews { id: string; title: string; content: string; resortIds?: string | null; images?: string | null; createdAt: string }
+
+// 홈 "인스타그램" — 서버가 1시간마다 공식 API 로 받아 둔 @snowpan.kr 게시물. 없으면 섹션 숨김.
+interface IgPost { id: string; caption: string; mediaType: string; image: string; permalink: string; timestamp: string }
 
 interface ShopNews {
   id: string;
@@ -112,6 +115,7 @@ const Home = () => {
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
   const [resortNews, setResortNews] = useState<ResortNews[]>([]);
+  const [ig, setIg] = useState<{ posts: IgPost[]; username: string | null }>({ posts: [], username: null }); // 인스타 @snowpan.kr 최신 게시물 (서버 캐시)
   const [resortNameById, setResortNameById] = useState<Record<string, string>>({});
   // TTL 무효화는 마운트 시 1회만 — 렌더마다 돌리면(배너 4초 인터벌로 상시 재렌더)
   // 화면에 떠 있는 동안 캐시가 날아가 다음 페이지 로드 시 피드 앞부분이 통째로 잘림
@@ -203,6 +207,9 @@ const Home = () => {
       .catch(() => {});
     api<{ id: string; name: string }[]>('/resorts')
       .then((rs) => setResortNameById(Object.fromEntries(rs.map((r) => [r.id, r.name]))))
+      .catch(() => {});
+    api<{ posts: IgPost[]; username: string | null }>('/instagram')
+      .then((d) => setIg({ posts: d.posts || [], username: d.username || null }))
       .catch(() => {});
     if (!usedFeedCache) {
       loadMoreUsed(true);
@@ -489,6 +496,42 @@ const Home = () => {
                 </Link>
               );
             })}
+          </HScroll>
+        </div>
+      )}
+
+      {/* 인스타그램 @snowpan.kr — 서버가 공식 API 로 1시간마다 받아 온 최신 게시물. 없으면 섹션 숨김 (사용자 요청 2026-09-09) */}
+      {isSnow && ig.posts.length > 0 && (
+        <div className="px-4 pt-2 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[15px] font-bold text-gray-900">인스타그램</h2>
+            <button
+              type="button"
+              onClick={() => openExternal(`https://www.instagram.com/${ig.username || 'snowpan.kr'}/`)}
+              className="text-xs text-gray-500"
+            >
+              @{ig.username || 'snowpan.kr'} &gt;
+            </button>
+          </div>
+          <HScroll className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+            {ig.posts.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => openExternal(p.permalink)}
+                className="flex-shrink-0 w-[42%] max-w-[170px] snap-start text-left active:opacity-80 transition-opacity"
+              >
+                <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200 relative">
+                  <img src={p.image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  {p.mediaType === 'VIDEO' && (
+                    <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/55 flex items-center justify-center">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
+                    </span>
+                  )}
+                </div>
+                {p.caption && <p className="text-[11px] text-gray-600 mt-1.5 line-clamp-2 leading-snug">{p.caption}</p>}
+              </button>
+            ))}
           </HScroll>
         </div>
       )}

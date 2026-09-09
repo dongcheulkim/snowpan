@@ -338,4 +338,15 @@ api POST /admin/shops/auto-resort "{}" "$A_TOKEN"; LK=$(echo "$RESP" | jq -r "[.
 pq "UPDATE ski_shops SET lat=37.5665, lng=126.9780, \"resortId\"=NULL WHERE id='$RS'" >/dev/null
 api POST /admin/shops/auto-resort "{}" "$A_TOKEN"; NR2=$(pq "SELECT COALESCE(\"resortId\",'') FROM ski_shops WHERE id='$RS'"); [ -z "$NR2" ] && ok "반경 밖(서울) 매장은 미연결 유지" || bad "서울 매장 연결됨 resortId=$NR2"
 
+# ── 인스타그램 연동: 공개 API 는 캐시만(토큰 없으면 빈 목록), 관리자 API 는 상태만(토큰 값 절대 노출 금지)
+api GET /instagram "" ""; IGP=$(echo "$RESP" | jq -r '.posts | length'); [ "$CODE" = "200" ] && [ "$IGP" = "0" ] && ok "인스타 공개 API 200 (미연결 시 빈 목록)" || bad "인스타 공개 CODE=$CODE n=$IGP"
+echo "$RESP" | grep -qi "token\|access_token" && bad "인스타 공개 응답에 토큰 흔적" || ok "인스타 공개 응답에 토큰 없음"
+api GET /admin/instagram "" ""; expect 401 "인스타 관리자 상태 비로그인 401"
+api GET /admin/instagram "" "$U_TOKEN"; expect 403 "인스타 관리자 상태 일반유저 403"
+api GET /admin/instagram "" "$A_TOKEN"; IGC=$(echo "$RESP" | jq -r '.connected'); [ "$CODE" = "200" ] && [ "$IGC" = "false" ] && ok "인스타 관리자 상태 200 (connected=false)" || bad "인스타 상태 CODE=$CODE connected=$IGC"
+echo "$RESP" | jq -e 'has("token")' >/dev/null 2>&1 && bad "인스타 상태에 token 필드 노출" || ok "인스타 상태에 token 필드 없음"
+api PUT /admin/instagram/token '{"token":"short"}' "$A_TOKEN"; expect 400 "짧은 토큰 거부 400"
+api PUT /admin/instagram/token '{"token":"x"}' "$U_TOKEN"; expect 403 "일반유저 토큰 저장 403"
+api DELETE /admin/instagram "" "$U_TOKEN"; expect 403 "일반유저 인스타 해제 403"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"
