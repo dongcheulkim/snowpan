@@ -363,6 +363,18 @@ export function imageUrl(src: string, width?: number): string {
   return src;
 }
 
+// 캔버스에 투명 픽셀이 있는지 — 작은 격자로만 샘플링해 큰 이미지도 몇 ms 안에 끝난다.
+function canvasHasAlpha(ctx: CanvasRenderingContext2D, width: number, height: number): boolean {
+  try {
+    const step = Math.max(1, Math.floor(Math.max(width, height) / 64));
+    for (let y = 0; y < height; y += step) {
+      const row = ctx.getImageData(0, y, width, 1).data;
+      for (let x = 3; x < row.length; x += 4 * step) if (row[x] < 255) return true;
+    }
+    return false;
+  } catch { return true; } // 읽기 실패 시 안전하게 PNG 유지
+}
+
 function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
   return new Promise((resolve) => {
     // Skip compression for videos
@@ -392,24 +404,23 @@ function compressImage(file: File, maxWidth: number, quality: number): Promise<F
       if (!ctx) { resolve(file); return; }
       ctx.drawImage(img, 0, 0, width, height);
 
-      // WebP 우선 (Safari 14+, Chrome/Firefox 지원 광범위). PNG 는 알파채널 보존 위해 유지.
-      // Cloudinary 가 서빙 시 다시 AVIF 로 재변환할 수도 있지만 업로드 시점 대역폭은 이걸로 이미 절감.
-      const outputType = file.type === 'image/png' ? 'image/png' : 'image/webp';
-      // 확장자 교체 — .jpg/.jpeg → .webp
+      // 확장자 교체 — 실제 인코딩 결과 타입에 맞춰 붙인다.
       const nameBase = file.name.replace(/\.(jpe?g|png|webp|avif|heic|heif)$/i, '');
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) { resolve(file); return; }
-          // 브라우저가 WebP 인코딩을 못 하면 조용히 PNG 를 돌려준다(일부 iOS). 이름만 .webp 로 붙으면
-          // 서버 매직바이트 검사와 어긋나 업로드가 막혔음 → 실제 blob.type 기준으로 이름·타입을 다시 맞춘다.
-          const realType = blob.type || outputType;
-          const realExt = realType === 'image/png' ? '.png' : realType === 'image/jpeg' ? '.jpg' : '.webp';
-          const compressed = new File([blob], `${nameBase}${realExt}`, { type: realType, lastModified: Date.now() });
-          resolve(compressed);
-        },
-        outputType,
-        quality
-      );
+      const encode = (type: string) => new Promise<Blob | null>((r) => canvas.toBlob(r, type, quality));
+      (async () => {
+        // 투명 픽셀이 있는 PNG 만 PNG 로 유지 — 사진(불투명)은 WebP, 안 되면 JPEG.
+        // iOS Safari/WKWebView 는 canvas 가 WebP 인코딩을 못 해 조용히 PNG 를 돌려주는데,
+        // 1000px 사진 PNG 는 2MB 를 넘어 커뮤니티 글 한 개에 10MB 가 실렸음 (2026-09-09 실측). → JPEG 로 다시 인코딩.
+        const keepPng = file.type === 'image/png' && canvasHasAlpha(ctx, width, height);
+        let blob = await encode(keepPng ? 'image/png' : 'image/webp');
+        if (blob && !keepPng && blob.type !== 'image/webp') blob = await encode('image/jpeg');
+        if (!blob) { resolve(file); return; }
+        // 압축 결과가 원본보다 크면(이미 작게 저장된 JPEG 등) 원본 그대로 — 단 브라우저가 못 보는 HEIC 는 변환본 사용
+        if (blob.size >= file.size && /^image\/(jpeg|png|webp)$/.test(file.type)) { resolve(file); return; }
+        const realType = blob.type || 'image/jpeg';
+        const realExt = realType === 'image/png' ? '.png' : realType === 'image/jpeg' ? '.jpg' : '.webp';
+        resolve(new File([blob], `${nameBase}${realExt}`, { type: realType, lastModified: Date.now() }));
+      })();
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
