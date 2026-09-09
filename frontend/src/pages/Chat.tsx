@@ -459,9 +459,12 @@ const Chat = () => {
       {isAdminChat && user?.role !== 'admin' && (
         <ChatBotGuide
           onSelect={(cat, sub) => {
-            if (socketRef.current && roomId && connected) {
-              socketRef.current.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
-            }
+            const sock = socketRef.current;
+            if (!sock || !roomId) return;
+            // 소켓이 아직 안 붙었을 때 emit 하면 socket.io 가 버퍼에 쌓았다가 연결 직후 보내는데, 그 시점엔
+            // join_room 전이라 내 화면엔 문의·자동답변이 안 보였음 (2026-09-09 전체검사에서 발견). 붙을 때까지는 안내만.
+            if (!sock.connected || !connected) { toastError('연결 중이에요. 잠시 후 다시 눌러 주세요.'); return; }
+            sock.emit('send_message', { roomId, content: `[문의] ${cat} > ${sub}` });
           }}
         />
       )}

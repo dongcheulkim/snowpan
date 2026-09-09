@@ -490,6 +490,10 @@ io.on('connection', (socket) => {
         return;
       }
 
+      // 보낸 소켓이 아직 방에 join 안 돼 있으면(연결 직후 버퍼된 메시지가 join_room 보다 먼저 도착) 자기 메시지·자동답변 echo 를
+      // 못 받는다. 접근 검사는 위에서 끝났으니 여기서 합류시켜 항상 본인 화면에 뜨게 한다 (이미 들어가 있으면 no-op).
+      socket.join(`room:${data.roomId}`);
+
       const message = await prisma.message.create({
         data: { roomId: data.roomId, senderId: userId, content, imageUrl, type },
         include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
