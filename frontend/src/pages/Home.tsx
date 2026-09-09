@@ -49,7 +49,6 @@ type HotItem =
   | { kind: 'poll'; id: string; title: string; likes: number; views: number; votes: number; score: number };
 
 // 홈 "매장 소식·이벤트" — /shop-posts/recent (승인 매장 전체 최신).
-// 홈 "스노우판 매거진" — 관리자가 올리는 시즌권·개장·할인 뉴스 (community category=news). 핫한 커뮤니티 위에 표시.
 
 // 홈 "인스타그램" — 서버가 1시간마다 공식 API 로 받아 둔 @snowpan.kr 게시물. 없으면 섹션 숨김.
 interface IgPost { id: string; caption: string; mediaType: string; image: string; permalink: string; timestamp: string }
@@ -65,8 +64,8 @@ interface ShopNews {
 }
 
 const POST_CAT_LABEL: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기',
-  tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', notice: '공지',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장·꿀팁',
+  tip: '스키장·꿀팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', notice: '공지',
 };
 const NEWS_TYPE_LABEL: Record<string, { text: string; color: string }> = {
   general: { text: '소식', color: 'bg-gray-100 text-gray-600' },
@@ -160,8 +159,7 @@ const Home = () => {
     { id: 'poll', label: '투표' },
     { id: 'free', label: '자유' },
     { id: 'gear', label: '장비' },      // review + gear
-    { id: 'resort', label: '스키장후기' },
-    { id: 'tip', label: '초보팁' },
+    { id: 'resort', label: '스키장·꿀팁' },   // resort + tip (한 카테고리로 합침)
     { id: 'job', label: '구인구직' },   // job + jobseek 묶음
   ];
   const hot = hotAll.filter((it) => {
@@ -169,12 +167,12 @@ const Home = () => {
     if (hotTab === 'poll') return it.kind === 'poll';
     if (it.kind !== 'post') return false;
     if (hotTab === 'gear') return it.category === 'review' || it.category === 'gear';
+    if (hotTab === 'resort') return it.category === 'resort' || it.category === 'tip';
     if (hotTab === 'job') return it.category === 'job' || it.category === 'jobseek';
     return it.category === hotTab;
   }).slice(0, 5);
 
   // 홈 "스노우판 매거진" = 인스타 @snowpan.kr 게시물 (사용자 결정 2026-09-09: "인스타에서 불러오는 스노우판 소식 통이 스노우판 매거진").
-  // 직접 쓴 소식(category=news)은 홈에 안 띄운다 — /news 와 리조트 페이지에는 그대로 남아 있음.
   const magazine = ig.posts.slice(0, 8).map((p) => ({
     id: p.id,
     // 캡션 첫 줄을 제목처럼 — 해시태그만 있는 줄은 건너뛴다
@@ -514,7 +512,7 @@ const Home = () => {
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
             <Link to="/community" className="text-xs text-gray-500">전체 보기 &gt;</Link>
           </div>
-          {/* 카테고리 칩 — 골라보기 (투표/자유/장비/스키장후기/초보팁) */}
+          {/* 카테고리 칩 — 골라보기 (투표/자유/장비/스키장·꿀팁/구인구직) */}
           <HScroll className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
             {HOT_TABS.map((tab) => (
               <button

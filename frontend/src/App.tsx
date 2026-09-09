@@ -73,8 +73,6 @@ const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Support = lazy(() => import('./pages/Support'));
 const NewEquipment = lazy(() => import('./pages/NewEquipment'));
-const News = lazy(() => import('./pages/News'));
-const NewsDetail = lazy(() => import('./pages/NewsDetail'));
 const PollDetail = lazy(() => import('./pages/PollDetail'));
 const Webcam = lazy(() => import('./pages/Webcam'));
 const WebcamDetail = lazy(() => import('./pages/WebcamDetail'));
@@ -171,9 +169,6 @@ function App() {
             <Route path="community" element={<Community />} />
             <Route path="community/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="community/post/:id" element={<CommunityDetail />} />
-            {/* 스노우판 매거진 — 홈 섹션 전용 채널(커뮤니티 탭 아님) */}
-            <Route path="news" element={<News />} />
-            <Route path="news/:id" element={<NewsDetail />} />
             <Route path="community/:sport/write" element={<RequireAuth><CommunityWrite /></RequireAuth>} />
             <Route path="community/:sport" element={<Community />} />
             <Route path="mypage" element={<RequireAuth><MyPage /></RequireAuth>} />

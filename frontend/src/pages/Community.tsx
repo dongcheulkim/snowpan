@@ -39,15 +39,14 @@ interface PollItem {
 }
 
 const badgeMap: Record<string, string> = {
-  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장후기', tip: '초보팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', poll: '투표', notice: '공지', news: '스노우판 매거진',
+  free: '자유', review: '장비리뷰', gear: '장비추천', resort: '스키장·꿀팁', tip: '스키장·꿀팁', carpool: '카풀/동행', meetup: '모임', job: '구인', jobseek: '구직', poll: '투표', notice: '공지', news: '스노우판 매거진',
 };
 
 const badgeColor: Record<string, string> = {
   '스노우판 매거진': 'text-gray-900 bg-gray-100 border-gray-300',
   '자유': 'text-accent-light bg-accent/10 border-accent/20',
   '장비리뷰': 'text-mint bg-mint/10 border-mint/20',
-  '스키장후기': 'text-gold bg-gold/10 border-gold/20',
-  '초보팁': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+  '스키장·꿀팁': 'text-gold bg-gold/10 border-gold/20',
   '카풀/동행': 'text-coral bg-coral/10 border-coral/20',
   '구인': 'text-indigo-500 bg-indigo-50 border-indigo-200',
   '구직': 'text-teal-600 bg-teal-50 border-teal-200',
@@ -108,7 +107,7 @@ const Community = () => {
 
   // 카테고리 라벨은 종목별로 다름 — 보드 커뮤니티에선 'resort' 가 '라이딩 장소' 로 표시.
   // 대분류 → 소분류 2단계 (중고거래와 동일 UX). 대분류 선택 시 소분류 칩이 아래로 펼쳐짐.
-  const tabs: { id: string; name: string; subs?: string[] }[] = [
+  const tabs: { id: string; name: string; subs?: string[]; single?: boolean }[] = [
     { id: 'all', name: t('community.all') },
     { id: 'popular', name: '인기' },
     ...COMMUNITY_GROUPS,
@@ -268,7 +267,7 @@ const Community = () => {
             </button>
           ))}
         </div>
-        {activeGroup?.subs && (
+        {activeGroup?.subs && !activeGroup.single && (
           <div className="flex gap-1.5 flex-wrap">
             <button onClick={() => setSelectedSub('all')} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${selectedSub === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}>
               전체

@@ -17,11 +17,11 @@ const CommunityWrite = () => {
     return q === 'ski' || q === 'board' ? q : 'all';
   });
   const editId = searchParams.get('edit'); // 수정 모드 — 기존 글 불러와 PUT
-  // ?category=notice|news 딥링크 — 관리자 대시보드 "공지 쓰기"/"스노우판 매거진 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
+  // ?category=notice 딥링크 — 관리자 대시보드 "공지 쓰기" 바로가기. 관리자 전용 카테고리는 관리자만 프리셋.
   const presetCategory = (() => {
     const c = searchParams.get('category') || '';
     const admin = getUser()?.role === 'admin';
-    if (['notice', 'news'].includes(c)) return admin ? c : 'free';
+    if (c === 'notice') return admin ? c : 'free';
     if (c === 'poll') return c;
     return COMMUNITY_GROUPS.some((g) => g.subs.includes(c)) ? c : 'free';
   })();
@@ -34,12 +34,8 @@ const CommunityWrite = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 수정 모드 — 기존 업로드 이미지
-  // 스노우판 매거진(news) 전용 — 관련 리조트 선택 (리조트 페이지에도 표시됨)
-  const [resortSel, setResortSel] = useState<string[]>([]);
   // 투표(poll) — 별도 페이지 대신 글쓰기 안에서 '투표'를 고르면 아래 폼이 선택지 입력으로 바뀐다 (사용자 요청)
   const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
-  const [resorts, setResorts] = useState<{ id: string; name: string }[]>([]);
-  useEffect(() => { api<{ id: string; name: string }[]>('/resorts').then(setResorts).catch(() => {}); }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 수정 모드: 기존 글 프리필 (작성자/관리자만)
@@ -57,7 +53,6 @@ const CommunityWrite = () => {
         setContent(p.content || '');
         setCategory(p.category || 'free');
         if (p.sport === 'ski' || p.sport === 'board' || p.sport === 'all') setSport(p.sport);
-        setResortSel((p.resortIds || '').split(',').filter(Boolean));
         setExistingImages(p.images ? p.images.split(',').filter(Boolean) : []);
         setAgreed(true); // 최초 작성 시 이미 동의함
       })
@@ -70,9 +65,7 @@ const CommunityWrite = () => {
 
   const isAdmin = getUser()?.role === 'admin';
   // 대분류 → 소분류 2단계 (목록 탭과 동일 그룹). 투표는 snow 전용·새 글만(수정 불가). 공지는 관리자 전용.
-  // 스노우판 매거진(news)은 관리자 대시보드 바로가기(?category=news)로만 진입하는 잠금 모드 — 카테고리 선택 없이 소식 폼만.
   const isPoll = category === 'poll';
-  const isNews = category === 'news';
   const writeGroups = [
     ...COMMUNITY_GROUPS,
     ...(vertical.slug === 'snow' && !editId ? [{ id: 'poll', name: '투표', subs: ['poll'] }] : []),
@@ -147,15 +140,15 @@ const CommunityWrite = () => {
         const merged = [...existingImages, ...newUrls].join(',');
         await api(`/community/${editId}`, {
           method: 'PUT',
-          body: { title: title.trim(), content: content.trim(), category, images: merged, ...(category === 'news' ? { resortIds: resortSel.join(',') } : { sport }) },
+          body: { title: title.trim(), content: content.trim(), category, images: merged, sport },
         });
-        navigate(isNews ? `/news/${editId}` : `${vbase}/community/post/${editId}`);
+        navigate(`${vbase}/community/post/${editId}`);
       } else {
-        const created = await api<{ id: string }>('/community', {
+        await api<{ id: string }>('/community', {
           method: 'POST',
-          body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined, ...(category === 'news' ? { resortIds: resortSel.join(',') } : {}) },
+          body: { title: title.trim(), content: content.trim(), category, sport, images: newUrls.join(',') || undefined },
         });
-        navigate(isNews ? `/news/${created.id}` : `${vbase}/community${sport !== 'all' ? `?sport=${sport}` : ''}`);
+        navigate(`${vbase}/community${sport !== 'all' ? `?sport=${sport}` : ''}`);
       }
     } catch (err) {
       toastError(err instanceof Error ? err.message : editId ? '수정에 실패했습니다.' : '등록에 실패했습니다.');
@@ -169,13 +162,13 @@ const CommunityWrite = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-gray-500 text-lg">&larr;</button>
-          <h1 className="text-xl font-bold text-gray-900">{isNews ? (editId ? '스노우판 매거진 수정' : '스노우판 매거진 쓰기') : editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</h1>
+          <h1 className="text-xl font-bold text-gray-900">{editId ? '글 수정' : isPoll ? '투표 만들기' : '글쓰기'}</h1>
         </div>
         <button onClick={() => navigate(-1)} className="text-sm text-gray-500">취소</button>
       </div>
 
       {/* 공개 범위 — 전체(스키·보드 모두에게) / 스키 / 보드. 제목 앞에 태그로 붙고 목록 칩으로 걸러진다. 공지·소식·투표는 해당 없음 */}
-      {vertical.slug === 'snow' && !isNews && !isPoll && category !== 'notice' && (
+      {vertical.slug === 'snow' && !isPoll && category !== 'notice' && (
         <div>
           <span className="text-sm font-semibold text-gray-700 block mb-2">누구에게 보일까요?</span>
           <div className="flex gap-1.5">
@@ -194,7 +187,7 @@ const CommunityWrite = () => {
         </div>
       )}
 
-      <div hidden={isNews}>
+      <div>
         <span id="cw-category-label" className="text-sm font-semibold text-gray-700 block mb-2">카테고리</span>
         <div role="radiogroup" aria-labelledby="cw-category-label" className="space-y-1.5">
           <div className="flex gap-1.5 flex-wrap">
@@ -214,7 +207,7 @@ const CommunityWrite = () => {
               );
             })}
           </div>
-          {activeWriteGroup && activeWriteGroup.subs.length > 1 && (
+          {activeWriteGroup && activeWriteGroup.subs.length > 1 && !(activeWriteGroup as { single?: boolean }).single && (
             <div className="flex gap-1.5 flex-wrap">
               {activeWriteGroup.subs.map((id) => (
                 <button
@@ -238,22 +231,6 @@ const CommunityWrite = () => {
         )}
       </div>
 
-      {isNews && (
-        <div className="text-xs text-gray-600 bg-snow border border-gray-200 rounded-lg px-3 py-2.5 leading-relaxed">
-          홈 "스노우판 매거진"과 리조트 페이지에 올라갑니다. 본문은 한 줄에 사실 하나씩(언제·어디서·얼마·조건), 출처 링크는 마지막 줄에.
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {resorts.map((r) => {
-              const on = resortSel.includes(r.id);
-              return (
-                <button key={r.id} type="button" onClick={() => setResortSel((prev) => (on ? prev.filter((x) => x !== r.id) : [...prev, r.id]))}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${on ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>
-                  {r.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div>
         <label htmlFor="cw-title" className="text-sm font-semibold text-gray-700 block mb-2">{isPoll ? '투표 제목' : '제목'}</label>

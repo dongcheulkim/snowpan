@@ -275,11 +275,9 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* 커뮤니티 관리자 글 바로가기 — 공지(상단 고정)·스노우판 매거진(홈 섹션·리조트 페이지). 글쓰기 폼의 카테고리가 미리 선택된다 */}
+      {/* 커뮤니티 관리자 글 바로가기 — 공지(상단 고정) — 글쓰기 폼의 카테고리가 미리 선택된다. 매거진은 인스타 @snowpan.kr 에 올리면 홈에 자동 반영 */}
       <div className="flex gap-2">
         <button type="button" onClick={() => navigate('/community/write?category=notice')} className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold">공지 쓰기</button>
-        <button type="button" onClick={() => navigate('/community/write?category=news')} className="flex-1 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-800 text-xs font-bold">스노우판 매거진 쓰기</button>
-        <button type="button" onClick={() => navigate('/news')} className="py-2.5 px-3 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold">소식 목록</button>
       </div>
 
       {/* 탭 — 7개가 눌리지 않게 스크롤 필 방식 */}

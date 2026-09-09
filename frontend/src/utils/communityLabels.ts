@@ -7,8 +7,10 @@ const BASE: Record<string, { ski: string; board: string }> = {
   free:    { ski: '자유',     board: '자유' },
   review:  { ski: '장비리뷰', board: '장비리뷰' },
   gear:    { ski: '장비추천', board: '장비추천' },
-  resort:  { ski: '스키장',   board: '라이딩 장소' },
-  tip:     { ski: '초보팁',   board: '초보팁' },
+  // 스키장 후기와 꿀팁은 한 카테고리로 합침 (사용자 결정 2026-09-09 "스키장 꿀팁 나누지 마, 그냥 하나").
+  // 옛 글이 tip 으로 저장돼 있어 id 는 둘 다 남기고 라벨만 같게 — 새 글은 resort 로 저장된다.
+  resort:  { ski: '스키장·꿀팁', board: '라이딩·꿀팁' },
+  tip:     { ski: '스키장·꿀팁', board: '라이딩·꿀팁' },
   carpool: { ski: '카풀',     board: '카풀' },
   meetup:  { ski: '모임',     board: '모임' },
   job:     { ski: '구인',     board: '구인' },     // 사람 구해요 (매장·스키장 채용)
@@ -40,9 +42,10 @@ export function communityCategoryLabel(id: string, sport?: Sport): string {
 }
 
 // 커뮤니티 대분류 → 소분류 (목록 탭·글쓰기 폼 공용)
-export const COMMUNITY_GROUPS: { id: string; name: string; subs: string[] }[] = [
+// single: 소분류를 나누지 않는 그룹 — 목록·글쓰기에서 소분류 칩을 숨기고 한 카테고리처럼 다룬다.
+export const COMMUNITY_GROUPS: { id: string; name: string; subs: string[]; single?: boolean }[] = [
   { id: 'g_talk', name: '소통', subs: ['free', 'meetup', 'carpool'] },
   { id: 'g_gear', name: '장비', subs: ['review', 'gear'] },
-  { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'] },
+  { id: 'g_info', name: '스키장·꿀팁', subs: ['resort', 'tip'], single: true },
   { id: 'g_jobs', name: '구인구직', subs: ['job', 'jobseek'] },
 ];
