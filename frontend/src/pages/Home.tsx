@@ -473,8 +473,8 @@ const Home = () => {
               전체 보기 &gt;
             </button>
           </div>
-          {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래 (사용자 요청) */}
-          <HScroll className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+          {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래. 2초마다 한 칸씩 자동으로 넘어가고, 손대면 멈췄다가 다시 돈다 (사용자 요청 2026-09-09) */}
+          <HScroll autoScrollMs={2000} drag className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
             {magazine.map((m) => {
               const d = new Date(m.date);
               return (
