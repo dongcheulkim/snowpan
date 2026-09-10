@@ -23,7 +23,7 @@ import {
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
-import { kakaoStart, kakaoCallback, naverStart, naverCallback } from '../controllers/socialAuthController';
+import { kakaoStart, kakaoCallback, naverStart, naverCallback, appleLogin } from '../controllers/socialAuthController';
 
 const router = Router();
 
@@ -53,5 +53,6 @@ router.get('/kakao', kakaoStart);
 router.get('/kakao/callback', kakaoCallback);
 router.get('/naver', naverStart);
 router.get('/naver/callback', naverCallback);
+router.post('/apple', sensitiveAuthLimiter, appleLogin); // iOS 앱 네이티브 Apple 로그인 (identityToken 검증)
 
 export default router;

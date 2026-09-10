@@ -22,7 +22,7 @@ export default function AccountDeletion() {
         <ol className="text-xs text-gray-700 leading-relaxed list-decimal pl-4 space-y-1">
           <li>스노우판 앱 또는 <a href="https://snowpan.kr" className="underline">snowpan.kr</a>에 로그인합니다.</li>
           <li>아래 탭의 <b>마이</b>로 들어가 맨 아래 <b>회원 탈퇴</b>를 누릅니다.</li>
-          <li>안내 내용을 확인하고 <b>탈퇴하기</b>를 누르면 바로 처리됩니다. 카카오 계정은 비밀번호 확인 없이 진행됩니다.</li>
+          <li>안내 내용을 확인하고 <b>탈퇴하기</b>를 누르면 바로 처리됩니다. 카카오·Apple 계정은 비밀번호 확인 없이 진행됩니다.</li>
         </ol>
         <Link to="/mypage" className="block w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center">마이 페이지로 가기</Link>
       </section>
@@ -30,7 +30,7 @@ export default function AccountDeletion() {
       <section className="card p-5 space-y-2">
         <h2 className="text-sm font-bold text-gray-900">방법 2. 이메일이나 고객센터로 요청</h2>
         <p className="text-xs text-gray-700 leading-relaxed">
-          로그인이 어려우면 가입한 계정 정보(카카오 로그인 여부, 닉네임, 이메일)를 적어 <a href="mailto:info@snowpan.kr" className="underline">info@snowpan.kr</a> 로 보내거나,
+          로그인이 어려우면 가입한 계정 정보(카카오/Apple 로그인 여부, 닉네임, 이메일)를 적어 <a href="mailto:info@snowpan.kr" className="underline">info@snowpan.kr</a> 로 보내거나,
           로그인 후 <Link to="/mypage/support" className="underline">고객센터 채팅</Link>으로 요청해 주세요. 본인 확인 후 3영업일 안에 처리하고 회신합니다.
         </p>
       </section>

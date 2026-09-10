@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { revokeAppleToken } from './socialAuthController';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
@@ -631,6 +632,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
+    // Apple 로그인 계정은 애플 쪽 앱 연결도 철회 (앱스토어 지침, 키 미설정이면 건너뜀·실패해도 탈퇴는 진행)
+    if (user.provider === 'apple') await revokeAppleToken(user.appleRefreshToken).catch(() => {});
+
     const stamp = Date.now();
     const anonEmail = `deleted_${userId}@snowpan.local`;
     const anonPhone = `deleted_${stamp}_${userId.slice(0, 8)}`;
@@ -654,6 +658,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           role: 'deleted',
           // 소셜 연결 해제 — 안 지우면 같은 카카오/네이버로 재로그인 시 탈퇴 계정이 부활함.
           provider: null,
+          appleRefreshToken: null,
           providerId: null,
         },
       });

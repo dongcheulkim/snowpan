@@ -166,7 +166,7 @@ const MyPage = () => {
             </div>
             <p className="text-sm text-gray-500">
               {user.email?.endsWith('@social.local')
-                ? (user.email.startsWith('naver_') ? '네이버 계정' : '카카오 계정')
+                ? (user.provider === 'apple' ? 'Apple 계정' : user.provider === 'naver' || user.email.startsWith('naver_') ? '네이버 계정' : '카카오 계정')
                 : (user.email || '')}
             </p>
           </div>
@@ -264,7 +264,7 @@ const MyPage = () => {
             </div>
             {isSocialUser ? (
               // 소셜 계정은 비밀번호가 없음 — 입력 요구하면 탈퇴가 막혔음
-              <p className="text-xs text-gray-500 mb-5">카카오/네이버 계정은 비밀번호 확인 없이 바로 탈퇴됩니다.</p>
+              <p className="text-xs text-gray-500 mb-5">카카오·Apple 같은 소셜 계정은 비밀번호 확인 없이 바로 탈퇴됩니다.</p>
             ) : (
               <>
                 <p className="text-xs text-gray-500 mb-2">계속하려면 비밀번호를 입력해주세요.</p>

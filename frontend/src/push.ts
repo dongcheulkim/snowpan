@@ -8,6 +8,8 @@ let started = false;
 
 export async function initPush(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return; // 웹 no-op
+  // iOS 는 아직 APNs·Firebase 를 안 붙였음(2026-09-10, 다음 버전 예정) — 받을 수 없는 알림 권한 팝업을 띄우지 않도록 건너뜀.
+  if (Capacitor.getPlatform() === 'ios') return;
   if (!getUser()) return;                     // 로그인 유저만 (토큰 저장 API 가 인증 필요)
   if (started) return;                        // 중복 리스너 방지
   started = true;

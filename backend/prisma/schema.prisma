@@ -17,8 +17,9 @@ model User {
   displayName   String   @default("name") // 'name' | 'nickname'
   phone         String?  @unique // 소셜 유저는 전화번호 없이 가입 (본인인증 도입 시 채움)
   phoneVerified Boolean  @default(false)
-  provider      String?  // 'kakao' | 'naver' | null(이메일 가입)
+  provider      String?  // 'kakao' | 'naver' | 'apple' | null(이메일 가입)
   providerId    String?  // 소셜 제공자의 유저 고유 id
+  appleRefreshToken String? // Apple 로그인 탈퇴 시 연결 철회용 (APPLE_* 키가 설정된 경우에만 저장)
   profileImage  String?
   role          String   @default("user") // 'user' | 'admin'
   // 이 시각 이전 발급된 토큰은 무효 — 비번변경/탈퇴/밴 시 갱신. 서버 재시작에도 유지(인메모리 보완).

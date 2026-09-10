@@ -284,7 +284,32 @@ export function logout() {
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
 
 // ===== 소셜 로그인 =====
-export type LoginMethod = 'email' | 'kakao' | 'naver';
+export type LoginMethod = 'email' | 'kakao' | 'naver' | 'apple';
+
+// Apple 로그인 (iOS 앱 네이티브 시트) — 앱스토어 심사 지침 4.8: 카카오 로그인이 있으면 Apple 로그인도 제공해야 함.
+// 네이티브에서 받은 identityToken 을 백엔드 /auth/apple 로 보내 검증하고 우리 토큰을 받는다. 웹에서는 쓰지 않음.
+export async function signInWithApple(): Promise<{ token: string; refreshToken?: string; isNew: boolean; user: NonNullable<ReturnType<typeof getUser>> }> {
+  const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+  const { response } = await SignInWithApple.authorize({
+    clientId: 'kr.snowpan.app',
+    redirectURI: 'https://snowpan.kr/oauth/callback',
+    scopes: 'email name',
+    state: nonce,
+    nonce,
+  });
+  return api('/auth/apple', {
+    method: 'POST',
+    body: {
+      identityToken: response.identityToken,
+      authorizationCode: response.authorizationCode,
+      givenName: response.givenName,
+      familyName: response.familyName,
+      nonce,
+      platform: 'app',
+    },
+  });
+}
 
 // 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
 export function oauthStartUrl(provider: 'kakao' | 'naver'): string {
@@ -310,7 +335,7 @@ export function markLastLogin(method: LoginMethod): void {
 export function getLastLogin(): LoginMethod | null {
   try {
     const v = localStorage.getItem('snowpan.lastLogin');
-    return v === 'email' || v === 'kakao' || v === 'naver' ? v : null;
+    return v === 'email' || v === 'kakao' || v === 'naver' || v === 'apple' ? v : null;
   } catch { return null; }
 }
 

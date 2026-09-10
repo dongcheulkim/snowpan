@@ -367,4 +367,9 @@ UC2=$(printf '%s' "$UP2" | tail -n1); UB2=$(printf '%s' "$UP2" | sed '$d')
 [ "$UC2" = "400" ] && echo "$UB2" | grep -q "지원하지 않는 파일 형식" && ok "이미지가 아닌 파일은 400 거절" || bad "가짜 이미지 CODE=$UC2 $(echo $UB2|head -c 80)"
 rm -rf "$TMPD"
 
+# ── Apple 로그인(iOS 앱 네이티브): 토큰 없으면 400, 가짜 토큰은 401, 오류 응답에 비밀 없음
+api POST /auth/apple '{}' ""; expect 400 "Apple 로그인 토큰 없음 400"
+api POST /auth/apple '{"identityToken":"eyJhbGciOiJSUzI1NiIsImtpZCI6ImZha2Uta2lkIn0.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwic3ViIjoieCJ9.c2lnbmF0dXJl","nonce":"n"}' ""; expect 401 "가짜 Apple 토큰 401"
+echo "$RESP" | jq -e 'has("token") or has("refreshToken")' >/dev/null 2>&1 && bad "가짜 Apple 토큰 응답에 토큰 노출" || ok "가짜 Apple 토큰 응답에 토큰 없음"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

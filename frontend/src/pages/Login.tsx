@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin, isNativeApp, setAppRefreshToken } from '../api';
+import { api, setAuth, isPersistentLogin, markLastLogin, getLastLogin, startSocialLogin, isNativeApp, setAppRefreshToken, signInWithApple } from '../api';
 import { initPush } from '../push';
+import { Capacitor } from '@capacitor/core';
 import { t, onLangChange } from '../i18n';
 
 const Login = () => {
@@ -89,6 +90,31 @@ const Login = () => {
     }
   };
 
+  // Apple 로그인 — iOS 앱에서만 (앱스토어 심사 지침 4.8: 카카오 로그인이 있으면 Apple 로그인도 제공). 웹·안드로이드엔 안 보임.
+  const showApple = isNativeApp() && Capacitor.getPlatform() === 'ios';
+  const [appleLoading, setAppleLoading] = useState(false);
+  const handleApple = async () => {
+    setError('');
+    setAppleLoading(true);
+    try {
+      const data = await signInWithApple();
+      setAuth(data.token, data.user, true);
+      if (data.refreshToken) setAppRefreshToken(data.refreshToken);
+      markLastLogin('apple');
+      initPush().catch(() => {});
+      const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+      // 신규(또는 닉네임 미설정)면 온보딩 — 카카오 콜백과 같은 흐름
+      if (data.isNew || !data.user?.nickname) navigate('/welcome', { replace: true });
+      else navigate(safeNext, { replace: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      // 시트에서 사용자가 취소한 경우(ASAuthorizationError 1001)는 조용히
+      if (!/cancel|1001|취소/i.test(msg)) setError(msg || 'Apple 로그인에 실패했어요. 다시 시도해 주세요.');
+    } finally {
+      setAppleLoading(false);
+    }
+  };
+
   const inputClass = "w-full px-4 py-3 bg-snow border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none transition-all";
 
   // "최근 로그인" 배지 — 마지막에 사용한 로그인 방식 버튼 위에 표시.
@@ -119,9 +145,24 @@ const Login = () => {
             </svg>
             카카오로 시작하기
           </button>
+          {showApple && (
+            // 애플 버튼 디자인 지침: 검정 바탕·흰 글자·Apple 로고 필수 ("Apple로 로그인" 문구는 애플 공식 한국어 표기)
+            <button
+              onClick={handleApple}
+              disabled={appleLoading}
+              className="relative w-full py-3.5 rounded-lg font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{ backgroundColor: '#000000', color: '#ffffff' }}
+            >
+              {lastLogin === 'apple' && <LastBadge />}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-1.15.572-2.27 1.206-2.98.804-.94 2.142-1.64 3.248-1.68.03.13.05.28.05.43zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.945 1.34-1.94 2.71-3.43 2.71-1.517 0-1.9-.88-3.63-.88-1.698 0-2.302.91-3.67.91-1.377 0-2.332-1.26-3.428-2.8-1.287-1.82-2.323-4.63-2.323-7.28 0-4.28 2.797-6.55 5.552-6.55 1.448 0 2.675.95 3.6.95.865 0 2.222-1.01 3.902-1.01.613 0 2.886.06 4.374 2.19-.13.09-2.383 1.37-2.383 4.19 0 3.26 2.854 4.42 2.955 4.45z" />
+              </svg>
+              {appleLoading ? '확인 중...' : 'Apple로 로그인'}
+            </button>
+          )}
         </div>
 
-        <p className="mt-4 text-center text-xs text-gray-400">처음이신가요? 카카오로 바로 가입돼요.</p>
+        <p className="mt-4 text-center text-xs text-gray-400">처음이신가요? {showApple ? '카카오나 Apple로 바로 가입돼요.' : '카카오로 바로 가입돼요.'}</p>
 
         {error && !showEmail && (
           <div className="mt-4 text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
