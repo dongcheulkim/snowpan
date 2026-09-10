@@ -254,7 +254,8 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
 // 탈퇴 시 애플 쪽 연결도 끊으려면(지침 요구) APPLE_TEAM_ID / APPLE_KEY_ID / APPLE_PRIVATE_KEY(.p8, 줄바꿈은 \n) 를 설정 —
 // 없으면 로그인은 되고 철회만 건너뛴다.
 const APPLE_ISS = 'https://appleid.apple.com';
-const APPLE_CLIENT_ID = () => process.env.APPLE_BUNDLE_ID || APP_SCHEME; // 번들 ID = kr.snowpan.app
+// iOS 번들 ID. 'kr.snowpan.app' 은 애플에 다른 팀이 이미 등록해 둔 상태라 iOS 는 kr.snowpan.ios (딥링크 스킴 APP_SCHEME 과 다름).
+const APPLE_CLIENT_ID = () => process.env.APPLE_BUNDLE_ID || 'kr.snowpan.ios';
 const APPLE_AUDIENCES = (): [string, ...string[]] => [APPLE_CLIENT_ID(), ...(process.env.APPLE_SERVICES_ID ? [process.env.APPLE_SERVICES_ID] : [])];
 const APPLE_FETCH_TIMEOUT = 8000;
 

@@ -288,11 +288,14 @@ export type LoginMethod = 'email' | 'kakao' | 'naver' | 'apple';
 
 // Apple 로그인 (iOS 앱 네이티브 시트) — 앱스토어 심사 지침 4.8: 카카오 로그인이 있으면 Apple 로그인도 제공해야 함.
 // 네이티브에서 받은 identityToken 을 백엔드 /auth/apple 로 보내 검증하고 우리 토큰을 받는다. 웹에서는 쓰지 않음.
+// iOS 번들 ID — 'kr.snowpan.app' 은 애플에 이미 다른 팀이 등록해 둔 상태라(2026-09-10 "not available") iOS 만 kr.snowpan.ios 를 쓴다.
+// 안드로이드 패키지명·딥링크 스킴(kr.snowpan.app://)은 그대로. 백엔드 APPLE_BUNDLE_ID 기본값과 같아야 한다.
+export const IOS_BUNDLE_ID = 'kr.snowpan.ios';
 export async function signInWithApple(): Promise<{ token: string; refreshToken?: string; isNew: boolean; user: NonNullable<ReturnType<typeof getUser>> }> {
   const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
   const { response } = await SignInWithApple.authorize({
-    clientId: 'kr.snowpan.app',
+    clientId: IOS_BUNDLE_ID,
     redirectURI: 'https://snowpan.kr/oauth/callback',
     scopes: 'email name',
     state: nonce,
