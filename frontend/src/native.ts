@@ -3,6 +3,12 @@ import { Capacitor } from '@capacitor/core';
 
 export async function initNative(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  // 앱 웹뷰에서는 화면 확대를 막는다 — iOS 는 16px 미만 입력창에 포커스하면 자동으로 확대되고 손을 떼도 안 돌아오는 경우가 있음
+  // (2026-09-11 사장님 실기기 신고 "화면이 확대됐는데 축소가 안 됐어"). 웹 브라우저(snowpan.kr)는 그대로 둔다.
+  try {
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content');
+  } catch { /* ignore */ }
   try {
     const [{ App }, { StatusBar, Style }, { SplashScreen }] = await Promise.all([
       import('@capacitor/app'),
