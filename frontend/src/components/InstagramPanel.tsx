@@ -5,7 +5,7 @@ import { toastError, toastSuccess } from './Toast';
 // 관리자 설정 — 인스타그램 @snowpan.kr 연동. 토큰을 한 번 넣으면 서버가 1시간마다 최신 게시물을 받아
 // 홈 "인스타그램" 섹션에 띄우고, 60일마다 만료되는 토큰도 알아서 연장한다.
 // 토큰 값은 저장 후 어떤 화면·응답에도 다시 나오지 않는다(연결 여부와 계정명만 표시).
-interface Status { connected: boolean; username: string | null; expiresAt: string | null; fetchedAt: string | null; count: number }
+interface Status { connected: boolean; username: string | null; expiresAt: string | null; fetchedAt: string | null; count: number; lastError?: string | null; lastErrorAt?: string | null }
 
 const fmt = (iso: string | null) => {
   if (!iso) return '-';
@@ -72,6 +72,9 @@ export default function InstagramPanel() {
           <div className="text-xs text-gray-600 space-y-1">
             <p>마지막 수집: {fmt(status.fetchedAt)} · 게시물 {status.count}개</p>
             <p>토큰 만료 예정: {fmt(status.expiresAt)} (만료 10일 전 자동 연장)</p>
+            {status.lastError && (
+              <p className="text-red-600">마지막 수집 실패 ({fmt(status.lastErrorAt ?? null)}): {status.lastError} — developers.facebook.com 앱 대시보드의 알림을 확인해 주세요.</p>
+            )}
           </div>
           <div className="flex gap-2">
             <button onClick={refresh} disabled={busy} className="flex-1 py-2.5 bg-gray-900 text-white rounded-lg font-bold text-xs disabled:opacity-40">지금 다시 받기</button>

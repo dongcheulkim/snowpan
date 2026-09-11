@@ -12,6 +12,8 @@ const KEY_EXPIRES = 'instagram.tokenExpiresAt';
 const KEY_CACHE = 'instagram.cache';
 const KEY_FETCHED = 'instagram.fetchedAt';
 const KEY_USERNAME = 'instagram.username';
+const KEY_LAST_ERROR = 'instagram.lastError';     // 마지막 수집 실패 원인 (관리자 화면 표시용)
+const KEY_LAST_ERROR_AT = 'instagram.lastErrorAt';
 
 const GRAPH = 'https://graph.instagram.com';
 const FIELDS = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp';
@@ -64,7 +66,11 @@ async function igFetch(url: string): Promise<unknown> {
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
-    const msg = (body as { error?: { message?: string } })?.error?.message || `HTTP ${res.status}`;
+    // 메타 오류는 message 만으론 원인을 알기 어려움(예: "API access blocked.") — code/subcode/type 을 같이 남긴다
+    const e = (body as { error?: { message?: string; code?: number; error_subcode?: number; type?: string; fbtrace_id?: string } })?.error;
+    const msg = e?.message
+      ? `${e.message} (code ${e.code ?? '?'}${e.error_subcode ? '/' + e.error_subcode : ''}${e.type ? ', ' + e.type : ''}${e.fbtrace_id ? ', trace ' + e.fbtrace_id : ''})`
+      : `HTTP ${res.status}`;
     throw new Error(msg);
   }
   return body;
@@ -115,9 +121,14 @@ export async function refreshInstagramPosts(throwOnError = false): Promise<IgPos
     const posts = toPosts(data);
     await setSetting(KEY_CACHE, JSON.stringify(posts));
     await setSetting(KEY_FETCHED, new Date().toISOString());
+    await setSetting(KEY_LAST_ERROR, '');
     return posts;
   } catch (err) {
-    console.error('Instagram fetch error:', err instanceof Error ? err.message : err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Instagram fetch error:', msg);
+    // 관리자 설정 탭에서 원인을 볼 수 있게 남긴다 (옛 캐시는 유지)
+    await setSetting(KEY_LAST_ERROR, msg.slice(0, 300)).catch(() => {});
+    await setSetting(KEY_LAST_ERROR_AT, new Date().toISOString()).catch(() => {});
     if (throwOnError) throw err;
     const { posts } = await getInstagramPosts();
     return posts;
@@ -143,13 +154,13 @@ export async function refreshInstagramTokenIfNeeded(): Promise<void> {
 }
 
 // 관리자 화면용 상태 (토큰 값 자체는 절대 내보내지 않는다)
-export async function getInstagramStatus(): Promise<{ connected: boolean; username: string | null; expiresAt: string | null; fetchedAt: string | null; count: number }> {
-  const [token, username, expiresAt, fetchedAt, cache] = await Promise.all([
-    getSetting(KEY_TOKEN), getSetting(KEY_USERNAME), getSetting(KEY_EXPIRES), getSetting(KEY_FETCHED), getSetting(KEY_CACHE),
+export async function getInstagramStatus(): Promise<{ connected: boolean; username: string | null; expiresAt: string | null; fetchedAt: string | null; count: number; lastError: string | null; lastErrorAt: string | null }> {
+  const [token, username, expiresAt, fetchedAt, cache, lastError, lastErrorAt] = await Promise.all([
+    getSetting(KEY_TOKEN), getSetting(KEY_USERNAME), getSetting(KEY_EXPIRES), getSetting(KEY_FETCHED), getSetting(KEY_CACHE), getSetting(KEY_LAST_ERROR), getSetting(KEY_LAST_ERROR_AT),
   ]);
   let count = 0;
   try { const p = JSON.parse(cache || '[]'); if (Array.isArray(p)) count = p.length; } catch { /* 무시 */ }
-  return { connected: !!token, username, expiresAt, fetchedAt, count };
+  return { connected: !!token, username, expiresAt, fetchedAt, count, lastError: lastError || null, lastErrorAt: lastError ? lastErrorAt : null };
 }
 
 export function startInstagramScheduler(): void {
