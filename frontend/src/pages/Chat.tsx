@@ -267,6 +267,19 @@ const Chat = () => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // 상대 차단 → 목록으로. 차단하면 서로 메시지를 보낼 수 없고 상대 글·댓글이 숨겨진다.
+  const blockOther = async () => {
+    if (!otherId) return;
+    if (!confirm(`${otherName}님을 차단할까요?\n차단하면 서로 채팅할 수 없고, 이 사용자의 글과 댓글이 보이지 않아요.`)) return;
+    try {
+      await api(`/blocks/${otherId}`, { method: 'POST' });
+      toastSuccess('차단했어요. 마이 → 차단한 사용자에서 해제할 수 있어요.');
+      navigate('/chat/rooms', { replace: true });
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '차단에 실패했어요.');
+    }
+  };
+
   const sendMessage = () => {
     const text = input.trim();
     if (!text || !roomId || !socketRef.current) return;
@@ -387,6 +400,10 @@ const Chat = () => {
           {/* 관리자: 광고 상담이 끝나면 여기서 바로 소재 작성 링크를 만들어 이 방에 보낸다 */}
           {user?.role === 'admin' && chatId && (
             <button onClick={() => setInviteOpen(true)} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold">광고 링크</button>
+          )}
+          {/* 상대 차단 (고객센터 방·관리자 제외) — 앱스토어 지침 1.2 */}
+          {!isAdminChat && user?.role !== 'admin' && otherId && (
+            <button onClick={blockOther} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[11px] font-bold">차단</button>
           )}
         </div>
 

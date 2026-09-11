@@ -296,4 +296,20 @@ api POST /shop-claims "{\"shopType\":\"lesson\",\"shopId\":\"$SAC\",\"businessLi
 # 일반유저 숙소 등록은 여전히 사진 필수
 api POST /accommodations "{\"name\":\"x\",\"type\":\"pension\",\"price\":50000,\"guests\":\"4\",\"resortId\":\"$YONGPYONG\",\"claimable\":true}" "$VISITOR_TOKEN"; [ "$CODE" = "400" ] && ok "일반유저 숙소 사진 누락 400 유지" || bad "숙소 사진 누락 CODE=$CODE"
 
+
+# ── 사용자 차단 (앱스토어 지침 1.2): 방문자가 소식주인을 차단 → 주인 글 숨김·채팅 403, 해제하면 복구
+api POST /community '{"title":"차단테스트글","content":"차단 테스트 내용입니다","category":"free","sport":"all"}' "$OWNER_TOKEN"; BLK_POST=$(echo "$RESP" | jq -r '.id')
+api POST "/blocks/$OWNER_ID" "" "$VISITOR_TOKEN"; expect 200 "차단 등록 200"
+api POST "/blocks/$VISITOR_ID" "" "$VISITOR_TOKEN"; expect 400 "자기 자신 차단 400"
+api POST "/blocks/$OWNER_ID" "" ""; expect 401 "비로그인 차단 401"
+api GET "/community?limit=50" "" "$VISITOR_TOKEN"; HID=$(echo "$RESP" | jq -r "[.posts[]? | select(.id==\"$BLK_POST\")] | length"); [ "$HID" = "0" ] && ok "차단한 사용자 글이 목록에서 숨김" || bad "차단 글 노출 n=$HID"
+api GET "/community?limit=50" "" "$CLAIMER_TOKEN"; VIS=$(echo "$RESP" | jq -r "[.posts[]? | select(.id==\"$BLK_POST\")] | length"); [ "$VIS" = "1" ] && ok "다른 사용자에겐 그대로 보임" || bad "타인 목록 n=$VIS"
+api GET "/community/$BLK_POST" "" "$VISITOR_TOKEN"; expect 403 "차단한 사용자 글 상세 403"
+api POST /chat/rooms "{\"targetUserId\":\"$OWNER_ID\"}" "$VISITOR_TOKEN"; expect 403 "차단 상대와 채팅방 생성 403"
+api POST /chat/rooms "{\"targetUserId\":\"$VISITOR_ID\"}" "$OWNER_TOKEN"; expect 403 "차단당한 쪽도 채팅방 생성 403"
+api GET /blocks "" "$VISITOR_TOKEN"; BN=$(echo "$RESP" | jq -r 'length'); BNAME=$(echo "$RESP" | jq -r '.[0].name'); [ "$BN" = "1" ] && [ "$BNAME" = "소식주인" ] && ok "차단 목록 1명(소식주인)" || bad "차단 목록 n=$BN name=$BNAME"
+api GET "/blocks/status/$OWNER_ID" "" "$VISITOR_TOKEN"; BS=$(echo "$RESP" | jq -r '.blocked'); [ "$BS" = "true" ] && ok "차단 상태 조회 true" || bad "차단 상태 $BS"
+api DELETE "/blocks/$OWNER_ID" "" "$VISITOR_TOKEN"; expect 200 "차단 해제 200"
+api GET "/community?limit=50" "" "$VISITOR_TOKEN"; HID2=$(echo "$RESP" | jq -r "[.posts[]? | select(.id==\"$BLK_POST\")] | length"); [ "$HID2" = "1" ] && ok "해제 후 글 다시 보임" || bad "해제 후 n=$HID2"
+
 echo "----- STEP13: PASS=$PASS FAIL=$FAIL -----"

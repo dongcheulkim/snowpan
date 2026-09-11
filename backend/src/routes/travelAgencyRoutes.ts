@@ -6,6 +6,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
+import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';
 import { isAgencyActive, agencyActiveWhere, AGENCY_BETA_FREE } from '../utils/agencyActive';
 import { confirmTossPayment } from '../utils/toss';
 
@@ -252,9 +253,14 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     await prisma.travelAgency.delete({ where: { id: req.params.id } });
     // 관리자가 남의 여행사를 지운 경우 소유자에게 알림+푸시 (스키샵·정비샵과 동일 UX — 유일하게 통지가 없던 vertical)
     if (req.user!.role === 'admin' && agency.userId !== req.user!.id) {
-      const msg = agency.approved ? `'${agency.name}' 여행사가 관리자에 의해 삭제되었습니다.` : `'${agency.name}' 여행사 등록이 거부되었습니다.`;
+      const reason = cleanReason(req.body?.reason);
+      const msg = withReason(agency.approved ? `'${agency.name}' 여행사가 관리자에 의해 삭제되었습니다.` : `'${agency.name}' 여행사 등록이 거부되었습니다.`, reason);
       createNotification(agency.userId, 'reject', agency.approved ? '여행사 삭제' : '여행사 거부', msg).catch(() => {});
       sendPushToUser(agency.userId, agency.approved ? '여행사 삭제' : '여행사 거부', msg).catch(() => {});
+      if (reason && req.body?.sendChat !== false) {
+        const text = agency.approved ? `[여행사 삭제] '${agency.name}'\n사유: ${reason}\n\n궁금한 점은 이 채팅으로 물어봐 주세요.` : rejectChatText('여행사', agency.name, reason);
+        sendSupportMessage(agency.userId, text).catch(() => {});
+      }
     }
     res.json({ ok: true });
   } catch {

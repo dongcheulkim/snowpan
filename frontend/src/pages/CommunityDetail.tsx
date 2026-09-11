@@ -218,6 +218,21 @@ const CommunityDetail = () => {
           </button>
           {/* Report button */}
           {user && user.id !== post.userId && (
+            <button
+              onClick={async () => {
+                if (!confirm('이 글쓴이를 차단할까요?\n차단하면 서로 채팅할 수 없고, 이 사용자의 글과 댓글이 보이지 않아요.')) return;
+                try {
+                  await api(`/blocks/${post.userId}`, { method: 'POST' });
+                  toastSuccess('차단했어요. 마이 → 차단한 사용자에서 해제할 수 있어요.');
+                  navigate(`${vbase}/community`, { replace: true });
+                } catch (err) { toastError(err instanceof Error ? err.message : '차단에 실패했어요.'); }
+              }}
+              className="px-2 py-1 text-[11px] font-bold text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              차단
+            </button>
+          )}
+          {user && user.id !== post.userId && (
             <button onClick={() => setShowReportModal(true)} className="p-1.5 text-gray-500 hover:text-coral transition-colors" title={t('usedDetail.report')}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />

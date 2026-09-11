@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
+import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';
 import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
 import { disconnectUser } from '../realtime';
@@ -466,9 +467,13 @@ export const rejectRental = async (req: AuthRequest, res: Response): Promise<voi
     const rentalName = rental?.name;
     await prisma.rental.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
 
+    // 거부 사유(선택) — 알림에 붙이고, sendChat 이 false 가 아니면 고객센터 1:1 채팅으로도 전달
+    const reason = cleanReason(req.body?.reason);
     if (rentalUserId) {
-      await createNotification(rentalUserId, 'reject', '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`);
-      sendPushToUser(rentalUserId, '렌탈 거부', `'${rentalName}' 렌탈이 거부되었습니다.`).catch(() => {});
+      const msg = withReason(`'${rentalName}' 렌탈샵 등록이 거부되었습니다.`, reason);
+      await createNotification(rentalUserId, 'reject', '렌탈샵 거부', msg);
+      sendPushToUser(rentalUserId, '렌탈샵 거부', msg).catch(() => {});
+      if (reason && req.body?.sendChat !== false) sendSupportMessage(rentalUserId, rejectChatText('렌탈샵', rentalName || '', reason)).catch(() => {});
     }
     res.json({ message: '렌탈이 거부되었습니다.' });
   } catch (error) {
@@ -493,8 +498,11 @@ export const rejectLesson = async (req: AuthRequest, res: Response): Promise<voi
     await prisma.lesson.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
 
     if (lessonUserId) {
-      await createNotification(lessonUserId, 'reject', '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`);
-      sendPushToUser(lessonUserId, '레슨 거부', `'${lessonName}' 레슨이 거부되었습니다.`).catch(() => {});
+      const reason = cleanReason(req.body?.reason);
+      const msg = withReason(`'${lessonName}' 레슨 등록이 거부되었습니다.`, reason);
+      await createNotification(lessonUserId, 'reject', '레슨 거부', msg);
+      sendPushToUser(lessonUserId, '레슨 거부', msg).catch(() => {});
+      if (reason && req.body?.sendChat !== false) sendSupportMessage(lessonUserId, rejectChatText('레슨', lessonName || '', reason)).catch(() => {});
     }
     res.json({ message: '레슨이 거부되었습니다.' });
   } catch (error) {
@@ -539,9 +547,12 @@ export const rejectAccommodation = async (req: AuthRequest, res: Response): Prom
     const accomUserId = accom?.userId;
     const accomName = accom?.name;
     await prisma.accommodation.delete({ where: { id: req.params.id } });
+    const reason = cleanReason(req.body?.reason);
     if (accomUserId) {
-      await createNotification(accomUserId, 'reject', '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`);
-      sendPushToUser(accomUserId, '숙소 거부', `'${accomName}' 숙소가 거부되었습니다.`).catch(() => {});
+      const msg = withReason(`'${accomName}' 숙소 등록이 거부되었습니다.`, reason);
+      await createNotification(accomUserId, 'reject', '숙소 거부', msg);
+      sendPushToUser(accomUserId, '숙소 거부', msg).catch(() => {});
+      if (reason && req.body?.sendChat !== false) sendSupportMessage(accomUserId, rejectChatText('숙소', accomName || '', reason)).catch(() => {});
     }
     res.json({ message: '숙소가 거부되었습니다.' });
   } catch (error) {
@@ -587,8 +598,13 @@ export const rejectBadge = async (req: AuthRequest, res: Response): Promise<void
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const badge = await prisma.badgeRequest.update({ where: { id: req.params.id }, data: { status: 'rejected' } });
-    await createNotification(badge.userId, 'badge', '자격증 거부', `자격증 인증이 거부되었습니다.`);
-    sendPushToUser(badge.userId, '자격증 거부', '자격증 인증이 거부되었습니다.').catch(() => {});
+    const reason = cleanReason(req.body?.reason);
+    const msg = withReason('자격증 인증이 거부되었습니다.', reason);
+    await createNotification(badge.userId, 'badge', '자격증 거부', msg);
+    sendPushToUser(badge.userId, '자격증 거부', msg).catch(() => {});
+    if (reason && req.body?.sendChat !== false) {
+      sendSupportMessage(badge.userId, `[자격증 인증 거부]\n사유: ${reason}\n\n자격증 종류와 급수가 보이게 다시 찍어 올려 주시면 확인해 드릴게요. 궁금한 점은 이 채팅으로 물어봐 주세요.`).catch(() => {});
+    }
     res.json({ message: '자격증이 거부되었습니다.' });
   } catch (error) {
     console.error('Reject badge error:', error);

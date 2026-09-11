@@ -78,6 +78,28 @@ const SellerProfile = () => {
   const [postTotalCount, setPostTotalCount] = useState(0);
   const user = getUser();
   const [showReport, setShowReport] = useState(false);
+  // 차단 (앱스토어 지침 1.2) — 차단하면 서로 채팅 불가, 이 사용자의 글·댓글 숨김
+  const [blocked, setBlocked] = useState(false);
+  const [blockBusy, setBlockBusy] = useState(false);
+  useEffect(() => {
+    if (!user || !sellerId || user.id === sellerId) return;
+    api<{ blocked: boolean }>(`/blocks/status/${sellerId}`).then((r) => setBlocked(!!r.blocked)).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sellerId]);
+  const toggleBlock = async () => {
+    if (!sellerId || blockBusy) return;
+    if (!blocked && !confirm('이 사용자를 차단할까요?\n차단하면 서로 채팅할 수 없고, 이 사용자의 글과 댓글이 보이지 않아요.')) return;
+    setBlockBusy(true);
+    try {
+      await api(`/blocks/${sellerId}`, { method: blocked ? 'DELETE' : 'POST' });
+      setBlocked(!blocked);
+      toastSuccess(blocked ? '차단을 해제했어요.' : '차단했어요. 마이 → 차단한 사용자에서 해제할 수 있어요.');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '처리에 실패했어요.');
+    } finally {
+      setBlockBusy(false);
+    }
+  };
   // 채팅 요청 모달 — 커뮤니티 등에서 프로필로 들어와 콜드 DM 을 보낼 때 (수락 게이트)
   const [showChatRequest, setShowChatRequest] = useState(false);
   const [chatRequestMsg, setChatRequestMsg] = useState('');
@@ -282,7 +304,12 @@ const SellerProfile = () => {
           </div>
         )}
         {user && user.id !== sellerId && (
-          <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-400 hover:text-coral transition-colors mt-1.5">이 사용자 신고</button>
+          <div className="mt-1.5 flex items-center justify-center gap-3">
+            <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-400 hover:text-coral transition-colors">이 사용자 신고</button>
+            <button onClick={toggleBlock} disabled={blockBusy} className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-60">
+              {blocked ? '차단 해제' : '이 사용자 차단'}
+            </button>
+          </div>
         )}
         <div className="grid grid-cols-4 gap-2 mt-4">
           <div className="py-2.5 bg-snow rounded-xl border border-gray-200">

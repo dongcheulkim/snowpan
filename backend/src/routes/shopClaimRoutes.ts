@@ -4,6 +4,7 @@ import { Router, Response } from 'express';
 import { AuthRequest, authenticateToken, optionalAuth } from '../middleware/auth';
 import prisma from '../config/database';
 import { sendPushToUser } from '../utils/push';
+import { sendSupportMessage, cleanReason, withReason } from '../utils/supportMessage';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sanitizeText } from '../utils/sanitize';
 
@@ -161,8 +162,13 @@ router.put('/:id/reject', authenticateToken, async (req: AuthRequest, res: Respo
     const claim = await prisma.shopClaim.findUnique({ where: { id: req.params.id } });
     if (!claim || claim.status !== 'pending') { res.status(404).json({ error: '요청을 찾을 수 없습니다.' }); return; }
     await prisma.shopClaim.update({ where: { id: claim.id }, data: { status: 'rejected' } });
-    await createNotification(claim.userId, 'system', '매장 이전 요청 반려', '매장 소유권 이전 요청이 반려되었습니다. 문의가 필요하면 고객센터로 연락주세요.', '/mypage/support').catch(() => {});
-    sendPushToUser(claim.userId, '매장 이전 요청 반려', '매장 소유권 이전 요청이 반려되었습니다.', '/mypage/support').catch(() => {});
+    const reason = cleanReason(req.body?.reason);
+    const msg = withReason('매장 소유권 이전 요청이 반려되었습니다. 문의가 필요하면 고객센터로 연락주세요.', reason);
+    await createNotification(claim.userId, 'system', '매장 이전 요청 반려', msg, '/mypage/support').catch(() => {});
+    sendPushToUser(claim.userId, '매장 이전 요청 반려', withReason('매장 소유권 이전 요청이 반려되었습니다.', reason), '/mypage/support').catch(() => {});
+    if (reason && req.body?.sendChat !== false) {
+      sendSupportMessage(claim.userId, `[매장 직접 관리 요청 반려]\n사유: ${reason}\n\n사업자등록증 등 증빙을 보완해서 다시 요청해 주시면 확인해 드릴게요. 궁금한 점은 이 채팅으로 물어봐 주세요.`).catch(() => {});
+    }
     res.json({ message: '거절 완료' });
   } catch (error) {
     res.status(500).json({ error: '거절 처리 실패' });

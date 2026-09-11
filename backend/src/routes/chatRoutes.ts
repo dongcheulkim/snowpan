@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../config/database';
 import { getAdminIds, roomAccessWhere, mySideOf, adminSideOf } from '../utils/supportInbox';
+import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from '../utils/blocks';
 import { displayName } from '../utils/displayName';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -123,6 +124,8 @@ router.post('/rooms', async (req: any, res: Response) => {
       res.status(410).json({ error: '대화할 수 없는 사용자입니다.' });
       return;
     }
+    // 차단 관계면 어느 쪽이든 방을 열 수 없음 (방향은 노출하지 않음)
+    if (await isBlockedEither(userId, targetUserId)) { res.status(403).json({ error: BLOCKED_CHAT_MESSAGE }); return; }
 
     const [u1, u2] = [userId, targetUserId].sort();
 
@@ -217,6 +220,7 @@ router.post('/requests', async (req: any, res: Response) => {
       res.status(410).json({ error: '대화할 수 없는 사용자입니다.' });
       return;
     }
+    if (await isBlockedEither(userId, targetUserId)) { res.status(403).json({ error: BLOCKED_CHAT_MESSAGE }); return; }
 
     const [u1, u2] = [userId, targetUserId].sort();
     const existing = await prisma.chatRoom.findUnique({

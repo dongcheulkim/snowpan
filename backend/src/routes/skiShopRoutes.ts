@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
+import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';
 import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
@@ -212,9 +213,14 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     await prisma.skiShop.delete({ where: { id: req.params.id } });
     // 관리자가 남의 매장을 지운 경우 소유자에게 알림 — 미승인이면 거부, 승인 후면 삭제 안내 (렌탈/레슨과 동일 UX)
     if (req.user!.role === 'admin' && shop.userId !== req.user!.id) {
-      const msg = shop.approved ? `'${shop.name}' 스키샵이 관리자에 의해 삭제되었습니다.` : `'${shop.name}' 스키샵 등록이 거부되었습니다.`;
-      createNotification(shop.userId, 'reject', shop.approved ? '스키샵 삭제' : '스키샵 거부', msg).catch(() => {});
-      sendPushToUser(shop.userId, shop.approved ? '스키샵 삭제' : '스키샵 거부', msg).catch(() => {});
+      const reason = cleanReason(req.body?.reason);
+      const msg = withReason(shop.approved ? `'${shop.name}' 스키·보드샵이 관리자에 의해 삭제되었습니다.` : `'${shop.name}' 스키·보드샵 등록이 거부되었습니다.`, reason);
+      createNotification(shop.userId, 'reject', shop.approved ? '스키·보드샵 삭제' : '스키·보드샵 거부', msg).catch(() => {});
+      sendPushToUser(shop.userId, shop.approved ? '스키·보드샵 삭제' : '스키·보드샵 거부', msg).catch(() => {});
+      if (reason && req.body?.sendChat !== false) {
+        const text = shop.approved ? `[매장 삭제] 스키·보드샵 '${shop.name}'\n사유: ${reason}\n\n궁금한 점은 이 채팅으로 물어봐 주세요.` : rejectChatText('스키·보드샵', shop.name, reason);
+        sendSupportMessage(shop.userId, text).catch(() => {});
+      }
     }
     res.json({ message: '삭제 완료' });
   } catch (error) {

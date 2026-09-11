@@ -6,6 +6,22 @@ import { api, imageUrl } from '../api';
 import { MaintenanceIcon, SkiShopIcon } from '../components/CategoryIcons';
 import { LocationIcon, PackageIcon, WarningIcon } from '../components/Icons';
 
+// 승인 카드의 긴 설명 — 두 줄로 접혀 있던 걸 눌러서 전부 볼 수 있게 (사용자 요청 2026-09-11 "설명이 다 안 보여")
+function ExpandableText({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 80 || text.includes('\n');
+  return (
+    <div className="mt-1">
+      <div className={`text-xs text-gray-500 whitespace-pre-line ${open ? '' : 'line-clamp-2'}`}>{text}</div>
+      {long && (
+        <button type="button" onClick={() => setOpen((o) => !o)} className="text-[11px] font-bold text-sky-600 mt-0.5">
+          {open ? '접기' : '더 보기'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface PendingItem {
   id: string;
   name?: string;
@@ -165,31 +181,34 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
     }
   };
 
-  const handleReject = async (tab: TabId, id: string) => {
-    if (!confirm('정말 거부하시겠습니까?')) return;
+  // 거부 = 사유 입력 모달 → 확인 시 API. 사유는 알림에 붙고, 체크하면 고객센터 1:1 채팅으로도 전달 (사용자 요청 2026-09-11)
+  const [rejectTarget, setRejectTarget] = useState<{ tab: TabId; id: string; name?: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectSendChat, setRejectSendChat] = useState(true);
+  const [rejecting, setRejecting] = useState(false);
+  const openReject = (tab: TabId, id: string, name?: string) => { setRejectReason(''); setRejectSendChat(true); setRejectTarget({ tab, id, name }); };
+
+  const confirmReject = async () => {
+    if (!rejectTarget || rejecting) return;
+    const { tab, id } = rejectTarget;
+    const body = { reason: rejectReason.trim(), sendChat: rejectSendChat };
+    setRejecting(true);
     try {
-      if (tab === 'skishop') {
-        await api(`/ski-shops/${id}`, { method: 'DELETE' });
-        toastSuccess('거부되었습니다.'); fetchPending(); return;
+      if (tab === 'skishop') await api(`/ski-shops/${id}`, { method: 'DELETE', body });
+      else if (tab === 'repair') await api(`/repair-shops/${id}`, { method: 'DELETE', body });
+      else if (tab === 'claim') await api(`/shop-claims/${id}/reject`, { method: 'PUT', body });
+      else if (tab === 'agency') await api(`/agencies/${id}`, { method: 'DELETE', body });
+      else {
+        const path = tab === 'badge' ? 'badges' : `${tab}s`;
+        await api(`/admin/${path}/${id}/reject`, { method: 'DELETE', body });
       }
-      if (tab === 'repair') {
-        await api(`/repair-shops/${id}`, { method: 'DELETE' });
-        toastSuccess('거부되었습니다.'); fetchPending(); return;
-      }
-      if (tab === 'claim') {
-        await api(`/shop-claims/${id}/reject`, { method: 'PUT' });
-        toastSuccess('반려되었습니다.'); fetchPending(); return;
-      }
-      if (tab === 'agency') {
-        await api(`/agencies/${id}`, { method: 'DELETE' });
-        toastSuccess('거부되었습니다.'); fetchPending(); return;
-      }
-      const path = tab === 'badge' ? 'badges' : `${tab}s`;
-      await api(`/admin/${path}/${id}/reject`, { method: 'DELETE' });
-      toastSuccess('거부되었습니다.');
+      toastSuccess(body.reason && body.sendChat ? '거부하고 사유를 채팅으로 보냈어요.' : '거부되었습니다.');
+      setRejectTarget(null);
       fetchPending();
     } catch (err) {
       toastError(err instanceof Error ? err.message : '거부 실패');
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -233,7 +252,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             )}
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleReject('claim', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs border border-gray-200">반려</button>
+            <button onClick={() => openReject('claim', item.id, item.shopName || item.name)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs border border-gray-200">반려</button>
             <button onClick={() => handleApprove('claim', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs">승인 (소유권 이전)</button>
           </div>
         </div>
@@ -262,7 +281,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleReject('repair', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs border border-gray-200">거부</button>
+            <button onClick={() => openReject('repair', item.id, item.name)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs border border-gray-200">거부</button>
             <button onClick={() => handleApprove('repair', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs">승인</button>
           </div>
         </div>
@@ -292,7 +311,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleReject('skishop', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
+            <button onClick={() => openReject('skishop', item.id, item.name)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
             <button onClick={() => handleApprove('skishop', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
           </div>
         </div>
@@ -314,7 +333,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             )}
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-100">
-            <button onClick={() => handleReject('agency', item.id)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
+            <button onClick={() => openReject('agency', item.id, item.name)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
             <button onClick={() => handleApprove('agency', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
           </div>
         </div>
@@ -359,7 +378,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             </div>
           </div>
           <div className="flex gap-2 pt-3 border-t border-gray-50">
-            <button onClick={() => handleReject('badge', item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
+            <button onClick={() => openReject('badge', item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
             <button onClick={() => handleApprove('badge', item.id)} disabled={!selectedType} className="flex-1 py-2.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors disabled:opacity-30 disabled:cursor-not-allowed">승인</button>
           </div>
         </div>
@@ -381,13 +400,13 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
               <>
                 {(item.area || item.address) && <div className="text-xs text-gray-500 mt-0.5">{[item.area, item.address].filter(Boolean).join(' · ')}</div>}
                 {(item.phone || item.brands) && <div className="text-xs text-gray-500 mt-0.5">{[item.phone, item.brands].filter(Boolean).join(' · ')}</div>}
-                {item.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{item.description}</div>}
+                {item.description && <ExpandableText text={item.description} />}
               </>
             )}
             {activeTab === 'lesson' && (
               <>
                 {item.type && <div className="text-xs text-gray-500 mt-0.5">{item.type}</div>}
-                {item.description && <div className="text-xs text-gray-500 mt-1 line-clamp-2 whitespace-pre-line">{item.description}</div>}
+                {item.description && <ExpandableText text={item.description} />}
               </>
             )}
             {activeTab === 'accommodation' && (
@@ -436,7 +455,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         {activeTab === 'rental' && <ExtraKindsNote item={item} />}
 
         <div className="flex gap-2 pt-3 border-t border-gray-50">
-          <button onClick={() => handleReject(activeTab, item.id)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
+          <button onClick={() => openReject(activeTab, item.id, item.name)} className="flex-1 py-2.5 bg-gray-50 text-gray-600 rounded-lg font-bold text-xs active:bg-gray-100 transition-colors">거부</button>
           <button onClick={() => handleApprove(activeTab, item.id)} className="flex-1 py-2.5 bg-primary text-white rounded-lg font-bold text-xs active:bg-primary-dark transition-colors">승인</button>
         </div>
       </div>
@@ -475,6 +494,32 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
       ) : (
         <div className="space-y-3">
           {displayItems.map(renderItem)}
+        </div>
+      )}
+
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4" onClick={() => !rejecting && setRejectTarget(null)}>
+          <div className="bg-snow rounded-2xl w-full max-w-md p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="font-bold text-base text-gray-900">거부 사유</div>
+            {rejectTarget.name && <div className="text-xs text-gray-500 mt-0.5">{rejectTarget.name}</div>}
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={4}
+              maxLength={500}
+              placeholder="예: 사업자등록증 사진이 흐려서 확인이 안 돼요. 다시 찍어 올려 주세요."
+              className="mt-3 w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-snow focus:outline-none focus:border-gray-400"
+            />
+            <label className="mt-3 flex items-center gap-2 text-xs text-gray-700">
+              <input type="checkbox" checked={rejectSendChat} onChange={(e) => setRejectSendChat(e.target.checked)} />
+              사유를 1:1 채팅으로도 보내기
+            </label>
+            <p className="mt-1 text-[11px] text-gray-400">사유를 적으면 알림에 함께 들어가요. 비워 두면 알림만 가요.</p>
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setRejectTarget(null)} disabled={rejecting} className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm">취소</button>
+              <button type="button" onClick={confirmReject} disabled={rejecting} className="flex-1 py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm disabled:opacity-60">{rejecting ? '처리 중...' : '거부하기'}</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

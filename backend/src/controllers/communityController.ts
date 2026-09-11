@@ -6,6 +6,7 @@ import { cacheGet, cacheSet } from '../utils/cache';
 import { sendPushToUser } from '../utils/push';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
+import { blockedIdsFor } from '../utils/blocks';
 import jwt from 'jsonwebtoken';
 
 // UUID v4 검증 — 'categories', 'votes' 같은 단어가 :id 자리에 들어와도
@@ -56,7 +57,10 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
-    const cacheKey = `posts:${verticalSlug}:${JSON.stringify({ sport, category, userId, search, limit, offset, resortId })}`;
+    // 내가 차단한 사용자의 글은 숨김 — 캐시 키에 차단 목록을 넣어 차단 없는 사용자끼리는 캐시를 공유
+    const me = (req as AuthRequest).user?.id;
+    const blocked = me ? await blockedIdsFor(me) : [];
+    const cacheKey = `posts:${verticalSlug}:${JSON.stringify({ sport, category, userId, search, limit, offset, resortId, b: blocked })}`;
     const cached = cacheGet<{ posts: unknown[]; totalCount: number }>(cacheKey);
     if (cached) {
       res.json(cached);
@@ -81,6 +85,7 @@ export const getPosts = async (req: Request, res: Response): Promise<void> => {
       where.category = { not: 'news' };
     }
     if (userIdStr) where.userId = userIdStr;
+    else if (blocked.length) where.userId = { notIn: blocked };
     // 리조트 페이지 '스노우판 매거진' — resortIds 콤마 목록에 포함된 글만
     if (typeof resortId === 'string' && resortId) where.resortIds = { contains: resortId };
     if (searchStr) {
@@ -135,12 +140,15 @@ export const getPopularPosts = async (req: Request, res: Response): Promise<void
 
     // 배열 파라미터는 문자열만 통과 — ?sport=a&sport=b 가 Prisma 예외로 500 나는 것 방지 (getPosts 와 동일)
     const sportStr = typeof sport === 'string' ? sport : undefined;
-    const cacheKey = `posts:popular:${verticalSlug}:${sportStr || 'all'}`;
+    const me = (req as AuthRequest).user?.id;
+    const blocked = me ? await blockedIdsFor(me) : [];
+    const cacheKey = `posts:popular:${verticalSlug}:${sportStr || 'all'}:${blocked.join(',')}`;
     const cached = cacheGet<unknown[]>(cacheKey);
     if (cached) { res.json(cached); return; }
 
     // 스노우판 매거진(news)은 홈에 별도 섹션이 있어 핫 랭킹에서 제외(중복 노출 방지)
     const where: any = { vertical: verticalSlug, category: { not: 'news' } };
+    if (blocked.length) where.userId = { notIn: blocked }; // 내가 차단한 사용자 글 제외
     // getPosts 와 동일하게 공용(sport='all') 글 포함 — 공지가 핫 랭킹에서 빠지던 비일관 해소
     if (sportStr) where.sport = { in: [sportStr, 'all'] };
 
@@ -236,6 +244,14 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
       return;
     }
+
+    // 차단: 내가 차단한 사용자의 글은 열리지 않고, 댓글 목록에서도 빠진다
+    const blockedIds = currentUserId ? await blockedIdsFor(currentUserId) : [];
+    if (blockedIds.includes(post.userId)) {
+      res.status(403).json({ error: '차단한 사용자의 글이에요. 마이 → 차단한 사용자에서 해제할 수 있어요.' });
+      return;
+    }
+    if (blockedIds.length) post.comments = post.comments.filter((c: any) => !blockedIds.includes(c.userId));
 
     let liked = false;
     if (currentUserId) {

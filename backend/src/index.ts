@@ -55,6 +55,7 @@ import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
 import { roomAccessWhere, recipientsOf, getAdminIds } from './utils/supportInbox';
+import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from './utils/blocks';
 import { findSupportAnswer } from './utils/supportAnswers';
 import { isTokenIatStale } from './utils/tokens';
 import { isAllowedImageUrl } from './utils/validate';
@@ -65,6 +66,7 @@ import savedSearchRoutes from './routes/savedSearchRoutes';
 import shopClaimRoutes from './routes/shopClaimRoutes';
 import adBookingRoutes from './routes/adBookingRoutes';
 import skiShopRoutes from './routes/skiShopRoutes';
+import blockRoutes from './routes/blockRoutes';
 import repairShopRoutes from './routes/repairShopRoutes';
 import searchRoutes from './routes/searchRoutes';
 import contactRoutes from './routes/contactRoutes';
@@ -331,6 +333,7 @@ app.use('/api/saved-searches', savedSearchRoutes);
 app.use('/api/shop-claims', strictWriteLimiter, shopClaimRoutes);
 app.use('/api/ad-booking', adBookingRoutes);
 app.use('/api/ski-shops', skiShopRoutes);
+app.use('/api/blocks', blockRoutes);
 app.use('/api/repair-shops', repairShopRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/contact', contactRoutes);
@@ -488,6 +491,15 @@ io.on('connection', (socket) => {
         // 거절 비노출 — pending 과 동일 문구 (차등 에러 메시지로 거절이 확인되던 것 차단)
         socket.emit('room_error', { roomId: data.roomId, error: '상대가 채팅 요청을 수락하면 대화할 수 있어요.' });
         return;
+      }
+      // 차단 관계(어느 방향이든)면 전송 불가 — 고객센터(관리자) 방은 제외
+      {
+        const adminIdsNow = await getAdminIds();
+        const other = room.user1Id === userId ? room.user2Id : room.user1Id;
+        if (!adminIdsNow.includes(userId) && !adminIdsNow.includes(other) && (await isBlockedEither(userId, other))) {
+          socket.emit('room_error', { roomId: data.roomId, error: BLOCKED_CHAT_MESSAGE });
+          return;
+        }
       }
 
       // 보낸 소켓이 아직 방에 join 안 돼 있으면(연결 직후 버퍼된 메시지가 join_room 보다 먼저 도착) 자기 메시지·자동답변 echo 를

@@ -48,6 +48,7 @@ const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const SkiShopEdit = lazy(() => import('./pages/SkiShopEdit'));
 const ResortLanding = lazy(() => import('./pages/ResortLanding'));
 const KeywordAlerts = lazy(() => import('./pages/KeywordAlerts'));
+const MyBlocks = lazy(() => import('./pages/MyBlocks'));
 const SkiShopDetail = lazy(() => import('./pages/SkiShopDetail'));
 const RepairShopDetail = lazy(() => import('./pages/RepairShopDetail'));
 const RepairShopEdit = lazy(() => import('./pages/RepairShopEdit'));
@@ -184,6 +185,7 @@ function App() {
             <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
             <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
             <Route path="mypage/keywords" element={<RequireAuth><KeywordAlerts /></RequireAuth>} />
+            <Route path="mypage/blocks" element={<RequireAuth><MyBlocks /></RequireAuth>} />
             <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
             <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />

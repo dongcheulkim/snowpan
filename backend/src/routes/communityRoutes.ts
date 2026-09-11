@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { getPosts, getPopularPosts, getPostById, createPost, likePost, createComment, deleteComment, updatePost, deletePost } from '../controllers/communityController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, optionalAuth } from '../middleware/auth';
 import { postCreateLimiter, postCreateLimiterHourly, commentCreateLimiter, commentCreateLimiterHourly } from '../middleware/rateLimit';
 import { validateUUIDParam } from '../middleware/validateUUID';
 
 const router = Router();
 
-router.get('/', getPosts);
-router.get('/popular', getPopularPosts);
+// 로그인한 사용자는 자기가 차단한 사람의 글이 목록에서 빠짐 (optionalAuth — 비로그인은 그대로 공개 목록)
+router.get('/', optionalAuth, getPosts);
+router.get('/popular', optionalAuth, getPopularPosts);
 router.get('/:id', validateUUIDParam('id'), getPostById);
 // 글 작성: 분당 3건 + 시간당 20건 (사용자 단위) + 기존 strictWriteLimiter (IP 단위 분당 10건).
 // 3중 throttle 로 봇 도배 차단.

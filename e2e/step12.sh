@@ -159,10 +159,16 @@ SPEC=$(echo "$RESP" | jq -r '.specialties')
 [ "$CODE" = "201" ] && [ "$SPEC" = "인터,모글" ] && ok "레슨 분야 화이트리스트 필터 (인터,모글)" || bad "레슨 분야 CODE=$CODE spec=$SPEC"
 LID2=$(echo "$RESP" | jq -r '.id')
 # 관리자 반려(reject) → 소유자 알림 + 삭제
-api DELETE "/admin/lessons/$LID2/reject" "" "$ADM_TOKEN"
+api DELETE "/admin/lessons/$LID2/reject" '{"reason":"자격증 사진이 흐려서 확인이 어려워요","sendChat":true}' "$ADM_TOKEN"
 [ "$CODE" = "200" ] && ok "관리자 레슨 반려 200" || bad "레슨 반려 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
 GONE=$(pq "SELECT count(*) FROM lessons WHERE id='$LID2'")
 [ "$GONE" = "0" ] && ok "반려 레슨 삭제됨" || bad "반려 후 row=$GONE"
+# 거부 사유가 알림 본문에 붙고, 고객센터 1:1 채팅으로도 전달됨 (2026-09-11 사용자 요청)
+RN=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$OWNER_ID' AND type='reject' AND message LIKE '%사유: 자격증 사진이 흐려서%'")
+[ "$RN" = "1" ] && ok "반려 알림에 사유 포함" || bad "반려 알림 사유 n=$RN"
+sleep 1
+RM=$(pq "SELECT count(*) FROM messages m JOIN chat_rooms r ON r.id=m.\"roomId\" WHERE (r.\"user1Id\"='$OWNER_ID' OR r.\"user2Id\"='$OWNER_ID') AND m.content LIKE '%[등록 거부] 레슨%자격증 사진이 흐려서%'")
+[ "$RM" = "1" ] && ok "반려 사유가 고객센터 채팅으로 전달됨" || bad "반려 채팅 n=$RM"
 
 # business-status: 승인 매장 없으면 isOwner=false, 대기 매장 있으면 hasPending=true
 api POST /rentals "{\"name\":\"E2E렌탈대기\",\"area\":\"용평\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$OWNER_TOKEN"
