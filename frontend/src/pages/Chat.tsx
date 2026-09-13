@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl } from '../api';
+import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl, isNativeApp } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../components/Toast';
@@ -265,6 +265,25 @@ const Chat = () => {
     firstScrollRef.current = false;
   }, [messages]);
 
+  // 키보드 대응 — 앱: Keyboard 플러그인이 웹뷰를 줄이고 'snowpan:keyboard' 로 알려줌 → 맨 아래로.
+  // 웹(iOS 사파리): 웹뷰가 안 줄어들고 visualViewport 만 줄어들어 입력창이 키보드에 가리거나 여백이 생김 → 방 높이를 visualViewport 에 맞춘다.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const toBottom = () => setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 50);
+    window.addEventListener('snowpan:keyboard', toBottom);
+    const vv = window.visualViewport;
+    const onVV = () => {
+      if (!vv || !rootRef.current || isNativeApp()) return;
+      const keyboardOpen = vv.height < window.innerHeight - 120;
+      rootRef.current.style.height = keyboardOpen ? `${vv.height}px` : '';
+      rootRef.current.style.top = keyboardOpen ? `${vv.offsetTop}px` : '';
+      document.body.classList.toggle('keyboard-open', keyboardOpen);
+      if (keyboardOpen) toBottom();
+    };
+    vv?.addEventListener('resize', onVV); vv?.addEventListener('scroll', onVV);
+    return () => { window.removeEventListener('snowpan:keyboard', toBottom); vv?.removeEventListener('resize', onVV); vv?.removeEventListener('scroll', onVV); document.body.classList.remove('keyboard-open'); };
+  }, []);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 상대 차단 → 목록으로. 차단하면 서로 메시지를 보낼 수 없고 상대 글·댓글이 숨겨진다.
@@ -362,6 +381,7 @@ const Chat = () => {
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >

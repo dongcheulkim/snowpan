@@ -49,6 +49,15 @@ export async function initNative(): Promise<void> {
       }
     });
 
+    // 키보드 표시/숨김 → body.keyboard-open (CSS 가 하단 안전영역 여백을 뺌) + 채팅이 맨 아래로 스크롤하도록 이벤트
+    try {
+      const { Keyboard } = await import('@capacitor/keyboard');
+      Keyboard.addListener('keyboardWillShow', () => { document.body.classList.add('keyboard-open'); window.dispatchEvent(new Event('snowpan:keyboard')); });
+      Keyboard.addListener('keyboardDidShow', () => { window.dispatchEvent(new Event('snowpan:keyboard')); });
+      Keyboard.addListener('keyboardWillHide', () => { document.body.classList.remove('keyboard-open'); });
+      Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
+    } catch { /* 플러그인 없으면 무시 */ }
+
     // 첫 화면 렌더 후 스플래시 숨김
     setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 200);
 

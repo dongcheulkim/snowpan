@@ -149,6 +149,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Safe area (iPhone notch/home indicator) */
+/* 키보드가 올라와 있을 때는 홈 인디케이터 여백을 빼서 입력창이 키보드에 딱 붙게 (앱: Keyboard 플러그인, 웹: visualViewport 로 body.keyboard-open 토글) */
+body.keyboard-open .safe-area-bottom { padding-bottom: 0 !important; }
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
