@@ -18,9 +18,24 @@ export default function PullToRefresh() {
     const mqHover = window.matchMedia('(hover: hover)');
     if (mqHover.matches) return;
 
+    // 터치가 안쪽 스크롤 영역(채팅 메시지 목록, 가로 스크롤 행 등) 안에서 시작했으면 그 영역이 스크롤을 처리한다.
+    // 채팅방은 화면이 고정(fixed)이라 window.scrollY 가 늘 0 → 메시지를 위로 당길 때마다 새로고침이 걸리던 문제 (2026-09-13 사장님 신고).
+    const inInnerScroller = (target: EventTarget | null): boolean => {
+      let el = target instanceof Element ? target : null;
+      while (el && el !== document.body) {
+        const cs = getComputedStyle(el);
+        if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1) return true;
+        if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return true;
+        el = el.parentElement;
+      }
+      return false;
+    };
     const onTouchStart = (e: TouchEvent) => {
       // 페이지 최상단일 때만 활성
       if (window.scrollY > 0) return;
+      // 채팅방·고정 화면에서는 끔
+      if (window.location.pathname.startsWith('/chat/')) return;
+      if (inInnerScroller(e.target)) return;
       // 하나의 손가락만
       if (e.touches.length !== 1) return;
       startYRef.current = e.touches[0].clientY;
