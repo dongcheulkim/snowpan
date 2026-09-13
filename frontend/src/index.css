@@ -200,3 +200,7 @@ body.keyboard-open .safe-area-bottom { padding-bottom: 0 !important; }
 .brand-loader-mark { opacity: .35; animation: brandBreath 1.4s ease-in-out infinite; }
 @keyframes brandBreath { 0%, 100% { opacity: .3; transform: scale(.98); } 50% { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .brand-loader-mark { animation: none; opacity: .8; } }
+
+/* 채팅방: 앱에서 키보드 높이(--kb)만큼 바닥을 올린다 — 키보드 애니메이션(약 .25s)과 같이 움직이게 */
+.chat-root { transition: bottom .25s cubic-bezier(.2, .8, .2, 1); }
+body.keyboard-open .chat-root { bottom: var(--kb, 0px); }

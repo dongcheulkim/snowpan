@@ -24,9 +24,10 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
-    // 키보드가 올라오면 웹뷰 자체를 줄여 채팅 입력창이 키보드 바로 위에 붙게 (없으면 입력창과 키보드 사이가 뜸 — 2026-09-13 사장님 신고)
+    // iOS: 웹뷰를 플러그인이 줄이면 키보드 애니메이션이 끝나고 0.2초 뒤에야 줄어들어 느리고 채팅이 중간에 걸림(사장님 신고 2026-09-13).
+    // → 웹뷰는 그대로 두고(None) keyboardWillShow 의 높이로 채팅방 자체를 즉시 같이 올린다(native.ts --kb + .chat-root). 안드로이드는 이 값과 무관(adjustResize).
     Keyboard: {
-      resize: KeyboardResize.Native,
+      resize: KeyboardResize.None,
       resizeOnFullScreen: true,
     },
   },

@@ -52,9 +52,17 @@ export async function initNative(): Promise<void> {
     // 키보드 표시/숨김 → body.keyboard-open (CSS 가 하단 안전영역 여백을 뺌) + 채팅이 맨 아래로 스크롤하도록 이벤트
     try {
       const { Keyboard } = await import('@capacitor/keyboard');
-      Keyboard.addListener('keyboardWillShow', () => { document.body.classList.add('keyboard-open'); window.dispatchEvent(new Event('snowpan:keyboard')); });
+      // 키보드 높이를 CSS 변수(--kb)로 — 채팅방(.chat-root)이 키보드가 올라오기 시작할 때 바로 같이 올라간다
+      Keyboard.addListener('keyboardWillShow', (info) => {
+        document.documentElement.style.setProperty('--kb', `${Math.max(0, Math.round(info.keyboardHeight || 0))}px`);
+        document.body.classList.add('keyboard-open');
+        window.dispatchEvent(new Event('snowpan:keyboard'));
+      });
       Keyboard.addListener('keyboardDidShow', () => { window.dispatchEvent(new Event('snowpan:keyboard')); });
-      Keyboard.addListener('keyboardWillHide', () => { document.body.classList.remove('keyboard-open'); });
+      Keyboard.addListener('keyboardWillHide', () => {
+        document.documentElement.style.setProperty('--kb', '0px');
+        document.body.classList.remove('keyboard-open');
+      });
       Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
     } catch { /* 플러그인 없으면 무시 */ }
 

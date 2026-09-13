@@ -269,7 +269,8 @@ const Chat = () => {
   // 웹(iOS 사파리): 웹뷰가 안 줄어들고 visualViewport 만 줄어들어 입력창이 키보드에 가리거나 여백이 생김 → 방 높이를 visualViewport 에 맞춘다.
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const toBottom = () => setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 50);
+    // 키보드가 올라오는 동안(전환 .25s)과 끝난 뒤 두 번 맨 아래로 — 중간에 걸리지 않게
+    const toBottom = () => { [60, 320].forEach((ms) => setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), ms)); };
     window.addEventListener('snowpan:keyboard', toBottom);
     const vv = window.visualViewport;
     const onVV = () => {
@@ -309,6 +310,7 @@ const Chat = () => {
     setInput('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
+      textareaRef.current.focus(); // 보낸 뒤에도 키보드 유지 — 연속 입력 (사장님 신고 2026-09-13)
     }
   };
 
@@ -382,7 +384,8 @@ const Chat = () => {
   return (
     <div
       ref={rootRef}
-      className="fixed inset-0 flex flex-col animate-fade-in z-[61]"
+      onTransitionEnd={(e) => { if (e.propertyName === 'bottom') messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }); }}
+      className="chat-root fixed inset-0 flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >
       {inviteOpen && (
@@ -783,6 +786,7 @@ const Chat = () => {
               style={{ maxHeight: 120 }}
             />
             <button
+              onPointerDown={(e) => e.preventDefault()} // 버튼을 눌러도 입력창 포커스가 안 빠지게 → 키보드가 안 내려감
               onClick={sendMessage}
               disabled={!input.trim() || !connected || roomStatus === 'pending'}
               aria-label="전송"
