@@ -418,7 +418,7 @@ const SellerProfile = () => {
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-gray-500 flex-shrink-0 ml-2">
                   <span className="text-coral">♥ {p.likes}</span>
-                  <span>💬 {p.commentCount}</span>
+                  <span>댓글 {p.commentCount}</span>
                 </div>
               </Link>
             ))}
