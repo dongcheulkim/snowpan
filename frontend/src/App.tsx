@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import BrandLoader from './components/BrandLoader';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
@@ -99,16 +100,7 @@ function App() {
   return (
     <BrowserRouter>
       <RoutedErrorBoundary>
-      <Suspense fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="relative w-14 h-14">
-            <div className="absolute inset-0 rounded-full border-4 border-sky-100" />
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-500 animate-spin" />
-            <span className="absolute inset-0 flex items-center justify-center text-lg font-black text-sky-500">판</span>
-          </div>
-          <span className="text-sm text-gray-500 animate-pulse">로딩 중...</span>
-        </div>
-      }>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><BrandLoader /></div>}>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             {/* 루트 / = SNOWPAN 홈 (단일 종목 운영). /snowpan 도 동일 페이지 호환. */}

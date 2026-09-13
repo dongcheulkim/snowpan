@@ -195,3 +195,8 @@ body.keyboard-open .safe-area-bottom { padding-bottom: 0 !important; }
 @media (hover: none) and (pointer: coarse) {
   input:focus, textarea:focus, select:focus { font-size: 16px; }
 }
+
+/* 브랜드 로더 — 워드마크가 숨 쉬듯 (모션 최소화 설정에선 고정) */
+.brand-loader-mark { opacity: .35; animation: brandBreath 1.4s ease-in-out infinite; }
+@keyframes brandBreath { 0%, 100% { opacity: .3; transform: scale(.98); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .brand-loader-mark { animation: none; opacity: .8; } }

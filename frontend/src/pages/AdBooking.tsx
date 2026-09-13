@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import BrandLoader from '../components/BrandLoader';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl as cdnImageUrl } from '../api';
@@ -400,13 +401,7 @@ export default function AdBooking() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
-      </div>
-    );
-  }
+  if (loading) return <BrandLoader />;
 
   if (editId && editError) {
     return (
@@ -420,7 +415,7 @@ export default function AdBooking() {
     );
   }
   if (editId && !editAd) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" /></div>;
+    return <BrandLoader />;
   }
 
   // 초대 링크 없이 온 일반 사용자 — 셀프 신청 없음, 고객센터 상담으로 (사용자 결정: 금액·기간은 상담에서 안내)
@@ -455,7 +450,7 @@ export default function AdBooking() {
     );
   }
   if (token && !invite) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" /></div>;
+    return <BrandLoader />;
   }
 
   return (
