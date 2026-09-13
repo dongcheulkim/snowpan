@@ -260,17 +260,42 @@ const Chat = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 방에 들어오면 맨 아래(최신)부터 — 사진이 늦게 로드돼 높이가 늘어나도 바닥에 붙어 있게(사장님 요청 2026-09-13).
+  // 사용자가 위로 올려 옛 대화를 보는 중이면(바닥에서 120px 넘게 떨어짐) 새 메시지가 와도 강제로 끌어내리지 않는다.
+  const listRef = useRef<HTMLDivElement>(null);
+  const atBottomRef = useRef(true);
+  const stickToBottom = (smooth = false) => {
+    const el = listRef.current; if (!el) return;
+    if (smooth) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    else el.scrollTop = el.scrollHeight;
+  };
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: firstScrollRef.current ? 'auto' : 'smooth' });
-    firstScrollRef.current = false;
+    if (firstScrollRef.current) {
+      // 첫 로드: 즉시 + 사진·폰트 로드 뒤 몇 번 더
+      stickToBottom();
+      [50, 200, 600, 1200].forEach((ms) => setTimeout(() => { if (atBottomRef.current) stickToBottom(); }, ms));
+      if (messages.length) firstScrollRef.current = false;
+    } else if (atBottomRef.current) {
+      stickToBottom(true);
+    }
   }, [messages]);
+  useEffect(() => {
+    const el = listRef.current; if (!el) return;
+    const onScroll = () => { atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120; };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    // 내용 높이가 변하면(사진 로드·안내 메뉴) 바닥에 있던 경우 계속 바닥 유지
+    const ro = new ResizeObserver(() => { if (atBottomRef.current) stickToBottom(); });
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 키보드 대응 — 앱: Keyboard 플러그인이 웹뷰를 줄이고 'snowpan:keyboard' 로 알려줌 → 맨 아래로.
   // 웹(iOS 사파리): 웹뷰가 안 줄어들고 visualViewport 만 줄어들어 입력창이 키보드에 가리거나 여백이 생김 → 방 높이를 visualViewport 에 맞춘다.
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // 키보드가 올라오는 동안(전환 .25s)과 끝난 뒤 두 번 맨 아래로 — 중간에 걸리지 않게
-    const toBottom = () => { [60, 320].forEach((ms) => setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), ms)); };
+    const toBottom = () => { atBottomRef.current = true; [60, 320].forEach((ms) => setTimeout(() => stickToBottom(), ms)); };
     window.addEventListener('snowpan:keyboard', toBottom);
     const vv = window.visualViewport;
     const onVV = () => {
@@ -384,7 +409,7 @@ const Chat = () => {
   return (
     <div
       ref={rootRef}
-      onTransitionEnd={(e) => { if (e.propertyName === 'bottom') messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }); }}
+      onTransitionEnd={(e) => { if (e.propertyName === 'bottom') stickToBottom(); }}
       className="chat-root fixed inset-0 flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >
@@ -510,7 +535,7 @@ const Chat = () => {
       )}
 
       {/* Messages scroll area */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={listRef} className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
           {/* 안전 거래 고지 — 컴팩트 단일 라인 */}
           <div className="flex items-center justify-center">
