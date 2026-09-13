@@ -13,7 +13,7 @@ interface MetaOptions {
 
 const DEFAULT_TITLE = '스노우판 — 스키장 근처 매장 찾기 · 스키·보드 중고거래';
 const DEFAULT_DESC = '곤지암·지산·비발디·휘닉스·용평·하이원·무주 리조트별 스키·보드샵, 정비샵, 렌탈샵, 레슨, 숙소를 한 번에. 내 주변 거리순 검색과 시세 기반 중고거래까지.';
-const DEFAULT_IMAGE = `${SITE_URL}/icons/og-image-v2.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/icons/og-image-v3.jpg`;
 
 // tag 이름별 selector 정보
 type TagSpec = { attr: 'name' | 'property'; key: string };
