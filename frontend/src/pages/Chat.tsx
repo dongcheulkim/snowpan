@@ -797,6 +797,7 @@ const Chat = () => {
             </button>
             <textarea
               ref={textareaRef}
+              enterKeyHint="send"
               value={input}
               rows={1}
               onChange={(e) => {

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigationType, Link } from 'react-router-dom';
 import { restoreSession } from '../api';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -33,11 +33,32 @@ const MainLayout = () => {
     trackPageView(location.pathname + location.search);
   }, [location.pathname, location.search]);
 
-  // 라우트 변경 시 스크롤 최상단 — 목록에서 스크롤 후 상세 진입 시 중간부터
-  // 보이던 문제 해결. (같은 경로 내 쿼리 변경은 유지)
+  // 스크롤 위치: 새 화면(PUSH)은 맨 위에서, 뒤로가기(POP)는 떠날 때 위치로 복원 — 목록을 내려 보다가 상세를 열고
+  // 돌아오면 맨 위로 튀던 것(2026-09-14). 같은 경로 안 쿼리 변경(필터 칩)은 위치 유지.
+  const navType = useNavigationType();
+  const prevPathRef = useRef(location.pathname);
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    const key = 'snowpan.scroll:' + location.key;
+    let raf = 0;
+    const save = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { try { sessionStorage.setItem(key, String(window.scrollY)); } catch { /* ignore */ } }); };
+    window.addEventListener('scroll', save, { passive: true });
+    return () => { window.removeEventListener('scroll', save); cancelAnimationFrame(raf); try { sessionStorage.setItem(key, String(window.scrollY)); } catch { /* ignore */ } };
+  }, [location.key]);
+  useEffect(() => {
+    const samePath = prevPathRef.current === location.pathname;
+    prevPathRef.current = location.pathname;
+    if (navType === 'POP') {
+      let saved = 0; try { saved = Number(sessionStorage.getItem('snowpan.scroll:' + location.key) || 0); } catch { /* ignore */ }
+      if (saved > 0) {
+        // 목록 데이터가 늦게 와서 아직 높이가 모자라면 잠깐 재시도
+        let tries = 0;
+        const tick = () => { window.scrollTo(0, saved); if (Math.abs(window.scrollY - saved) > 2 && tries++ < 15) setTimeout(tick, 100); };
+        tick();
+        return;
+      }
+    }
+    if (!samePath) window.scrollTo(0, 0);
+  }, [location.key, location.pathname, navType]);
 
   useEffect(() => {
     let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
