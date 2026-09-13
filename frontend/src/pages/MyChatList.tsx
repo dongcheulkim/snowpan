@@ -66,13 +66,14 @@ const MyChatList = () => {
   const handleDelete = async (roomId: string, otherName: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm(`${otherName}님과의 대화를 삭제하시겠습니까?\n상대방도 대화 내용을 볼 수 없게 됩니다.`)) return;
+    // 내 목록에서만 사라진다 — 상대방 쪽 대화 내역은 그대로 남는다 (거래 분쟁·사기 예방)
+    if (!confirm(`${otherName}님과의 대화를 내 목록에서 지울까요?\n상대방에게는 대화 내용이 그대로 남아요. 새 메시지가 오면 다시 표시돼요.`)) return;
     // optimistic update
     const prev = rooms;
     setRooms(rooms.filter(r => r.id !== roomId));
     try {
       await api(`/chat/rooms/${roomId}`, { method: 'DELETE' });
-      toastSuccess('대화방이 삭제되었습니다');
+      toastSuccess('내 목록에서 지웠어요');
     } catch (err) {
       setRooms(prev);
       toastError(err instanceof Error ? err.message : '삭제에 실패했습니다');

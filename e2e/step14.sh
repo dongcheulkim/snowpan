@@ -372,4 +372,21 @@ api POST /auth/apple '{}' ""; expect 400 "Apple 로그인 토큰 없음 400"
 api POST /auth/apple '{"identityToken":"eyJhbGciOiJSUzI1NiIsImtpZCI6ImZha2Uta2lkIn0.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwic3ViIjoieCJ9.c2lnbmF0dXJl","nonce":"n"}' ""; expect 401 "가짜 Apple 토큰 401"
 echo "$RESP" | jq -e 'has("token") or has("refreshToken")' >/dev/null 2>&1 && bad "가짜 Apple 토큰 응답에 토큰 노출" || ok "가짜 Apple 토큰 응답에 토큰 없음"
 
+# ── 대화 삭제 = 내 쪽만 숨김 (상대 내역 유지, 새 메시지 오면 다시 표시) — 사용자 결정 2026-09-13 사기·분쟁 예방
+V_TOKEN=$(register_verified "01066660006" "smoke_v@re.test" "스모크브이" "스모크브이")
+V_ID=$(pq "SELECT id FROM users WHERE email='smoke_v@re.test'")
+api POST /chat/rooms "{\"targetUserId\":\"$V_ID\",\"productName\":\"숨김테스트매물\",\"productPath\":\"/used/x\"}" "$U_TOKEN"
+HR=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "200" ] && [ -n "$HR" ] && ok "숨김 테스트용 방 생성" || bad "방 생성 CODE=$CODE"
+api GET /chat/rooms "" "$U_TOKEN"; echo "$RESP" | jq -e --arg r "$HR" '.[] | select(.id==$r)' >/dev/null 2>&1 && ok "U 목록에 방 있음" || bad "U 목록에 방 없음"
+api GET "/chat/rooms/$HR/messages" "" "$V_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "1" ] && ok "V 메시지 1개(문의)" || bad "V 메시지 수 $(echo "$RESP" | jq 'length')"
+api DELETE "/chat/rooms/$HR" "" "$U_TOKEN"; [ "$CODE" = "200" ] && echo "$RESP" | jq -e '.hidden==true' >/dev/null 2>&1 && ok "U 대화 삭제 → 숨김 처리 200" || bad "삭제 CODE=$CODE RESP=$RESP"
+api GET /chat/rooms "" "$U_TOKEN"; echo "$RESP" | jq -e --arg r "$HR" '.[] | select(.id==$r)' >/dev/null 2>&1 && bad "U 목록에 숨긴 방이 남아 있음" || ok "U 목록에서 방 사라짐"
+api GET /chat/rooms "" "$V_TOKEN"; echo "$RESP" | jq -e --arg r "$HR" '.[] | select(.id==$r)' >/dev/null 2>&1 && ok "V 목록엔 방 그대로 (상대 내역 유지)" || bad "V 목록에서 방 사라짐"
+api GET "/chat/rooms/$HR/messages" "" "$V_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "1" ] && ok "V 메시지 기록 유지" || bad "V 메시지 수 $(echo "$RESP" | jq 'length')"
+api GET "/chat/rooms/$HR/messages" "" "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq 'length')" = "0" ] && ok "U 에겐 숨긴 시점 이전 메시지 안 보임" || bad "U 메시지 CODE=$CODE 수 $(echo "$RESP" | jq 'length')"
+api POST /chat/rooms "{\"targetUserId\":\"$U_ID\",\"productName\":\"숨김뒤새문의\",\"productPath\":\"/used/y\"}" "$V_TOKEN"; [ "$CODE" = "200" ] && ok "V 가 새 메시지(문의) 보냄" || bad "V 문의 CODE=$CODE"
+api GET /chat/rooms "" "$U_TOKEN"; echo "$RESP" | jq -e --arg r "$HR" '.[] | select(.id==$r)' >/dev/null 2>&1 && ok "새 메시지 오면 U 목록에 방 다시 표시" || bad "새 메시지 후에도 U 목록에 없음"
+api GET "/chat/rooms/$HR/messages" "" "$U_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "1" ] && ok "U 는 새 메시지만 봄(1개)" || bad "U 메시지 수 $(echo "$RESP" | jq 'length')"
+api GET "/chat/rooms/$HR/messages" "" "$V_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "2" ] && ok "V 는 전체 2개 봄" || bad "V 메시지 수 $(echo "$RESP" | jq 'length')"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

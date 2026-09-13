@@ -40,6 +40,7 @@ export default function AccountDeletion() {
         <ul className="text-xs text-gray-700 leading-relaxed list-disc pl-4 space-y-1">
           <li>이메일, 전화번호, 이름, 닉네임, 프로필 사진, 푸시 알림 토큰 등 개인 식별 정보는 즉시 익명값으로 바뀝니다.</li>
           <li>카카오 등 소셜 로그인 연결이 끊기고, 같은 계정으로 다시 로그인할 수 없습니다.</li>
+          <li>사기·분쟁 예방을 위해 탈퇴 후 90일 동안은 같은 전화번호·이메일·소셜 계정으로 다시 가입할 수 없습니다. 이를 위해 해당 정보는 원문 없이 암호화된 해시값으로만 90일간 보관됩니다.</li>
           <li>판매 중이거나 예약 중인 중고 매물은 목록에서 내려갑니다.</li>
         </ul>
       </section>
@@ -48,7 +49,7 @@ export default function AccountDeletion() {
         <h2 className="text-sm font-bold text-gray-900">법령에 따라 일정 기간 남는 것</h2>
         <ul className="text-xs text-gray-700 leading-relaxed list-disc pl-4 space-y-1">
           <li>거래 기록(상품명, 가격, 거래 일시)은 거래 상대방 보호와 분쟁 해결을 위해 익명화된 상태로 5년간 보관 후 삭제됩니다(전자상거래법).</li>
-          <li>작성한 게시글, 댓글, 채팅 내용은 작성자가 "탈퇴한 회원"으로 표시된 채 남을 수 있습니다. 특정 글의 삭제를 원하면 위 이메일로 함께 요청해 주세요.</li>
+          <li>채팅 내역은 거래 상대방 보호를 위해 상대방 쪽에 그대로 남습니다. 작성한 게시글, 댓글, 채팅 내용은 작성자가 "탈퇴한 회원"으로 표시된 채 남을 수 있습니다. 특정 글의 삭제를 원하면 위 이메일로 함께 요청해 주세요.</li>
         </ul>
         <p className="text-[11px] text-gray-500">자세한 보관 기간과 처리 기준은 <Link to="/privacy" className="underline">개인정보처리방침</Link>에 있습니다.</p>
       </section>

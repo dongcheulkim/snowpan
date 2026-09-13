@@ -20,10 +20,24 @@ echo "===== STEP 8: 회원 탈퇴 → 익명화 ====="
 api DELETE /auth/account '{"password":"WrongPass000"}' "$BUYER_TOKEN"
 [ "$CODE" = "400" ] && ok "잘못된 비번 탈퇴 거부 (400)" || bad "잘못된비번 탈퇴 CODE=$CODE RESP=$RESP"
 
+# 탈퇴 전 식별자 확보 (재가입 제한 검사용)
+api GET /auth/profile "" "$BUYER_TOKEN"
+BUYER_PHONE=$(echo "$RESP" | jq -r '.phone // .user.phone // empty')
+[ -n "$BUYER_PHONE" ] && ok "탈퇴 전 전화번호 확보" || bad "탈퇴 전 전화번호 없음 RESP=$(echo "$RESP" | head -c 120)"
+
 # Delete buyer account
 api DELETE /auth/account '{"password":"Re!pass1234"}' "$BUYER_TOKEN"
 echo "[delete account] CODE=$CODE RESP=$RESP"
 [ "$CODE" = "200" ] && ok "구매자 회원 탈퇴 (200)" || bad "탈퇴 CODE=$CODE RESP=$RESP"
+echo "$RESP" | jq -e '.reregisterAfter | strings' >/dev/null 2>&1 && ok "탈퇴 응답에 재가입 가능일(reregisterAfter)" || bad "reregisterAfter 없음 RESP=$RESP"
+
+# ── 탈퇴 후 재가입 제한 (90일): 같은 전화번호·이메일로 가입 불가, 인증문자도 발송 전 차단
+api POST /auth/phone/send "{\"phone\":\"$BUYER_PHONE\"}"
+[ "$CODE" = "403" ] && echo "$RESP" | grep -q "다시 가입할 수 없" && ok "탈퇴 번호 휴대폰 인증 요청 403 (재가입 제한)" || bad "탈퇴 번호 phone/send CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
+api POST /auth/register "{\"email\":\"buyer_e2e@re.test\",\"password\":\"Re!pass1234\",\"name\":\"재가입\",\"nickname\":\"재가입시도\",\"phone\":\"$BUYER_PHONE\"}"
+[ "$CODE" = "403" ] && echo "$RESP" | grep -q "다시 가입할 수 없" && ok "탈퇴 이메일·번호로 재가입 403 (재가입 제한)" || bad "재가입 CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
+api POST /auth/register "{\"email\":\"buyer_e2e@re.test\",\"password\":\"Re!pass1234\",\"name\":\"재가입\",\"nickname\":\"재가입시도\",\"phone\":\"01099990099\"}"
+[ "$CODE" = "403" ] && echo "$RESP" | grep -q "다시 가입할 수 없" && ok "탈퇴 이메일 + 새 번호도 403 (이메일 잠금)" || bad "이메일 잠금 CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
 
 # Old token invalidated
 api GET /auth/profile "" "$BUYER_TOKEN"

@@ -68,9 +68,12 @@ const MyPage = () => {
     if (!isSocialUser && !deletePassword) { toastError('비밀번호를 입력해주세요.'); return; }
     setDeleting(true);
     try {
-      await api('/auth/account', { method: 'DELETE', body: { password: deletePassword } });
+      const r = await api<{ reregisterAfter?: string | null }>('/auth/account', { method: 'DELETE', body: { password: deletePassword } });
       logout();
-      toastSuccess('탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
+      const after = r?.reregisterAfter ? new Date(r.reregisterAfter) : null;
+      toastSuccess(after
+        ? `탈퇴가 완료되었습니다. 같은 정보로는 ${after.getFullYear()}년 ${after.getMonth() + 1}월 ${after.getDate()}일부터 다시 가입할 수 있어요.`
+        : '탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.');
       navigate('/');
     } catch (err) {
       toastError(err instanceof Error ? err.message : '탈퇴 처리에 실패했습니다.');
@@ -260,7 +263,8 @@ const MyPage = () => {
                 <li>이메일·전화번호·이름 등 개인정보 삭제</li>
                 <li>판매중 매물은 자동으로 거둠</li>
                 <li>거래·후기·게시글은 익명 처리되어 유지</li>
-                <li>같은 정보로 재가입은 즉시 불가</li>
+                <li>탈퇴 후 90일 동안은 같은 전화번호·이메일·소셜 계정으로 다시 가입할 수 없음 (사기·분쟁 예방)</li>
+                <li>채팅 내역은 상대방 쪽에 그대로 남음</li>
               </ul>
             </div>
             {isSocialUser ? (

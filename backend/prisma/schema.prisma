@@ -412,12 +412,29 @@ model ChatRoom {
   requestedBy     String?   // pending/declined 일 때 요청 보낸 쪽 userId
   user1LastReadAt DateTime?
   user2LastReadAt DateTime?
+  // "대화 삭제"는 내 목록에서만 숨김 — 상대 쪽 내역은 그대로 남는다(중고거래 사기·비방 분쟁 대비, 사용자 결정 2026-09-13).
+  // 이 시각 이전 메시지는 그 쪽에 안 보이고, 이후 새 메시지가 오면 방이 다시 목록에 뜬다.
+  user1HiddenAt   DateTime?
+  user2HiddenAt   DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   messages        Message[]
 
   @@unique([user1Id, user2Id])
   @@map("chat_rooms")
+}
+
+// 탈퇴 후 재가입 제한 — 탈퇴한 계정의 전화번호·이메일·소셜 ID 를 HMAC 해시로만 보관(원문 없음)하고
+// 기간 안에 같은 식별자로 가입하면 막는다(사기 계정이 탈퇴 후 바로 새 계정을 파는 것 방지, 사용자 결정 2026-09-13).
+model ReregisterLock {
+  id        String   @id @default(uuid())
+  keyHash   String   @unique
+  kind      String   // 'phone' | 'email' | 'social'
+  until     DateTime
+  createdAt DateTime @default(now())
+
+  @@index([until])
+  @@map("reregister_locks")
 }
 
 model Message {

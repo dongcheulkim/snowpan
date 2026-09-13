@@ -5,6 +5,7 @@ import type { User } from '@prisma/client';
 import prisma from '../config/database';
 import { signAccessToken, signRefreshToken, setRefreshCookie } from '../utils/tokens';
 import { normalizeEmail } from '../utils/validate';
+import { socialLockedUntil, emailLockedUntil, reregisterBlockedMessage } from '../utils/reregisterLock';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
 // 키: KAKAO_CLIENT_ID (+옵션 KAKAO_CLIENT_SECRET), NAVER_LOGIN_CLIENT_ID/SECRET.
@@ -78,6 +79,9 @@ async function resolveUser(profile: SocialProfile): Promise<ResolvedUser> {
   // 3) 그래도 없으면 신규 생성. 인증 이메일 없으면 placeholder (@social.local) — unique 보장.
   let isNew = false;
   if (!user) {
+    // 탈퇴 후 재가입 제한 — 탈퇴하며 끊긴 소셜 ID·이메일로 기간 안에 새 계정을 만드는 것 차단
+    const lockedUntil = (await socialLockedUntil(profile.provider, profile.providerId)) || (verifiedEmail ? await emailLockedUntil(verifiedEmail) : null);
+    if (lockedUntil) return { error: reregisterBlockedMessage(lockedUntil), status: 403 };
     const email = verifiedEmail || `${profile.provider}_${profile.providerId}@social.local`;
     user = await prisma.user.create({
       data: {

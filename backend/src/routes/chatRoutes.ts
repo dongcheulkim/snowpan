@@ -32,7 +32,7 @@ router.get('/rooms', async (req: any, res: Response) => {
     const userId = req.user.id;
     const isAdmin = req.user.role === 'admin';
     const adminIds = isAdmin ? await getAdminIds() : [userId];
-    const rooms = await prisma.chatRoom.findMany({
+    const allRooms = await prisma.chatRoom.findMany({
       where: {
         ...(await roomAccessWhere(userId, req.user.role)),
         // 거절 방은 거절한 쪽에서만 숨김 — 요청자에겐 계속 보여야 '목록에서 사라짐=거절' 신호가 안 샘
@@ -45,8 +45,16 @@ router.get('/rooms', async (req: any, res: Response) => {
         // _count 제거 — 방마다 전체 메시지 카운트 서브쿼리를 돌렸으나 응답에서 버려지던 순수 낭비
       },
       orderBy: { updatedAt: 'desc' },
-      take: 50,
+      take: 80,
     });
+    // "대화 삭제"한 방은 내 쪽에서만 숨김 — 숨긴 뒤 새 메시지가 왔으면 다시 보인다 (상대 내역은 항상 유지)
+    const rooms = allRooms.filter((room) => {
+      const side = mySideOf(room, userId, req.user.role, adminIds);
+      const hiddenAt = side === 1 ? room.user1HiddenAt : side === 2 ? room.user2HiddenAt : null;
+      if (!hiddenAt) return true;
+      const last = room.messages[0];
+      return !!last && last.createdAt > hiddenAt;
+    }).slice(0, 50);
 
     // Batch unread count: single grouped query instead of N individual queries
     const roomIds = rooms.map(r => r.id);
@@ -365,12 +373,12 @@ router.delete('/rooms/:roomId', async (req: any, res: Response) => {
       res.status(403).json({ error: '수락 대기 중인 채팅 요청은 삭제할 수 없습니다.' });
       return;
     }
-    // Message.roomId 에 onDelete:Cascade 가 없어서 수동 삭제. 트랜잭션으로 묶어 원자성 보장.
-    await prisma.$transaction([
-      prisma.message.deleteMany({ where: { roomId } }),
-      prisma.chatRoom.delete({ where: { id: roomId } }),
-    ]);
-    res.json({ success: true });
+    // 실제로 지우지 않고 내 쪽만 숨긴다 — 상대방 화면과 기록은 그대로 남아 중고거래 사기·욕설·비방 분쟁 때 근거가 된다
+    // (사용자 결정 2026-09-13). 숨긴 시점까지 읽음 처리해 옛 메시지가 안읽음으로 남지 않게 한다.
+    const now = new Date();
+    const mine = room.user1Id === userId ? { user1HiddenAt: now, user1LastReadAt: now } : { user2HiddenAt: now, user2LastReadAt: now };
+    await prisma.chatRoom.update({ where: { id: roomId }, data: mine });
+    res.json({ success: true, hidden: true });
   } catch (error) {
     console.error('Delete chat room error:', error);
     res.status(500).json({ error: '채팅방 삭제 실패' });
@@ -421,8 +429,11 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
       where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
     });
     if (!room) { res.status(403).json({ error: '접근 권한이 없습니다.' }); return; }
+    // 내가 "대화 삭제"한 시점 이전 메시지는 내 화면에서만 제외 (상대는 전부 봄)
+    const side = mySideOf(room, userId, req.user.role, req.user.role === 'admin' ? await getAdminIds() : [userId]);
+    const hiddenAt = side === 1 ? room.user1HiddenAt : side === 2 ? room.user2HiddenAt : null;
     const messages = await prisma.message.findMany({
-      where: { roomId },
+      where: { roomId, ...(hiddenAt ? { createdAt: { gt: hiddenAt } } : {}) },
       include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       orderBy: { createdAt: 'asc' },
     });

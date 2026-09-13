@@ -11,6 +11,7 @@ import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail
 import { isHttpUrl, normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
+import { lockAfterDeletion, phoneLockedUntil, emailLockedUntil, reregisterBlockedMessage } from '../utils/reregisterLock';
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -60,6 +61,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const phoneClean = phone.replace(/[-\s]/g, '');
     if (!/^01[016789]\d{7,8}$/.test(phoneClean)) {
       res.status(400).json({ error: '올바른 휴대폰 번호 형식이 아닙니다.' });
+      return;
+    }
+
+    // 탈퇴 후 재가입 제한 — 탈퇴한 계정의 이메일·전화번호는 기간 안에 다시 못 씀 (사기 계정 재생성 방지)
+    const lockedUntil = (await emailLockedUntil(emailNormalized)) || (await phoneLockedUntil(phoneClean));
+    if (lockedUntil) {
+      res.status(403).json({ error: reregisterBlockedMessage(lockedUntil), reregisterAfter: lockedUntil.toISOString() });
       return;
     }
 
@@ -497,6 +505,13 @@ export const sendPhoneVerification = async (
       return;
     }
 
+    // 탈퇴 후 재가입 제한 번호면 문자 보내기 전에 막는다 (SMS 비용 절약 + 이유 안내)
+    const phoneLock = await phoneLockedUntil(phoneClean);
+    if (phoneLock) {
+      res.status(403).json({ error: reregisterBlockedMessage(phoneLock), reregisterAfter: phoneLock.toISOString() });
+      return;
+    }
+
     // per-phone 캡 — 같은 번호로 24시간 5회 초과 발송 차단 (SMS 폭탄/비용 남용 방지).
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const recentCount = await prisma.phoneVerification.count({ where: { phone: phoneClean, createdAt: { gte: since } } });
@@ -670,9 +685,13 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       });
     });
 
+    // 재가입 제한 등록 — 원문 대신 해시만 남긴다 (익명화 이전에 읽어 둔 값 사용)
+    const reregisterAfter = await lockAfterDeletion({ phone: user.phone, email: user.email, provider: user.provider, providerId: user.providerId })
+      .catch((e) => { console.error('reregister lock error:', e); return null; });
+
     invalidateUserTokens(userId);
     clearRefreshCookie(res);
-    res.json({ message: '탈퇴 처리되었습니다.' });
+    res.json({ message: '탈퇴 처리되었습니다.', reregisterAfter: reregisterAfter ? reregisterAfter.toISOString() : null });
   } catch (error) {
     console.error('Delete account error:', error);
     res.status(500).json({ error: '탈퇴 처리 중 오류가 발생했습니다.' });
