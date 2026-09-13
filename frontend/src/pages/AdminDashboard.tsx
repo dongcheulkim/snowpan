@@ -513,9 +513,9 @@ const AdminDashboard = () => {
                 </div>
                 {pageUsers.map((u) => (
                   <div key={u.id}>
-                  <div className="card p-4 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
+                  <div className="card p-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-gray-900">{u.name}</span>
                         {(u as any).nickname && <span className="text-xs text-gray-500">({(u as any).nickname})</span>}
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
@@ -524,9 +524,9 @@ const AdminDashboard = () => {
                           {({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[u.role] || u.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">{u.email}</p>
+                      <p className="text-xs text-gray-500 truncate">{u.email}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-wrap sm:flex-shrink-0">
                       {/* 프로필(공개 페이지: 닉네임·리뷰·글) · 1:1 대화(관리자 → 유저 채팅방) — 사용자 요청 2026-09-09 */}
                       <Link to={`/seller/${u.id}`} className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">프로필</Link>
                       <button onClick={() => showLogins(u)} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${loginInfo?.userId === u.id ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>로그인 기록</button>
