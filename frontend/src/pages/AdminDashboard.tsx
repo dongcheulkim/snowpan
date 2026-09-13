@@ -153,6 +153,15 @@ const AdminDashboard = () => {
   };
 
   // 관리자가 유저에게 먼저 1:1 대화 걸기 — 기존 채팅방이 있으면 그 방으로
+  // 로그인 기록 (IP·기기·같은 IP 다른 계정) — 사기 신고·분쟁 때만 보는 용도. 사용자 요청 2026-09-13
+  interface LoginHistory { retentionDays: number; logins: { ip: string; userAgent: string | null; method: string; createdAt: string }[]; sameIpAccounts: { id: string; nickname: string | null; email: string; role: string; ip: string; lastAt: string }[] }
+  const [loginInfo, setLoginInfo] = useState<{ userId: string; data: LoginHistory | null; loading: boolean } | null>(null);
+  const showLogins = async (u: UserItem) => {
+    if (loginInfo?.userId === u.id) { setLoginInfo(null); return; }
+    setLoginInfo({ userId: u.id, data: null, loading: true });
+    try { const data = await api<LoginHistory>(`/admin/users/${u.id}/logins`); setLoginInfo({ userId: u.id, data, loading: false }); }
+    catch (e) { setLoginInfo(null); toastError(e instanceof Error ? e.message : '로그인 기록을 불러오지 못했어요.'); }
+  };
   const startChat = async (u: UserItem) => {
     try {
       const room = await api<{ id: string }>('/chat/rooms', { method: 'POST', body: { targetUserId: u.id } });
@@ -503,7 +512,8 @@ const AdminDashboard = () => {
                   <span className="text-[11px] text-gray-500 whitespace-nowrap">{filtered.length}명</span>
                 </div>
                 {pageUsers.map((u) => (
-                  <div key={u.id} className="card p-4 flex items-center justify-between">
+                  <div key={u.id}>
+                  <div className="card p-4 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gray-900">{u.name}</span>
@@ -519,6 +529,7 @@ const AdminDashboard = () => {
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {/* 프로필(공개 페이지: 닉네임·리뷰·글) · 1:1 대화(관리자 → 유저 채팅방) — 사용자 요청 2026-09-09 */}
                       <Link to={`/seller/${u.id}`} className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">프로필</Link>
+                      <button onClick={() => showLogins(u)} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${loginInfo?.userId === u.id ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>로그인 기록</button>
                       {u.role !== 'admin' && u.role !== 'deleted' && (
                         <button onClick={() => startChat(u)} className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">1:1 대화</button>
                       )}
@@ -528,6 +539,36 @@ const AdminDashboard = () => {
                         </button>
                       )}
                     </div>
+                  </div>
+                  {loginInfo?.userId === u.id && (
+                    <div className="card p-4 mt-1 text-xs space-y-3 border-gray-300">
+                      {loginInfo.loading || !loginInfo.data ? <p className="text-gray-500">불러오는 중...</p> : (
+                        <>
+                          <div>
+                            <p className="font-bold text-gray-900 mb-1">최근 로그인 (최근 {loginInfo.data.retentionDays}일 보관)</p>
+                            {loginInfo.data.logins.length === 0 ? <p className="text-gray-500">기록 없음</p> : (
+                              <div className="overflow-x-auto"><table className="w-full text-[11px]"><tbody>
+                                {loginInfo.data.logins.map((l, i) => (
+                                  <tr key={i} className="border-t border-gray-100"><td className="py-1 pr-2 whitespace-nowrap text-gray-600">{new Date(l.createdAt).toLocaleString('ko-KR')}</td><td className="py-1 pr-2 font-mono text-gray-800">{l.ip}</td><td className="py-1 pr-2 text-gray-600">{({ email: '이메일', register: '가입', kakao: '카카오', naver: '네이버', apple: 'Apple' } as Record<string, string>)[l.method] || l.method}</td><td className="py-1 text-gray-400 truncate max-w-[220px]">{l.userAgent || ''}</td></tr>
+                                ))}
+                              </tbody></table></div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 mb-1">같은 IP 를 쓴 다른 계정</p>
+                            {loginInfo.data.sameIpAccounts.length === 0 ? <p className="text-gray-500">없음</p> : (
+                              <ul className="space-y-0.5">
+                                {loginInfo.data.sameIpAccounts.map((a, i) => (
+                                  <li key={i} className="flex items-center gap-2 flex-wrap"><span className="font-mono text-gray-500">{a.ip}</span><span className="font-bold text-gray-900">{a.nickname || '(닉네임 없음)'}</span><span className="text-gray-500">{a.email}</span><span className="text-gray-400">{({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[a.role] || a.role}</span><span className="text-gray-400">{new Date(a.lastAt).toLocaleDateString('ko-KR')}</span></li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-400">사기 신고·분쟁 확인 용도로만 열람하세요. 기록은 {loginInfo.data.retentionDays}일 뒤 자동 삭제됩니다.</p>
+                        </>
+                      )}
+                    </div>
+                  )}
                   </div>
                 ))}
                 {totalPages > 1 && (

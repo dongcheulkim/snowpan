@@ -88,6 +88,7 @@ import { generalLimiter, authLimiter, writeLimiter, strictWriteLimiter } from '.
 import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 import { startInstagramScheduler } from './utils/instagram';
+import { startLoginLogPruner } from './utils/loginLog';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { seedAdPricing } from './utils/seedAdPricing';
 
@@ -635,6 +636,7 @@ httpServer.listen(PORT, async () => {
 
   try {
     startInstagramScheduler(); // 인스타 최신 게시물 1시간 주기 + 토큰 자동 연장
+    startLoginLogPruner(); // 로그인 기록 90일 지난 것 매일 삭제
   } catch (err) {
     console.error('인스타 스케줄러 시작 실패:', err);
   }

@@ -389,4 +389,12 @@ api GET /chat/rooms "" "$U_TOKEN"; echo "$RESP" | jq -e --arg r "$HR" '.[] | sel
 api GET "/chat/rooms/$HR/messages" "" "$U_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "1" ] && ok "U 는 새 메시지만 봄(1개)" || bad "U 메시지 수 $(echo "$RESP" | jq 'length')"
 api GET "/chat/rooms/$HR/messages" "" "$V_TOKEN"; [ "$(echo "$RESP" | jq 'length')" = "2" ] && ok "V 는 전체 2개 봄" || bad "V 메시지 수 $(echo "$RESP" | jq 'length')"
 
+# ── 로그인 기록 (IP·기기) — 관리자만, 같은 IP 다른 계정 표시 (사기 신고 대응)
+api GET "/admin/users/$U_ID/logins" "" "$U_TOKEN"; expect 403 "로그인 기록 일반유저 403"
+api GET "/admin/users/$U_ID/logins" "" "$A_TOKEN"; expect 200 "로그인 기록 관리자 200"
+[ "$(echo "$RESP" | jq '.logins | length')" -ge 1 ] && ok "가입 시 로그인 기록 남음" || bad "로그인 기록 없음 $(echo "$RESP" | head -c 120)"
+[ "$(echo "$RESP" | jq '.sameIpAccounts | length')" -ge 1 ] && ok "같은 IP 다른 계정 표시" || bad "같은 IP 계정 없음"
+echo "$RESP" | jq -e '.retentionDays==90' >/dev/null 2>&1 && ok "보관 기간 90일" || bad "retentionDays=$(echo "$RESP" | jq '.retentionDays')"
+api GET "/admin/users/not-a-uuid/logins" "" "$A_TOKEN"; expect 400 "잘못된 ID 400"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

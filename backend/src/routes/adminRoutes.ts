@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { loginHistoryHandler } from '../utils/loginLog';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
@@ -80,6 +81,7 @@ router.get('/stats', getStats);
 
 // 유저 관리
 router.get('/users', getUsers);
+router.get('/users/:id/logins', loginHistoryHandler); // 최근 로그인 IP·기기 + 같은 IP 다른 계정 (사기 신고 대응)
 router.put('/users/:id/ban', banUser);
 router.delete('/users/:id', adminDeleteUser);
 // 앱 심사용 이메일 로그인 계정 생성/비밀번호 재설정 (스토어 심사관 제공용)

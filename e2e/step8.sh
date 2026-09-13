@@ -56,17 +56,13 @@ RVBUYER=$(echo "$RESP" | jq -r '.reviews[0].buyer.name')
 echo "[review buyer] name=$RVBUYER"
 [ "$RVBUYER" = "탈퇴한 회원" ] && ok "리뷰의 작성자 → '탈퇴한 회원' 익명화" || bad "리뷰 작성자=$RVBUYER"
 
-# Community post author
+# 탈퇴 시 게시물 삭제 (사용자 결정 2026-09-13) — 글·투표는 사라지고, 후기·채팅은 익명으로 남는다
 api GET "/community/$POST_ID"
-POAUTH=$(echo "$RESP" | jq -r '.user.name')
-echo "[post author] name=$POAUTH"
-[ "$POAUTH" = "탈퇴한 회원" ] && ok "커뮤니티 글 작성자 → '탈퇴한 회원' 익명화" || bad "글 작성자=$POAUTH"
-
-# Poll author
+[ "$CODE" = "404" ] && ok "탈퇴 회원의 커뮤니티 글 삭제됨 (404)" || bad "탈퇴 글 CODE=$CODE"
 api GET "/polls/$POLL_ID"
-PLAUTH=$(echo "$RESP" | jq -r '.author')
-echo "[poll author] author=$PLAUTH"
-[ "$PLAUTH" = "탈퇴한 회원" ] && ok "투표 작성자 → '탈퇴한 회원' 익명화" || bad "투표 작성자=$PLAUTH"
+[ "$CODE" = "404" ] && ok "탈퇴 회원의 투표 삭제됨 (404)" || bad "탈퇴 투표 CODE=$CODE"
+api GET "/community?limit=50"
+echo "$RESP" | jq -e --arg u "$BUYER_ID" '.posts[] | select(.userId==$u)' >/dev/null 2>&1 && bad "목록에 탈퇴 회원 글 남음" || ok "커뮤니티 목록에 탈퇴 회원 글 없음"
 
 # Chat room other party (seller viewpoint)
 api GET "/chat/rooms/$ROOM_ID" "" "$SELLER_TOKEN"

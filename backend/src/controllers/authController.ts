@@ -12,6 +12,7 @@ import { isHttpUrl, normalizeEmail, isAllowedImageUrl } from '../utils/validate'
 import { notifyAdmins } from './notificationController';
 import { sanitizeText } from '../utils/sanitize';
 import { lockAfterDeletion, phoneLockedUntil, emailLockedUntil, reregisterBlockedMessage } from '../utils/reregisterLock';
+import { recordLogin } from '../utils/loginLog';
 
 // 비밀번호 해시 강도. OWASP 2024+ 권장은 12. 비용 ≈ 2^12 라운드.
 const BCRYPT_COST = 12;
@@ -156,6 +157,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d (HttpOnly 쿠키).
     const token = signAccessToken(user);
+    recordLogin(req, user.id, 'register');
     // 가입 직후엔 자동 로그인 끔 (세션 쿠키 — 브라우저 닫으면 만료).
     setRefreshCookie(res, user.id, false, undefined, user.tokenVersion);
 
@@ -233,8 +235,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // 로그인 성공 — 실패 카운터 리셋.
+    // 로그인 성공 — 실패 카운터 리셋 + 접속 기록(IP·기기, 사기 신고 대응용, 90일 보관).
     recordSuccess(emailNormalized, ip);
+    recordLogin(req, user.id, 'email');
 
     // 듀얼 토큰: access 1h (응답 body) + refresh 14d/세션 (HttpOnly 쿠키).
     // body 의 remember=true 면 14일 유지, 없으면 브라우저 닫을 때 만료.
@@ -677,12 +680,44 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           providerId: null,
         },
       });
-      // 판매중·예약중 매물은 자동으로 거두기 — reserved 를 남기면 연락 불가 판매자의
-      // 매물이 활성 목록에 영구 잔류 (판매완료 매물은 거래 기록 유지)
-      await tx.product.updateMany({
-        where: { userId, status: { in: ['selling', 'reserved'] } },
-        data: { status: 'sold' },
-      });
+      // ── 올린 게시물은 전부 삭제 (사용자 결정 2026-09-13). 채팅·거래 기록·받은 후기·신고 기록은 사기·분쟁 대비로 익명 유지.
+      // 댓글: 다른 사람 답글이 달린 댓글은 답글을 살리려 내용만 지우고, 나머지는 삭제
+      const withReplies = await tx.comment.findMany({ where: { userId, replies: { some: {} } }, select: { id: true } });
+      const keepIds = withReplies.map((c) => c.id);
+      if (keepIds.length) await tx.comment.updateMany({ where: { id: { in: keepIds } }, data: { content: '삭제된 댓글입니다.' } });
+      await tx.comment.deleteMany({ where: { userId, id: { notIn: keepIds } } });
+      await tx.post.deleteMany({ where: { userId } }); // 댓글·좋아요는 cascade
+      await tx.pollComment.deleteMany({ where: { userId } });
+      await tx.pollVote.deleteMany({ where: { userId } });
+      await tx.poll.deleteMany({ where: { userId } }); // 선택지·투표·댓글 cascade
+      await tx.shopReview.deleteMany({ where: { userId } });
+      await tx.shopPost.deleteMany({ where: { userId } });
+      await tx.badgeRequest.deleteMany({ where: { userId } });
+      await tx.wishlist.deleteMany({ where: { userId } });
+      await tx.savedSearch.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
+      await tx.shopClaim.deleteMany({ where: { userId, status: 'pending' } });
+      // 판매중·예약중 매물은 삭제 (판매완료 매물은 거래 기록으로 유지)
+      await tx.product.deleteMany({ where: { userId, status: { in: ['selling', 'reserved'] } } });
+      // 매장·레슨·숙소: 직접 등록한 건 삭제. 크롤 매장을 넘겨받은(소유권 이전 승인) 건 목록에서 사라지면 안 되니 관리자 계정으로 되돌림.
+      const admin = await tx.user.findFirst({ where: { role: 'admin', id: { not: userId } }, orderBy: { createdAt: 'asc' }, select: { id: true } });
+      const claimed = await tx.shopClaim.findMany({ where: { userId, status: 'approved' }, select: { shopType: true, shopId: true } });
+      const claimedIds = (t: string) => claimed.filter((c) => c.shopType === t).map((c) => c.shopId);
+      const purgeShops = async (type: string, m: { updateMany: (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => Promise<unknown>; deleteMany: (args: { where: Record<string, unknown> }) => Promise<unknown> }) => {
+        const ids = claimedIds(type);
+        if (ids.length && admin) await m.updateMany({ where: { userId, id: { in: ids } }, data: { userId: admin.id } });
+        await m.deleteMany({ where: { userId } });
+      };
+      await purgeShops('skishop', tx.skiShop);
+      await purgeShops('repair', tx.repairShop);
+      await purgeShops('rental', tx.rental);
+      await purgeShops('lesson', tx.lesson);
+      await purgeShops('accommodation', tx.accommodation);
+      const agencies = await tx.travelAgency.findMany({ where: { userId }, select: { id: true } });
+      if (agencies.length) {
+        await tx.overseasDeal.updateMany({ where: { agencyId: { in: agencies.map((a) => a.id) } }, data: { agencyId: null } });
+        await tx.travelAgency.deleteMany({ where: { userId } }); // 구독은 cascade
+      }
     });
 
     // 재가입 제한 등록 — 원문 대신 해시만 남긴다 (익명화 이전에 읽어 둔 값 사용)

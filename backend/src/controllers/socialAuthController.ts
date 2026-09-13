@@ -6,6 +6,7 @@ import prisma from '../config/database';
 import { signAccessToken, signRefreshToken, setRefreshCookie } from '../utils/tokens';
 import { normalizeEmail } from '../utils/validate';
 import { socialLockedUntil, emailLockedUntil, reregisterBlockedMessage } from '../utils/reregisterLock';
+import { recordLogin } from '../utils/loginLog';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
 // 키: KAKAO_CLIENT_ID (+옵션 KAKAO_CLIENT_SECRET), NAVER_LOGIN_CLIENT_ID/SECRET.
@@ -106,10 +107,11 @@ async function resolveUser(profile: SocialProfile): Promise<ResolvedUser> {
 
 const minimalUser = (user: User) => ({ id: user.id, email: user.email, name: user.name, nickname: user.nickname, role: user.role, phone: user.phone, profileImage: user.profileImage, provider: user.provider });
 
-async function completeLogin(res: Response, profile: SocialProfile, isApp: boolean): Promise<void> {
+async function completeLogin(req: Request, res: Response, profile: SocialProfile, isApp: boolean): Promise<void> {
   const resolved = await resolveUser(profile);
   if ('error' in resolved) return fail(res, resolved.error, isApp);
   const { user, isNew } = resolved;
+  recordLogin(req, user.id, profile.provider);
 
   // (포인트 시스템 제거) 가입 보너스 없음.
 
@@ -188,7 +190,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
       return fail(res, `카카오 프로필 조회 실패: ${me.msg || '알 수 없음'}`, isApp);
     }
 
-    await completeLogin(res, {
+    await completeLogin(req, res, {
       provider: 'kakao',
       providerId: String(me.id),
       email: me.kakao_account?.email || null,
@@ -238,7 +240,7 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
     const r = me.response;
     if (!r?.id) return fail(res, '네이버 프로필 조회 실패', isApp);
 
-    await completeLogin(res, {
+    await completeLogin(req, res, {
       provider: 'naver',
       providerId: r.id,
       email: r.email || null,
@@ -352,6 +354,7 @@ export const appleLogin = async (req: Request, res: Response): Promise<void> => 
     const resolved = await resolveUser(profile);
     if ('error' in resolved) { res.status(resolved.status).json({ error: resolved.error }); return; }
     const { user, isNew } = resolved;
+    recordLogin(req, user.id, 'apple');
 
     // 탈퇴 시 철회용 refresh 토큰 — 키가 설정돼 있을 때만, 코드가 온 로그인마다 갱신.
     if (typeof authorizationCode === 'string' && authorizationCode.length > 0 && authorizationCode.length <= 2048) {

@@ -75,6 +75,7 @@ model User {
   polls            Poll[]
   pollComments     PollComment[]
   travelAgencies   TravelAgency[]
+  loginLogs        LoginLog[]
 
   @@unique([provider, providerId]) // 소셜 (제공자, id) 조합 유일 — 이메일 가입은 둘 다 null 이라 무관
   @@map("users")
@@ -426,6 +427,23 @@ model ChatRoom {
 
 // 탈퇴 후 재가입 제한 — 탈퇴한 계정의 전화번호·이메일·소셜 ID 를 HMAC 해시로만 보관(원문 없음)하고
 // 기간 안에 같은 식별자로 가입하면 막는다(사기 계정이 탈퇴 후 바로 새 계정을 파는 것 방지, 사용자 결정 2026-09-13).
+// 로그인 기록 — 사기 신고·분쟁 때 같은 IP·기기로 만든 계정을 찾기 위한 접속 기록 (통신비밀보호법 3개월 기준, env LOGIN_LOG_DAYS 기본 90일 뒤 자동 삭제).
+// 평소엔 보지 않고 신고·분쟁 시 관리자만 조회(GET /admin/users/:id/logins).
+model LoginLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String
+  userAgent String?
+  method    String   // 'email' | 'register' | 'kakao' | 'naver' | 'apple'
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([ip, createdAt])
+  @@index([createdAt])
+  @@map("login_logs")
+}
+
 model ReregisterLock {
   id        String   @id @default(uuid())
   keyHash   String   @unique
