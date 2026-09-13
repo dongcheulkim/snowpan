@@ -50,16 +50,25 @@ const MyChatList = () => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));
   }, []);
 
+  // 목록은 소켓이 없어 새 메시지가 와도 그대로였음 → 화면에 돌아올 때·앱 복귀 때·20초마다 다시 불러온다 (2026-09-14)
   useEffect(() => {
     if (!user) return;
-    api<ChatRoom[] | { items: ChatRoom[] }>('/chat/rooms')
+    let alive = true;
+    const load = () => api<ChatRoom[] | { items: ChatRoom[] }>('/chat/rooms')
       .then((data) => {
+        if (!alive) return;
         // 배열 또는 {items: []} 둘 다 대응
         const list = Array.isArray(data) ? data : (data as { items?: ChatRoom[] })?.items || [];
         setRooms(list);
       })
-      .catch(() => setRooms([]))
-      .finally(() => setLoading(false));
+      .catch(() => { if (alive) setRooms((prev) => prev); })
+      .finally(() => { if (alive) setLoading(false); });
+    load();
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onVis);
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') load(); }, 20000);
+    return () => { alive = false; document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis); window.clearInterval(timer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
