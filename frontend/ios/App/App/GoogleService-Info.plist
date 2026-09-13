@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 자리표시자 — Firebase 콘솔(snowman-99191)에 iOS 앱(kr.snowpan.ios)을 등록하고 내려받은 실제 파일로 바꿀 것. GOOGLE_APP_ID 가 PLACEHOLDER 면 앱이 Firebase 초기화를 건너뛴다. -->
+	<key>PROJECT_ID</key><string>snowman-99191</string>
+	<key>GCM_SENDER_ID</key><string>378911543742</string>
+	<key>BUNDLE_ID</key><string>kr.snowpan.ios</string>
+	<key>GOOGLE_APP_ID</key><string>PLACEHOLDER</string>
+	<key>API_KEY</key><string>PLACEHOLDER</string>
+	<key>IS_GCM_ENABLED</key><true/>
+	<key>PLIST_VERSION</key><string>1</string>
+</dict>
+</plist>

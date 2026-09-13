@@ -8,8 +8,7 @@ let started = false;
 
 export async function initPush(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return; // 웹 no-op
-  // iOS 는 아직 APNs·Firebase 를 안 붙였음(2026-09-10, 다음 버전 예정) — 받을 수 없는 알림 권한 팝업을 띄우지 않도록 건너뜀.
-  if (Capacitor.getPlatform() === 'ios') return;
+  // iOS 도 FCM 경유 (AppDelegate 가 APNs 토큰 → FCM 토큰으로 바꿔 넘김, 2026-09-13). Firebase 미설정 빌드에선 등록이 조용히 실패한다.
   if (!getUser()) return;                     // 로그인 유저만 (토큰 저장 API 가 인증 필요)
   if (started) return;                        // 중복 리스너 방지
   started = true;
@@ -51,8 +50,8 @@ export async function initPush(): Promise<void> {
     });
 
     // 앱이 화면에 떠 있을 때(포그라운드)는 안드로이드가 푸시 배너를 안 띄움 →
-    // 로컬 알림으로 동일하게 표시해 "앱 켜둔 상태"에서도 알림이 보이게.
-    try {
+    // 로컬 알림으로 동일하게 표시해 "앱 켜둔 상태"에서도 알림이 보이게. (iOS 는 presentationOptions 로 시스템이 띄우므로 제외 — 중복 방지)
+    if (Capacitor.getPlatform() === 'android') try {
       const { LocalNotifications } = await import('@capacitor/local-notifications');
       await PushNotifications.addListener('pushNotificationReceived', (n) => {
         const link = (n.data as { link?: string })?.link || '/';

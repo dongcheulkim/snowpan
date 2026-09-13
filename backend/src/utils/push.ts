@@ -84,6 +84,8 @@ export async function sendPushToUser(userId: string, title: string, body: string
           priority: 'high',
           notification: { channelId: 'default', sound: 'default' },
         },
+        // iOS(APNs 경유): 소리 + 배지, 앱이 꺼져 있어도 배너로
+        apns: { payload: { aps: { sound: 'default', badge: 1 } }, headers: { 'apns-priority': '10' } },
       });
       return { ok: true, detail: `fcm-sent:${msgId}` };
     } catch (err: unknown) {

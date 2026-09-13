@@ -19,6 +19,10 @@ const config: CapacitorConfig = {
       launchShowDuration: 600,
       launchAutoHide: true,
     },
+    // iOS: 앱이 켜져 있을 때도 알림 배너·소리 표시
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
   },
 };
 

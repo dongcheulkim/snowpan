@@ -98,5 +98,7 @@
 	<!-- 표준 암호화(HTTPS)만 사용 — 빌드마다 수출 규정 질문이 반복되지 않도록 -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
 </dict>
 </plist>
