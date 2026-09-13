@@ -187,3 +187,9 @@ input:focus, select:focus, textarea:focus {
 @media (prefers-reduced-motion: reduce) {
   .animate-heart-pop { animation: none; }
 }
+
+/* iOS 사파리(웹)는 16px 미만 입력칸에 포커스하면 화면을 확대하고 손을 떼도 안 돌아온다(앱은 viewport 로 막음, 2026-09-13).
+   터치 기기에서 포커스한 동안만 16px 로 키워 확대를 막는다 — 평소 보이는 크기는 그대로. */
+@media (hover: none) and (pointer: coarse) {
+  input:focus, textarea:focus, select:focus { font-size: 16px; }
+}
