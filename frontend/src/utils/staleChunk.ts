@@ -5,7 +5,7 @@
 
 const CHUNK_ERR_RE = /(ChunkLoadError|Loading chunk [\w-]+ failed|Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Unable to preload CSS)/i;
 const KEY = 'snowpan.chunkReload'; // {url, at}
-const LOOP_WINDOW_MS = 60_000;
+const LOOP_WINDOW_MS = 30_000;
 
 export function errorMessageOf(reason: unknown): string {
   if (!reason) return '';
@@ -41,11 +41,12 @@ export function hardReload(): void {
 export function reloadForStaleChunk(reason: unknown): boolean {
   const msg = errorMessageOf(reason);
   if (!CHUNK_ERR_RE.test(msg)) return false;
-  const url = (msg.match(/https?:\/\/\S+/) || [])[0] || '';
+  // 사파리 메시지("Importing a module script failed")엔 파일 URL 이 없어 예전엔 두 번째 오류부터 무조건 포기했다 → 경로(pathname) 기준으로 판단
+  const url = (msg.match(/https?:\/\/\S+/) || [])[0] || window.location.pathname;
   const now = Date.now();
   try {
     const prev = JSON.parse(sessionStorage.getItem(KEY) || 'null') as { url?: string; at?: number } | null;
-    if (prev && typeof prev.at === 'number' && now - prev.at < LOOP_WINDOW_MS && (!url || prev.url === url)) return false;
+    if (prev && typeof prev.at === 'number' && now - prev.at < LOOP_WINDOW_MS && prev.url === url) return false;
     sessionStorage.setItem(KEY, JSON.stringify({ url, at: now }));
   } catch {
     return false; // 스토리지 불가 — 루프를 막을 수 없으니 새로고침 포기

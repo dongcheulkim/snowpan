@@ -44,6 +44,14 @@ const MainLayout = () => {
     window.addEventListener('scroll', save, { passive: true });
     return () => { window.removeEventListener('scroll', save); cancelAnimationFrame(raf); try { sessionStorage.setItem(key, String(window.scrollY)); } catch { /* ignore */ } };
   }, [location.key]);
+  // 새 배포가 감지됐는데 자동 새로고침을 못 했으면(리로드 캡), 다음 화면 이동을 완전 새로고침으로 바꿔 옛 청크 오류를 피한다
+  useEffect(() => {
+    let needs = false; try { needs = sessionStorage.getItem('snowpan.needsReload') === '1'; } catch { /* 무시 */ }
+    if (needs && prevPathRef.current !== location.pathname) {
+      try { sessionStorage.removeItem('snowpan.needsReload'); sessionStorage.setItem('snowpan.swReload', '1'); } catch { /* 무시 */ }
+      window.location.replace(location.pathname + location.search);
+    }
+  }, [location.pathname, location.search]);
   useEffect(() => {
     const samePath = prevPathRef.current === location.pathname;
     prevPathRef.current = location.pathname;

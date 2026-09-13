@@ -51,7 +51,8 @@ if ('serviceWorker' in navigator) {
         if (Array.isArray(parsed)) log = parsed.filter((t) => typeof t === 'number');
       } catch { /* corrupt — 빈 로그로 리셋 */ }
       log = log.filter((t) => Date.now() - t < 10 * 60 * 1000);
-      if (log.length >= 3) return; // 캡 초과 — 리로드 중단 (fail-closed)
+      // 캡 초과 — 지금 리로드는 안 하되, 다음 화면 이동 때 통째로 새로 받게 표시 (옛 청크 404 → 오류 화면 방지)
+      if (log.length >= 3) { try { sessionStorage.setItem('snowpan.needsReload', '1'); } catch { /* 무시 */ } return; }
       log.push(Date.now());
       sessionStorage.setItem('snowpan.swReloadLog', JSON.stringify(log));
     } catch { return; /* 스토리지 자체 불가 — 리로드 포기가 안전 */ }
