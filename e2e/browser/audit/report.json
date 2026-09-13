@@ -1,0 +1,1496 @@
+[
+  {
+    "section": "1.홈",
+    "name": "홈 열림",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "메인 배너 영역",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "스노우판 매거진 섹션",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "매거진 카드 1~7개 (7) 이미지 7/7 화살표 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "커뮤니티 HOT 섹션",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "중고거래 섹션",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"스키·보드샵\" → /new-equipment",
+    "ok": true,
+    "extra": "/new-equipment "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"정비샵\" → /repair",
+    "ok": true,
+    "extra": "/repair "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"중고거래\" → /used",
+    "ok": true,
+    "extra": "/used "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"렌탈샵\" → /rental",
+    "ok": true,
+    "extra": "/rental "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"강습\" → /lesson",
+    "ok": true,
+    "extra": "/lesson "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"숙소\" → /accommodation",
+    "ok": true,
+    "extra": "/accommodation "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"커뮤니티\" → /community",
+    "ok": true,
+    "extra": "/community "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"시합일정\" → /competitions",
+    "ok": true,
+    "extra": "/competitions "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"라이브캠\" → /webcam",
+    "ok": true,
+    "extra": "/webcam "
+  },
+  {
+    "section": "1.홈",
+    "name": "퀵메뉴 \"스키장 투어\" → /overseas",
+    "ok": true,
+    "extra": "/overseas "
+  },
+  {
+    "section": "1.홈",
+    "name": "홈 내부 링크 31개 전부 열림",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "홈 버튼 8개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "하단탭 \"홈\" 존재",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "하단탭 \"커뮤니티\" 존재",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "하단탭 \"채팅\" 존재",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "하단탭 \"MY\" 존재",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "1.홈",
+    "name": "홈 페이지 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 버튼 24개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 상세 열림",
+    "ok": true,
+    "extra": "/rental/f8f86eb1-e2ff-4a9a-abf8-fc7ead04cfa3"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 상세 버튼 2개 눌러봄 (이동 1회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 상세 → 목록보기 복귀 (필터 유지)",
+    "ok": true,
+    "extra": "/new-equipment?resort=33d7f97c-f646-47e3-b02c-b4b777caa100"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키·보드샵 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 버튼 25개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 페이지 넘김 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 상세 열림",
+    "ok": true,
+    "extra": "/repair/68736fd6-fae4-4ef1-9f5c-13e18080bbee"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 상세 버튼 1개 눌러봄 (이동 1회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 상세 → 목록보기 복귀 (필터 유지)",
+    "ok": true,
+    "extra": "/repair?resort=33d7f97c-f646-47e3-b02c-b4b777caa100"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정비샵 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 버튼 14개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 셀렉트 1개 옵션 4회 변경 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 검색 \"스키\" 결과 표시",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 열림",
+    "ok": true,
+    "extra": "/used/a36bc105-bafb-4156-9b4b-b553e6a079b7"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 문의 버튼 → 익명은 로그인 안내",
+    "ok": true,
+    "extra": "/login?next=%2Fchat%2Fnew"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 → 목록보기 복귀",
+    "ok": true,
+    "extra": "/used"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "중고거래 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 버튼 29개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 페이지 넘김 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 상세 열림",
+    "ok": true,
+    "extra": "/rental/9177c63b-6554-42e1-a4de-f371a8d04da6"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 상세 버튼 1개 눌러봄 (이동 1회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 상세 → 목록보기 복귀 (필터 유지)",
+    "ok": true,
+    "extra": "/rental?resort=33d7f97c-f646-47e3-b02c-b4b777caa100"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "렌탈샵 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "강습 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "강습 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "강습 버튼 15개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "강습 목록에 항목 있음",
+    "ok": true,
+    "extra": "(등록 데이터 없음 — 빈 안내 표시)"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "숙소 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "숙소 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "숙소 버튼 12개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "숙소 목록에 항목 있음",
+    "ok": true,
+    "extra": "(등록 데이터 없음 — 빈 안내 표시)"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 버튼 11개 눌러봄 (이동 1회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 검색 \"스키\" 결과 표시",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 상세 열림",
+    "ok": true,
+    "extra": "/community/post/3c6052ab-af5e-45de-af73-26b0921b4bac"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 상세 버튼 1개 눌러봄 (이동 1회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 상세 → 뒤로가기 복귀",
+    "ok": true,
+    "extra": "/community"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "시합일정 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "시합일정 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "시합일정 버튼 3개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "시합일정 페이지 넘김 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "시합일정 목록에 항목 있음",
+    "ok": true,
+    "extra": "(등록 데이터 없음 — 빈 안내 표시)"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 상세 열림",
+    "ok": true,
+    "extra": "/webcam/yongpyong"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 상세 버튼 5개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 상세 → 뒤로가기 복귀",
+    "ok": true,
+    "extra": "/webcam"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "라이브캠 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 버튼 7개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 검색 \"스키\" 결과 표시",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 상세 열림",
+    "ok": true,
+    "extra": "/overseas/yongpyong"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 상세 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 상세 버튼 1개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 상세 → 뒤로가기 복귀",
+    "ok": true,
+    "extra": "/overseas"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 상세 흐름 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 투어 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "매장 소식 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "매장 소식 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "매장 소식 버튼 9개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "매장 소식 목록에 항목 있음",
+    "ok": true,
+    "extra": "(등록 데이터 없음 — 빈 안내 표시)"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "장비 가이드 목록 열림",
+    "ok": true,
+    "extra": "ok"
+  },
+  {
+    "section": "2.카테고리",
+    "name": "장비 가이드 깨진 이미지 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "장비 가이드 버튼 6개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "장비 가이드 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community/ski",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community/board",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community?category=poll",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community?category=notice",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community?group=g_info",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "커뮤니티 /community?group=g_jobs",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 하이원",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 용평",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 휘닉스평창",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 비발디파크",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 곤지암",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 웰리힐리파크",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 지산",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 엘리시안강촌",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 오투",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 무주덕유산",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 에덴밸리",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "스키장 페이지 알펜시아",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /about",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /advertise",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /help",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /safe-trade",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /terms",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /privacy",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /account-deletion",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /partners",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /login",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "정보 페이지 /forgot-password",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "2.카테고리",
+    "name": "개인정보처리방침에 재가입 제한·로그인 기록 조항",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "일반 유저 로그인",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅 목록 열림",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅 목록 버튼 1개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "첫 채팅방 열림",
+    "ok": true,
+    "extra": "/chat/fdd9a545-454a-408a-a186-353f9f9585e0"
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅 입력창 있음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅방 버튼 1개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "고객센터 1:1 채팅 버튼",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "고객센터 방 진입 + 안내 메뉴",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "소켓 연결됨",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "안내 메뉴 카테고리 7개",
+    "ok": true,
+    "extra": "어떤 도움이 필요하신가요?,거래 관련,계정/인증,사업자 등록,광고,신고/불편,기타"
+  },
+  {
+    "section": "3.채팅",
+    "name": "고객센터 메시지 전송 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅방 차단 버튼 없음(고객센터 방)",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "3.채팅",
+    "name": "채팅 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "4.알림",
+    "name": "알림 페이지 열림",
+    "ok": true,
+    "extra": "ok 본문 바로가기 ← 알림 아직 알림이 없습니다. 새 메시지·승인·관심글 댓글 등 중요한 소식이 여기에 표시됩니다. 사업자정보·광고안내 · 입점안내·고객센터 스노우판은 통신판매중개자로"
+  },
+  {
+    "section": "4.알림",
+    "name": "알림 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "4.알림",
+    "name": "첫 알림 클릭 → 이동 오류 없음",
+    "ok": true,
+    "extra": "/ "
+  },
+  {
+    "section": "4.알림",
+    "name": "알림 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "5.알람",
+    "name": "키워드 알림 페이지",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "5.알람",
+    "name": "키워드 \"점검8007\" 추가됨",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "5.알람",
+    "name": "키워드 \"점검8007\" 삭제됨",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "5.알람",
+    "name": "알람 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 페이지",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 입력창",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"부츠\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"용평\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"렌탈\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"강습\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"ㅋㅋ\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 \"(빈값)\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 결과 탭 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "6.검색",
+    "name": "검색 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이페이지 열림",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /",
+    "ok": true,
+    "extra": "ok / "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /search",
+    "ok": true,
+    "extra": "ok /search "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /notifications",
+    "ok": true,
+    "extra": "ok /notifications "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/edit",
+    "ok": true,
+    "extra": "ok /mypage/edit "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/sales",
+    "ok": true,
+    "extra": "ok /mypage/sales "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/sales 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/wishlist",
+    "ok": true,
+    "extra": "ok /mypage/wishlist "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/wishlist 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/keywords",
+    "ok": true,
+    "extra": "ok /mypage/keywords "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/blocks",
+    "ok": true,
+    "extra": "ok /mypage/blocks "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/blocks 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/recent",
+    "ok": true,
+    "extra": "ok /mypage/recent "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/recent 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/shops",
+    "ok": true,
+    "extra": "ok /mypage/shops "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/shops 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/ads",
+    "ok": true,
+    "extra": "ok /mypage/ads "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/ads 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /chat/rooms",
+    "ok": true,
+    "extra": "ok /chat/rooms "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/password",
+    "ok": true,
+    "extra": "ok /mypage/password "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/terms",
+    "ok": true,
+    "extra": "ok /mypage/terms "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /privacy",
+    "ok": true,
+    "extra": "ok /privacy "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /safe-trade",
+    "ok": true,
+    "extra": "ok /safe-trade "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /help",
+    "ok": true,
+    "extra": "ok /help "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /about",
+    "ok": true,
+    "extra": "ok /about "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /advertise",
+    "ok": true,
+    "extra": "ok /advertise "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /partners",
+    "ok": true,
+    "extra": "ok /partners "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /community",
+    "ok": true,
+    "extra": "ok /community "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage",
+    "ok": true,
+    "extra": "ok /mypage "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/posts",
+    "ok": true,
+    "extra": "ok /mypage/posts "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/posts 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/support",
+    "ok": true,
+    "extra": "ok /mypage/support "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage/support 버튼 3개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "탈퇴 안내: 게시물 삭제·90일 재가입 제한·채팅 유지 문구",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "프로필 수정 입력창",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "찜 추가 → 찜 목록 → 찜 해제 왕복 오류 없음",
+    "ok": true,
+    "extra": "본문 바로가기 ← 찜 목록 25/26 아토믹 s9i 프로 1,000,000원 살로몬 대회전 450,000원 사업자정보·광고안내 · 입점안내·고객 "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /used/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /skishop/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /repair/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /rental/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /lesson/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /accommodation/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /overseas/agency/register",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /community/write",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /community/write?category=poll",
+    "ok": true,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /ad-booking",
+    "ok": false,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "등록/신청 화면 /partners/find",
+    "ok": false,
+    "extra": "ok "
+  },
+  {
+    "section": "7.마이",
+    "name": "글쓰기 협찬 안내 문구",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "광고 신청 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "7.마이",
+    "name": "일반 유저 /admin 차단",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 로그인",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "대시보드 열림",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"승인관리\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 승인관리 버튼 11개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"신고관리\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 신고관리 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"통계\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 통계 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"유저관리\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "유저관리 로그인 기록 패널",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 유저관리 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"광고관리\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 광고관리 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"매장연락보드\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 매장연락보드 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "탭 \"설정\" 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 설정 버튼 10개 눌러봄 (이동 2회) 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "설정 탭 인스타그램 연결 표시",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 알림 페이지",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 채팅 목록",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 내 광고",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "승인관리: 대기 항목 없음 (거부 사유 UI는 E2E 로 검증)",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "9.관리자",
+    "name": "관리자 전체 오류 없음",
+    "ok": true,
+    "extra": ""
+  }
+]

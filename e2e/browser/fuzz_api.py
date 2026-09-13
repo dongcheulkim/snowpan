@@ -48,7 +48,7 @@ for m, p, b in cases:
     st, body = call(m, p, b, tok)
     flag = ""
     if st >= 500 or st == 0: flag = "  <-- 500/오류"; bad += 1
-    if "<script>" in body: flag += "  <-- 스크립트 반영"; bad += 1
+    if "<script>" in body and not (st == 403 and "cloudflare" in body.lower()): flag += "  <-- 스크립트 반영"; bad += 1  # Cloudflare 차단 페이지(403 HTML)는 오탐
     print(f"{st} {m:6} {p[:60]:60} {body.replace(chr(10),' ')[:60]}{flag}")
 # 프로필에 스크립트가 남았는지
 st, body = call("GET", "/api/auth/profile", None, tok)
