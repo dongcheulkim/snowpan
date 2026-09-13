@@ -23,7 +23,7 @@ import {
 } from '../controllers/authController';
 import { authenticateToken } from '../middleware/auth';
 import { sensitiveAuthLimiter } from '../middleware/rateLimit';
-import { kakaoStart, kakaoCallback, naverStart, naverCallback, appleLogin } from '../controllers/socialAuthController';
+import { kakaoStart, kakaoCallback, naverStart, naverCallback, appleLogin, appleLink, issueLinkTicket, getLoginMethods, unlinkLoginMethod } from '../controllers/socialAuthController';
 
 const router = Router();
 
@@ -54,5 +54,10 @@ router.get('/kakao/callback', kakaoCallback);
 router.get('/naver', naverStart);
 router.get('/naver/callback', naverCallback);
 router.post('/apple', sensitiveAuthLimiter, appleLogin); // iOS 앱 네이티브 Apple 로그인 (identityToken 검증)
+// 로그인 방법 연결/해제 — 한 계정에 카카오·Apple 여러 개
+router.post('/link-ticket', authenticateToken, issueLinkTicket);
+router.get('/logins', authenticateToken, getLoginMethods);
+router.delete('/logins/:provider', authenticateToken, unlinkLoginMethod);
+router.post('/apple/link', authenticateToken, sensitiveAuthLimiter, appleLink);
 
 export default router;

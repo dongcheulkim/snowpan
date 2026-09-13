@@ -42,6 +42,10 @@ export async function initNative(): Promise<void> {
       } else if (rest.startsWith('login')) {
         const query = url.includes('?') ? url.slice(url.indexOf('?')) : '';
         window.location.href = '/login' + query;
+      } else if (rest.startsWith('mypage')) {
+        // 로그인 방법 연결 결과 (?linked=kakao / ?link_error=)
+        const query = url.includes('?') ? url.slice(url.indexOf('?')) : '';
+        window.location.href = '/mypage' + query;
       }
     });
 

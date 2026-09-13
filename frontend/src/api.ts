@@ -291,27 +291,23 @@ export type LoginMethod = 'email' | 'kakao' | 'naver' | 'apple';
 // iOS 번들 ID — 'kr.snowpan.app' 은 애플에 이미 다른 팀이 등록해 둔 상태라(2026-09-10 "not available") iOS 만 kr.snowpan.ios 를 쓴다.
 // 안드로이드 패키지명·딥링크 스킴(kr.snowpan.app://)은 그대로. 백엔드 APPLE_BUNDLE_ID 기본값과 같아야 한다.
 export const IOS_BUNDLE_ID = 'kr.snowpan.ios';
-export async function signInWithApple(): Promise<{ token: string; refreshToken?: string; isNew: boolean; user: NonNullable<ReturnType<typeof getUser>> }> {
+async function appleAuthorize() {
   const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
-  const { response } = await SignInWithApple.authorize({
-    clientId: IOS_BUNDLE_ID,
-    redirectURI: 'https://snowpan.kr/oauth/callback',
-    scopes: 'email name',
-    state: nonce,
-    nonce,
-  });
+  const { response } = await SignInWithApple.authorize({ clientId: IOS_BUNDLE_ID, redirectURI: 'https://snowpan.kr/oauth/callback', scopes: 'email name', state: nonce, nonce });
+  return { response, nonce };
+}
+export async function signInWithApple(): Promise<{ token: string; refreshToken?: string; isNew: boolean; user: NonNullable<ReturnType<typeof getUser>> }> {
+  const { response, nonce } = await appleAuthorize();
   return api('/auth/apple', {
     method: 'POST',
-    body: {
-      identityToken: response.identityToken,
-      authorizationCode: response.authorizationCode,
-      givenName: response.givenName,
-      familyName: response.familyName,
-      nonce,
-      platform: 'app',
-    },
+    body: { identityToken: response.identityToken, authorizationCode: response.authorizationCode, givenName: response.givenName, familyName: response.familyName, nonce, platform: 'app' },
   });
+}
+// 로그인된 계정에 Apple 을 연결 (iOS 앱)
+export async function linkApple(): Promise<{ logins: LoginMethods['logins'] }> {
+  const { response, nonce } = await appleAuthorize();
+  return api('/auth/apple/link', { method: 'POST', body: { identityToken: response.identityToken, authorizationCode: response.authorizationCode, nonce } });
 }
 
 // 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
@@ -321,14 +317,22 @@ export function oauthStartUrl(provider: 'kakao' | 'naver'): string {
 
 // 소셜 로그인 시작 — 앱: 인앱 브라우저로 열고 platform=app(백엔드가 앱 딥링크로 토큰 반환).
 // 웹: 기존처럼 현재 창을 백엔드 OAuth 로 이동.
-export async function startSocialLogin(provider: 'kakao' | 'naver'): Promise<void> {
+export async function startSocialLogin(provider: 'kakao' | 'naver', opts?: { link?: boolean }): Promise<void> {
+  // link=true: 이미 로그인된 계정에 이 소셜을 붙이는 모드 (10분짜리 티켓을 서버에서 받아 넘김)
+  let q = isNativeApp() ? '?platform=app' : '';
+  if (opts?.link) { const { ticket } = await api<{ ticket: string }>('/auth/link-ticket', { method: 'POST' }); q += (q ? '&' : '?') + `link=${encodeURIComponent(ticket)}`; }
   if (isNativeApp()) {
     const { Browser } = await import('@capacitor/browser');
-    await Browser.open({ url: `${oauthStartUrl(provider)}?platform=app`, presentationStyle: 'popover' });
+    await Browser.open({ url: `${oauthStartUrl(provider)}${q}`, presentationStyle: 'popover' });
   } else {
-    window.location.href = oauthStartUrl(provider);
+    window.location.href = oauthStartUrl(provider) + q;
   }
 }
+
+// 마이페이지 "로그인 방법" — 연결된 소셜 목록·비밀번호 유무
+export type LoginMethods = { hasPassword: boolean; logins: { provider: string; createdAt: string; email: string | null }[] };
+export const getLoginMethods = () => api<LoginMethods>('/auth/logins');
+export const unlinkLoginMethod = (provider: string) => api<{ logins: LoginMethods['logins'] }>(`/auth/logins/${provider}`, { method: 'DELETE' });
 
 // 마지막으로 성공한 로그인 방식 기록 (로그인 화면 "최근 로그인" 배지용).
 export function markLastLogin(method: LoginMethod): void {

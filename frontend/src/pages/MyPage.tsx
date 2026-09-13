@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl } from '../api';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl, getLoginMethods, unlinkLoginMethod, startSocialLogin, linkApple, isNativeApp, type LoginMethods } from '../api';
+import { Capacitor } from '@capacitor/core';
 import { CameraIcon, UserIcon } from '../components/Icons';
 import { toastSuccess, toastError } from '../components/Toast';
 import { t } from '../i18n';
@@ -33,6 +34,22 @@ const MyPage = () => {
   const [hasAgency, setHasAgency] = useState(false);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  // 로그인 방법(카카오·Apple·이메일) 연결 상태 — 한 계정에 여러 개
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [methods, setMethods] = useState<LoginMethods | null>(null);
+  const [linking, setLinking] = useState<string | null>(null);
+  const loadMethods = () => getLoginMethods().then(setMethods).catch(() => {});
+  useEffect(() => {
+    loadMethods();
+    const linked = searchParams.get('linked'); const err = searchParams.get('link_error');
+    if (linked) { toastSuccess(`${linked === 'kakao' ? '카카오' : linked === 'apple' ? 'Apple' : '네이버'} 계정을 연결했어요.`); loadMethods(); }
+    if (err) toastError(err);
+    if (linked || err) { searchParams.delete('linked'); searchParams.delete('link_error'); setSearchParams(searchParams, { replace: true }); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const linkKakao = async () => { setLinking('kakao'); try { await startSocialLogin('kakao', { link: true }); } catch (e) { toastError(e instanceof Error ? e.message : '연결을 시작하지 못했어요.'); } finally { setLinking(null); } };
+  const doLinkApple = async () => { setLinking('apple'); try { const r = await linkApple(); setMethods((m) => m ? { ...m, logins: r.logins } : m); toastSuccess('Apple 계정을 연결했어요.'); } catch (e) { const msg = e instanceof Error ? e.message : ''; if (!/cancel|1001|취소/i.test(msg)) toastError(msg || 'Apple 연결에 실패했어요.'); } finally { setLinking(null); } };
+  const unlink = async (provider: string, label: string) => { if (!confirm(`${label} 연결을 해제할까요? 해제하면 그 방법으로는 로그인할 수 없어요.`)) return; try { const r = await unlinkLoginMethod(provider); setMethods((m) => m ? { ...m, logins: r.logins } : m); toastSuccess('연결을 해제했어요.'); } catch (e) { toastError(e instanceof Error ? e.message : '해제에 실패했어요.'); } };
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -192,6 +209,40 @@ const MyPage = () => {
           프로필 수정
         </Link>
       </div>
+
+      {/* 로그인 방법 — 카카오·Apple 을 한 계정에 연결 (어느 쪽으로 로그인해도 같은 계정) */}
+      {methods && (
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-gray-900">로그인 방법</h3>
+            <span className="text-[11px] text-gray-500">연결하면 어느 쪽으로 로그인해도 같은 계정이에요</span>
+          </div>
+          <ul className="divide-y divide-gray-100">
+            {[
+              { id: 'email', label: '이메일·비밀번호', on: methods.hasPassword, canLink: false },
+              { id: 'kakao', label: '카카오', on: methods.logins.some((l) => l.provider === 'kakao'), canLink: true },
+              { id: 'apple', label: 'Apple', on: methods.logins.some((l) => l.provider === 'apple'), canLink: isNativeApp() && Capacitor.getPlatform() === 'ios' },
+              ...(methods.logins.some((l) => l.provider === 'naver') ? [{ id: 'naver', label: '네이버', on: true, canLink: false }] : []),
+            ].map((m) => (
+              <li key={m.id} className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900">{m.label}</span>
+                  {m.on && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">연결됨</span>}
+                </div>
+                {m.on && m.id !== 'email' ? (
+                  <button onClick={() => unlink(m.id, m.label)} className="text-[11px] text-gray-500 underline underline-offset-2">해제</button>
+                ) : !m.on && m.canLink ? (
+                  <button onClick={() => (m.id === 'kakao' ? linkKakao() : doLinkApple())} disabled={linking !== null} className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold disabled:opacity-50">{linking === m.id ? '연결 중...' : '연결하기'}</button>
+                ) : !m.on && m.id === 'apple' ? (
+                  <span className="text-[11px] text-gray-400">아이폰 앱에서 연결</span>
+                ) : !m.on && m.id === 'email' ? (
+                  <span className="text-[11px] text-gray-400">소셜 전용</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* 매장 심사중 — 등록했지만 아직 승인 전. 승인되면 '내 매장 관리' 메뉴가 열림 */}
       {hasPendingShop && !isOwner && (

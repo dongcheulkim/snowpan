@@ -650,8 +650,10 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       }
     }
 
+    // 연결된 로그인 방법 전부 (재가입 제한·애플 철회에 씀)
+    const logins = await prisma.userLogin.findMany({ where: { userId }, select: { provider: true, providerId: true } });
     // Apple 로그인 계정은 애플 쪽 앱 연결도 철회 (앱스토어 지침, 키 미설정이면 건너뜀·실패해도 탈퇴는 진행)
-    if (user.provider === 'apple') await revokeAppleToken(user.appleRefreshToken).catch(() => {});
+    if (user.provider === 'apple' || logins.some((l) => l.provider === 'apple')) await revokeAppleToken(user.appleRefreshToken).catch(() => {});
 
     const stamp = Date.now();
     const anonEmail = `deleted_${userId}@snowpan.local`;
@@ -697,6 +699,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       await tx.savedSearch.deleteMany({ where: { userId } });
       await tx.notification.deleteMany({ where: { userId } });
       await tx.shopClaim.deleteMany({ where: { userId, status: 'pending' } });
+      await tx.userLogin.deleteMany({ where: { userId } }); // 연결된 소셜 로그인 전부 해제
       // 판매중·예약중 매물은 삭제 (판매완료 매물은 거래 기록으로 유지)
       await tx.product.deleteMany({ where: { userId, status: { in: ['selling', 'reserved'] } } });
       // 매장·레슨·숙소: 직접 등록한 건 삭제. 크롤 매장을 넘겨받은(소유권 이전 승인) 건 목록에서 사라지면 안 되니 관리자 계정으로 되돌림.
@@ -721,7 +724,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     // 재가입 제한 등록 — 원문 대신 해시만 남긴다 (익명화 이전에 읽어 둔 값 사용)
-    const reregisterAfter = await lockAfterDeletion({ phone: user.phone, email: user.email, provider: user.provider, providerId: user.providerId })
+    const reregisterAfter = await lockAfterDeletion({ phone: user.phone, email: user.email, provider: user.provider, providerId: user.providerId, logins })
       .catch((e) => { console.error('reregister lock error:', e); return null; });
 
     invalidateUserTokens(userId);

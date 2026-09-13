@@ -6,6 +6,7 @@ import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
 import BrandHero from '../components/BrandHero';
 import { useVertical } from '../hooks/useVertical';
+import { APP_STORE_URL, PLAY_STORE_URL } from '../utils/appLinks';
 import HScroll from '../components/HScroll';
 
 interface BannerData {
@@ -339,9 +340,13 @@ const Home = () => {
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                     26/27 시즌을 앞두고 리조트별 매장 정보와 기능을 계속 채우고 있습니다.<br />
                     잘못된 정보나 불편한 점은 고객센터 채팅으로 알려 주세요.<br />
-                    안드로이드 앱은 심사 중이고 iOS 앱도 준비하고 있습니다.
+                    {APP_STORE_URL ? '아이폰 앱이 App Store 에 나왔습니다.' : '아이폰 앱은 곧 App Store 에 나옵니다.'}{PLAY_STORE_URL ? ' 안드로이드 앱도 Google Play 에 있습니다.' : ' 안드로이드 앱은 구글 심사 중입니다.'}
                   </p>
-                  <span className="inline-block mt-3.5 px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">고객센터에 알려주기 →</span>
+                  <span className="inline-flex flex-wrap gap-2 mt-3.5">
+                    <span className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">고객센터에 알려주기 →</span>
+                    {APP_STORE_URL && <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">App Store 에서 받기</a>}
+                    {PLAY_STORE_URL && <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">Google Play 에서 받기</a>}
+                  </span>
                 </div>
               </Link>
             );

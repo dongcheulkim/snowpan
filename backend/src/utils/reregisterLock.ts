@@ -25,13 +25,14 @@ export const reregisterBlockedMessage = (until: Date) =>
   `탈퇴한 계정 정보예요. 사기·분쟁 예방을 위해 탈퇴 후 ${REREGISTER_DAYS}일 동안은 같은 정보로 다시 가입할 수 없어요. ${fmtKst(until)}부터 가능해요.`;
 
 // 탈퇴 시 호출 — 있는 식별자만 잠근다. 익명값(deleted_…, @social.local)은 제외.
-export async function lockAfterDeletion(u: { phone?: string | null; email?: string | null; provider?: string | null; providerId?: string | null }): Promise<Date> {
+export async function lockAfterDeletion(u: { phone?: string | null; email?: string | null; provider?: string | null; providerId?: string | null; logins?: { provider: string; providerId: string }[] }): Promise<Date> {
   const until = new Date(Date.now() + REREGISTER_DAYS * 24 * 60 * 60 * 1000);
   const keys: { kind: Kind; value: string }[] = [];
   if (u.phone && !u.phone.startsWith('deleted_')) keys.push({ kind: 'phone', value: normPhone(u.phone) });
   const email = u.email ? normalizeEmail(u.email) : null;
   if (email && !email.endsWith('@social.local') && !email.endsWith('@snowpan.local')) keys.push({ kind: 'email', value: email });
   if (u.provider && u.providerId) keys.push({ kind: 'social', value: socialKey(u.provider, u.providerId) });
+  for (const l of u.logins || []) keys.push({ kind: 'social', value: socialKey(l.provider, l.providerId) });
   // 만료된 잠금은 이 기회에 정리 (별도 스케줄러 없이)
   await prisma.reregisterLock.deleteMany({ where: { until: { lt: new Date() } } }).catch(() => {});
   for (const k of keys) {

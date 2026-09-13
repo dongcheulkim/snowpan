@@ -76,6 +76,7 @@ model User {
   pollComments     PollComment[]
   travelAgencies   TravelAgency[]
   loginLogs        LoginLog[]
+  logins           UserLogin[]
 
   @@unique([provider, providerId]) // 소셜 (제공자, id) 조합 유일 — 이메일 가입은 둘 다 null 이라 무관
   @@map("users")
@@ -442,6 +443,22 @@ model LoginLog {
   @@index([ip, createdAt])
   @@index([createdAt])
   @@map("login_logs")
+}
+
+// 한 계정에 로그인 방법 여러 개 (카카오 + Apple + 이메일) — "애플이랑 카카오 합칠 수 없나"(사용자 2026-09-10).
+// User.provider/providerId 는 첫 소셜(표시용)로 남기고, 실제 조회는 이 테이블이 우선. 시작 시 기존 값을 백필.
+model UserLogin {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   String   // 'kakao' | 'naver' | 'apple'
+  providerId String
+  email      String?  // 제공자가 준 이메일(참고용, 릴레이일 수 있음)
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("user_logins")
 }
 
 model ReregisterLock {

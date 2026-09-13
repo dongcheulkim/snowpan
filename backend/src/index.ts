@@ -618,6 +618,9 @@ httpServer.listen(PORT, async () => {
 
   // 옛 소셜 프로필 사진 URL 정리 — 카카오가 http 로 준 주소는 https 페이지·앱에서 차단돼 프로필이 깨진다.
   // 저장 시점(socialAuthController)에서 이미 https 로 바꾸지만, 그 전에 가입한 계정은 여기서 한 번 올려 준다(멱등).
+  // 로그인 방법 테이블 백필 — 기존 users.provider/providerId 를 user_logins 로 (이미 있으면 건너뜀)
+  prisma.$executeRawUnsafe(`INSERT INTO user_logins (id, "userId", provider, "providerId", "createdAt") SELECT gen_random_uuid()::text, id, provider, "providerId", now() FROM users WHERE provider IS NOT NULL AND "providerId" IS NOT NULL AND role <> 'deleted' ON CONFLICT (provider, "providerId") DO NOTHING`)
+    .then((n) => { if (n) console.log(`user_logins 백필 ${n}건`); }).catch((e) => console.warn('user_logins 백필 실패:', e instanceof Error ? e.message : e));
   prisma.$executeRawUnsafe(`UPDATE users SET "profileImage" = 'https://' || substring("profileImage" from 8) WHERE "profileImage" LIKE 'http://%'`)
     .then((n) => { if (n) console.log(`🖼️  프로필 사진 URL https 로 정리: ${n}건`); })
     .catch((err) => console.error('프로필 URL 정리 실패:', err));

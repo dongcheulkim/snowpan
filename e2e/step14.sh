@@ -397,4 +397,23 @@ api GET "/admin/users/$U_ID/logins" "" "$A_TOKEN"; expect 200 "로그인 기록 
 echo "$RESP" | jq -e '.retentionDays==90' >/dev/null 2>&1 && ok "보관 기간 90일" || bad "retentionDays=$(echo "$RESP" | jq '.retentionDays')"
 api GET "/admin/users/not-a-uuid/logins" "" "$A_TOKEN"; expect 400 "잘못된 ID 400"
 
+# ── 로그인 방법 연결/해제 (한 계정에 카카오·Apple 여러 개)
+api POST /auth/link-ticket "" ""; expect 401 "연결 티켓 비로그인 401"
+api POST /auth/link-ticket "" "$U_TOKEN"; expect 200 "연결 티켓 발급 200"
+echo "$RESP" | jq -e '.ticket | strings | length > 20' >/dev/null 2>&1 && ok "티켓 문자열" || bad "티켓 없음 $RESP"
+api GET /auth/logins "" "$U_TOKEN"; expect 200 "로그인 방법 목록 200"
+echo "$RESP" | jq -e '.hasPassword==true and (.logins|length)==0' >/dev/null 2>&1 && ok "이메일 가입자: 비밀번호 있음·소셜 0" || bad "목록 내용 $RESP"
+api DELETE /auth/logins/kakao "" "$U_TOKEN"; expect 404 "연결 안 된 카카오 해제 404"
+api DELETE /auth/logins/zzz "" "$U_TOKEN"; expect 400 "알 수 없는 방법 해제 400"
+api POST /auth/apple/link '{"identityToken":"eyJhbGciOiJSUzI1NiIsImtpZCI6ImZha2Uta2lkIn0.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwic3ViIjoieCJ9.c2lnbmF0dXJl"}' "$U_TOKEN"; expect 401 "가짜 Apple 토큰 연결 401"
+# 소셜 전용 계정 흉내: 이메일이 @social.local 인 계정(비밀번호는 로그인용으로만 복사) + user_logins 카카오 1건 → 마지막 방법 해제 차단
+PW_HASH=$(pq "SELECT password FROM users WHERE email='smoke_user@re.test'")
+pq "INSERT INTO users (id,email,password,name,role,provider,\"providerId\",\"createdAt\",\"updatedAt\",\"tokenVersion\",points,\"phoneVerified\",\"displayName\") VALUES ('11111111-1111-4111-8111-111111111111','kakao_e2e@social.local','$PW_HASH','소셜만','user','kakao','k-e2e-1',now(),now(),0,0,false,'name') ON CONFLICT DO NOTHING" >/dev/null
+pq "INSERT INTO user_logins (id,\"userId\",provider,\"providerId\",\"createdAt\") VALUES ('22222222-2222-4222-8222-222222222222','11111111-1111-4111-8111-111111111111','kakao','k-e2e-1',now()) ON CONFLICT DO NOTHING" >/dev/null
+S_TOKEN=$(login "kakao_e2e@social.local" 'Re!pass1234')
+[ -n "$S_TOKEN" ] && ok "소셜 전용 계정 로그인" || bad "소셜 전용 계정 로그인 실패"
+api GET /auth/logins "" "$S_TOKEN"; expect 200 "소셜 전용 로그인 방법 목록 200"
+echo "$RESP" | jq -e '.hasPassword==false and (.logins|length)==1 and .logins[0].provider=="kakao"' >/dev/null 2>&1 && ok "소셜 전용 계정: 비밀번호 없음·카카오 1" || bad "소셜 목록 $RESP"
+api DELETE /auth/logins/kakao "" "$S_TOKEN"; expect 400 "마지막 로그인 방법 해제 차단 400"
+
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"
