@@ -89,7 +89,7 @@ const Lesson = () => {
       }
     };
     fetchLessons();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedResort, selectedRegion, resorts, selectedSpec, sport, page]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);

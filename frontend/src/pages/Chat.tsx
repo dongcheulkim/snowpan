@@ -141,7 +141,7 @@ const Chat = () => {
     };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [roomId]);
 
   const markAsRead = (id: string) => {

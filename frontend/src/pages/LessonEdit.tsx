@@ -30,7 +30,7 @@ const LessonEdit = () => {
   useEffect(() => {
     const cur = resorts.find(r => r.id === form.resortId);
     if (cur) setRegion(resortRegion(cur.location));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [resorts, form.resortId]);
 
   useEffect(() => {

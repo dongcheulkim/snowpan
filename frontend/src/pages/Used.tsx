@@ -68,7 +68,7 @@ const Used = () => {
   // 뒤로가기 등으로 URL 의 brand 가 바뀌면 입력창도 동기화 (디바운스 effect 와 왕복 루프 방지 조건)
   useEffect(() => {
     setBrandInput((cur) => (cur.trim() === brandParam ? cur : brandParam));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [brandParam]);
 
   // 브랜드 입력 300ms 디바운스 후 URL 반영 (타이핑마다 fetch 방지).
