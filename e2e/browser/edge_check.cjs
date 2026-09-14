@@ -14,9 +14,10 @@ const ok = (c, label, extra = '') => { console.log(`${c ? 'OK  ' : 'FAIL'} ${lab
   }
   // 상세 화면의 로그인 유도 버튼도 next 를 붙이는지 (중고 상세 찜)
   await p.goto(BASE + '/used', { waitUntil: 'networkidle' }); await p.waitForTimeout(800);
-  const first = p.locator('a[href^="/used/"]').first();
-  if (await first.count()) {
-    const href = await first.getAttribute('href');
+  // 첫 링크는 /used/register 라 UUID 상세 링크만 고른다
+  const hrefs = await p.locator('a[href^="/used/"]').evaluateAll(as => as.map(a => a.getAttribute('href')));
+  const href = hrefs.find(h => /^\/used\/[0-9a-f-]{36}$/.test(h || ''));
+  if (href) {
     await p.goto(BASE + href, { waitUntil: 'networkidle' }); await p.waitForTimeout(800);
     const wish = p.locator('button[aria-label*="찜"]').first();
     if (await wish.count()) { await wish.click(); await p.waitForTimeout(800); const u = new URL(p.url()); ok(u.pathname === '/login' && u.searchParams.get('next') === href, '중고 상세 찜 → /login?next=상세', u.pathname + u.search); }
