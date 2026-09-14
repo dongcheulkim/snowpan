@@ -236,6 +236,8 @@ export default function Overseas() {
       <div className="px-4 pt-5 pb-3">
         <h1 className="text-2xl font-black text-gray-900">스키장 투어</h1>
         <p className="text-xs text-gray-500 mt-0.5">이번 시즌, 어디로 떠날까요?</p>
+        {/* 광고 배너 — 다른 카테고리와 같이 제목 바로 아래 (사장님 요청 2026-09-14) */}
+        <div className="mt-3"><CategoryAdBanner category="overseas" /></div>
         <div className="relative mt-3">
           <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -275,11 +277,6 @@ export default function Overseas() {
                 {s}
               </button>
             ))}
-          </div>
-
-          {/* 광고 배너 */}
-          <div className="px-4 pb-3">
-            <CategoryAdBanner category="overseas" />
           </div>
 
           {/* 하위 카테고리 칩 */}
