@@ -1,4 +1,5 @@
 import { toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import competitions from '../data/competitions';
@@ -47,7 +48,7 @@ export default function Competitions() {
 
   const handleAdminInquiry = async () => {
     const user = getUser();
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     setChatLoading(true);
     try {
       const admin = await api<{ id: string; name: string }>('/contact/admin-id');

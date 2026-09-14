@@ -5,7 +5,7 @@ const FILTER_DEFAULTS = { region: 'all', resort: 'all', type: 'all' };
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
-import { toastError } from '../components/Toast';
+import LoadError from '../components/LoadError';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
@@ -49,6 +49,8 @@ const Accommodation = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [resorts, setResorts] = useState<Resort[]>([]);
 
   useEffect(() => {
@@ -74,6 +76,7 @@ const Accommodation = () => {
     const seq = ++reqSeqRef.current;
     const fetchAccommodations = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedResort !== 'all') {
@@ -91,13 +94,14 @@ const Accommodation = () => {
         if (seq !== reqSeqRef.current) return;
         setAccommodations([]);
         setTotalCount(0);
-        toastError(err instanceof Error ? err.message : '숙소 목록을 불러오지 못했습니다');
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        setLoadError(err instanceof Error ? err.message : '숙소 목록을 불러오지 못했어요.');
       } finally {
         if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchAccommodations();
-  }, [selectedRegion, selectedResort, resorts, selectedType, page]);
+  }, [selectedRegion, selectedResort, resorts, selectedType, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -217,7 +221,9 @@ const Accommodation = () => {
         </div>
       )}
 
-      {!loading && accommodations.length === 0 && (
+      {!loading && accommodations.length === 0 && (loadError ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      ) : (
         <div className="text-center py-12 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -232,7 +238,7 @@ const Accommodation = () => {
             사장님 대시보드에서 등록하기
           </Link>
         </div>
-      )}
+      ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import UserBadges from '../components/UserBadges';
@@ -64,7 +65,7 @@ const PollDetail = () => {
 
   const handleVote = async (optionId: string) => {
     if (voted || !poll || voting) return;
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     setVoting(true);
     try {
       const updated = await api<Poll>(`/polls/${poll.id}/vote`, {
@@ -84,7 +85,7 @@ const PollDetail = () => {
   const [likePop, setLikePop] = useState(false);
   const handleLike = async () => {
     if (!poll) return;
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     if (likingRef.current) return; // 연타 시 토글 요청 2건이 역순 도착해 낡은 스냅샷이 남는 것 방지
     likingRef.current = true;
     // 토글 — 서버 응답(liked)을 그대로 반영 (이전엔 무조건 liked=true 로 굳혀 해제가 표시 안 됐음).
@@ -112,7 +113,7 @@ const PollDetail = () => {
 
   const handleComment = async () => {
     if (!newComment.trim() || !poll || commentSubmitting) return;
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     setCommentSubmitting(true);
     try {
       const c = await api<PollComment>(`/polls/${poll.id}/comments`, { method: 'POST', body: { content: newComment.trim() } });
@@ -261,7 +262,7 @@ const PollDetail = () => {
           </div>
         ) : (
           <div className="mt-5 pt-4 border-t border-gray-200 text-center">
-            <button onClick={() => navigate('/login')} className="text-xs text-primary-dark hover:underline">로그인하고 댓글 남기기</button>
+            <button onClick={() => navigate(loginPath())} className="text-xs text-primary-dark hover:underline">로그인하고 댓글 남기기</button>
           </div>
         )}
       </div>

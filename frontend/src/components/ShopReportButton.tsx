@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { toastSuccess, toastError } from './Toast';
@@ -45,7 +46,7 @@ export default function ShopReportButton({ shopType, shopId, ownerId }: Props) {
       <div className="text-center pt-1">
         <button
           type="button"
-          onClick={() => { if (!user) { navigate('/login'); return; } setOpen(true); }}
+          onClick={() => { if (!user) { navigate(loginPath()); return; } setOpen(true); }}
           className="text-[11px] text-gray-400 underline underline-offset-2 hover:text-gray-600 transition-colors"
         >폐업했거나 정보가 잘못됐나요? 신고하기</button>
       </div>

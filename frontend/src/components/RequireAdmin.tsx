@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { Navigate } from 'react-router-dom';
 import { api, getUser, setUser } from '../api';
 
@@ -31,7 +32,7 @@ const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
     return () => { cancelled = true; };
   }, []);
 
-  if (state === 'deny-login') return <Navigate to="/login" replace />;
+  if (state === 'deny-login') return <Navigate to={loginPath()} replace />;
   if (state === 'deny-home') return <Navigate to="/" replace />;
   if (state === 'verifying') {
     return <div className="text-center py-20 text-sm text-gray-500">권한 확인 중...</div>;

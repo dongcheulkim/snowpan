@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
 import { BellIcon, ChatIcon, CheckIcon, CloseIcon, MegaphoneIcon, TrophyIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 
 interface Notification {
   id: string;
@@ -19,6 +21,8 @@ const Notifications = () => {
   const user = getUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 알림 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -39,15 +43,20 @@ const Notifications = () => {
 
   useEffect(() => {
     if (!user) return;
-    api<any>('/notifications')
-      .then(data => {
-        const notifs = Array.isArray(data) ? data : (data?.notifications || []);
-        setNotifications(notifs);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      api<any>('/notifications')
+        .then(data => {
+          const notifs = Array.isArray(data) ? data : (data?.notifications || []);
+          setNotifications(notifs);
+        })
+        .catch((err) => setLoadError(err instanceof Error ? err.message : '알림을 불러오지 못했어요.'))
+        .finally(() => setLoading(false));
+    };
+    load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryKey]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -96,7 +105,7 @@ const Notifications = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <p className="text-gray-500 mb-4">{t('notifications.loginRequired')}</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
+        <Link to={loginPath()} className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }
@@ -127,6 +136,8 @@ const Notifications = () => {
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">{t('general.loading')}</div>
+      ) : loadError && notifications.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : notifications.length === 0 ? (
         <EmptyState
           icon={<BellIcon size={48} strokeWidth={1.4} />}

@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, uploadImages, getUser } from '../api';
@@ -28,7 +29,7 @@ export default function RepairShopRegister() {
     extraKindsProof: '',
   });
 
-  useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
+  useEffect(() => { if (!user) navigate(loginPath()); }, [user, navigate]);
   useEffect(() => { api<ResortLite[]>('/resorts').then(setResorts).catch(() => {}); }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
@@ -32,7 +33,7 @@ const RentalRegister = () => {
 
   const handleSubmit = async () => {
     const user = getUser();
-    if (!user) { toastError('로그인이 필요합니다.'); navigate('/login'); return; }
+    if (!user) { toastError('로그인이 필요합니다.'); navigate(loginPath()); return; }
     const missing: string[] = [];
     if (!form.name.trim()) missing.push('상호명');
     if (!form.area) missing.push('지역');

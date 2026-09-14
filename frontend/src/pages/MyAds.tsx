@@ -5,6 +5,7 @@ import { api, imageUrl } from '../api';
 import { adSlotLabelKr } from '../utils/adLabels';
 import { CloseIcon, MegaphoneIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 
 interface AdBooking {
   id: string;
@@ -34,11 +35,13 @@ const statusColor: Record<string, string> = {
 export default function MyAds() {
   const [ads, setAds] = useState<AdBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
 
+  // 실패 메시지는 성공 시 지우고 실패 시 기록 (마운트 이펙트에서 동기 setState 를 피하려 시작 시점엔 건드리지 않음)
   const loadAds = () => {
     api<AdBooking[]>('/ad-booking/my-bookings')
-      .then(d => setAds(Array.isArray(d) ? d : []))
-      .catch(() => setAds([]))
+      .then(d => { setAds(Array.isArray(d) ? d : []); setLoadError(null); })
+      .catch((err) => { setAds([]); setLoadError(err instanceof Error ? err.message : '광고 내역을 불러오지 못했어요.'); })
       .finally(() => setLoading(false));
   };
 
@@ -86,6 +89,8 @@ export default function MyAds() {
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+      ) : loadError && ads.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => { setLoading(true); setLoadError(null); loadAds(); }} />
       ) : ads.length === 0 ? (
         <EmptyState
           icon={<MegaphoneIcon size={48} strokeWidth={1.4} />}

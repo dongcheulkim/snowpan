@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -295,7 +296,7 @@ const UsedDetail = () => {
     });
   };
   const toggleWish = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     try {
       const res = await api<{ wishlisted: boolean }>(`/products/${product!.id}/wishlist`, { method: 'POST' });
       setWishlisted(res.wishlisted);

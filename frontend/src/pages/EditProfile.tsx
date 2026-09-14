@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser, uploadImages, imageUrl } from '../api';
 import { toastSuccess, toastError } from '../components/Toast';
@@ -33,7 +34,7 @@ const EditProfile = () => {
   const user = getUser();
 
   useEffect(() => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     api<{ nickname?: string; profileImage?: string; activeBadge?: string | null }>('/auth/profile').then(data => {
       setForm({ nickname: data.nickname || '', profileImage: data.profileImage || '' });
       if (data.profileImage) setProfilePreview(data.profileImage);

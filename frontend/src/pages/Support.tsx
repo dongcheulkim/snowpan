@@ -1,4 +1,5 @@
 import { toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
@@ -21,7 +22,7 @@ const Support = () => {
   ];
 
   const handleAdminChat = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPath()); return; }
     setChatLoading(true);
     try {
       const admin = await api<{ id: string; name: string }>('/contact/admin-id');

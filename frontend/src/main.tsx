@@ -13,19 +13,14 @@ window.addEventListener('vite:preloadError', e => {
   if (reloadForStaleChunk((e as { payload?: Error }).payload ?? 'Failed to fetch dynamically imported module')) e.preventDefault();
 });
 
-// 오래된 캐시 강제 삭제 (API + workbox precache 둘 다).
-// 과거 배포에 섞여 stale 로고 chunk 가 서빙되는 버그 방지.
+// (2026-09-14 제거) 예전엔 매 로드마다 workbox precache 를 통째로 지웠다 — 옛 로고 청크 방지용 일회성 조치였는데
+// 그대로 남아 SW 가 받아 둔 149개 파일이 매번 비워져 오프라인 새로고침이 브라우저 오류 화면으로 떨어지고
+// 재방문마다 전부 다시 받았다. 지금은 파일명 해시 + cleanupOutdatedCaches 로 옛 청크가 자동 정리되므로 불필요.
+// 옛 API 런타임 캐시 이름만 한 번 정리한다.
 if ('caches' in window) {
   caches.keys().then(names => {
     names.forEach(name => {
-      if (
-        name.includes('product-cache') ||
-        name.includes('api-cache') ||
-        name.includes('banner-cache') ||
-        name.startsWith('workbox-precache') // 구 precache 전체 비움
-      ) {
-        caches.delete(name);
-      }
+      if (name.includes('product-cache')) caches.delete(name);
     });
   }).catch(() => {});
 }

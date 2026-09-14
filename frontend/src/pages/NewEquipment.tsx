@@ -7,7 +7,7 @@ import { SkiShopIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
-import { toastError } from '../components/Toast';
+import LoadError from '../components/LoadError';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 import LocationFilter from '../components/LocationFilter';
@@ -49,18 +49,25 @@ export default function NewEquipment() {
   const listHere = useListHere();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const my = useMyLocation();
 
   useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (selectedArea !== 'all') params.set('area', selectedArea);
-    if (selectedResort !== 'all') params.set('resortId', selectedResort);
-    api<Shop[]>(`/ski-shops?${params}`)
-      .then(data => setShops(Array.isArray(data) ? data : []))
-      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '스키·보드샵 목록을 불러오지 못했습니다'); })
-      .finally(() => setLoading(false));
-  }, [selectedArea, selectedResort]);
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      const params = new URLSearchParams();
+      if (selectedArea !== 'all') params.set('area', selectedArea);
+      if (selectedResort !== 'all') params.set('resortId', selectedResort);
+      api<Shop[]>(`/ski-shops?${params}`)
+        .then(data => setShops(Array.isArray(data) ? data : []))
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        .catch((err) => { setShops([]); setLoadError(err instanceof Error ? err.message : '스키·보드샵 목록을 불러오지 못했어요.'); })
+        .finally(() => setLoading(false));
+    };
+    load();
+  }, [selectedArea, selectedResort, retryKey]);
 
   const shown = withDistance(shops, my.coords);
 
@@ -83,6 +90,8 @@ export default function NewEquipment() {
       {/* 목록 */}
       {loading ? (
         <RowListSkeleton count={5} />
+      ) : loadError && shops.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : shops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><SkiShopIcon size={44} /></div>

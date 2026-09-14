@@ -6,6 +6,7 @@ import { t, onLangChange } from '../i18n';
 import Pagination from '../components/Pagination';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
@@ -51,6 +52,8 @@ const Used = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 매물 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [wishedIds, setWishedIds] = useState<Set<string>>(new Set());
   const [, setLangTick] = useState(0);
 
@@ -159,6 +162,7 @@ const Used = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const params = new URLSearchParams({ category: 'used', limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedCategory !== 'all') {
@@ -182,13 +186,14 @@ const Used = () => {
       } catch (err) {
         setProducts([]);
         setTotalCount(0);
-        toastError(err instanceof Error ? err.message : '매물 목록을 불러오지 못했습니다');
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        setLoadError(err instanceof Error ? err.message : '매물 목록을 불러오지 못했어요.');
       } finally {
         setLoading(false);
       }
     };
     fetchProducts();
-  }, [selectedCategory, selectedGroup, debouncedSearch, page, sort, brandParam, lenBucket]);
+  }, [selectedCategory, selectedGroup, debouncedSearch, page, sort, brandParam, lenBucket, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -422,7 +427,9 @@ const Used = () => {
         </div>
       )}
 
-      {!loading && products.length === 0 && (
+      {!loading && products.length === 0 && (loadError ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      ) : (
         <EmptyState
           icon={<PackageIcon size={48} strokeWidth={1.4} />}
           title={t('used.noItems')}
@@ -430,7 +437,7 @@ const Used = () => {
           ctaLabel={getUser() ? "키워드 알림 설정하기" : "내 장비 등록하기"}
           ctaTo={getUser() ? "/mypage/keywords" : `${vbase}/used/register`}
         />
-      )}
+      ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

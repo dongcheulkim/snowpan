@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { Link } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 import { ListRowSkeleton } from '../components/Skeleton';
 import { ChatIcon, CloseIcon, UserIcon } from '../components/Icons';
 import { toastSuccess, toastError } from '../components/Toast';
@@ -43,6 +45,9 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
 const MyChatList = () => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
+  // 마지막 요청 실패 메시지 — 성공하면 지움. 폴링 실패는 기존 목록을 유지하고, 목록이 비어 있을 때만 재시도 안내
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트(폴링 포함) 재시작
   const user = getUser();
   const [, setLangTick] = useState(0);
 
@@ -60,8 +65,9 @@ const MyChatList = () => {
         // 배열 또는 {items: []} 둘 다 대응
         const list = Array.isArray(data) ? data : (data as { items?: ChatRoom[] })?.items || [];
         setRooms(list);
+        setLoadError(null);
       })
-      .catch(() => { if (alive) setRooms((prev) => prev); })
+      .catch((err) => { if (alive) setLoadError(err instanceof Error ? err.message : '채팅 목록을 불러오지 못했어요.'); })
       .finally(() => { if (alive) setLoading(false); });
     load();
     const onVis = () => { if (document.visibilityState === 'visible') load(); };
@@ -70,7 +76,7 @@ const MyChatList = () => {
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') load(); }, 20000);
     return () => { alive = false; document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis); window.clearInterval(timer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryKey]);
 
   const handleDelete = async (roomId: string, otherName: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -103,7 +109,7 @@ const MyChatList = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <p className="text-gray-500 mb-4">{t('chat.loginRequired')}</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
+        <Link to={loginPath()} className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }
@@ -119,6 +125,8 @@ const MyChatList = () => {
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => <ListRowSkeleton key={i} />)}
         </div>
+      ) : loadError && rooms.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => { setLoading(true); setLoadError(null); setRetryKey((k) => k + 1); }} />
       ) : rooms.length === 0 ? (
         <EmptyState
           icon={<ChatIcon size={48} strokeWidth={1.4} />}

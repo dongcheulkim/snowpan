@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { hapticLight } from '../utils/haptics';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -100,7 +101,7 @@ const CommunityDetail = () => {
   const handleLike = async () => {
     if (!id || !user) {
       toastError('로그인이 필요합니다.');
-      navigate('/login');
+      navigate(loginPath());
       return;
     }
     try {
@@ -375,7 +376,7 @@ const CommunityDetail = () => {
           </div>
         ) : (
           <div className="mt-5 pt-4 border-t border-gray-200 text-center">
-            <Link to="/login" className="text-xs text-primary-dark hover:underline">{t('communityDetail.loginToComment')}</Link>
+            <Link to={loginPath()} className="text-xs text-primary-dark hover:underline">{t('communityDetail.loginToComment')}</Link>
           </div>
         )}
       </div>

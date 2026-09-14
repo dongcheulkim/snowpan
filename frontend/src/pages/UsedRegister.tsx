@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
@@ -72,7 +73,7 @@ const UsedRegister = () => {
     const user = getUser();
     if (!user) {
       toastError('로그인이 필요합니다.');
-      navigate('/login');
+      navigate(loginPath());
       return;
     }
 

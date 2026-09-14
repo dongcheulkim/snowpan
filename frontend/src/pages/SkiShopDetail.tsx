@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useBackTo } from '../hooks/useUrlFilters';
@@ -131,7 +132,7 @@ export default function SkiShopDetail() {
           </button>
         )}
         {shop.claimable && !me && (
-          <Link to="/login" className="block w-full py-2 text-center text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+          <Link to={loginPath()} className="block w-full py-2 text-center text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
             이 매장 사장님이신가요? 로그인 후 직접 관리하기 →
           </Link>
         )}

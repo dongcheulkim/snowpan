@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import BrandLoader from '../components/BrandLoader';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
@@ -193,7 +194,7 @@ export default function AdBooking() {
   // 신청이 부담스러운 사장님용 — 관리자 1:1 채팅으로 바로 연결 (고객센터와 동일 패턴).
   const handleInquiry = async () => {
     const u = getUser();
-    if (!u) { navigate('/login'); return; }
+    if (!u) { navigate(loginPath()); return; }
     setInquiring(true);
     try {
       const admin = await api<{ id: string; name: string }>('/contact/admin-id');

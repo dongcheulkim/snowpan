@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import { ChatIcon, FireIcon, HeartFilledIcon, SkiIcon, SnowboardIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 import { communityCategoryLabel, COMMUNITY_GROUPS } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
@@ -88,6 +89,8 @@ const Community = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 일반 게시글 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const reqSeq = useRef(0); // 탭 전환 경쟁 시 낡은 응답·finally 무시
   const [, setLangTick] = useState(0);
 
@@ -150,7 +153,7 @@ const Community = () => {
   useEffect(() => {
     if (selectedTab === 'popular' || selectedTab === 'poll') return;
     const seq = ++reqSeq.current;
-    setTimeout(() => { if (reqSeq.current === seq) setLoading(true); }, 0);
+    setTimeout(() => { if (reqSeq.current === seq) { setLoading(true); setLoadError(null); } }, 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
     if (activeGroup?.subs) {
@@ -160,9 +163,9 @@ const Community = () => {
 
     api<{ posts: Post[]; totalCount: number }>(`/community?${params}`)
       .then(data => { if (reqSeq.current === seq) { setPosts(data.posts); setTotalCount(data.totalCount); } })
-      .catch(() => { if (reqSeq.current === seq) { setPosts([]); setTotalCount(0); } })
+      .catch((err) => { if (reqSeq.current === seq) { setPosts([]); setTotalCount(0); setLoadError(err instanceof Error ? err.message : '게시글을 불러오지 못했어요.'); } })
       .finally(() => { if (reqSeq.current === seq) setLoading(false); });
-  }, [sport, selectedTab, selectedSub, debouncedSearch, page]);
+  }, [sport, selectedTab, selectedSub, debouncedSearch, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -203,6 +206,8 @@ const Community = () => {
   // 전체 탭 1페이지: 게시글과 투표를 시간순으로 병합 (공지 고정글은 항상 위)
   type FeedItem = { kind: 'post'; post: Post } | { kind: 'poll'; poll: PollItem };
   const baseList: Post[] = selectedTab === 'popular' ? popularPosts : posts;
+  // 일반 게시글 요청이 실패해 목록이 비었으면 빈 상태 대신 재시도 안내 (인기·투표 탭은 별도 요청이라 제외)
+  const mainListFailed = selectedTab !== 'popular' && !!loadError && posts.length === 0;
   let feedItems: FeedItem[] = baseList.map((p) => ({ kind: 'post' as const, post: p }));
   if (selectedTab === 'all' && page === 1 && polls.length && !debouncedSearch) {
     const at = (f: FeedItem) => new Date(f.kind === 'post' ? f.post.createdAt : f.poll.createdAt).getTime();
@@ -306,6 +311,8 @@ const Community = () => {
 
       {selectedTab !== 'poll' && (loading ? (
         <RowListSkeleton count={6} />
+      ) : mainListFailed ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : (
         <div className="space-y-2">
           {feedItems.map((item, idx) => {
@@ -351,7 +358,7 @@ const Community = () => {
         </div>
       ))}
 
-      {selectedTab !== 'poll' && !loading && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
+      {selectedTab !== 'poll' && !loading && !mainListFailed && (selectedTab === 'popular' ? popularPosts : posts).length === 0 && (
         selectedTab === 'popular' ? (
           <EmptyState
             icon={<FireIcon size={48} />}

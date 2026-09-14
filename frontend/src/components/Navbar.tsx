@@ -1,4 +1,5 @@
 import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { Link, useLocation } from 'react-router-dom';
 import { tryRefreshAccessToken, api, getToken } from '../api';
 import { io, Socket } from 'socket.io-client';
@@ -179,7 +180,7 @@ const Navbar = () => {
             )}
             {!user && (
               <Link
-                to="/login"
+                to={loginPath()}
                 className="inline-flex items-center justify-center min-h-11 px-4 bg-accent text-white rounded-lg font-bold text-sm hover:bg-accent-light transition-colors"
               >
                 {t('nav.login')}

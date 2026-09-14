@@ -5,6 +5,7 @@ import { t, onLangChange } from '../i18n';
 import { toastSuccess, toastError } from '../components/Toast';
 import { HeartFilledIcon, HeartOutlineIcon, PackageIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 
 interface WishProduct {
   id: string;
@@ -17,6 +18,8 @@ interface WishProduct {
 const MyWishlist = () => {
   const [products, setProducts] = useState<WishProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 찜 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [, setLangTick] = useState(0);
 
   useEffect(() => {
@@ -30,11 +33,16 @@ const MyWishlist = () => {
   };
 
   useEffect(() => {
-    api<WishProduct[]>('/products/wishlist')
-      .then(setProducts)
-      .catch(() => setProducts([]))
-      .finally(() => setLoading(false));
-  }, []);
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      api<WishProduct[]>('/products/wishlist')
+        .then(setProducts)
+        .catch((err) => { setProducts([]); setLoadError(err instanceof Error ? err.message : '찜 목록을 불러오지 못했어요.'); })
+        .finally(() => setLoading(false));
+    };
+    load();
+  }, [retryKey]);
 
   const handleRemove = async (productId: string) => {
     try {
@@ -55,6 +63,8 @@ const MyWishlist = () => {
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">{t('myWishlist.loading')}</div>
+      ) : loadError && products.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : products.length === 0 ? (
         <EmptyState
           icon={<HeartOutlineIcon size={48} strokeWidth={1.4} />}

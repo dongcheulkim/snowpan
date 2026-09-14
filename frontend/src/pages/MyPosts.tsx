@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { HeartFilledIcon, ChatIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
+import LoadError from '../components/LoadError';
 
 interface Post {
   id: string;
@@ -28,16 +29,23 @@ const CATEGORY_LABEL: Record<string, string> = {
 const MyPosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const user = getUser();
 
   useEffect(() => {
     if (!user) { setLoading(false); return; } // 무한 스피너 방지
-    api<{ posts: Post[]; totalCount: number }>(`/community?userId=${user.id}`)
-      .then(data => setPosts(data.posts))
-      .catch(() => setPosts([]))
-      .finally(() => setLoading(false));
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      api<{ posts: Post[]; totalCount: number }>(`/community?userId=${user.id}`)
+        .then(data => setPosts(data.posts))
+        .catch((err) => { setPosts([]); setLoadError(err instanceof Error ? err.message : '내 게시글을 불러오지 못했어요.'); })
+        .finally(() => setLoading(false));
+    };
+    load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryKey]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -53,6 +61,8 @@ const MyPosts = () => {
 
       {loading ? (
         <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>
+      ) : loadError && posts.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : posts.length === 0 ? (
         <EmptyState
           icon={<ChatIcon size={48} strokeWidth={1.4} />}

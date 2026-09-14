@@ -4,6 +4,7 @@ import { api, imageUrl } from '../api';
 import DealCard, { type Deal } from '../components/DealCard';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import { RowListSkeleton } from '../components/Skeleton';
+import LoadError from '../components/LoadError';
 import { hasMouse } from '../utils/pointer';
 import HScroll from '../components/HScroll';
 
@@ -180,6 +181,8 @@ export default function Overseas() {
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 스키장 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [scope, setScope] = useState<'국내' | '해외'>('국내');
   const [sub, setSub] = useState<string>('전체');
   const [query, setQuery] = useState('');
@@ -189,16 +192,22 @@ export default function Overseas() {
 
   useEffect(() => {
     document.title = '스키장 투어 - 스노우판';
-    Promise.all([
-      api<Resort[]>('/overseas/resorts').catch(() => []),
-      api<Deal[]>('/overseas/deals?featured=1').catch(() => []),
-      api<Record<string, number>>('/webcams/weather').catch(() => ({} as Record<string, number>)),
-    ]).then(([r, d, t]) => {
-      setResorts(Array.isArray(r) ? r : []);
-      setDeals(Array.isArray(d) ? d : []);
-      setTemps(t && typeof t === 'object' ? t : {});
-    }).finally(() => setLoading(false));
-  }, []);
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      Promise.all([
+        // 스키장 목록(메인)만 실패를 기록 — 딜·기온은 보조라 조용히 비운다
+        api<Resort[]>('/overseas/resorts').catch((err) => { setLoadError(err instanceof Error ? err.message : '스키장 목록을 불러오지 못했어요.'); return [] as Resort[]; }),
+        api<Deal[]>('/overseas/deals?featured=1').catch(() => []),
+        api<Record<string, number>>('/webcams/weather').catch(() => ({} as Record<string, number>)),
+      ]).then(([r, d, t]) => {
+        setResorts(Array.isArray(r) ? r : []);
+        setDeals(Array.isArray(d) ? d : []);
+        setTemps(t && typeof t === 'object' ? t : {});
+      }).finally(() => setLoading(false));
+    };
+    load();
+  }, [retryKey]);
 
   const scoped = resorts.filter((r) => (r.scope || '해외') === scope);
   const hasPopular = scoped.some((r) => r.popular);
@@ -257,7 +266,9 @@ export default function Overseas() {
         <div className="px-4">
           <p className="text-xs text-gray-500 mb-2">"{q}" 검색 결과 {searched.length}곳</p>
           {searched.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-12">검색 결과가 없어요.</p>
+            loadError && resorts.length === 0
+              ? <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+              : <p className="text-sm text-gray-500 text-center py-12">검색 결과가 없어요.</p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {searched.map((r) => <GridCard key={r.id} r={r} scope={(r.scope as '국내' | '해외') || '해외'} />)}
@@ -290,6 +301,8 @@ export default function Overseas() {
 
           {loading ? (
             <div className="px-4"><RowListSkeleton count={4} /></div>
+          ) : loadError && resorts.length === 0 ? (
+            <div className="px-4"><LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} /></div>
           ) : scope === '국내' ? (
             /* 국내 — 정보형 디렉토리: 실시간 기온·웹캠·슬로프·리프트권을 한 카드에 */
             <div className="px-4">

@@ -4,7 +4,7 @@ import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
-import { toastError } from '../components/Toast';
+import LoadError from '../components/LoadError';
 import { useVertical } from '../hooks/useVertical';
 import { PhoneIcon } from '../components/Icons';
 import { RentalIcon } from '../components/CategoryIcons';
@@ -50,6 +50,8 @@ const Rental = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const my = useMyLocation();
   // 필터 변경 시 페이지 리셋
   useEffect(() => { setPage(1); }, [selectedResort, selectedRegion]);
@@ -59,6 +61,7 @@ const Rental = () => {
     const seq = ++reqSeqRef.current;
     const fetchRentals = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedRegion !== 'all') params.set('area', selectedRegion);
@@ -71,13 +74,14 @@ const Rental = () => {
         if (seq !== reqSeqRef.current) return;
         setRentalItems([]);
         setTotalCount(0);
-        toastError(err instanceof Error ? err.message : '렌탈샵 목록을 불러오지 못했습니다');
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        setLoadError(err instanceof Error ? err.message : '렌탈샵 목록을 불러오지 못했어요.');
       } finally {
         if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchRentals();
-  }, [selectedResort, selectedRegion, page]);
+  }, [selectedResort, selectedRegion, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const shown = withDistance(rentalItems, my.coords);
@@ -131,7 +135,9 @@ const Rental = () => {
         </div>
       )}
 
-      {!loading && rentalItems.length === 0 && (
+      {!loading && rentalItems.length === 0 && (loadError ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      ) : (
         <div className="text-center py-12 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -146,7 +152,7 @@ const Rental = () => {
             사장님 대시보드에서 등록하기
           </Link>
         </div>
-      )}
+      ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

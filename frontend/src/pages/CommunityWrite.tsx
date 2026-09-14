@@ -1,4 +1,5 @@
 import { toastError } from '../components/Toast';
+import { loginPath } from '../utils/loginPath';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl } from '../api';
@@ -107,7 +108,7 @@ const CommunityWrite = () => {
 
   const handleSubmit = async () => {
     const user = getUser();
-    if (!user) { toastError('로그인이 필요합니다.'); navigate('/login'); return; }
+    if (!user) { toastError('로그인이 필요합니다.'); navigate(loginPath()); return; }
     if (!title.trim()) { toastError('제목을 입력해주세요.'); return; }
     if (title.trim().length < 2) { toastError('제목은 2자 이상이어야 합니다.'); return; }
     if (titleOver) { toastError(`제목은 ${TITLE_MAX}자 이내여야 합니다. (현재 ${title.length}자)`); return; }

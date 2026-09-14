@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { PackageIcon } from '../components/Icons';
+import LoadError from '../components/LoadError';
 
 interface Product {
   id: string;
@@ -22,6 +23,7 @@ const MySales = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null); // 첫 페이지 로드 실패 메시지 (빈 상태와 구분)
   const navigate = useNavigate();
   const user = getUser();
   const [, setLangTick] = useState(0);
@@ -34,13 +36,13 @@ const MySales = () => {
   const loadProducts = (reset = true) => {
     if (!user) { setLoading(false); return; } // 무한 스피너 방지
     const offset = reset ? 0 : products.length;
-    if (reset) setLoading(true); else setLoadingMore(true);
+    if (reset) { setLoading(true); setLoadError(null); } else setLoadingMore(true);
     api<{ products: Product[]; totalCount: number }>(`/products?userId=${user.id}&category=used&limit=${PAGE}&offset=${offset}`)
       .then(data => {
         setProducts(prev => reset ? data.products : [...prev, ...data.products]);
         setTotal(data.totalCount);
       })
-      .catch(() => { if (reset) setProducts([]); })
+      .catch((err) => { if (reset) { setProducts([]); setLoadError(err instanceof Error ? err.message : '판매 내역을 불러오지 못했어요.'); } })
       .finally(() => { setLoading(false); setLoadingMore(false); });
   };
 
@@ -88,6 +90,8 @@ const MySales = () => {
 
       {loading ? (
         <div className="text-center py-16 text-gray-500 text-sm">{t('mySales.loading')}</div>
+      ) : loadError && products.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => loadProducts()} />
       ) : products.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{t('mySales.empty')}</div>
       ) : (

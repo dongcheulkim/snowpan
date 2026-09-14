@@ -3,6 +3,7 @@
 // 비로그인 시 로그인 페이지로. 초기 찜 여부는 optional (모르면 흰 하트로 시작).
 
 import { useState, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { HeartFilledIcon, HeartOutlineIcon } from './Icons';
@@ -31,7 +32,7 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
     e.preventDefault();
     e.stopPropagation();
     if (busy) return;
-    if (!getUser()) { navigate('/login'); return; }
+    if (!getUser()) { navigate(loginPath()); return; }
     setBusy(true);
     const next = !wished;
     setWished(next); // 낙관적

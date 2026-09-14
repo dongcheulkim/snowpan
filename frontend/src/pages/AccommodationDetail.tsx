@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBackTo } from '../hooks/useUrlFilters';
 import { api, getUser, imageUrl } from '../api';
@@ -170,7 +171,7 @@ const AccommodationDetail = () => {
         >채팅하기</button>
       )}
       {!item.claimable && !user && (
-        <Link to="/login" className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
+        <Link to={loginPath()} className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
       )}
       <ClaimShopButton shopType="accommodation" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 

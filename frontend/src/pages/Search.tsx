@@ -5,6 +5,7 @@ import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../compon
 import { MaintenanceIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
 import { communityCategoryLabel } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
+import LoadError from '../components/LoadError';
 
 interface SearchResult {
   products: { id: string; name: string; price: number; brand: string; image: string }[];
@@ -24,6 +25,8 @@ export default function Search() {
   const [debounced, setDebounced] = useState(initialQ);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null); // 검색 요청 실패 메시지 ("결과 없음"과 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 같은 검색어로 재요청
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -43,13 +46,14 @@ export default function Search() {
   }, [query]);
 
   useEffect(() => {
-    if (!debounced) { setResults(null); return; }
+    if (!debounced) { setResults(null); setLoadError(null); return; }
     setLoading(true);
+    setLoadError(null);
     api<SearchResult>(`/search?q=${encodeURIComponent(debounced)}`)
       .then(setResults)
-      .catch(() => setResults(null))
+      .catch((err) => { setResults(null); setLoadError(err instanceof Error ? err.message : '검색 결과를 불러오지 못했어요.'); })
       .finally(() => setLoading(false));
-  }, [debounced]);
+  }, [debounced, retryKey]);
 
   const hasResults = results && (results.products.length > 0 || results.posts.length > 0 || results.shops.length > 0);
 
@@ -84,8 +88,13 @@ export default function Search() {
       {/* 로딩 */}
       {loading && <div className="text-center py-12 text-sm text-gray-500 animate-pulse">검색 중...</div>}
 
+      {/* 요청 실패 — "결과 없음"과 구분해 재시도 안내 */}
+      {!loading && debounced && loadError && (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      )}
+
       {/* 결과 없음 */}
-      {!loading && debounced && !hasResults && (
+      {!loading && debounced && !loadError && !hasResults && (
         <div className="text-center py-12">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SadIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-500">"{debounced}"에 대한 검색 결과가 없습니다.</p>

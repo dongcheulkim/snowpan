@@ -12,6 +12,8 @@ python3 img_scan.py   # 최근 커뮤니티·프로필·중고 사진 용량 (80
 node write_flows.cjs  # 실제 쓰기: 글·댓글·수정·삭제, 신고, 차단·해제, 닉네임 변경·원복, 중고 등록·예약중·삭제 (끝나면 전부 정리)
 python3 fuzz_api.py   # API 퍼징: 이상한 입력에 500·스크립트 반영 없는지 (Cloudflare 403 HTML 은 오탐)
 node polish_check.cjs # 360/390/1280px 가로 스크롤·느린 API
+node edge_check.cjs   # 비로그인 → /login?next=, 상세 찜 → next, 404 문구, 18개 경로 직접 진입(에러바운더리·가로스크롤)
+node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(방문/미방문=app-shell)·앱 내 이동 (BASE=http://localhost:4173 로 로컬 preview 도 가능)
 ```
 
 - full_audit 과 chat_test/guide_test 는 같은 고객센터 방을 써서 **동시에 돌리면 안 됨**(순서대로).

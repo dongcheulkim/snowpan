@@ -8,7 +8,7 @@ import { MaintenanceIcon } from '../components/CategoryIcons';
 import { PhoneIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
-import { toastError } from '../components/Toast';
+import LoadError from '../components/LoadError';
 import { useVertical } from '../hooks/useVertical';
 import { RowListSkeleton } from '../components/Skeleton';
 import HScroll from '../components/HScroll';
@@ -53,18 +53,25 @@ export default function RepairShop() {
   const listHere = useListHere();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const my = useMyLocation();
 
   useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (selectedArea !== 'all') params.set('area', selectedArea);
-    if (selectedResort !== 'all') params.set('resortId', selectedResort);
-    api<Shop[]>(`/repair-shops?${params}`)
-      .then(data => setShops(Array.isArray(data) ? data : []))
-      .catch((err) => { setShops([]); toastError(err instanceof Error ? err.message : '정비샵 목록을 불러오지 못했습니다'); })
-      .finally(() => setLoading(false));
-  }, [selectedArea, selectedResort]);
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      const params = new URLSearchParams();
+      if (selectedArea !== 'all') params.set('area', selectedArea);
+      if (selectedResort !== 'all') params.set('resortId', selectedResort);
+      api<Shop[]>(`/repair-shops?${params}`)
+        .then(data => setShops(Array.isArray(data) ? data : []))
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        .catch((err) => { setShops([]); setLoadError(err instanceof Error ? err.message : '정비샵 목록을 불러오지 못했어요.'); })
+        .finally(() => setLoading(false));
+    };
+    load();
+  }, [selectedArea, selectedResort, retryKey]);
 
   // 서비스 필터는 클라이언트에서 — 목록이 통짜 배열이라 재요청 불필요 (services 는 콤마 텍스트)
   const filteredShops = selectedService === 'all' ? shops : shops.filter(sh => {
@@ -103,6 +110,8 @@ export default function RepairShop() {
       {/* 목록 */}
       {loading ? (
         <RowListSkeleton count={5} />
+      ) : loadError && shops.length === 0 ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : shownShops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>

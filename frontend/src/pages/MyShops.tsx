@@ -6,6 +6,7 @@ import {
   MaintenanceIcon, SkiShopIcon, RentalIcon, LessonIcon, AccommodationIcon,
 } from '../components/CategoryIcons';
 import KindTags from '../components/KindTags';
+import LoadError from '../components/LoadError';
 import type { ShopKind } from '../utils/shopKinds';
 
 interface Shop {
@@ -55,30 +56,38 @@ export default function MyShops() {
     skishop: [], repair: [], rental: [], lesson: [], accommodation: [],
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 매장 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   // 소식 패널 — 매장별 토글. key = `${cat.key}:${shop.id}`
   const [openNews, setOpenNews] = useState<string | null>(null);
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all(
-      CATEGORIES.map((c) => api<Shop[]>(c.endpoint).catch(() => []))
-    ).then((results) => {
-      const next = {} as Record<CatKey, Shop[]>;
-      CATEGORIES.forEach((c, i) => {
-        next[c.key] = (Array.isArray(results[i]) ? results[i] : []).map((s) => ({ ...s, _src: c.key }));
-      });
-      // 겸업 매장은 겸업 카테고리 섹션에도 같이 표시 — 같은 매장(같은 데이터)을 카테고리별로 따로 관리하는 느낌으로
-      for (const k of ['skishop', 'repair', 'rental'] as const) {
-        for (const s of next[k]) {
-          for (const ek of (s.extraKinds || '').split(',').filter(Boolean) as CatKey[]) {
-            if (ek !== k && next[ek]) next[ek].push(s);
+    const load = () => {
+      setLoading(true);
+      setLoadError(null);
+      // 다섯 업종을 한꺼번에 조회 — 하나라도 실패하면 메시지를 기록 (등록 매장이 하나도 안 보일 때 재시도 안내)
+      Promise.all(
+        CATEGORIES.map((c) => api<Shop[]>(c.endpoint).catch((err) => { setLoadError(err instanceof Error ? err.message : '매장 목록을 불러오지 못했어요.'); return [] as Shop[]; }))
+      ).then((results) => {
+        const next = {} as Record<CatKey, Shop[]>;
+        CATEGORIES.forEach((c, i) => {
+          next[c.key] = (Array.isArray(results[i]) ? results[i] : []).map((s) => ({ ...s, _src: c.key }));
+        });
+        // 겸업 매장은 겸업 카테고리 섹션에도 같이 표시 — 같은 매장(같은 데이터)을 카테고리별로 따로 관리하는 느낌으로
+        for (const k of ['skishop', 'repair', 'rental'] as const) {
+          for (const s of next[k]) {
+            for (const ek of (s.extraKinds || '').split(',').filter(Boolean) as CatKey[]) {
+              if (ek !== k && next[ek]) next[ek].push(s);
+            }
           }
         }
-      }
-      setShops(next);
-    }).finally(() => setLoading(false));
-  }, []);
+        setShops(next);
+      }).finally(() => setLoading(false));
+    };
+    load();
+  }, [retryKey]);
 
   const handleDelete = async (cat: typeof CATEGORIES[number], shop: Shop) => {
     if (!confirm(`"${shop.name}"을(를) 삭제하시겠습니까?`)) return;
@@ -252,12 +261,14 @@ export default function MyShops() {
         </div>
       )}
 
-      {visibleCategories.length === 0 && (
+      {visibleCategories.length === 0 && (loadError ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      ) : (
         <div className="card p-8 text-center">
           <p className="text-sm text-gray-500">아직 등록한 매장이 없어요.</p>
           <p className="text-xs text-gray-400 mt-1">아래에서 업종을 선택해 첫 매장을 등록해보세요.</p>
         </div>
-      )}
+      ))}
 
       {visibleCategories.map((cat) => (
         <div key={cat.key} className="card p-5">

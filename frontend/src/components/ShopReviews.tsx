@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { toastSuccess, toastError } from './Toast';
@@ -105,7 +106,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
           </div>
         ) : (
           <button
-            onClick={() => { if (!user) { navigate('/login'); return; } setWriting(true); }}
+            onClick={() => { if (!user) { navigate(loginPath()); return; } setWriting(true); }}
             className="w-full py-2.5 mb-4 bg-sky-50 text-sky-600 rounded-xl text-xs font-bold border border-sky-100 hover:bg-sky-100 transition-colors"
           >
             + 이 매장 리뷰 쓰기

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl, isNativeApp } from '../api';
@@ -391,7 +392,7 @@ const Chat = () => {
     return (
       <div className="text-center py-20 animate-fade-in">
         <p className="text-gray-500 mb-4">{t('chat.loginRequired')}</p>
-        <Link to="/login" className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
+        <Link to={loginPath()} className="text-primary-dark hover:underline text-sm">{t('chat.loginLink')}</Link>
       </div>
     );
   }

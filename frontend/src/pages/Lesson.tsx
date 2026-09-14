@@ -5,7 +5,7 @@ const FILTER_DEFAULTS = { sport: '스키', region: 'all', resort: 'all', spec: '
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
-import { toastError } from '../components/Toast';
+import LoadError from '../components/LoadError';
 import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 import { PosterGridSkeleton } from '../components/Skeleton';
@@ -49,6 +49,8 @@ const Lesson = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null); // 목록 로드 실패 메시지 (빈 상태와 구분)
+  const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [resorts, setResorts] = useState<Resort[]>([]);
   // 지역(대분류) → 리조트(소분류) 2단계 — 리조트 칩이 길어 한 줄로 못 담던 것
   const selectedRegion = filters.region;
@@ -65,6 +67,7 @@ const Lesson = () => {
     const seq = ++reqSeqRef.current;
     const fetchLessons = async () => {
       setLoading(true);
+      setLoadError(null);
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         params.set('type', sport);
@@ -83,14 +86,15 @@ const Lesson = () => {
         if (seq !== reqSeqRef.current) return;
         setLessonItems([]);
         setTotalCount(0);
-        toastError(err instanceof Error ? err.message : '레슨 목록을 불러오지 못했습니다');
+        // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
+        setLoadError(err instanceof Error ? err.message : '레슨 목록을 불러오지 못했어요.');
       } finally {
         if (seq === reqSeqRef.current) setLoading(false);
       }
     };
     fetchLessons();
-   
-  }, [selectedResort, selectedRegion, resorts, selectedSpec, sport, page]);
+
+  }, [selectedResort, selectedRegion, resorts, selectedSpec, sport, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -207,7 +211,9 @@ const Lesson = () => {
         </div>
       )}
 
-      {!loading && lessonItems.length === 0 && (
+      {!loading && lessonItems.length === 0 && (loadError ? (
+        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+      ) : (
         <div className="text-center py-12 px-6 card">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -234,7 +240,7 @@ const Lesson = () => {
             </>
           )}
         </div>
-      )}
+      ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

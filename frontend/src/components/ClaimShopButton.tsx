@@ -1,6 +1,7 @@
 // "이 매장 사장님이신가요? 직접 관리하기" — 시딩 매장(claimable=true) 전용.
 // 사업자등록증 업로드 → POST /shop-claims → 관리자 승인 시 소유권 이전. 이미 사장님이 관리 중인 매장엔 노출되지 않음.
 import { useState } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { toastSuccess, toastError } from './Toast';
@@ -23,7 +24,7 @@ export default function ClaimShopButton({ shopType, shopId, ownerId, claimable }
   if (me && (me.id === ownerId || me.role === 'admin')) return null;
   if (!me) {
     return (
-      <Link to="/login" className="block w-full py-2 text-center text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+      <Link to={loginPath()} className="block w-full py-2 text-center text-xs font-bold text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
         이 매장 사장님이신가요? 로그인 후 직접 관리하기 →
       </Link>
     );

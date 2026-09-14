@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl, getLoginMethods, unlinkLoginMethod, startSocialLogin, linkApple, isNativeApp, type LoginMethods } from '../api';
 import { Capacitor } from '@capacitor/core';
@@ -56,7 +57,7 @@ const MyPage = () => {
 
   useEffect(() => {
     const stored = getUser();
-    if (!stored) { navigate('/login'); return; }
+    if (!stored) { navigate(loginPath()); return; }
     setUser(stored);
 
     // 서버에서 최신 프로필 가져오기
