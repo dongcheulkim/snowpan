@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { trackAdClick, api, imageUrl, openExternal } from '../api';
+import { trackAdClick, api, imageUrl, openExternal, isNativeApp } from '../api';
 import AdImage from '../components/AdImage';
 import { t, onLangChange } from '../i18n';
 import { categoryIcons, SecondHandIcon } from '../components/CategoryIcons';
@@ -321,7 +321,7 @@ const Home = () => {
             </div>
           )}
 
-          {/* Slide #0 (snow): 베타 안내 — 사용자 요청. 승인 전 매장 정보·앱 준비 중임을 알리고 고객센터로 유도 */}
+          {/* Slide #0 (snow): 서비스 소개 + 고객센터 유도. (2026-09-15 애플 2.2 반려 대응 — '베타' 표기 전부 제거, 앱 안에서는 스토어 버튼 숨김) */}
           {isSnow && (() => {
             const inactive = currentBanner !== 0;
             return (
@@ -335,24 +335,23 @@ const Home = () => {
                 style={{ backgroundColor: '#ffffff' }}
               >
                 <div className="relative z-10">
-                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1.5">BETA</p>
-                  <p className="text-xl font-bold text-gray-900 leading-snug">지금은 베타 기간입니다</p>
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1.5">SNOWPAN</p>
+                  <p className="text-xl font-bold text-gray-900 leading-snug">스키장 근처 매장, 한곳에서</p>
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                    26/27 시즌을 앞두고 리조트별 매장 정보와 기능을 계속 채우고 있습니다.<br />
-                    잘못된 정보나 불편한 점은 고객센터 채팅으로 알려 주세요.<br />
-                    {APP_STORE_URL ? '아이폰 앱이 App Store 에 나왔습니다.' : '아이폰 앱은 곧 App Store 에 나옵니다.'}{PLAY_STORE_URL ? ' 안드로이드 앱도 Google Play 에 있습니다.' : ' 안드로이드 앱은 구글 심사 중입니다.'}
+                    리조트별 렌탈샵·스키샵·정비샵·레슨·숙소와 중고 장비를 모았어요.<br />
+                    잘못된 정보나 불편한 점은 고객센터 채팅으로 알려 주세요.
                   </p>
                   <span className="inline-flex flex-wrap gap-2 mt-3.5">
                     <span className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold">고객센터에 알려주기 →</span>
-                    {APP_STORE_URL && <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">App Store 에서 받기</a>}
-                    {PLAY_STORE_URL && <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">Google Play 에서 받기</a>}
+                    {!isNativeApp() && APP_STORE_URL && <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">App Store 에서 받기</a>}
+                    {!isNativeApp() && PLAY_STORE_URL && <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-block px-4 py-2 bg-white text-gray-900 border border-gray-900 rounded-lg text-xs font-bold">Google Play 에서 받기</a>}
                   </span>
                 </div>
               </Link>
             );
           })()}
 
-          {/* Slide #1~N: 광고 (snow 는 베타 안내 뒤) */}
+          {/* Slide #1~N: 광고 (snow 는 소개 슬라이드 뒤) */}
           {banners.map((banner, idx) => {
             const slideIdx = isSnow ? idx + 1 : idx;
             const inactive = slideIdx !== currentBanner;

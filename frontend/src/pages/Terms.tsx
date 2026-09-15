@@ -252,15 +252,6 @@ const Terms = () => {
         <h1 className="text-xl font-bold text-gray-900">이용약관</h1>
       </div>
 
-      {/* 베타 서비스 안내 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-        <p className="text-xs font-bold text-amber-800 mb-1">[BETA] 베타 서비스 안내</p>
-        <p className="text-[11px] text-amber-700 leading-relaxed">
-          본 서비스는 <span className="font-bold">2026년 11월 정식 출시 전</span> 베타 기간으로 운영됩니다. 베타 기간 중에는 유료 결제 기능이 활성화되지 않으며, 광고 게재 등 일부 유료 서비스는 <span className="font-bold">무료 체험</span>으로 제공됩니다.
-          정식 출시 시점에 결제 시스템 및 유료 서비스 정책이 별도 안내됩니다.
-        </p>
-      </div>
-
       {/* 핵심 고지 */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
         <p className="text-xs font-bold text-gray-900 mb-1">통신판매중개업자 고지</p>
@@ -309,7 +300,7 @@ const Terms = () => {
       {/* 시행일 */}
       <div className="card p-5 text-center">
         <p className="text-xs text-gray-500">본 약관은 2026년 1월 1일부터 시행됩니다.</p>
-        <p className="text-[10px] text-gray-500 mt-1">최종 수정일: 2026년 4월 25일 (베타 서비스 기간 반영 — 유료 결제/광고 조항은 정식 출시 시점에 효력 개시)</p>
+        <p className="text-[10px] text-gray-500 mt-1">최종 수정일: 2026년 9월 15일</p>
       </div>
     </div>
   );

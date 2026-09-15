@@ -322,7 +322,7 @@ export default function Overseas() {
                 ))}
               </div>
               {filtered.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-12">준비 중이에요.</p>
+                <p className="text-sm text-gray-500 text-center py-12">등록된 스키장이 없어요.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {[...filtered]
@@ -364,7 +364,7 @@ export default function Overseas() {
           ) : (
             <div className="px-4">
               {filtered.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-12">준비 중이에요.</p>
+                <p className="text-sm text-gray-500 text-center py-12">등록된 스키장이 없어요.</p>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {filtered.map((r) => <GridCard key={r.id} r={r} scope={scope} />)}

@@ -144,14 +144,14 @@ export default function AgencyManage() {
                 {active ? '노출중 (구독)' : sel.approved ? '결제 필요' : '승인 대기중'}
               </span>
             </div>
-            {!sel.approved && <p className="text-[11px] text-gray-500 mt-1">{betaFree ? '관리자 승인 후 무료로 노출돼요 (베타 기간).' : '관리자 승인 후 구독 결제를 하면 노출돼요.'}</p>}
+            {!sel.approved && <p className="text-[11px] text-gray-500 mt-1">{betaFree ? '관리자 승인 후 노출돼요 (등록·노출 무료).' : '관리자 승인 후 구독 결제를 하면 노출돼요.'}</p>}
             {active && !betaFree && sel.paidUntil && <p className="text-[11px] text-gray-500 mt-1">구독 만료: {new Date(sel.paidUntil).toLocaleDateString('ko-KR')}</p>}
 
-            {/* 베타 무료 안내 */}
+            {/* 무료 노출 안내 */}
             {sel.approved && betaFree && (
               <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs font-bold text-mint">베타 기간 무료 노출 중</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">정식 오픈 후에는 가입비 {(pricing?.signupFee ?? 100000).toLocaleString()}원 + 월 구독료가 적용될 예정이에요.</p>
+                <p className="text-xs font-bold text-mint">무료로 노출 중</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">등록과 노출에 비용이 들지 않아요.</p>
               </div>
             )}
 

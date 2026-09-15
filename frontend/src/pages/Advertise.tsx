@@ -63,7 +63,7 @@ const Advertise = () => {
         <div className="text-center text-sm text-gray-400 py-10">불러오는 중...</div>
       ) : groups.length === 0 ? (
         <div className="card p-6 text-center text-sm text-gray-500">
-          현재 안내 가능한 광고 상품을 준비 중입니다.<br />
+          광고는 고객센터 채팅으로 상담한 뒤 진행해요.<br />
           문의: <a href="mailto:info@snowpan.kr" className="text-sky-600 hover:underline">info@snowpan.kr</a>
         </div>
       ) : (

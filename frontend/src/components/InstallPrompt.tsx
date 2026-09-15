@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CloseIcon } from './Icons';
+import { isNativeApp } from '../api';
 
 // PWA 설치 프롬프트 — Android 는 beforeinstallprompt 이벤트, iOS Safari 는 직접 가이드.
 // 한 번 닫으면 30일간 다시 안 뜸.
@@ -35,7 +36,13 @@ function isDismissedRecently(): boolean {
   } catch { return false; }
 }
 
+// 네이티브 앱 안에서는 PWA 설치 안내가 의미 없음 — 훅 순서를 지키려고 래퍼에서 분기
 export default function InstallPrompt() {
+  if (isNativeApp()) return null;
+  return <InstallPromptInner />;
+}
+
+function InstallPromptInner() {
   const [bip, setBip] = useState<BIPEvent | null>(null);
   const [showIos, setShowIos] = useState(false);
   // 쿠키 동의가 끝나기 전엔 안 띄움 — 첫 방문에 배너 2개가 겹쳐 하단 네비까지 가리던 문제

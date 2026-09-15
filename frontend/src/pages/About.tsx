@@ -121,9 +121,8 @@ export default function About() {
         </p>
       </section>
 
-      {/* Beta */}
+      {/* 매장 등록 무료 */}
       <section className="text-center space-y-3 py-6">
-        <p className="text-[11px] font-bold tracking-widest text-sky-500">BETA</p>
         <h2 className="text-lg font-bold text-gray-900">매장 등록 무료</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
           렌탈샵·레슨·숙소·정비샵 운영자라면 첫 등록자가 되어 스키어들을 만나보세요.

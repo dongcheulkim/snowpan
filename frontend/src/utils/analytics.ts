@@ -5,6 +5,7 @@
 // 페이지뷰는 React Router 변경 감지로 자동 트래킹 (initAnalyticsRouter 훅).
 
 import { getCookieConsent } from '../components/CookieConsent';
+import { isNativeApp } from '../api';
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 let loaded = false;
@@ -36,7 +37,7 @@ function loadGA() {
 }
 
 export function setupAnalytics() {
-  if (!MEASUREMENT_ID) return;
+  if (!MEASUREMENT_ID || isNativeApp()) return; // 앱은 분석 도구 미사용 (쿠키 동의 창도 없음)
   // 동의 이미 받았으면 즉시 로드
   if (getCookieConsent() === 'all') {
     loadGA();

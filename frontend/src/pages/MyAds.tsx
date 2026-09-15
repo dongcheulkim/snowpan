@@ -95,7 +95,7 @@ export default function MyAds() {
         <EmptyState
           icon={<MegaphoneIcon size={48} strokeWidth={1.4} />}
           title="아직 신청한 광고가 없어요"
-          description={"메인 배너·카테고리 광고로 더 많은 노출을\n받아보세요. 베타 기간 무료 노출 기회도 있어요."}
+          description={"메인 배너·카테고리 광고로 더 많은 노출을\n받아보세요. 고객센터 채팅으로 상담해 드려요."}
           ctaLabel="광고 신청하기"
           ctaTo="/ad-booking"
         />
