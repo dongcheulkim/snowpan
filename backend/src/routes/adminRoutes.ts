@@ -43,7 +43,7 @@ router.get('/integrations', async (_req, res) => {
   const apple = appleRevokeStatus();
   res.json({
     appleRevoke: apple.configured, // 탈퇴 시 Apple 로그인 연결 철회 키(APPLE_TEAM_ID/KEY_ID/PRIVATE_KEY)
-    appleRevokeDetail: { missing: apple.missing, keyParse: apple.keyParse }, // 어떤 env 가 빠졌는지·키 형식 문제인지 (이름만)
+    appleRevokeDetail: apple, // 어떤 env 가 빠졌는지·키 형식 문제인지 (값은 없고 이름·길이·모양만)
     kakao: kakaoConfigured(),
     naver: naverLoginConfigured(),
     fcm: await isFcmConfigured(),

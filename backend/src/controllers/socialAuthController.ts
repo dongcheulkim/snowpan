@@ -332,20 +332,29 @@ async function verifyAppleIdentityToken(idToken: string, nonce?: string): Promis
 // 애플 토큰 엔드포인트용 client_secret(ES256 JWT). 키 env 가 없으면 null → 철회 기능만 비활성.
 // .p8 내용을 어떻게 붙여넣었든(한 줄, 따옴표, 리터럴 \n) PEM 으로 정리 — Render env 편집창에서 줄바꿈이 사라지는 경우 대비.
 function normalizePem(raw: string): string {
-  let k = raw.trim().replace(/\\n/g, '\n');
+  // BOM·CR·줄바꿈 없는 공백(NBSP)·리터럴 \n 정리, 감싼 따옴표 제거
+  let k = raw.replace(/^\uFEFF/, '').replace(/\r/g, '').replace(/\u00a0/g, ' ').replace(/\\n/g, '\n').trim();
   if ((k.startsWith('"') && k.endsWith('"')) || (k.startsWith("'") && k.endsWith("'"))) k = k.slice(1, -1).trim();
-  if (k.includes('\n')) return k;
-  const m = k.match(/^-----BEGIN ([A-Z ]+)-----(.*)-----END \1-----$/s);
-  if (!m) return k;
-  const body = m[2].replace(/\s+/g, '');
-  return `-----BEGIN ${m[1]}-----\n${(body.match(/.{1,64}/g) || []).join('\n')}\n-----END ${m[1]}-----`;
+  const wrap = (label: string, body: string) => `-----BEGIN ${label}-----\n${(body.match(/.{1,64}/g) || []).join('\n')}\n-----END ${label}-----`;
+  const m = k.match(/-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/);
+  if (m) return wrap(m[1], m[2].replace(/\s+/g, ''));
+  // 머리말/꼬리말 없이 본문(base64)만 붙여넣은 경우
+  const body = k.replace(/\s+/g, '');
+  if (body.length > 100 && /^[A-Za-z0-9+/=]+$/.test(body)) return wrap('PRIVATE KEY', body);
+  return k;
+}
+// 진단용 — 값은 안 나가고 모양만 (길이, 머리말·꼬리말 유무, 본문이 base64 인지)
+function pemShape(raw: string): { length: number; hasBegin: boolean; hasEnd: boolean; base64Body: boolean } {
+  const k = raw.replace(/\\n/g, '\n');
+  const body = k.replace(/-----BEGIN [A-Z ]+-----|-----END [A-Z ]+-----|["'\s]/g, '');
+  return { length: raw.length, hasBegin: /-----BEGIN [A-Z ]+-----/.test(k), hasEnd: /-----END [A-Z ]+-----/.test(k), base64Body: body.length > 100 && /^[A-Za-z0-9+/=]+$/.test(body) };
 }
 // 관리자 설정 상태 확인용 — 어떤 env 가 빠졌는지·키가 실제로 서명되는지 (값은 절대 안 나감).
-export function appleRevokeStatus(): { configured: boolean; missing: string[]; keyParse: 'ok' | 'failed' | 'n/a' } {
+export function appleRevokeStatus(): { configured: boolean; missing: string[]; keyParse: 'ok' | 'failed' | 'n/a'; keyShape?: ReturnType<typeof pemShape>; keyIdLength?: number; teamIdLength?: number } {
   const missing = ['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'].filter((k) => !process.env[k]);
   if (missing.length) return { configured: false, missing, keyParse: 'n/a' };
   const ok = appleClientSecret() !== null;
-  return { configured: ok, missing, keyParse: ok ? 'ok' : 'failed' };
+  return { configured: ok, missing, keyParse: ok ? 'ok' : 'failed', keyShape: pemShape(process.env.APPLE_PRIVATE_KEY || ''), keyIdLength: (process.env.APPLE_KEY_ID || '').trim().length, teamIdLength: (process.env.APPLE_TEAM_ID || '').trim().length };
 }
 function appleClientSecret(): string | null {
   const { APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY } = process.env;
