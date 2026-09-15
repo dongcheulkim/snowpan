@@ -29,6 +29,7 @@ import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { geocodeBackfill, resortsGeocode, autoResort } from '../controllers/geocodeController';
 import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from '../controllers/outreachController';
 import { isFcmConfigured, sendPushToUser } from '../utils/push';
+import { appleRevokeConfigured, kakaoConfigured, naverLoginConfigured } from '../controllers/socialAuthController';
 import prisma from '../config/database';
 
 const router = Router();
@@ -37,6 +38,18 @@ const router = Router();
 router.use(authenticateToken, requireAdmin);
 
 // 푸시 셀프 테스트 — FCM 서버 키·기기 토큰 상태 확인 + 본인 기기로 테스트 알림 발송.
+// 외부 연동 설정 상태 — 사장님이 Render env 를 넣은 뒤 잘 잡혔는지 확인용 (값은 절대 안 나감, 참/거짓만).
+router.get('/integrations', async (_req, res) => {
+  res.json({
+    appleRevoke: appleRevokeConfigured(), // 탈퇴 시 Apple 로그인 연결 철회 키(APPLE_TEAM_ID/KEY_ID/PRIVATE_KEY)
+    kakao: kakaoConfigured(),
+    naver: naverLoginConfigured(),
+    fcm: await isFcmConfigured(),
+    bunny: Boolean(process.env.BUNNY_STORAGE_KEY),
+    adDeposit: Boolean(process.env.AD_DEPOSIT_BANK && process.env.AD_DEPOSIT_ACCOUNT && process.env.AD_DEPOSIT_HOLDER),
+  });
+});
+
 router.post('/push-test', async (req: any, res) => {
   try {
     const configured = await isFcmConfigured();

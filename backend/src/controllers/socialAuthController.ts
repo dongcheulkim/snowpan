@@ -330,6 +330,8 @@ async function verifyAppleIdentityToken(idToken: string, nonce?: string): Promis
 }
 
 // 애플 토큰 엔드포인트용 client_secret(ES256 JWT). 키 env 가 없으면 null → 철회 기능만 비활성.
+// 관리자 설정 상태 확인용 — env 세 개가 있고 키가 실제로 서명되는지 (형식이 깨졌으면 false).
+export function appleRevokeConfigured(): boolean { return appleClientSecret() !== null; }
 function appleClientSecret(): string | null {
   const { APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY } = process.env;
   if (!APPLE_TEAM_ID || !APPLE_KEY_ID || !APPLE_PRIVATE_KEY) return null;

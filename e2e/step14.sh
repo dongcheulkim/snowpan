@@ -349,6 +349,12 @@ api PUT /admin/instagram/token '{"token":"short"}' "$A_TOKEN"; expect 400 "짧�
 api PUT /admin/instagram/token '{"token":"x"}' "$U_TOKEN"; expect 403 "일반유저 토큰 저장 403"
 api DELETE /admin/instagram "" "$U_TOKEN"; expect 403 "일반유저 인스타 해제 403"
 
+# ── 외부 연동 설정 상태 (2026-09-15): 참/거짓만, 키 값은 절대 안 나감
+api GET /admin/integrations "" ""; expect 401 "연동 상태 비로그인 401"
+api GET /admin/integrations "" "$U_TOKEN"; expect 403 "연동 상태 일반유저 403"
+api GET /admin/integrations "" "$A_TOKEN"; IT=$(echo "$RESP" | jq -r '[.appleRevoke,.kakao,.fcm,.bunny,.adDeposit] | map(type) | unique | join(",")'); [ "$CODE" = "200" ] && [ "$IT" = "boolean" ] && ok "연동 상태 200 (전부 boolean)" || bad "연동 상태 CODE=$CODE types=$IT"
+echo "$RESP" | grep -qi "BEGIN PRIVATE\|secret\|token" && bad "연동 상태에 비밀값 흔적" || ok "연동 상태에 비밀값 없음"
+
 # ── 업로드 MIME: 이름·선언은 webp 인데 실제는 PNG 인 파일도 통과해야 함 (2026-09-09 사용자 신고 — 일부 기기가 WebP 인코딩을 못 해 PNG 를 .webp 로 보냄)
 TMPD=$(mktemp -d)
 python3 -c "
