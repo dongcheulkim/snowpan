@@ -330,13 +330,28 @@ async function verifyAppleIdentityToken(idToken: string, nonce?: string): Promis
 }
 
 // 애플 토큰 엔드포인트용 client_secret(ES256 JWT). 키 env 가 없으면 null → 철회 기능만 비활성.
-// 관리자 설정 상태 확인용 — env 세 개가 있고 키가 실제로 서명되는지 (형식이 깨졌으면 false).
-export function appleRevokeConfigured(): boolean { return appleClientSecret() !== null; }
+// .p8 내용을 어떻게 붙여넣었든(한 줄, 따옴표, 리터럴 \n) PEM 으로 정리 — Render env 편집창에서 줄바꿈이 사라지는 경우 대비.
+function normalizePem(raw: string): string {
+  let k = raw.trim().replace(/\\n/g, '\n');
+  if ((k.startsWith('"') && k.endsWith('"')) || (k.startsWith("'") && k.endsWith("'"))) k = k.slice(1, -1).trim();
+  if (k.includes('\n')) return k;
+  const m = k.match(/^-----BEGIN ([A-Z ]+)-----(.*)-----END \1-----$/s);
+  if (!m) return k;
+  const body = m[2].replace(/\s+/g, '');
+  return `-----BEGIN ${m[1]}-----\n${(body.match(/.{1,64}/g) || []).join('\n')}\n-----END ${m[1]}-----`;
+}
+// 관리자 설정 상태 확인용 — 어떤 env 가 빠졌는지·키가 실제로 서명되는지 (값은 절대 안 나감).
+export function appleRevokeStatus(): { configured: boolean; missing: string[]; keyParse: 'ok' | 'failed' | 'n/a' } {
+  const missing = ['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY'].filter((k) => !process.env[k]);
+  if (missing.length) return { configured: false, missing, keyParse: 'n/a' };
+  const ok = appleClientSecret() !== null;
+  return { configured: ok, missing, keyParse: ok ? 'ok' : 'failed' };
+}
 function appleClientSecret(): string | null {
   const { APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY } = process.env;
   if (!APPLE_TEAM_ID || !APPLE_KEY_ID || !APPLE_PRIVATE_KEY) return null;
   try {
-    return jwt.sign({}, APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'), {
+    return jwt.sign({}, normalizePem(APPLE_PRIVATE_KEY), {
       algorithm: 'ES256', keyid: APPLE_KEY_ID, issuer: APPLE_TEAM_ID, audience: APPLE_ISS, subject: APPLE_CLIENT_ID(), expiresIn: '5m',
     });
   } catch (e) {
