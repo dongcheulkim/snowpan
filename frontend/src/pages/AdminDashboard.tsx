@@ -13,6 +13,9 @@ import { Link } from 'react-router-dom';
 
 type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach' | 'settings';
 
+const REPORT_TYPE_LABEL: Record<string, string> = { product: '중고 매물', post: '게시글', user: '회원', skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' };
+const REPORT_RESOLUTION_LABEL: Record<string, string> = { deleted: '삭제함', warned: '경고 보냄', kept: '문제 없음' };
+
 interface ReportItem {
   id: string;
   type: string;
@@ -24,6 +27,11 @@ interface ReportItem {
   reporter: { id: string; name: string; email: string };
   targetName?: string | null;
   targetPath?: string | null;
+  targetOwner?: { id: string; name: string } | null; // 작성자(대상 소유자)
+  reportCount?: number;                              // 같은 대상에 쌓인 신고 수
+  resolution?: 'deleted' | 'warned' | 'kept' | null;
+  adminNote?: string | null;
+  resolvedAt?: string | null;
 }
 
 interface StatsData {
@@ -88,6 +96,9 @@ const AdminDashboard = () => {
   const user = getUser();
   const [tab, setTab] = useState<TabId>('approval');
   const [reports, setReports] = useState<ReportItem[]>([]);
+  const [reportFilter, setReportFilter] = useState<'pending' | 'all'>('pending');
+  const [reportNotes, setReportNotes] = useState<Record<string, string>>({}); // 신고별 작성자 안내 문구 입력
+  const [reportBusy, setReportBusy] = useState<string | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [userSearch, setUserSearch] = useState('');
@@ -143,12 +154,23 @@ const AdminDashboard = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleResolve = async (id: string) => {
+  // 신고 처리 — 삭제(게시글·중고 매물) / 경고(작성자 안내) / 유지(문제 없음). 같은 대상의 신고는 서버가 한꺼번에 처리.
+  const handleResolve = async (r: ReportItem, action: 'delete' | 'warn' | 'keep') => {
+    const label = REPORT_TYPE_LABEL[r.type] || r.type;
+    if (action === 'delete' && !confirm(`${label} "${r.targetName || ''}"을(를) 삭제할까요? 작성자에게 삭제 알림이 가고 되돌릴 수 없어요.`)) return;
+    if (action === 'warn' && !confirm('작성자에게 규칙 안내(경고) 알림을 보낼까요?')) return;
+    setReportBusy(r.id);
     try {
-      await api(`/admin/reports/${id}`, { method: 'PUT' });
-      setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'resolved' } : r)));
+      const res = await api<{ message: string; resolution: string }>(`/admin/reports/${r.id}`, { method: 'PUT', body: { action, note: reportNotes[r.id] || '' } });
+      const resolution = (res.resolution || (action === 'delete' ? 'deleted' : action === 'warn' ? 'warned' : 'kept')) as ReportItem['resolution'];
+      setReports((prev) => prev.map((x) => (x.type === r.type && x.targetId === r.targetId && x.status === 'pending'
+        ? { ...x, status: 'resolved', resolution, adminNote: reportNotes[r.id] || null, resolvedAt: new Date().toISOString(), targetName: action === 'delete' ? null : x.targetName }
+        : x)));
+      toastSuccess(res.message || '처리했어요.');
     } catch (err) {
       toastError(err instanceof Error ? err.message : '처리 실패');
+    } finally {
+      setReportBusy(null);
     }
   };
 
@@ -333,45 +355,79 @@ const AdminDashboard = () => {
               <InstagramPanel />
             </div>
           )}
-          {tab === 'reports' && (
+          {tab === 'reports' && (() => {
+            const shown = reportFilter === 'pending' ? reports.filter((r) => r.status === 'pending') : reports;
+            const pendingCount = reports.filter((r) => r.status === 'pending').length;
+            return (
             <div className="space-y-3">
-              {reports.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">신고가 없습니다.</div>
+              <div className="flex items-center gap-2">
+                {([['pending', `대기중 ${pendingCount}`], ['all', `전체 ${reports.length}`]] as const).map(([k, l]) => (
+                  <button key={k} onClick={() => setReportFilter(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${reportFilter === k ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>{l}</button>
+                ))}
+              </div>
+              {shown.length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{reportFilter === 'pending' ? '처리할 신고가 없어요.' : '신고가 없어요.'}</div>
               ) : (
-                reports.map((r) => (
+                shown.map((r) => {
+                  const canDelete = r.type === 'post' || r.type === 'product';
+                  const busy = reportBusy === r.id;
+                  return (
                   <div key={r.id} className="card p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.status === 'resolved' ? 'bg-mint/20 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                          {r.status === 'resolved' ? '처리완료' : '대기중'}
+                          {r.status === 'resolved' ? (REPORT_RESOLUTION_LABEL[r.resolution || ''] || '처리완료') : '대기중'}
                         </span>
-                        <span className="text-xs text-gray-500 ml-2">{({ product: '상품', post: '게시글', user: '유저', skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' } as Record<string, string>)[r.type] || r.type}</span>
+                        <span className="text-xs text-gray-500">{REPORT_TYPE_LABEL[r.type] || r.type}</span>
+                        {(r.reportCount || 0) > 1 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">신고 {r.reportCount}건</span>}
                       </div>
-                      <span className="text-[10px] text-gray-500">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
+                      <span className="text-[10px] text-gray-500 flex-shrink-0">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
                     </div>
-                    {/* 신고 대상 — 이름 + 바로가기 (삭제된 대상은 표시만) */}
-                    {(r.targetName || r.targetPath) && (
-                      <p className="text-xs mb-1">
-                        <span className="text-gray-500">대상: </span>
-                        <span className="font-bold text-gray-900">{r.targetName || '(삭제됨)'}</span>
-                        {r.targetPath && r.targetName && (
-                          <a href={r.targetPath} target="_blank" rel="noopener noreferrer" className="ml-2 text-sky-600 underline">보러가기</a>
-                        )}
-                      </p>
-                    )}
-                    <p className="text-sm font-medium text-gray-900 mb-1">{r.reason}</p>
-                    {r.description && <p className="text-xs text-gray-500 mb-2">{r.description}</p>}
+                    {/* 신고 대상 — 이름 + 바로가기 (삭제된 대상은 표시만) + 작성자 */}
+                    <p className="text-xs mb-1">
+                      <span className="text-gray-500">대상: </span>
+                      <span className="font-bold text-gray-900">{r.targetName || '(삭제됨)'}</span>
+                      {r.targetPath && r.targetName && (
+                        <a href={r.targetPath} target="_blank" rel="noopener noreferrer" className="ml-2 text-sky-600 underline">보러가기</a>
+                      )}
+                      {r.targetOwner && r.type !== 'user' && <span className="ml-2 text-gray-500">작성자 <span className="font-medium text-gray-800">{r.targetOwner.name}</span></span>}
+                    </p>
+                    <p className="text-sm font-bold text-gray-900 mb-0.5">신고 사유: {r.reason}</p>
+                    {r.description && <p className="text-xs text-gray-600 mb-2 whitespace-pre-wrap">{r.description}</p>}
                     <p className="text-[10px] text-gray-500">신고자: {r.reporter.name} ({r.reporter.email})</p>
+                    {r.status === 'resolved' && r.adminNote && <p className="text-[11px] text-gray-500 mt-1">보낸 안내: {r.adminNote}</p>}
                     {r.status === 'pending' && (
-                      <button onClick={() => handleResolve(r.id)} className="mt-3 px-4 py-2 bg-accent text-white rounded-lg font-bold text-xs hover:bg-accent-light transition-colors">
-                        처리 완료
-                      </button>
+                      <div className="mt-3 space-y-2">
+                        <input
+                          value={reportNotes[r.id] || ''}
+                          onChange={(e) => setReportNotes((m) => ({ ...m, [r.id]: e.target.value }))}
+                          maxLength={500}
+                          placeholder="작성자에게 함께 보낼 안내 (선택) — 예: 연락처 노출은 금지예요"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-gray-400"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          {canDelete && (
+                            <button disabled={busy} onClick={() => handleResolve(r, 'delete')} className="px-3.5 py-2 bg-red-500 text-white rounded-lg font-bold text-xs disabled:opacity-50">
+                              {REPORT_TYPE_LABEL[r.type]} 삭제
+                            </button>
+                          )}
+                          <button disabled={busy} onClick={() => handleResolve(r, 'warn')} className="px-3.5 py-2 bg-amber-500 text-white rounded-lg font-bold text-xs disabled:opacity-50">
+                            {r.type === 'user' ? '회원에게 경고' : '작성자에게 경고'}
+                          </button>
+                          <button disabled={busy} onClick={() => handleResolve(r, 'keep')} className="px-3.5 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-xs disabled:opacity-50">
+                            문제 없음 · 유지
+                          </button>
+                        </div>
+                        {!canDelete && <p className="text-[10px] text-gray-400">{r.type === 'user' ? '정지·차단은 유저관리 탭에서 할 수 있어요.' : '매장 정보 수정·삭제는 승인관리 탭에서 할 수 있어요.'}</p>}
+                      </div>
                     )}
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Stats Tab */}
           {tab === 'stats' && stats && (

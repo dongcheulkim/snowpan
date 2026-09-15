@@ -661,6 +661,9 @@ model Report {
   reporterId  String
   reporter    User     @relation(fields: [reporterId], references: [id])
   status      String   @default("pending") // 'pending' | 'resolved'
+  resolution  String?  // 처리 결과: 'deleted'(게시물 삭제) | 'warned'(작성자 경고) | 'kept'(문제 없음·유지) — 2026-09-15
+  adminNote   String?  // 작성자에게 함께 보낸 안내 문구 (선택)
+  resolvedAt  DateTime?
   createdAt   DateTime @default(now())
 
   @@index([reporterId])

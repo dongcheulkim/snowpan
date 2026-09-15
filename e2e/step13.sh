@@ -219,8 +219,56 @@ api GET /admin/reports "" "$ADM_TOKEN"
 RCNT=$(echo "$RESP" | jq -r '[(if type=="array" then . else (.items // .shops // .users // .reports // .deals // []) end)[]? | select(.reason=="폐업한 것 같아요")] | length')
 [ "$CODE" = "200" ] && [ "$RCNT" = "1" ] && ok "관리자 신고 목록 노출" || bad "신고 목록 CODE=$CODE cnt=$RCNT"
 [ -n "$RP" ] || RP=$(pq "SELECT id FROM reports WHERE reason='폐업한 것 같아요' LIMIT 1")
+api PUT "/admin/reports/$RP" '{"action":"delete"}' "$ADM_TOKEN"
+[ "$CODE" = "400" ] && ok "매장 신고는 삭제 처리 불가 400" || bad "매장 삭제 처리 CODE=$CODE"
+api PUT "/admin/reports/$RP" '{"action":"nuke"}' "$ADM_TOKEN"
+[ "$CODE" = "400" ] && ok "잘못된 action 400" || bad "action 검증 CODE=$CODE"
+api PUT "/admin/reports/$RP" '{"action":"keep"}' "$VISITOR_TOKEN"
+[ "$CODE" = "403" ] && ok "일반유저 신고 처리 403" || bad "신고 처리 권한 CODE=$CODE"
 api PUT "/admin/reports/$RP" '{"status":"resolved"}' "$ADM_TOKEN"
-[ "$CODE" = "200" ] && ok "관리자 신고 처리 200" || bad "신고 처리 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+RRES=$(echo "$RESP" | jq -r '.resolution')
+[ "$CODE" = "200" ] && [ "$RRES" = "kept" ] && ok "관리자 신고 처리 200 (옛 호출 = 유지)" || bad "신고 처리 CODE=$CODE res=$RRES RESP=$(echo $RESP|head -c 100)"
+NR=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$VISITOR_ID' AND title='신고 처리 결과' AND message LIKE '%그대로 두었어요%'")
+[ "$NR" = "1" ] && ok "유지 처리 시 신고자 결과 알림" || bad "유지 알림 수=$NR"
+api PUT "/admin/reports/$RP" '{"action":"delete"}' "$ADM_TOKEN"
+RC=$(echo "$RESP" | jq -r '.resolvedCount')
+[ "$CODE" = "200" ] && [ "$RC" = "0" ] && ok "처리된 신고 재처리는 무시(200, 0건)" || bad "재처리 CODE=$CODE cnt=$RC"
+
+# ── 게시글 신고 → 삭제 처리: 글 삭제 + 작성자 알림(안내 문구 포함) + 신고자 결과 알림, 같은 글의 다른 신고도 함께 처리
+api POST /community '{"title":"신고대상글","content":"연락처 010-0000-0000 남깁니다","category":"free","sport":"all"}' "$CLAIMER_TOKEN"; RPOST=$(echo "$RESP" | jq -r '.id')
+[ "$CODE" = "201" ] && [ -n "$RPOST" ] && ok "신고 대상 글 작성" || bad "대상 글 CODE=$CODE"
+api POST /reports "{\"type\":\"post\",\"targetId\":\"$RPOST\",\"reason\":\"개인정보 노출\"}" "$VISITOR_TOKEN"; RP2=$(echo "$RESP" | jq -r '.id')
+[ "$CODE" = "201" ] && ok "게시글 신고 접수" || bad "게시글 신고 CODE=$CODE"
+api POST /reports "{\"type\":\"post\",\"targetId\":\"$RPOST\",\"reason\":\"스팸\"}" "$OWNER_TOKEN"; RP3=$(echo "$RESP" | jq -r '.id')
+[ "$CODE" = "201" ] && ok "같은 글 두 번째 신고 접수(다른 유저)" || bad "두 번째 신고 CODE=$CODE"
+api GET /admin/reports "" "$ADM_TOKEN"
+ROWN=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$RP2\")][0] | .targetOwner.name + \"/\" + (.reportCount|tostring)")
+[ "$ROWN" = "진짜사장/2" ] && ok "신고 목록에 작성자·누적 신고 수" || bad "작성자/누적=$ROWN"
+api PUT "/admin/reports/$RP2" '{"action":"delete","note":"연락처는 채팅으로만 주고받아 주세요"}' "$ADM_TOKEN"
+RC2=$(echo "$RESP" | jq -r '.resolvedCount'); RR2=$(echo "$RESP" | jq -r '.resolution')
+[ "$CODE" = "200" ] && [ "$RC2" = "2" ] && [ "$RR2" = "deleted" ] && ok "게시글 삭제 처리 200 (신고 2건 일괄)" || bad "삭제 처리 CODE=$CODE cnt=$RC2 res=$RR2 RESP=$(echo $RESP|head -c 120)"
+api GET "/community/$RPOST" "" ""
+[ "$CODE" = "404" ] && ok "삭제 처리된 글 404" || bad "삭제 후 글 CODE=$CODE"
+R3S=$(pq "SELECT status||'/'||COALESCE(resolution,'') FROM reports WHERE id='$RP3'")
+[ "$R3S" = "resolved/deleted" ] && ok "같은 글의 다른 신고도 함께 처리" || bad "형제 신고 상태=$R3S"
+NA=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$CLAIMER_ID' AND title='게시글이(가) 삭제되었어요' AND message LIKE '%개인정보 노출%' AND message LIKE '%연락처는 채팅으로만%'")
+[ "$NA" = "1" ] && ok "작성자에게 삭제 사유+안내 문구 알림" || bad "작성자 알림 수=$NA"
+NB=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$VISITOR_ID' AND title='신고 처리 결과' AND message LIKE '%삭제 처리%'")
+[ "$NB" = "1" ] && ok "신고자에게 삭제 결과 알림" || bad "신고자 알림 수=$NB"
+NB2=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$OWNER_ID' AND title='신고 처리 결과' AND message LIKE '%삭제 처리%'")
+[ "$NB2" = "1" ] && ok "두 번째 신고자에게도 결과 알림" || bad "두 번째 신고자 알림 수=$NB2"
+NLEAK=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$CLAIMER_ID' AND (message LIKE '%방문자%' OR message LIKE '%post_visitor%')")
+[ "$NLEAK" = "0" ] && ok "작성자 알림에 신고자 정보 없음" || bad "신고자 정보 노출 수=$NLEAK"
+
+# ── 게시글 신고 → 경고 처리: 글 유지 + 작성자 경고 알림
+api POST /community '{"title":"경고대상글","content":"조금 과한 표현","category":"free","sport":"all"}' "$CLAIMER_TOKEN"; WPOST=$(echo "$RESP" | jq -r '.id')
+api POST /reports "{\"type\":\"post\",\"targetId\":\"$WPOST\",\"reason\":\"욕설\"}" "$VISITOR_TOKEN"; RP4=$(echo "$RESP" | jq -r '.id')
+api PUT "/admin/reports/$RP4" '{"action":"warn"}' "$ADM_TOKEN"
+[ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.resolution')" = "warned" ] && ok "게시글 경고 처리 200" || bad "경고 처리 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api GET "/community/$WPOST" "" ""
+[ "$CODE" = "200" ] && ok "경고 처리된 글은 유지" || bad "경고 후 글 CODE=$CODE"
+NW=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$CLAIMER_ID' AND title='커뮤니티 규칙 안내' AND message LIKE '%욕설%'")
+[ "$NW" = "1" ] && ok "작성자에게 경고 알림" || bad "경고 알림 수=$NW"
 
 # ── 저장검색(키워드 알림): 2자 미만 400, 정상 201, 목록, 타인 삭제 404, 본인 삭제 200
 api POST /saved-searches '{"keyword":"a"}' "$VISITOR_TOKEN"

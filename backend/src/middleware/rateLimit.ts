@@ -102,11 +102,15 @@ setInterval(() => {
   }
 }, 60_000);
 
+let userLimiterSeq = 0;
 export function createUserLimiter(maxRequests: number, windowMs: number) {
+  // 리미터마다 고유 번호 — 예전엔 키가 (유저, 횟수, 창) 뿐이라 같은 설정의 리미터(신고 10/시간·리뷰 10/시간)가
+  // 한 통을 나눠 써서 리뷰를 쓰면 신고가 막혔다 (2026-09-15 E2E 에서 발견).
+  const scope = ++userLimiterSeq;
   return (req: any, res: Response, next: NextFunction): void => {
     const userId: string | undefined = req.user?.id;
     if (!userId) { next(); return; }
-    const key = `${userId}:${maxRequests}:${windowMs}`;
+    const key = `${scope}:${userId}:${maxRequests}:${windowMs}`;
     const now = Date.now();
     const entry = userMap.get(key);
     if (!entry || now > entry.resetAt) {

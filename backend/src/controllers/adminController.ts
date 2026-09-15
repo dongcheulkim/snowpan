@@ -4,7 +4,7 @@ import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';
-import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
+import { cacheGet, cacheSet, cacheDel, cacheDelPrefix } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
 import { disconnectUser } from '../realtime';
 import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
@@ -33,28 +33,108 @@ export const getReports = async (req: AuthRequest, res: Response): Promise<void>
     if (byType.rental) put('rental', (await prisma.rental.findMany({ where: { id: { in: byType.rental } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
     if (byType.lesson) put('lesson', (await prisma.lesson.findMany({ where: { id: { in: byType.lesson } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
     if (byType.accommodation) put('accommodation', (await prisma.accommodation.findMany({ where: { id: { in: byType.accommodation } }, select: { id: true, name: true } })).map(x => ({ id: x.id, label: x.name })));
-    const pathOf: Record<string, (id: string) => string> = {
-      product: (id) => `/used/${id}`, post: (id) => `/community/post/${id}`, user: (id) => `/seller/${id}`,
-      skishop: (id) => `/skishop/${id}`, repair: (id) => `/repair/${id}`, rental: (id) => `/rental/${id}`,
-      lesson: (id) => `/lesson/${id}`, accommodation: (id) => `/accommodation/${id}`,
-    };
-    res.json(reports.map((r) => ({
-      ...r,
-      targetName: names[r.type]?.[r.targetId] || null, // null = 이미 삭제된 대상
-      targetPath: pathOf[r.type] ? pathOf[r.type](r.targetId) : null,
-    })));
+    // 작성자(대상 소유자) — 관리자가 누구 글인지 보고 경고·삭제를 판단하게 (2026-09-15)
+    const owners = await reportTargetOwners(reports.map((r) => ({ type: r.type, targetId: r.targetId })));
+    const ownerIds = [...new Set(Object.values(owners).filter((v): v is string => !!v))];
+    const ownerRows = ownerIds.length ? await prisma.user.findMany({ where: { id: { in: ownerIds } }, select: { id: true, name: true, nickname: true } }) : [];
+    const ownerById = Object.fromEntries(ownerRows.map((u) => [u.id, { id: u.id, name: u.nickname || u.name }]));
+    // 같은 대상에 쌓인 신고 수 — 여러 명이 신고한 글을 먼저 보게
+    const countByTarget: Record<string, number> = {};
+    for (const r of reports) countByTarget[`${r.type}:${r.targetId}`] = (countByTarget[`${r.type}:${r.targetId}`] || 0) + 1;
+    const rank = (s: string) => (s === 'pending' ? 0 : 1);
+    res.json(reports
+      .map((r) => ({
+        ...r,
+        targetName: names[r.type]?.[r.targetId] || null, // null = 이미 삭제된 대상
+        targetPath: REPORT_PATH[r.type] ? REPORT_PATH[r.type](r.targetId) : null,
+        targetOwner: ownerById[owners[`${r.type}:${r.targetId}`] || ''] || null,
+        reportCount: countByTarget[`${r.type}:${r.targetId}`],
+      }))
+      .sort((a, b) => rank(a.status) - rank(b.status) || +new Date(b.createdAt) - +new Date(a.createdAt)));
   } catch (error) {
     console.error('Get reports error:', error);
     res.status(500).json({ error: '신고 조회 중 오류가 발생했습니다.' });
   }
 };
 
+const REPORT_PATH: Record<string, (id: string) => string> = {
+  product: (id) => `/used/${id}`, post: (id) => `/community/post/${id}`, user: (id) => `/seller/${id}`,
+  skishop: (id) => `/skishop/${id}`, repair: (id) => `/repair/${id}`, rental: (id) => `/rental/${id}`,
+  lesson: (id) => `/lesson/${id}`, accommodation: (id) => `/accommodation/${id}`,
+};
+const REPORT_LABEL: Record<string, string> = { product: '중고 매물', post: '게시글', user: '회원', skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소' };
+
+// 신고 대상의 소유자(작성자) userId — key "type:targetId". 삭제된 대상은 없음.
+async function reportTargetOwners(items: { type: string; targetId: string }[]): Promise<Record<string, string | null>> {
+  const byType: Record<string, string[]> = {};
+  for (const it of items) (byType[it.type] ||= []).push(it.targetId);
+  const out: Record<string, string | null> = {};
+  const put = (type: string, rows: { id: string; userId: string | null }[]) => { for (const r of rows) out[`${type}:${r.id}`] = r.userId; };
+  if (byType.post) put('post', await prisma.post.findMany({ where: { id: { in: byType.post } }, select: { id: true, userId: true } }));
+  if (byType.product) put('product', await prisma.product.findMany({ where: { id: { in: byType.product } }, select: { id: true, userId: true } }));
+  if (byType.user) for (const id of byType.user) out[`user:${id}`] = id;
+  if (byType.skishop) put('skishop', await prisma.skiShop.findMany({ where: { id: { in: byType.skishop } }, select: { id: true, userId: true } }));
+  if (byType.repair) put('repair', await prisma.repairShop.findMany({ where: { id: { in: byType.repair } }, select: { id: true, userId: true } }));
+  if (byType.rental) put('rental', await prisma.rental.findMany({ where: { id: { in: byType.rental } }, select: { id: true, userId: true } }));
+  if (byType.lesson) put('lesson', await prisma.lesson.findMany({ where: { id: { in: byType.lesson } }, select: { id: true, userId: true } }));
+  if (byType.accommodation) put('accommodation', await prisma.accommodation.findMany({ where: { id: { in: byType.accommodation } }, select: { id: true, userId: true } }));
+  return out;
+}
+
+// 신고 처리 — 사용자 요청 2026-09-15 "왜 신고했는지 보고 삭제할지 놔둘지 고객센터에서 고를 수 있어야".
+// body.action: 'delete'(게시글·중고 매물 삭제 + 작성자 알림) | 'warn'(작성자에게 안내만) | 'keep'(문제 없음·유지, 기본값)
+// body.note: 작성자에게 함께 보낼 문구(선택, 500자). 같은 대상에 쌓인 대기 신고는 한꺼번에 같은 결과로 처리하고 신고자 전원에게 결과를 알린다.
 export const resolveReport = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const { id } = req.params;
-    const report = await prisma.report.update({ where: { id }, data: { status: 'resolved' } });
-    res.json({ ...report, message: '신고가 처리되었습니다.' });
+    const rawAction = req.body?.action;
+    const action: 'delete' | 'warn' | 'keep' = rawAction === undefined ? 'keep' : rawAction; // 옛 호출({status:'resolved'})은 유지 처리
+    if (!['delete', 'warn', 'keep'].includes(action)) { res.status(400).json({ error: 'action 은 delete, warn, keep 중 하나여야 합니다.' }); return; }
+    const note = typeof req.body?.note === 'string' ? req.body.note.trim().slice(0, 500) : '';
+    const report = await prisma.report.findUnique({ where: { id } });
+    if (!report) { res.status(404).json({ error: '신고를 찾을 수 없습니다.' }); return; }
+    if (report.status === 'resolved') { res.json({ ...report, message: '이미 처리된 신고예요.', resolvedCount: 0 }); return; }
+    if (action === 'delete' && !['post', 'product'].includes(report.type)) {
+      res.status(400).json({ error: '삭제 처리는 게시글·중고 매물만 가능해요. 회원은 유저관리, 매장은 승인관리에서 처리해 주세요.' });
+      return;
+    }
+    const label = REPORT_LABEL[report.type] || report.type;
+    const ownerId = (await reportTargetOwners([{ type: report.type, targetId: report.targetId }]))[`${report.type}:${report.targetId}`] || null;
+    const targetExists = ownerId !== null || report.type === 'user';
+
+    // 1) 대상 삭제 (게시글·중고 매물) — 이미 지워졌으면 그대로 결과만 기록
+    if (action === 'delete' && targetExists) {
+      if (report.type === 'post') await prisma.post.delete({ where: { id: report.targetId } });
+      else { await prisma.product.delete({ where: { id: report.targetId } }); cacheDelPrefix('products:'); cacheDelPrefix('market:'); cacheDelPrefix('home:hotdeals'); }
+    }
+
+    // 2) 같은 대상의 대기 신고 전부 같은 결과로
+    const siblings = await prisma.report.findMany({ where: { type: report.type, targetId: report.targetId, status: 'pending' }, select: { id: true, reporterId: true } });
+    const resolution = action === 'delete' ? 'deleted' : action === 'warn' ? 'warned' : 'kept';
+    await prisma.report.updateMany({ where: { id: { in: siblings.map((s) => s.id) } }, data: { status: 'resolved', resolution, adminNote: note || null, resolvedAt: new Date() } });
+
+    // 3) 작성자 알림 (삭제·경고) — 신고자가 누군지는 절대 안 알려줌
+    const suffix = note ? ` 안내: ${note}` : '';
+    if (ownerId && ownerId !== req.user!.id) {
+      if (action === 'delete') {
+        await createNotification(ownerId, 'system', `${label}이(가) 삭제되었어요`, `신고가 접수되어 검토한 결과 "${report.reason}" 사유로 ${label}을(를) 삭제했어요.${suffix} 이용약관을 확인해 주세요.`, '/terms');
+        sendPushToUser(ownerId, `${label}이(가) 삭제되었어요`, `"${report.reason}" 사유로 삭제됐어요.`, '/notifications').catch(() => {});
+      } else if (action === 'warn') {
+        await createNotification(ownerId, 'system', '커뮤니티 규칙 안내', `${label}에 대한 신고가 접수되어 검토했어요. 사유: ${report.reason}.${suffix} 같은 일이 반복되면 ${label}이(가) 삭제되거나 이용이 제한될 수 있어요.`, targetExists && REPORT_PATH[report.type] ? REPORT_PATH[report.type](report.targetId) : '/terms');
+        sendPushToUser(ownerId, '커뮤니티 규칙 안내', `${label} 신고 검토 결과를 확인해 주세요.`, '/notifications').catch(() => {});
+      }
+    }
+    // 4) 신고자 전원에게 결과
+    const resultMsg = action === 'delete' ? `신고하신 ${label}이(가) 삭제 처리되었어요. 알려 주셔서 감사해요.`
+      : action === 'warn' ? `신고하신 ${label}의 작성자에게 규칙 안내를 보냈어요. 알려 주셔서 감사해요.`
+      : `신고하신 ${label}을(를) 검토했지만 규정 위반이 확인되지 않아 그대로 두었어요. 알려 주셔서 감사해요.`;
+    for (const rid of new Set(siblings.map((s) => s.reporterId))) {
+      if (rid === req.user!.id) continue;
+      await createNotification(rid, 'system', '신고 처리 결과', resultMsg, '/help');
+    }
+    const updated = await prisma.report.findUnique({ where: { id } });
+    res.json({ ...updated, message: action === 'delete' ? `${label}을(를) 삭제하고 신고를 처리했어요.` : action === 'warn' ? '작성자에게 안내를 보내고 신고를 처리했어요.' : '문제 없음으로 처리했어요.', resolvedCount: siblings.length });
   } catch (error) {
     console.error('Resolve report error:', error);
     res.status(500).json({ error: '신고 처리 중 오류가 발생했습니다.' });
