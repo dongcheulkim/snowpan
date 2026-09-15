@@ -65,6 +65,16 @@ async function waitText(p, re, ms = 8000) { const end = Date.now() + ms; while (
   // 5) 정리 확인: 내 글·내 매물에 점검 항목 남지 않음
   await p.goto(`${BASE}/mypage/posts`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800); ok('내 글에 점검 글 없음', !(await txt(p)).includes(`점검 글 ${ts}`));
   await p.goto(`${BASE}/mypage/sales`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800); ok('내 매물에 점검 매물 없음', !(await txt(p)).includes(`점검 매물 ${ts}`));
+  // 6) 정리: 이 계정이 남긴 대기 신고를 관리자 API 로 '문제 없음' 처리 — 관리자 신고관리에 점검 신고가 쌓여 있던 것(2026-09-15 발견)
+  try {
+    const API = 'https://snowpan.onrender.com/api';
+    const lg = await fetch(`${API}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: process.env.A_EMAIL, password: process.env.A_PW }) }).then((r) => r.json());
+    const h = { Authorization: `Bearer ${lg.token}`, 'Content-Type': 'application/json' };
+    const rs = await fetch(`${API}/admin/reports`, { headers: h }).then((r) => r.json());
+    const mine = Array.isArray(rs) ? rs.filter((r) => r.status === 'pending' && r.reporter && r.reporter.email === process.env.U_EMAIL) : [];
+    for (const r of mine) await fetch(`${API}/admin/reports/${r.id}`, { method: 'PUT', headers: h, body: JSON.stringify({ action: 'keep' }) });
+    ok('점검 신고 정리(문제 없음 처리)', true, `${mine.length}건`);
+  } catch (e) { ok('점검 신고 정리', false, String(e).slice(0, 80)); }
   ok('페이지 오류·500 없음', errs.length === 0, errs.join(' | '));
   await browser.close(); const f = R.filter((x) => !x).length; console.log(`\nWRITE FLOWS ${R.length - f}/${R.length}`); process.exit(f ? 2 : 0);
 })().catch((e) => { console.error('FATAL', e); process.exit(1); });
