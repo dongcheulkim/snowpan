@@ -99,8 +99,7 @@ export default function About() {
           <dt className="col-span-1 text-gray-500">사업자등록번호</dt>
           <dd className="col-span-2 text-gray-900 font-medium">333-12-03287</dd>
 
-          <dt className="col-span-1 text-gray-500">통신판매업 신고번호</dt>
-          <dd className="col-span-2 text-gray-400">신고 후 기입 예정</dd>
+          {/* 통신판매업 신고번호: 신고 완료 후 여기에 행 추가 (신고 전엔 '예정' 같은 미완 표기를 하지 않음 — 애플 2.2) */}
 
           <dt className="col-span-1 text-gray-500">사업장 주소</dt>
           <dd className="col-span-2 text-gray-900 font-medium">강원특별자치도 평창군 대관령면 가시머리길 4, 2층</dd>

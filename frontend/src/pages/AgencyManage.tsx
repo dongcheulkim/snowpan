@@ -59,7 +59,7 @@ export default function AgencyManage() {
 
   const startPayment = async () => {
     if (!sel) return;
-    if (!tossConfigured()) { toastError('결제 준비 중이에요. 잠시 후 다시 시도해주세요.'); return; }
+    if (!tossConfigured()) { toastError('카드 결제는 지원하지 않아요. 고객센터 채팅으로 문의해 주세요.'); return; }
     setPaying(true);
     try {
       const order = await api<{ orderId: string; amount: number; orderName: string }>(`/agencies/${sel.id}/subscribe`, { method: 'POST', body: { months } });

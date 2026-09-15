@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { adSlotLabelKr } from '../utils/adLabels';
+import { tossConfigured } from '../toss';
 import { CloseIcon, MegaphoneIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
@@ -126,7 +127,8 @@ export default function MyAds() {
                 </div>
                 {['active', 'paid', 'pending_payment'].includes(ad.status) ? (
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {ad.status === 'pending_payment' && (
+                    {/* 카드 결제는 PG 가 연결된 경우에만 (지금은 계좌이체 상담형 — 테스트 결제 화면이 앱에 노출되지 않게, 애플 2.2) */}
+                    {ad.status === 'pending_payment' && tossConfigured() && (
                       <Link to={`/ad-booking/pay/${ad.id}`} className="text-[11px] font-bold text-white bg-sky-500 rounded-lg px-2.5 py-1.5 transition-colors">카드 결제</Link>
                     )}
                     <Link to={`/ad-booking/edit/${ad.id}`} className="text-[11px] font-bold text-sky-600 border border-sky-200 rounded-lg px-2.5 py-1.5 transition-colors">수정</Link>

@@ -4,8 +4,9 @@ import { api } from '../api';
 import { toastError } from '../components/Toast';
 
 // 광고 카드 결제 — 토스페이먼츠 결제창(v1 SDK).
-// 클라이언트 키: 운영은 VITE_TOSS_CLIENT_KEY, 미설정 시 문서용 테스트 키(실청구 없음).
-const TOSS_CLIENT_KEY = (import.meta.env.VITE_TOSS_CLIENT_KEY as string) || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+// 클라이언트 키: VITE_TOSS_CLIENT_KEY. 미설정(지금 운영 = 계좌이체 상담형)이면 결제 화면 대신 안내만 —
+// 예전엔 문서용 테스트 키로 '테스트 결제 환경' 화면이 떴는데 애플이 미완성 기능으로 봄 (2026-09-15 2.2 반려).
+const TOSS_CLIENT_KEY = (import.meta.env.VITE_TOSS_CLIENT_KEY as string) || '';
 const SDK_SRC = 'https://js.tosspayments.com/v1/payment';
 
 interface PayInfo {
@@ -79,6 +80,15 @@ export default function AdPay() {
   if (loading) return <div className="max-w-md mx-auto py-20 text-center text-sm text-gray-400">불러오는 중...</div>;
   if (!info) return <div className="max-w-md mx-auto py-20 text-center text-sm text-gray-500">결제할 예약을 찾을 수 없어요.</div>;
 
+  if (!TOSS_CLIENT_KEY) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4">
+        <p className="text-sm text-gray-600">광고비는 계좌이체로 진행해요.<br />입금 계좌와 세금계산서는 광고 채팅방에서 안내드려요.</p>
+        <button onClick={() => navigate('/mypage/ads')} className="px-5 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold">광고 관리로 가기</button>
+      </div>
+    );
+  }
+
   if (info.status !== 'pending_payment') {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4">
@@ -119,9 +129,6 @@ export default function AdPay() {
         {paying ? '결제창 여는 중...' : '카드로 결제하기'}
       </button>
 
-      {TOSS_CLIENT_KEY.startsWith('test_') && (
-        <p className="text-[11px] text-gray-400 text-center">테스트 결제 환경입니다. 실제 청구되지 않습니다.</p>
-      )}
       <p className="text-[11px] text-gray-500 text-center leading-relaxed">
         결제는 토스페이먼츠를 통해 안전하게 처리됩니다.<br />
         게시 시작 전 취소 시 전액 환불, 게시 중 취소 시 잔여 기간 기준 일할 환불됩니다.

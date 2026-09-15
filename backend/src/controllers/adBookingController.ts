@@ -500,7 +500,7 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
         const fmt = fmtKstDate; // 한국 날짜로 (서버 UTC)
         const accountBlock = (bank && account && holder)
           ? `[입금 계좌]\n· ${bank} ${account} (예금주 ${holder})`
-          : `입금 계좌는 곧 안내드릴게요.`;
+          : `입금 계좌는 고객센터 채팅에서 안내드려요.`;
         // 토스 말투로 — 광고주가 받는 첫 메시지. 초대 링크(협의 조건)면 결제 방식까지 같이 적는다 (사용자 요청 2026-09-09)
         const SLOT_KR: Record<string, string> = { main_banner: '메인 배너', category: '카테고리 배너', premium: '프리미엄 노출' };
         const CAT_KR: Record<string, string> = { used: '중고거래', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소', skishop: '스키·보드샵', repair: '정비샵', community: '커뮤니티', overseas: '해외 여행' };
