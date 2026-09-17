@@ -14,6 +14,7 @@ python3 fuzz_api.py   # API 퍼징: 이상한 입력에 500·스크립트 반영
 node polish_check.cjs # 360/390/1280px 가로 스크롤·느린 API
 node edge_check.cjs   # 비로그인 → /login?next=, 상세 찜 → next, 404 문구, 18개 경로 직접 진입(에러바운더리·가로스크롤)
 node feature_check.cjs # 2026-09-17 기능: 시합 등록 폼, 리조트 후기 작성·삭제, 홈 카운트다운, 렌탈 가격 정렬·예약 문의 폼, 공유 카드(봇 UA), 관리자 설정·시합 승인 탭
+node deep_feature_check.cjs # 데이터 없어 건너뛰는 흐름 실제 실행: 렌탈 예약 문의(소유자를 관리자로 가로채 고객센터 방으로) → 자동 전송, 판매완료 구매자 선택 창, 시합 신청 제출→관리자 삭제, 글·스키샵 공유 카드
 node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(방문/미방문=app-shell)·앱 내 이동 (BASE=http://localhost:4173 로 로컬 preview 도 가능)
 ```
 
