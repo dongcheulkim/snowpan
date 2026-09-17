@@ -41,16 +41,25 @@ export async function buildDailySummary(): Promise<DailySummary> {
     prisma.post.count({ where: { createdAt: { gte: since } } }),
     prisma.chatRoom.count({ where: { createdAt: { gte: since } } }),
   ]);
-  // 답 없는 고객센터 방: 관리자가 참여한 방 중 마지막 메시지가 손님 것이고 1시간이 지난 방
+  // 답 없는 고객센터 방: 관리자가 참여한 방 중 마지막 메시지가 손님 것이고 1시간이 지난 방.
+  // 앱 심사·자동 검사용 계정(REVIEW_ACCOUNT_EMAILS, 기본 reviewer@snowpan.kr)의 방은 검사 메시지가 늘 남아 있어 제외.
   let unansweredSupport = 0;
   if (adminIds.length) {
+    const reviewEmails = (process.env.REVIEW_ACCOUNT_EMAILS || 'reviewer@snowpan.kr').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const reviewUsers = reviewEmails.length ? await prisma.user.findMany({ where: { email: { in: reviewEmails } }, select: { id: true } }) : [];
+    const skip = new Set([...adminIds, ...reviewUsers.map((u) => u.id)]);
     const rooms = await prisma.chatRoom.findMany({
       where: { OR: [{ user1Id: { in: adminIds } }, { user2Id: { in: adminIds } }] },
-      select: { id: true, messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { senderId: true, createdAt: true } } },
+      select: { id: true, user1Id: true, user2Id: true, messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { senderId: true, createdAt: true } } },
       take: 500,
     });
     const cutoff = Date.now() - 60 * 60 * 1000;
-    unansweredSupport = rooms.filter((r) => r.messages[0] && !adminIds.includes(r.messages[0].senderId) && r.messages[0].createdAt.getTime() < cutoff).length;
+    unansweredSupport = rooms.filter((r) => {
+      const customer = adminIds.includes(r.user1Id) ? r.user2Id : r.user1Id;
+      if (skip.has(customer)) return false;
+      const last = r.messages[0];
+      return !!last && !adminIds.includes(last.senderId) && last.createdAt.getTime() < cutoff;
+    }).length;
   }
   const shops = ski + repair + rental;
   return {
