@@ -43,15 +43,15 @@ const el = (type: string, props: Record<string, unknown>, ...children: unknown[]
 
 function layout(c: OgCardInput, photo: string | null) {
   const navy = '#0f172a'; const ink = '#111827'; const muted = '#94a3b8';
-  const titleSize = c.title.length > 22 ? 44 : c.title.length > 14 ? 52 : 60;
+  const titleSize = c.title.length > 22 ? 42 : c.title.length > 12 ? 48 : 56; // 패널 폭(452px)에서 한 줄 8~10자 — 단어 단위로 줄바꿈되게 keep-all
   const rightW = photo ? 560 : W;
   const textBlock = el('div', { style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: rightW, height: H, padding: photo ? '56px 56px 48px 52px' : '64px 80px 56px 80px', background: photo ? navy : `linear-gradient(135deg, ${navy} 0%, #1e3a8a 100%)`, color: '#fff' } },
     el('div', { style: { display: 'flex', flexDirection: 'column' } },
       el('div', { style: { display: 'flex', alignItems: 'center', letterSpacing: 6, fontSize: 26, color: '#e2e8f0' } }, 'SNOW PAN'),
       el('div', { style: { display: 'flex', marginTop: 34, fontSize: 24, color: muted } }, c.kind),
-      el('div', { style: { display: 'flex', marginTop: 12, fontSize: titleSize, lineHeight: 1.25, color: '#fff', maxHeight: titleSize * 1.25 * 2.1, overflow: 'hidden' } }, c.title),
+      el('div', { style: { display: 'block', marginTop: 12, fontSize: titleSize, lineHeight: 1.25, color: '#fff', wordBreak: 'keep-all', overflowWrap: 'anywhere', lineClamp: 2 } }, c.title),
       c.price ? el('div', { style: { display: 'flex', marginTop: 22, fontSize: 48, color: '#7dd3fc' } }, c.price) : el('div', { style: { display: 'flex' } }),
-      c.sub ? el('div', { style: { display: 'flex', marginTop: 16, fontSize: 24, color: '#cbd5e1', maxHeight: 64, overflow: 'hidden' } }, c.sub) : el('div', { style: { display: 'flex' } }),
+      c.sub ? el('div', { style: { display: 'block', marginTop: 16, fontSize: 24, lineHeight: 1.4, color: '#cbd5e1', wordBreak: 'keep-all', overflowWrap: 'anywhere', lineClamp: 2 } }, c.sub) : el('div', { style: { display: 'flex' } }),
     ),
     el('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 22, color: muted } },
       el('div', { style: { display: 'flex' } }, 'snowpan.kr'),
