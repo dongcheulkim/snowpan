@@ -550,14 +550,18 @@ io.on('connection', (socket) => {
       const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
       // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
       const senderName = sender ? displayName(sender) : '알 수 없음';
-      const preview = content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
+      // 렌탈 예약 문의(폼에서 만든 첫 메시지)는 사장님이 바로 알아보게 제목·미리보기를 따로 (2026-09-17)
+      const isRentalInquiry = content.startsWith('[렌탈 예약 문의]');
+      const inquiryLine = isRentalInquiry ? (content.split('\n').find((l) => l.startsWith('날짜:')) || '').trim() : '';
+      const preview = isRentalInquiry ? `렌탈 예약 문의${inquiryLine ? ' · ' + inquiryLine : ''}` : content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
+      const notifTitle = isRentalInquiry ? `${senderName}님의 렌탈 예약 문의` : `${senderName}님의 메시지`;
       for (const recipientId of recipients) {
         if (recipientId === userId) continue;
         const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));
         if (recipientActive) continue;
-        await createNotification(recipientId, 'chat', `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
-        io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: `${senderName}님의 메시지`, message: preview });
-        sendPushToUser(recipientId, `${senderName}님의 메시지`, preview, `/chat/${data.roomId}`);
+        await createNotification(recipientId, 'chat', notifTitle, preview, `/chat/${data.roomId}`);
+        io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: notifTitle, message: preview });
+        sendPushToUser(recipientId, notifTitle, preview, `/chat/${data.roomId}`);
       }
     } catch (err) {
       console.error('Send message error:', err);

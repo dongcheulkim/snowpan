@@ -11,7 +11,7 @@ import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { geocodeAndStore } from '../utils/geocode';
 import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
-import { parseShopHours } from '../utils/shopHours';
+import { parseShopHours, onlySafeEdit } from '../utils/shopHours';
 
 const router = Router();
 
@@ -186,11 +186,13 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (images !== undefined) data.images = sanitizeImages(images);
     const ownerEdit = req.user!.role !== 'admin';
     const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(shop.extraKinds, data.extraKinds);
-    if (ownerEdit && !onlyKindRemoval) data.approved = false;
+    const safeOnly = onlySafeEdit(shop as unknown as Record<string, unknown>, data); // 영업시간만 바뀐 수정은 재심사 없음 (2026-09-17)
+    const needsReview = ownerEdit && !onlyKindRemoval && !safeOnly;
+    if (needsReview) data.approved = false;
 
     const updated = await prisma.repairShop.update({ where: { id: req.params.id }, data });
     if (address !== undefined) geocodeAndStore('repair', updated.id, updated.address).catch(() => {});
-    if (ownerEdit && !onlyKindRemoval) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (needsReview) notifyAdmins('system', '수리샵 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     res.json(updated);
   } catch (error) {
     console.error('Update repair shop error:', error);

@@ -94,3 +94,15 @@ export function computePriceFrom(p: { priceSkiSet?: number | null; priceBoardSet
   const vals = [p.priceSkiSet, p.priceBoardSet].filter((v): v is number => typeof v === 'number');
   return vals.length ? Math.min(...vals) : null;
 }
+
+// ── 재심사 예외 (2026-09-17, 사장님 요청 "가격·영업시간 바꿀 때마다 심사 다시 받는 건 과함")
+// 가격표·영업시간처럼 위험 없는 항목만 바뀐 수정(또는 아무것도 안 바뀐 저장)은 approved 를 유지한다.
+// 수정 폼이 모든 필드를 같이 보내므로 요청 키가 아니라 "기존 값과 실제로 달라진 키"로 판단한다.
+export const SAFE_EDIT_KEYS = new Set(['openTime', 'closeTime', 'closedDays', 'hours', 'priceSkiSet', 'priceBoardSet', 'priceClothes', 'priceHelmet', 'priceGoggles', 'priceNote', 'priceFrom']);
+export function changedKeys(existing: Record<string, unknown>, data: Record<string, unknown>): string[] {
+  const norm = (v: unknown) => (v === undefined || v === null || v === '' ? '' : v instanceof Date ? v.toISOString() : String(v));
+  return Object.keys(data).filter((k) => norm(data[k]) !== norm(existing[k]));
+}
+export function onlySafeEdit(existing: Record<string, unknown>, data: Record<string, unknown>): boolean {
+  return changedKeys(existing, data).every((k) => SAFE_EDIT_KEYS.has(k));
+}

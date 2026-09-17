@@ -10,7 +10,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { geocodeAndStore } from '../utils/geocode';
 import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
-import { parseShopHours, parseRentalPrices, computePriceFrom, touchesPriceFrom } from '../utils/shopHours';
+import { parseShopHours, parseRentalPrices, computePriceFrom, touchesPriceFrom, onlySafeEdit } from '../utils/shopHours';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -177,9 +177,12 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
     }
     // 겸업 칩만 빼는 수정은 재심사 없이 반영 (추가는 증빙 + 재심사)
     const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(item.extraKinds, data.extraKinds as string | null);
-    if (ownerEdit && !onlyKindRemoval) data.approved = false;
+    // 가격표·영업시간만 바뀐 수정(또는 변경 없음)은 재심사 없이 반영 — 그 외(상호·소개·사진 등)는 기존대로 재심사
+    const safeOnly = onlySafeEdit(item as unknown as Record<string, unknown>, data);
+    const needsReview = ownerEdit && !onlyKindRemoval && !safeOnly;
+    if (needsReview) data.approved = false;
     const updated = await prisma.rental.update({ where: { id }, data });
-    if (ownerEdit && !onlyKindRemoval) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
+    if (needsReview) notifyAdmins('system', '렌탈 수정 재심사 필요', `${updated.name} 이(가) 수정되어 재검토가 필요합니다.`, '/admin-approval').catch(() => {});
     if (b.address !== undefined) geocodeAndStore('rental', id, typeof data.address === 'string' ? data.address : null).catch(() => {});
     res.json(updated);
   } catch (error) { res.status(500).json({ error: '수정 중 오류가 발생했습니다.' }); }
