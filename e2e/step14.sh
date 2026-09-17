@@ -349,6 +349,31 @@ api PUT /admin/instagram/token '{"token":"short"}' "$A_TOKEN"; expect 400 "짧�
 api PUT /admin/instagram/token '{"token":"x"}' "$U_TOKEN"; expect 403 "일반유저 토큰 저장 403"
 api DELETE /admin/instagram "" "$U_TOKEN"; expect 403 "일반유저 인스타 해제 403"
 
+# ── 공유 카드 HTML (2026-09-17): 봇용 og 태그, 없는 대상은 404 + 기본 카드, 개인정보 없음
+api POST /products/used '{"name":"OG 테스트 스키","brand":"아토믹","price":123000,"image":"/uploads/og.jpg","description":"공유 카드 테스트용 매물이에요","subcategory":"ski"}' "$U_TOKEN"; OGP=$(echo "$RESP" | jq -r '.id // empty')
+[ "$CODE" = "201" ] && [ -n "$OGP" ] && ok "공유 카드용 매물 등록" || bad "OG 매물 CODE=$CODE"
+OGH=$(curl -s -m 20 -w $'\n%{http_code}' "$BASE/og/page/used/$OGP"); OGC=$(printf '%s' "$OGH" | tail -n1); OGB=$(printf '%s' "$OGH" | sed '$d')
+[ "$OGC" = "200" ] && echo "$OGB" | grep -q 'og:title" content="OG 테스트 스키 · 123,000원' && ok "매물 공유 카드 og:title (이름·가격)" || bad "OG title CODE=$OGC $(echo "$OGB" | grep -o 'og:title[^>]*' | head -1)"
+echo "$OGB" | grep -q 'og:image" content="http' && ok "공유 카드 og:image 절대주소" || bad "OG image 없음"
+echo "$OGB" | grep -q "og:url\" content=\"[^\"]*/used/$OGP\"" && ok "공유 카드 og:url 원래 페이지" || bad "OG url $(echo "$OGB" | grep -o 'og:url[^>]*' | head -1)"
+echo "$OGB" | grep -qi "email\|phone\|@re.test" && bad "공유 카드에 개인정보 흔적" || ok "공유 카드에 개인정보 없음"
+OGN=$(curl -s -m 20 -o /dev/null -w "%{http_code}" "$BASE/og/page/used/00000000-0000-0000-0000-000000000000"); [ "$OGN" = "404" ] && ok "없는 매물 공유 카드 404" || bad "없는 매물 OG CODE=$OGN"
+OGX=$(curl -s -m 20 -o /dev/null -w "%{http_code}" "$BASE/og/page/alien/$OGP"); [ "$OGX" = "404" ] && ok "모르는 유형 공유 카드 404" || bad "모르는 유형 OG CODE=$OGX"
+api DELETE "/products/$OGP" "" "$U_TOKEN"; expect 200 "공유 카드용 매물 정리"
+
+# ── 고객센터 자유 질문 키워드 안내 (2026-09-17): 유틸 단위 검사 (소켓 전용이라 HTTP 로는 못 보냄)
+SA=$(cd "$(cd "$(dirname "$0")/.." && pwd)/backend" && npx tsx -e "import('./src/utils/supportAnswers.ts').then(mm=>{const m=mm.default||mm; const s=m.searchSupportAnswer; console.log([s('로그인이 안돼요 카카오로')?.includes('로그인')?'1':'0', s('광고 비용이 얼마예요?')?.includes('메인 배너')?'1':'0', s('안녕')===null?'1':'0', s('[문의] 광고 > 광고 비용')===null?'1':'0', s('탈퇴하고 싶어요')?.includes('회원 탈퇴')?'1':'0'].join(''))})" 2>/dev/null | tail -1)
+[ "$SA" = "11111" ] && ok "자유 질문 키워드 안내 (로그인·광고비·짧은 인사 무시·메뉴 형식 제외·탈퇴)" || bad "키워드 안내 결과=$SA"
+
+# ── 관리자 하루 요약 (2026-09-17): 미리보기 숫자·지금 보내기 → 관리자 알림
+api GET /admin/daily-summary "" ""; expect 401 "하루 요약 비로그인 401"
+api GET /admin/daily-summary "" "$U_TOKEN"; expect 403 "하루 요약 일반유저 403"
+api GET /admin/daily-summary "" "$A_TOKEN"; DS=$(echo "$RESP" | jq -r '[.pendingReports, .pendingApprovals.total, .unansweredSupport, .last24h.users] | map(type) | unique | join(",")')
+[ "$CODE" = "200" ] && [ "$DS" = "number" ] && ok "하루 요약 미리보기 (숫자 필드)" || bad "요약 CODE=$CODE types=$DS"
+api POST /admin/daily-summary "" "$A_TOKEN"; expect 200 "하루 요약 지금 보내기 200"
+DN=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$A_ID' AND title LIKE '오늘 할 일 요약%'")
+[ "$DN" -ge 1 ] && ok "관리자에게 요약 알림 생성" || bad "요약 알림 수=$DN"
+
 # ── 외부 연동 설정 상태 (2026-09-15): 참/거짓만, 키 값은 절대 안 나감
 api GET /admin/integrations "" ""; expect 401 "연동 상태 비로그인 401"
 api GET /admin/integrations "" "$U_TOKEN"; expect 403 "연동 상태 일반유저 403"

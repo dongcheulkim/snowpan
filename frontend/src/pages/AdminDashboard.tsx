@@ -8,6 +8,8 @@ import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } fro
 import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
 import InstagramPanel from '../components/InstagramPanel';
+import AdminOpsPanel from '../components/AdminOpsPanel';
+import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
 import { Link } from 'react-router-dom';
 
@@ -352,6 +354,8 @@ const AdminDashboard = () => {
           {/* 설정 — 인스타 연동 등 사이트 전역 설정 */}
           {tab === 'settings' && (
             <div className="space-y-3">
+              <AdminOpsPanel />
+              <AdminResortsPanel />
               <InstagramPanel />
             </div>
           )}

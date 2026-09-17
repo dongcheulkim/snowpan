@@ -6,6 +6,8 @@ import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
 import ExtraKindsPicker from '../components/ExtraKindsPicker';
+import ShopHoursFields from '../components/ShopHoursFields';
+import { EMPTY_SHOP_HOURS, shopHoursFromApi, type ShopHoursValue } from '../utils/shopHoursForm';
 
 // 소유자 본인이 자기 스키샵 정보를 수정. 사업자등록증은 재업로드 불필요(등록 시 검증 완료).
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
@@ -16,6 +18,7 @@ interface Shop {
   name: string; area: string; resortId?: string | null; resort?: { id: string; name: string } | null; address: string; description: string;
   brands: string | null; phone: string | null; instagram: string | null;
   website: string | null; naverMap: string | null; hours: string | null; image: string | null; images?: string | null; extraKinds?: string | null;
+  openTime?: string | null; closeTime?: string | null; closedDays?: string | null;
 }
 
 export default function SkiShopEdit() {
@@ -26,6 +29,7 @@ export default function SkiShopEdit() {
   const [images, setImages] = useState('');
   const [resorts, setResorts] = useState<ResortLite[]>([]);
   useEffect(() => { api<ResortLite[]>('/resorts').then(setResorts).catch(() => {}); }, []);
+  const [hoursV, setHoursV] = useState<ShopHoursValue>(EMPTY_SHOP_HOURS); // 구조화 영업시간 ("영업 중" 배지)
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
@@ -55,6 +59,7 @@ export default function SkiShopEdit() {
         });
         setLoadedKinds((s.extraKinds || '').split(',').filter(Boolean));
         setImages(s.images || s.image || '');
+        setHoursV(shopHoursFromApi(s));
       })
       .catch(() => navigate('/mypage/shops'))
       .finally(() => setFetching(false));
@@ -74,6 +79,7 @@ export default function SkiShopEdit() {
         method: 'PUT',
         body: {
           ...form,
+          ...hoursV,
           resortId: form.resortId || null,
           images: images || null,
           image: images ? images.split(',')[0] : null,
@@ -134,9 +140,11 @@ export default function SkiShopEdit() {
             <input type="text" name="address" value={form.address} onChange={handleChange} required className={inputClass} />
           </div>
 
+          <ShopHoursFields value={hoursV} onChange={(p) => setHoursV({ ...hoursV, ...p })} inputClass={inputClass} labelClass={labelClass} />
+
           <div>
-            <label className={labelClass}>영업시간</label>
-            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 08:30~18:00 (시즌 중 매일)" className={inputClass} />
+            <label className={labelClass}>영업시간 메모 (선택)</label>
+            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 시즌 중 매일, 점심시간 12~13시" className={inputClass} />
           </div>
 
           <div>

@@ -9,6 +9,8 @@ import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
 import ExtraKindsPicker from '../components/ExtraKindsPicker';
+import ShopHoursFields from '../components/ShopHoursFields';
+import { EMPTY_SHOP_HOURS, type ShopHoursValue } from '../utils/shopHoursForm';
 
 const areas = ['강원', '경기', '서울', '충청', '경상', '전라'];
 
@@ -22,6 +24,7 @@ export default function SkiShopRegister() {
   const [licensePreview, setLicensePreview] = useState('');
   const [images, setImages] = useState('');
   const [resorts, setResorts] = useState<ResortLite[]>([]);
+  const [hoursV, setHoursV] = useState<ShopHoursValue>(EMPTY_SHOP_HOURS); // 구조화 영업시간 ("영업 중" 배지)
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', description: '',
     brands: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
@@ -54,6 +57,7 @@ export default function SkiShopRegister() {
         method: 'POST',
         body: {
           ...form,
+          ...hoursV,
           resortId: form.resortId || null,
           images: images || null,
           image: images ? images.split(',')[0] : null,
@@ -136,9 +140,11 @@ export default function SkiShopRegister() {
             <input type="text" name="address" value={form.address} onChange={handleChange} placeholder="예: 강원도 평창군 대관령면 올림픽로 715" required className={inputClass} />
           </div>
 
+          <ShopHoursFields value={hoursV} onChange={(p) => setHoursV({ ...hoursV, ...p })} inputClass={inputClass} labelClass={labelClass} />
+
           <div>
-            <label className={labelClass}>영업시간</label>
-            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 08:30~18:00 (시즌 중 매일)" className={inputClass} />
+            <label className={labelClass}>영업시간 메모 (선택)</label>
+            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 시즌 중 매일, 점심시간 12~13시" className={inputClass} />
           </div>
 
           <div>

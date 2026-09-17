@@ -11,6 +11,7 @@ import { isHttpUrl, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { geocodeAndStore } from '../utils/geocode';
 import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
+import { parseShopHours } from '../utils/shopHours';
 
 const router = Router();
 
@@ -59,6 +60,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
     const ek = parseExtraKinds(extraKinds, 'skishop');
     const proof = validProof(extraKindsProof);
     if (ek && req.user!.role !== 'admin' && !proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·정비 사진 또는 영상 링크)이 필요합니다.' }); return; }
+    // 구조화 영업시간(openTime/closeTime/closedDays, "지금 영업 중" 배지) — 형식 오류는 400
+    const hoursP = parseShopHours(req.body);
+    if (!hoursP.ok) { res.status(400).json({ error: hoursP.error }); return; }
     const shop = await prisma.skiShop.create({
       data: {
         name: sanitizeText(name, 100) || name,
@@ -73,6 +77,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         website: isHttpUrl(website) ? sanitizeText(website, 300) || null : null,
         naverMap: isHttpUrl(naverMap) ? sanitizeText(naverMap, 300) || null : null,
         hours: sanitizeText(hours, 200) || null,
+        ...hoursP.data,
         image: image || null, images: sanitizeImages(images), businessLicense: businessLicense || null, userId,
         approved: seeding, claimable: seeding,
         vertical: verticalSlug,
@@ -138,7 +143,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       where: { id: req.params.id, approved: true },
       select: {
         id: true, name: true, area: true, resortId: true, resort: { select: { id: true, name: true, location: true } }, address: true, description: true,
-        brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
+        brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true, openTime: true, closeTime: true, closedDays: true,
         image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true, extraKinds: true,
         user: { select: { id: true, name: true, nickname: true } },
       },
@@ -185,6 +190,9 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
     if (website !== undefined) data.website = isHttpUrl(website) ? (sanitizeText(website, 300) || null) : null;
     if (naverMap !== undefined) data.naverMap = isHttpUrl(naverMap) ? (sanitizeText(naverMap, 300) || null) : null;
     if (hours !== undefined) data.hours = hours ? (sanitizeText(hours, 200) || hours) : null;
+    const hoursP = parseShopHours(req.body); // 구조화 영업시간 — 요청에 있는 키만 반영
+    if (!hoursP.ok) { res.status(400).json({ error: hoursP.error }); return; }
+    Object.assign(data, hoursP.data);
     if (image && !isAllowedImageUrl(image)) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
     if (image !== undefined) data.image = image || null;
     if (images !== undefined) data.images = sanitizeImages(images);

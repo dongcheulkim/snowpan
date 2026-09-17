@@ -30,6 +30,7 @@ import { geocodeBackfill, resortsGeocode, autoResort } from '../controllers/geoc
 import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from '../controllers/outreachController';
 import { isFcmConfigured, sendPushToUser } from '../utils/push';
 import { appleRevokeStatus, kakaoConfigured, naverLoginConfigured } from '../controllers/socialAuthController';
+import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
 import prisma from '../config/database';
 
 const router = Router();
@@ -49,7 +50,17 @@ router.get('/integrations', async (_req, res) => {
     fcm: await isFcmConfigured(),
     bunny: Boolean(process.env.BUNNY_STORAGE_KEY),
     adDeposit: Boolean(process.env.AD_DEPOSIT_BANK && process.env.AD_DEPOSIT_ACCOUNT && process.env.AD_DEPOSIT_HOLDER),
+    smtp: smtpConfigured(),      // 하루 요약·인증 메일 발송 (SMTP_HOST/USER/PASS)
+    discord: Boolean(process.env.DISCORD_WEBHOOK_URL),
   });
+});
+
+// 관리자 하루 요약 — 미리보기(GET)와 지금 보내기(POST). 스케줄러는 매일 09:00 KST 자동.
+router.get('/daily-summary', async (_req, res) => {
+  try { res.json(await buildDailySummary()); } catch (e) { console.error('daily summary error:', e); res.status(500).json({ error: '요약을 만들지 못했어요.' }); }
+});
+router.post('/daily-summary', async (_req, res) => {
+  try { const s = await sendDailySummary(); res.json({ ...s, message: '관리자 전원에게 요약을 보냈어요.', email: smtpConfigured() }); } catch (e) { console.error('daily summary send error:', e); res.status(500).json({ error: '요약을 보내지 못했어요.' }); }
 });
 
 router.post('/push-test', async (req: any, res) => {

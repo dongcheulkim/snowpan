@@ -56,7 +56,7 @@ import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
 import { roomAccessWhere, recipientsOf, getAdminIds } from './utils/supportInbox';
 import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from './utils/blocks';
-import { findSupportAnswer } from './utils/supportAnswers';
+import { findSupportAnswer, searchSupportAnswer } from './utils/supportAnswers';
 import { isTokenIatStale } from './utils/tokens';
 import { isAllowedImageUrl } from './utils/validate';
 import reviewRoutes from './routes/reviewRoutes';
@@ -78,6 +78,10 @@ import shopPostRoutes from './routes/shopPostRoutes';
 import pollRoutes from './routes/pollRoutes';
 import overseasRoutes from './routes/overseasRoutes';
 import travelAgencyRoutes from './routes/travelAgencyRoutes';
+import ogRoutes from './routes/ogRoutes';
+import resortReviewRoutes from './routes/resortReviewRoutes';
+import competitionRoutes from './routes/competitionRoutes';
+import { startDailySummaryScheduler } from './utils/dailySummary';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
 import { setIO } from './realtime';
@@ -344,8 +348,11 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
+app.use('/api/competitions', strictWriteLimiter, competitionRoutes); // 시합 일정 등록·신청·승인 (2026-09-17)
 app.use('/api/overseas', overseasRoutes);
 app.use('/api/agencies', travelAgencyRoutes);
+app.use('/api/resort-reviews', strictWriteLimiter, resortReviewRoutes); // 스키장 후기·별점 (2026-09-17)
+app.use('/api/og', ogRoutes); // 링크 미리보기 봇용 공유 카드 HTML (vercel.json 이 봇 UA 만 여기로 보냄)
 
 // SEO: sitemap은 /api/ 접두사 없이 루트에서 서빙 (Vercel rewrite로 /sitemap.xml → 여기로)
 app.use('/', sitemapRoutes);
@@ -520,7 +527,12 @@ io.on('connection', (socket) => {
       try {
         const adminIdsForAuto = await getAdminIds();
         const adminSide = adminIdsForAuto.includes(room.user1Id) ? room.user1Id : adminIdsForAuto.includes(room.user2Id) ? room.user2Id : null;
-        const auto = adminSide && !adminIdsForAuto.includes(userId) ? findSupportAnswer(content) : null;
+        let auto = adminSide && !adminIdsForAuto.includes(userId) ? findSupportAnswer(content) : null;
+        // 안내 메뉴가 아닌 자유 질문도 키워드로 안내 (2026-09-17). 사람이 대화 중이거나 10분 안에 고객센터 메시지가 있었으면 끼어들지 않는다.
+        if (!auto && adminSide && !adminIdsForAuto.includes(userId) && type === 'text' && !imageUrl) {
+          const recentAdminMsg = await prisma.message.findFirst({ where: { roomId: data.roomId, senderId: adminSide, createdAt: { gte: new Date(Date.now() - 10 * 60_000) } }, select: { id: true } });
+          if (!recentAdminMsg) auto = searchSupportAnswer(content);
+        }
         if (auto && adminSide) {
           const reply = await prisma.message.create({
             data: { roomId: data.roomId, senderId: adminSide, content: auto, type: 'text' },
@@ -640,6 +652,7 @@ httpServer.listen(PORT, async () => {
   try {
     startInstagramScheduler(); // 인스타 최신 게시물 1시간 주기 + 토큰 자동 연장
     startLoginLogPruner(); // 로그인 기록 90일 지난 것 매일 삭제
+    startDailySummaryScheduler(); // 관리자 하루 요약 (매일 09:00 KST, 알림·푸시·메일·디스코드)
   } catch (err) {
     console.error('인스타 스케줄러 시작 실패:', err);
   }

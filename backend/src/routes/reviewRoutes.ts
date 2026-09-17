@@ -50,6 +50,11 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       res.status(400).json({ error: '거래 완료된 상품만 리뷰를 작성할 수 있습니다.' });
       return;
     }
+    // 판매자가 구매자를 지정한 매물이면 그 구매자만 후기 가능 (문의만 하고 안 산 사람의 후기 차단)
+    if (product.buyerId && product.buyerId !== buyerId) {
+      res.status(403).json({ error: '이 상품의 구매자로 지정된 분만 후기를 남길 수 있어요' });
+      return;
+    }
 
     // 구매자와 판매자 간 채팅 이력 확인
     const [u1, u2] = [buyerId, sellerId].sort();
@@ -162,12 +167,14 @@ router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: R
     ));
     if (partnerIds.length === 0) { res.json({ pending: [] }); return; }
 
-    const soldProducts = await prisma.product.findMany({
+    const soldProductsAll = await prisma.product.findMany({
       where: { userId: { in: partnerIds }, status: 'sold' },
-      select: { id: true, name: true, price: true, image: true, userId: true, updatedAt: true },
+      select: { id: true, name: true, price: true, image: true, userId: true, updatedAt: true, buyerId: true, soldAt: true },
       orderBy: { updatedAt: 'desc' },
       take: 50,
     });
+    // 판매자가 구매자를 지정한 매물은 그 구매자에게만 보인다 (지정 없으면 채팅 상대 모두)
+    const soldProducts = soldProductsAll.filter((p) => !p.buyerId || p.buyerId === userId);
     if (soldProducts.length === 0) { res.json({ pending: [] }); return; }
 
     const reviewed = await prisma.review.findMany({
@@ -195,7 +202,7 @@ router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: R
         // 실명 비노출 — 표시명(닉네임 우선) 치환
         return sel ? { ...sel, name: sel.nickname || '스노우판 회원' } : null;
       })(),
-      soldAt: p.updatedAt,
+      soldAt: p.soldAt ?? p.updatedAt,
     })).filter((x) => x.seller && x.seller.role !== 'deleted');
 
     res.json({ pending });
@@ -221,7 +228,7 @@ router.get('/eligible', authenticateToken, async (req: AuthRequest, res: Respons
 
     const soldProducts = await prisma.product.findMany({
       where: { userId: sellerId as string, status: 'sold' },
-      select: { id: true, name: true, price: true, image: true },
+      select: { id: true, name: true, price: true, image: true, buyerId: true },
       orderBy: { updatedAt: 'desc' },
     });
     const reviewed = await prisma.review.findMany({
@@ -229,7 +236,10 @@ router.get('/eligible', authenticateToken, async (req: AuthRequest, res: Respons
       select: { productId: true },
     });
     const reviewedIds = new Set(reviewed.map(r => r.productId));
-    const eligible = soldProducts.filter(p => !reviewedIds.has(p.id));
+    // 구매자가 지정된 매물은 그 구매자에게만 후기 대상 (POST /reviews 의 403 과 같은 기준)
+    const eligible = soldProducts
+      .filter(p => !reviewedIds.has(p.id) && (!p.buyerId || p.buyerId === buyerId))
+      .map(({ buyerId: _b, ...p }) => p);
     res.json({ products: eligible });
   } catch (error) {
     console.error('Eligible review products error:', error);

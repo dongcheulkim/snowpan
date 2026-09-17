@@ -7,6 +7,10 @@ import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import ExtraKindsPicker from '../components/ExtraKindsPicker';
+import ShopHoursFields from '../components/ShopHoursFields';
+import { EMPTY_SHOP_HOURS, type ShopHoursValue } from '../utils/shopHoursForm';
+import RentalPriceFields from '../components/RentalPriceFields';
+import { EMPTY_RENTAL_PRICES, rentalPricesToBody, type RentalPriceValue } from '../utils/rentalPriceForm';
 
 interface Resort { id: string; name: string; location?: string | null }
 
@@ -19,6 +23,8 @@ const RentalRegister = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [images, setImages] = useState('');
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
+  const [hoursV, setHoursV] = useState<ShopHoursValue>(EMPTY_SHOP_HOURS); // 구조화 영업시간 ("영업 중" 배지)
+  const [prices, setPrices] = useState<RentalPriceValue>(EMPTY_RENTAL_PRICES); // 가격표 (1일 기준)
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', phone: '', hours: '',
     brands: '', description: '', website: '', instagram: '', naverMap: '',
@@ -54,6 +60,8 @@ const RentalRegister = () => {
           instagram: form.instagram.trim() || undefined, naverMap: form.naverMap.trim() || undefined,
           images: images || undefined, image: images ? images.split(',')[0] : undefined,
           businessLicense,
+          openTime: hoursV.openTime || undefined, closeTime: hoursV.closeTime || undefined, closedDays: hoursV.closedDays,
+          ...rentalPricesToBody(prices),
         },
       });
       toastSuccess('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
@@ -106,10 +114,14 @@ const RentalRegister = () => {
           <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="매장 전화번호" className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>영업시간</label>
-          <input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} placeholder="예: 08:00~22:00" className={inputClass} />
+          <label className={labelClass}>영업시간 메모 (선택)</label>
+          <input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} placeholder="예: 시즌 중 매일, 야간 22시까지" className={inputClass} />
         </div>
       </div>
+
+      <ShopHoursFields value={hoursV} onChange={(p) => setHoursV({ ...hoursV, ...p })} inputClass={inputClass} labelClass={labelClass} />
+
+      <RentalPriceFields value={prices} onChange={(p) => setPrices({ ...prices, ...p })} inputClass={inputClass} labelClass={labelClass} />
 
       <div>
         <label className={labelClass}>취급 장비 · 브랜드</label>

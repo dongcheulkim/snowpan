@@ -16,9 +16,11 @@ import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
 import { shopPath } from '../utils/shopKinds';
 import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
+import OpenNowBadge from '../components/OpenNowBadge';
 
-// 필터는 URL 쿼리(?region=&resort=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
-const FILTER_DEFAULTS = { region: 'all', resort: 'all' };
+// 필터는 URL 쿼리(?region=&resort=&sort=)에 보관 — 상세에서 돌아와도 유지 (사용자 신고 2026-09-09)
+// sort: 'default'(프리미엄 → 인증 매장 → 최신) | 'price'(세트 최저가 낮은 순, 가격 없는 매장은 뒤)
+const FILTER_DEFAULTS = { region: 'all', resort: 'all', sort: 'default' };
 
 interface RentalItem {
   isPremium?: boolean;
@@ -35,6 +37,11 @@ interface RentalItem {
   lng?: number | null;
   kind?: string;
   extraKinds?: string | null;
+  priceFrom?: number | null; // 서버 계산 — 스키/보드 세트 최저가 (1일)
+  hours?: string | null;
+  openTime?: string | null;
+  closeTime?: string | null;
+  closedDays?: string | null;
 }
 
 const PAGE_SIZE = 12;
@@ -45,6 +52,7 @@ const Rental = () => {
   const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
   const selectedResort = filters.resort;
   const selectedRegion = filters.region;
+  const sortMode = filters.sort;
   const listHere = useListHere();
   const [rentalItems, setRentalItems] = useState<RentalItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -54,7 +62,7 @@ const Rental = () => {
   const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const my = useMyLocation();
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort, selectedRegion]);
+  useEffect(() => { setPage(1); }, [selectedResort, selectedRegion, sortMode]);
 
   const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
@@ -66,6 +74,7 @@ const Rental = () => {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
         if (selectedRegion !== 'all') params.set('area', selectedRegion);
         if (selectedResort !== 'all') params.set('resortId', selectedResort); // 'none' = 리조트 외 시내 매장
+        if (sortMode === 'price') params.set('sort', 'price');
         const data = await api<{ items: RentalItem[]; totalCount: number }>(`/rentals?${params}`);
         if (seq !== reqSeqRef.current) return; // 늦게 도착한 이전 요청 무시
         setRentalItems(data.items);
@@ -81,7 +90,7 @@ const Rental = () => {
       }
     };
     fetchRentals();
-  }, [selectedResort, selectedRegion, page, retryKey]);
+  }, [selectedResort, selectedRegion, sortMode, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const shown = withDistance(rentalItems, my.coords);
@@ -97,6 +106,16 @@ const Rental = () => {
       {/* 위치 필터 — 지역 → 리조트 + 외 (스키·보드샵·정비샵과 공통) */}
       <LocationFilter region={selectedRegion} resortSel={selectedResort} onChange={(rg, rs) => setFilters({ region: rg, resort: rs })} />
       <NearMeButton my={my} note={totalPages > 1 ? '현재 페이지 안에서 가까운 순' : undefined} />
+
+      {/* 정렬 — 기본 / 가격 낮은 순(사장님이 등록한 스키·보드 세트 1일 최저가 기준) */}
+      <div className="flex gap-1.5">
+        {([['default', '기본순'], ['price', '가격 낮은 순']] as const).map(([v, label]) => (
+          <button key={v} onClick={() => setFilters({ sort: v })}
+            className={`px-2.5 py-1.5 rounded-full font-medium text-[11px] transition-all ${sortMode === v ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500 hover:text-gray-900'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
       {/* Rental Items */}
       {loading ? (
@@ -120,7 +139,9 @@ const Rental = () => {
                     <UnverifiedShopBadge claimable={item.claimable} compact />
                     {shopLocationLabel(item) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(item)}</span>}
                     {item.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(item.distanceKm)}</span>}
+                    <OpenNowBadge shop={item} />
                   </div>
+                  {item.priceFrom != null && <p className="text-xs font-bold text-gray-900 mt-1">세트 {item.priceFrom.toLocaleString()}원~</p>}
                   {item.phone && (
                     <a href={`tel:${item.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">
                       <PhoneIcon size={12} /> {item.phone}

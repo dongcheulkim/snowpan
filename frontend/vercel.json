@@ -19,6 +19,83 @@
       "destination": "/partners.html"
     },
     {
+      "source": "/used/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/used/:id"
+    },
+    {
+      "source": "/skishop/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/skishop/:id"
+    },
+    {
+      "source": "/repair/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/repair/:id"
+    },
+    {
+      "source": "/rental/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/rental/:id"
+    },
+    {
+      "source": "/lesson/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/lesson/:id"
+    },
+    {
+      "source": "/accommodation/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/accommodation/:id"
+    },
+    {
+      "source": "/community/post/:id([0-9a-fA-F-]{36})",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
+        }
+      ],
+      "destination": "https://snowpan.onrender.com/api/og/page/post/:id"
+    },
+    {
       "source": "/((?!api/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
       "destination": "/index.html"
     }

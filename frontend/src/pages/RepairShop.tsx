@@ -18,6 +18,7 @@ import { useMyLocation } from '../hooks/useMyLocation';
 import NearMeButton from '../components/NearMeButton';
 import { withDistance, formatDistance } from '../utils/geo';
 import { shopPath } from '../utils/shopKinds';
+import OpenNowBadge from '../components/OpenNowBadge';
 
 interface Shop {
   id: string;
@@ -32,6 +33,9 @@ interface Shop {
   website?: string | null;
   naverMap?: string | null;
   hours?: string | null;
+  openTime?: string | null;
+  closeTime?: string | null;
+  closedDays?: string | null;
   image?: string | null;
   images?: string | null;
   isPremium?: boolean;
@@ -158,6 +162,7 @@ export default function RepairShop() {
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
                     {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
                     {shop.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(shop.distanceKm)}</span>}
+                    <OpenNowBadge shop={shop} />
                   </div>
                   {shop.phone && (
                     <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">

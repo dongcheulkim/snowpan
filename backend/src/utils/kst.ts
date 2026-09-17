@@ -44,8 +44,14 @@ export function parseKstDate(input: unknown): Date | null {
   const s = input.trim();
   const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (m) {
-    const d = kstMidnight(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-    return isNaN(d.getTime()) ? null : d;
+    const y = Number(m[1]), mo = Number(m[2]), da = Number(m[3]);
+    // '2026-13-45' 같은 값이 JS Date 에서 다음 달로 넘어가 저장되던 것 방지 — 월·일 범위와 실제 달력 일치까지 확인
+    if (mo < 1 || mo > 12 || da < 1 || da > 31) return null;
+    const d = kstMidnight(y, mo - 1, da);
+    if (isNaN(d.getTime())) return null;
+    const back = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== da) return null;
+    return d;
   }
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;

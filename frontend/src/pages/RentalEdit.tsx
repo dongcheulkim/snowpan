@@ -5,6 +5,10 @@ import { api, getUser } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion } from '../utils/resortRegion';
 import ExtraKindsPicker from '../components/ExtraKindsPicker';
+import ShopHoursFields from '../components/ShopHoursFields';
+import { EMPTY_SHOP_HOURS, shopHoursFromApi, type ShopHoursValue } from '../utils/shopHoursForm';
+import RentalPriceFields from '../components/RentalPriceFields';
+import { EMPTY_RENTAL_PRICES, rentalPricesFromApi, rentalPricesToBody, type RentalPriceValue } from '../utils/rentalPriceForm';
 
 interface Resort { id: string; name: string; location?: string | null }
 interface RentalData {
@@ -12,6 +16,8 @@ interface RentalData {
   phone?: string | null; hours?: string | null; brands?: string | null; description?: string | null; extraKinds?: string | null;
   website?: string | null; instagram?: string | null; naverMap?: string | null; images?: string | null;
   image?: string | null; resort?: { id: string } | null;
+  openTime?: string | null; closeTime?: string | null; closedDays?: string | null;
+  priceSkiSet?: number | null; priceBoardSet?: number | null; priceClothes?: number | null; priceHelmet?: number | null; priceGoggles?: number | null; priceNote?: string | null;
 }
 
 const AREAS = ['강원', '경기', '서울', '충청', '경상', '전라'];
@@ -22,6 +28,8 @@ const RentalEdit = () => {
   const [resorts, setResorts] = useState<Resort[]>([]);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState('');
+  const [hoursV, setHoursV] = useState<ShopHoursValue>(EMPTY_SHOP_HOURS); // 구조화 영업시간 ("영업 중" 배지)
+  const [prices, setPrices] = useState<RentalPriceValue>(EMPTY_RENTAL_PRICES); // 가격표 (1일 기준)
   const [form, setForm] = useState({
     name: '', area: '강원', resortId: '', address: '', phone: '', hours: '',
     brands: '', description: '', website: '', instagram: '', naverMap: '',
@@ -45,6 +53,8 @@ const RentalEdit = () => {
         instagram: d.instagram || '', naverMap: d.naverMap || '',
       });
       setImages(d.images || d.image || '');
+      setHoursV(shopHoursFromApi(d));
+      setPrices(rentalPricesFromApi(d));
     }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/rental', { replace: true }); });
   }, [id, navigate]);
 
@@ -60,6 +70,8 @@ const RentalEdit = () => {
           brands: form.brands.trim(), description: form.description.trim(), website: form.website.trim(),
           instagram: form.instagram.trim(), naverMap: form.naverMap.trim(),
           images, image: images ? images.split(',')[0] : null,
+          openTime: hoursV.openTime || null, closeTime: hoursV.closeTime || null, closedDays: hoursV.closedDays,
+          ...rentalPricesToBody(prices),
         },
       });
       toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
@@ -101,8 +113,10 @@ const RentalEdit = () => {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div><label className={labelClass}>전화</label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className={inputClass} /></div>
-        <div><label className={labelClass}>영업시간</label><input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} className={inputClass} /></div>
+        <div><label className={labelClass}>영업시간 메모 (선택)</label><input type="text" value={form.hours} onChange={e => setForm({ ...form, hours: e.target.value })} placeholder="예: 시즌 중 매일, 야간 22시까지" className={inputClass} /></div>
       </div>
+      <ShopHoursFields value={hoursV} onChange={(p) => setHoursV({ ...hoursV, ...p })} inputClass={inputClass} labelClass={labelClass} />
+      <RentalPriceFields value={prices} onChange={(p) => setPrices({ ...prices, ...p })} inputClass={inputClass} labelClass={labelClass} />
       <div><label className={labelClass}>취급 장비 · 브랜드</label><input type="text" value={form.brands} onChange={e => setForm({ ...form, brands: e.target.value })} className={inputClass} /></div>
       <ExtraKindsPicker own="rental" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} initial={loadedKinds} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
       <div><label className={labelClass}>매장 소개</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={4} className={`${inputClass} resize-none`} /></div>

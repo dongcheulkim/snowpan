@@ -29,20 +29,21 @@ export function validProof(v: unknown): string | null {
   return null;
 }
 
-export interface ShopListFilter { vertical: string; area?: string; resortId?: string }
+// sort: 'price' = 렌탈 목록 "가격 낮은 순"(priceFrom ASC, 없으면 뒤) — 프리미엄 우선은 유지
+export interface ShopListFilter { vertical: string; area?: string; resortId?: string; sort?: 'price' }
 
 const USER_SEL = { select: { id: true, name: true, nickname: true } } as const;
 const RESORT_SEL = { select: { id: true, name: true, location: true } } as const;
 // 공개 필드만 — businessLicense 등 비공개 유지
 const SKI_SELECT = {
   id: true, name: true, area: true, resortId: true, resort: RESORT_SEL, address: true, description: true,
-  brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true,
+  brands: true, phone: true, instagram: true, website: true, naverMap: true, hours: true, openTime: true, closeTime: true, closedDays: true,
   image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true, extraKinds: true,
   user: USER_SEL,
 } as const;
 const REPAIR_SELECT = {
   id: true, name: true, area: true, resortId: true, resort: RESORT_SEL, address: true, description: true, services: true,
-  phone: true, instagram: true, website: true, naverMap: true, hours: true,
+  phone: true, instagram: true, website: true, naverMap: true, hours: true, openTime: true, closeTime: true, closedDays: true,
   image: true, images: true, isPremium: true, viewCount: true, createdAt: true, claimable: true, lat: true, lng: true, extraKinds: true,
   user: USER_SEL,
 } as const;
@@ -79,8 +80,12 @@ export async function listShopsForKind(kind: ShopKind, f: ShopListFilter): Promi
     ...tag(stripPrivateAll(ren as unknown as Record<string, unknown>[]), 'rental'),
   ];
   // 정렬: 프리미엄 → 사장님 인증 매장(claimable=false, 직접 등록·소유권 이전) → 본 업종 → 최신 (사용자 결정 2026-09-09: 인증 매장 맨 위)
+  // sort=price (렌탈 "가격 낮은 순"): 프리미엄 바로 다음 키로 priceFrom 오름차순. 가격 없는 매장(겸업 스키샵·정비샵 포함)은 뒤로, 그 안에서는 기본 정렬.
+  const priceKey = (r: Tagged) => (typeof r.priceFrom === 'number' ? r.priceFrom : Number.POSITIVE_INFINITY);
+  const byPrice = f.sort === 'price' ? (a: Tagged, b: Tagged) => (priceKey(a) === priceKey(b) ? 0 : priceKey(a) - priceKey(b)) : () => 0;
   all.sort((a, b) =>
     (Number(Boolean(b.isPremium)) - Number(Boolean(a.isPremium)))
+    || byPrice(a, b)
     || (Number(Boolean(a.claimable)) - Number(Boolean(b.claimable)))
     || ((a.kind === kind ? 0 : 1) - (b.kind === kind ? 0 : 1))
     || (new Date(String(b.createdAt)).getTime() - new Date(String(a.createdAt)).getTime()));

@@ -10,6 +10,8 @@ import { REPAIR_SERVICES } from '../utils/repairServices';
 import { resortRegion } from '../utils/resortRegion';
 import { type ResortLite } from '../utils/location';
 import ExtraKindsPicker from '../components/ExtraKindsPicker';
+import ShopHoursFields from '../components/ShopHoursFields';
+import { EMPTY_SHOP_HOURS, type ShopHoursValue } from '../utils/shopHoursForm';
 
 const areas = ['서울', '경기', '강원', '충청', '경상', '전라'];
 
@@ -22,6 +24,7 @@ export default function RepairShopRegister() {
   const [licensePreview, setLicensePreview] = useState('');
   const [images, setImages] = useState('');
   const [resorts, setResorts] = useState<ResortLite[]>([]);
+  const [hoursV, setHoursV] = useState<ShopHoursValue>(EMPTY_SHOP_HOURS); // 구조화 영업시간 ("영업 중" 배지)
   const [form, setForm] = useState({
     name: '', area: '서울', resortId: '', address: '', description: '',
     services: '', phone: '', instagram: '', website: '', naverMap: '', hours: '',
@@ -52,7 +55,7 @@ export default function RepairShopRegister() {
 
       await api('/repair-shops', {
         method: 'POST',
-        body: { ...form, resortId: form.resortId || null, images: images || null, image: images ? images.split(',')[0] : null, businessLicense: licenseUrls[0] },
+        body: { ...form, ...hoursV, resortId: form.resortId || null, images: images || null, image: images ? images.split(',')[0] : null, businessLicense: licenseUrls[0] },
       });
 
       toastSuccess('정비샵 등록이 완료되었습니다!\n관리자 승인 후 게시됩니다.');
@@ -125,9 +128,11 @@ export default function RepairShopRegister() {
 
           <ExtraKindsPicker own="repair" value={form.extraKinds} onChange={(v) => setForm({ ...form, extraKinds: v })} proof={form.extraKindsProof} onProof={(v) => setForm({ ...form, extraKindsProof: v })} />
 
+          <ShopHoursFields value={hoursV} onChange={(p) => setHoursV({ ...hoursV, ...p })} inputClass={inputClass} labelClass={labelClass} />
+
           <div>
-            <label className={labelClass}>영업시간</label>
-            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 10:00~19:00 (월~토)" className={inputClass} />
+            <label className={labelClass}>영업시간 메모 (선택)</label>
+            <input type="text" name="hours" value={form.hours} onChange={handleChange} placeholder="예: 예약 시 야간 작업 가능" className={inputClass} />
           </div>
 
           <div>

@@ -44,6 +44,7 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Competitions = lazy(() => import('./pages/Competitions'));
 const RepairShop = lazy(() => import('./pages/RepairShop'));
 const CompetitionDetail = lazy(() => import('./pages/CompetitionDetail'));
+const CompetitionRegister = lazy(() => import('./pages/CompetitionRegister'));
 const MyAds = lazy(() => import('./pages/MyAds'));
 const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const SkiShopEdit = lazy(() => import('./pages/SkiShopEdit'));
@@ -157,6 +158,8 @@ function App() {
             <Route path="repair/:id/edit" element={<RequireAuth><RepairShopEdit /></RequireAuth>} />
             <Route path="repair/:id" element={<RepairShopDetail />} />
             <Route path="competitions" element={<Competitions />} />
+            <Route path="competitions/register" element={<RequireAuth><CompetitionRegister /></RequireAuth>} />
+            <Route path="competitions/:id/edit" element={<RequireAuth><CompetitionRegister /></RequireAuth>} />
             <Route path="competitions/:id" element={<CompetitionDetail />} />
             {/* 커뮤니티는 한 목록 — 종목(전체·스키·보드)은 글쓰기에서 고르고 목록에서 칩으로 거른다. /community/:sport 는 옛 링크 호환 */}
             <Route path="community" element={<Community />} />

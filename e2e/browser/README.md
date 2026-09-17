@@ -13,6 +13,7 @@ node write_flows.cjs  # 실제 쓰기: 글·댓글·수정·삭제, 신고, 차�
 python3 fuzz_api.py   # API 퍼징: 이상한 입력에 500·스크립트 반영 없는지 (Cloudflare 403 HTML 은 오탐)
 node polish_check.cjs # 360/390/1280px 가로 스크롤·느린 API
 node edge_check.cjs   # 비로그인 → /login?next=, 상세 찜 → next, 404 문구, 18개 경로 직접 진입(에러바운더리·가로스크롤)
+node feature_check.cjs # 2026-09-17 기능: 시합 등록 폼, 리조트 후기 작성·삭제, 홈 카운트다운, 렌탈 가격 정렬·예약 문의 폼, 공유 카드(봇 UA), 관리자 설정·시합 승인 탭
 node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(방문/미방문=app-shell)·앱 내 이동 (BASE=http://localhost:4173 로 로컬 preview 도 가능)
 ```
 

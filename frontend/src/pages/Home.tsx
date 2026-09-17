@@ -54,6 +54,15 @@ type HotItem =
 // 홈 "인스타그램" — 서버가 1시간마다 공식 API 로 받아 둔 @snowpan.kr 게시물. 없으면 섹션 숨김.
 interface IgPost { id: string; caption: string; mediaType: string; image: string; permalink: string; timestamp: string }
 
+// 홈 "시즌 오픈 카운트다운" — /resorts/season (관리자가 넣은 리조트 개장일 중 가장 빠른 것). 날짜가 하나도 없으면 카드 숨김.
+interface SeasonInfo { next: { id: string; name: string; openDate: string; daysLeft: number } | null; openNow: number }
+const kstMonthDay = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const k = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return `${k.getUTCMonth() + 1}/${k.getUTCDate()}`;
+};
+
 interface ShopNews {
   id: string;
   title: string;
@@ -114,6 +123,12 @@ const Home = () => {
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
   const [ig, setIg] = useState<{ posts: IgPost[]; username: string | null }>({ posts: [], username: null }); // 인스타 @snowpan.kr 최신 게시물 (서버 캐시)
+  const [season, setSeason] = useState<SeasonInfo | null>(null); // 시즌 오픈 카운트다운 (실패해도 조용히 숨김)
+  useEffect(() => {
+    api<SeasonInfo>('/resorts/season')
+      .then((d) => setSeason({ next: d.next ?? null, openNow: d.openNow ?? 0 }))
+      .catch(() => {});
+  }, []);
   // TTL 무효화는 마운트 시 1회만 — 렌더마다 돌리면(배너 4초 인터벌로 상시 재렌더)
   // 화면에 떠 있는 동안 캐시가 날아가 다음 페이지 로드 시 피드 앞부분이 통째로 잘림
   useState(() => {
@@ -296,6 +311,18 @@ const Home = () => {
         link: `${verticalBase}/${c.slug}`,
       }));
 
+  // 시즌 카드 문구 — 다음 개장 > 오늘 개장 > 진행 중(운영 중인 곳 수). 셋 다 아니면 null (카드 없음)
+  const seasonCard: { text: string; to: string } | null = (() => {
+    if (!season) return null;
+    if (season.next) {
+      const to = `/resort/${encodeURIComponent(season.next.name)}`;
+      if (season.next.daysLeft === 0) return { text: `오늘 ${season.next.name} 개장`, to };
+      return { text: `시즌 오픈 D-${season.next.daysLeft} · ${season.next.name} ${kstMonthDay(season.next.openDate)} 개장`, to };
+    }
+    if (season.openNow > 0) return { text: `시즌 진행 중 · 운영 중인 스키장 ${season.openNow}곳`, to: '/webcam' };
+    return null;
+  })();
+
   return (
     <div className="min-h-screen bg-sky-50">
       <h1 className="sr-only">{isSnow ? '스노우판 — 스키장 근처 매장 찾기와 스키·보드 중고거래' : `${vertical.name} — ${vertical.tagline}`}</h1>
@@ -471,6 +498,16 @@ const Home = () => {
           })}
         </div>
       </div>
+
+      {/* 시즌 오픈 카운트다운 — 가장 빠른 개장일 기준 (관리자 설정 > 리조트 시즌). 날짜 없으면 숨김 */}
+      {isSnow && seasonCard && (
+        <div className="px-4 pb-4">
+          <Link to={seasonCard.to} className="card px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors">
+            <span className="text-sm font-bold text-gray-900 truncate">{seasonCard.text}</span>
+            <span className="text-xs text-gray-500 flex-shrink-0 ml-3">보러 가기 &gt;</span>
+          </Link>
+        </div>
+      )}
 
       {/* 스노우판 매거진 — 인스타 @snowpan.kr 최신 게시물(서버가 1시간마다 공식 API 로 수집). 누르면 인스타 게시물로. 없으면 섹션 숨김 */}
       {isSnow && magazine.length > 0 && (

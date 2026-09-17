@@ -5,6 +5,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { PackageIcon } from '../components/Icons';
 import LoadError from '../components/LoadError';
+import BuyerPickerModal, { type BuyerCandidate } from '../components/BuyerPickerModal';
 
 interface Product {
   id: string;
@@ -14,6 +15,8 @@ interface Product {
   category: string;
   status: string;
   createdAt: string;
+  buyerId?: string | null;
+  buyer?: { id: string; name: string } | null; // 판매자 본인 조회 시에만 서버가 붙여줌
 }
 
 const PAGE = 30;
@@ -62,12 +65,38 @@ const MySales = () => {
     }
   };
 
+  // 판매완료로 바꿀 때는 바로 저장하지 않고 구매자 선택 모달을 먼저 띄운다.
+  // 모달을 그냥 닫으면 select 는 controlled 라 원래 상태로 돌아간다.
+  const [picker, setPicker] = useState<{ id: string; name: string } | null>(null);
+
   const handleStatusChange = async (id: string, newStatus: string) => {
+    if (newStatus === 'sold') {
+      const target = products.find(p => p.id === id);
+      setPicker({ id, name: target?.name || '' });
+      return;
+    }
     try {
       await api(`/products/${id}`, { method: 'PUT', body: { status: newStatus } });
-      setProducts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      // 판매중/예약중으로 되돌리면 서버도 구매자 지정을 비운다
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, buyerId: null, buyer: null } : p));
     } catch (err) {
       toastError(err instanceof Error ? err.message : '상태 변경 실패');
+    }
+  };
+
+  const handlePickBuyer = async (buyerId: string | null, candidate?: BuyerCandidate) => {
+    if (!picker) return;
+    const id = picker.id;
+    try {
+      await api(`/products/${id}`, { method: 'PUT', body: { status: 'sold', ...(buyerId && { buyerId }) } });
+      setProducts(prev => prev.map(p => p.id === id
+        ? { ...p, status: 'sold', buyerId, buyer: buyerId && candidate ? { id: candidate.id, name: candidate.name } : null }
+        : p));
+      toastSuccess(buyerId ? '판매 완료로 바꿨어요. 구매자에게 후기 요청을 보냈어요.' : '판매 완료로 바꿨어요.');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '상태 변경 실패');
+    } finally {
+      setPicker(null);
     }
   };
 
@@ -124,6 +153,9 @@ const MySales = () => {
                     <option value="reserved">예약중</option>
                     <option value="sold">판매완료</option>
                   </select>
+                  {item.status === 'sold' && item.buyer && (
+                    <div className="text-[10px] text-gray-500 mt-1 truncate">구매자 {item.buyer.name}</div>
+                  )}
                   <div className="flex gap-1 mt-1.5">
                     <button
                       onClick={() => handleBump(item.id)}
@@ -153,6 +185,15 @@ const MySales = () => {
         >
           {loadingMore ? '불러오는 중...' : `더 보기 (${products.length}/${total})`}
         </button>
+      )}
+
+      {picker && (
+        <BuyerPickerModal
+          productId={picker.id}
+          productName={picker.name}
+          onPick={handlePickBuyer}
+          onClose={() => setPicker(null)}
+        />
       )}
     </div>
   );

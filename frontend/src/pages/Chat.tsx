@@ -47,13 +47,14 @@ const Chat = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as {
-    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean; initialMessage?: string;
+    seller?: string; sellerId?: string; productName?: string; productImage?: string; productPrice?: number; backTo?: string; productPath?: string; isAdmin?: boolean; initialMessage?: string; autoSend?: boolean;
   } | null;
 
   const user = getUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false); // 로드 전엔 빈화면 문구 숨김(깜빡임·가짜빈방 방지)
-  const [input, setInput] = useState(state?.initialMessage || '');
+  // initialMessage: 기본은 입력창 미리 채우기(시합 일정 문의 등). autoSend 가 true 면(렌탈 예약 문의) 입력창 대신 방이 열린 뒤 한 번 자동 전송.
+  const [input, setInput] = useState(state?.autoSend ? '' : (state?.initialMessage || ''));
   const [roomId, setRoomId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -76,6 +77,19 @@ const Chat = () => {
   // 이 대화의 거래 상품 — 내가 판매자면 상태(예약중 등) 변경 가능.
   const [dealProduct, setDealProduct] = useState<{ id: string; status: string; name: string; userId: string } | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  // 렌탈 예약 문의 폼에서 넘어온 첫 메시지 자동 전송 — 방 정보(otherId·roomStatus)가 로드되고 소켓이 붙은 뒤 딱 한 번(ref 가드, 재연결·리렌더 재전송 없음).
+  // 수락 대기(pending) 방은 서버가 거부하므로 보내지 않고 입력창에 남긴다. 처리 후 히스토리 state 에서 지워 새로고침·뒤로가기 재전송 방지.
+  const autoMsgRef = useRef<string | null>(state?.autoSend && state.initialMessage?.trim() ? state.initialMessage.trim().slice(0, 2000) : null);
+  useEffect(() => {
+    const text = autoMsgRef.current;
+    if (!text || !roomId || !connected || !otherId || !socketRef.current) return;
+    autoMsgRef.current = null;
+    if (roomStatus === 'accepted') socketRef.current.emit('send_message', { roomId, content: text });
+    else setInput(text);
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: { ...state, initialMessage: undefined, autoSend: undefined } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId, connected, otherId, roomStatus]);
 
   useEffect(() => {
     return onLangChange(() => setTimeout(() => setLangTick(p => p + 1), 0));

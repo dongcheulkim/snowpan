@@ -2,16 +2,48 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
+import ResortReviews from '../components/ResortReviews';
 
 interface MiniItem { id: string; name: string; price?: number; image?: string | null; area?: string; address?: string | null; }
 interface Landing {
   name: string;
   resort: { id: string; name: string; location?: string | null; image?: string | null } | null;
+  season?: { openDate: string | null; closeDate: string | null; seasonNote: string | null } | null;
+  reviews?: { avg: number; count: number };
   skiShops: MiniItem[];
   repairShops: MiniItem[];
   rentals: MiniItem[];
   lessons: MiniItem[];
   accommodations: MiniItem[];
+}
+
+// 시즌 날짜는 서버가 KST 자정으로 저장 — 한국 달력일(일 단위)로 비교한다.
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+function kstDayIndex(ms: number): number { return Math.floor((ms + KST_OFFSET_MS) / DAY_MS); }
+function kstYmd(iso: string): string {
+  const k = new Date(new Date(iso).getTime() + KST_OFFSET_MS);
+  return `${k.getUTCFullYear()}-${String(k.getUTCMonth() + 1).padStart(2, '0')}-${String(k.getUTCDate()).padStart(2, '0')}`;
+}
+
+// 시즌 상태 문구 — 개장 전 D-day / 진행 중(폐장일) / 종료. 날짜가 하나도 없으면 null (카드 숨김)
+function seasonStatus(season: Landing['season']): { title: string; sub?: string; tone: 'before' | 'open' | 'closed' } | null {
+  if (!season) return null;
+  const openMs = season.openDate ? new Date(season.openDate).getTime() : NaN;
+  const closeMs = season.closeDate ? new Date(season.closeDate).getTime() : NaN;
+  const hasOpen = !isNaN(openMs);
+  const hasClose = !isNaN(closeMs);
+  if (!hasOpen && !hasClose) return null;
+  const today = kstDayIndex(Date.now());
+  const openDay = hasOpen ? kstDayIndex(openMs) : null;
+  const closeDay = hasClose ? kstDayIndex(closeMs) : null;
+
+  if (openDay !== null && today < openDay) {
+    const left = openDay - today;
+    return { title: `개장까지 D-${left}`, sub: `${kstYmd(season.openDate!)} 개장`, tone: 'before' };
+  }
+  if (closeDay !== null && today > closeDay) return { title: '시즌 종료', sub: `${kstYmd(season.closeDate!)} 폐장`, tone: 'closed' };
+  return { title: '시즌 진행 중', sub: closeDay !== null ? `폐장 ${kstYmd(season.closeDate!)}` : undefined, tone: 'open' };
 }
 
 export default function ResortLanding() {
@@ -50,6 +82,9 @@ export default function ResortLanding() {
   ] : [];
 
   const totalCount = sections.reduce((n, s) => n + s.items.length, 0);
+  const status = seasonStatus(data?.season ?? null);
+  const seasonNote = data?.season?.seasonNote || '';
+  const toneClass = status?.tone === 'open' ? 'text-emerald-700' : status?.tone === 'closed' ? 'text-gray-500' : 'text-sky-700';
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
@@ -70,6 +105,20 @@ export default function ResortLanding() {
           <Link to="/community" className="flex-1 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold text-center">커뮤니티</Link>
         </div>
       </div>
+
+      {/* 시즌 정보 — 관리자가 넣은 개장·폐장일. 날짜가 없으면 카드 자체를 숨김 */}
+      {(status || seasonNote) && (
+        <div className="card p-5">
+          <h2 className="text-sm font-bold text-gray-900 mb-2">시즌 정보</h2>
+          {status && (
+            <p className="flex items-baseline gap-2">
+              <span className={`text-base font-bold ${toneClass}`}>{status.title}</span>
+              {status.sub && <span className="text-xs text-gray-500 tabular-nums">{status.sub}</span>}
+            </p>
+          )}
+          {seasonNote && <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{seasonNote}</p>}
+        </div>
+      )}
 
       {totalCount === 0 ? (
         <div className="card p-8 text-center">
@@ -104,6 +153,9 @@ export default function ResortLanding() {
           </div>
         ))
       )}
+
+      {/* 스키장 후기·별점 — SkiResort 와 매칭된 리조트만 (후기는 리조트 id 기준) */}
+      {data?.resort && <ResortReviews resortId={data.resort.id} />}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
 import HScroll from '../components/HScroll';
+import BuyerPickerModal from '../components/BuyerPickerModal';
 
 interface Product {
   id: string;
@@ -31,6 +32,8 @@ interface Product {
   tradeMethod?: string | null;
   location?: string | null;
   status: string;
+  buyerId?: string | null; // 판매자가 지정한 구매자 (앱 밖 거래면 null)
+  soldAt?: string | null;
   wishlisted: boolean;
   viewCount?: number;
   wishlistCount?: number;
@@ -208,14 +211,33 @@ const UsedDetail = () => {
     }
   };
 
+  // 판매완료는 구매자 선택 모달을 거친다 (지정하면 그 구매자에게만 후기 요청).
+  // 모달을 그냥 닫으면 select 는 controlled 라 원래 상태로 돌아간다.
+  const [showBuyerPicker, setShowBuyerPicker] = useState(false);
+
   const handleStatusChange = async (newStatus: string) => {
     if (!id || !product) return;
+    if (newStatus === 'sold') { setShowBuyerPicker(true); return; }
     try {
       await api(`/products/${id}`, { method: 'PUT', body: { status: newStatus } });
-      setProduct({ ...product, status: newStatus });
-      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : newStatus === 'sold' ? '판매완료로 변경했어요' : '판매중으로 변경했어요');
+      // 판매중/예약중으로 되돌리면 서버도 구매자 지정을 비운다
+      setProduct({ ...product, status: newStatus, buyerId: null, soldAt: null });
+      toastSuccess(newStatus === 'reserved' ? '예약중으로 변경했어요' : '판매중으로 변경했어요');
     } catch {
       toastError('상태 변경에 실패했습니다.');
+    }
+  };
+
+  const handlePickBuyer = async (buyerId: string | null) => {
+    if (!id || !product) return;
+    try {
+      await api(`/products/${id}`, { method: 'PUT', body: { status: 'sold', ...(buyerId && { buyerId }) } });
+      setProduct({ ...product, status: 'sold', buyerId, soldAt: new Date().toISOString() });
+      toastSuccess(buyerId ? '판매 완료로 바꿨어요. 구매자에게 후기 요청을 보냈어요.' : '판매 완료로 바꿨어요.');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '상태 변경에 실패했습니다.');
+    } finally {
+      setShowBuyerPicker(false);
     }
   };
 
@@ -614,6 +636,16 @@ const UsedDetail = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 판매자: 판매완료 선택 시 구매자 지정 모달 */}
+      {isMyProduct && showBuyerPicker && (
+        <BuyerPickerModal
+          productId={product.id}
+          productName={product.name}
+          onPick={handlePickBuyer}
+          onClose={() => setShowBuyerPicker(false)}
+        />
       )}
 
       {/* 하단 sticky 액션바 — 채팅 버튼이 스크롤로 사라지면 화면 하단에 고정 노출.

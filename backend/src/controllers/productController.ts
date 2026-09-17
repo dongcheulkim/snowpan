@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { maskRowUser, maskRowUserAll } from '../utils/displayName';
+import { maskRowUser, maskRowUserAll, displayName } from '../utils/displayName';
 import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
@@ -11,6 +11,43 @@ import { sanitizeText } from '../utils/sanitize';
 import { parsePrice, isAllowedImageUrl } from '../utils/validate';
 import { pickVertical } from '../utils/vertical';
 import { notifyKeywordMatches } from '../utils/keywordAlert';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// 비로그인도 열리는 라우트에서 토큰이 있으면 userId 만 살짝 꺼낸다 (만료/위조는 비로그인 취급).
+function optionalUserId(req: Request): string | null {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!, {
+      algorithms: ['HS256'],
+      ignoreExpiration: false,
+    }) as { userId: string; type?: string };
+    if (!decoded.type || decoded.type === 'access') return decoded.userId;
+  } catch { /* 만료/위조 토큰은 비로그인 처리 */ }
+  return null;
+}
+
+// 판매자 본인이 자기 판매내역(?userId=본인)을 볼 때만 sold 매물에 구매자 표시명을 붙인다.
+// 캐시된 객체는 건드리지 않고 새 객체를 만들어 반환 — 남의 요청에 구매자 정보가 새지 않게.
+type ProductListResult = { products: unknown[]; totalCount: number };
+async function withBuyerInfo(result: ProductListResult, req: Request, userIdQuery: unknown): Promise<ProductListResult> {
+  if (!userIdQuery) return result;
+  const viewer = optionalUserId(req);
+  if (!viewer || viewer !== String(userIdQuery)) return result;
+  const rows = result.products as Array<{ status?: string | null; buyerId?: string | null }>;
+  const buyerIds = Array.from(new Set(rows.filter((p) => p.status === 'sold' && p.buyerId).map((p) => p.buyerId as string)));
+  if (buyerIds.length === 0) return result;
+  const buyers = await prisma.user.findMany({
+    where: { id: { in: buyerIds } },
+    select: { id: true, name: true, nickname: true },
+  });
+  const byId = new Map(buyers.map((b) => [b.id, { id: b.id, name: displayName(b) }]));
+  return {
+    ...result,
+    products: rows.map((p) => (p.buyerId ? { ...p, buyer: byId.get(p.buyerId) ?? null } : p)),
+  };
+}
 
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,9 +77,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     const sortedKey = Object.keys(keyParts).sort().map(k => `${k}=${keyParts[k]}`).join('&');
     const cacheKey = `products:${sortedKey}`;
 
-    const cached = cacheGet<{ products: unknown[]; totalCount: number }>(cacheKey);
+    const cached = cacheGet<ProductListResult>(cacheKey);
     if (cached) {
-      res.json(cached);
+      res.json(await withBuyerInfo(cached, req, userId));
       return;
     }
 
@@ -134,7 +171,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       id: true, name: true, price: true, image: true, brand: true,
       subcategory: true, status: true, isPremium: true, bumpedAt: true,
       createdAt: true, category: true, length: true, size: true,
-      viewCount: true,
+      viewCount: true, buyerId: true, soldAt: true,
       _count: { select: { wishlists: true } }, // 찜 개수
     };
 
@@ -181,9 +218,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
       return { ...rest, wishlistCount: _count?.wishlists ?? 0 };
     });
 
-    const result = { products: shaped, totalCount };
+    const result: ProductListResult = { products: shaped, totalCount };
     cacheSet(cacheKey, result, 10); // Cache for 10 seconds
-    res.json(result);
+    res.json(await withBuyerInfo(result, req, userId));
   } catch (error) {
     console.error('Get products error:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다.' });
@@ -437,17 +474,7 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     const { id } = req.params;
 
     // 토큰에서 userId 추출 (선택적 - 찜 여부 확인)
-    let currentUserId: string | null = null;
-    const authHeader = req.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
-      try {
-        const decoded = jwt.verify(authHeader.slice(7), process.env.JWT_SECRET!, {
-          algorithms: ['HS256'],
-          ignoreExpiration: false,
-        }) as { userId: string; type?: string };
-        if (!decoded.type || decoded.type === 'access') currentUserId = decoded.userId;
-      } catch { /* 만료/위조 토큰은 비로그인 처리 */ }
-    }
+    const currentUserId = optionalUserId(req);
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -494,7 +521,34 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
 
-    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size, tradeMethod, location, retailPrice } = req.body;
+    const { name, brand, subcategory, price, image, images, description, condition, usageCount, status, length, radius, flex, size, tradeMethod, location, retailPrice, buyerId } = req.body;
+    const nextStatus: string | undefined = status && ['selling', 'reserved', 'sold'].includes(status) ? status : undefined;
+
+    // 판매 완료 시 구매자 지정 (선택) — 판매자와 채팅한 상대만. 지정하면 그 사람에게만 후기 요청이 간다.
+    // 없으면 앱 밖 거래로 보고 buyerId=null (기존 문의자 일괄 알림 유지).
+    let designatedBuyerId: string | null = null;
+    if (nextStatus === 'sold' && buyerId !== undefined && buyerId !== null && buyerId !== '') {
+      if (typeof buyerId !== 'string' || !UUID_RE.test(buyerId)) {
+        res.status(400).json({ error: '구매자 정보가 올바르지 않아요.' });
+        return;
+      }
+      if (buyerId === product.userId) {
+        res.status(400).json({ error: '판매자 본인은 구매자로 지정할 수 없어요.' });
+        return;
+      }
+      const [u1, u2] = [product.userId as string, buyerId].sort();
+      const room = await prisma.chatRoom.findUnique({
+        where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+        select: { id: true },
+      });
+      if (!room) {
+        res.status(400).json({ error: '채팅한 상대만 구매자로 지정할 수 있어요' });
+        return;
+      }
+      designatedBuyerId = buyerId;
+    }
+    // 새로 구매자가 지정된 경우 (이미 sold 인 매물에 나중에 지정하는 것도 포함)
+    const newlyDesignated = !!designatedBuyerId && designatedBuyerId !== product.buyerId;
     let priceUpdate: number | undefined;
     if (price !== undefined && price !== null && price !== '') {
       const priceResult = parsePrice(price);
@@ -541,7 +595,12 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
         ...(condition && { condition: sanitizeText(condition, 20) }),
         // usageCount(연식): null/'' 로 보내면 비우기 허용 (기존엔 한번 쓰면 못 지웠음)
         ...(usageCount !== undefined && { usageCount: usageCount ? sanitizeText(usageCount, 30) : null }),
-        ...(status && ['selling', 'reserved', 'sold'].includes(status) && { status }),
+        ...(nextStatus && { status: nextStatus }),
+        // 판매완료 전환: 구매자·완료시각 기록. 이미 sold 인데 구매자만 새로 지정하면 buyerId 만 갱신.
+        // 판매중/예약중으로 되돌리면 구매자·완료시각을 비운다.
+        ...(nextStatus === 'sold' && product.status !== 'sold' && { buyerId: designatedBuyerId, soldAt: new Date() }),
+        ...(nextStatus === 'sold' && product.status === 'sold' && newlyDesignated && { buyerId: designatedBuyerId, soldAt: product.soldAt ?? new Date() }),
+        ...(nextStatus && nextStatus !== 'sold' && { buyerId: null, soldAt: null }),
         ...(tradeMethod !== undefined && { tradeMethod: sanitizeText(tradeMethod, 20) || null }),
         ...(location !== undefined && { location: sanitizeText(location, 60) || null }),
         ...(length !== undefined && { length: sanitizeText(length, 30) || null }),
@@ -600,8 +659,32 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
       if (relatedBookings.length > 0) cacheDel('banners:public');
     }
 
-    // 판매완료로 전환 시: 해당 상품에 대해 product_inquiry 메시지를 보낸 구매자들에게 리뷰 요청 알림
-    if (updated.status === 'sold' && product.status !== 'sold') {
+    // 판매완료 + 구매자 지정: 그 구매자에게만 후기 요청 (문의자 일괄 알림 대신), 판매자에겐 보냈다는 확인.
+    if (updated.status === 'sold' && newlyDesignated && designatedBuyerId) {
+      try {
+        const io = req.app.get('io');
+        const buyerTitle = '거래가 완료됐어요';
+        const buyerBody = `${updated.name} 거래가 완료됐어요. 판매자 후기를 남겨 주세요.`;
+        // 채팅 헤더의 "거래 후기 남기기" 와 같은 진입점 (판매자 프로필의 후기 작성 폼)
+        const buyerLink = `/seller/${updated.userId}`;
+        await createNotification(designatedBuyerId, 'system', buyerTitle, buyerBody, buyerLink);
+        if (io) io.to(`user:${designatedBuyerId}`).emit('new_notification', { type: 'system', title: buyerTitle, message: buyerBody, link: buyerLink });
+        sendPushToUser(designatedBuyerId, buyerTitle, buyerBody, buyerLink);
+
+        if (updated.userId) {
+          const sellerTitle = '후기 요청을 보냈어요';
+          const sellerBody = '구매자에게 후기 요청 알림을 보냈어요.';
+          const sellerLink = '/mypage/sales';
+          await createNotification(updated.userId, 'system', sellerTitle, sellerBody, sellerLink);
+          if (io) io.to(`user:${updated.userId}`).emit('new_notification', { type: 'system', title: sellerTitle, message: sellerBody, link: sellerLink });
+        }
+      } catch (e) {
+        console.error('Sold buyer notification error:', e);
+      }
+    }
+
+    // 판매완료로 전환 시 (구매자 미지정 = 앱 밖 거래): 해당 상품에 대해 product_inquiry 메시지를 보낸 구매자들에게 리뷰 요청 알림
+    if (updated.status === 'sold' && product.status !== 'sold' && !designatedBuyerId) {
       try {
         const inquiryMessages = await prisma.message.findMany({
           where: {
@@ -637,6 +720,58 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<vo
   } catch (error) {
     console.error('Update product error:', error);
     res.status(500).json({ error: '상품 수정 중 오류가 발생했습니다.' });
+  }
+};
+
+// 판매 완료 시 구매자 후보 — 판매자와 채팅한 상대들 (최근 대화순, 이 매물에 문의한 사람 우선).
+// 판매자 본인만 조회 가능. 이메일·전화 등 개인정보는 절대 포함하지 않는다.
+export const getBuyerCandidates = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const product = await prisma.product.findUnique({ where: { id }, select: { id: true, userId: true } });
+    if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
+    if (product.userId !== userId) { res.status(403).json({ error: '판매자만 볼 수 있어요.' }); return; }
+
+    const partnerSelect = { id: true, name: true, nickname: true, profileImage: true, role: true };
+    const rooms = await prisma.chatRoom.findMany({
+      where: { OR: [{ user1Id: userId }, { user2Id: userId }], status: 'accepted' },
+      select: { id: true, user1Id: true, user2Id: true, updatedAt: true, user1: { select: partnerSelect }, user2: { select: partnerSelect } },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+    if (rooms.length === 0) { res.json({ candidates: [] }); return; }
+
+    // 이 매물에 문의(product_inquiry) 를 보낸 상대는 맨 앞으로.
+    const inquiries = await prisma.message.findMany({
+      where: { type: 'product_inquiry', content: { contains: id }, roomId: { in: rooms.map((r) => r.id) } },
+      select: { senderId: true },
+    });
+    const inquirerIds = new Set(inquiries.map((m) => m.senderId).filter((sid) => sid !== userId));
+
+    const seen = new Set<string>();
+    const candidates: { id: string; name: string; profileImage: string | null; lastMessageAt: Date; inquired: boolean }[] = [];
+    for (const r of rooms) {
+      const partner = r.user1Id === userId ? r.user2 : r.user1;
+      if (!partner || partner.id === userId || seen.has(partner.id)) continue;
+      if (partner.role === 'deleted' || partner.role === 'banned') continue;
+      seen.add(partner.id);
+      candidates.push({
+        id: partner.id,
+        name: displayName(partner),
+        profileImage: partner.profileImage,
+        lastMessageAt: r.updatedAt,
+        inquired: inquirerIds.has(partner.id),
+      });
+    }
+    candidates.sort((a, b) => {
+      if (a.inquired !== b.inquired) return a.inquired ? -1 : 1;
+      return b.lastMessageAt.getTime() - a.lastMessageAt.getTime();
+    });
+    res.json({ candidates: candidates.map(({ inquired: _inquired, ...c }) => c) });
+  } catch (error) {
+    console.error('Buyer candidates error:', error);
+    res.status(500).json({ error: '구매자 후보 조회 중 오류가 발생했습니다.' });
   }
 };
 

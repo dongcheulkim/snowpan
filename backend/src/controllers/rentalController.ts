@@ -10,10 +10,11 @@ import { sanitizeText } from '../utils/sanitize';
 import { sanitizeImages } from '../utils/images';
 import { geocodeAndStore } from '../utils/geocode';
 import { listShopsForKind, parseExtraKinds, addsKinds, validProof } from '../utils/shopKinds';
+import { parseShopHours, parseRentalPrices, computePriceFrom, touchesPriceFrom } from '../utils/shopHours';
 
 export const getRentals = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { resortId, area, limit, offset, vertical } = req.query;
+    const { resortId, area, limit, offset, vertical, sort } = req.query;
     const verticalSlug = pickVertical(vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -25,7 +26,8 @@ export const getRentals = async (req: Request, res: Response): Promise<void> => 
 
     // 본 업종 + 겸업(extraKinds 에 rental)인 스키샵·정비샵까지 합친 뒤 메모리에서 페이지 분할.
     // (수백 건 규모라 충분하고 목록은 publicCache 로 2분 캐시됨. 수천 건 넘으면 DB 페이지네이션으로 전환)
-    const all = await listShopsForKind('rental', { vertical: verticalSlug, area: typeof area === 'string' ? area : undefined, resortId: resortId ? String(resortId) : undefined });
+    // sort=price → priceFrom(세트 최저가) 오름차순, 가격 없는 매장은 뒤. 프리미엄 우선은 그대로. 그 외 값은 기본 정렬.
+    const all = await listShopsForKind('rental', { vertical: verticalSlug, area: typeof area === 'string' ? area : undefined, resortId: resortId ? String(resortId) : undefined, sort: sort === 'price' ? 'price' : undefined });
     const start = skip ?? 0;
     res.json({ items: all.slice(start, start + take), totalCount: all.length });
   } catch (error) {
@@ -52,6 +54,11 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
     const ek = parseExtraKinds(b.extraKinds, 'rental');
     const proof = validProof(b.extraKindsProof);
     if (ek && req.user!.role !== 'admin' && !proof) { res.status(400).json({ error: '겸업 추가는 증빙(판매·정비 사진 또는 영상 링크)이 필요합니다.' }); return; }
+    // 구조화 영업시간 + 가격표 (2026-09-17) — 형식 오류는 400. priceFrom 은 서버가 계산(스키/보드 세트 최저가). 시딩 매장은 보통 비어 있어 null.
+    const hours = parseShopHours(b);
+    if (!hours.ok) { res.status(400).json({ error: hours.error }); return; }
+    const prices = parseRentalPrices(b);
+    if (!prices.ok) { res.status(400).json({ error: prices.error }); return; }
 
     const rental = await prisma.rental.create({
       data: {
@@ -70,6 +77,7 @@ export const createRental = async (req: AuthRequest, res: Response): Promise<voi
         businessLicense: b.businessLicense || null,
         resortId: b.resortId || null,
         extraKinds: ek, extraKindsProof: ek ? proof : null,
+        ...hours.data, ...prices.data, priceFrom: computePriceFrom(prices.data),
         userId,
         vertical: verticalSlug,
         approved: seeding, claimable: seeding,
@@ -154,6 +162,18 @@ export const updateRental = async (req: AuthRequest, res: Response): Promise<voi
         data.extraKindsProof = proof;
       }
       data.extraKinds = ek;
+    }
+    // 구조화 영업시간 + 가격표 — 요청에 있는 키만 반영(부분 수정). 세트 가격이 바뀌면 기존값과 합쳐 priceFrom 재계산.
+    const hours = parseShopHours(b);
+    if (!hours.ok) { res.status(400).json({ error: hours.error }); return; }
+    const prices = parseRentalPrices(b);
+    if (!prices.ok) { res.status(400).json({ error: prices.error }); return; }
+    Object.assign(data, hours.data, prices.data);
+    if (touchesPriceFrom(prices.data)) {
+      data.priceFrom = computePriceFrom({
+        priceSkiSet: 'priceSkiSet' in prices.data ? prices.data.priceSkiSet : item.priceSkiSet,
+        priceBoardSet: 'priceBoardSet' in prices.data ? prices.data.priceBoardSet : item.priceBoardSet,
+      });
     }
     // 겸업 칩만 빼는 수정은 재심사 없이 반영 (추가는 증빙 + 재심사)
     const onlyKindRemoval = Object.keys(data).length === 1 && 'extraKinds' in data && !addsKinds(item.extraKinds, data.extraKinds as string | null);

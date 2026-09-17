@@ -15,6 +15,8 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
+import OpenNowBadge from '../components/OpenNowBadge';
+import { hoursLabel } from '../utils/openNow';
 
 
 interface Shop {
@@ -31,6 +33,9 @@ interface Shop {
   website: string | null;
   naverMap: string | null;
   hours: string | null;
+  openTime?: string | null;
+  closeTime?: string | null;
+  closedDays?: string | null;
   image: string | null;
   isPremium?: boolean;
   claimable?: boolean; // 관리자 시딩 매장 — 사장님 확인 전
@@ -148,7 +153,15 @@ export default function RepairShopDetail() {
 
       <div className="card p-5 space-y-2.5 text-sm">
         <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">주소</span><span className="text-gray-900">{shop.address}</span></div>
-        {shop.hours && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">영업시간</span><span className="text-gray-900 whitespace-pre-line">{shop.hours}</span></div>}
+        {(hoursLabel(shop) || shop.hours) && (
+          <div className="flex gap-2">
+            <span className="text-gray-500 w-16 flex-shrink-0">영업시간</span>
+            <span className="text-gray-900 whitespace-pre-line min-w-0">
+              <span className="inline-flex items-center gap-1.5 flex-wrap">{hoursLabel(shop) || shop.hours} <OpenNowBadge shop={shop} /></span>
+              {hoursLabel(shop) && shop.hours && <span className="block text-xs text-gray-500">{shop.hours}</span>}
+            </span>
+          </div>
+        )}
         {shop.phone && <div className="flex gap-2"><span className="text-gray-500 w-16 flex-shrink-0">전화</span><a href={`tel:${shop.phone}`} className="text-sky-600">{shop.phone}</a></div>}
       </div>
 

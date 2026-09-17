@@ -59,6 +59,8 @@ model User {
   reviewsGiven     Review[]   @relation("reviewBuyer")
   reviewsReceived  Review[]   @relation("reviewSeller")
   shopReviews      ShopReview[]
+  resortReviews    ResortReview[]  // 스키장 후기 (2026-09-17)
+  competitions     Competition[]   // 주최자로 신청한 시합 (2026-09-17)
   reports          Report[]
   blocksMade       UserBlock[] @relation("BlocksMade")
   blocksReceived   UserBlock[] @relation("BlocksReceived")
@@ -200,6 +202,10 @@ model SkiResort {
   image     String?
   lat       Float?   // 리조트 좌표 — 근처 매장 자동 연결(약 7km)·거리 계산용
   lng       Float?
+  // 시즌 개장·폐장 예정일 (관리자 입력, 2026-09-17) — 홈 "시즌 오픈 D-day" 카운트다운·리조트 페이지 표시
+  openDate   DateTime?
+  closeDate  DateTime?
+  seasonNote String?  // 예: "야간 개장 12/5부터", "부분 개장"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -208,8 +214,60 @@ model SkiResort {
   accommodations Accommodation[]
   skiShops       SkiShop[]
   repairShops    RepairShop[]
+  reviews        ResortReview[]
+  competitions   Competition[]
 
   @@map("ski_resorts")
+}
+
+// 스키장 후기·별점 (2026-09-17) — 회원당 리조트 하나에 하나(다시 쓰면 갱신)
+model ResortReview {
+  id        String   @id @default(uuid())
+  resortId  String
+  resort    SkiResort @relation(fields: [resortId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([resortId, userId])
+  @@index([resortId, createdAt])
+  @@map("resort_reviews")
+}
+
+// 시합 일정 (2026-09-17) — 예전엔 프론트 정적 파일. 관리자가 직접 등록하거나 주최자가 신청(pending) → 관리자 승인 후 공개.
+model Competition {
+  id            String    @id @default(uuid())
+  title         String
+  date          DateTime  // 대회 시작일
+  endDate       DateTime?
+  location      String    // 장소(리조트명 등 자유 입력)
+  resortId      String?
+  resort        SkiResort? @relation(fields: [resortId], references: [id], onDelete: SetNull)
+  sport         String    // 'ski' | 'board' | 'both'
+  level         String?   // 참가 수준 (예: 아마추어/동호인/전문)
+  organizer     String    // 주최
+  description   String?
+  poster        String?   // 포스터 이미지 URL
+  events        String?   // 종목 (줄바꿈 구분)
+  fee           String?
+  contact       String?   // 문의 (전화/이메일/카카오채널)
+  website       String?   // 신청·안내 링크
+  schedule      String?   // 세부 일정 (줄바꿈 구분)
+  eligibility   String?
+  prize         String?
+  status        String    @default("pending") // 'pending' | 'approved' | 'rejected'
+  rejectReason  String?
+  submittedById String?   // 신청한 주최자 (관리자 직접 등록이면 관리자 id)
+  submittedBy   User?     @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, date])
+  @@index([submittedById])
+  @@map("competitions")
 }
 
 model Product {
@@ -234,6 +292,8 @@ model Product {
   flex        String?  // 플렉스 - 부츠/보드
   size        String?  // 사이즈 - 부츠/바인딩/헬멧/의류
   status      String?  @default("selling") // 'selling' | 'reserved' | 'sold'
+  buyerId     String?  // 판매 완료 시 판매자가 지정한 구매자 (2026-09-17) — 후기 요청·후기 자격 검증용. 앱 밖 거래면 null
+  soldAt      DateTime?
   retailPrice Int?     // 신품 정가(판매자 입력, 선택) — 상세에서 '정가 대비 %' 표시
   isPremium   Boolean? @default(false)
   premiumUntil DateTime?
@@ -272,10 +332,22 @@ model Rental {
   instagram             String?
   website               String?
   naverMap              String?
-  hours                 String?   // 영업시간
+  hours                 String?   // 영업시간 (자유 입력 — 표시용)
+  // 구조화 영업시간 (2026-09-17) — "지금 영업 중" 배지용. HH:mm, closedDays 는 콤마(mon,tue,...). 비어 있으면 hours 문자열에서 추정
+  openTime              String?
+  closeTime             String?
+  closedDays            String?
   image                 String?
   images                String?   // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense       String?   // 사업자등록증 이미지 URL
+  // 가격표 구조화 (2026-09-17) — 1일 기준 원. priceFrom = 세트 가격 중 최저(목록 "가격 낮은 순" 정렬·카드 "3만원~" 표시), 저장 시 서버가 계산
+  priceSkiSet           Int?
+  priceBoardSet         Int?
+  priceClothes          Int?
+  priceHelmet           Int?
+  priceGoggles          Int?
+  priceNote             String?   // 예: "시즌권 소지자 20% 할인, 연박 할인"
+  priceFrom             Int?
   // (구) 매물형 필드 — 유지하되 선택
   price                 Int?
   duration              String?
@@ -880,7 +952,10 @@ model SkiShop {
   instagram       String?
   website         String?
   naverMap        String?
-  hours           String?  // 영업시간
+  hours           String?  // 영업시간 (자유 입력)
+  openTime        String?  // 구조화 영업시간 (2026-09-17, "지금 영업 중" 배지) HH:mm
+  closeTime       String?
+  closedDays      String?  // 콤마: mon,tue,wed,thu,fri,sat,sun
   image           String?  // 샵 대표 이미지
   images          String?  // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense String?  // 사업자등록증 이미지 (사장님 등록 시 필수, 관리자 시딩 매장은 없음)
@@ -924,6 +999,9 @@ model RepairShop {
   website         String?
   naverMap        String?
   hours           String?
+  openTime        String?  // 구조화 영업시간 (2026-09-17, "지금 영업 중" 배지) HH:mm
+  closeTime       String?
+  closedDays      String?  // 콤마: mon,tue,...
   image           String?
   images          String?  // 포스터 사진들 (콤마 구분, 최대 8장)
   businessLicense String?  // 사업자등록증 이미지 (사장님 등록 시 필수, 관리자 시딩 매장은 없음)

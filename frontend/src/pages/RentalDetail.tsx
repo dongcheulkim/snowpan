@@ -12,6 +12,9 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
+import OpenNowBadge from '../components/OpenNowBadge';
+import RentalInquiryForm from '../components/RentalInquiryForm';
+import { hoursLabel } from '../utils/openNow';
 
 
 interface RentalData {
@@ -35,6 +38,17 @@ interface RentalData {
   lat?: number | null;
   lng?: number | null;
   extraKinds?: string | null;
+  // 구조화 영업시간 + 가격표 (2026-09-17)
+  openTime?: string | null;
+  closeTime?: string | null;
+  closedDays?: string | null;
+  priceSkiSet?: number | null;
+  priceBoardSet?: number | null;
+  priceClothes?: number | null;
+  priceHelmet?: number | null;
+  priceGoggles?: number | null;
+  priceNote?: string | null;
+  priceFrom?: number | null;
 }
 
 const RentalDetail = () => {
@@ -43,6 +57,7 @@ const RentalDetail = () => {
   const navigate = useNavigate();
   const [item, setItem] = useState<RentalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [inquiryOpen, setInquiryOpen] = useState(false); // 예약 문의 바텀시트
   const user = getUser();
   const my = useMyLocation();
 
@@ -63,6 +78,13 @@ const RentalDetail = () => {
   }
 
   const gallery = item.images || item.image || '';
+  // 가격표 — 입력된 항목만 (1일 기준). 하나도 없고 메모도 없으면 카드 숨김
+  const priceRows = ([
+    ['스키 세트', item.priceSkiSet], ['보드 세트', item.priceBoardSet], ['의류', item.priceClothes], ['헬멧', item.priceHelmet], ['고글', item.priceGoggles],
+  ] as [string, number | null | undefined][]).filter((r): r is [string, number] => typeof r[1] === 'number');
+  const structuredHours = hoursLabel(item);
+  // 문의 채팅·예약 문의가 같이 쓰는 채팅방 state (예약 문의는 여기에 initialMessage + autoSend 를 얹는다)
+  const chatState = { seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
@@ -81,9 +103,32 @@ const RentalDetail = () => {
         {item.resort?.name && <p className="text-xs text-gray-500">{item.resort.name} 인근</p>}
         <div className="mt-3 space-y-1.5">
           {item.address && <p className="text-sm text-gray-700 inline-flex items-center gap-1.5"><LocationIcon size={14} /> {item.address}</p>}
-          {item.hours && <p className="text-sm text-gray-700 inline-flex items-center gap-1.5"><ClockIcon size={14} /> {item.hours}</p>}
+          {(structuredHours || item.hours) && (
+            <p className="text-sm text-gray-700 flex items-center gap-1.5 flex-wrap"><ClockIcon size={14} /> {structuredHours || item.hours} <OpenNowBadge shop={item} /></p>
+          )}
+          {structuredHours && item.hours && <p className="text-xs text-gray-500 pl-5">{item.hours}</p>}
         </div>
       </div>
+
+      {(priceRows.length > 0 || item.priceNote) && (
+        <div className="card rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-sm font-bold text-gray-900">가격표</h3>
+            <span className="text-[10px] text-gray-500">1일 기준</span>
+          </div>
+          {priceRows.length > 0 && (
+            <div className="divide-y divide-gray-100">
+              {priceRows.map(([label, price]) => (
+                <div key={label} className="flex items-center justify-between py-2 text-sm">
+                  <span className="text-gray-600">{label}</span>
+                  <span className="font-bold text-gray-900">{price.toLocaleString()}원</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {item.priceNote && <p className="text-xs text-gray-500 mt-2 whitespace-pre-wrap leading-relaxed">{item.priceNote}</p>}
+        </div>
+      )}
 
       {item.brands && (
         <div className="card rounded-2xl p-5">
@@ -114,16 +159,30 @@ const RentalDetail = () => {
       {/* 문의 채팅 — 전화/링크가 없는 매장도 연락 가능하게 (레슨과 동일 UX).
           시딩(사장님 확인 전) 매장은 채팅이 관리자에게 가서 매장과 대화하는 것처럼 오해되므로 숨김 — 전화만 */}
       {!item.claimable && user && item.userId && item.userId !== user.id && (
-        <button
-          onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` }
-          })}
-          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
-        >문의 채팅하기</button>
+        <div className="flex gap-2">
+          {/* 예약 문의 — 날짜·인원·장비를 폼으로 받아 채팅 첫 메시지로 자동 전송 */}
+          <button
+            onClick={() => setInquiryOpen(true)}
+            className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >예약 문의</button>
+          <button
+            onClick={() => navigate(`/chat/new`, { state: chatState })}
+            className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+          >문의 채팅하기</button>
+        </div>
       )}
       {!item.claimable && !user && (
-        <Link to={loginPath()} className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+        <div className="flex gap-2">
+          <Link to={loginPath()} className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">예약 문의</Link>
+          <Link to={loginPath()} className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+        </div>
       )}
+      <RentalInquiryForm
+        open={inquiryOpen}
+        shopName={item.name}
+        onClose={() => setInquiryOpen(false)}
+        onSubmit={(message) => { setInquiryOpen(false); navigate('/chat/new', { state: { ...chatState, initialMessage: message, autoSend: true } }); }}
+      />
       <ClaimShopButton shopType="rental" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 
       {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}

@@ -61,6 +61,15 @@ interface PendingItem {
   aiVerified?: boolean;
   aiNote?: string | null;
   aiReviewedAt?: string | null;
+  // 시합 일정 신청 전용
+  title?: string;
+  date?: string;
+  endDate?: string | null;
+  location?: string;
+  organizer?: string;
+  sport?: string;
+  poster?: string | null;
+  submittedBy?: { id: string; name: string; nickname?: string | null; email?: string } | null;
 }
 
 // AI 직원 검증 결과 배지 — 관리자가 한눈에 신뢰도 파악.
@@ -76,7 +85,7 @@ function AiBadge({ item }: { item: PendingItem }) {
   );
 }
 
-type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair' | 'claim' | 'agency';
+type TabId = 'rental' | 'lesson' | 'accommodation' | 'badge' | 'skishop' | 'repair' | 'claim' | 'agency' | 'competition';
 
 const badgeLabels: Record<string, { label: string; color: string }> = {
   lv1: { label: 'LV1', color: 'bg-green-500 text-white' },
@@ -105,6 +114,15 @@ const accomTypeLabels: Record<string, string> = {
   hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트',
 };
 
+const sportLabels: Record<string, string> = { ski: '스키', board: '보드', both: '스키·보드' };
+
+// 'YYYY-MM-DD' → 'YYYY.M.D' (시합 일정 카드용)
+function fmtDate(s?: string | null) {
+  if (!s) return '';
+  const [y, m, d] = s.split('-');
+  return `${y}.${Number(m)}.${Number(d)}`;
+}
+
 const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [activeTab, setActiveTab] = useState<TabId>('rental');
   const [pendingRentals, setPendingRentals] = useState<PendingItem[]>([]);
@@ -115,12 +133,13 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [pendingRepair, setPendingRepair] = useState<PendingItem[]>([]);
   const [pendingClaims, setPendingClaims] = useState<PendingItem[]>([]);
   const [pendingAgencies, setPendingAgencies] = useState<PendingItem[]>([]);
+  const [pendingComps, setPendingComps] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
     try {
-      const [rentals, lessons, accom, badges, shops, repair, claims, agencies] = await Promise.all([
+      const [rentals, lessons, accom, badges, shops, repair, claims, agencies, comps] = await Promise.all([
         api<PendingItem[]>('/admin/rentals/pending'),
         api<PendingItem[]>('/admin/lessons/pending'),
         api<PendingItem[]>('/admin/accommodations/pending'),
@@ -129,6 +148,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         api<PendingItem[]>('/repair-shops/pending').catch(() => []),
         api<PendingItem[]>('/shop-claims/pending').catch(() => []),
         api<PendingItem[]>('/agencies/pending').catch(() => []),
+        api<PendingItem[]>('/competitions/admin/pending').catch(() => []),
       ]);
       setPendingRentals(rentals);
       setPendingLessons(lessons);
@@ -138,6 +158,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
       setPendingRepair(repair);
       setPendingClaims(claims);
       setPendingAgencies(agencies);
+      setPendingComps(comps);
     } catch {
       // not admin or error
     } finally {
@@ -166,6 +187,10 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
       if (tab === 'agency') {
         await api(`/agencies/${id}/approve`, { method: 'PUT' });
         toastSuccess('승인되었습니다!'); fetchPending(); return;
+      }
+      if (tab === 'competition') {
+        await api(`/competitions/${id}/approve`, { method: 'PUT' });
+        toastSuccess('승인했어요. 시합 일정에 공개돼요.'); fetchPending(); return;
       }
       const path = tab === 'badge' ? 'badges' : `${tab}s`;
       if (tab === 'badge' && !badgeOverrides[id]) {
@@ -198,6 +223,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
       else if (tab === 'repair') await api(`/repair-shops/${id}`, { method: 'DELETE', body });
       else if (tab === 'claim') await api(`/shop-claims/${id}/reject`, { method: 'PUT', body });
       else if (tab === 'agency') await api(`/agencies/${id}`, { method: 'DELETE', body });
+      else if (tab === 'competition') await api(`/competitions/${id}/reject`, { method: 'PUT', body });
       else {
         const path = tab === 'badge' ? 'badges' : `${tab}s`;
         await api(`/admin/${path}/${id}/reject`, { method: 'DELETE', body });
@@ -221,6 +247,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
     { id: 'repair' as const, name: '정비샵', count: pendingRepair.length },
     { id: 'claim' as const, name: '매장이전', count: pendingClaims.length },
     { id: 'agency' as const, name: '여행사', count: pendingAgencies.length },
+    { id: 'competition' as const, name: '시합 신청', count: pendingComps.length },
   ];
 
   const displayItems =
@@ -231,6 +258,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
     activeTab === 'repair' ? pendingRepair :
     activeTab === 'claim' ? pendingClaims :
     activeTab === 'agency' ? pendingAgencies :
+    activeTab === 'competition' ? pendingComps :
     pendingBadges;
 
   const renderItem = (item: PendingItem) => {
@@ -335,6 +363,38 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
           <div className="flex gap-2 pt-3 border-t border-gray-100">
             <button onClick={() => openReject('agency', item.id, item.name)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거부</button>
             <button onClick={() => handleApprove('agency', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
+          </div>
+        </div>
+      );
+    }
+    if (activeTab === 'competition') {
+      const submitter = item.submittedBy;
+      return (
+        <div key={item.id} className="card p-4">
+          <div className="flex items-start gap-3 mb-3">
+            {item.poster && (
+              <a href={imageUrl(item.poster)} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                <img src={imageUrl(item.poster, 200)} alt="포스터" className="w-16 h-20 object-cover rounded-lg border border-gray-200 hover:border-sky-400 transition-colors" />
+              </a>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded">{sportLabels[item.sport || ''] || item.sport}</span>
+                <span className="font-bold text-sm text-gray-900">{item.title}</span>
+                {item.level && <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{item.level}</span>}
+              </div>
+              <div className="text-xs text-gray-700">{fmtDate(item.date)}{item.endDate ? ` ~ ${fmtDate(item.endDate)}` : ''}</div>
+              {item.location && <div className="text-xs text-gray-500 inline-flex items-center gap-1"><LocationIcon size={12} /> {item.location}{item.resort?.name ? ` (${item.resort.name})` : ''}</div>}
+              {item.organizer && <div className="text-xs text-gray-500 mt-0.5">주최: {item.organizer}</div>}
+              {item.website && <a href={item.website} target="_blank" rel="noopener noreferrer" className="block text-xs text-sky-600 break-all mt-0.5">{item.website}</a>}
+              {item.description && <ExpandableText text={item.description} />}
+              {submitter && <div className="text-xs text-gray-500 mt-1">신청자: {submitter.nickname || submitter.name}{submitter.email ? ` (${submitter.email})` : ''}</div>}
+              <Link to={`/competitions/${item.id}`} className="inline-block mt-1.5 text-[11px] font-bold text-sky-600">상세 미리보기</Link>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-3 border-t border-gray-100">
+            <button onClick={() => openReject('competition', item.id, item.title)} className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200">거절</button>
+            <button onClick={() => handleApprove('competition', item.id)} className="flex-1 py-2 bg-sky-500 text-white rounded-lg font-bold text-xs hover:bg-sky-600 transition-colors">승인</button>
           </div>
         </div>
       );
