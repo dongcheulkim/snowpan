@@ -21,6 +21,7 @@ const LessonEdit = () => {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
+  const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>('');
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [region, setRegion] = useState('강원');
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
@@ -39,6 +40,7 @@ const LessonEdit = () => {
       const me = getUser();
       if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/lesson/${id}`, { replace: true }); return; }
       setForm({ name: d.name || '', resortId: d.resort?.id || '', type: d.type || '스키', description: d.description || '' });
+      setProviderType((d as { providerType?: 'business' | 'freelance' | null }).providerType || '');
       setSpecialties(d.specialties ? d.specialties.split(',') : []);
       setImages(d.images || d.image || '');
     }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/lesson', { replace: true }); });
@@ -53,7 +55,7 @@ const LessonEdit = () => {
       await api(`/lessons/${id}`, {
         method: 'PUT',
         body: {
-          name: form.name.trim(), resortId: form.resortId, type: form.type,
+          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType: providerType || undefined,
           specialties: specialties.join(','),
           description: form.description.trim(), images, image: images ? images.split(',')[0] : null,
         },
@@ -101,6 +103,14 @@ const LessonEdit = () => {
         <div className="flex flex-wrap gap-1.5">
           {SPECIALTIES.map(sp => (
             <button key={sp} onClick={() => toggleSpecialty(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${specialties.includes(sp) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{sp}</button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className={labelClass}>소속 구분 <span className="text-gray-500 font-normal">(관리자 확인용)</span></label>
+        <div className="flex gap-2">
+          {([['business', '스키학교·샵 (사업자)'], ['freelance', '개인 강사']] as const).map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setProviderType(v)} className={`flex-1 min-h-11 py-2.5 rounded-lg text-sm font-bold transition-all ${providerType === v ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
           ))}
         </div>
       </div>

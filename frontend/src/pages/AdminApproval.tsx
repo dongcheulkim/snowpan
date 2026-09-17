@@ -39,6 +39,7 @@ interface PendingItem {
   businessLicense?: string;
   instructorCert?: string;
   accommodationPermit?: string;
+  providerType?: 'business' | 'freelance' | null; // 레슨 소속 구분 (관리자만 봄)
   resort?: { name: string };
   area?: string;
   address?: string;
@@ -465,6 +466,12 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             )}
             {activeTab === 'lesson' && (
               <>
+                {/* 소속 구분 — 손님에겐 안 보이고 심사 때만 (개인 강사면 자격증, 사업자면 사업자등록증을 우선 확인) */}
+                <div className="mt-1">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.providerType === 'freelance' ? 'bg-amber-100 text-amber-800' : item.providerType === 'business' ? 'bg-sky-50 text-sky-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {item.providerType === 'freelance' ? '개인 강사' : item.providerType === 'business' ? '스키학교·샵 (사업자)' : '소속 미선택'}
+                  </span>
+                </div>
                 {item.type && <div className="text-xs text-gray-500 mt-0.5">{item.type}</div>}
                 {item.description && <ExpandableText text={item.description} />}
               </>

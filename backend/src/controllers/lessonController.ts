@@ -67,10 +67,19 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
 
 // 레슨 등록 (로그인 필요, 관리자 승인 대기)
 // 레슨 등록 (포스터형) — 레슨명·스키장·종류·상세설명·사진들. 나머지(가격/난이도/시간/인원)는 선택.
+// 소속 구분 — 'business'(스키학교·샵 사업자) | 'freelance'(개인 강사). 관리자 심사·본인 확인용, 공개 응답엔 안 나감 (사용자 결정 2026-09-17 "우리만 보이게").
+const PROVIDER_TYPES = ['business', 'freelance'] as const;
+function parseProviderType(v: unknown): { ok: true; value: string | null } | { ok: false } {
+  if (v === undefined || v === null || v === '') return { ok: true, value: null };
+  return typeof v === 'string' && (PROVIDER_TYPES as readonly string[]).includes(v) ? { ok: true, value: v } : { ok: false };
+}
+
 export const createLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const b = req.body;
+    const pt = parseProviderType(b.providerType);
+    if (!pt.ok) { res.status(400).json({ error: '소속 구분은 사업자(business) 또는 개인 강사(freelance) 중 하나예요.' }); return; }
     const verticalSlug = pickVertical(b.vertical);
     if (!verticalSlug) { res.status(400).json({ error: '잘못된 vertical 입니다.' }); return; }
 
@@ -102,6 +111,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         maxStudents: b.maxStudents ? Math.max(1, Number(b.maxStudents) || 1) : null,
         instructorCert: b.instructorCert || null,
         businessLicense: b.businessLicense || null,
+        providerType: pt.value,
         resortId: b.resortId,
         userId,
         approved: false,
@@ -143,7 +153,9 @@ export const getLessonById = async (req: AuthRequest, res: Response): Promise<vo
     // 조회수 증가 — 카테고리 인기 통계용 (실패 무시)
     prisma.lesson.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
 
-    res.json(maskRowUser(stripPrivate(lesson as any)));
+    // 본인·관리자는 서류·소속 구분까지(수정 화면 프리필), 그 외는 비공개 필드 제거
+    const insider = !!req.user && (req.user.id === lesson.userId || req.user.role === 'admin');
+    res.json(maskRowUser(insider ? (lesson as any) : stripPrivate(lesson as any)));
   } catch (error) {
     console.error('Get lesson error:', error);
     res.status(500).json({ error: '레슨 조회 중 오류가 발생했습니다.' });
@@ -165,6 +177,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     const data: Record<string, unknown> = {};
     if (b.name !== undefined) data.name = sanitizeText(b.name, 100) || b.name;
     if (b.type !== undefined) data.type = b.type ? (sanitizeText(b.type, 30) || b.type) : null;
+    if (b.providerType !== undefined) { const pt = parseProviderType(b.providerType); if (!pt.ok) { res.status(400).json({ error: '소속 구분은 사업자(business) 또는 개인 강사(freelance) 중 하나예요.' }); return; } data.providerType = pt.value; }
     if (b.specialties !== undefined) data.specialties = cleanSpecialties(b.specialties);
     if (b.description !== undefined) data.description = b.description ? (sanitizeText(b.description, 4000) || b.description) : null;
     if (b.images !== undefined) data.images = sanitizeImages(b.images);

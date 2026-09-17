@@ -22,6 +22,7 @@ const LessonRegister = () => {
   const [certFile, setCertFile] = useState<File | null>(null);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
+  const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>(''); // 소속 구분 — 관리자 심사용(공개 안 됨)
   const [region, setRegion] = useState('강원'); // 대분류: 지역 → 스키장 선택지 좁힘
   const [specialties, setSpecialties] = useState<string[]>([]);
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
@@ -38,6 +39,7 @@ const LessonRegister = () => {
     if (!form.name.trim()) missing.push('레슨명');
     if (!form.resortId) missing.push('스키장');
     if (!form.description.trim()) missing.push('상세설명');
+    if (!providerType) missing.push('소속 구분');
     if (missing.length) { toastError(`필수 항목: ${missing.join(', ')}`); return; }
 
     setLoading(true);
@@ -49,7 +51,7 @@ const LessonRegister = () => {
       await api('/lessons', {
         method: 'POST',
         body: {
-          name: form.name.trim(), resortId: form.resortId, type: form.type,
+          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType,
           specialties: specialties.join(',') || undefined,
           description: form.description.trim(),
           images: images || undefined, image: images ? images.split(',')[0] : undefined,
@@ -121,6 +123,16 @@ const LessonRegister = () => {
       <div>
         <label className={labelClass}>사진 (포스터)</label>
         <MultiImageUpload value={images} onChange={setImages} />
+      </div>
+
+      <div>
+        <label className={labelClass}>소속 구분 <span className="text-gray-500 font-normal">(관리자 확인용, 손님에게는 표시되지 않아요)</span></label>
+        <div className="flex gap-2">
+          {([['business', '스키학교·샵 (사업자)'], ['freelance', '개인 강사']] as const).map(([v, label]) => (
+            <button key={v} type="button" onClick={() => setProviderType(v)} className={`flex-1 min-h-11 py-2.5 rounded-lg text-sm font-bold transition-all ${providerType === v ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
+          ))}
+        </div>
+        <p className="text-[11px] text-gray-500 mt-1.5">{providerType === 'freelance' ? '개인 강사는 아래 강사 자격증 사진을 올려 주시면 확인이 빨라요.' : providerType === 'business' ? '사업자는 아래 사업자등록증 사진을 올려 주시면 확인이 빨라요.' : '심사할 때 참고하는 정보예요.'}</p>
       </div>
 
       <div>

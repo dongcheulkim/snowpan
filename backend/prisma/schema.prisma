@@ -426,6 +426,7 @@ model Lesson {
   image                 String?   // (구) 대표 이미지 — 선택
   instructorCert        String?   // 강사 자격증 이미지 URL
   businessLicense       String?   // 사업자등록증 이미지 URL
+  providerType          String?   // 소속 구분 'business'(스키학교·샵 사업자) | 'freelance'(개인 강사) — 관리자 심사용, 공개 응답에서 제거 (2026-09-17 사용자 결정 "우리만 보이게")
   // (구) 상세 필드 — 선택
   price                 Int?
   duration              String?
