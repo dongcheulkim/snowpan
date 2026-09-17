@@ -61,7 +61,7 @@ async function login(p, email, pw) {
   } else console.log('SKIP 사장님 관리 렌탈샵 없음 (예약 문의 버튼 검사 생략)');
 
   // 5) 공유 카드 (봇 UA 로 HTML og 태그)
-  const used = await (await fetch(`${API}/products?category=used&limit=1`)).json(); const u0 = (used.items || used)[0];
+  const used = await (await fetch(`${API}/products?category=used&limit=1`)).json(); const u0 = (Array.isArray(used) ? used : (used.items || used.products || []))[0];
   if (u0) {
     const r = await fetch(`${BASE}/used/${u0.id}`, { headers: { 'User-Agent': 'facebookexternalhit/1.1;kakaotalk-scrap/1.0;' } }); const h = await r.text();
     ok('카카오톡 봇 → 매물 공유 카드 og:title', /og:title" content="[^"]*원/.test(h), `HTTP ${r.status}`);
