@@ -357,6 +357,9 @@ OGH=$(curl -s -m 20 -w $'\n%{http_code}' "$BASE/og/page/used/$OGP"); OGC=$(print
 echo "$OGB" | grep -q 'og:image" content="http' && ok "공유 카드 og:image 절대주소" || bad "OG image 없음"
 echo "$OGB" | grep -q "og:url\" content=\"[^\"]*/used/$OGP\"" && ok "공유 카드 og:url 원래 페이지" || bad "OG url $(echo "$OGB" | grep -o 'og:url[^>]*' | head -1)"
 echo "$OGB" | grep -qi "email\|phone\|@re.test" && bad "공유 카드에 개인정보 흔적" || ok "공유 카드에 개인정보 없음"
+echo "$OGB" | grep -q "og:image\" content=\"[^\"]*/api/og/image/used/$OGP.png\"" && ok "공유 카드 og:image = 합성 카드 PNG 주소" || bad "OG image 주소 $(echo "$OGB" | grep -o 'og:image" content="[^"]*' | head -1)"
+OGI=$(curl -s -m 60 -o /tmp/snowpan_og_card.png -w "%{http_code} %{content_type} %{size_download}" "$BASE/og/image/used/$OGP.png")
+[ "${OGI%% *}" = "200" ] && echo "$OGI" | grep -q "image/png" && [ "$(echo "$OGI" | awk '{print $3}')" -gt 5000 ] && [ "$(head -c 8 /tmp/snowpan_og_card.png | xxd -p)" = "89504e470d0a1a0a" ] && ok "합성 카드 PNG 생성 (1200×630, 한글 폰트)" || bad "카드 PNG $OGI"
 OGN=$(curl -s -m 20 -o /dev/null -w "%{http_code}" "$BASE/og/page/used/00000000-0000-0000-0000-000000000000"); [ "$OGN" = "404" ] && ok "없는 매물 공유 카드 404" || bad "없는 매물 OG CODE=$OGN"
 OGX=$(curl -s -m 20 -o /dev/null -w "%{http_code}" "$BASE/og/page/alien/$OGP"); [ "$OGX" = "404" ] && ok "모르는 유형 공유 카드 404" || bad "모르는 유형 OG CODE=$OGX"
 api DELETE "/products/$OGP" "" "$U_TOKEN"; expect 200 "공유 카드용 매물 정리"

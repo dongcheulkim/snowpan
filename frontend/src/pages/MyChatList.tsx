@@ -14,7 +14,7 @@ interface ChatRoom {
   user1: { id: string; name: string; profileImage?: string | null };
   user2: { id: string; name: string; profileImage?: string | null };
   otherUser?: { id: string; name: string; profileImage?: string | null } | null;
-  messages: { content: string; createdAt: string; type?: string }[];
+  messages: { content: string; createdAt: string; type?: string; senderId?: string }[];
   unreadCount: number;
   updatedAt: string;
   status?: string;        // 'accepted' | 'pending' — 채팅 요청 게이트
@@ -44,6 +44,7 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
 
 const MyChatList = () => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [chatFilter, setChatFilter] = useState<'all' | 'unanswered'>('all'); // 관리자 전용 필터
   const [loading, setLoading] = useState(true);
   // 마지막 요청 실패 메시지 — 성공하면 지움. 폴링 실패는 기존 목록을 유지하고, 목록이 비어 있을 때만 재시도 안내
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -114,12 +115,25 @@ const MyChatList = () => {
     );
   }
 
+  // 관리자: 손님이 마지막으로 말한 방(= 아직 답 안 한 문의)만 골라 보기 (2026-09-17, 하루 요약의 '답 없는 문의'와 같은 기준·시간 제한 없음)
+  const isAdmin = user.role === 'admin';
+  const isUnanswered = (r: ChatRoom) => { const last = r.messages && r.messages[0]; const other = r.otherUser || (r.user1.id === user.id ? r.user2 : r.user1); return !!last && !!last.senderId && last.senderId === other.id; };
+  const unansweredCount = isAdmin ? rooms.filter(isUnanswered).length : 0;
+  const shownRooms = isAdmin && chatFilter === 'unanswered' ? rooms.filter(isUnanswered) : rooms;
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/" className="text-gray-500 text-lg">&larr;</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('myChatList.title')}</h1>
       </div>
+      {isAdmin && rooms.length > 0 && (
+        <div className="flex items-center gap-2">
+          {([['all', `전체 ${rooms.length}`], ['unanswered', `답 안 한 문의 ${unansweredCount}`]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setChatFilter(k)} className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${chatFilter === k ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'}`}>{l}</button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-2">
@@ -127,6 +141,8 @@ const MyChatList = () => {
         </div>
       ) : loadError && rooms.length === 0 ? (
         <LoadError message={loadError} onRetry={() => { setLoading(true); setLoadError(null); setRetryKey((k) => k + 1); }} />
+      ) : isAdmin && chatFilter === 'unanswered' && shownRooms.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">답 안 한 문의가 없어요.</div>
       ) : rooms.length === 0 ? (
         <EmptyState
           icon={<ChatIcon size={48} strokeWidth={1.4} />}
@@ -137,7 +153,7 @@ const MyChatList = () => {
         />
       ) : (
         <div className="space-y-2">
-          {rooms.filter(r => r && r.user1 && r.user2).map((room) => {
+          {shownRooms.filter(r => r && r.user1 && r.user2).map((room) => {
             const other = room.otherUser || (room.user1.id === user.id ? room.user2 : room.user1);
             const lastMsg = (room.messages && room.messages[0]) || null;
             return (

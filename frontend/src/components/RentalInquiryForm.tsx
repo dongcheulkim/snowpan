@@ -45,7 +45,7 @@ export default function RentalInquiryForm({ open, shopName, onClose, onSubmit }:
     const a = clampCount(adults);
     const c = clampCount(children);
     if (a + c === 0) { toastError('인원을 입력해 주세요.'); return; }
-    onSubmit(buildRentalInquiry({ start, end: endDate, adults: a, children: c, ski: clampCount(ski), board: clampCount(board), options, note: note.slice(0, 300) }));
+    onSubmit(buildRentalInquiry({ shopName, start, end: endDate, adults: a, children: c, ski: clampCount(ski), board: clampCount(board), options, note: note.slice(0, 300) }));
   };
 
   const inputClass = 'w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400';

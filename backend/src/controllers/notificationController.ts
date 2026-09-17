@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { sendPushToUser } from '../utils/push';
 import { sendDiscord } from '../utils/discord';
 
 export const getNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -86,6 +87,8 @@ export const notifyAdmins = async (type: string, title: string, message: string,
     const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } });
     for (const admin of admins) {
       await prisma.notification.create({ data: { userId: admin.id, type, title, message, link } });
+      // 사장님 폰에 바로 푸시 (2026-09-17) — 앱을 안 열어도 등록·신고·신청을 놓치지 않게. 실패해도 무시.
+      sendPushToUser(admin.id, title, message, link || '/admin').catch(() => {});
     }
   } catch (error) {
     console.error('Notify admins error:', error);

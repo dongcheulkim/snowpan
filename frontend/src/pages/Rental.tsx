@@ -116,6 +116,9 @@ const Rental = () => {
           </button>
         ))}
       </div>
+      {sortMode === 'price' && (
+        <p className="text-[11px] text-gray-500 -mt-1">가격표를 등록한 매장이 먼저 보여요. 아직 등록하지 않은 매장은 뒤에 기본 순서로 이어져요.</p>
+      )}
 
       {/* Rental Items */}
       {loading ? (

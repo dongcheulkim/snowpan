@@ -256,7 +256,11 @@ const Chat = () => {
       api<{ id: string }>('/chat/rooms', {
         method: 'POST',
         body: { targetUserId: state.sellerId, productName: state.productName || undefined, productPath: state.productPath || undefined },
-      }).then(room => safeConnect(room.id)).catch((e) => {
+      }).then(room => {
+        safeConnect(room.id);
+        // /chat/new 로 남아 있으면 새로고침·뒤로가기 때 목록으로 튕기므로 실제 방 주소로 바꿔 둔다 (2026-09-17)
+        if (chatId === 'new' && !cancelled) navigate(`/chat/${room.id}`, { replace: true, state });
+      }).catch((e) => {
         if (!cancelled) toastError(e instanceof Error ? e.message : '채팅방 연결에 실패했습니다.');
       });
     } else {

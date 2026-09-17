@@ -1,5 +1,6 @@
 // 렌탈 "예약 문의" 폼 값 → 채팅 첫 메시지(평문). components/RentalInquiryForm 이 만들고 RentalDetail 이 Chat 으로 넘긴다.
 export interface RentalInquiryInput {
+  shopName?: string; // 매장 이름 — 렌탈샵을 여러 곳 운영하는 사장님이 어느 매장 문의인지 알게 (2026-09-17)
   start: string; // YYYY-MM-DD
   end: string;
   adults: number;
@@ -14,6 +15,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // 예:
 // [렌탈 예약 문의]
+// 매장: 스키어드벤쳐
 // 날짜: 2026-12-20 ~ 2026-12-21 (1박)
 // 인원: 성인 2, 아동 1
 // 장비: 스키 세트 2, 보드 세트 1
@@ -23,6 +25,7 @@ export function buildRentalInquiry(f: RentalInquiryInput): string {
   const nights = Math.max(0, Math.round((Date.parse(f.end) - Date.parse(f.start)) / DAY_MS));
   const lines = [
     '[렌탈 예약 문의]',
+    ...(f.shopName?.trim() ? [`매장: ${f.shopName.trim()}`] : []),
     `날짜: ${f.start} ~ ${f.end} (${nights > 0 ? `${nights}박` : '당일'})`,
     `인원: 성인 ${f.adults}, 아동 ${f.children}`,
   ];
