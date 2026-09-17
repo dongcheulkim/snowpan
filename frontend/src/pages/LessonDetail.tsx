@@ -10,6 +10,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
+import ReservationForm from '../components/ReservationForm';
 
 interface LessonData {
   id: string;
@@ -30,6 +31,7 @@ const LessonDetail = () => {
   const navigate = useNavigate();
   const [item, setItem] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reserveOpen, setReserveOpen] = useState(false); // 레슨 예약 바텀시트 (결제 없음)
   const user = getUser();
 
   useMeta({
@@ -56,6 +58,8 @@ const LessonDetail = () => {
   }
 
   const gallery = item.images || item.image || '';
+  // 문의 채팅·레슨 예약이 같이 쓰는 채팅방 state (헤더 이름·뒤로가기 경로)
+  const chatState = { seller: item.user?.nickname || item.user?.name || '강사', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/lesson/${item.id}`, productPath: `/lesson/${item.id}` };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
@@ -93,16 +97,32 @@ const LessonDetail = () => {
 
       {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
       {user && item.userId && item.userId !== user.id && (
-        <button
-          onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.nickname || item.user?.name || '강사', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/lesson/${item.id}`, productPath: `/lesson/${item.id}` }
-          })}
-          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
-        >문의 채팅하기</button>
+        <div className="flex gap-2">
+          {/* 레슨 예약 — 날짜·인원·수준을 받아 예약을 요청하고, 서버가 카드를 넣어 준 채팅방으로 이동 (결제 없음) */}
+          <button
+            onClick={() => setReserveOpen(true)}
+            className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >레슨 예약</button>
+          <button
+            onClick={() => navigate(`/chat/new`, { state: chatState })}
+            className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+          >문의 채팅하기</button>
+        </div>
       )}
       {!user && (
-        <Link to={loginPath()} className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+        <div className="flex gap-2">
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">레슨 예약</Link>
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+        </div>
       )}
+      <ReservationForm
+        open={reserveOpen}
+        shopType="lesson"
+        shopId={item.id}
+        shopName={item.name}
+        onClose={() => setReserveOpen(false)}
+        onCreated={(roomId) => { setReserveOpen(false); navigate(`/chat/${roomId}`, { state: chatState }); }}
+      />
 
       {item.userId && <ShopPostsFeed shopType="lesson" shopId={item.id} ownerId={item.userId} />}
       <ShopReportButton shopType="lesson" shopId={item.id} ownerId={item.userId} />

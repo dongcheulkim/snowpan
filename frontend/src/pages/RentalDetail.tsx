@@ -13,7 +13,7 @@ import ClaimShopButton from '../components/ClaimShopButton';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
 import OpenNowBadge from '../components/OpenNowBadge';
-import RentalInquiryForm from '../components/RentalInquiryForm';
+import ReservationForm from '../components/ReservationForm';
 import { hoursLabel } from '../utils/openNow';
 
 
@@ -57,7 +57,7 @@ const RentalDetail = () => {
   const navigate = useNavigate();
   const [item, setItem] = useState<RentalData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [inquiryOpen, setInquiryOpen] = useState(false); // 예약 문의 바텀시트
+  const [reserveOpen, setReserveOpen] = useState(false); // 방문 예약 바텀시트 (결제 없음)
   const user = getUser();
   const my = useMyLocation();
 
@@ -83,8 +83,8 @@ const RentalDetail = () => {
     ['스키 세트', item.priceSkiSet], ['보드 세트', item.priceBoardSet], ['의류', item.priceClothes], ['헬멧', item.priceHelmet], ['고글', item.priceGoggles],
   ] as [string, number | null | undefined][]).filter((r): r is [string, number] => typeof r[1] === 'number');
   const structuredHours = hoursLabel(item);
-  // 문의 채팅·예약 문의가 같이 쓰는 채팅방 state (예약 문의는 여기에 initialMessage + autoSend 를 얹는다)
-  const chatState = { seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` };
+  // 문의 채팅·방문 예약이 같이 쓰는 채팅방 state (예약은 서버가 카드를 넣어 준 방으로 이동할 때 헤더·뒤로가기용)
+  const chatState ={ seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
@@ -160,28 +160,30 @@ const RentalDetail = () => {
           시딩(사장님 확인 전) 매장은 채팅이 관리자에게 가서 매장과 대화하는 것처럼 오해되므로 숨김 — 전화만 */}
       {!item.claimable && user && item.userId && item.userId !== user.id && (
         <div className="flex gap-2">
-          {/* 예약 문의 — 날짜·인원·장비를 폼으로 받아 채팅 첫 메시지로 자동 전송 */}
+          {/* 방문 예약 — 날짜·인원·장비를 받아 예약을 요청하고, 서버가 카드를 넣어 준 채팅방으로 이동 (결제 없음) */}
           <button
-            onClick={() => setInquiryOpen(true)}
-            className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
-          >예약 문의</button>
+            onClick={() => setReserveOpen(true)}
+            className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >방문 예약</button>
           <button
             onClick={() => navigate(`/chat/new`, { state: chatState })}
-            className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+            className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
           >문의 채팅하기</button>
         </div>
       )}
       {!item.claimable && !user && (
         <div className="flex gap-2">
-          <Link to={loginPath()} className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">예약 문의</Link>
-          <Link to={loginPath()} className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">방문 예약</Link>
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
         </div>
       )}
-      <RentalInquiryForm
-        open={inquiryOpen}
+      <ReservationForm
+        open={reserveOpen}
+        shopType="rental"
+        shopId={item.id}
         shopName={item.name}
-        onClose={() => setInquiryOpen(false)}
-        onSubmit={(message) => { setInquiryOpen(false); navigate('/chat/new', { state: { ...chatState, initialMessage: message, autoSend: true } }); }}
+        onClose={() => setReserveOpen(false)}
+        onCreated={(roomId) => { setReserveOpen(false); navigate(`/chat/${roomId}`, { state: chatState }); }}
       />
       <ClaimShopButton shopType="rental" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 

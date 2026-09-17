@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
@@ -8,6 +8,11 @@ import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../components/Toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 import AdInvitePanel from '../components/AdInvitePanel';
+import ReservationActions from '../components/ReservationActions';
+import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_LABEL, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty } from '../utils/reservation';
+
+// 방문 예약 상세 (GET /reservations/:id) — owner/customer 로 내가 어느 쪽인지 판단
+type ResDetail = Reservation & { customer?: ReservationParty; owner?: ReservationParty };
 
 interface Message {
   id: string;
@@ -138,6 +143,46 @@ const Chat = () => {
     }
   };
   const backPath = state?.backTo || '/chat/rooms';
+
+  // 방문 예약 카드 — reservationId 별 최신 상태를 GET /reservations/:id 로 한 번씩 조회(카드가 새로 올 때마다 갱신).
+  // 요청/확정/거절/취소 이벤트마다 카드가 한 장씩 오므로 버튼은 그 예약의 마지막 카드에만 붙인다.
+  const [resInfo, setResInfo] = useState<Record<string, ResDetail>>({});
+  const resFetchedRef = useRef<Record<string, string>>({}); // reservationId → 조회를 일으킨 최신 카드 메시지 id (중복 조회 방지)
+  const [resBusy, setResBusy] = useState<string | null>(null);
+  const latestResCard = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const m of messages) {
+      if (m.type !== 'reservation') continue;
+      const c = parseReservationCard(m.content);
+      if (c) map[c.reservationId] = m.id;
+    }
+    return map;
+  }, [messages]);
+  const loadReservation = (rid: string) =>
+    api<ResDetail>(`/reservations/${rid}`).then((r) => { if (r?.id) setResInfo((prev) => ({ ...prev, [rid]: r })); }).catch(() => {});
+  useEffect(() => {
+    for (const [rid, mid] of Object.entries(latestResCard)) {
+      if (resFetchedRef.current[rid] === mid) continue;
+      resFetchedRef.current[rid] = mid;
+      loadReservation(rid);
+    }
+  }, [latestResCard]);
+  const runResAction = async (rid: string, action: 'confirm' | 'decline' | 'cancel', text?: string) => {
+    if (resBusy) return;
+    setResBusy(rid);
+    try {
+      const body = action === 'confirm' ? { message: text || undefined } : action === 'decline' ? { reason: text || undefined } : undefined;
+      const updated = await api<ResDetail>(`/reservations/${rid}/${action}`, { method: 'PUT', ...(body ? { body } : {}) });
+      setResInfo((prev) => ({ ...prev, [rid]: { ...prev[rid], ...updated } }));
+      toastSuccess(action === 'confirm' ? '예약을 확정했어요.' : action === 'decline' ? '예약을 거절했어요.' : '예약을 취소했어요.');
+      // 새 카드는 소켓 new_message 로 온다 — 상세는 한 번 더 맞춰 둔다
+      loadReservation(rid);
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '처리하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setResBusy(null);
+    }
+  };
 
   // 탭이 백그라운드면 방에서 나감 — 서버가 "보고 있다"고 오판해 푸시·알림을 생략하는 것 방지.
   // 복귀 시 재조인 + 그 사이 메시지 refetch + 읽음 처리.
@@ -630,6 +675,71 @@ const Chat = () => {
                           </Link>
                         )}
                         {expStr && <p className={`text-[10px] mt-2 ${isMe ? 'text-white/50' : 'text-gray-500'}`}>{expStr}</p>}
+                      </div>
+                      <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                        {showRead && <span className="text-gray-900 font-medium">읽음</span>}
+                        <span>{formatTime(msg.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (msg.type === 'reservation') {
+              // 방문 예약 카드 — 이벤트(요청/확정/거절/취소)마다 한 장. 최신 카드에만 버튼(사장님: 확정·거절·취소, 손님: 취소)
+              const card = parseReservationCard(msg.content);
+              const info = card ? resInfo[card.reservationId] : undefined;
+              const isLatest = !!card && latestResCard[card.reservationId] === msg.id;
+              const role: 'owner' | 'customer' | null = info && user ? (info.owner?.id === user.id ? 'owner' : info.customer?.id === user.id ? 'customer' : null) : null;
+              const muted = isMe ? 'text-white/60' : 'text-gray-500';
+              const nights = card && card.shopType === 'accommodation' ? nightsBetween(card.date, card.endDate) : 0;
+              const rows: [string, string][] = card ? [
+                ['매장', card.shopName || '매장'],
+                ['날짜', formatDateRange(card.date, card.endDate) + (nights > 0 ? ` (${nights}박)` : '')],
+                ...(card.time ? [['시간', card.time] as [string, string]] : []),
+                ['인원', peopleLabel(card.adults, card.children)],
+                ...detailPairs(card.shopType, card.details),
+                ...(card.note ? [['요청사항', card.note] as [string, string]] : []),
+                ...(card.message ? [[card.event === 'declined' ? '거절 사유' : '사장님 메시지', card.message] as [string, string]] : []),
+              ] : [];
+              return (
+                <div key={msg.id}>
+                  {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
+                  <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[85%] w-[320px]">
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      <div className={`rounded-2xl px-4 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
+                        {card ? (
+                          <>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className={`text-[10px] font-semibold tracking-wide ${muted}`}>{SHOP_TYPE_LABEL[card.shopType]} 예약</span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isMe ? 'border-white/30 text-white/90' : STATUS_CHIP[card.event]}`}>{STATUS_LABEL[card.event]}</span>
+                            </div>
+                            <p className="text-base font-bold leading-snug">{EVENT_TITLE[card.event]}</p>
+                            <dl className="mt-2 space-y-1 text-xs">
+                              {rows.map(([k, v]) => (
+                                <div key={k} className="flex gap-2">
+                                  <dt className={`w-16 flex-shrink-0 ${muted}`}>{k}</dt>
+                                  <dd className="flex-1 min-w-0 break-words whitespace-pre-wrap">{v}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                            {isLatest && info && role && (
+                              <ReservationActions
+                                status={info.status}
+                                role={role}
+                                busy={resBusy === info.id}
+                                tone={isMe ? 'dark' : 'light'}
+                                onConfirm={(m) => runResAction(info.id, 'confirm', m)}
+                                onDecline={(r) => runResAction(info.id, 'decline', r)}
+                                onCancel={() => runResAction(info.id, 'cancel')}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm">예약 카드를 불러오지 못했어요. 마이 → 내 예약에서 확인해 주세요.</p>
+                        )}
                       </div>
                       <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                         {showRead && <span className="text-gray-900 font-medium">읽음</span>}

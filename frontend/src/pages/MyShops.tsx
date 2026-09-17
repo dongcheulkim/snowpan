@@ -62,6 +62,13 @@ export default function MyShops() {
   const [openNews, setOpenNews] = useState<string | null>(null);
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
+  // 예약 관리 진입 카드의 "요청 N건" — 사장님이 아직 답하지 않은 방문 예약 수 (조회 실패면 건수 없이 카드만)
+  const [pendingReservations, setPendingReservations] = useState<number | null>(null);
+  useEffect(() => {
+    api<{ items: unknown[] }>('/reservations/shop?status=requested')
+      .then((r) => setPendingReservations(Array.isArray(r?.items) ? r.items.length : 0))
+      .catch(() => setPendingReservations(null));
+  }, [retryKey]);
 
   useEffect(() => {
     const load = () => {
@@ -259,6 +266,22 @@ export default function MyShops() {
             <div className="text-[11px] text-gray-500 mt-0.5">총 조회수</div>
           </div>
         </div>
+      )}
+
+      {/* 예약 관리 — 손님이 보낸 방문 예약(결제 없음)을 확정·거절하는 곳. 매장이 하나도 없으면 숨김 */}
+      {totalShops > 0 && (
+        <Link to="/mypage/shop-reservations" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-gray-900">예약 관리{pendingReservations !== null ? ` · 요청 ${pendingReservations}건` : ''}</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">손님이 보낸 방문 예약을 확정하거나 거절할 수 있어요.</div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!!pendingReservations && (
+              <span className="bg-coral text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{pendingReservations > 99 ? '99+' : pendingReservations}</span>
+            )}
+            <span className="text-gray-500 text-xs">→</span>
+          </div>
+        </Link>
       )}
 
       {visibleCategories.length === 0 && (loadError ? (

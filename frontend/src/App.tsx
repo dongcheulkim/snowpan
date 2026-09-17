@@ -72,6 +72,8 @@ const MySales = lazy(() => import('./pages/MySales'));
 const UsedEdit = lazy(() => import('./pages/UsedEdit'));
 const MyWishlist = lazy(() => import('./pages/MyWishlist'));
 const MyPosts = lazy(() => import('./pages/MyPosts'));
+const MyReservations = lazy(() => import('./pages/MyReservations'));
+const ShopReservations = lazy(() => import('./pages/ShopReservations'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Support = lazy(() => import('./pages/Support'));
@@ -185,6 +187,9 @@ function App() {
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
             <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
             <Route path="mypage/shops" element={<RequireAuth><MyShops /></RequireAuth>} />
+            {/* 방문 예약 (결제 없음) — 손님: 내 예약, 사장님: 받은 예약 관리 */}
+            <Route path="mypage/reservations" element={<RequireAuth><MyReservations /></RequireAuth>} />
+            <Route path="mypage/shop-reservations" element={<RequireAuth><ShopReservations /></RequireAuth>} />
             <Route path="mypage/ads" element={<RequireAuth><MyAds /></RequireAuth>} />
             <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
             <Route path="mypage/terms" element={<RequireAuth><Terms /></RequireAuth>} />

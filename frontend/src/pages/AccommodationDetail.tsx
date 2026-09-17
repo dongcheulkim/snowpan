@@ -12,6 +12,7 @@ import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
+import ReservationForm from '../components/ReservationForm';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -38,6 +39,7 @@ const AccommodationDetail = () => {
   const navigate = useNavigate();
   const [item, setItem] = useState<AccommodationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reserveOpen, setReserveOpen] = useState(false); // 숙박 예약 바텀시트 (결제 없음)
   const user = getUser();
 
   useMeta({
@@ -74,6 +76,8 @@ const AccommodationDetail = () => {
   const discount = item.originalPrice > item.price ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
   const typeText = item.type.split(',').map(t => typeMap[t] || t).join(', ');
   const featureList = item.features.split(',').filter(Boolean).map(f => f.trim());
+  // 채팅·숙박 예약이 같이 쓰는 채팅방 state (헤더 이름·상품 정보·뒤로가기 경로)
+  const chatState = { seller: item.user?.nickname || item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/accommodation/${item.id}`, productPath: `/accommodation/${item.id}` };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
@@ -163,16 +167,32 @@ const AccommodationDetail = () => {
       {/* 수정·삭제 등 매장 관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지.
           시딩(사장님 확인 전) 매장은 채팅이 관리자에게 가서 오해를 만들므로 숨김 */}
       {!item.claimable && user && item.userId && item.userId !== user.id && (
-        <button
-          onClick={() => navigate(`/chat/new`, {
-            state: { seller: item.user?.nickname || item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/accommodation/${item.id}`, productPath: `/accommodation/${item.id}` }
-          })}
-          className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
-        >채팅하기</button>
+        <div className="flex gap-2">
+          {/* 숙박 예약 — 체크인·체크아웃·인원·객실을 받아 예약을 요청하고, 서버가 카드를 넣어 준 채팅방으로 이동 (결제 없음) */}
+          <button
+            onClick={() => setReserveOpen(true)}
+            className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >숙박 예약</button>
+          <button
+            onClick={() => navigate(`/chat/new`, { state: chatState })}
+            className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-all active:scale-[0.98]"
+          >채팅하기</button>
+        </div>
       )}
       {!item.claimable && !user && (
-        <Link to={loginPath()} className="block w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
+        <div className="flex gap-2">
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">숙박 예약</Link>
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
+        </div>
       )}
+      <ReservationForm
+        open={reserveOpen}
+        shopType="accommodation"
+        shopId={item.id}
+        shopName={item.name}
+        onClose={() => setReserveOpen(false)}
+        onCreated={(roomId) => { setReserveOpen(false); navigate(`/chat/${roomId}`, { state: chatState }); }}
+      />
       <ClaimShopButton shopType="accommodation" shopId={item.id} ownerId={item.userId} claimable={item.claimable} />
 
       {item.userId && <ShopPostsFeed shopType="accommodation" shopId={item.id} ownerId={item.userId} />}

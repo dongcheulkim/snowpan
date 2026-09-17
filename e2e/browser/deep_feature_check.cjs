@@ -1,5 +1,5 @@
 // 실서비스 데이터가 없어 feature_check 가 건너뛴 흐름을 실제로 눌러 본다 (2026-09-17).
-// 1) 렌탈 예약 문의 폼 → 채팅 첫 메시지 자동 전송 (매장 소유자를 관리자 계정으로 바꿔치기해 고객센터 방으로 보냄 — 실제 사장님에게 안 감)
+// 1) 방문 예약: 관리자 소유 임시 레슨으로 실제 요청→확정→알림→취소 흐름 (실제 사장님에게 안 감, 끝나면 레슨 삭제)
 // 2) 판매완료 → 구매자 선택 창 (앱 밖 거래 선택) → 삭제
 // 3) 시합 신청 제출 → 관리자 API 로 삭제
 // 4) 공유 카드: 글·스키샵
@@ -16,23 +16,48 @@ async function apiLogin(email, password) { const r = await fetch(`${API}/auth/lo
   const adminTok = await apiLogin(process.env.A_EMAIL, process.env.A_PW); const adminMe = await (await fetch(`${API}/auth/profile`, { headers: { Authorization: `Bearer ${adminTok}` } })).json();
   await login(p, process.env.U_EMAIL, process.env.U_PW); ok('심사용 계정 로그인', !p.url().includes('/login'));
 
-  // 1) 렌탈 예약 문의 — 상세 API 응답을 가로채 소유자를 관리자로(claimable=false) 만들어 버튼을 띄운다
-  const rl = await (await fetch(`${API}/rentals?limit=1`)).json(); const rent = (rl.items || rl)[0];
-  await p.route(`**/api/rentals/${rent.id}`, async (route) => { const res = await route.fetch(); const j = await res.json(); j.claimable = false; j.userId = adminMe.id; j.user = { id: adminMe.id, name: '고객센터', nickname: null }; await route.fulfill({ response: res, body: JSON.stringify(j), headers: { ...res.headers(), 'content-type': 'application/json' } }); });
-  await p.goto(`${BASE}/rental/${rent.id}`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
-  const btn = p.getByRole('button', { name: '예약 문의' }); ok('예약 문의 버튼(소유 매장)', await btn.count() > 0, rent.name);
-  await btn.first().click(); await p.waitForTimeout(800);
-  const dates = p.locator('input[type="date"]'); ok('예약 폼: 날짜 입력 2개', await dates.count() >= 2);
-  await dates.nth(0).fill('2026-12-20'); await dates.nth(1).fill('2026-12-21');
-  const nums = p.locator('input[type="number"], input[inputmode="numeric"]'); if (await nums.count() >= 3) { await nums.nth(0).fill('2'); await nums.nth(2).fill('1'); }
-  const ta = p.locator('textarea').last(); if (await ta.count()) await ta.fill(`전체검사 예약 문의 ${ts}`);
-  const submit = p.locator('div.fixed button').filter({ hasText: /보내|문의|채팅/ }).last(); ok('예약 폼: 보내기 버튼', await submit.count() > 0, (await submit.innerText().catch(() => '')));
-  await submit.click(); await p.waitForURL(/\/chat\//, { timeout: 20000 }).catch(() => {}); await p.waitForTimeout(4000);
-  const chatT = await txt(p);
-  ok('채팅방 이동 + 첫 메시지 자동 전송', /\/chat\//.test(p.url()) && /\[렌탈 예약 문의\]/.test(chatT) && /2026-12-20/.test(chatT) && new RegExp(`전체검사 예약 문의 ${ts}`).test(chatT), p.url().replace(BASE, ''));
-  await p.reload({ waitUntil: 'networkidle' }); await p.waitForTimeout(2500);
-  ok('새로고침해도 중복 전송 없음', ((await txt(p)).match(new RegExp(`전체검사 예약 문의 ${ts}`, 'g')) || []).length === 1); // 같은 방에 이전 검사 메시지가 남아 있으니 이번 고유 번호로만 센다
-  await p.unroute(`**/api/rentals/${rent.id}`);
+  // 1) 방문 예약 (결제 없음): 관리자 계정이 소유한 임시 레슨을 만들어 승인 → 심사용 계정이 UI 로 예약 요청 → 채팅 카드 → 관리자 API 로 확정 → 손님 알림 → 취소 → 레슨 삭제
+  const H = { Authorization: `Bearer ${adminTok}`, 'Content-Type': 'application/json' };
+  const resorts = await (await fetch(`${API}/resorts`)).json(); const resort0 = (Array.isArray(resorts) ? resorts : resorts.items || [])[0];
+  const lessonRes = await fetch(`${API}/lessons`, { method: 'POST', headers: H, body: JSON.stringify({ name: `점검 레슨 ${ts}`, resortId: resort0.id, description: '전체검사용 임시 레슨이에요. 검사 뒤 바로 삭제돼요.', specialties: '인터' }) });
+  const lesson = await lessonRes.json(); ok('임시 레슨 생성(관리자 소유)', lessonRes.status === 201, `HTTP ${lessonRes.status} ${(lesson.error || '')}`);
+  let lessonId = lesson.id;
+  if (lessonId) {
+    if (!lesson.approved) { const ap = await fetch(`${API}/admin/lessons/${lessonId}/approve`, { method: 'PUT', headers: H, body: '{}' }); ok('임시 레슨 승인', ap.status === 200, `HTTP ${ap.status}`); }
+    await p.goto(`${BASE}/lesson/${lessonId}`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
+    const rbtn = p.getByRole('button', { name: '레슨 예약' }); ok('레슨 상세 예약 버튼', await rbtn.count() > 0);
+    await rbtn.first().click(); await p.waitForTimeout(800);
+    const d = new Date(Date.now() + 7 * 86400000); const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    await p.locator('input[type="date"]').first().fill(ymd);
+    const sel = p.locator('select').first(); if (await sel.count()) await sel.selectOption({ index: 3 }).catch(() => {});
+    await p.getByRole('button', { name: '초급' }).first().click().catch(() => {});
+    const ta = p.locator('textarea').last(); if (await ta.count()) await ta.fill(`전체검사 예약 ${ts}`);
+    await p.getByRole('button', { name: '예약 요청하기' }).first().click();
+    await p.waitForURL(/\/chat\/[0-9a-f-]{36}/, { timeout: 20000 }).catch(() => {}); await p.waitForTimeout(3000);
+    const chatT = await txt(p);
+    ok('예약 요청 → 채팅방 이동 + 예약 카드', /\/chat\/[0-9a-f-]{36}/.test(p.url()) && /방문 예약 요청|예약 요청/.test(chatT) && new RegExp(`점검 레슨 ${ts}`).test(chatT), p.url().replace(BASE, ''));
+    const roomId = (p.url().match(/\/chat\/([0-9a-f-]{36})/) || [])[1];
+    const mine = await (await fetch(`${API}/reservations/mine`, { headers: { Authorization: `Bearer ${await apiLogin(process.env.U_EMAIL, process.env.U_PW)}` } })).json();
+    const rsv = (mine.items || []).find((r) => r.shopName === `점검 레슨 ${ts}`);
+    ok('내 예약 목록에 요청됨', !!rsv && rsv.status === 'requested', rsv ? rsv.status : JSON.stringify(mine).slice(0, 80));
+    if (rsv) {
+      const ownerNoti = await (await fetch(`${API}/notifications`, { headers: H })).json(); const on = (ownerNoti.items || ownerNoti.notifications || ownerNoti || []);
+      ok('사장님(관리자)에게 예약 요청 알림', Array.isArray(on) && on.some((n) => /예약 요청/.test(n.title || '')));
+      const cf = await fetch(`${API}/reservations/${rsv.id}/confirm`, { method: 'PUT', headers: H, body: JSON.stringify({ message: '10시에 뵐게요' }) }); const cfj = await cf.json();
+      ok('사장님 확정 (API)', cf.status === 200 && (cfj.reservation || cfj).status === 'confirmed', `HTTP ${cf.status}`);
+      await p.waitForTimeout(2500); const chatT2 = await txt(p);
+      ok('채팅방에 확정 카드 실시간 표시', /예약 확정/.test(chatT2) && /10시에 뵐게요/.test(chatT2));
+      const custTok = await apiLogin(process.env.U_EMAIL, process.env.U_PW);
+      const cn = await (await fetch(`${API}/notifications`, { headers: { Authorization: `Bearer ${custTok}` } })).json(); const cl = (cn.items || cn.notifications || cn || []);
+      ok('손님에게 확정 알림', Array.isArray(cl) && cl.some((n) => /예약이 확정됐어요/.test(n.title || '')));
+      await p.goto(`${BASE}/mypage/reservations`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
+      ok('내 예약 페이지에 확정 표시', new RegExp(`점검 레슨 ${ts}`).test(await txt(p)) && /확정/.test(await txt(p)));
+      const cc = await fetch(`${API}/reservations/${rsv.id}/cancel`, { method: 'PUT', headers: { Authorization: `Bearer ${custTok}`, 'Content-Type': 'application/json' }, body: '{}' });
+      ok('손님 취소 (API)', cc.status === 200, `HTTP ${cc.status}`);
+    }
+    const del = await fetch(`${API}/lessons/${lessonId}`, { method: 'DELETE', headers: H }); ok('임시 레슨 삭제', del.status === 200, `HTTP ${del.status}`);
+    if (roomId) console.log('     (예약 카드는 고객센터 방에 남음 — 검사 기록)');
+  }
 
   // 2) 판매완료 → 구매자 선택 창
   await p.goto(`${BASE}/used/register`, { waitUntil: 'networkidle' }); await p.waitForTimeout(800);

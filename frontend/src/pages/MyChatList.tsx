@@ -8,6 +8,7 @@ import LoadError from '../components/LoadError';
 import { ListRowSkeleton } from '../components/Skeleton';
 import { ChatIcon, CloseIcon, UserIcon } from '../components/Icons';
 import { toastSuccess, toastError } from '../components/Toast';
+import { parseReservationCard, formatDateRange, peopleLabel, EVENT_SHORT } from '../utils/reservation';
 
 interface ChatRoom {
   id: string;
@@ -38,6 +39,12 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
       const parsed = JSON.parse(msg.content) as { slotLabel?: string };
       return `[광고] ${parsed.slotLabel || '광고'} 신청 링크`;
     } catch { return '[광고] 광고 신청 링크'; }
+  }
+  if (msg.type === 'reservation') {
+    // 방문 예약 카드 — "[예약 요청] 12/20 · 성인 2" (이벤트별 요청/확정/거절/취소)
+    const c = parseReservationCard(msg.content);
+    if (!c) return '[예약] 방문 예약';
+    return `[예약 ${EVENT_SHORT[c.event]}] ${[c.date ? formatDateRange(c.date, c.endDate) : '', peopleLabel(c.adults, c.children)].filter(Boolean).join(' · ')}`;
   }
   return msg.content;
 };

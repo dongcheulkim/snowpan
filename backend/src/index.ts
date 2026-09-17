@@ -81,6 +81,7 @@ import travelAgencyRoutes from './routes/travelAgencyRoutes';
 import ogRoutes from './routes/ogRoutes';
 import resortReviewRoutes from './routes/resortReviewRoutes';
 import competitionRoutes from './routes/competitionRoutes';
+import reservationRoutes from './routes/reservationRoutes';
 import { startDailySummaryScheduler } from './utils/dailySummary';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
 import { createNotification } from './controllers/notificationController';
@@ -348,7 +349,8 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
-app.use('/api/competitions', strictWriteLimiter, competitionRoutes); // 시합 일정 등록·신청·승인 (2026-09-17)
+app.use('/api/competitions', strictWriteLimiter, competitionRoutes);
+app.use('/api/reservations', strictWriteLimiter, reservationRoutes); // 방문 예약 요청·확정·거절·취소 (2026-09-17) // 시합 일정 등록·신청·승인 (2026-09-17)
 app.use('/api/overseas', overseasRoutes);
 app.use('/api/agencies', travelAgencyRoutes);
 app.use('/api/resort-reviews', strictWriteLimiter, resortReviewRoutes); // 스키장 후기·별점 (2026-09-17)
@@ -550,11 +552,9 @@ io.on('connection', (socket) => {
       const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, nickname: true } });
       // 알림 제목은 유저가 정한 닉네임 우선(displayName) — 카카오 원본 이름 대신 스노우판 닉네임 노출.
       const senderName = sender ? displayName(sender) : '알 수 없음';
-      // 렌탈 예약 문의(폼에서 만든 첫 메시지)는 사장님이 바로 알아보게 제목·미리보기를 따로 (2026-09-17)
-      const isRentalInquiry = content.startsWith('[렌탈 예약 문의]');
-      const inquiryLine = isRentalInquiry ? (content.split('\n').find((l) => l.startsWith('날짜:')) || '').trim() : '';
-      const preview = isRentalInquiry ? `렌탈 예약 문의${inquiryLine ? ' · ' + inquiryLine : ''}` : content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
-      const notifTitle = isRentalInquiry ? `${senderName}님의 렌탈 예약 문의` : `${senderName}님의 메시지`;
+      // (예약 요청 알림은 reservationController 가 카드 메시지와 함께 따로 보낸다 — 여기는 일반 채팅만)
+      const preview = content.length > 30 ? content.slice(0, 30) + '...' : (content || '사진');
+      const notifTitle = `${senderName}님의 메시지`;
       for (const recipientId of recipients) {
         if (recipientId === userId) continue;
         const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));

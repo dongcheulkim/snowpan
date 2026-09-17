@@ -55,10 +55,10 @@ async function login(p, email, pw) {
   const rl = await (await fetch(`${API}/rentals?limit=50`)).json(); const owned = (rl.items || rl).find((r) => r.claimable === false && r.userId);
   if (owned) {
     await p.goto(`${BASE}/rental/${owned.id}`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1000);
-    const hasBtn = await p.getByRole('button', { name: '예약 문의' }).count() > 0;
-    ok('렌탈 상세 예약 문의 버튼', hasBtn, owned.name);
-    if (hasBtn) { await p.getByRole('button', { name: '예약 문의' }).first().click(); await p.waitForTimeout(800); ok('예약 문의 폼 (날짜·인원·장비)', /인원|장비|날짜/.test(await txt(p))); await p.keyboard.press('Escape'); await p.waitForTimeout(400); }
-  } else console.log('SKIP 사장님 관리 렌탈샵 없음 (예약 문의 버튼 검사 생략)');
+    const hasBtn = await p.getByRole('button', { name: '방문 예약' }).count() > 0;
+    ok('렌탈 상세 방문 예약 버튼', hasBtn, owned.name);
+    if (hasBtn) { await p.getByRole('button', { name: '방문 예약' }).first().click(); await p.waitForTimeout(800); ok('방문 예약 폼 (날짜·인원·장비)', /인원|장비|날짜/.test(await txt(p))); await p.keyboard.press('Escape'); await p.waitForTimeout(400); }
+  } else console.log('SKIP 사장님 관리 렌탈샵 없음 (방문 예약 버튼 검사 생략 — deep_feature_check 가 레슨으로 실제 예약 흐름을 검사)');
 
   // 5) 공유 카드 (봇 UA 로 HTML og 태그)
   const used = await (await fetch(`${API}/products?category=used&limit=1`)).json(); const u0 = (Array.isArray(used) ? used : (used.items || used.products || []))[0];

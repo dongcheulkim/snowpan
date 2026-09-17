@@ -61,6 +61,8 @@ model User {
   shopReviews      ShopReview[]
   resortReviews    ResortReview[]  // 스키장 후기 (2026-09-17)
   competitions     Competition[]   // 주최자로 신청한 시합 (2026-09-17)
+  reservationsAsOwner    Reservation[] @relation("reservationOwner")    // 내 매장에 들어온 방문 예약
+  reservationsAsCustomer Reservation[] @relation("reservationCustomer") // 내가 신청한 방문 예약
   reports          Report[]
   blocksMade       UserBlock[] @relation("BlocksMade")
   blocksReceived   UserBlock[] @relation("BlocksReceived")
@@ -218,6 +220,38 @@ model SkiResort {
   competitions   Competition[]
 
   @@map("ski_resorts")
+}
+
+// 방문 예약 (2026-09-17, 사용자 요청 "정비 빼고 다 예약할 수 있으면") — 렌탈샵·스키·보드샵·레슨·숙소.
+// 결제 없음: 손님이 날짜·인원 등을 보내면(requested) 사장님이 채팅 카드에서 확정(confirmed)/거절(declined), 손님은 취소(cancelled).
+// 상태가 바뀔 때마다 채팅방에 type 'reservation' 카드 메시지 + 알림·푸시.
+model Reservation {
+  id          String   @id @default(uuid())
+  shopType    String   // 'rental' | 'skishop' | 'lesson' | 'accommodation'
+  shopId      String
+  shopName    String   // 신청 시점 상호 (매장이 지워져도 기록 유지)
+  ownerId     String
+  owner       User     @relation("reservationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    User     @relation("reservationCustomer", fields: [customerId], references: [id], onDelete: Cascade)
+  roomId      String?  // 예약 카드가 올라간 채팅방
+  date        DateTime // 방문·이용 시작일 (KST 자정)
+  endDate     DateTime? // 숙소 체크아웃·렌탈 반납일
+  time        String?  // 방문 시각 HH:mm (선택)
+  adults      Int      @default(1)
+  children    Int      @default(0)
+  details     String?  // 업종별 추가 항목 JSON (렌탈: 스키/보드 세트·옵션, 레슨: 수준, 스키샵: 방문 목적, 숙소: 객실)
+  note        String?  // 손님 요청사항
+  status      String   @default("requested") // 'requested' | 'confirmed' | 'declined' | 'cancelled'
+  ownerMessage String? // 확정·거절 때 사장님이 남긴 말
+  respondedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId, status, date])
+  @@index([customerId, status, date])
+  @@index([shopType, shopId, date])
+  @@map("reservations")
 }
 
 // 스키장 후기·별점 (2026-09-17) — 회원당 리조트 하나에 하나(다시 쓰면 갱신)
