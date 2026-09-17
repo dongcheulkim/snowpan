@@ -49,7 +49,7 @@ export default function CookieConsent() {
       role="dialog"
       aria-labelledby="cookie-title"
       aria-describedby="cookie-desc"
-      className="fixed left-0 right-0 z-[60] bottom-[calc(4rem+env(safe-area-inset-bottom))] md:left-4 md:right-4 md:bottom-4 md:max-w-lg md:mx-auto"
+      className="fixed left-0 right-0 z-[45] bottom-[calc(4rem+env(safe-area-inset-bottom))] md:left-4 md:right-4 md:bottom-4 md:max-w-lg md:mx-auto"
     >
       {/* 컴팩트 한 줄 배너 — 화면 점유 최소화. 안내 문구 1줄 + 인라인 버튼 */}
       <div className="bg-white border-t border-gray-200 md:border md:rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3">

@@ -701,7 +701,7 @@ const Chat = () => {
                 ['인원', peopleLabel(card.adults, card.children)],
                 ...detailPairs(card.shopType, card.details),
                 ...(card.note ? [['요청사항', card.note] as [string, string]] : []),
-                ...(card.message ? [[card.event === 'declined' ? '거절 사유' : '사장님 메시지', card.message] as [string, string]] : []),
+                ...(card.message ? [[card.event === 'declined' ? '사유' : '메시지', card.message] as [string, string]] : []),
               ] : [];
               return (
                 <div key={msg.id}>
