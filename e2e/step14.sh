@@ -390,6 +390,9 @@ api GET "/lessons/$PL" "" "$U_TOKEN"; [ "$(echo "$RESP" | jq -r '.providerType')
 api PUT "/lessons/$PL" '{"providerType":"business"}' "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.providerType')" = "business" ] && ok "소속 구분 수정" || bad "소속 수정 CODE=$CODE"
 api GET /admin/lessons/pending "" "$A_TOKEN"; expect 200 "관리자 레슨 대기 목록 (재심사 포함)"
 echo "$RESP" | grep -q "providerType" && ok "관리자 대기 목록에 소속 구분" || bad "관리자 목록에 providerType 없음"
+api GET /admin/outreach "" "$A_TOKEN"; LB=$(echo "$RESP" | jq -r "[.shops[] | select(.kind==\"lesson\" and .id==\"$PL\")][0] | .providerType + \"/\" + (.approved|tostring) + \"/\" + ((.instructor.name // \"\") | if length > 0 then \"named\" else \"\" end)")
+# 소유자가 소속을 바꿔 재심사(approved=false)로 돌아간 상태여야 하고, 강사 이름이 붙어 있어야 함
+[ "$CODE" = "200" ] && [ "$LB" = "business/false/named" ] && ok "매장연락보드에 레슨 행 (소속·승인 대기·강사)" || bad "연락보드 레슨 행=$LB CODE=$CODE"
 api DELETE "/lessons/$PL" "" "$U_TOKEN"; expect 200 "소속검사 레슨 정리"
 
 # ── 외부 연동 설정 상태 (2026-09-15): 참/거짓만, 키 값은 절대 안 나감

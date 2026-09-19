@@ -6,11 +6,18 @@ import { Link } from 'react-router-dom';
 import { api, openExternal } from '../api';
 import { toastError, toastSuccess } from './Toast';
 import HScroll from './HScroll';
-import { KIND_LABEL, KIND_PATH, type ShopKind } from '../utils/shopKinds';
+import { KIND_LABEL as SHOP_KIND_LABEL, KIND_PATH as SHOP_KIND_PATH, type ShopKind } from '../utils/shopKinds';
+
+// 보드 업종 = 매장 3종 + 레슨 (2026-09-19). 레슨은 강사가 직접 등록한 것이라 연락 상태 대신 강사 연락처·소속·승인 여부를 보여준다.
+type BoardKind = ShopKind | 'lesson';
+const KIND_LABEL: Record<BoardKind, string> = { ...SHOP_KIND_LABEL, lesson: '레슨' };
+const KIND_PATH: Record<BoardKind, string> = { ...SHOP_KIND_PATH, lesson: '/lesson' };
 
 type Status = 'none' | 'absent' | 'called' | 'yes' | 'no' | 'del';
 interface Shop {
-  id: string; kind: ShopKind; name: string; area: string; resortId: string; resort: string; address: string; phone: string; hours: string;
+  // 레슨 전용: approved / providerType / instructor
+  approved?: boolean; providerType?: 'business' | 'freelance' | null; instructor?: { id: string; name: string; email: string } | null;
+  id: string; kind: BoardKind; name: string; area: string; resortId: string; resort: string; address: string; phone: string; hours: string;
   naver: string; extraKinds: string; owner: boolean; viewCount: number; status: Status; memo: string; priority: number; updatedAt: string | null;
 }
 interface ResortLite { id: string; name: string; location?: string | null }
@@ -27,8 +34,8 @@ const STATUS: { v: Status; label: string; dot: string; sel: string; bar: string;
   { v: 'del', label: '삭제 요청', dot: 'bg-red-500', sel: 'bg-red-50 text-red-700 border-red-200', bar: 'bg-red-500', edge: 'border-l-red-500' },
 ];
 const STATUS_BY = Object.fromEntries(STATUS.map((s) => [s.v, s])) as Record<Status, (typeof STATUS)[number]>;
-const KIND_CLS: Record<ShopKind, string> = { skishop: 'bg-violet-50 text-violet-700', repair: 'bg-amber-50 text-amber-700', rental: 'bg-emerald-50 text-emerald-700' };
-const KIND_CHIP_ON: Record<string, string> = { all: 'bg-gray-900 text-white border-gray-900', skishop: 'bg-violet-100 text-violet-700 border-violet-300', repair: 'bg-amber-100 text-amber-700 border-amber-300', rental: 'bg-emerald-100 text-emerald-700 border-emerald-300' };
+const KIND_CLS: Record<BoardKind, string> = { skishop: 'bg-violet-50 text-violet-700', repair: 'bg-amber-50 text-amber-700', rental: 'bg-emerald-50 text-emerald-700', lesson: 'bg-sky-50 text-sky-700' };
+const KIND_CHIP_ON: Record<string, string> = { all: 'bg-gray-900 text-white border-gray-900', skishop: 'bg-violet-100 text-violet-700 border-violet-300', repair: 'bg-amber-100 text-amber-700 border-amber-300', rental: 'bg-emerald-100 text-emerald-700 border-emerald-300', lesson: 'bg-sky-100 text-sky-700 border-sky-300' };
 // 전화 도는 순서 — 사용자 결정(곤지암→지산→비발디→휘닉스→용평·알펜시아→하이원→무주), 나머지는 뒤에
 const PRIORITY = ['곤지암리조트', '지산리조트', '비발디파크', '휘닉스평창', '용평리조트', '알펜시아', '하이원', '무주덕유산', '웰리힐리파크', '오크밸리', '엘리시안강촌', '오투리조트', '에덴밸리'];
 const MERGE: Record<string, string> = { '알펜시아': '용평리조트' }; // 붙어 있는 리조트는 한 묶음
@@ -105,7 +112,7 @@ function MemoInput({ value, onSave }: { value: string; onSave: (v: string) => vo
 export default function OutreachBoard() {
   const [data, setData] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [kind, setKind] = useState<'all' | ShopKind>('all');
+  const [kind, setKind] = useState<'all' | BoardKind>('all');
   const [status, setStatus] = useState<'all' | Status | 'owner'>('all');
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<'priority' | 'name' | 'recent'>('priority');
@@ -127,7 +134,7 @@ export default function OutreachBoard() {
   const shops = data?.shops || [];
   const template = data?.template || DEFAULT_SMS;
 
-  const patchShop = (id: string, kindOf: ShopKind, patch: Partial<Shop>) =>
+  const patchShop = (id: string, kindOf: BoardKind, patch: Partial<Shop>) =>
     setData((d) => d ? { ...d, shops: d.shops.map((s) => (s.id === id && s.kind === kindOf ? { ...s, ...patch } : s)) } : d);
 
   const save = async (s: Shop, patch: { status?: Status; memo?: string }) => {
@@ -206,9 +213,9 @@ export default function OutreachBoard() {
             ))}
         </HScroll>
         <div className="flex flex-wrap gap-1.5 items-center">
-          {(['all', 'skishop', 'repair', 'rental'] as const).map((k) => (
+          {(['all', 'skishop', 'repair', 'rental', 'lesson'] as const).map((k) => (
             <button key={k} onClick={() => setKind(k)} className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${kind === k ? KIND_CHIP_ON[k] : 'bg-white text-gray-500 border-gray-200'}`}>
-              {k === 'all' ? '전체' : k === 'skishop' ? '스키·보드샵' : k === 'repair' ? '정비샵' : '렌탈샵'}
+              {k === 'all' ? '전체' : k === 'skishop' ? '스키·보드샵' : k === 'repair' ? '정비샵' : k === 'rental' ? '렌탈샵' : '레슨'}
             </button>
           ))}
           <div className="flex-1 min-w-[160px] flex gap-1.5">
@@ -265,7 +272,7 @@ export default function OutreachBoard() {
                   {rows.length === 0 && <div className="px-4 py-6 text-center text-xs text-gray-400">해당하는 매장이 없습니다</div>}
                   {rows.map((s, i) => {
                     const st = effStatus(s);
-                    const extra = s.extraKinds.split(',').map((x) => x.trim()).filter((x): x is ShopKind => x in KIND_LABEL && x !== s.kind);
+                    const extra = s.extraKinds.split(',').map((x) => x.trim()).filter((x): x is BoardKind => x in KIND_LABEL && x !== s.kind);
                     const border = st === 'owner' ? 'border-l-emerald-500' : STATUS_BY[st].edge;
                     return (
                       <div key={`${s.kind}:${s.id}`} className={`px-4 py-3 border-b border-gray-100 last:border-b-0 border-l-[3px] ${border} space-y-2`}>
@@ -275,8 +282,13 @@ export default function OutreachBoard() {
                           <span className={`text-sm font-bold ${st === 'del' ? 'line-through text-gray-400' : 'text-gray-900'}`}>{s.name}</span>
                           {extra.map((k) => <span key={k} className="text-[10px] font-semibold px-1.5 py-0.5 rounded border border-dashed border-gray-300 text-gray-500">+{KIND_LABEL[k]}</span>)}
                           <span className={`text-[11px] tabular-nums ${s.priority >= 100 ? 'text-amber-700 font-bold' : 'text-gray-400'}`}>리뷰 {s.priority}</span>
-                          {s.owner && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">사장님 등록 완료</span>}
+                          {s.owner && s.kind !== 'lesson' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">사장님 등록 완료</span>}
+                          {s.kind === 'lesson' && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.approved ? 'bg-emerald-50 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>{s.approved ? '공개 중' : '승인 대기'}</span>}
+                          {s.kind === 'lesson' && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.providerType === 'freelance' ? 'bg-amber-100 text-amber-800' : s.providerType === 'business' ? 'bg-sky-50 text-sky-700' : 'bg-gray-100 text-gray-500'}`}>{s.providerType === 'freelance' ? '개인 강사' : s.providerType === 'business' ? '스키학교·샵' : '소속 미선택'}</span>}
                         </div>
+                        {s.kind === 'lesson' && s.instructor && (
+                          <p className="text-[11px] text-gray-600 leading-snug pl-7">강사 {s.instructor.name} · {s.instructor.email} <Link to={`/seller/${s.instructor.id}`} className="text-sky-600 underline ml-1">프로필</Link></p>
+                        )}
                         <p className="text-[11px] text-gray-500 leading-snug pl-7">
                           {s.address && <span>{shortAddr(s.address)}</span>}
                           {s.hours && <span> · {shortHours(s.hours)}</span>}

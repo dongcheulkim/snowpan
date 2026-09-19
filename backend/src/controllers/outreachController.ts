@@ -12,13 +12,17 @@ const TEMPLATE_KEY = 'outreach.sms';
 const MEMO_MAX = 500;
 const TEMPLATE_MAX = 1000;
 
-const isKind = (v: unknown): v is ShopKind => typeof v === 'string' && (SHOP_KINDS as readonly string[]).includes(v);
+// 보드 업종 = 매장 3종 + 레슨 (2026-09-19 사용자 요청 "레슨 보는 게 없다"). 레슨은 강사가 직접 등록하므로 연락 상태 대신 강사 연락처·소속·승인 여부를 보여준다.
+type BoardKind = ShopKind | 'lesson';
+const BOARD_KINDS: readonly string[] = [...SHOP_KINDS, 'lesson'];
+const isKind = (v: unknown): v is BoardKind => typeof v === 'string' && BOARD_KINDS.includes(v);
 const isStatus = (v: unknown): v is OutreachStatus => typeof v === 'string' && (OUTREACH_STATUS as readonly string[]).includes(v);
 
-async function shopExists(kind: ShopKind, id: string): Promise<boolean> {
+async function shopExists(kind: BoardKind, id: string): Promise<boolean> {
   const where = { where: { id }, select: { id: true } } as const;
   const row = kind === 'skishop' ? await prisma.skiShop.findUnique(where)
     : kind === 'repair' ? await prisma.repairShop.findUnique(where)
+    : kind === 'lesson' ? await prisma.lesson.findUnique(where)
     : await prisma.rental.findUnique(where);
   return !!row;
 }
@@ -30,10 +34,12 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
       id: true, name: true, area: true, resortId: true, address: true, phone: true, hours: true, naverMap: true,
       extraKinds: true, claimable: true, viewCount: true, resort: { select: { name: true } },
     } as const;
-    const [ski, rep, ren, marks, resorts, tpl] = await Promise.all([
+    const [ski, rep, ren, lessons, marks, resorts, tpl] = await Promise.all([
       prisma.skiShop.findMany({ where: { approved: true }, select: sel }),
       prisma.repairShop.findMany({ where: { approved: true }, select: sel }),
       prisma.rental.findMany({ where: { approved: true }, select: sel }),
+      // 레슨은 승인 대기까지 포함 (강사에게 연락할 일이 심사 중에 더 많음)
+      prisma.lesson.findMany({ select: { id: true, name: true, resortId: true, approved: true, providerType: true, viewCount: true, createdAt: true, resort: { select: { name: true } }, user: { select: { id: true, name: true, nickname: true, phone: true, email: true } } }, orderBy: { createdAt: 'desc' } }),
       prisma.shopOutreach.findMany(),
       prisma.skiResort.findMany({ select: { id: true, name: true, location: true }, orderBy: { name: 'asc' } }),
       prisma.adminSetting.findUnique({ where: { key: TEMPLATE_KEY } }),
@@ -52,7 +58,18 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
         status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
       };
     });
-    res.json({ shops: [...tag(ski, 'skishop'), ...tag(rep, 'repair'), ...tag(ren, 'rental')], resorts, template: tpl?.value || null });
+    const lessonRows = lessons.map((l) => {
+      const m = markOf.get(`lesson:${l.id}`);
+      return {
+        id: l.id, kind: 'lesson' as const, name: l.name, area: '', resortId: l.resortId || '', resort: l.resort?.name || '',
+        address: '', phone: l.user?.phone || '', hours: '', naver: '', extraKinds: '', owner: true, viewCount: l.viewCount,
+        status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
+        // 레슨 전용 (관리자만 보는 보드라 강사 연락처·이메일 포함)
+        approved: l.approved, providerType: l.providerType || null,
+        instructor: l.user ? { id: l.user.id, name: l.user.nickname || l.user.name, email: l.user.email } : null,
+      };
+    });
+    res.json({ shops: [...tag(ski, 'skishop'), ...tag(rep, 'repair'), ...tag(ren, 'rental'), ...lessonRows], resorts, template: tpl?.value || null });
   } catch (error) {
     console.error('Outreach list error:', error);
     res.status(500).json({ error: '연락 보드를 불러오지 못했습니다.' });
