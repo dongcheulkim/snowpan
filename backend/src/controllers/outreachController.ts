@@ -39,7 +39,7 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
       prisma.repairShop.findMany({ where: { approved: true }, select: sel }),
       prisma.rental.findMany({ where: { approved: true }, select: sel }),
       // 레슨은 승인 대기까지 포함 (강사에게 연락할 일이 심사 중에 더 많음)
-      prisma.lesson.findMany({ select: { id: true, name: true, resortId: true, approved: true, providerType: true, viewCount: true, createdAt: true, resort: { select: { name: true } }, user: { select: { id: true, name: true, nickname: true, phone: true, email: true } } }, orderBy: { createdAt: 'desc' } }),
+      prisma.lesson.findMany({ select: { id: true, name: true, phone: true, resortId: true, approved: true, providerType: true, viewCount: true, createdAt: true, resort: { select: { name: true } }, user: { select: { id: true, name: true, nickname: true, phone: true, email: true } } }, orderBy: { createdAt: 'desc' } }),
       prisma.shopOutreach.findMany(),
       prisma.skiResort.findMany({ select: { id: true, name: true, location: true }, orderBy: { name: 'asc' } }),
       prisma.adminSetting.findUnique({ where: { key: TEMPLATE_KEY } }),
@@ -62,7 +62,7 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
       const m = markOf.get(`lesson:${l.id}`);
       return {
         id: l.id, kind: 'lesson' as const, name: l.name, area: '', resortId: l.resortId || '', resort: l.resort?.name || '',
-        address: '', phone: l.user?.phone || '', hours: '', naver: '', extraKinds: '', owner: true, viewCount: l.viewCount,
+        address: '', phone: l.phone || l.user?.phone || '', hours: '', naver: '', extraKinds: '', owner: true, viewCount: l.viewCount, // 레슨 연락처 우선, 없으면 강사 계정 번호
         status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
         // 레슨 전용 (관리자만 보는 보드라 강사 연락처·이메일 포함)
         approved: l.approved, providerType: l.providerType || null,

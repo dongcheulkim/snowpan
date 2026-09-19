@@ -379,12 +379,13 @@ DN=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$A_ID' AND title L
 
 # ── 레슨 소속 구분(providerType, 2026-09-17): 관리자·본인만, 공개 응답엔 없음
 YP14=$(pq "SELECT id FROM ski_resorts ORDER BY name LIMIT 1")
-api POST /lessons "{\"name\":\"소속검사 레슨\",\"resortId\":\"$YP14\",\"description\":\"소속 구분 검사\",\"providerType\":\"freelance\"}" "$U_TOKEN"; PL=$(echo "$RESP" | jq -r '.id // empty')
+api POST /lessons "{\"name\":\"소속검사 레슨\",\"resortId\":\"$YP14\",\"description\":\"소속 구분 검사\",\"providerType\":\"freelance\",\"phone\":\"010-1234-5678\"}" "$U_TOKEN"; PL=$(echo "$RESP" | jq -r '.id // empty')
 [ "$CODE" = "201" ] && [ -n "$PL" ] && ok "레슨 등록 (개인 강사)" || bad "소속 레슨 CODE=$CODE"
 api POST /lessons "{\"name\":\"소속검사 레슨2\",\"resortId\":\"$YP14\",\"description\":\"x\",\"providerType\":\"alien\"}" "$U_TOKEN"; expect 400 "잘못된 소속 구분 400"
 api GET /lessons/my "" "$U_TOKEN"; PT=$(echo "$RESP" | jq -r "[.[] | select(.id==\"$PL\")][0].providerType"); [ "$PT" = "freelance" ] && ok "내 레슨에 소속 구분 표시" || bad "내 레슨 providerType=$PT"
 api PUT "/admin/lessons/$PL/approve" "{}" "$A_TOKEN"; expect 200 "소속검사 레슨 승인"
 api GET "/lessons/$PL" "" ""; echo "$RESP" | jq -e 'has("providerType")' >/dev/null 2>&1 && bad "공개 상세에 providerType 노출" || ok "공개 상세에 소속 구분 없음"
+[ "$(echo "$RESP" | jq -r '.phone')" = "010-1234-5678" ] && ok "레슨 연락처 공개 상세에 표시" || bad "레슨 phone=$(echo "$RESP" | jq -r '.phone')"
 api GET "/lessons?limit=50" "" ""; echo "$RESP" | grep -q "providerType" && bad "공개 목록에 providerType 노출" || ok "공개 목록에 소속 구분 없음"
 api GET "/lessons/$PL" "" "$U_TOKEN"; [ "$(echo "$RESP" | jq -r '.providerType')" = "freelance" ] && ok "본인 상세엔 소속 구분(수정 프리필)" || bad "본인 상세 providerType=$(echo "$RESP" | jq -r '.providerType')"
 api PUT "/lessons/$PL" '{"providerType":"business"}' "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.providerType')" = "business" ] && ok "소속 구분 수정" || bad "소속 수정 CODE=$CODE"
@@ -392,7 +393,8 @@ api GET /admin/lessons/pending "" "$A_TOKEN"; expect 200 "관리자 레슨 대�
 echo "$RESP" | grep -q "providerType" && ok "관리자 대기 목록에 소속 구분" || bad "관리자 목록에 providerType 없음"
 api GET /admin/outreach "" "$A_TOKEN"; LB=$(echo "$RESP" | jq -r "[.shops[] | select(.kind==\"lesson\" and .id==\"$PL\")][0] | .providerType + \"/\" + (.approved|tostring) + \"/\" + ((.instructor.name // \"\") | if length > 0 then \"named\" else \"\" end)")
 # 소유자가 소속을 바꿔 재심사(approved=false)로 돌아간 상태여야 하고, 강사 이름이 붙어 있어야 함
-[ "$CODE" = "200" ] && [ "$LB" = "business/false/named" ] && ok "매장연락보드에 레슨 행 (소속·승인 대기·강사)" || bad "연락보드 레슨 행=$LB CODE=$CODE"
+[ "$CODE" = "200" ] && [ "$LB" = "business/false/named" ] && ok "매장 관리에 레슨 행 (소속·승인 대기·강사)" || bad "매장 관리 레슨 행=$LB CODE=$CODE"
+LP=$(echo "$RESP" | jq -r "[.shops[] | select(.kind==\"lesson\" and .id==\"$PL\")][0].phone"); [ "$LP" = "010-1234-5678" ] && ok "매장 관리 레슨 행에 연락처" || bad "매장 관리 레슨 phone=$LP"
 api DELETE "/lessons/$PL" "" "$U_TOKEN"; expect 200 "소속검사 레슨 정리"
 
 # ── 외부 연동 설정 상태 (2026-09-15): 참/거짓만, 키 값은 절대 안 나감

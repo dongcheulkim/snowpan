@@ -22,7 +22,8 @@ const LessonRegister = () => {
   const [certFile, setCertFile] = useState<File | null>(null);
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
-  const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>(''); // 소속 구분 — 관리자 심사용(공개 안 됨)
+  const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>('');
+  const [phone, setPhone] = useState(''); // 연락처 (선택) — 상세 전화 버튼·관리자 매장 관리에 표시 // 소속 구분 — 관리자 심사용(공개 안 됨)
   const [region, setRegion] = useState('강원'); // 대분류: 지역 → 스키장 선택지 좁힘
   const [specialties, setSpecialties] = useState<string[]>([]);
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
@@ -51,7 +52,7 @@ const LessonRegister = () => {
       await api('/lessons', {
         method: 'POST',
         body: {
-          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType,
+          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType, phone: phone.trim() || undefined,
           specialties: specialties.join(',') || undefined,
           description: form.description.trim(),
           images: images || undefined, image: images ? images.split(',')[0] : undefined,
@@ -79,6 +80,12 @@ const LessonRegister = () => {
       <div>
         <label className={labelClass}>레슨명 *</label>
         <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="예: OO스키스쿨 개인/그룹 레슨" className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>연락처 <span className="text-gray-500 font-normal">(선택)</span></label>
+        <input type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value.slice(0, 40))} placeholder="예: 010-1234-5678" className={inputClass} />
+        <p className="text-[11px] text-gray-500 mt-1">적으면 레슨 상세에 전화 버튼이 생겨요. 채팅으로만 받으려면 비워 두세요.</p>
       </div>
 
       <div>

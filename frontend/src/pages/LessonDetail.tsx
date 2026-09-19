@@ -5,7 +5,7 @@ import { useBackTo } from '../hooks/useUrlFilters';
 import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
-import { SadIcon } from '../components/Icons';
+import { SadIcon, PhoneIcon } from '../components/Icons';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
@@ -13,6 +13,7 @@ import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
 
 interface LessonData {
+  phone?: string | null;
   id: string;
   userId?: string;
   name: string;
@@ -91,7 +92,10 @@ const LessonDetail = () => {
       {item.user && (
         <div className="card rounded-2xl p-5">
           <h3 className="text-sm font-bold text-gray-900 mb-2">강사/스쿨</h3>
-          <span className="text-sm text-gray-900">{item.user.nickname || item.user.name}</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-gray-900">{item.user.nickname || item.user.name}</span>
+            {item.phone && <a href={`tel:${item.phone.replace(/[^0-9+]/g, '')}`} className="min-h-11 px-4 inline-flex items-center gap-1.5 bg-gray-900 text-white rounded-xl text-sm font-bold"><PhoneIcon size={16} /> 전화</a>}
+          </div>
         </div>
       )}
 

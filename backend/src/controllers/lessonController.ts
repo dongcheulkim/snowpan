@@ -111,6 +111,7 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
         maxStudents: b.maxStudents ? Math.max(1, Number(b.maxStudents) || 1) : null,
         instructorCert: b.instructorCert || null,
         businessLicense: b.businessLicense || null,
+        phone: b.phone ? (sanitizeText(b.phone, 40) || null) : null,
         providerType: pt.value,
         resortId: b.resortId,
         userId,
@@ -177,6 +178,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     const data: Record<string, unknown> = {};
     if (b.name !== undefined) data.name = sanitizeText(b.name, 100) || b.name;
     if (b.type !== undefined) data.type = b.type ? (sanitizeText(b.type, 30) || b.type) : null;
+    if (b.phone !== undefined) data.phone = b.phone ? (sanitizeText(b.phone, 40) || null) : null;
     if (b.providerType !== undefined) { const pt = parseProviderType(b.providerType); if (!pt.ok) { res.status(400).json({ error: '소속 구분은 사업자(business) 또는 개인 강사(freelance) 중 하나예요.' }); return; } data.providerType = pt.value; }
     if (b.specialties !== undefined) data.specialties = cleanSpecialties(b.specialties);
     if (b.description !== undefined) data.description = b.description ? (sanitizeText(b.description, 4000) || b.description) : null;

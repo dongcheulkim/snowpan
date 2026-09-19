@@ -22,6 +22,7 @@ const LessonEdit = () => {
   const [images, setImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
   const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>('');
+  const [phone, setPhone] = useState('');
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [region, setRegion] = useState('강원');
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
@@ -41,6 +42,7 @@ const LessonEdit = () => {
       if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/lesson/${id}`, { replace: true }); return; }
       setForm({ name: d.name || '', resortId: d.resort?.id || '', type: d.type || '스키', description: d.description || '' });
       setProviderType((d as { providerType?: 'business' | 'freelance' | null }).providerType || '');
+      setPhone((d as { phone?: string | null }).phone || '');
       setSpecialties(d.specialties ? d.specialties.split(',') : []);
       setImages(d.images || d.image || '');
     }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/lesson', { replace: true }); });
@@ -55,7 +57,7 @@ const LessonEdit = () => {
       await api(`/lessons/${id}`, {
         method: 'PUT',
         body: {
-          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType: providerType || undefined,
+          name: form.name.trim(), resortId: form.resortId, type: form.type, providerType: providerType || undefined, phone: phone.trim(),
           specialties: specialties.join(','),
           description: form.description.trim(), images, image: images ? images.split(',')[0] : null,
         },
@@ -77,6 +79,7 @@ const LessonEdit = () => {
       </div>
 
       <div><label className={labelClass}>레슨명</label><input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputClass} /></div>
+      <div><label className={labelClass}>연락처 <span className="text-gray-500 font-normal">(선택)</span></label><input type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value.slice(0, 40))} placeholder="예: 010-1234-5678" className={inputClass} /><p className="text-[11px] text-gray-500 mt-1">적으면 레슨 상세에 전화 버튼이 생겨요.</p></div>
       <div>
         <label className={labelClass}>스키장</label>
         <div className="flex flex-wrap gap-1.5 mb-1.5">
