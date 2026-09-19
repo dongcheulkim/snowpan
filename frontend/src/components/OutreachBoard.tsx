@@ -1,4 +1,5 @@
-// 관리자 대시보드 "매장연락보드" 탭 — 스노우판이 먼저 올려 둔(사장님 확인 전) 매장 사장님께 전화·문자로
+// 관리자 대시보드 "매장 관리" 탭 (2026-09-19 이름 변경, 사용자 "매장 관리쪽으로") — 매장·레슨 전체를 리조트별로 보고 수정·삭제하고,
+// 스노우판이 먼저 올려 둔(사장님 확인 전) 매장 사장님께 전화·문자로
 // "직접 관리하기"를 안내하는 작업판. 리조트별로 접어 두고, 그룹 안은 우선순위(수집 시점 리뷰 수)·조회수 순.
 // 상태·메모는 /admin/outreach 에 저장돼 폰·PC 어디서 열어도 같다. 백엔드 outreachController 와 짝.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -143,6 +144,16 @@ export default function OutreachBoard() {
     try { await api(`/admin/outreach/${s.kind}/${s.id}`, { method: 'PUT', body: patch }); }
     catch (e) { patchShop(s.id, s.kind, before); toastError(e instanceof Error ? e.message : '저장하지 못했습니다.'); }
   };
+  // 관리자 삭제 — 업종별 삭제 API (관리자는 소유자 검사 통과). '삭제 요청' 상태 매장은 버튼이 빨갛게 강조돼 한 번에 처리.
+  const API_OF: Record<BoardKind, string> = { skishop: '/ski-shops', repair: '/repair-shops', rental: '/rentals', lesson: '/lessons' };
+  const removeShop = async (s: Shop) => {
+    if (!confirm(`${KIND_LABEL[s.kind]} "${s.name}"을(를) 삭제할까요? 되돌릴 수 없어요.`)) return;
+    try {
+      await api(`${API_OF[s.kind]}/${s.id}`, { method: 'DELETE' });
+      setData((d) => d ? { ...d, shops: d.shops.filter((x) => !(x.id === s.id && x.kind === s.kind)) } : d);
+      toastSuccess('삭제했어요.');
+    } catch (e) { toastError(e instanceof Error ? e.message : '삭제하지 못했어요.'); }
+  };
   const saveTemplate = async () => {
     const sms = tplDraft.trim();
     if (!sms || sms === template) return;
@@ -187,8 +198,8 @@ export default function OutreachBoard() {
       <div className="card p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-sm font-bold text-gray-900">매장 연락 보드</p>
-            <p className="text-[11px] text-gray-500">리조트별로 접어 두고, 그룹 안은 리뷰 많은 순. 상태와 메모는 자동 저장됩니다.</p>
+            <p className="text-sm font-bold text-gray-900">매장 관리</p>
+            <p className="text-[11px] text-gray-500">매장과 레슨을 리조트별로 한눈에 보고 수정·삭제해요. 사장님 확인 전 매장은 연락 상태와 메모가 자동 저장돼요.</p>
           </div>
           <button onClick={load} className="text-xs font-bold text-gray-600 border border-gray-300 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors flex-shrink-0">새로고침</button>
         </div>
@@ -302,6 +313,8 @@ export default function OutreachBoard() {
                           )}
                           {s.naver && <button onClick={() => openExternal(s.naver)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">네이버</button>}
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}`} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">스노우판</Link>
+                          <Link to={`${KIND_PATH[s.kind]}/${s.id}/edit`} className="px-2.5 py-1.5 rounded-lg bg-white border border-sky-200 text-sky-700 text-xs font-bold">수정</Link>
+                          <button onClick={() => removeShop(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'del' ? 'bg-red-500 text-white border-red-500' : 'bg-white border-red-200 text-red-600'}`}>{st === 'del' ? '삭제 실행' : '삭제'}</button>
                           {!s.owner && <button onClick={() => copySms(s)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">문자 복사</button>}
                         </div>
                         {!s.owner && (

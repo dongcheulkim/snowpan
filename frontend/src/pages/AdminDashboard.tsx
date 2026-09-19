@@ -280,7 +280,7 @@ const AdminDashboard = () => {
     { id: 'stats', label: '통계' },
     { id: 'users', label: '유저관리' },
     { id: 'adBookings', label: '광고관리' },
-    { id: 'outreach', label: '매장연락보드' },
+    { id: 'outreach', label: '매장 관리' },
     { id: 'settings', label: '설정' },
   ];
 
@@ -347,7 +347,7 @@ const AdminDashboard = () => {
           {tab === 'approval' && (
             <AdminApproval embedded />
           )}
-          {/* 매장연락보드 — 시딩 매장 사장님 전화·문자 작업판 (자체 로딩·저장) */}
+          {/* 매장 관리 — 매장·레슨 전체 보기 + 수정·삭제 + 시딩 매장 연락 상태 (자체 로딩·저장) */}
           {tab === 'outreach' && (
             <OutreachBoard />
           )}
