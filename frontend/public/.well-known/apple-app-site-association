@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["S2F7FJL6C3.kr.snowpan.ios"],
+        "components": [
+          { "/": "/api/*", "exclude": true },
+          { "/": "/cam/*", "exclude": true },
+          { "/": "/oauth/*", "exclude": true },
+          { "/": "/*" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": { "apps": ["S2F7FJL6C3.kr.snowpan.ios"] }
+}

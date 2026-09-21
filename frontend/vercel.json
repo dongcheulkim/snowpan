@@ -96,11 +96,24 @@
       "destination": "https://snowpan.onrender.com/api/og/page/post/:id"
     },
     {
-      "source": "/((?!api/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
+      "source": "/((?!api/|\\.well-known/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
     {
       "source": "/sw.js",
       "headers": [

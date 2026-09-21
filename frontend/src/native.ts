@@ -33,7 +33,13 @@ export async function initNative(): Promise<void> {
     // 소셜 로그인 딥링크 수신 — 백엔드가 kr.snowpan.app://oauth/callback#token=... (또는 login?social_error=) 로 되돌림.
     // 인앱 브라우저 닫고, 웹뷰를 해당 경로로 이동 → 기존 OAuthCallback/Login 이 처리.
     App.addListener('appUrlOpen', async ({ url }) => {
-      if (!url || !url.startsWith('kr.snowpan.app://')) return;
+      if (!url) return;
+      // 유니버설 링크(iOS 1.4, 2026-09-21): 카카오톡 등에서 https://snowpan.kr/... 을 누르면 사파리 대신 앱이 열림 → 같은 경로로 이동
+      if (/^https?:\/\/(www\.)?snowpan\.kr(\/|$)/i.test(url)) {
+        try { const u = new URL(url); window.location.href = `${u.pathname}${u.search}${u.hash}` || '/'; } catch { /* ignore */ }
+        return;
+      }
+      if (!url.startsWith('kr.snowpan.app://')) return;
       try { const { Browser } = await import('@capacitor/browser'); await Browser.close().catch(() => {}); } catch { /* ignore */ }
       const rest = url.slice('kr.snowpan.app://'.length); // "oauth/callback#..." 또는 "login?..."
       if (rest.startsWith('oauth/callback')) {
