@@ -10,6 +10,7 @@ import { parseKstDate, kstDayStart } from '../utils/kst';
 import { sanitizeText } from '../utils/sanitize';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
+import { alertUser } from '../utils/ownerAlerts';
 import { emitToRoom, emitToUser } from '../realtime';
 
 const SHOP_TYPES = ['rental', 'skishop', 'lesson', 'accommodation'] as const;
@@ -100,19 +101,19 @@ function parseDetails(raw: string | null): Details | null {
 }
 
 // ───────── 매장 조회: 승인됐고 사장님이 직접 관리하는 매장만 예약을 받는다 ─────────
-interface ManagedShop { id: string; name: string; ownerId: string }
+interface ManagedShop { id: string; name: string; ownerId: string; phone: string | null }
 
 async function findManagedShop(shopType: ShopType, shopId: string): Promise<{ shop: ManagedShop | null; exists: boolean }> {
   const select = { id: true, name: true, userId: true, approved: true } as const;
-  let row: { id: string; name: string; userId: string | null; approved: boolean; claimable?: boolean } | null = null;
-  if (shopType === 'rental') row = await prisma.rental.findUnique({ where: { id: shopId }, select: { ...select, claimable: true } });
-  else if (shopType === 'skishop') row = await prisma.skiShop.findUnique({ where: { id: shopId }, select: { ...select, claimable: true } });
-  else if (shopType === 'lesson') row = await prisma.lesson.findUnique({ where: { id: shopId }, select });
+  let row: { id: string; name: string; userId: string | null; approved: boolean; claimable?: boolean; phone?: string | null } | null = null;
+  if (shopType === 'rental') row = await prisma.rental.findUnique({ where: { id: shopId }, select: { ...select, claimable: true, phone: true } });
+  else if (shopType === 'skishop') row = await prisma.skiShop.findUnique({ where: { id: shopId }, select: { ...select, claimable: true, phone: true } });
+  else if (shopType === 'lesson') row = await prisma.lesson.findUnique({ where: { id: shopId }, select: { ...select, phone: true } });
   else if (shopType === 'accommodation') row = await prisma.accommodation.findUnique({ where: { id: shopId }, select });
   if (!row) return { shop: null, exists: false };
   // 관리자 시딩(claimable) 매장은 아직 사장님이 없으니 예약을 받을 수 없다
   if (!row.approved || !row.userId || row.claimable === true) return { shop: null, exists: true };
-  return { shop: { id: row.id, name: row.name, ownerId: row.userId }, exists: true };
+  return { shop: { id: row.id, name: row.name, ownerId: row.userId, phone: row.phone || null }, exists: true };
 }
 
 // ───────── 채팅방: 두 사람의 유일한 방을 찾거나 만든다 (예약은 거래 성격이라 항상 대화 가능 상태) ─────────
@@ -283,6 +284,8 @@ export const createReservation = async (req: AuthRequest, res: Response): Promis
     const customerName = await nameOf(customerId);
     const body = `${whenLabel(shop.name, date, endDate, time)} · 성인 ${adults}${children ? `, 아동 ${children}` : ''}`;
     notify(shop.ownerId, `${customerName}님의 예약 요청`, body, `/chat/${room.id}`);
+    // 앱이 없는 사장님도 놓치지 않게 문자·메일 (알림 번호 → 매장 전화 → 계정 번호 순)
+    alertUser(shop.ownerId, { kind: 'reservation_request', title: `${customerName}님의 예약 요청`, text: `${body}\n채팅에서 확정하거나 거절해 주세요.`, link: `/chat/${room.id}`, fallbackPhone: shop.phone }).catch(() => {});
 
     res.status(201).json({ reservation: serialize(reservation), roomId: room.id });
   } catch (error) {
@@ -380,6 +383,7 @@ export const confirmReservation = async (req: AuthRequest, res: Response): Promi
 
     const body = `${whenLabel(r.shopName, r.date, r.endDate, r.time)}${message ? ` · ${message}` : ''}`;
     notify(r.customerId, '예약이 확정됐어요', body, `/chat/${room.id}`);
+    alertUser(r.customerId, { kind: 'reservation_result', title: '예약이 확정됐어요', text: body, link: `/chat/${room.id}` }).catch(() => {});
 
     res.json({ reservation: serialize({ ...updated, roomId: room.id }) });
   } catch (error) {
@@ -411,6 +415,7 @@ export const declineReservation = async (req: AuthRequest, res: Response): Promi
 
     const body = `${whenLabel(r.shopName, r.date, r.endDate, r.time)}${reason ? ` · ${reason}` : ''}`;
     notify(r.customerId, '예약이 어려워요', body, `/chat/${room.id}`);
+    alertUser(r.customerId, { kind: 'reservation_result', title: '예약이 어려워요', text: body, link: `/chat/${room.id}` }).catch(() => {});
 
     res.json({ reservation: serialize({ ...updated, roomId: room.id }) });
   } catch (error) {
@@ -448,6 +453,7 @@ export const cancelReservation = async (req: AuthRequest, res: Response): Promis
     const myName = await nameOf(me);
     const body = `${whenLabel(r.shopName, r.date, r.endDate, r.time)} · ${myName}님이 취소했어요`;
     notify(otherId, '예약이 취소됐어요', body, `/chat/${room.id}`);
+    alertUser(otherId, { kind: 'reservation_result', title: '예약이 취소됐어요', text: body, link: `/chat/${room.id}` }).catch(() => {});
 
     res.json({ reservation: serialize({ ...updated, roomId: room.id }) });
   } catch (error) {

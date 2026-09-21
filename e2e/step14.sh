@@ -377,6 +377,17 @@ api POST /admin/daily-summary "" "$A_TOKEN"; expect 200 "하루 요약 지금 �
 DN=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$A_ID' AND title LIKE '오늘 할 일 요약%'")
 [ "$DN" -ge 1 ] && ok "관리자에게 요약 알림 생성" || bad "요약 알림 수=$DN"
 
+# ── 사장님 알림 설정 (2026-09-21): 문자 번호·문자/메일 켜기
+api GET /auth/alert-settings "" ""; expect 401 "알림 설정 비로그인 401"
+api GET /auth/alert-settings "" "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.smsAlerts')" = "true" ] && ok "알림 설정 기본값 (문자 켜짐)" || bad "알림 설정 GET CODE=$CODE $RESP"
+api PUT /auth/alert-settings '{"alertPhone":"abc"}' "$U_TOKEN"; expect 400 "알림 번호 형식 오류 400"
+api PUT /auth/alert-settings '{"alertPhone":"010-9876-5432","smsAlerts":true,"emailAlerts":false}' "$U_TOKEN"
+[ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.alertPhone')" = "01098765432" ] && [ "$(echo "$RESP" | jq -r '.emailAlerts')" = "false" ] && ok "알림 번호 저장 (숫자만 정규화)·메일 끔" || bad "알림 설정 PUT CODE=$CODE $RESP"
+api PUT /auth/alert-settings '{"alertPhone":""}' "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.alertPhone')" = "" ] && ok "알림 번호 비우기" || bad "알림 번호 비우기 CODE=$CODE"
+api PUT /auth/alert-settings '{"emailAlerts":true}' "$U_TOKEN"; expect 200 "메일 알림 다시 켬"
+api GET /admin/alert-logs "" "$U_TOKEN"; expect 403 "발송 기록 일반유저 403"
+api GET /admin/alert-logs "" "$A_TOKEN"; [ "$CODE" = "200" ] && echo "$RESP" | jq -e '.items and .counts30d' >/dev/null && ok "발송 기록 관리자 200" || bad "발송 기록 CODE=$CODE"
+
 # ── 레슨 소속 구분(providerType, 2026-09-17): 관리자·본인만, 공개 응답엔 없음
 YP14=$(pq "SELECT id FROM ski_resorts ORDER BY name LIMIT 1")
 api POST /lessons "{\"name\":\"소속검사 레슨\",\"resortId\":\"$YP14\",\"description\":\"소속 구분 검사\",\"providerType\":\"freelance\",\"phone\":\"010-1234-5678\"}" "$U_TOKEN"; PL=$(echo "$RESP" | jq -r '.id // empty')

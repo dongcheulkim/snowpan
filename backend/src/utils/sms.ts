@@ -73,6 +73,7 @@ async function sendTwilio(to: string, content: string): Promise<boolean> {
 export async function sendSMS(to: string, content: string): Promise<boolean> {
   const provider = process.env.SMS_PROVIDER;
 
+  if (provider === 'solapi') return (await sendSms(to, content)).ok;
   if (!provider) {
     console.log(`[SMS 미발송] To: ${to}, Content: ${content}`);
     return false;
@@ -87,5 +88,42 @@ export async function sendSMS(to: string, content: string): Promise<boolean> {
   } catch (error) {
     console.error('SMS 발송 실패:', error);
     return false;
+  }
+}
+
+// ── 솔라피(Solapi) — 사장님 알림(예약 요청·새 문의·승인 결과)용 (2026-09-21). env: SOLAPI_API_KEY, SOLAPI_API_SECRET, SMS_FROM.
+// ALERT_DRY_RUN=1 이면 실제 호출 없이 성공(dry)으로 돌려준다(E2E). SMS_PROVIDER=solapi 로 두면 위 sendSMS(인증번호)도 이걸 쓴다.
+export function smsConfigured(): boolean {
+  return Boolean(process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET && process.env.SMS_FROM);
+}
+
+export function normalizePhone(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let d = String(raw).replace(/[^0-9+]/g, '');
+  if (d.startsWith('+82')) d = '0' + d.slice(3);
+  d = d.replace(/\D/g, '');
+  if (!/^0\d{8,10}$/.test(d)) return null; // 휴대폰·유선·070·050x
+  return d;
+}
+
+export async function sendSms(to: string, text: string): Promise<{ ok: boolean; detail?: string }> {
+  const phone = normalizePhone(to);
+  if (!phone) return { ok: false, detail: 'invalid_phone' };
+  if (process.env.ALERT_DRY_RUN === '1') return { ok: true, detail: 'dry' };
+  if (!smsConfigured()) return { ok: false, detail: 'not_configured' };
+  const apiKey = process.env.SOLAPI_API_KEY!; const apiSecret = process.env.SOLAPI_API_SECRET!; const from = normalizePhone(process.env.SMS_FROM!) || process.env.SMS_FROM!;
+  const date = new Date().toISOString(); const salt = crypto.randomBytes(16).toString('hex');
+  const signature = crypto.createHmac('sha256', apiSecret).update(date + salt).digest('hex');
+  try {
+    const r = await fetch('https://api.solapi.com/messages/v4/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}` },
+      body: JSON.stringify({ message: { to: phone, from, text } }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) { const body = await r.text().catch(() => ''); return { ok: false, detail: `http_${r.status} ${body.slice(0, 120)}` }; }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, detail: e instanceof Error ? e.message.slice(0, 120) : 'error' };
   }
 }

@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
+import { alertUser } from '../utils/ownerAlerts';
 import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';
 import { cacheGet, cacheSet, cacheDel, cacheDelPrefix } from '../utils/cache';
 import { invalidateUserTokens } from '../utils/tokens';
@@ -491,6 +492,7 @@ export const approveRental = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     await createNotification(rental.userId, 'approve', '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental');
+    alertUser(rental.userId, { kind: 'approval', title: '렌탈샵이 공개됐어요', text: `'${rental.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/rental/${rental.id}`, fallbackPhone: rental.phone }).catch(() => {});
     sendPushToUser(rental.userId, '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental').catch(() => {});
     res.json({ ...rental, message: '렌탈이 승인되었습니다.' });
   } catch (error) {
@@ -524,6 +526,7 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson');
+    alertUser(lesson.userId, { kind: 'approval', title: '레슨이 공개됐어요', text: `'${lesson.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/lesson/${lesson.id}`, fallbackPhone: lesson.phone }).catch(() => {});
     sendPushToUser(lesson.userId, '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson').catch(() => {});
     res.json({ ...lesson, message: '레슨이 승인되었습니다.' });
   } catch (error) {
@@ -552,6 +555,7 @@ export const rejectRental = async (req: AuthRequest, res: Response): Promise<voi
     if (rentalUserId) {
       const msg = withReason(`'${rentalName}' 렌탈샵 등록이 거부되었습니다.`, reason);
       await createNotification(rentalUserId, 'reject', '렌탈샵 거부', msg);
+      alertUser(rentalUserId, { kind: 'approval', title: '렌탈샵 등록을 확인해 주세요', text: msg, link: '/mypage/shops' }).catch(() => {});
       sendPushToUser(rentalUserId, '렌탈샵 거부', msg).catch(() => {});
       if (reason && req.body?.sendChat !== false) sendSupportMessage(rentalUserId, rejectChatText('렌탈샵', rentalName || '', reason)).catch(() => {});
     }
@@ -581,6 +585,7 @@ export const rejectLesson = async (req: AuthRequest, res: Response): Promise<voi
       const reason = cleanReason(req.body?.reason);
       const msg = withReason(`'${lessonName}' 레슨 등록이 거부되었습니다.`, reason);
       await createNotification(lessonUserId, 'reject', '레슨 거부', msg);
+      alertUser(lessonUserId, { kind: 'approval', title: '레슨 등록을 확인해 주세요', text: msg, link: '/mypage/shops' }).catch(() => {});
       sendPushToUser(lessonUserId, '레슨 거부', msg).catch(() => {});
       if (reason && req.body?.sendChat !== false) sendSupportMessage(lessonUserId, rejectChatText('레슨', lessonName || '', reason)).catch(() => {});
     }
@@ -612,6 +617,7 @@ export const approveAccommodation = async (req: AuthRequest, res: Response): Pro
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.accommodation.update({ where: { id: req.params.id }, data: { approved: true } });
     await createNotification(item.userId, 'approve', '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation');
+    alertUser(item.userId, { kind: 'approval', title: '숙소가 공개됐어요', text: `'${item.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/accommodation/${item.id}` }).catch(() => {});
     sendPushToUser(item.userId, '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation').catch(() => {});
     res.json({ ...item, message: '숙소가 승인되었습니다.' });
   } catch (error) {
@@ -631,6 +637,7 @@ export const rejectAccommodation = async (req: AuthRequest, res: Response): Prom
     if (accomUserId) {
       const msg = withReason(`'${accomName}' 숙소 등록이 거부되었습니다.`, reason);
       await createNotification(accomUserId, 'reject', '숙소 거부', msg);
+      alertUser(accomUserId, { kind: 'approval', title: '숙소 등록을 확인해 주세요', text: msg, link: '/mypage/shops' }).catch(() => {});
       sendPushToUser(accomUserId, '숙소 거부', msg).catch(() => {});
       if (reason && req.body?.sendChat !== false) sendSupportMessage(accomUserId, rejectChatText('숙소', accomName || '', reason)).catch(() => {});
     }

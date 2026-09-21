@@ -225,4 +225,19 @@ else
   bad "차단 생성 CODE=$CODE"
 fi
 
+# ── 문자·메일 알림 (2026-09-21, ALERT_DRY_RUN=1 이라 실제 발송 없이 alert_logs 에 dry 로 기록)
+OWNER19_ID=$(pq "SELECT id FROM users WHERE email='rv_owner@s19.test'"); CUST19_ID=$(pq "SELECT id FROM users WHERE email='rv_cust@s19.test'")
+NS=$(pq "SELECT count(*) FROM alert_logs WHERE \"userId\"='$OWNER19_ID' AND channel='sms' AND kind='reservation_request' AND status='dry'")
+[ "$NS" -ge 1 ] && ok "예약 요청 → 사장님 문자 알림 기록(dry)" || bad "사장님 문자 기록=$NS"
+NE=$(pq "SELECT count(*) FROM alert_logs WHERE \"userId\"='$OWNER19_ID' AND channel='email' AND kind='reservation_request' AND status='dry'")
+[ "$NE" -ge 1 ] && ok "예약 요청 → 사장님 메일 알림 기록(dry)" || bad "사장님 메일 기록=$NE"
+NC=$(pq "SELECT count(*) FROM alert_logs WHERE \"userId\"='$CUST19_ID' AND kind='reservation_result' AND status='dry'")
+[ "$NC" -ge 1 ] && ok "예약 확정·거절 → 손님 알림 기록(dry)" || bad "손님 알림 기록=$NC"
+NA=$(pq "SELECT count(*) FROM alert_logs WHERE \"userId\"='$OWNER19_ID' AND kind='approval' AND status='dry'")
+[ "$NA" -ge 1 ] && ok "매장 승인 → 사장님 알림 기록(dry)" || bad "승인 알림 기록=$NA"
+LEAK=$(pq "SELECT count(*) FROM alert_logs WHERE text LIKE '%rv_cust@s19.test%'")
+[ "$LEAK" = "0" ] && ok "알림 문구에 상대 이메일 없음" || bad "알림 문구 이메일 노출 $LEAK"
+# 문자 끄면 기록도 skipped 로
+api PUT /auth/alert-settings '{"smsAlerts":false}' "$OWNER_TOKEN"; expect 200 "사장님 문자 알림 끔"
+
 echo "----- STEP19: PASS=$PASS FAIL=$FAIL -----"

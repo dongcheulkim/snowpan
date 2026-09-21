@@ -10,7 +10,11 @@ interface Summary {
   unansweredSupport: number;
   last24h: { users: number; products: number; posts: number; chatRooms: number };
 }
-interface Integrations { appleRevoke: boolean; kakao: boolean; naver: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean }
+interface Integrations { appleRevoke: boolean; kakao: boolean; naver: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean; sms: boolean }
+interface AlertLogItem { id: string; channel: 'sms' | 'email'; kind: string; to: string; text: string; status: string; detail: string | null; createdAt: string; user: { id: string; name: string } | null }
+interface AlertLogs { items: AlertLogItem[]; counts30d: Record<string, number> }
+const KIND_KR: Record<string, string> = { reservation_request: '예약 요청', reservation_result: '예약 결과', chat: '새 문의', approval: '승인 결과', daily_summary: '하루 요약' };
+const STATUS_KR: Record<string, string> = { sent: '보냄', dry: '검사(미발송)', failed: '실패', skipped: '건너뜀' };
 
 const INTEGRATION_LABELS: { key: keyof Integrations; label: string; hint: string }[] = [
   { key: 'fcm', label: '푸시 알림', hint: 'Firebase 서비스 계정' },
@@ -18,18 +22,21 @@ const INTEGRATION_LABELS: { key: keyof Integrations; label: string; hint: string
   { key: 'appleRevoke', label: 'Apple 탈퇴 연결 해제', hint: 'APPLE_TEAM_ID / KEY_ID / PRIVATE_KEY' },
   { key: 'bunny', label: '이미지 저장소', hint: 'BUNNY_STORAGE_KEY' },
   { key: 'adDeposit', label: '광고 입금 계좌 안내', hint: 'AD_DEPOSIT_BANK / ACCOUNT / HOLDER' },
-  { key: 'smtp', label: '메일 발송 (하루 요약·인증)', hint: 'SMTP_HOST / USER / PASS' },
+  { key: 'sms', label: '문자 알림 (사장님 예약·문의·승인)', hint: 'SOLAPI_API_KEY / SECRET / SMS_FROM' },
+  { key: 'smtp', label: '메일 발송 (사장님 알림·하루 요약)', hint: 'SMTP_HOST / USER / PASS' },
   { key: 'discord', label: '디스코드 알림', hint: 'DISCORD_WEBHOOK_URL' },
 ];
 
 export default function AdminOpsPanel() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [integrations, setIntegrations] = useState<Integrations | null>(null);
+  const [logs, setLogs] = useState<AlertLogs | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     api<Summary>('/admin/daily-summary').then(setSummary).catch(() => setSummary(null));
     api<Integrations>('/admin/integrations').then(setIntegrations).catch(() => setIntegrations(null));
+    api<AlertLogs>('/admin/alert-logs').then(setLogs).catch(() => setLogs(null));
   }, []);
 
   const sendNow = async () => {
@@ -87,6 +94,33 @@ export default function AdminOpsPanel() {
         ) : (
           <p className="text-xs text-gray-400">상태를 불러오는 중이에요.</p>
         )}
+      </div>
+
+      <div className="card p-4 space-y-2">
+        <p className="text-sm font-bold text-gray-900">사장님 문자·메일 알림 발송 기록</p>
+        <p className="text-[11px] text-gray-500">예약 요청, 새 문의(방당 3시간 1회), 승인 결과가 문자·메일로 나가요. 문자는 건당 요금이 있어 최근 30일 건수를 같이 보여요.</p>
+        {logs ? (
+          <>
+            <div className="flex flex-wrap gap-1.5 text-[11px]">
+              {(['sms:sent', 'sms:failed', 'sms:skipped', 'email:sent', 'email:failed', 'email:skipped'] as const).map((k) => (
+                <span key={k} className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">{k.startsWith('sms') ? '문자' : '메일'} {STATUS_KR[k.split(':')[1]]} <b>{logs.counts30d[k] || 0}</b></span>
+              ))}
+            </div>
+            {logs.items.length === 0 ? <p className="text-xs text-gray-400">아직 보낸 기록이 없어요.</p> : (
+              <ul className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+                {logs.items.slice(0, 30).map((l) => (
+                  <li key={l.id} className="py-2 text-[11px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-gray-900">{l.channel === 'sms' ? '문자' : '메일'} · {KIND_KR[l.kind] || l.kind} · {l.user?.name || '(탈퇴)'}</span>
+                      <span className={`px-1.5 py-0.5 rounded ${l.status === 'sent' ? 'bg-emerald-50 text-emerald-700' : l.status === 'failed' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500'}`}>{STATUS_KR[l.status] || l.status}{l.detail ? ` · ${l.detail}` : ''}</span>
+                    </div>
+                    <div className="text-gray-500 truncate">{l.to} · {l.text.split('\n')[0]} · {new Date(l.createdAt).toLocaleString('ko-KR')}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : <p className="text-xs text-gray-400">기록을 불러오는 중이에요.</p>}
       </div>
     </>
   );

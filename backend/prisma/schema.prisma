@@ -17,6 +17,11 @@ model User {
   displayName   String   @default("name") // 'name' | 'nickname'
   phone         String?  @unique // 소셜 유저는 전화번호 없이 가입 (본인인증 도입 시 채움)
   phoneVerified Boolean  @default(false)
+  // 사장님 알림 채널 (2026-09-21, 사용자 "사장님들이 알림을 받아야"): 예약 요청·새 문의·승인 결과를 문자/메일로. alertPhone 없으면 매장 전화 → 계정 phone 순.
+  alertPhone    String?
+  smsAlerts     Boolean  @default(true)
+  emailAlerts   Boolean  @default(true)
+  alertLogs     AlertLog[]
   provider      String?  // 'kakao' | 'naver' | 'apple' | null(이메일 가입)
   providerId    String?  // 소셜 제공자의 유저 고유 id
   appleRefreshToken String? // Apple 로그인 탈퇴 시 연결 철회용 (APPLE_* 키가 설정된 경우에만 저장)
@@ -220,6 +225,24 @@ model SkiResort {
   competitions   Competition[]
 
   @@map("ski_resorts")
+}
+
+// 문자·메일 알림 발송 기록 (2026-09-21) — 비용·도달 확인용. 관리자 설정 탭에서 최근 기록·건수 확인. ALERT_DRY_RUN=1 이면 실제 발송 없이 'dry' 로 기록(E2E).
+model AlertLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  channel   String   // 'sms' | 'email'
+  kind      String   // 'reservation_request' | 'reservation_result' | 'chat' | 'approval' | 'daily_summary'
+  to        String   // 전화번호·이메일 (관리자만 봄)
+  text      String
+  status    String   // 'sent' | 'dry' | 'failed' | 'skipped'
+  detail    String?  // 실패 사유·건너뛴 이유
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, kind, createdAt])
+  @@map("alert_logs")
 }
 
 // 방문 예약 (2026-09-17, 사용자 요청 "정비 빼고 다 예약할 수 있으면") — 렌탈샵·스키·보드샵·레슨·숙소.

@@ -31,6 +31,7 @@ import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from 
 import { isFcmConfigured, sendPushToUser } from '../utils/push';
 import { appleRevokeStatus, kakaoConfigured, naverLoginConfigured } from '../controllers/socialAuthController';
 import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
+import { smsConfigured } from '../utils/sms';
 import prisma from '../config/database';
 
 const router = Router();
@@ -51,8 +52,23 @@ router.get('/integrations', async (_req, res) => {
     bunny: Boolean(process.env.BUNNY_STORAGE_KEY),
     adDeposit: Boolean(process.env.AD_DEPOSIT_BANK && process.env.AD_DEPOSIT_ACCOUNT && process.env.AD_DEPOSIT_HOLDER),
     smtp: smtpConfigured(),      // 하루 요약·인증 메일 발송 (SMTP_HOST/USER/PASS)
+    sms: smsConfigured(),        // 사장님 문자 알림 (SOLAPI_API_KEY/SECRET, SMS_FROM)
     discord: Boolean(process.env.DISCORD_WEBHOOK_URL),
   });
+});
+
+// 문자·메일 알림 발송 기록 (최근 100건 + 30일 집계) — 비용·도달 확인용. 값(번호·이메일)은 관리자만 봄.
+router.get('/alert-logs', async (_req, res) => {
+  try {
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [items, rows] = await Promise.all([
+      prisma.alertLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100, include: { user: { select: { id: true, name: true, nickname: true } } } }),
+      prisma.alertLog.groupBy({ by: ['channel', 'status'], where: { createdAt: { gte: since } }, _count: { _all: true } }),
+    ]);
+    const counts: Record<string, number> = {};
+    for (const r of rows) counts[`${r.channel}:${r.status}`] = r._count._all;
+    res.json({ items: items.map((l) => ({ ...l, user: l.user ? { id: l.user.id, name: l.user.nickname || l.user.name } : null })), counts30d: counts });
+  } catch (e) { console.error('alert logs error:', e); res.status(500).json({ error: '발송 기록을 불러오지 못했어요.' }); }
 });
 
 // 관리자 하루 요약 — 미리보기(GET)와 지금 보내기(POST). 스케줄러는 매일 09:00 KST 자동.

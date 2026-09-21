@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { getAlertSettings, updateAlertSettings } from '../controllers/alertSettingsController';
 import {
   register,
   login,
@@ -36,6 +37,8 @@ router.post('/phone/send', sensitiveAuthLimiter, sendPhoneVerification);
 router.post('/phone/verify', sensitiveAuthLimiter, verifyPhone);
 router.post('/reset-password-request', sensitiveAuthLimiter, resetPasswordRequest);
 router.get('/profile', authenticateToken, getProfile);
+router.get('/alert-settings', authenticateToken, getAlertSettings);   // 사장님 문자·메일 알림 설정 (2026-09-21)
+router.put('/alert-settings', authenticateToken, updateAlertSettings);
 router.put('/profile', authenticateToken, updateProfile);
 router.put('/change-password', authenticateToken, changePassword);
 router.delete('/account', authenticateToken, sensitiveAuthLimiter, deleteAccount);

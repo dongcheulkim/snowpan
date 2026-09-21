@@ -70,7 +70,7 @@ if [ -n "$OLD_PIDS" ]; then
   kill -9 $(lsof -ti :$APIPORT -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
 fi
 echo "[setup] backend 기동 (port $APIPORT, test DB)"
-( cd "$REPO/backend" && DATABASE_URL="$PGURL" PORT=$APIPORT LOADTEST_BYPASS_KEY=e2e-local-bypass \
+( cd "$REPO/backend" && DATABASE_URL="$PGURL" PORT=$APIPORT LOADTEST_BYPASS_KEY=e2e-local-bypass ALERT_DRY_RUN=1 \
     npx tsx src/index.ts > "$E2E_STATE_DIR/backend.log" 2>&1 ) &
 STARTED_BACKEND=$!
 for i in $(seq 1 30); do

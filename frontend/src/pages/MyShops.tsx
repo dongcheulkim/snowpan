@@ -7,6 +7,7 @@ import {
 } from '../components/CategoryIcons';
 import KindTags from '../components/KindTags';
 import LoadError from '../components/LoadError';
+import OwnerAlertSettings from '../components/OwnerAlertSettings';
 import type { ShopKind } from '../utils/shopKinds';
 
 interface Shop {
@@ -267,6 +268,9 @@ export default function MyShops() {
           </div>
         </div>
       )}
+
+      {/* 알림 받기 — 예약 요청·새 문의·승인 결과 문자·메일 채널 설정 (매장이 있을 때만) */}
+      {totalShops > 0 && <OwnerAlertSettings />}
 
       {/* 예약 관리 — 손님이 보낸 방문 예약(결제 없음)을 확정·거절하는 곳. 매장이 하나도 없으면 숨김 */}
       {totalShops > 0 && (
