@@ -66,6 +66,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
   try {
     const userId = req.user!.id;
     const { shopType, shopId, rating, content } = req.body;
+    const noun = shopType === 'lesson' ? '레슨' : '매장'; // 레슨은 '매장'이 아니라 '레슨' 으로 안내 (2026-09-22)
     if (!SHOP_TYPES.includes(shopType) || !shopId) {
       res.status(400).json({ error: 'shopType 과 shopId 를 확인해주세요.' });
       return;
@@ -90,12 +91,12 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
 
     const shop = await getShopOwner(shopType, shopId);
     if (!shop.exists || !shop.approved) {
-      res.status(404).json({ error: '매장을 찾을 수 없습니다.' });
+      res.status(404).json({ error: `${noun}을 찾을 수 없습니다.` });
       return;
     }
     // 사장 본인은 자기 매장에 리뷰 불가 (자작 리뷰 차단)
     if (shop.ownerId && shop.ownerId === userId) {
-      res.status(400).json({ error: '본인 매장에는 리뷰를 작성할 수 없어요.' });
+      res.status(400).json({ error: `본인 ${noun}에는 리뷰를 작성할 수 없어요.` });
       return;
     }
 
@@ -105,7 +106,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       select: { id: true },
     });
     if (existing) {
-      res.status(409).json({ error: '이미 이 매장에 리뷰를 남기셨어요. 한 매장에는 한 번만 작성할 수 있습니다.' });
+      res.status(409).json({ error: `이미 이 ${noun}에 리뷰를 남기셨어요. 한 ${noun}에는 한 번만 작성할 수 있습니다.` });
       return;
     }
 
@@ -120,7 +121,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
   } catch (e) {
     // unique 제약 위반(동시 요청) — 중복으로 응답
     if ((e as { code?: string })?.code === 'P2002') {
-      res.status(409).json({ error: '이미 이 매장에 리뷰를 남기셨어요.' });
+      res.status(409).json({ error: `이미 이 ${req.body?.shopType === 'lesson' ? '레슨' : '매장'}에 리뷰를 남기셨어요.` });
       return;
     }
     console.error('Create shop review error:', e);

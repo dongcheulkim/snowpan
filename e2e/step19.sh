@@ -240,4 +240,12 @@ LEAK=$(pq "SELECT count(*) FROM alert_logs WHERE text LIKE '%rv_cust@s19.test%'"
 # 문자 끄면 기록도 skipped 로
 api PUT /auth/alert-settings '{"smsAlerts":false}' "$OWNER_TOKEN"; expect 200 "사장님 문자 알림 끔"
 
+# ── 레슨 리뷰 문구 (2026-09-22): 레슨은 '매장' 이 아니라 '레슨' 으로 안내
+api POST /shop-reviews "{\"shopType\":\"lesson\",\"shopId\":\"$LESSON\",\"rating\":5,\"content\":\"내 레슨 최고예요\"}" "$OWNER_TOKEN"
+[ "$CODE" = "400" ] && echo "$RESP" | grep -q "본인 레슨에는" && ok "강사 본인 레슨 리뷰 차단 (레슨 문구)" || bad "본인 레슨 리뷰 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api POST /shop-reviews "{\"shopType\":\"lesson\",\"shopId\":\"$LESSON\",\"rating\":5,\"content\":\"설명이 쉽고 친절했어요\"}" "$OTHER_TOKEN"
+[ "$CODE" = "201" ] && ok "레슨 리뷰 등록 201" || bad "레슨 리뷰 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api POST /shop-reviews "{\"shopType\":\"lesson\",\"shopId\":\"$LESSON\",\"rating\":4,\"content\":\"두 번째 레슨 리뷰\"}" "$OTHER_TOKEN"
+[ "$CODE" = "409" ] && echo "$RESP" | grep -q "이 레슨에" && ok "레슨 리뷰 1인 1회 (레슨 문구)" || bad "레슨 중복 리뷰 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+
 echo "----- STEP19: PASS=$PASS FAIL=$FAIL -----"

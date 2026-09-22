@@ -28,6 +28,9 @@ function Stars({ value, size = 14 }: { value: number; size?: number }) {
 
 export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: string; shopId: string; ownerId?: string | null }) {
   const navigate = useNavigate();
+  // 레슨은 '방문'이 아니라 '레슨' 리뷰 — 사용자 요청 2026-09-22. 매장(스키샵·정비샵·렌탈샵·숙소)은 방문자 리뷰 유지.
+  const isLesson = shopType === 'lesson';
+  const noun = isLesson ? '레슨' : '매장';
   const user = getUser();
   const [reviews, setReviews] = useState<ShopReview[]>([]);
   const [avg, setAvg] = useState(0);
@@ -71,7 +74,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   return (
     <section className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-gray-900">방문자 리뷰 {count > 0 && <span className="text-gray-400 font-normal">({count})</span>}</h2>
+        <h2 className="text-sm font-bold text-gray-900">{isLesson ? '레슨 리뷰' : '방문자 리뷰'} {count > 0 && <span className="text-gray-400 font-normal">({count})</span>}</h2>
         {count > 0 && (
           <span className="inline-flex items-center gap-1.5">
             <Stars value={Math.round(avg)} />
@@ -96,7 +99,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
               onChange={(e) => setContent(e.target.value)}
               maxLength={1000}
               rows={3}
-              placeholder="방문 경험을 남겨주세요 (친절도, 시설, 가격 등)"
+              placeholder={isLesson ? '레슨 경험을 남겨주세요 (강사 설명, 친절도, 실력 향상 등)' : '방문 경험을 남겨주세요 (친절도, 시설, 가격 등)'}
               className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 resize-none"
             />
             <div className="flex gap-2">
@@ -109,17 +112,17 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
             onClick={() => { if (!user) { navigate(loginPath()); return; } setWriting(true); }}
             className="w-full py-2.5 mb-4 bg-sky-50 text-sky-600 rounded-xl text-xs font-bold border border-sky-100 hover:bg-sky-100 transition-colors"
           >
-            + 이 매장 리뷰 쓰기
+            + 이 {noun} 리뷰 쓰기
           </button>
         )
       )}
-      {isOwner && <p className="text-[11px] text-gray-400 mb-3">내 매장에는 리뷰를 쓸 수 없어요.</p>}
+      {isOwner && <p className="text-[11px] text-gray-400 mb-3">내 {noun}에는 리뷰를 쓸 수 없어요.</p>}
 
       {/* 목록 */}
       {loading ? (
         <p className="text-sm text-gray-400 text-center py-4">불러오는 중...</p>
       ) : reviews.length === 0 ? (
-        <p className="text-sm text-gray-500 text-center py-6">아직 리뷰가 없어요. 첫 방문 리뷰를 남겨보세요.</p>
+        <p className="text-sm text-gray-500 text-center py-6">아직 리뷰가 없어요. 첫 {isLesson ? '레슨' : '방문'} 리뷰를 남겨보세요.</p>
       ) : (
         <div className="space-y-3">
           {reviews.map((r) => (
