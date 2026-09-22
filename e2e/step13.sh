@@ -155,6 +155,24 @@ AVG=$(echo "$RESP" | jq -r '.averageRating'); TC=$(echo "$RESP" | jq -r '.totalC
 [ "$TC" = "2" ] && [ "$AVG" = "3" ] && ok "리뷰 집계 (2건, 평균 3)" || bad "집계 avg=$AVG total=$TC"
 RLEAK=$(echo "$RESP" | jq -r '[.reviews[] | .user? | (.email // .phone // empty)] | length')
 [ "$RLEAK" = "0" ] && ok "리뷰 작성자 개인정보 미노출" || bad "리뷰 개인정보 노출"
+
+# ── 사장님 답글 (2026-09-22): 남 403, 사장 200 + 목록 노출 + 작성자 알림, 빈 내용이면 삭제
+api PUT "/shop-reviews/$RV/reply" '{"content":"감사합니다"}' "$VISITOR_TOKEN"
+[ "$CODE" = "403" ] && ok "리뷰 답글 사장님만 403" || bad "답글 권한 CODE=$CODE"
+api PUT "/shop-reviews/$RV/reply" '{"content":"방문 감사합니다. 다음에 또 뵐게요"}' "$OWNER_TOKEN"
+[ "$CODE" = "200" ] && echo "$RESP" | grep -q "다음에 또" && ok "사장님 답글 200" || bad "답글 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api GET "/shop-reviews?shopType=skishop&shopId=$SHOP" ""
+RR=$(echo "$RESP" | jq -r ".reviews[] | select(.id==\"$RV\") | .ownerReply // empty")
+[ -n "$RR" ] && ok "리뷰 목록에 답글 노출" || bad "목록에 답글 없음"
+NR=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$VISITOR_ID' AND title LIKE '%답글%'")
+[ "$NR" = "1" ] && ok "리뷰 작성자에게 답글 알림" || bad "답글 알림 수=$NR"
+api PUT "/shop-reviews/$RV/reply" '{"content":"고마워요 수정"}' "$OWNER_TOKEN"
+NR2=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$VISITOR_ID' AND title LIKE '%답글%'")
+[ "$CODE" = "200" ] && [ "$NR2" = "1" ] && ok "답글 수정은 알림 없이 200" || bad "답글 수정 CODE=$CODE 알림=$NR2"
+api PUT "/shop-reviews/$RV/reply" '{"content":""}' "$OWNER_TOKEN"
+[ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.ownerReply')" = "null" ] && ok "빈 답글 → 답글 삭제" || bad "답글 삭제 CODE=$CODE RESP=$(echo $RESP|head -c 80)"
+NO=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$OWNER_ID' AND title='새 리뷰가 달렸어요'")
+[ "$NO" -ge 1 ] && ok "새 리뷰 → 사장님 알림" || bad "새 리뷰 알림 수=$NO"
 api DELETE "/shop-reviews/$RV" "" "$CLAIMER_TOKEN"
 [ "$CODE" = "403" ] && ok "타인 리뷰 삭제 403" || bad "타인 리뷰 삭제 CODE=$CODE"
 api DELETE "/shop-reviews/$RV" "" "$VISITOR_TOKEN"

@@ -10,8 +10,7 @@ import {
   getReservation,
   confirmReservation,
   declineReservation,
-  cancelReservation,
-} from '../controllers/reservationController';
+  cancelReservation, hideReservation } from '../controllers/reservationController';
 
 const router = Router();
 
@@ -25,5 +24,6 @@ router.get('/:id', authenticateToken, validateUUIDParam('id'), getReservation);
 router.put('/:id/confirm', authenticateToken, validateUUIDParam('id'), confirmReservation);
 router.put('/:id/decline', authenticateToken, validateUUIDParam('id'), declineReservation);
 router.put('/:id/cancel', authenticateToken, validateUUIDParam('id'), cancelReservation);
+router.delete('/:id', authenticateToken, validateUUIDParam('id'), hideReservation); // 끝난 예약 기록 정리 (내 목록에서만)
 
 export default router;

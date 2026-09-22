@@ -7,7 +7,8 @@ import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import LoadError from '../components/LoadError';
 import { useVertical } from '../hooks/useVertical';
-import { PosterGridSkeleton } from '../components/Skeleton';
+import { RowListSkeleton } from '../components/Skeleton';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 import HScroll from '../components/HScroll';
 
@@ -160,64 +161,46 @@ const Accommodation = () => {
         ))}
       </div>
 
-      {/* Accommodation List */}
+      {/* Accommodation List — 촘촘한 리스트 (매장 목록과 같은 형태로, 한 화면에 더 많이) 2026-09-22 */}
       {loading ? (
-        <PosterGridSkeleton count={6} aspect="aspect-square" />
+        <RowListSkeleton count={8} />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {accommodations.map((item) => (
-            <Link to={`/accommodation/${item.id}`} state={{ from: listHere }} key={item.id} className="bg-snow border border-gray-200 rounded-xl overflow-hidden hover:border-gray-400 transition-all group block">
-              <div className="relative h-28 flex items-center justify-center text-4xl bg-gray-100 overflow-hidden">
-                {item.isPremium && <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
-                {item.claimable && <span className="absolute bottom-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gray-700/70 text-white">확인 전</span>}
-                {item.image.startsWith('/') || item.image.startsWith('http') ? (
-                  <img src={imageUrl(item.image, 400)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }} />
-                ) : (
-                  <span className="relative group-hover:scale-110 transition-transform duration-300">{item.image}</span>
-                )}
-                <span className="absolute top-2 right-2 bg-white/85 backdrop-blur-md text-gray-900 px-2 py-0.5 rounded-md text-[10px] font-bold ring-1 ring-white/40 shadow-sm">
-                  {item.type.split(',').map(t => typeMap[t] || t).join(', ')}
-                </span>
-              </div>
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                    {item.resort?.name}
-                  </span>
-                  <span className="text-[10px] text-gray-500">{item.guests}</span>
-                </div>
-                <h3 className="text-sm font-bold text-gray-900 truncate mb-1.5">{item.name}</h3>
-
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {item.features.split(',').filter(Boolean).map((feature, idx) => (
-                    <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">
-                      {feature.trim()}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex justify-between items-end pt-2 border-t border-gray-200">
-                  <div>
-                    {item.originalPrice > item.price && (
-                      <div className="text-[10px] text-gray-500 line-through">{item.originalPrice.toLocaleString()}원</div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <span className="text-base font-bold text-mint">{item.price.toLocaleString()}원</span>
-                      {item.originalPrice > item.price && (
-                        <span className="text-[10px] text-coral font-bold">
-                          {Math.round((1 - item.price / item.originalPrice) * 100)}%
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[10px] text-gray-500">1박</div>
+        <div className="grid grid-cols-1 gap-2">
+          {accommodations.map((item) => {
+            const hasCover = item.image.startsWith('/') || item.image.startsWith('http');
+            const typeLabel = item.type.split(',').map(t => typeMap[t] || t).filter(Boolean).join(', ');
+            const features = item.features.split(',').map((f) => f.trim()).filter(Boolean).slice(0, 3);
+            const discount = item.originalPrice > item.price ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
+            const sub = [item.resort?.name, item.guests, ...features].filter(Boolean).join(' · ');
+            return (
+              <Link to={`/accommodation/${item.id}`} state={{ from: listHere }} key={item.id} className={`card p-2.5 relative block card-hover ${item.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+                {item.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
+                <div className="flex items-center gap-2.5">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <img
+                      src={hasCover ? imageUrl(item.image, 200) : '/icons/placeholder-card.svg'}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      onError={e => { const i = e.target as HTMLImageElement; if (!i.dataset.fallback) { i.dataset.fallback = '1'; i.src = '/icons/placeholder-card.svg'; } }}
+                    />
                   </div>
-                  <button className="px-3 py-1.5 bg-accent text-white rounded-lg font-medium text-[11px] hover:bg-accent-light transition-all active:scale-95">
-                    예약
-                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
+                      <UnverifiedShopBadge claimable={item.claimable} compact />
+                      {typeLabel && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{typeLabel}</span>}
+                    </div>
+                    {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-sm font-bold text-mint">{item.price.toLocaleString()}원</div>
+                    <div className="text-[10px] text-gray-500">1박{discount > 0 ? ` · ${discount}% 할인` : ''}</div>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 

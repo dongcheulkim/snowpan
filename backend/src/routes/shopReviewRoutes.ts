@@ -3,12 +3,16 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { reviewCreateLimiter } from '../middleware/rateLimit';
+import { createNotification } from '../controllers/notificationController';
+import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
 // 매장 리뷰 — 매장별 1인 1리뷰(조작 방지 핵심). 휴대폰 인증 계정만, 사장 본인 차단.
 const SHOP_TYPES = ['skishop', 'repair', 'rental', 'lesson', 'accommodation'] as const;
 type ShopType = (typeof SHOP_TYPES)[number];
+// 매장 상세 경로 (알림 링크용)
+const DETAIL_PATH: Record<ShopType, string> = { skishop: '/skishop', repair: '/repair', rental: '/rental', lesson: '/lesson', accommodation: '/accommodation' };
 
 // 매장 존재·소유자 조회 (타입별 모델 매핑)
 async function getShopOwner(shopType: ShopType, shopId: string): Promise<{ exists: boolean; ownerId: string | null; approved: boolean }> {
@@ -114,6 +118,14 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       data: { shopType, shopId, userId, rating: ratingNum, content: cleanContent },
       include: { user: { select: { id: true, name: true, nickname: true, profileImage: true } } },
     });
+    // 사장님에게 새 리뷰 알림 (앱 푸시 + 알림함) — 답글을 유도. 2026-09-22
+    if (shop.ownerId) {
+      const title = '새 리뷰가 달렸어요';
+      const body = `${created.user?.nickname || '스노우판 회원'}님이 별점 ${ratingNum}점 리뷰를 남겼어요. 답글을 달아 보세요.`;
+      const link = `${DETAIL_PATH[shopType as ShopType]}/${shopId}`;
+      createNotification(shop.ownerId, 'system', title, body, link).catch(() => undefined);
+      sendPushToUser(shop.ownerId, title, body, link).catch(() => undefined);
+    }
     res.status(201).json({
       ...created,
       user: created.user ? { ...created.user, name: created.user.nickname || '스노우판 회원' } : created.user,
@@ -126,6 +138,40 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
     }
     console.error('Create shop review error:', e);
     res.status(500).json({ error: '리뷰 작성 중 오류가 발생했습니다.' });
+  }
+});
+
+// 사장님 답글 (2026-09-22) — 매장·레슨 소유자(또는 관리자)만, 500자. 빈 내용이면 답글 삭제. 첫 답글 때 리뷰 작성자에게 알림.
+router.put('/:id/reply', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const review = await prisma.shopReview.findUnique({ where: { id: req.params.id }, select: { id: true, shopType: true, shopId: true, userId: true, ownerReply: true } });
+    if (!review) { res.status(404).json({ error: '리뷰를 찾을 수 없습니다.' }); return; }
+    const shopType = review.shopType as ShopType;
+    const shop = await getShopOwner(shopType, review.shopId);
+    if (!shop.exists) { res.status(404).json({ error: '매장을 찾을 수 없습니다.' }); return; }
+    const isOwner = !!shop.ownerId && shop.ownerId === req.user!.id;
+    if (!isOwner && req.user!.role !== 'admin') {
+      res.status(403).json({ error: shopType === 'lesson' ? '레슨 강사만 답글을 달 수 있어요.' : '매장 사장님만 답글을 달 수 있어요.' });
+      return;
+    }
+    const text = (sanitizeText(req.body?.content, 500) || '').trim();
+    if (!text) {
+      const cleared = await prisma.shopReview.update({ where: { id: review.id }, data: { ownerReply: null, ownerRepliedAt: null } });
+      res.json({ ...cleared, message: '답글을 지웠어요.' });
+      return;
+    }
+    if (text.length < 2) { res.status(400).json({ error: '답글을 2자 이상 입력해 주세요.' }); return; }
+    const updated = await prisma.shopReview.update({ where: { id: review.id }, data: { ownerReply: text, ownerRepliedAt: new Date() } });
+    if (!review.ownerReply) {
+      const title = shopType === 'lesson' ? '강사님이 내 리뷰에 답글을 남겼어요' : '사장님이 내 리뷰에 답글을 남겼어요';
+      const link = `${DETAIL_PATH[shopType]}/${review.shopId}`;
+      createNotification(review.userId, 'system', title, text.slice(0, 80), link).catch(() => undefined);
+      sendPushToUser(review.userId, title, text.slice(0, 80), link).catch(() => undefined);
+    }
+    res.json({ ...updated, message: '답글을 남겼어요.' });
+  } catch (e) {
+    console.error('Reply shop review error:', e);
+    res.status(500).json({ error: '답글 저장 중 오류가 발생했습니다.' });
   }
 });
 

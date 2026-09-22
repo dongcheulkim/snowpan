@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
 import { CalendarIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
-import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation } from '../utils/reservation';
+import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, isReservationFinished, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation } from '../utils/reservation';
 
 // 내 예약 (손님) — 렌탈·스키샵·레슨·숙소에 보낸 방문 예약 목록. 결제 없음, 사장님이 확정하면 상태가 바뀐다.
 type Filter = 'all' | 'requested' | 'confirmed' | 'closed';
@@ -50,6 +50,22 @@ export default function MyReservations() {
       toastSuccess('예약을 취소했어요.');
     } catch (e) {
       toastError(e instanceof Error ? e.message : '취소하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // 끝난 예약 기록 정리 — 내 목록에서만 사라지고 상대방 기록·채팅은 유지 (2026-09-22)
+  const hide = async (r: Reservation) => {
+    if (busy) return;
+    if (!confirm('이 예약 기록을 내 목록에서 지울까요? 상대방 기록과 채팅은 그대로 남아요.')) return;
+    setBusy(r.id);
+    try {
+      await api(`/reservations/${r.id}`, { method: 'DELETE' });
+      setItems((prev) => prev.filter((x) => x.id !== r.id));
+      toastSuccess('예약 기록을 지웠어요.');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '지우지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setBusy(null);
     }
@@ -132,6 +148,14 @@ export default function MyReservations() {
                       disabled={busy === r.id}
                       className="flex-1 min-h-11 bg-white text-gray-700 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-40"
                     >{busy === r.id ? '처리 중...' : '예약 취소'}</button>
+                  )}
+                  {isReservationFinished(r) && (
+                    <button
+                      type="button"
+                      onClick={() => hide(r)}
+                      disabled={busy === r.id}
+                      className="flex-1 min-h-11 bg-white text-gray-500 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-40"
+                    >기록 삭제</button>
                   )}
                 </div>
               </div>

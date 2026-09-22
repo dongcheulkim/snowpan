@@ -7,6 +7,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import UserBadges from '../components/UserBadges';
 import LinkifyText from '../components/LinkifyText';
+import PhotoViewer from '../components/PhotoViewer';
 import { HeartFilledIcon, UserIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
 
@@ -66,6 +67,7 @@ const CommunityDetail = () => {
   const vbase = vertical.slug === 'snow' ? '' : vertical.basePath;
   const navigate = useNavigate();
   const [post, setPost] = useState<PostData | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null); // 사진 크게보기 (2026-09-22)
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null); // 답글 대상 댓글
@@ -201,6 +203,7 @@ const CommunityDetail = () => {
 
   const badge = badgeMap[post.category] || post.category;
   const postImages = post.images ? post.images.split(',').filter(s => s.trim()).map(u => imageUrl(u.trim())) : [];
+  const rawPostImages = post.images ? post.images.split(',').map(u => u.trim()).filter(Boolean) : [];
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
@@ -262,10 +265,13 @@ const CommunityDetail = () => {
         {postImages.length > 0 && (
           <div className="mt-4 space-y-2">
             {postImages.map((img, idx) => (
-              <img key={idx} src={img} alt="" loading="lazy" className="w-full rounded-lg border border-gray-200" />
+              <button key={idx} type="button" aria-label="사진 크게 보기" onClick={() => setViewerIndex(idx)} className="block w-full cursor-zoom-in">
+                <img src={img} alt="" loading="lazy" className="w-full rounded-lg border border-gray-200" />
+              </button>
             ))}
           </div>
         )}
+        {viewerIndex !== null && <PhotoViewer urls={rawPostImages} index={viewerIndex} onClose={() => setViewerIndex(null)} />}
 
         <div className="flex items-center gap-4 mt-6 pt-5 border-t border-gray-200">
           <button onClick={handleLike} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95 ${liked ? 'bg-coral/15 text-coral border border-coral/30' : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'}`}>

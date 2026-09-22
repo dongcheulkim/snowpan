@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
 import { toastError, toastSuccess } from '../components/Toast';
 import HScroll from '../components/HScroll';
+import PhotoViewer from '../components/PhotoViewer';
 
 interface ShopPost {
   id: string;
@@ -48,6 +49,7 @@ export default function ShopPostDetail() {
   const [post, setPost] = useState<ShopPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
+  const [viewer, setViewer] = useState(false); // 사진 크게보기 (2026-09-22)
   const user = getUser();
 
   useEffect(() => {
@@ -116,6 +118,7 @@ export default function ShopPostDetail() {
           )}
         </div>
 
+        {viewer && images.length > 0 && <PhotoViewer urls={images} index={currentImage} onClose={() => setViewer(false)} />}
         {/* 이미지 갤러리 */}
         {images.length > 0 && (
           <div>
@@ -123,7 +126,10 @@ export default function ShopPostDetail() {
               <img
                 src={imageUrl(images[currentImage], 900)}
                 alt={post.title}
-                className="w-full h-full object-cover"
+                role="button"
+                aria-label="사진 크게 보기"
+                onClick={() => setViewer(true)}
+                className="w-full h-full object-cover cursor-zoom-in"
               />
               {images.length > 1 && (
                 <>

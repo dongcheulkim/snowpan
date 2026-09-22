@@ -12,6 +12,8 @@ interface ShopReview {
   createdAt: string;
   userId: string;
   user: { id: string; name: string; nickname?: string | null; profileImage?: string | null } | null;
+  ownerReply?: string | null;     // 사장님·강사 답글 (2026-09-22)
+  ownerRepliedAt?: string | null;
 }
 
 function Stars({ value, size = 14 }: { value: number; size?: number }) {
@@ -40,6 +42,10 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // 사장님 답글 편집 상태 — 편집 중인 리뷰 id
+  const [replyFor, setReplyFor] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replySaving, setReplySaving] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -52,6 +58,8 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
 
   const myReview = user ? reviews.find((r) => r.userId === user.id) : null;
   const isOwner = !!user && !!ownerId && user.id === ownerId;
+  const canReply = isOwner || (!!user && user.role === 'admin');
+  const replyLabel = isLesson ? '강사 답글' : '사장님 답글';
 
   const submit = async () => {
     if (content.trim().length < 5) { toastError('리뷰를 5자 이상 입력해주세요.'); return; }
@@ -63,6 +71,23 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
       load();
     } catch (e) { toastError(e instanceof Error ? e.message : '리뷰 등록에 실패했어요.'); }
     finally { setSubmitting(false); }
+  };
+
+  const saveReply = async (id: string) => {
+    if (replyText.trim().length < 2) { toastError('답글을 2자 이상 입력해 주세요.'); return; }
+    setReplySaving(true);
+    try {
+      await api(`/shop-reviews/${id}/reply`, { method: 'PUT', body: { content: replyText.trim() } });
+      toastSuccess('답글을 남겼어요.');
+      setReplyFor(null); setReplyText('');
+      load();
+    } catch (e) { toastError(e instanceof Error ? e.message : '답글 저장에 실패했어요.'); }
+    finally { setReplySaving(false); }
+  };
+  const removeReply = async (id: string) => {
+    if (!confirm('답글을 지울까요?')) return;
+    try { await api(`/shop-reviews/${id}/reply`, { method: 'PUT', body: { content: '' } }); toastSuccess('답글을 지웠어요.'); load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '삭제 실패'); }
   };
 
   const remove = async (id: string) => {
@@ -137,6 +162,40 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
               <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{r.content}</p>
               {user && (r.userId === user.id || user.role === 'admin') && (
                 <button onClick={() => remove(r.id)} className="text-[11px] text-gray-400 hover:text-red-400 mt-1">삭제</button>
+              )}
+              {r.ownerReply && replyFor !== r.id && (
+                <div className="mt-2 ml-2 pl-3 border-l-2 border-sky-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-sky-700">{replyLabel}</span>
+                    {r.ownerRepliedAt && <span className="text-[10px] text-gray-400">{new Date(r.ownerRepliedAt).toLocaleDateString('ko-KR')}</span>}
+                  </div>
+                  <p className="text-xs text-gray-700 mt-0.5 leading-relaxed whitespace-pre-wrap">{r.ownerReply}</p>
+                  {canReply && (
+                    <div className="flex gap-3 mt-1">
+                      <button onClick={() => { setReplyFor(r.id); setReplyText(r.ownerReply || ''); }} className="text-[11px] text-gray-400 hover:text-gray-700">수정</button>
+                      <button onClick={() => removeReply(r.id)} className="text-[11px] text-gray-400 hover:text-red-400">지우기</button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {canReply && !r.ownerReply && replyFor !== r.id && (
+                <button onClick={() => { setReplyFor(r.id); setReplyText(''); }} className="text-[11px] text-sky-600 font-bold mt-1 block">답글 달기</button>
+              )}
+              {canReply && replyFor === r.id && (
+                <div className="mt-2 space-y-1.5">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder={isLesson ? '수강생에게 답글을 남겨 주세요' : '손님에게 답글을 남겨 주세요'}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={() => saveReply(r.id)} disabled={replySaving} className="flex-1 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg disabled:opacity-40">{replySaving ? '저장 중...' : '답글 저장'}</button>
+                    <button onClick={() => { setReplyFor(null); setReplyText(''); }} className="px-4 py-2 text-xs font-bold bg-gray-100 text-gray-700 rounded-lg">취소</button>
+                  </div>
+                </div>
               )}
             </div>
           ))}

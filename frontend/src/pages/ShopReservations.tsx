@@ -7,7 +7,7 @@ import LoadError from '../components/LoadError';
 import ReservationActions from '../components/ReservationActions';
 import { CalendarIcon, UserIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
-import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, type ReservationParty } from '../utils/reservation';
+import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, detailLines, isReservationFinished, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, type ReservationParty } from '../utils/reservation';
 
 // 예약 관리 (사장님) — 내 매장들로 들어온 방문 예약. 요청 대기 건은 확정/거절, 확정 건은 취소할 수 있다. 결제 없음.
 type ShopReservation = Reservation & { customer?: ReservationParty };
@@ -56,6 +56,22 @@ export default function ShopReservations() {
   };
 
   const emptyByFilter = filter === 'requested' ? '요청 대기 중인 예약이 없어요.' : filter === 'confirmed' ? '확정한 예약이 없어요.' : '받은 예약이 없어요.';
+
+  // 끝난 예약 기록 정리 — 내 목록에서만 사라지고 상대방 기록·채팅은 유지 (2026-09-22)
+  const hide = async (r: ShopReservation) => {
+    if (busy) return;
+    if (!confirm('이 예약 기록을 내 목록에서 지울까요? 상대방 기록과 채팅은 그대로 남아요.')) return;
+    setBusy(r.id);
+    try {
+      await api(`/reservations/${r.id}`, { method: 'DELETE' });
+      setItems((prev) => prev.filter((x) => x.id !== r.id));
+      toastSuccess('예약 기록을 지웠어요.');
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '지우지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto space-y-4 animate-fade-in">
@@ -144,6 +160,14 @@ export default function ShopReservations() {
                   onDecline={(reason) => runAction(r, 'decline', reason)}
                   onCancel={() => runAction(r, 'cancel')}
                 />
+                {isReservationFinished(r) && (
+                  <button
+                    type="button"
+                    onClick={() => hide(r)}
+                    disabled={busy === r.id}
+                    className="block w-full min-h-11 py-3 text-center bg-white text-gray-500 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-40"
+                  >기록 삭제</button>
+                )}
               </div>
             );
           })}

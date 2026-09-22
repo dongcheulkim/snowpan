@@ -8,7 +8,7 @@ import CategoryAdBanner from '../components/CategoryAdBanner';
 import LoadError from '../components/LoadError';
 import { SkiIcon, SnowboardIcon } from '../components/Icons';
 import { useVertical } from '../hooks/useVertical';
-import { PosterGridSkeleton } from '../components/Skeleton';
+import { RowListSkeleton } from '../components/Skeleton';
 import HScroll from '../components/HScroll';
 import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
@@ -169,13 +169,16 @@ const Lesson = () => {
         ))}
       </HScroll>
 
-      {/* Lesson Items — 포스터형 */}
+      {/* Lesson Items — 촘촘한 리스트 (매장 목록과 같은 형태로, 한 화면에 더 많이) 2026-09-22 */}
       {loading ? (
-        <PosterGridSkeleton count={6} />
+        <RowListSkeleton count={8} />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {lessonItems.map((item) => {
             const cover = (item.images && item.images.split(',')[0]) || item.image || '';
+            const hasCover = !!cover && (cover.startsWith('/') || cover.startsWith('http'));
+            const specs = (item.specialties || '').split(',').map((sp) => sp.trim()).filter(Boolean).slice(0, 3);
+            const sub = [item.resort?.name, ...specs].filter(Boolean).join(' · ');
             return (
               <Link
                 to={`/lesson/${item.id}`}
@@ -183,27 +186,22 @@ const Lesson = () => {
                 key={item.id}
                 viewTransition
                 onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
-                className="bg-snow border border-gray-200 rounded-xl overflow-hidden group block hover:border-gray-400 transition-colors"
+                className={`card p-2.5 relative block card-hover ${item.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}
               >
-                <div className="relative aspect-[4/5] bg-gradient-to-br from-sky-400 to-indigo-500 overflow-hidden">
-                  {item.isPremium && <span className="absolute top-1.5 left-1.5 z-10 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
-                  {cover && (cover.startsWith('/') || cover.startsWith('http')) ? (
-                    <img src={imageUrl(cover, 500)} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center p-2"><span className="text-white font-black text-sm text-center">{item.name}</span></div>
-                  )}
-                  {item.type && <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-black/50 px-1.5 py-0.5 rounded">{item.type}</span>}
-                </div>
-                <div className="p-3">
-                  {item.resort?.name && <span className="text-[10px] font-medium text-sky-600">{item.resort.name}</span>}
-                  <h3 className="text-sm font-bold text-gray-900 mt-0.5 line-clamp-2">{item.name}</h3>
-                  {item.specialties && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {item.specialties.split(',').map((sp) => (
-                        <span key={sp} className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{sp}</span>
-                      ))}
+                {item.isPremium && <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
+                <div className="flex items-center gap-2.5">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                    {hasCover
+                      ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      : (/보드/.test(item.type || '') ? <SnowboardIcon size={22} className="text-white" /> : <SkiIcon size={22} className="text-white" />)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
+                      {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
                     </div>
-                  )}
+                    {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
+                  </div>
                 </div>
               </Link>
             );

@@ -156,4 +156,7 @@ export function parseReservationCard(content: string): ReservationCard | null {
 // 누가 무엇을 할 수 있나 — 손님: 요청됨·확정 상태에서 취소. 사장님: 요청됨이면 확정/거절, 확정이면 취소.
 export const canCustomerCancel = (s: ReservationStatus) => s === 'requested' || s === 'confirmed';
 export const canOwnerRespond = (s: ReservationStatus) => s === 'requested';
+// 끝난 예약(목록에서 정리 가능): 거절·취소, 또는 확정됐지만 이용일(숙소는 체크아웃일)이 지난 것 — 2026-09-22
+export const isReservationFinished = (r: { status: ReservationStatus; date: string; endDate?: string | null }) =>
+  r.status === 'declined' || r.status === 'cancelled' || (r.status === 'confirmed' && new Date(r.endDate || r.date).getTime() + 24 * 60 * 60 * 1000 < Date.now());
 export const canOwnerCancel = (s: ReservationStatus) => s === 'confirmed';

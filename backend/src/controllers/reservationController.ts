@@ -300,7 +300,7 @@ export const getMyReservations = async (req: AuthRequest, res: Response): Promis
     const status = typeof req.query.status === 'string' ? req.query.status : '';
     if (status && !STATUSES.includes(status as ReservationStatus)) { res.status(400).json({ error: '상태 값이 올바르지 않아요' }); return; }
     const rows = await prisma.reservation.findMany({
-      where: { customerId: req.user!.id, ...(status ? { status } : {}) },
+      where: { customerId: req.user!.id, customerHidden: false, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
@@ -321,7 +321,7 @@ export const getShopReservations = async (req: AuthRequest, res: Response): Prom
     if (status && !STATUSES.includes(status as ReservationStatus)) { res.status(400).json({ error: '상태 값이 올바르지 않아요' }); return; }
     if (shopType && !SHOP_TYPES.includes(shopType as ShopType)) { res.status(400).json({ error: '매장 종류가 올바르지 않아요' }); return; }
     const rows = await prisma.reservation.findMany({
-      where: { ownerId: req.user!.id, ...(status ? { status } : {}), ...(shopType ? { shopType } : {}) },
+      where: { ownerId: req.user!.id, ownerHidden: false, ...(status ? { status } : {}), ...(shopType ? { shopType } : {}) },
       include: { customer: { select: publicUser } },
       orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
       take: 300,
@@ -459,5 +459,26 @@ export const cancelReservation = async (req: AuthRequest, res: Response): Promis
   } catch (error) {
     console.error('Cancel reservation error:', error);
     res.status(500).json({ error: '예약을 취소하지 못했어요' });
+  }
+};
+
+// 끝난 예약 기록 정리 — 손님·사장님 각자 자기 목록에서만 사라진다(상대 쪽 기록·채팅 카드는 유지). 사용자 요청 2026-09-22
+// 끝난 예약 = 거절·취소, 또는 확정됐지만 이용일(숙소는 체크아웃일)이 지난 것. 요청 대기·다가오는 확정 예약은 지울 수 없다.
+export const hideReservation = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const r = await prisma.reservation.findUnique({ where: { id: String(req.params.id) } });
+    if (!r) { res.status(404).json({ error: '예약을 찾을 수 없어요.' }); return; }
+    const uid = req.user!.id;
+    const isCustomer = r.customerId === uid;
+    const isOwner = r.ownerId === uid;
+    if (!isCustomer && !isOwner) { res.status(403).json({ error: '내 예약만 정리할 수 있어요.' }); return; }
+    const lastDay = (r.endDate || r.date).getTime() + 24 * 60 * 60 * 1000;
+    const finished = r.status === 'declined' || r.status === 'cancelled' || (r.status === 'confirmed' && lastDay < Date.now());
+    if (!finished) { res.status(400).json({ error: '진행 중인 예약은 지울 수 없어요. 취소하거나 이용이 끝난 뒤 정리해 주세요.' }); return; }
+    await prisma.reservation.update({ where: { id: r.id }, data: isCustomer ? { customerHidden: true } : { ownerHidden: true } });
+    res.json({ message: '예약 기록을 지웠어요.' });
+  } catch (error) {
+    console.error('Hide reservation error:', error);
+    res.status(500).json({ error: '정리 중 오류가 발생했어요.' });
   }
 };

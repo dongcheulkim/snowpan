@@ -248,4 +248,22 @@ api POST /shop-reviews "{\"shopType\":\"lesson\",\"shopId\":\"$LESSON\",\"rating
 api POST /shop-reviews "{\"shopType\":\"lesson\",\"shopId\":\"$LESSON\",\"rating\":4,\"content\":\"두 번째 레슨 리뷰\"}" "$OTHER_TOKEN"
 [ "$CODE" = "409" ] && echo "$RESP" | grep -q "이 레슨에" && ok "레슨 리뷰 1인 1회 (레슨 문구)" || bad "레슨 중복 리뷰 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
 
+# ── 끝난 예약 기록 정리 (2026-09-22): 요청 대기 400, 남 403, 손님 200(손님 목록만 제외·사장 목록 유지), 사장 200
+api DELETE "/reservations/$RES3" "" "$CUST_TOKEN"
+[ "$CODE" = "400" ] && ok "요청 대기 예약은 정리 불가 400" || bad "대기 예약 정리 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api DELETE "/reservations/$RES1" "" "$OTHER_TOKEN"
+[ "$CODE" = "403" ] && ok "남의 예약 정리 403" || bad "남 예약 정리 CODE=$CODE"
+api DELETE "/reservations/$RES1" "" "$CUST_TOKEN"
+[ "$CODE" = "200" ] && ok "취소된 예약 손님 정리 200" || bad "손님 정리 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api GET /reservations/mine "" "$CUST_TOKEN"; HN=$(echo "$RESP" | jq -r "[.items[] | select(.id==\"$RES1\")] | length")
+[ "$HN" = "0" ] && ok "정리한 예약이 내 예약에서 사라짐" || bad "내 예약에 남음 n=$HN"
+api GET /reservations/shop "" "$OWNER_TOKEN"; ON=$(echo "$RESP" | jq -r "[.items[] | select(.id==\"$RES1\")] | length")
+[ "$ON" = "1" ] && ok "사장님 목록에는 그대로 유지" || bad "사장 목록에서 사라짐 n=$ON"
+api DELETE "/reservations/$RES1" "" "$OWNER_TOKEN"
+[ "$CODE" = "200" ] && ok "사장님도 정리 200" || bad "사장 정리 CODE=$CODE"
+api GET /reservations/shop "" "$OWNER_TOKEN"; ON=$(echo "$RESP" | jq -r "[.items[] | select(.id==\"$RES1\")] | length")
+[ "$ON" = "0" ] && ok "사장님 목록에서도 사라짐" || bad "사장 목록에 남음 n=$ON"
+api DELETE "/reservations/$RES2" "" "$OWNER_TOKEN"
+[ "$CODE" = "200" ] && ok "거절된 예약 정리 200" || bad "거절 예약 정리 CODE=$CODE"
+
 echo "----- STEP19: PASS=$PASS FAIL=$FAIL -----"

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { imageUrl } from '../api';
 import { hasMouse } from '../utils/pointer';
+import PhotoViewer from './PhotoViewer';
 
 // 상세 페이지 사진 캐러셀 — 콤마 구분 URL 문자열. 한 장씩 스와이프(가로 스크롤 스냅).
 // 에어비앤비/인스타 패턴: 세로·가로 사진 섞여도 예쁘게 — 블러 배경 채움 + object-contain,
@@ -11,66 +11,8 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
   const urls = (images || '').split(',').map((s) => s.trim()).filter(Boolean);
   const [idx, setIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
-  // 전체화면 뷰어 상태
-  const [open, setOpen] = useState(false);
-  const [big, setBig] = useState(0);
-  const [zoomed, setZoomed] = useState(false);
-  const viewerRef = useRef<HTMLDivElement>(null);
-  const tapPos = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
-
-  const openViewer = (i: number) => { setBig(i); setZoomed(false); setOpen(true); };
-  const closeViewer = () => { setOpen(false); setZoomed(false); };
-  const goBig = (i: number) => {
-    const el = viewerRef.current;
-    if (!el || i < 0 || i >= urls.length) return;
-    setZoomed(false);
-    el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
-  };
-
-  // 뷰어 열림: 배경 스크롤 잠금 + 현재 사진 위치로
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const el = viewerRef.current;
-    if (el) el.scrollTo({ left: big * el.clientWidth });
-    return () => { document.body.style.overflow = prevOverflow; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-  // 키보드: ESC 닫기, 좌우 화살표 넘기기
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeViewer();
-      else if (e.key === 'ArrowLeft') goBig(big - 1);
-      else if (e.key === 'ArrowRight') goBig(big + 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, big]);
-  // 확대 직후 — 누른 지점이 화면 가운데 오도록 스크롤
-  useEffect(() => {
-    if (!zoomed) return;
-    const slide = viewerRef.current?.children[big] as HTMLElement | undefined;
-    if (!slide) return;
-    slide.scrollTo({
-      left: tapPos.current.x * slide.scrollWidth - slide.clientWidth / 2,
-      top: tapPos.current.y * slide.scrollHeight - slide.clientHeight / 2,
-    });
-  }, [zoomed, big]);
-
-  const onViewerScroll = () => {
-    const el = viewerRef.current;
-    if (!el || zoomed) return;
-    const i = Math.round(el.scrollLeft / el.clientWidth);
-    if (i !== big && i >= 0 && i < urls.length) setBig(i);
-  };
-  const toggleZoom = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    tapPos.current = { x: (e.clientX - rect.left) / rect.width, y: (e.clientY - rect.top) / rect.height };
-    setZoomed((z) => !z);
-  };
+  // 전체화면 크게보기 (PhotoViewer) — 누른 사진 번호, null 이면 닫힘
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   // 매물 전환 등으로 사진 목록이 바뀌면 첫 장부터 (stale index 방지)
   useEffect(() => {
@@ -107,8 +49,8 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
             role="button"
             tabIndex={0}
             aria-label="사진 크게 보기"
-            onClick={() => openViewer(i)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openViewer(i); } }}
+            onClick={() => setViewerIndex(i)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setViewerIndex(i); } }}
             className="snap-center shrink-0 w-full aspect-[4/3] relative overflow-hidden cursor-zoom-in"
           >
             {/* 블러 배경 채움 — 사진 비율 달라도 여백이 깔끔 */}
@@ -170,60 +112,7 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
         </>
       )}
 
-      {/* 전체화면 크게보기 — 갤러리 카드가 overflow-hidden 이라 body 에 포털로 띄움 */}
-      {open && createPortal(
-        <div className="fixed inset-0 z-[80] bg-black flex flex-col" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
-          <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between px-4 text-white pointer-events-none" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}>
-            <span className="text-xs font-medium bg-black/50 px-2.5 py-1 rounded-full">{big + 1} / {urls.length}</span>
-            <button
-              type="button"
-              aria-label="닫기"
-              onClick={closeViewer}
-              className="pointer-events-auto w-9 h-9 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </button>
-          </div>
-          <div
-            ref={viewerRef}
-            onScroll={onViewerScroll}
-            className={`flex-1 min-h-0 flex snap-x snap-mandatory ${zoomed ? 'overflow-hidden' : 'overflow-x-auto overflow-y-hidden'}`}
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {urls.map((u, i) => (
-              <div
-                key={i}
-                onClick={toggleZoom}
-                className={`snap-center shrink-0 w-full h-full ${zoomed && i === big ? 'overflow-auto cursor-zoom-out' : 'flex items-center justify-center overflow-hidden cursor-zoom-in'}`}
-                style={{ scrollbarWidth: 'none' }}
-              >
-                <img
-                  src={imageUrl(u, 2000)}
-                  alt=""
-                  draggable={false}
-                  loading={i === big ? 'eager' : 'lazy'}
-                  className={zoomed && i === big ? 'max-w-none w-[250%] block' : 'max-w-full max-h-full w-auto h-auto object-contain'}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
-                />
-              </div>
-            ))}
-          </div>
-          {hasMouse && urls.length > 1 && !zoomed && (
-            <>
-              <button type="button" aria-label="이전 사진" onClick={() => goBig(big - 1)} disabled={big === 0} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center disabled:opacity-25 hover:bg-white/30 transition-colors z-10">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-              </button>
-              <button type="button" aria-label="다음 사진" onClick={() => goBig(big + 1)} disabled={big === urls.length - 1} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center disabled:opacity-25 hover:bg-white/30 transition-colors z-10">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-              </button>
-            </>
-          )}
-          <p className="absolute bottom-0 inset-x-0 text-center text-white/60 text-[11px] pointer-events-none" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 14px)' }}>
-            {zoomed ? '끌어서 이동 · 한 번 더 누르면 원래 크기' : urls.length > 1 ? '누르면 확대 · 옆으로 넘기면 다음 사진' : '누르면 확대'}
-          </p>
-        </div>,
-        document.body,
-      )}
+      {viewerIndex !== null && <PhotoViewer urls={urls} index={viewerIndex} onClose={() => setViewerIndex(null)} />}
     </div>
   );
 }

@@ -5,7 +5,8 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../components/Toast';
-import { CloseIcon, HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
+import { HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
+import PhotoViewer from '../components/PhotoViewer';
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
@@ -303,6 +304,10 @@ const UsedDetail = () => {
   const allImages = product.images
     ? product.images.split(',').filter(s => s && isUrl(s)).map(u => imageUrl(u, 900))
     : isUrl(product.image) ? [imageUrl(product.image, 900)] : [];
+  // 크게보기용 원본 경로 (뷰어가 2000px 로 요청)
+  const rawImages = product.images
+    ? product.images.split(',').filter(s => s && isUrl(s))
+    : isUrl(product.image) ? [product.image] : [];
   const hasImages = allImages.length > 0;
   const currentImage = allImages[selectedImage] || '';
   const sellerName = product.user?.nickname || product.user?.name || '판매자';
@@ -592,19 +597,9 @@ const UsedDetail = () => {
         <p className="text-[9px] text-gray-500 px-4">{vertical.slug === 'snow' ? '스노우판' : vertical.name}은 통신판매중개자로서 거래 당사자가 아니며, 판매자가 등록한 상품 정보 및 거래에 대한 책임을 지지 않습니다.</p>
       </div>
 
-      {/* Full Image Viewer */}
-      {showFullImage && allImages.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setShowFullImage(false)}>
-          <button className="absolute top-4 right-4 text-white z-10" aria-label="닫기" onClick={() => setShowFullImage(false)}><CloseIcon size={24} /></button>
-          <img src={allImages[selectedImage]} alt={product.name} className="max-w-full max-h-full object-contain" onClick={e => e.stopPropagation()} />
-          {allImages.length > 1 && (
-            <>
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.max(0, prev - 1)); }}>&lsaquo;</button>
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl" onClick={e => { e.stopPropagation(); setSelectedImage(prev => Math.min(allImages.length - 1, prev + 1)); }}>&rsaquo;</button>
-            </>
-          )}
-          <div className="absolute bottom-4 text-white text-sm">{selectedImage + 1} / {allImages.length}</div>
-        </div>
+      {/* 사진 크게보기 — 공용 뷰어 (넘기기·확대·닫기·ESC) */}
+      {showFullImage && rawImages.length > 0 && (
+        <PhotoViewer urls={rawImages} index={selectedImage} onClose={() => setShowFullImage(false)} />
       )}
 
       {/* Report Modal */}
