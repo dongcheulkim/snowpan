@@ -16,6 +16,7 @@ import {
   rejectBadge,
   getReports,
   resolveReport,
+  deleteReport,
   getStats,
   getUsers,
   banUser,
@@ -117,6 +118,7 @@ router.delete('/badges/:id/reject', rejectBadge);
 // 신고 관리
 router.get('/reports', getReports);
 router.put('/reports/:id', resolveReport);
+router.delete('/reports/:id', deleteReport); // 처리 완료된 신고 기록 삭제
 
 // 통계
 router.get('/stats', getStats);

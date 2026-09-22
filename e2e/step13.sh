@@ -270,6 +270,21 @@ api GET "/community/$WPOST" "" ""
 NW=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$CLAIMER_ID' AND title='커뮤니티 규칙 안내' AND message LIKE '%욕설%'")
 [ "$NW" = "1" ] && ok "작성자에게 경고 알림" || bad "경고 알림 수=$NW"
 
+# ── 처리 완료된 신고 기록 삭제 (2026-09-22): 일반유저 403, 대기중 400, 처리완료 200, 재삭제 404
+api DELETE "/admin/reports/$RP4" "" "$VISITOR_TOKEN"
+[ "$CODE" = "403" ] && ok "일반유저 신고 기록 삭제 403" || bad "신고 삭제 권한 CODE=$CODE"
+api POST /reports "{\"type\":\"post\",\"targetId\":\"$WPOST\",\"reason\":\"다시 신고\"}" "$OWNER_TOKEN"; RP5=$(echo "$RESP" | jq -r '.id // empty')
+api DELETE "/admin/reports/$RP5" "" "$ADM_TOKEN"
+[ "$CODE" = "400" ] && ok "대기중 신고는 삭제 거부 400" || bad "대기중 신고 삭제 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api DELETE "/admin/reports/$RP4" "" "$ADM_TOKEN"
+[ "$CODE" = "200" ] && ok "처리 완료 신고 기록 삭제 200" || bad "처리완료 삭제 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api DELETE "/admin/reports/$RP4" "" "$ADM_TOKEN"
+[ "$CODE" = "404" ] && ok "이미 지운 신고 404" || bad "재삭제 CODE=$CODE"
+RD=$(pq "SELECT count(*) FROM reports WHERE id='$RP4'")
+[ "$RD" = "0" ] && ok "신고 기록 DB에서 제거" || bad "신고 DB 잔존 n=$RD"
+api PUT "/admin/reports/$RP5" '{"action":"keep"}' "$ADM_TOKEN"; api DELETE "/admin/reports/$RP5" "" "$ADM_TOKEN"
+[ "$CODE" = "200" ] && ok "유지 처리 후 기록 삭제 200" || bad "유지 후 삭제 CODE=$CODE"
+
 # ── 저장검색(키워드 알림): 2자 미만 400, 정상 201, 목록, 타인 삭제 404, 본인 삭제 200
 api POST /saved-searches '{"keyword":"a"}' "$VISITOR_TOKEN"
 [ "$CODE" = "400" ] && ok "키워드 1자 400" || bad "키워드 짧음 CODE=$CODE"

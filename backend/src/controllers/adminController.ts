@@ -142,6 +142,23 @@ export const resolveReport = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+// 처리 완료된 신고 기록 삭제 — 사용자 요청 2026-09-22 "신고관리에도 이미 완료된 것 삭제할 수 있게".
+// 대기중 신고는 먼저 처리(삭제·경고·유지)해야 지울 수 있다. 처리 결과(게시글 삭제·알림)는 이미 반영됐으므로 기록만 사라진다.
+export const deleteReport = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+    const report = await prisma.report.findUnique({ where: { id }, select: { id: true, status: true } });
+    if (!report) { res.status(404).json({ error: '신고를 찾을 수 없습니다.' }); return; }
+    if (report.status !== 'resolved') { res.status(400).json({ error: '아직 처리하지 않은 신고는 지울 수 없어요. 먼저 삭제·경고·유지 중 하나로 처리해 주세요.' }); return; }
+    await prisma.report.delete({ where: { id } });
+    res.json({ message: '신고 기록을 삭제했어요.' });
+  } catch (error) {
+    console.error('Delete report error:', error);
+    res.status(500).json({ error: '삭제 중 오류가 발생했어요.' });
+  }
+};
+
 // ===== 통계 =====
 function todayKST(): string {
   const now = new Date();

@@ -176,6 +176,21 @@ const AdminDashboard = () => {
     }
   };
 
+  // 처리 완료된 신고 기록 삭제 — 목록 정리용. 처리 결과(게시글 삭제·알림)는 이미 반영돼 있어 되돌리지 않는다.
+  const handleReportDelete = async (r: ReportItem) => {
+    if (!confirm('처리 완료된 신고 기록을 삭제할까요? 목록에서만 사라지고 이미 처리한 결과는 그대로예요.')) return;
+    setReportBusy(r.id);
+    try {
+      const res = await api<{ message: string }>(`/admin/reports/${r.id}`, { method: 'DELETE' });
+      setReports((prev) => prev.filter((x) => x.id !== r.id));
+      toastSuccess(res.message || '삭제했어요.');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '삭제 실패');
+    } finally {
+      setReportBusy(null);
+    }
+  };
+
   // 관리자가 유저에게 먼저 1:1 대화 걸기 — 기존 채팅방이 있으면 그 방으로
   // 로그인 기록 (IP·기기·같은 IP 다른 계정) — 사기 신고·분쟁 때만 보는 용도. 사용자 요청 2026-09-13
   interface LoginHistory { retentionDays: number; logins: { ip: string; userAgent: string | null; method: string; createdAt: string }[]; sameIpAccounts: { id: string; nickname: string | null; email: string; role: string; ip: string; lastAt: string }[] }
@@ -411,6 +426,11 @@ const AdminDashboard = () => {
                     {r.description && <p className="text-xs text-gray-600 mb-2 whitespace-pre-wrap">{r.description}</p>}
                     <p className="text-[10px] text-gray-500">신고자: {r.reporter.name} ({r.reporter.email})</p>
                     {r.status === 'resolved' && r.adminNote && <p className="text-[11px] text-gray-500 mt-1">보낸 안내: {r.adminNote}</p>}
+                    {r.status === 'resolved' && (
+                      <div className="mt-2 flex justify-end">
+                        <button disabled={busy} onClick={() => handleReportDelete(r)} className="px-3 py-1.5 bg-white border border-red-200 text-red-600 rounded-lg font-bold text-[11px] hover:bg-red-50 transition-colors disabled:opacity-50">기록 삭제</button>
+                      </div>
+                    )}
                     {r.status === 'pending' && (
                       <div className="mt-3 space-y-2">
                         <input
