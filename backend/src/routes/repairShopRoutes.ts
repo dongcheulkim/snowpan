@@ -120,9 +120,9 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
     const shop = await prisma.repairShop.update({ where: { id: req.params.id }, data: { approved: true } });
     // 소유자에게 승인 알림 (렌탈/레슨과 동일한 UX)
-    createNotification(shop.userId, 'approve', '정비샵 승인', `'${shop.name}' 정비샵이 승인되었습니다.`, '/repair').catch(() => {});
+    createNotification(shop.userId, 'approve', '정비샵 승인', `'${shop.name}' 정비샵이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/repair').catch(() => {});
     alertUser(shop.userId, { kind: 'approval', title: '정비샵이 공개됐어요', text: `'${shop.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/repair/${shop.id}`, fallbackPhone: shop.phone }).catch(() => {});
-    sendPushToUser(shop.userId, '정비샵 승인', `'${shop.name}' 정비샵이 승인되었습니다.`, '/repair').catch(() => {});
+    sendPushToUser(shop.userId, '정비샵 승인', `'${shop.name}' 정비샵이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/repair').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch (error) { res.status(500).json({ error: '승인 실패' }); }
 });

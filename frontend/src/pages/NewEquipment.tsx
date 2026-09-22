@@ -110,30 +110,30 @@ export default function NewEquipment() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {shown.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (
-            <Link to={shopPath(shop.kind, shop.id, 'skishop')} state={{ from: listHere }} key={shop.id} className={`card p-4 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
+            <Link to={shopPath(shop.kind, shop.id, 'skishop')} state={{ from: listHere }} key={shop.id} className={`card p-2.5 relative block card-hover ${shop.isPremium ? 'border-sky-300 bg-sky-50/30' : ''}`}>
               {shop.isPremium && (
                 <span className="absolute top-2 right-2 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>
               )}
-              <div className="flex items-center gap-3">
-                <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                   {cover
                     ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                    : <SkiShopIcon size={30} className="text-gray-300" />}
+                    : <SkiShopIcon size={22} className="text-gray-300" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-gray-900 truncate">{shop.name}</h3>
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{shop.name}</h3>
                     <UnverifiedShopBadge claimable={shop.claimable} compact />
                     {shopLocationLabel(shop) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(shop)}</span>}
                     {shop.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(shop.distanceKm)}</span>}
                     <OpenNowBadge shop={shop} />
                   </div>
                   {shop.phone && (
-                    <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">
+                    <a href={`tel:${shop.phone}`} onClick={e => e.stopPropagation()} className="text-[11px] text-gray-500 mt-0.5 inline-flex items-center gap-1 hover:text-gray-900">
                       <PhoneIcon size={12} /> {shop.phone}
                     </a>
                   )}

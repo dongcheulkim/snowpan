@@ -2,14 +2,15 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
-import { normalizePhone } from '../utils/sms';
+import { normalizePhone, smsConfigured } from '../utils/sms';
+import { smtpConfigured } from '../utils/dailySummary';
 
 export const getAlertSettings = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const u = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { alertPhone: true, smsAlerts: true, emailAlerts: true, phone: true, email: true } });
     if (!u) { res.status(404).json({ error: '사용자를 찾을 수 없습니다.' }); return; }
     const realEmail = !!u.email && !/@social\.local$/i.test(u.email);
-    res.json({ alertPhone: u.alertPhone || '', smsAlerts: u.smsAlerts, emailAlerts: u.emailAlerts, accountPhone: u.phone || '', email: realEmail ? u.email : '', emailUsable: realEmail });
+    res.json({ alertPhone: u.alertPhone || '', smsAlerts: u.smsAlerts, emailAlerts: u.emailAlerts, accountPhone: u.phone || '', email: realEmail ? u.email : '', emailUsable: realEmail, channels: { sms: smsConfigured(), email: smtpConfigured() } });
   } catch (e) { console.error('alert settings get error:', e); res.status(500).json({ error: '알림 설정을 불러오지 못했어요.' }); }
 };
 

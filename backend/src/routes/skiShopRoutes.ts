@@ -129,9 +129,9 @@ router.put('/:id/approve', authenticateToken, async (req: AuthRequest, res: Resp
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근 가능' }); return; }
     const shop = await prisma.skiShop.update({ where: { id: req.params.id }, data: { approved: true } });
     // 소유자에게 승인 알림 (렌탈/레슨과 동일한 UX)
-    createNotification(shop.userId, 'approve', '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다.`, '/new-equipment').catch(() => {});
+    createNotification(shop.userId, 'approve', '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/new-equipment').catch(() => {});
     alertUser(shop.userId, { kind: 'approval', title: '스키·보드샵이 공개됐어요', text: `'${shop.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/skishop/${shop.id}`, fallbackPhone: shop.phone }).catch(() => {});
-    sendPushToUser(shop.userId, '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다.`, '/new-equipment').catch(() => {});
+    sendPushToUser(shop.userId, '스키샵 승인', `'${shop.name}' 스키샵이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/new-equipment').catch(() => {});
     res.json({ message: '승인 완료' });
   } catch (error) {
     res.status(500).json({ error: '승인 실패' });

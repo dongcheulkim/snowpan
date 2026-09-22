@@ -491,7 +491,7 @@ export const approveRental = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
-    await createNotification(rental.userId, 'approve', '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental');
+    await createNotification(rental.userId, 'approve', '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.${'앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.'}`, '/rental');
     alertUser(rental.userId, { kind: 'approval', title: '렌탈샵이 공개됐어요', text: `'${rental.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/rental/${rental.id}`, fallbackPhone: rental.phone }).catch(() => {});
     sendPushToUser(rental.userId, '렌탈 승인', `'${rental.name}' 렌탈이 승인되었습니다.`, '/rental').catch(() => {});
     res.json({ ...rental, message: '렌탈이 승인되었습니다.' });
@@ -525,7 +525,7 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
-    await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson');
+    await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/lesson');
     alertUser(lesson.userId, { kind: 'approval', title: '레슨이 공개됐어요', text: `'${lesson.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/lesson/${lesson.id}`, fallbackPhone: lesson.phone }).catch(() => {});
     sendPushToUser(lesson.userId, '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson').catch(() => {});
     res.json({ ...lesson, message: '레슨이 승인되었습니다.' });
@@ -616,7 +616,7 @@ export const approveAccommodation = async (req: AuthRequest, res: Response): Pro
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const item = await prisma.accommodation.update({ where: { id: req.params.id }, data: { approved: true } });
-    await createNotification(item.userId, 'approve', '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation');
+    await createNotification(item.userId, 'approve', '숙소 승인', `'${item.name}' 숙소가 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/accommodation');
     alertUser(item.userId, { kind: 'approval', title: '숙소가 공개됐어요', text: `'${item.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/accommodation/${item.id}` }).catch(() => {});
     sendPushToUser(item.userId, '숙소 승인', `'${item.name}' 숙소가 승인되었습니다.`, '/accommodation').catch(() => {});
     res.json({ ...item, message: '숙소가 승인되었습니다.' });

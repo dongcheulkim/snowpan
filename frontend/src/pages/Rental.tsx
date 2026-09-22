@@ -124,29 +124,29 @@ const Rental = () => {
       {loading ? (
         <RowListSkeleton count={5} />
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {shown.map((item) => {
             const cover = (item.images || item.image || '').split(',')[0]?.trim();
             return (
-            <Link to={shopPath(item.kind, item.id, 'rental')} state={{ from: listHere }} key={item.id} className="card p-4 block card-hover">
-              <div className="flex items-center gap-3">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <Link to={shopPath(item.kind, item.id, 'rental')} state={{ from: listHere }} key={item.id} className="card p-2.5 block card-hover">
+              <div className="flex items-center gap-2.5">
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                   {cover
                     ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                    : <RentalIcon size={30} className="text-gray-300" />}
+                    : <RentalIcon size={22} className="text-gray-300" />}
                   {item.isPremium && <span className="absolute top-1 left-1 text-[8px] font-bold px-1 py-px rounded bg-gold/80 text-white">AD</span>}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-gray-900 truncate">{item.name}</h3>
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
                     <UnverifiedShopBadge claimable={item.claimable} compact />
                     {shopLocationLabel(item) && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{shopLocationLabel(item)}</span>}
                     {item.distanceKm != null && <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex-shrink-0">{formatDistance(item.distanceKm)}</span>}
                     <OpenNowBadge shop={item} />
                   </div>
-                  {item.priceFrom != null && <p className="text-xs font-bold text-gray-900 mt-1">세트 {item.priceFrom.toLocaleString()}원~</p>}
+                  {item.priceFrom != null && <p className="text-xs font-bold text-gray-900 mt-0.5">세트 {item.priceFrom.toLocaleString()}원~</p>}
                   {item.phone && (
-                    <a href={`tel:${item.phone}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 mt-1 inline-flex items-center gap-1 hover:text-gray-900">
+                    <a href={`tel:${item.phone}`} onClick={e => e.stopPropagation()} className="text-[11px] text-gray-500 mt-0.5 inline-flex items-center gap-1 hover:text-gray-900">
                       <PhoneIcon size={12} /> {item.phone}
                     </a>
                   )}
