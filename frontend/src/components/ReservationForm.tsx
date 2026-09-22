@@ -18,6 +18,9 @@ const RENTAL_OPTIONS = ['의류', '헬멧', '고글'];
 const SKISHOP_PURPOSES = ['구매 상담', '부츠 피팅', '장비 수령', '기타'];
 const LESSON_LEVELS = ['처음', '초급', '중급', '상급'];
 const LESSON_TYPES = ['개인', '그룹'];
+// 정비샵 (2026-09-22) — 장비 종류·수량 + 정비 항목(복수)
+const REPAIR_EQUIPMENT = ['스키', '보드', '스키·보드'];
+const REPAIR_SERVICES = ['왁싱', '엣지 정비', '베이스 수리', '바인딩 점검', '기타'];
 // 08:00 ~ 20:00, 30분 간격
 const TIME_SLOTS = (() => {
   const out: string[] = [];
@@ -62,6 +65,9 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
   const [lessonType, setLessonType] = useState('');
   // accommodation
   const [rooms, setRooms] = useState('1');
+  // repair
+  const [equipment, setEquipment] = useState('');
+  const [qty, setQty] = useState('1');
   const [submitting, setSubmitting] = useState(false);
 
   // Esc 로 닫기
@@ -76,6 +82,7 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
 
   const isStay = shopType === 'accommodation';
   const isRental = shopType === 'rental';
+  const isRepair = shopType === 'repair'; // 정비샵은 인원 대신 장비·정비 항목
   const title = RESERVE_TITLE[shopType];
   const minDate = todayKst();
   const inputClass = 'w-full min-h-11 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400';
@@ -92,8 +99,8 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
       if (!endDate) { toastError('체크아웃 날짜를 골라 주세요.'); return; }
       if (endDate <= date) { toastError('체크아웃은 체크인 다음 날부터 고를 수 있어요.'); return; }
     } else if (endDate && endDate < date) { toastError('반납일은 이용일보다 빠를 수 없어요.'); return; }
-    const a = clampCount(adults);
-    const c = clampCount(children);
+    const a = isRepair ? 1 : clampCount(adults);
+    const c = isRepair ? 0 : clampCount(children);
     if (a + c === 0) { toastError('인원을 입력해 주세요.'); return; }
 
     const details: ReservationDetails = {};
@@ -107,6 +114,10 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
     } else if (shopType === 'lesson') {
       if (level) details.level = level;
       if (lessonType) details.lessonType = lessonType;
+    } else if (isRepair) {
+      if (equipment) details.equipment = equipment;
+      details.qty = Math.max(1, clampCount(qty));
+      if (options.length) details.options = options;
     } else if (isStay) {
       details.rooms = Math.max(1, clampCount(rooms));
     }
@@ -169,6 +180,7 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
           </div>
         )}
 
+        {!isRepair && (
         <div>
           <p className={sectionLabel}>인원</p>
           <div className="grid grid-cols-2 gap-2">
@@ -182,6 +194,7 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
             </div>
           </div>
         </div>
+        )}
 
         {isRental && (
           <>
@@ -216,6 +229,25 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
           </div>
         )}
 
+        {isRepair && (
+          <>
+            <div>
+              <p className={sectionLabel}>장비</p>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {REPAIR_EQUIPMENT.map((g) => <Chip key={g} label={g} on={equipment === g} onClick={() => setEquipment(equipment === g ? '' : g)} />)}
+              </div>
+              <label className={smallLabel}>맡길 장비 수</label>
+              <input type="number" inputMode="numeric" min={1} max={99} value={qty} onChange={(e) => setQty(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <p className={sectionLabel}>정비 항목 <span className="font-normal text-gray-500">(여러 개 선택)</span></p>
+              <div className="flex flex-wrap gap-1.5">
+                {REPAIR_SERVICES.map((o) => <Chip key={o} label={o} on={options.includes(o)} onClick={() => toggleOption(o)} />)}
+              </div>
+            </div>
+          </>
+        )}
+
         {shopType === 'lesson' && (
           <>
             <div>
@@ -247,7 +279,7 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
             onChange={(e) => setNote(e.target.value.slice(0, 300))}
             rows={3}
             maxLength={300}
-            placeholder={isRental ? '예: 키 175 발 270이에요. 초보라 짧은 스키 부탁드려요.' : isStay ? '예: 늦은 체크인 가능한지 궁금해요.' : shopType === 'lesson' ? '예: 아이 둘이 같이 받고 싶어요.' : '예: 부츠 사이즈 270 재고 있는지 궁금해요.'}
+            placeholder={isRental ? '예: 키 175 발 270이에요. 초보라 짧은 스키 부탁드려요.' : isRepair ? '예: 엣지가 많이 상했어요. 당일 찾을 수 있는지 궁금해요.' : isStay ? '예: 늦은 체크인 가능한지 궁금해요.' : shopType === 'lesson' ? '예: 아이 둘이 같이 받고 싶어요.' : '예: 부츠 사이즈 270 재고 있는지 궁금해요.'}
             className={`${inputClass} resize-none`}
           />
           <p className="text-[10px] text-gray-400 text-right mt-0.5">{note.length}/300</p>

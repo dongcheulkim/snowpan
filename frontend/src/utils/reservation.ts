@@ -1,13 +1,15 @@
 // 방문 예약 (결제 없음) — 타입·라벨·표시 헬퍼.
 // ReservationForm(요청 폼)·Chat(예약 카드)·MyChatList(미리보기)·MyReservations(손님)·ShopReservations(사장님)가 같이 쓴다.
-export type ShopType = 'rental' | 'skishop' | 'lesson' | 'accommodation';
+export type ShopType = 'rental' | 'skishop' | 'repair' | 'lesson' | 'accommodation'; // 정비샵 2026-09-22 추가
 export type ReservationStatus = 'requested' | 'confirmed' | 'declined' | 'cancelled';
 export type ReservationEvent = ReservationStatus;
 
 export interface ReservationDetails {
   ski?: number;        // rental — 스키 세트 수
   board?: number;      // rental — 보드 세트 수
-  options?: string[];  // rental — 의류/헬멧/고글
+  options?: string[];  // rental — 의류/헬멧/고글 · repair — 정비 항목(왁싱/엣지 정비/...)
+  equipment?: string;  // repair — 스키/보드/스키·보드
+  qty?: number;        // repair — 맡길 장비 수
   purpose?: string;    // skishop — 구매 상담/부츠 피팅/장비 수령/기타
   level?: string;      // lesson — 처음/초급/중급/상급
   lessonType?: string; // lesson — 개인/그룹
@@ -51,12 +53,12 @@ export interface ReservationCard {
   message?: string; // 확정 메시지 / 거절 사유
 }
 
-export const SHOP_TYPES: ShopType[] = ['rental', 'skishop', 'lesson', 'accommodation'];
+export const SHOP_TYPES: ShopType[] = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'];
 const STATUSES: ReservationStatus[] = ['requested', 'confirmed', 'declined', 'cancelled'];
 
-export const SHOP_TYPE_LABEL: Record<ShopType, string> = { rental: '렌탈샵', skishop: '스키·보드샵', lesson: '레슨', accommodation: '숙소' };
+export const SHOP_TYPE_LABEL: Record<ShopType, string> = { rental: '렌탈샵', skishop: '스키·보드샵', repair: '정비샵', lesson: '레슨', accommodation: '숙소' };
 // 버튼·시트 제목 — 렌탈/스키샵은 방문, 레슨·숙소는 성격에 맞게
-export const RESERVE_TITLE: Record<ShopType, string> = { rental: '방문 예약', skishop: '방문 예약', lesson: '레슨 예약', accommodation: '숙박 예약' };
+export const RESERVE_TITLE: Record<ShopType, string> = { rental: '방문 예약', skishop: '방문 예약', repair: '정비 예약', lesson: '레슨 예약', accommodation: '숙박 예약' };
 export const STATUS_LABEL: Record<ReservationStatus, string> = { requested: '요청됨', confirmed: '확정', declined: '거절', cancelled: '취소' };
 export const STATUS_CHIP: Record<ReservationStatus, string> = {
   requested: 'bg-sky-50 text-sky-700 border-sky-200',
@@ -114,6 +116,10 @@ export function detailPairs(shopType: ShopType, details?: ReservationDetails | n
     if (Array.isArray(details.options) && details.options.length) out.push(['옵션', details.options.join(', ')]);
   } else if (shopType === 'skishop') {
     if (details.purpose) out.push(['방문 목적', details.purpose]);
+  } else if (shopType === 'repair') {
+    const gear = [details.equipment || '', details.qty ? `${details.qty}대` : ''].filter(Boolean).join(' ');
+    if (gear) out.push(['장비', gear]);
+    if (Array.isArray(details.options) && details.options.length) out.push(['정비 항목', details.options.join(', ')]);
   } else if (shopType === 'lesson') {
     const l = [details.level ? `${details.level}` : '', details.lessonType ? `${details.lessonType} 레슨` : ''].filter(Boolean);
     if (l.length) out.push(['레슨', l.join(' · ')]);

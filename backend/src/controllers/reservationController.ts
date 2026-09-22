@@ -1,4 +1,4 @@
-// 방문 예약 (2026-09-17) — 결제 없는 예약 요청. 손님이 매장(렌탈·스키샵·레슨·숙소)에 방문일·인원을 보내면
+// 방문 예약 (2026-09-17) — 결제 없는 예약 요청. 손님이 매장(렌탈·스키샵·정비샵·레슨·숙소)에 방문일·인원을 보내면
 // 두 사람의 채팅방에 예약 카드(type 'reservation')가 올라가고, 사장님이 그 방에서 확정·거절한다.
 // 카드 메시지는 여기서만 만든다 — 소켓 send_message 는 text/image 만 받으므로 클라이언트가 위조할 수 없다.
 import { Response } from 'express';
@@ -13,7 +13,7 @@ import { sendPushToUser } from '../utils/push';
 import { alertUser } from '../utils/ownerAlerts';
 import { emitToRoom, emitToUser } from '../realtime';
 
-const SHOP_TYPES = ['rental', 'skishop', 'lesson', 'accommodation'] as const;
+const SHOP_TYPES = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'] as const; // 정비샵은 2026-09-22 추가 (사용자 요청)
 type ShopType = (typeof SHOP_TYPES)[number];
 const STATUSES = ['requested', 'confirmed', 'declined', 'cancelled'] as const;
 type ReservationStatus = (typeof STATUSES)[number];
@@ -50,8 +50,8 @@ function whenLabel(shopName: string, date: Date, endDate: Date | null, time: str
 
 // ───────── 업종별 추가 항목(details) 화이트리스트 ─────────
 // 알 수 없는 키는 조용히 버린다. 문자열 ≤ 40자, 정수 0~99, options 는 문자열 배열(≤ 5개, 각 ≤ 20자).
-const DETAIL_STRING_KEYS = ['level', 'purpose', 'lessonType'] as const;
-const DETAIL_INT_KEYS = ['ski', 'board', 'rooms'] as const;
+const DETAIL_STRING_KEYS = ['level', 'purpose', 'lessonType', 'equipment'] as const; // equipment: 정비샵 장비 종류
+const DETAIL_INT_KEYS = ['ski', 'board', 'rooms', 'qty'] as const;                    // qty: 정비샵 맡길 장비 수 (정비 항목은 options 재사용)
 type Details = Record<string, string | number | string[]>;
 
 function pickDetails(input: unknown): { details: Details | null; error?: string } {
@@ -108,6 +108,7 @@ async function findManagedShop(shopType: ShopType, shopId: string): Promise<{ sh
   let row: { id: string; name: string; userId: string | null; approved: boolean; claimable?: boolean; phone?: string | null } | null = null;
   if (shopType === 'rental') row = await prisma.rental.findUnique({ where: { id: shopId }, select: { ...select, claimable: true, phone: true } });
   else if (shopType === 'skishop') row = await prisma.skiShop.findUnique({ where: { id: shopId }, select: { ...select, claimable: true, phone: true } });
+  else if (shopType === 'repair') row = await prisma.repairShop.findUnique({ where: { id: shopId }, select: { ...select, claimable: true, phone: true } });
   else if (shopType === 'lesson') row = await prisma.lesson.findUnique({ where: { id: shopId }, select: { ...select, phone: true } });
   else if (shopType === 'accommodation') row = await prisma.accommodation.findUnique({ where: { id: shopId }, select });
   if (!row) return { shop: null, exists: false };

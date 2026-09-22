@@ -1,7 +1,7 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { loginPath } from '../utils/loginPath';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useBackTo } from '../hooks/useUrlFilters';
 import { api, imageUrl, getUser, uploadImages } from '../api';
 import { useMeta } from '../hooks/useMeta';
@@ -11,6 +11,7 @@ import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import ShopReviews from '../components/ShopReviews';
+import ReservationForm from '../components/ReservationForm';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
@@ -50,9 +51,11 @@ export default function RepairShopDetail() {
   const backTo = useBackTo('/repair'); // 목록에서 왔으면 그때의 필터(쿼리)로 돌아간다
   const me = getUser();
   const my = useMyLocation();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reserveOpen, setReserveOpen] = useState(false); // 방문 예약 바텀시트 (결제 없음) — 정비샵도 2026-09-22 부터
 
   const [showClaim, setShowClaim] = useState(false);
   const [claimFile, setClaimFile] = useState<File | null>(null);
@@ -175,6 +178,28 @@ export default function RepairShopDetail() {
           </div>
         </div>
       )}
+
+      {/* 방문 예약 — 사장님이 직접 관리하는 매장에만 (시딩 매장은 관리자에게 가므로 숨김). 결제 없음, 사장님 확정 시 알림 */}
+      {!shop.claimable && me && shop.user?.id && shop.user.id !== me.id && (
+        <button
+          onClick={() => setReserveOpen(true)}
+          className="w-full min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+        >방문 예약</button>
+      )}
+      {!shop.claimable && !me && (
+        <Link to={loginPath()} className="block w-full min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">방문 예약</Link>
+      )}
+      <ReservationForm
+        open={reserveOpen}
+        shopType="repair"
+        shopId={shop.id}
+        shopName={shop.name}
+        onClose={() => setReserveOpen(false)}
+        onCreated={(roomId) => {
+          setReserveOpen(false);
+          navigate(`/chat/${roomId}`, { state: { seller: shop.user?.nickname || shop.user?.name || '매장', sellerId: shop.user?.id, productName: shop.name, productImage: shop.image, backTo: `/repair/${shop.id}`, productPath: `/repair/${shop.id}` } });
+        }}
+      />
 
       <ShopPostsFeed shopType="repair" shopId={shop.id} ownerId={shop.user.id} />
       <ShopReportButton shopType="repair" shopId={shop.id} ownerId={shop.user.id} />

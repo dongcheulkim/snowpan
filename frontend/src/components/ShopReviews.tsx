@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { toastSuccess, toastError } from './Toast';
 
-// 매장 리뷰 — 매장 상세 하단 공용. 매장별 1인 1리뷰, 휴대폰 인증 계정만 작성.
+// 매장 리뷰 — 매장 상세 하단 공용. 매장별 1인 1리뷰, 로그인하면 작성 가능(2026-09-22 휴대폰 인증 조건 제거).
 interface ShopReview {
   id: string;
   rating: number;

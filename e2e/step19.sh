@@ -43,6 +43,11 @@ LESSON=$(echo "$RESP" | jq -r '.id // empty')
 [ "$CODE" = "201" ] && [ -n "$LESSON" ] && ok "레슨 등록" || bad "레슨 등록 CODE=$CODE RESP=$(echo $RESP|head -c 120)"
 api PUT "/admin/lessons/$LESSON/approve" "{}" "$ADM_TOKEN"
 [ "$CODE" = "200" ] && ok "레슨 승인" || bad "레슨 승인 CODE=$CODE"
+api POST /repair-shops '{"name":"S19정비샵","area":"용평","address":"평창","description":"예약 테스트 정비샵","businessLicense":"/uploads/e2e.jpg"}' "$OWNER_TOKEN"
+REPAIR=$(echo "$RESP" | jq -r '.id // empty')
+[ "$CODE" = "201" ] && [ -n "$REPAIR" ] && ok "정비샵 등록" || bad "정비샵 등록 CODE=$CODE RESP=$(echo $RESP|head -c 120)"
+api PUT "/repair-shops/$REPAIR/approve" "{}" "$ADM_TOKEN"
+[ "$CODE" = "200" ] && ok "정비샵 승인" || bad "정비샵 승인 CODE=$CODE"
 
 DATE=$(date -v+7d +%F 2>/dev/null || date -d '+7 days' +%F)
 PAST=$(date -v-1d +%F 2>/dev/null || date -d '-1 day' +%F)
@@ -265,5 +270,16 @@ api GET /reservations/shop "" "$OWNER_TOKEN"; ON=$(echo "$RESP" | jq -r "[.items
 [ "$ON" = "0" ] && ok "사장님 목록에서도 사라짐" || bad "사장 목록에 남음 n=$ON"
 api DELETE "/reservations/$RES2" "" "$OWNER_TOKEN"
 [ "$CODE" = "200" ] && ok "거절된 예약 정리 200" || bad "거절 예약 정리 CODE=$CODE"
+
+# ── 정비샵 방문 예약 (2026-09-22): 장비·수량·정비 항목(options) details, 모르는 키 제거, 사장님 목록·확정
+api POST /reservations "{\"shopType\":\"repair\",\"shopId\":\"$REPAIR\",\"date\":\"$DATE\",\"time\":\"14:00\",\"adults\":1,\"details\":{\"equipment\":\"스키\",\"qty\":2,\"options\":[\"왁싱\",\"엣지 정비\"],\"hack\":\"x\"},\"note\":\"엣지가 많이 상했어요\"}" "$CUST_TOKEN"
+RES4=$(echo "$RESP" | jq -r '.reservation.id // empty'); EQ=$(echo "$RESP" | jq -r '.reservation.details.equipment'); QT=$(echo "$RESP" | jq -r '.reservation.details.qty'); OPN=$(echo "$RESP" | jq -r '.reservation.details.options | length'); HK=$(echo "$RESP" | jq -r '.reservation.details.hack // "none"')
+[ "$CODE" = "201" ] && [ -n "$RES4" ] && [ "$EQ" = "스키" ] && [ "$QT" = "2" ] && [ "$OPN" = "2" ] && [ "$HK" = "none" ] && ok "정비샵 예약 201 (장비·수량·정비 항목, 모르는 키 제거)" || bad "정비샵 예약 CODE=$CODE eq=$EQ qty=$QT opts=$OPN hack=$HK RESP=$(echo $RESP|head -c 160)"
+api GET "/reservations/shop?shopType=repair" "" "$OWNER_TOKEN"; RN=$(echo "$RESP" | jq -r '.items | length')
+[ "$RN" = "1" ] && ok "사장님 정비샵 예약 목록 1건" || bad "정비 예약 목록 n=$RN"
+api PUT "/reservations/$RES4/confirm" '{"message":"내일 오전에 찾아가세요"}' "$OWNER_TOKEN"
+[ "$CODE" = "200" ] && ok "정비샵 예약 확정 200" || bad "정비 예약 확정 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+NC=$(pq "SELECT count(*) FROM messages WHERE type='reservation' AND content LIKE '%\"shopType\":\"repair\"%'")
+[ "$NC" -ge 2 ] && ok "정비샵 예약 카드가 채팅에 (요청·확정)" || bad "정비 예약 카드 n=$NC"
 
 echo "----- STEP19: PASS=$PASS FAIL=$FAIL -----"

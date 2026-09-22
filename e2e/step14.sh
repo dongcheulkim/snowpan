@@ -479,6 +479,10 @@ S_TOKEN=$(login "kakao_e2e@social.local" 'Re!pass1234')
 [ -n "$S_TOKEN" ] && ok "소셜 전용 계정 로그인" || bad "소셜 전용 계정 로그인 실패"
 api GET /auth/logins "" "$S_TOKEN"; expect 200 "소셜 전용 로그인 방법 목록 200"
 echo "$RESP" | jq -e '.hasPassword==false and (.logins|length)==1 and .logins[0].provider=="kakao"' >/dev/null 2>&1 && ok "소셜 전용 계정: 비밀번호 없음·카카오 1" || bad "소셜 목록 $RESP"
+# ── 매장 리뷰: 휴대폰 미인증(소셜 전용) 계정도 로그인만 하면 작성 가능 (2026-09-22 사용자 결정 — 카카오·애플 로그인엔 인증 단계가 없음)
+RSHOP=$(pq "SELECT id FROM ski_shops WHERE approved=true AND claimable=false ORDER BY \"createdAt\" LIMIT 1")
+api POST /shop-reviews "{\"shopType\":\"skishop\",\"shopId\":\"$RSHOP\",\"rating\":4,\"content\":\"인증 없이도 리뷰를 남겨요\"}" "$S_TOKEN"
+[ "$CODE" = "201" ] && ok "휴대폰 미인증 계정 리뷰 작성 201" || bad "미인증 리뷰 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
 api DELETE /auth/logins/kakao "" "$S_TOKEN"; expect 400 "마지막 로그인 방법 해제 차단 400"
 
 echo "----- STEP14: PASS=$PASS FAIL=$FAIL -----"

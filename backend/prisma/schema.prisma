@@ -250,7 +250,7 @@ model AlertLog {
 // 상태가 바뀔 때마다 채팅방에 type 'reservation' 카드 메시지 + 알림·푸시.
 model Reservation {
   id          String   @id @default(uuid())
-  shopType    String   // 'rental' | 'skishop' | 'lesson' | 'accommodation'
+  shopType    String   // 'rental' | 'skishop' | 'repair' | 'lesson' | 'accommodation' (정비샵 2026-09-22 추가)
   shopId      String
   shopName    String   // 신청 시점 상호 (매장이 지워져도 기록 유지)
   ownerId     String

@@ -8,7 +8,7 @@ import { CalendarIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
 import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, isReservationFinished, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation } from '../utils/reservation';
 
-// 내 예약 (손님) — 렌탈·스키샵·레슨·숙소에 보낸 방문 예약 목록. 결제 없음, 사장님이 확정하면 상태가 바뀐다.
+// 내 예약 (손님) — 렌탈·스키샵·정비샵·레슨·숙소에 보낸 방문 예약 목록. 결제 없음, 사장님이 확정하면 상태가 바뀐다.
 type Filter = 'all' | 'requested' | 'confirmed' | 'closed';
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: '전체' },
@@ -103,7 +103,7 @@ export default function MyReservations() {
         <EmptyState
           icon={<CalendarIcon size={48} strokeWidth={1.4} />}
           title="아직 예약이 없어요."
-          description={'렌탈샵·스키샵·레슨·숙소 페이지에서\n방문 예약을 보낼 수 있어요.'}
+          description={'렌탈샵·스키샵·정비샵·레슨·숙소 페이지에서\n방문 예약을 보낼 수 있어요.'}
           ctaLabel="렌탈샵 둘러보기"
           ctaTo="/rental"
         />

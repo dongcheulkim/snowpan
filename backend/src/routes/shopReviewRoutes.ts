@@ -8,7 +8,7 @@ import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
-// 매장 리뷰 — 매장별 1인 1리뷰(조작 방지 핵심). 휴대폰 인증 계정만, 사장 본인 차단.
+// 매장 리뷰 — 매장별 1인 1리뷰(조작 방지 핵심). 로그인 계정이면 작성 가능, 사장 본인 차단.
 const SHOP_TYPES = ['skishop', 'repair', 'rental', 'lesson', 'accommodation'] as const;
 type ShopType = (typeof SHOP_TYPES)[number];
 // 매장 상세 경로 (알림 링크용)
@@ -86,12 +86,8 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       return;
     }
 
-    // 휴대폰 인증 계정만 — 대량 가짜 계정 리뷰 차단
-    const me = await prisma.user.findUnique({ where: { id: userId }, select: { phoneVerified: true } });
-    if (!me?.phoneVerified) {
-      res.status(403).json({ error: '휴대폰 인증을 완료한 계정만 리뷰를 작성할 수 있어요.' });
-      return;
-    }
+    // 로그인만 하면 작성 가능 — 2026-09-22 사용자 결정 (카카오·애플 로그인이라 휴대폰 인증 단계가 없음).
+    // 조작 방지는 매장별 1인 1리뷰 + 사장 본인 차단 + 작성 속도 제한(reviewCreateLimiter)으로.
 
     const shop = await getShopOwner(shopType, shopId);
     if (!shop.exists || !shop.approved) {
