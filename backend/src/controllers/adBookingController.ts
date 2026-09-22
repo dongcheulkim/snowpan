@@ -1312,3 +1312,27 @@ export const submitInvite = async (req: AuthRequest, res: Response): Promise<voi
     res.status(500).json({ error: '광고 소재를 접수하지 못했습니다.' });
   }
 };
+
+// 끝난 광고 예약 삭제 (2026-09-22, 사용자 "광고관리에 취소된 것들 삭제할 수 있게") — 취소·환불·종료·거절 건만. 진행 중(대기·결제·게재)은 먼저 취소해야 한다.
+// 결제 기록(AdPayment)과 남은 배너(tag ad:<id>)도 같이 지운다.
+export const adminDeleteBooking = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+    const booking = await prisma.adBooking.findUnique({ where: { id }, select: { id: true, status: true } });
+    if (!booking) { res.status(404).json({ error: '광고 예약을 찾을 수 없어요.' }); return; }
+    if (!['cancelled', 'refunded', 'completed', 'rejected', 'expired'].includes(booking.status)) {
+      res.status(400).json({ error: '진행 중인 광고는 지울 수 없어요. 먼저 취소한 뒤 삭제해 주세요.' }); return;
+    }
+    await prisma.$transaction([
+      prisma.adPayment.deleteMany({ where: { bookingId: id } }),
+      prisma.banner.deleteMany({ where: { tag: `ad:${id}` } }),
+      prisma.adBooking.delete({ where: { id } }),
+    ]);
+    cacheDel('banners:public');
+    res.json({ message: '광고 예약을 삭제했어요.' });
+  } catch (error) {
+    console.error('Admin delete booking error:', error);
+    res.status(500).json({ error: '삭제 중 오류가 발생했어요.' });
+  }
+};

@@ -254,6 +254,17 @@ const AdminDashboard = () => {
     }
   };
 
+  // 끝난(취소·환불·종료·거절) 광고 예약 삭제 — 목록 정리용 (2026-09-22)
+  const handleAdBookingDelete = async (id: string) => {
+    if (!confirm('이 광고 예약 기록을 삭제할까요? 되돌릴 수 없어요.')) return;
+    try {
+      await api(`/ad-booking/admin/bookings/${id}`, { method: 'DELETE' });
+      setAdBookings((prev) => prev.filter((b) => b.id !== id));
+      toastSuccess('삭제했어요.');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '삭제 실패');
+    }
+  };
   const handleAdBookingCancel = async (id: string) => {
     if (!confirm('이 광고 예약을 취소하고 환불하시겠습니까?')) return;
     try {
@@ -794,6 +805,11 @@ const AdminDashboard = () => {
                                     onClick={() => handleAdBookingCancel(b.id)}
                                     className="flex-1 py-1.5 bg-gray-100 text-coral rounded-lg font-bold text-[11px] hover:bg-coral/10 transition-colors"
                                   >취소</button>
+                                </div>
+                              )}
+                              {['cancelled', 'refunded', 'completed', 'rejected', 'expired'].includes(b.status) && (
+                                <div className="mt-2">
+                                  <button onClick={() => handleAdBookingDelete(b.id)} className="w-full py-1.5 bg-white border border-red-200 text-red-600 rounded-lg font-bold text-[11px] hover:bg-red-50 transition-colors">기록 삭제</button>
                                 </div>
                               )}
                             </div>

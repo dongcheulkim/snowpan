@@ -161,4 +161,14 @@ MC=$(pq "SELECT count(*) FROM messages WHERE \"roomId\"='$CR' AND type='ad_invit
 api GET "/chat/rooms/$CR/messages" "" "$SELLER_TOKEN"; MT=$(echo "$RESP" | jq -r '.[-1].type // empty'); MP=$(echo "$RESP" | jq -r '.[-1].content | fromjson | .path // empty'); [ "$MT" = "ad_invite" ] && [ "$MP" = "/ad-booking/invite/$IV3" ] && ok "광고주가 카드 메시지 조회 (path 내부 경로)" || bad "카드 조회 type=$MT path=$MP"
 api POST /ad-booking/admin/invites '{"slotType":"premium","category":"rental","periodMonths":12,"price":1,"chatRoomId":"00000000-0000-4000-8000-000000000000"}' "$ADMIN_TOKEN"; [ "$CODE" = "400" ] && ok "없는 채팅방 지정 400" || bad "없는 방 CODE=$CODE"
 
+# ── 끝난 광고 예약 삭제 (2026-09-22): 취소된 건만 지울 수 있고, 진행 중은 400
+api DELETE "/ad-booking/admin/bookings/$BK3" "" "$SELLER_TOKEN"; [ "$CODE" = "403" ] && ok "일반유저 광고 예약 삭제 403" || bad "예약 삭제 권한 CODE=$CODE"
+api DELETE "/ad-booking/admin/bookings/$BK3" "" "$ADMIN_TOKEN"; [ "$CODE" = "200" ] && ok "취소된 광고 예약 삭제 200" || bad "취소 예약 삭제 CODE=$CODE RESP=$(echo $RESP|head -c 100)"
+api DELETE "/ad-booking/admin/bookings/$BK3" "" "$ADMIN_TOKEN"; [ "$CODE" = "404" ] && ok "이미 삭제된 예약 404" || bad "재삭제 CODE=$CODE"
+api GET /ad-booking/admin/bookings "" "$ADMIN_TOKEN"; GONE=$(echo "$RESP" | jq -r "[(if type==\"array\" then . else (.items // .bookings // []) end)[] | select(.id==\"$BK3\")] | length"); [ "$GONE" = "0" ] && ok "삭제된 예약이 목록에서 사라짐" || bad "목록에 남음 n=$GONE"
+api POST /ad-booking/create "{\"slotType\":\"category\",\"category\":\"rental\",\"title\":\"E2E오늘시작\",\"description\":\"KST\",\"url\":\"https://snowpan.kr\",\"payMethod\":\"transfer\",\"periodMonths\":12}" "$ADMIN_TOKEN"
+BK4=$(echo "$RESP" | jq -r '.bookingId // .booking.id // .id // empty')
+api DELETE "/ad-booking/admin/bookings/$BK4" "" "$ADMIN_TOKEN"; [ "$CODE" = "400" ] && ok "진행 중(결제 대기) 예약 삭제 거부 400" || bad "진행 중 삭제 CODE=$CODE"
+api POST "/ad-booking/admin/bookings/$BK4/cancel" '{"reason":"E2E 정리"}' "$ADMIN_TOKEN"; api DELETE "/ad-booking/admin/bookings/$BK4" "" "$ADMIN_TOKEN"; [ "$CODE" = "200" ] && ok "취소 후 삭제 200" || bad "취소 후 삭제 CODE=$CODE"
+
 echo "----- STEP9: PASS=$PASS FAIL=$FAIL -----"
