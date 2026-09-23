@@ -13,6 +13,7 @@ import ShopReviews from '../components/ShopReviews';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
 import ReservationForm from '../components/ReservationForm';
+import RecruitCard from '../components/RecruitCard';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -185,6 +186,8 @@ const AccommodationDetail = () => {
           <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">채팅하기</Link>
         </div>
       )}
+      {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      <RecruitCard shopType="accommodation" shopId={item.id} />
       <ReservationForm
         open={reserveOpen}
         shopType="accommodation"

@@ -11,6 +11,7 @@ import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
+import RecruitCard from '../components/RecruitCard';
 
 interface LessonData {
   phone?: string | null;
@@ -119,6 +120,8 @@ const LessonDetail = () => {
           <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
         </div>
       )}
+      {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      <RecruitCard shopType="lesson" shopId={item.id} />
       <ReservationForm
         open={reserveOpen}
         shopType="lesson"

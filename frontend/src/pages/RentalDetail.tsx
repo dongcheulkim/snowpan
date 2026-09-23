@@ -14,6 +14,7 @@ import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
 import OpenNowBadge from '../components/OpenNowBadge';
 import ReservationForm from '../components/ReservationForm';
+import RecruitCard from '../components/RecruitCard';
 import { hoursLabel } from '../utils/openNow';
 
 
@@ -177,6 +178,8 @@ const RentalDetail = () => {
           <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-accent text-white rounded-xl font-bold text-sm text-center hover:bg-accent-light transition-all">문의 채팅하기</Link>
         </div>
       )}
+      {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      <RecruitCard shopType="rental" shopId={item.id} />
       <ReservationForm
         open={reserveOpen}
         shopType="rental"

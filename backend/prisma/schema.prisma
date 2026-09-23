@@ -69,6 +69,7 @@ model User {
   reservationsAsOwner    Reservation[] @relation("reservationOwner")    // 내 매장에 들어온 방문 예약
   reservationsAsCustomer Reservation[] @relation("reservationCustomer") // 내가 신청한 방문 예약
   shopStaff              ShopStaff[]   @relation("shopStaffUser")      // 직원으로 관리하는 매장 (2026-09-23)
+  shopApplications       ShopApplication[] @relation("shopApplicationUser") // 매장 모집에 낸 신청서 (2026-09-23)
   reports          Report[]
   blocksMade       UserBlock[] @relation("BlocksMade")
   blocksReceived   UserBlock[] @relation("BlocksReceived")
@@ -1398,4 +1399,40 @@ model ShopInvite {
 
   @@index([shopType, shopId])
   @@map("shop_invites")
+}
+
+// 매장 모집·신청 (2026-09-23) — 사용자 요청 "앰버서더 모집을 스노우판에서 가입해서 신청하게, 사장님은 확인만". 배지·명단 없음.
+model ShopRecruit {
+  id           String   @id @default(uuid())
+  shopType     String   // 'skishop' | 'repair' | 'rental' | 'lesson' | 'accommodation'
+  shopId       String
+  shopName     String   // 올릴 때 상호 (매장이 지워져도 기록 유지)
+  ownerId      String   // 매장 사장님 (알림·권한 기준, 직원도 관리 가능)
+  title        String
+  description  String
+  deadline     DateTime? // 그날 KST 23:59:59 까지, null 이면 무기한
+  closed       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  applications ShopApplication[]
+
+  @@index([shopType, shopId])
+  @@index([ownerId])
+  @@map("shop_recruits")
+}
+
+model ShopApplication {
+  id        String      @id @default(uuid())
+  recruitId String
+  recruit   ShopRecruit @relation(fields: [recruitId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation("shopApplicationUser", fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  instagram String?
+  message   String?
+  createdAt DateTime    @default(now())
+
+  @@unique([recruitId, userId]) // 모집당 1회
+  @@map("shop_applications")
 }

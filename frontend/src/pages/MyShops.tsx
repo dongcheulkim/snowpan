@@ -30,6 +30,103 @@ interface StaffInfo {
   invite: { code: string; url: string; expiresAt: string; usedCount: number; maxUses: number } | null;
 }
 
+// 모집·신청 (앰버서더 등) — 사장님·직원이 모집 글을 올리고 신청자(이름·연락처·인스타·한마디)를 확인한다. 2026-09-23 사용자 요청 "가입해서 신청하게, 사장님은 확인만"
+interface RecruitItem { id: string; title: string; description: string; deadline: string | null; closed: boolean; active: boolean; createdAt: string; applicationCount: number; shopType: string; shopId: string }
+interface Applicant { id: string; name: string; phone: string; instagram: string | null; message: string | null; createdAt: string; user: { id: string; name: string } }
+function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: string; shopId: string; shopName: string; approved: boolean }) {
+  const [items, setItems] = useState<RecruitItem[] | null>(null);
+  const [writing, setWriting] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const [apps, setApps] = useState<Record<string, Applicant[]>>({});
+  const load = () => api<{ items: RecruitItem[] }>('/recruits/mine').then((d) => setItems((d.items || []).filter((r) => r.shopType === shopType && r.shopId === shopId))).catch((e) => toastError(e instanceof Error ? e.message : '모집을 불러오지 못했어요.'));
+  useEffect(() => { load(); }, [shopType, shopId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const create = async () => {
+    if (title.trim().length < 2) { toastError('제목을 2자 이상 적어 주세요.'); return; }
+    if (description.trim().length < 5) { toastError('모집 내용을 5자 이상 적어 주세요.'); return; }
+    setBusy(true);
+    try { await api('/recruits', { method: 'POST', body: { shopType, shopId, title: title.trim(), description: description.trim(), deadline: deadline || undefined } }); toastSuccess('모집을 올렸어요. 매장 페이지에 바로 보여요.'); setWriting(false); setTitle(''); setDescription(''); setDeadline(''); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '올리지 못했어요.'); }
+    finally { setBusy(false); }
+  };
+  const toggleClosed = async (r: RecruitItem) => {
+    try { await api(`/recruits/${r.id}`, { method: 'PUT', body: { closed: !r.closed } }); toastSuccess(r.closed ? '다시 열었어요.' : '마감했어요.'); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
+  };
+  const remove = async (r: RecruitItem) => {
+    if (!confirm(`"${r.title}" 모집을 지울까요? 신청서 ${r.applicationCount}건도 함께 지워져요.`)) return;
+    try { await api(`/recruits/${r.id}`, { method: 'DELETE' }); toastSuccess('지웠어요.'); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '지우지 못했어요.'); }
+  };
+  const showApps = async (r: RecruitItem) => {
+    if (open === r.id) { setOpen(null); return; }
+    setOpen(r.id);
+    try { const d = await api<{ items: Applicant[] }>(`/recruits/${r.id}/applications`); setApps((m) => ({ ...m, [r.id]: d.items || [] })); }
+    catch (e) { toastError(e instanceof Error ? e.message : '신청자를 불러오지 못했어요.'); }
+  };
+  const link = (r: RecruitItem) => `${window.location.origin}/recruit/${r.id}`;
+  const share = async (r: RecruitItem) => {
+    const url = link(r);
+    if (navigator.share) { try { await navigator.share({ title: `${shopName} ${r.title}`, text: r.description.slice(0, 80), url }); return; } catch { /* 취소 */ } }
+    try { await navigator.clipboard.writeText(url); toastSuccess('링크를 복사했어요. 인스타·카톡에 올려 주세요.'); } catch { toastError('복사하지 못했어요.'); }
+  };
+  const inputClass = 'w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400';
+  return (
+    <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
+      <p className="text-[11px] text-gray-500 leading-relaxed">앰버서더·시즌 직원 같은 모집을 올리면 매장 페이지에 "모집 중" 카드가 뜨고, 링크를 인스타·카톡에 올리면 스노우판에 가입해서 신청해요. 신청자의 이름·연락처는 여기서만 볼 수 있어요.</p>
+      {items === null ? <p className="text-xs text-gray-400">불러오는 중...</p> : items.length === 0 && !writing ? <p className="text-xs text-gray-500">아직 올린 모집이 없어요.</p> : null}
+      {items?.map((r) => (
+        <div key={r.id} className="bg-gray-50 rounded-lg p-2.5 space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-gray-900 truncate">{r.title}</p>
+              <p className="text-[10px] text-gray-500">{r.active ? (r.deadline ? `${r.deadline.replace(/-/g, '.')}까지` : '무기한') : '마감'} · 신청 {r.applicationCount}명</p>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{r.active ? '모집 중' : '마감'}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button onClick={() => showApps(r)} className={`px-2.5 py-1.5 text-[11px] font-bold rounded-md ${open === r.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}>신청자 {r.applicationCount}</button>
+            <button onClick={() => share(r)} className="px-2.5 py-1.5 text-[11px] font-bold bg-white border border-gray-200 text-gray-700 rounded-md">링크 보내기</button>
+            <button onClick={() => toggleClosed(r)} className="px-2.5 py-1.5 text-[11px] font-bold bg-white border border-gray-200 text-gray-700 rounded-md">{r.closed ? '다시 열기' : '마감'}</button>
+            <button onClick={() => remove(r)} className="px-2.5 py-1.5 text-[11px] font-bold text-red-500 bg-white border border-red-100 rounded-md">삭제</button>
+          </div>
+          {open === r.id && (
+            <div className="space-y-1.5 pt-1">
+              {!apps[r.id] ? <p className="text-[11px] text-gray-400">불러오는 중...</p> : apps[r.id].length === 0 ? <p className="text-[11px] text-gray-500">아직 신청자가 없어요.</p> : apps[r.id].map((a) => (
+                <div key={a.id} className="bg-white rounded-md border border-gray-100 p-2 text-[11px] space-y-0.5">
+                  <div className="flex items-center justify-between"><span className="font-bold text-gray-900">{a.name}</span><span className="text-gray-400">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</span></div>
+                  <p><a href={`tel:${a.phone}`} className="text-sky-600">{a.phone}</a>{a.instagram && <> · <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener noreferrer" className="text-pink-500">@{a.instagram}</a></>}</p>
+                  {a.message && <p className="text-gray-700 whitespace-pre-wrap">{a.message}</p>}
+                  <p className="text-gray-400">스노우판 {a.user.name}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      {writing ? (
+        <div className="space-y-1.5">
+          <input value={title} onChange={(e) => setTitle(e.target.value.slice(0, 60))} placeholder="제목 (예: 26/27 스노우메타 앰버서더 모집)" className={inputClass} />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 2000))} rows={4} placeholder="모집 내용 (혜택, 조건, 활동 기간, 인원 등)" className={`${inputClass} resize-none`} />
+          <div>
+            <label className="block text-[10px] text-gray-500 mb-0.5">마감일 (선택)</label>
+            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={inputClass} />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={create} disabled={busy} className="flex-1 py-2 text-xs font-bold bg-gray-900 text-white rounded-md disabled:opacity-40">{busy ? '올리는 중...' : '모집 올리기'}</button>
+            <button onClick={() => setWriting(false)} className="px-4 py-2 text-xs font-bold bg-gray-100 text-gray-700 rounded-md">취소</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setWriting(true)} disabled={!approved} className="w-full py-2 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors disabled:opacity-40">{approved ? '+ 새 모집 올리기' : '매장 승인 후 모집을 올릴 수 있어요'}</button>
+      )}
+    </div>
+  );
+}
+
 // 직원 관리 — 사장님이 초대 링크를 만들어 직원에게 보내고, 참여한 직원을 해제한다. 2026-09-23 사용자 요청 "직원이 관리하는 경우도 있잖아".
 // 컴포넌트 재생성으로 상태가 날아가지 않게 MyShops 밖에 둔다.
 function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string; shopId: string; shopName: string; approved: boolean }) {
@@ -135,6 +232,7 @@ export default function MyShops() {
   // 소식 패널 — 매장별 토글. key = `${cat.key}:${shop.id}`
   const [openNews, setOpenNews] = useState<string | null>(null);
   const [openStaff, setOpenStaff] = useState<string | null>(null); // 직원 관리 패널이 열린 카드
+  const [openRecruit, setOpenRecruit] = useState<string | null>(null); // 모집·신청 패널이 열린 카드
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
   // 예약 관리 진입 카드의 "요청 N건" — 사장님이 아직 답하지 않은 방문 예약 수 (조회 실패면 건수 없이 카드만)
@@ -312,9 +410,10 @@ export default function MyShops() {
             </span>
           </span>
         </div>
-        <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
+        <div className="flex flex-wrap gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
           <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className="flex-1 py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
           <button onClick={() => toggleNews(cat, shop)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
+          {!isGuest && <button onClick={() => setOpenRecruit(openRecruit === key ? null : key)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openRecruit === key ? 'text-white bg-emerald-600' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'}`}>모집</button>}
           {isGuest
             ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
             : shop.staffRole === 'staff'
@@ -328,6 +427,7 @@ export default function MyShops() {
         </div>
         {openNews === key && <NewsPanel shop={shop} cat={cat} />}
         {openStaff === key && !isGuest && shop.staffRole !== 'staff' && <StaffPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
+        {openRecruit === key && !isGuest && <RecruitPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
       </div>
     );
   };

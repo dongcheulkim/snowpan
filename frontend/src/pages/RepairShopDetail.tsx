@@ -12,6 +12,7 @@ import ShopReportButton from '../components/ShopReportButton';
 import { MaintenanceIcon } from '../components/CategoryIcons';
 import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
+import RecruitCard from '../components/RecruitCard';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
@@ -189,6 +190,8 @@ export default function RepairShopDetail() {
       {!shop.claimable && !me && (
         <Link to={loginPath()} className="block w-full min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">방문 예약</Link>
       )}
+      {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      <RecruitCard shopType="repair" shopId={shop.id} />
       <ReservationForm
         open={reserveOpen}
         shopType="repair"
