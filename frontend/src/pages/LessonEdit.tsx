@@ -1,7 +1,7 @@
 import { toastSuccess, toastError } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, uploadImages } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
@@ -22,6 +22,7 @@ const LessonEdit = () => {
   const [images, setImages] = useState('');
   const [form, setForm] = useState({ name: '', resortId: '', type: '스키', description: '' });
   const [providerType, setProviderType] = useState<'' | 'business' | 'freelance'>('');
+  const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [phone, setPhone] = useState('');
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [region, setRegion] = useState('강원');
@@ -58,9 +59,12 @@ const LessonEdit = () => {
     if (!form.description.trim()) { toastError('상세설명을 입력해주세요.'); return; }
     setLoading(true);
     try {
+      let businessLicense: string | undefined; // 사업자등록증 나중에 첨부 → 재확인 후 '사업자 확인' 배지 (2026-09-23)
+      if (bizLicenseFile) { const u = await uploadImages([bizLicenseFile]); businessLicense = u[0]; }
       await api(`/lessons/${id}`, {
         method: 'PUT',
         body: {
+          ...(businessLicense ? { businessLicense } : {}),
           name: form.name.trim(), resortId: form.resortId, type: form.type, providerType: providerType || undefined, phone: phone.trim(),
           specialties: specialties.join(','),
           description: form.description.trim(), images, image: images ? images.split(',')[0] : null,
@@ -120,6 +124,14 @@ const LessonEdit = () => {
             <button key={v} type="button" onClick={() => setProviderType(v)} className={`flex-1 min-h-11 py-2.5 rounded-lg text-sm font-bold transition-all ${providerType === v ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
           ))}
         </div>
+      </div>
+      <div>
+        <label className={labelClass}>사업자등록증 <span className="text-gray-500 font-normal">(선택)</span></label>
+        <label className="block w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-500 cursor-pointer hover:border-gray-400 transition-all">
+          {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진 올리기 (새로 올리면 교체돼요)'}
+          <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
+        </label>
+        <p className="text-[11px] text-gray-500 mt-1">첨부하면 관리자가 확인한 뒤 레슨에 "사업자 확인" 배지가 붙어요. 수정 내용은 다시 한 번 확인을 거쳐요.</p>
       </div>
       <div><label className={labelClass}>상세 설명</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={7} className={`${inputClass} resize-none`} /></div>
       <div><label className={labelClass}>사진 (포스터)</label><MultiImageUpload value={images} onChange={setImages} /></div>

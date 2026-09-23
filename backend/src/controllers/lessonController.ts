@@ -185,6 +185,10 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     if (b.description !== undefined) data.description = b.description ? (sanitizeText(b.description, 4000) || b.description) : null;
     if (b.images !== undefined) data.images = sanitizeImages(b.images);
     if (b.image !== undefined) data.image = b.image || null;
+    if (b.businessLicense !== undefined) { // 사업자등록증 나중에 첨부 — 재심사 때 관리자가 보고 '사업자 확인' 배지 부여 (2026-09-23)
+      if (b.businessLicense && !isAllowedImageUrl(b.businessLicense)) { res.status(400).json({ error: '허용되지 않은 이미지 주소예요. 사이트에서 올린 사진만 쓸 수 있어요.' }); return; }
+      data.businessLicense = b.businessLicense || null;
+    }
     if (b.price !== undefined) {
       if (b.price === null || b.price === '') data.price = null;
       else { const r = parsePrice(b.price); if (!r.ok) { res.status(400).json({ error: r.error }); return; } data.price = r.value; }

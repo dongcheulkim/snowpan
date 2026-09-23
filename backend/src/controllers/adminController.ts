@@ -527,10 +527,13 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     const { id } = req.params;
+    // 승인하면서 '사업자 확인' 배지 부여 여부 (사업자등록증을 확인한 관리자가 체크) — 2026-09-23
+    const bv = req.body?.businessVerified;
+    const badgeData = bv === undefined ? {} : { businessVerified: !!bv, businessVerifiedAt: bv ? new Date() : null };
 
     const lesson = await prisma.lesson.update({
       where: { id },
-      data: { approved: true },
+      data: { approved: true, ...badgeData },
       include: {
         resort: true,
         user: {
@@ -542,6 +545,7 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
+    if (bv) createNotification(lesson.userId, 'approve', '사업자 확인 배지가 붙었어요', `'${lesson.name}' 레슨에 사업자 확인 배지가 표시돼요.`, `/lesson/${lesson.id}`).catch(() => {});
     await createNotification(lesson.userId, 'approve', '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다. 앱을 설치하면 예약·문의 알림을 바로 받을 수 있어요.`, '/lesson');
     alertUser(lesson.userId, { kind: 'approval', title: '레슨이 공개됐어요', text: `'${lesson.name}' 등록이 승인돼 지금부터 손님에게 보여요.`, link: `/lesson/${lesson.id}`, fallbackPhone: lesson.phone }).catch(() => {});
     sendPushToUser(lesson.userId, '레슨 승인', `'${lesson.name}' 레슨이 승인되었습니다.`, '/lesson').catch(() => {});
@@ -814,5 +818,22 @@ export const createReviewAccount = async (req: AuthRequest, res: Response): Prom
   } catch (error) {
     console.error('Review account error:', error);
     res.status(500).json({ error: '심사용 계정을 만들지 못했습니다.' });
+  }
+};
+
+// 레슨 '사업자 확인' 배지 켜기/끄기 — 승인 뒤에도 바꿀 수 있게 (2026-09-23)
+export const setLessonBusinessBadge = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+    const verified = !!req.body?.verified;
+    const lesson = await prisma.lesson.findUnique({ where: { id }, select: { id: true, name: true, userId: true, businessVerified: true } });
+    if (!lesson) { res.status(404).json({ error: '레슨을 찾을 수 없어요.' }); return; }
+    const updated = await prisma.lesson.update({ where: { id }, data: { businessVerified: verified, businessVerifiedAt: verified ? new Date() : null }, select: { id: true, businessVerified: true, businessVerifiedAt: true } });
+    if (verified && !lesson.businessVerified) createNotification(lesson.userId, 'approve', '사업자 확인 배지가 붙었어요', `'${lesson.name}' 레슨에 사업자 확인 배지가 표시돼요.`, `/lesson/${lesson.id}`).catch(() => {});
+    res.json({ ...updated, message: verified ? '사업자 확인 배지를 붙였어요.' : '사업자 확인 배지를 뗐어요.' });
+  } catch (error) {
+    console.error('Set lesson business badge error:', error);
+    res.status(500).json({ error: '처리 중 오류가 발생했어요.' });
   }
 };

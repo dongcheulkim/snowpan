@@ -14,6 +14,7 @@ import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 
 interface LessonItem {
   isPremium?: boolean;
+  businessVerified?: boolean; // 관리자가 사업자등록증 확인 후 부여 (2026-09-23)
   id: string;
   name: string;
   type?: string | null;
@@ -199,6 +200,7 @@ const Lesson = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
                       {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
+                      {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900 flex-shrink-0">사업자 확인</span>}
                     </div>
                     {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
                   </div>

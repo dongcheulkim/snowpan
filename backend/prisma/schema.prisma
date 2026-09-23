@@ -453,6 +453,8 @@ model Lesson {
   image                 String?   // (구) 대표 이미지 — 선택
   instructorCert        String?   // 강사 자격증 이미지 URL
   businessLicense       String?   // 사업자등록증 이미지 URL
+  businessVerified      Boolean   @default(false) // 관리자가 사업자등록증 확인 후 부여하는 공개 배지 '사업자 확인' (2026-09-23 사용자 요청)
+  businessVerifiedAt    DateTime?
   phone                 String?   // 연락처 (선택, 공개 — 상세 전화 버튼·관리자 매장 관리) 2026-09-19
   providerType          String?   // 소속 구분 'business'(스키학교·샵 사업자) | 'freelance'(개인 강사) — 관리자 심사용, 공개 응답에서 제거 (2026-09-17 사용자 결정 "우리만 보이게")
   // (구) 상세 필드 — 선택

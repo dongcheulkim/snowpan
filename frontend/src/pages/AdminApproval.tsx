@@ -170,6 +170,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
   const [badgeOverrides, setBadgeOverrides] = useState<Record<string, string>>({});
+  const [bizBadge, setBizBadge] = useState<Record<string, boolean>>({}); // 레슨 승인 시 '사업자 확인' 배지 부여 여부 (기본: 사업자등록증 첨부됐으면 켬)
 
   const handleApprove = async (tab: TabId, id: string) => {
     try {
@@ -198,7 +199,11 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
         toastError('뱃지를 선택해주세요.');
         return;
       }
-      const body = tab === 'badge' ? { badgeType: badgeOverrides[id] } : undefined;
+      const body = tab === 'badge'
+        ? { badgeType: badgeOverrides[id] }
+        : tab === 'lesson'
+          ? { businessVerified: bizBadge[id] ?? !!pendingLessons.find((l) => l.id === id)?.businessLicense }
+          : undefined;
       await api(`/admin/${path}/${id}/approve`, { method: 'PUT', body });
       toastSuccess('승인되었습니다!');
       fetchPending();
@@ -474,6 +479,18 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </div>
                 {item.type && <div className="text-xs text-gray-500 mt-0.5">{item.type}</div>}
                 {item.description && <ExpandableText text={item.description} />}
+                {/* 사업자등록증 — 첨부됐으면 사진 확인 후 '사업자 확인' 배지를 줄지 체크 (2026-09-23) */}
+                {item.businessLicense ? (
+                  <a href={imageUrl(item.businessLicense)} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                    <img src={imageUrl(item.businessLicense)} alt="사업자등록증" className="w-full max-w-xs object-contain rounded-lg border border-gray-200" />
+                  </a>
+                ) : (
+                  <p className="text-[11px] text-gray-400 mt-2">사업자등록증 첨부 없음</p>
+                )}
+                <label className="flex items-center gap-2 mt-2 text-xs text-gray-800">
+                  <input type="checkbox" checked={bizBadge[item.id] ?? !!item.businessLicense} onChange={(e) => setBizBadge((m) => ({ ...m, [item.id]: e.target.checked }))} />
+                  승인하면서 "사업자 확인" 배지 부여
+                </label>
               </>
             )}
             {activeTab === 'accommodation' && (

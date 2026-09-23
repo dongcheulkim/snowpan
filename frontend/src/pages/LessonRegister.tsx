@@ -156,6 +156,7 @@ const LessonRegister = () => {
           {bizLicenseFile ? bizLicenseFile.name : '사업자등록증 사진'}
           <input type="file" accept="image/*" className="hidden" onChange={e => setBizLicenseFile(e.target.files?.[0] || null)} />
         </label>
+        <p className="text-[11px] text-gray-500 mt-1">첨부하면 관리자가 확인한 뒤 레슨에 "사업자 확인" 배지가 붙어요.</p>
       </div>
 
       <label className="flex items-start gap-2 py-2">

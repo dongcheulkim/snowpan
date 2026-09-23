@@ -8,6 +8,7 @@ import {
   getPendingBadges,
   approveRental,
   approveLesson,
+  setLessonBusinessBadge,
   approveAccommodation,
   approveBadge,
   rejectRental,
@@ -106,6 +107,7 @@ router.get('/badges/pending', getPendingBadges);
 // 승인
 router.put('/rentals/:id/approve', approveRental);
 router.put('/lessons/:id/approve', approveLesson);
+router.put('/lessons/:id/business-badge', setLessonBusinessBadge); // '사업자 확인' 배지 켜기/끄기 (2026-09-23)
 router.put('/accommodations/:id/approve', approveAccommodation);
 router.put('/badges/:id/approve', approveBadge);
 

@@ -15,6 +15,7 @@ import RecruitCard from '../components/RecruitCard';
 
 interface LessonData {
   phone?: string | null;
+  businessVerified?: boolean; // 관리자가 사업자등록증 확인 후 부여한 배지 (2026-09-23)
   id: string;
   userId?: string;
   name: string;
@@ -76,6 +77,7 @@ const LessonDetail = () => {
         <div className="flex items-center gap-2 mb-1">
           {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded">{item.type}</span>}
           {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.resort.name}</span>}
+          {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900">사업자 확인</span>}
           {item.specialties && item.specialties.split(',').map((sp) => (
             <span key={sp} className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{sp}</span>
           ))}
