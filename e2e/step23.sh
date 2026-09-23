@@ -58,4 +58,8 @@ api PUT "/lessons/$L2" '{"businessLicense":"/uploads/e2e.jpg"}' "$OWNER"; [ "$CO
 AP=$(pq "SELECT approved FROM lessons WHERE id='$L2'"); [ "$AP" = "f" ] && ok "첨부 후 재심사 대기" || bad "재심사 approved=$AP"
 api GET /admin/lessons/pending "" "$ADM"; PL2=$(echo "$RESP" | jq -r "[(if type==\"array\" then . else (.items // []) end)[] | select(.id==\"$L2\")][0].businessLicense // empty")
 [ "$PL2" = "/uploads/e2e.jpg" ] && ok "대기 목록에 새 서류 보임" || bad "대기 서류=$PL2"
+# ── 관리자 매장 관리 보드: 공개된 레슨도 첨부 서류·배지 보임
+api GET /admin/outreach "" "$ADM"; OB=$(echo "$RESP" | jq -r "[.shops[] | select(.id==\"$L1\")][0] | \"\(.businessLicense)/\(.businessVerified)\"")
+[ "$OB" = "/uploads/e2e.jpg/true" ] && ok "매장 관리 보드에 레슨 서류·배지" || bad "보드 서류/배지=$OB"
+api GET /admin/outreach "" "$USER1"; [ "$CODE" = "401" ] || [ "$CODE" = "403" ] && ok "일반 유저는 보드 서류 접근 불가" || bad "보드 권한 CODE=$CODE"
 echo "----- STEP23: PASS=$PASS FAIL=$FAIL -----"

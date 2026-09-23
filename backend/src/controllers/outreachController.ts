@@ -33,13 +33,14 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
     const sel = {
       id: true, name: true, area: true, resortId: true, address: true, phone: true, hours: true, naverMap: true,
       extraKinds: true, claimable: true, viewCount: true, resort: { select: { name: true } },
+      businessLicense: true, // 관리자 보드에서 첨부 서류 바로 보기 (2026-09-23)
     } as const;
     const [ski, rep, ren, lessons, marks, resorts, tpl] = await Promise.all([
       prisma.skiShop.findMany({ where: { approved: true }, select: sel }),
       prisma.repairShop.findMany({ where: { approved: true }, select: sel }),
       prisma.rental.findMany({ where: { approved: true }, select: sel }),
       // 레슨은 승인 대기까지 포함 (강사에게 연락할 일이 심사 중에 더 많음)
-      prisma.lesson.findMany({ select: { id: true, name: true, phone: true, resortId: true, approved: true, providerType: true, viewCount: true, createdAt: true, resort: { select: { name: true } }, user: { select: { id: true, name: true, nickname: true, phone: true, email: true } } }, orderBy: { createdAt: 'desc' } }),
+      prisma.lesson.findMany({ select: { id: true, name: true, phone: true, resortId: true, approved: true, providerType: true, businessLicense: true, instructorCert: true, businessVerified: true, viewCount: true, createdAt: true, resort: { select: { name: true } }, user: { select: { id: true, name: true, nickname: true, phone: true, email: true } } }, orderBy: { createdAt: 'desc' } }),
       prisma.shopOutreach.findMany(),
       prisma.skiResort.findMany({ select: { id: true, name: true, location: true }, orderBy: { name: 'asc' } }),
       prisma.adminSetting.findUnique({ where: { key: TEMPLATE_KEY } }),
@@ -47,14 +48,14 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
     const markOf = new Map(marks.map((m) => [`${m.shopType}:${m.shopId}`, m]));
     type Row = {
       id: string; name: string; area: string | null; resortId: string | null; address: string | null; phone: string | null; hours: string | null;
-      naverMap: string | null; extraKinds: string | null; claimable: boolean; viewCount: number; resort: { name: string } | null;
+      naverMap: string | null; extraKinds: string | null; claimable: boolean; viewCount: number; resort: { name: string } | null; businessLicense: string | null;
     };
     const tag = (rows: Row[], kind: ShopKind) => rows.map((r) => {
       const m = markOf.get(`${kind}:${r.id}`);
       return {
         id: r.id, kind, name: r.name, area: r.area || '', resortId: r.resortId || '', resort: r.resort?.name || '',
         address: r.address || '', phone: r.phone || '', hours: r.hours || '', naver: r.naverMap || '',
-        extraKinds: r.extraKinds || '', owner: !r.claimable, viewCount: r.viewCount,
+        extraKinds: r.extraKinds || '', owner: !r.claimable, viewCount: r.viewCount, businessLicense: r.businessLicense || '',
         status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
       };
     });
@@ -66,6 +67,7 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
         status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
         // 레슨 전용 (관리자만 보는 보드라 강사 연락처·이메일 포함)
         approved: l.approved, providerType: l.providerType || null,
+        businessLicense: l.businessLicense || '', instructorCert: l.instructorCert || '', businessVerified: l.businessVerified, // 첨부 서류·배지 (2026-09-23)
         instructor: l.user ? { id: l.user.id, name: l.user.nickname || l.user.name, email: l.user.email } : null,
       };
     });

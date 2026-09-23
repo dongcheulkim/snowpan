@@ -4,7 +4,7 @@
 // 상태·메모는 /admin/outreach 에 저장돼 폰·PC 어디서 열어도 같다. 백엔드 outreachController 와 짝.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, openExternal } from '../api';
+import { api, imageUrl, openExternal } from '../api';
 import { toastError, toastSuccess } from './Toast';
 import HScroll from './HScroll';
 import { KIND_LABEL as SHOP_KIND_LABEL, KIND_PATH as SHOP_KIND_PATH, type ShopKind } from '../utils/shopKinds';
@@ -18,6 +18,7 @@ type Status = 'none' | 'absent' | 'called' | 'yes' | 'no' | 'del';
 interface Shop {
   // 레슨 전용: approved / providerType / instructor
   approved?: boolean; providerType?: 'business' | 'freelance' | null; instructor?: { id: string; name: string; email: string } | null;
+  businessLicense?: string; instructorCert?: string; businessVerified?: boolean; // 첨부 서류(관리자만)·사업자 확인 배지 (2026-09-23)
   id: string; kind: BoardKind; name: string; area: string; resortId: string; resort: string; address: string; phone: string; hours: string;
   naver: string; extraKinds: string; owner: boolean; viewCount: number; status: Status; memo: string; priority: number; updatedAt: string | null;
 }
@@ -146,6 +147,17 @@ export default function OutreachBoard() {
   };
   // 관리자 삭제 — 업종별 삭제 API (관리자는 소유자 검사 통과). '삭제 요청' 상태 매장은 버튼이 빨갛게 강조돼 한 번에 처리.
   const API_OF: Record<BoardKind, string> = { skishop: '/ski-shops', repair: '/repair-shops', rental: '/rentals', lesson: '/lessons' };
+  // 레슨 '사업자 확인' 배지 켜기/끄기 — 이미 공개된 레슨도 서류 보고 바로 (2026-09-23)
+  const toggleBadge = async (s: Shop) => {
+    const next = !s.businessVerified;
+    if (!confirm(next ? `"${s.name}" 레슨에 사업자 확인 배지를 붙일까요?` : `"${s.name}" 레슨의 사업자 확인 배지를 뗄까요?`)) return;
+    try {
+      await api(`/admin/lessons/${s.id}/business-badge`, { method: 'PUT', body: { verified: next } });
+      setData((d) => d ? { ...d, shops: d.shops.map((x) => (x.kind === s.kind && x.id === s.id ? { ...x, businessVerified: next } : x)) } : d);
+      toastSuccess(next ? '사업자 확인 배지를 붙였어요.' : '배지를 뗐어요.');
+    } catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
+  };
+
   const removeShop = async (s: Shop) => {
     if (!confirm(`${KIND_LABEL[s.kind]} "${s.name}"을(를) 삭제할까요? 되돌릴 수 없어요.`)) return;
     try {
@@ -314,6 +326,9 @@ export default function OutreachBoard() {
                           {s.naver && <button onClick={() => openExternal(s.naver)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">네이버</button>}
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}`} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">스노우판</Link>
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}/edit`} className="px-2.5 py-1.5 rounded-lg bg-white border border-sky-200 text-sky-700 text-xs font-bold">수정</Link>
+                          {s.businessLicense && <button onClick={() => openExternal(imageUrl(s.businessLicense!))} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-900 text-gray-900 text-xs font-bold">사업자등록증</button>}
+                          {s.kind === 'lesson' && s.instructorCert && <button onClick={() => openExternal(imageUrl(s.instructorCert!))} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-900 text-gray-900 text-xs font-bold">자격증</button>}
+                          {s.kind === 'lesson' && s.approved && <button onClick={() => toggleBadge(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${s.businessVerified ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-900 text-gray-900'}`}>{s.businessVerified ? '사업자 확인 해제' : '사업자 확인 배지'}</button>}
                           <button onClick={() => removeShop(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'del' ? 'bg-red-500 text-white border-red-500' : 'bg-white border-red-200 text-red-600'}`}>{st === 'del' ? '삭제 실행' : '삭제'}</button>
                           {!s.owner && <button onClick={() => copySms(s)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">문자 복사</button>}
                         </div>
