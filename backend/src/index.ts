@@ -77,6 +77,7 @@ import preRegisterRoutes from './routes/preRegisterRoutes';
 import shopPostRoutes from './routes/shopPostRoutes';
 import shopStaffRoutes from './routes/shopStaffRoutes';
 import recruitRoutes from './routes/recruitRoutes';
+import ownerRoutes from './routes/ownerRoutes';
 import pollRoutes from './routes/pollRoutes';
 import overseasRoutes from './routes/overseasRoutes';
 import travelAgencyRoutes from './routes/travelAgencyRoutes';
@@ -353,6 +354,7 @@ app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/shop-staff', shopStaffRoutes); // 매장 직원(공동 관리) 초대·참여 (2026-09-23)
 app.use('/api/recruits', strictWriteLimiter, recruitRoutes); // 매장 모집·신청 (앰버서더 등, 2026-09-23)
+app.use('/api/owner', ownerRoutes); // 사장님 현황(오늘 할 일·일정·통계, 2026-09-23)
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
 app.use('/api/competitions', strictWriteLimiter, competitionRoutes);
 app.use('/api/reservations', strictWriteLimiter, reservationRoutes); // 방문 예약 요청·확정·거절·취소 (2026-09-17) // 시합 일정 등록·신청·승인 (2026-09-17)

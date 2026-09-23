@@ -9,6 +9,7 @@ import KindTags from '../components/KindTags';
 import LoadError from '../components/LoadError';
 import OwnerAlertSettings from '../components/OwnerAlertSettings';
 import type { ShopKind } from '../utils/shopKinds';
+import { detailLines, peopleLabel, STATUS_LABEL, type ReservationDetails, type ReservationStatus, type ShopType } from '../utils/reservation';
 
 interface Shop {
   id: string;
@@ -22,6 +23,34 @@ interface Shop {
   viewCount?: number;
   createdAt: string;
   staffRole?: 'staff'; // 내 매장이 아니라 직원으로 붙은 매장 (2026-09-23) — 삭제·직원 관리 대신 '나가기'
+}
+
+// 사장님 현황 (GET /owner/summary) — 오늘 할 일·앞으로 2주 예약 일정·최근 30일 통계·매장별 숫자. 2026-09-23 사용자 요청 "문의·예약을 더 세세하게, 통계·일정"
+interface OwnerSummary {
+  todo: { requested: number; unrepliedReviews: number; newApplications7d: number; unreadChats: number; todayReservations: number };
+  last30d: { requests: number; confirmed: number; declined: number; cancelled: number; reviews: number; applications: number; chats: number };
+  shops: { shopType: string; shopId: string; name: string; path: string; views: number; reservations: { requested: number; confirmed: number; total: number }; reviews: { count: number; avg: number; unreplied: number }; applications: number; posts: number }[];
+  schedule: { date: string; items: { id: string; shopType: ShopType; shopName: string; time: string | null; status: string; adults: number; children: number; endDate: string | null; details: ReservationDetails | null; note: string | null; customer: string; roomId: string | null }[] }[];
+}
+function TodoTile({ label, n, to }: { label: string; n: number; to?: string }) {
+  const inner = (
+    <>
+      <div className={`text-xl font-bold ${n > 0 ? 'text-gray-900' : 'text-gray-400'}`}>{n}</div>
+      <div className="text-[11px] text-gray-500">{label}</div>
+    </>
+  );
+  const cls = `block rounded-lg px-3 py-2.5 border ${n > 0 ? 'bg-white border-gray-900' : 'bg-gray-50 border-gray-100'}`;
+  return to && n > 0 ? <Link to={to} className={cls}>{inner}</Link> : <div className={cls}>{inner}</div>;
+}
+// 'YYYY-MM-DD' → '오늘 9/23 (화)' 식 (기기 시간 기준)
+function dayLabel(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((dt.getTime() - today.getTime()) / 86400000);
+  const wd = ['일', '월', '화', '수', '목', '금', '토'][dt.getDay()];
+  const prefix = diff === 0 ? '오늘 ' : diff === 1 ? '내일 ' : '';
+  return `${prefix}${m}/${d} (${wd})`;
 }
 
 // 매장 카드 버튼 — 스노우판 시그니처(흰·검)로 통일, 열린 패널만 검정 (2026-09-23)
@@ -240,12 +269,11 @@ export default function MyShops() {
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
   // 예약 관리 진입 카드의 "요청 N건" — 사장님이 아직 답하지 않은 방문 예약 수 (조회 실패면 건수 없이 카드만)
-  const [pendingReservations, setPendingReservations] = useState<number | null>(null);
+  const [summary, setSummary] = useState<OwnerSummary | null>(null); // 오늘 할 일·일정·통계
   useEffect(() => {
-    api<{ items: unknown[] }>('/reservations/shop?status=requested')
-      .then((r) => setPendingReservations(Array.isArray(r?.items) ? r.items.length : 0))
-      .catch(() => setPendingReservations(null));
+    api<OwnerSummary>('/owner/summary').then(setSummary).catch(() => setSummary(null));
   }, [retryKey]);
+  const pendingReservations = summary ? summary.todo.requested : null;
 
   useEffect(() => {
     const load = () => {
@@ -393,6 +421,8 @@ export default function MyShops() {
       shop.area,
       cat.hasViews ? `조회 ${(shop.viewCount ?? 0).toLocaleString()}` : (shop.price ? `${shop.price.toLocaleString()}원` : null),
     ].filter(Boolean).join(' · ');
+    const st = summary?.shops.find((x) => x.shopType === src.key && x.shopId === shop.id); // 매장별 예약·리뷰·신청·소식 숫자
+    const stat = st ? `예약 ${st.reservations.total}${st.reservations.requested ? ` (대기 ${st.reservations.requested})` : ''} · 리뷰 ${st.reviews.count}${st.reviews.count ? ` ★${st.reviews.avg}` : ''}${st.reviews.unreplied ? ` (답글 ${st.reviews.unreplied})` : ''} · 신청 ${st.applications} · 소식 ${st.posts}` : null;
     return (
       <div className="p-3 bg-snow rounded-lg border border-gray-200">
         <div className="flex items-center justify-between">
@@ -404,6 +434,7 @@ export default function MyShops() {
                 {(cat.key === 'skishop' || cat.key === 'repair' || cat.key === 'rental') && <KindTags shop={shop} own={cat.key as ShopKind} />}
               </div>
               {sub && <p className="text-[10px] text-gray-500">{sub}</p>}
+              {stat && <p className="text-[10px] text-gray-500">{stat}</p>}
               {isGuest && <p className="text-[10px] text-gray-600">{src.label}으로 등록된 매장 · {cat.label} 겸업</p>}
             </div>
           </div>
@@ -459,17 +490,64 @@ export default function MyShops() {
         <Link to="/partners/find" className="text-gray-700 underline underline-offset-2">이미 올라온 내 매장 찾기</Link>
       </p>
 
-      {totalShops > 0 && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="card p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{totalShops}</div>
-            <div className="text-[11px] text-gray-500 mt-0.5">등록 업소</div>
+      {totalShops > 0 && summary && (
+        <>
+          {/* 오늘 할 일 — 예약 요청·읽지 않은 문의·답글 없는 리뷰·새 신청 */}
+          <div className="card p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold text-gray-900">오늘 할 일</h2>
+              <span className="text-[11px] text-gray-500">오늘 예약 {summary.todo.todayReservations}건</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <TodoTile label="예약 요청" n={summary.todo.requested} to="/mypage/shop-reservations" />
+              <TodoTile label="읽지 않은 문의" n={summary.todo.unreadChats} to="/mypage/chats" />
+              <TodoTile label="답글 없는 리뷰" n={summary.todo.unrepliedReviews} to={summary.shops.find((x) => x.reviews.unreplied > 0)?.path} />
+              <TodoTile label="새 신청 (7일)" n={summary.todo.newApplications7d} />
+            </div>
           </div>
-          <div className="card p-4 text-center">
-            <div className="text-2xl font-bold text-gray-900">{totalViews.toLocaleString()}</div>
-            <div className="text-[11px] text-gray-500 mt-0.5">총 조회수</div>
+
+          {/* 예약 일정 — 앞으로 2주, 날짜별 */}
+          <div className="card p-4">
+            <h2 className="text-sm font-bold text-gray-900 mb-2">예약 일정 <span className="text-[11px] font-normal text-gray-500">앞으로 2주</span></h2>
+            {summary.schedule.length === 0 ? (
+              <p className="text-xs text-gray-500">앞으로 2주 안에 잡힌 예약이 없어요.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {summary.schedule.map((day) => (
+                  <div key={day.date}>
+                    <p className="text-[11px] font-bold text-gray-700 mb-1">{dayLabel(day.date)}</p>
+                    <div className="space-y-1">
+                      {day.items.map((it) => (
+                        <Link key={it.id} to={it.roomId ? `/chat/${it.roomId}` : '/mypage/shop-reservations'} state={{ backTo: '/mypage/shops' }} className="flex items-start gap-2 bg-gray-50 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors">
+                          <span className="text-xs font-bold text-gray-900 w-11 flex-shrink-0">{it.time || '시간 미정'}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs text-gray-900 truncate">{it.customer} · {it.shopName}{it.endDate ? ` ~${it.endDate.slice(5).replace('-', '/')}` : ''}</span>
+                            <span className="block text-[11px] text-gray-500 truncate">{[peopleLabel(it.adults, it.children), ...detailLines(it.shopType, it.details)].join(' · ')}{it.note ? ` · ${it.note}` : ''}</span>
+                          </span>
+                          <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded border ${it.status === 'confirmed' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 border-gray-900'}`}>{STATUS_LABEL[it.status as ReservationStatus] || it.status}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+
+          {/* 최근 30일 통계 */}
+          <div className="card p-4">
+            <h2 className="text-sm font-bold text-gray-900 mb-2">최근 30일</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {([['예약 요청', summary.last30d.requests], ['확정', summary.last30d.confirmed], ['거절·취소', summary.last30d.declined + summary.last30d.cancelled], ['새 리뷰', summary.last30d.reviews], ['모집 신청', summary.last30d.applications], ['문의 대화', summary.last30d.chats]] as [string, number][]).map(([l, n]) => (
+                <div key={l} className="bg-gray-50 rounded-lg p-2.5 text-center">
+                  <div className="text-lg font-bold text-gray-900">{n}</div>
+                  <div className="text-[10px] text-gray-500">{l}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-500 mt-2">등록 업소 {totalShops} · 총 조회수 {totalViews.toLocaleString()}</p>
+          </div>
+        </>
       )}
 
       {/* 알림 받기 — 예약 요청·새 문의·승인 결과 문자·메일 채널 설정 (매장이 있을 때만) */}
