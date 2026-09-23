@@ -174,14 +174,24 @@ export default function SkiShopDetail() {
       )}
 
       {/* 방문 예약 — 사장님이 직접 관리하는 매장에만 (시딩 매장은 관리자에게 가므로 숨김). 결제 없음, 사장님 확정 시 알림 */}
+      {/* 방문 예약 + 채팅 문의 나란히 — 사용자 요청 2026-09-23 "등록된 매장은 예약과 채팅 둘 다". 흰·검 시그니처 */}
       {!shop.claimable && me && shop.user?.id && shop.user.id !== me.id && (
-        <button
-          onClick={() => setReserveOpen(true)}
-          className="w-full min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
-        >방문 예약</button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setReserveOpen(true)}
+            className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
+          >방문 예약</button>
+          <button
+            onClick={() => navigate('/chat/new', { state: { seller: shop.user?.nickname || shop.user?.name || '매장', sellerId: shop.user?.id, productName: shop.name, productImage: shop.image, backTo: `/skishop/${shop.id}`, productPath: `/skishop/${shop.id}` } })}
+            className="flex-1 min-h-11 py-3.5 bg-white text-gray-900 border border-gray-900 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all active:scale-[0.98]"
+          >채팅 문의</button>
+        </div>
       )}
       {!shop.claimable && !me && (
-        <Link to={loginPath()} className="block w-full min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">방문 예약</Link>
+        <div className="flex gap-2">
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm text-center hover:bg-gray-800 transition-all">방문 예약</Link>
+          <Link to={loginPath()} className="flex-1 min-h-11 py-3.5 bg-white text-gray-900 border border-gray-900 rounded-xl font-bold text-sm text-center hover:bg-gray-50 transition-all">채팅 문의</Link>
+        </div>
       )}
       {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
       <RecruitCard shopType="skishop" shopId={shop.id} />
