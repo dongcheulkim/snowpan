@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
@@ -85,7 +86,7 @@ export const getAccommodationById = async (req: AuthRequest, res: Response): Pro
       return;
     }
     // 미승인(심사대기·재심사 중)은 소유자/관리자만 조회 — 편집용 로드 허용 + 공개 게이트 유지.
-    if (!accommodation.approved && accommodation.userId !== req.user?.id && req.user?.role !== 'admin') {
+    if (!accommodation.approved && accommodation.userId !== req.user?.id && req.user?.role !== 'admin' && !(req.user && (await isShopStaff(req.user.id, 'accommodation', accommodation.id)))) {
       res.status(404).json({ error: '숙소를 찾을 수 없습니다.' });
       return;
     }
@@ -176,7 +177,7 @@ export const updateAccommodation = async (req: AuthRequest, res: Response): Prom
     const { id } = req.params;
     const item = await prisma.accommodation.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '숙소를 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin' && !(await isShopStaff(req.user!.id, 'accommodation', item.id))) { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; } // 직원도 수정 가능 (2026-09-23)
 
     const { name, type, price, originalPrice, guests, features, image, images, resortId } = req.body;
     if (type !== undefined && !cleanAccomType(type)) { res.status(400).json({ error: '숙소 유형이 올바르지 않습니다.' }); return; }
@@ -227,9 +228,9 @@ export const deleteAccommodation = async (req: AuthRequest, res: Response): Prom
 export const getMyAccommodations = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const accommodations = await prisma.accommodation.findMany({
-      where: { userId: req.user!.id },
+      where: { OR: [{ userId: req.user!.id }, { id: { in: await staffShopIds(req.user!.id, 'accommodation') } }] }, // 내 것 + 직원으로 붙은 매장
       orderBy: { createdAt: 'desc' },
     });
-    res.json(accommodations);
+    res.json(withStaffRole(accommodations, req.user!.id));
   } catch (error) { res.status(500).json({ error: '내 숙소 조회 실패' }); }
 };

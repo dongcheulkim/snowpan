@@ -42,9 +42,13 @@ const RentalEdit = () => {
 
   useEffect(() => {
     if (!id) return;
-    api<RentalData>(`/rentals/${id}`).then(d => {
+    api<RentalData>(`/rentals/${id}`).then(async d => {
       const me = getUser();
-      if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/rental/${id}`, { replace: true }); return; }
+      if (!me) { navigate(`/rental/${id}`, { replace: true }); return; }
+      if (d.userId && d.userId !== me.id && me.role !== 'admin') { // 직원(공동 관리)인지 서버에 확인 (2026-09-23)
+        const acc = await api<{ canManage: boolean }>(`/shop-staff/access/rental/${id}`).catch(() => null);
+        if (!acc?.canManage) { navigate(`/rental/${id}`, { replace: true }); return; }
+      }
         setLoadedKinds((d.extraKinds || '').split(',').filter(Boolean));
       setForm({
         name: d.name || '', area: d.area || '강원', resortId: d.resort?.id || '', extraKinds: (d.extraKinds || '').split(',').filter(Boolean), extraKindsProof: '',

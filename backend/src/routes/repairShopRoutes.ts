@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { alertUser } from '../utils/ownerAlerts';
@@ -96,8 +97,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
 // 내 정비샵 목록
 router.get('/my', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const shops = await prisma.repairShop.findMany({ where: { userId: req.user!.id }, orderBy: { createdAt: 'desc' } });
-    res.json(shops);
+    const shops = await prisma.repairShop.findMany({ where: { OR: [{ userId: req.user!.id }, { id: { in: await staffShopIds(req.user!.id, 'repair') } }] }, orderBy: { createdAt: 'desc' } }); // 내 매장 + 직원 매장
+    res.json(withStaffRole(shops, req.user!.id));
   } catch (error) { res.status(500).json({ error: '조회 실패' }); }
 });
 
@@ -152,7 +153,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
   try {
     const shop = await prisma.repairShop.findUnique({ where: { id: req.params.id } });
     if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
-    if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (shop.userId !== req.user!.id && req.user!.role !== 'admin' && !(await isShopStaff(req.user!.id, 'repair', shop.id))) { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; } // 직원도 수정 가능 (2026-09-23)
 
     const { name, area, resortId, address, description, services, phone, instagram, website, naverMap, hours, image, images, extraKinds, extraKindsProof } = req.body;
     const data: any = {};

@@ -2,6 +2,7 @@
 // polymorphic ref: shopType + shopId. 소유자만 create/update/delete, 조회는 공개.
 
 import { Router, Request, Response } from 'express';
+import { isShopStaff, canManageShop } from '../utils/shopAccess';
 import { AuthRequest, authenticateToken, optionalAuth } from '../middleware/auth';
 import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
@@ -68,7 +69,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response): Promise<v
     // 미승인(심사 대기·재심사) 매장의 소식은 비공개 — 홈 피드(/recent)와 정책 통일.
     // 단 매장 소유자 본인·관리자는 대시보드에서 자기 소식을 계속 관리할 수 있게 예외.
     const shopInfo = await getShopInfo(shopType, shopId);
-    const isOwner = !!req.user && !!shopInfo && (req.user.id === shopInfo.userId || req.user.role === 'admin');
+    const isOwner = !!req.user && !!shopInfo && (req.user.id === shopInfo.userId || req.user.role === 'admin' || (await isShopStaff(req.user.id, shopType, shopId)));
     if (!shopInfo?.approved && !isOwner) {
       res.json({ items: [], nextCursor: null });
       return;
@@ -198,8 +199,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
         res.status(404).json({ error: '매장을 찾을 수 없습니다.' });
         return;
       }
-      if (info.userId !== userId) {
-        res.status(403).json({ error: '해당 매장의 소유자만 소식을 올릴 수 있어요.' });
+      if (info.userId !== userId && !(await isShopStaff(userId, shopType, shopId))) {
+        res.status(403).json({ error: '해당 매장의 사장님이나 직원만 소식을 올릴 수 있어요.' });
         return;
       }
       if (!info.approved) {
@@ -263,14 +264,14 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
 
     const post = await prisma.shopPost.findUnique({
       where: { id },
-      select: { id: true, userId: true },
+      select: { id: true, userId: true, shopType: true, shopId: true },
     });
     if (!post) {
       res.status(404).json({ error: '포스트를 찾을 수 없습니다.' });
       return;
     }
-    if (!isAdmin && post.userId !== userId) {
-      res.status(403).json({ error: '작성자만 수정할 수 있어요.' });
+    if (!isAdmin && post.userId !== userId && !(await canManageShop(req.user!, post.shopType, post.shopId))) { // 작성자 또는 그 매장 사장님·직원
+      res.status(403).json({ error: '작성자나 매장 관리자만 수정할 수 있어요.' });
       return;
     }
 
@@ -335,14 +336,14 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 
     const post = await prisma.shopPost.findUnique({
       where: { id },
-      select: { userId: true },
+      select: { userId: true, shopType: true, shopId: true },
     });
     if (!post) {
       res.status(404).json({ error: '포스트를 찾을 수 없습니다.' });
       return;
     }
-    if (!isAdmin && post.userId !== userId) {
-      res.status(403).json({ error: '작성자만 삭제할 수 있어요.' });
+    if (!isAdmin && post.userId !== userId && !(await canManageShop(req.user!, post.shopType, post.shopId))) {
+      res.status(403).json({ error: '작성자나 매장 관리자만 삭제할 수 있어요.' });
       return;
     }
     await prisma.shopPost.delete({ where: { id } });

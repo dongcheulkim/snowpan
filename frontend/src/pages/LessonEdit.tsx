@@ -37,9 +37,13 @@ const LessonEdit = () => {
 
   useEffect(() => {
     if (!id) return;
-    api<LessonData>(`/lessons/${id}`).then(d => {
+    api<LessonData>(`/lessons/${id}`).then(async d => {
       const me = getUser();
-      if (!me || (d.userId && d.userId !== me.id && me.role !== 'admin')) { navigate(`/lesson/${id}`, { replace: true }); return; }
+      if (!me) { navigate(`/lesson/${id}`, { replace: true }); return; }
+      if (d.userId && d.userId !== me.id && me.role !== 'admin') { // 직원(공동 관리)인지 서버에 확인 (2026-09-23)
+        const acc = await api<{ canManage: boolean }>(`/shop-staff/access/lesson/${id}`).catch(() => null);
+        if (!acc?.canManage) { navigate(`/lesson/${id}`, { replace: true }); return; }
+      }
       setForm({ name: d.name || '', resortId: d.resort?.id || '', type: d.type || '스키', description: d.description || '' });
       setProviderType((d as { providerType?: 'business' | 'freelance' | null }).providerType || '');
       setPhone((d as { phone?: string | null }).phone || '');

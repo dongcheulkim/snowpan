@@ -55,6 +55,7 @@ const SkiShopDetail = lazy(() => import('./pages/SkiShopDetail'));
 const RepairShopDetail = lazy(() => import('./pages/RepairShopDetail'));
 const RepairShopEdit = lazy(() => import('./pages/RepairShopEdit'));
 const MyShops = lazy(() => import('./pages/MyShops'));
+const InviteAccept = lazy(() => import('./pages/InviteAccept')); // 매장 직원 초대 링크 (2026-09-23)
 const RepairShopRegister = lazy(() => import('./pages/RepairShopRegister'));
 const UsedRegister = lazy(() => import('./pages/UsedRegister'));
 const RentalRegister = lazy(() => import('./pages/RentalRegister'));
@@ -187,6 +188,7 @@ function App() {
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
             <Route path="mypage/posts" element={<RequireAuth><MyPosts /></RequireAuth>} />
             <Route path="mypage/shops" element={<RequireAuth><MyShops /></RequireAuth>} />
+            <Route path="invite/:code" element={<RequireAuth><InviteAccept /></RequireAuth>} />
             {/* 방문 예약 (결제 없음) — 손님: 내 예약, 사장님: 받은 예약 관리 */}
             <Route path="mypage/reservations" element={<RequireAuth><MyReservations /></RequireAuth>} />
             <Route path="mypage/shop-reservations" element={<RequireAuth><ShopReservations /></RequireAuth>} />

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isShopStaff, isStaffShopType } from '../utils/shopAccess';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { emitToRoom, emitToUser } from '../realtime';
@@ -346,7 +347,7 @@ async function createBookingWith(req: AuthRequest, res: Response, invite?: AdInv
         'overseas/agency': () => prisma.travelAgency.findUnique({ where: { id: target.id }, select: { userId: true } }),
       };
       const row = ownerOf[target.kind] ? await ownerOf[target.kind]() : null;
-      if (!row || row.userId !== userId) {
+      if (!row || (row.userId !== userId && !(isStaffShopType(target.kind) && (await isShopStaff(userId, target.kind, target.id))))) { // 매장 직원도 광고 신청 가능 (2026-09-23)
         res.status(403).json({ error: '본인이 등록한 상품/샵/글만 프리미엄으로 띄울 수 있습니다.' });
         return;
       }

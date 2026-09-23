@@ -40,11 +40,11 @@ const AccommodationEdit = () => {
   useEffect(() => {
     if (!id) return;
     const user = getUser();
-    api<AccommodationData>(`/accommodations/${id}`).then(d => {
-      if (!user || (d.userId && d.userId !== user.id)) {
-        toastError('수정 권한이 없습니다.');
-        navigate(`/accommodation/${id}`, { replace: true });
-        return;
+    api<AccommodationData>(`/accommodations/${id}`).then(async d => {
+      if (!user) { toastError('수정 권한이 없습니다.'); navigate(`/accommodation/${id}`, { replace: true }); return; }
+      if (d.userId && d.userId !== user.id && user.role !== 'admin') { // 직원(공동 관리)인지 서버에 확인 (2026-09-23)
+        const acc = await api<{ canManage: boolean }>(`/shop-staff/access/accommodation/${id}`).catch(() => null);
+        if (!acc?.canManage) { toastError('수정 권한이 없습니다.'); navigate(`/accommodation/${id}`, { replace: true }); return; }
       }
       setForm({
         name: d.name || '',

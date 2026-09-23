@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
@@ -146,7 +147,7 @@ export const getLessonById = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
     // 미승인(심사대기·재심사 중)은 소유자/관리자만 조회 — 편집용 로드 허용 + 공개 게이트 유지.
-    if (!lesson.approved && lesson.userId !== req.user?.id && req.user?.role !== 'admin') {
+    if (!lesson.approved && lesson.userId !== req.user?.id && req.user?.role !== 'admin' && !(req.user && (await isShopStaff(req.user.id, 'lesson', lesson.id)))) {
       res.status(404).json({ error: '레슨 정보를 찾을 수 없습니다.' });
       return;
     }
@@ -168,7 +169,7 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
     const { id } = req.params;
     const item = await prisma.lesson.findUnique({ where: { id } });
     if (!item) { res.status(404).json({ error: '레슨을 찾을 수 없습니다.' }); return; }
-    if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; }
+    if (item.userId !== req.user!.id && req.user!.role !== 'admin' && !(await isShopStaff(req.user!.id, 'lesson', item.id))) { res.status(403).json({ error: '수정 권한이 없습니다.' }); return; } // 직원도 수정 가능 (2026-09-23)
 
     const b = req.body;
     if (b.image !== undefined && b.image !== null && b.image !== '' && !isAllowedImageUrl(b.image)) {
@@ -215,9 +216,9 @@ export const deleteLesson = async (req: AuthRequest, res: Response): Promise<voi
 export const getMyLessons = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const lessons = await prisma.lesson.findMany({
-      where: { userId: req.user!.id },
+      where: { OR: [{ userId: req.user!.id }, { id: { in: await staffShopIds(req.user!.id, 'lesson') } }] }, // 내 것 + 직원으로 붙은 매장
       orderBy: { createdAt: 'desc' },
     });
-    res.json(lessons);
+    res.json(withStaffRole(lessons, req.user!.id));
   } catch (error) { res.status(500).json({ error: '내 레슨 조회 실패' }); }
 };

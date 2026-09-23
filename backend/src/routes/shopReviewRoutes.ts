@@ -5,6 +5,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { reviewCreateLimiter } from '../middleware/rateLimit';
 import { createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
+import { isShopStaff, shopManagerIds } from '../utils/shopAccess';
 
 const router = Router();
 
@@ -95,7 +96,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       return;
     }
     // 사장 본인은 자기 매장에 리뷰 불가 (자작 리뷰 차단)
-    if (shop.ownerId && shop.ownerId === userId) {
+    if ((shop.ownerId && shop.ownerId === userId) || (await isShopStaff(userId, shopType, shopId))) { // 사장님·직원 자작 리뷰 차단
       res.status(400).json({ error: `본인 ${noun}에는 리뷰를 작성할 수 없어요.` });
       return;
     }
@@ -115,12 +116,14 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       include: { user: { select: { id: true, name: true, nickname: true, profileImage: true } } },
     });
     // 사장님에게 새 리뷰 알림 (앱 푸시 + 알림함) — 답글을 유도. 2026-09-22
-    if (shop.ownerId) {
+    {
       const title = '새 리뷰가 달렸어요';
       const body = `${created.user?.nickname || '스노우판 회원'}님이 별점 ${ratingNum}점 리뷰를 남겼어요. 답글을 달아 보세요.`;
       const link = `${DETAIL_PATH[shopType as ShopType]}/${shopId}`;
-      createNotification(shop.ownerId, 'system', title, body, link).catch(() => undefined);
-      sendPushToUser(shop.ownerId, title, body, link).catch(() => undefined);
+      for (const mid of await shopManagerIds(shopType, shopId, shop.ownerId)) { // 사장님 + 직원
+        createNotification(mid, 'system', title, body, link).catch(() => undefined);
+        sendPushToUser(mid, title, body, link).catch(() => undefined);
+      }
     }
     res.status(201).json({
       ...created,
@@ -145,7 +148,7 @@ router.put('/:id/reply', authenticateToken, async (req: AuthRequest, res: Respon
     const shopType = review.shopType as ShopType;
     const shop = await getShopOwner(shopType, review.shopId);
     if (!shop.exists) { res.status(404).json({ error: '매장을 찾을 수 없습니다.' }); return; }
-    const isOwner = !!shop.ownerId && shop.ownerId === req.user!.id;
+    const isOwner = (!!shop.ownerId && shop.ownerId === req.user!.id) || (await isShopStaff(req.user!.id, shopType, review.shopId)); // 직원도 답글 가능
     if (!isOwner && req.user!.role !== 'admin') {
       res.status(403).json({ error: shopType === 'lesson' ? '레슨 강사만 답글을 달 수 있어요.' : '매장 사장님만 답글을 달 수 있어요.' });
       return;

@@ -1,7 +1,7 @@
-import { toastError } from '../components/Toast';
+import { toastError, toastSuccess } from '../components/Toast';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api';
+import { api, getUser } from '../api';
 import {
   MaintenanceIcon, SkiShopIcon, RentalIcon, LessonIcon, AccommodationIcon,
 } from '../components/CategoryIcons';
@@ -21,6 +21,79 @@ interface Shop {
   _src?: CatKey; // 원래 등록된 카테고리 — 겸업으로 다른 섹션에 표시될 때 수정·소식·삭제는 이 카테고리 기준
   viewCount?: number;
   createdAt: string;
+  staffRole?: 'staff'; // 내 매장이 아니라 직원으로 붙은 매장 (2026-09-23) — 삭제·직원 관리 대신 '나가기'
+}
+
+// 직원 관리 패널 데이터 (사장님만 조회)
+interface StaffInfo {
+  staff: { userId: string; name: string; profileImage?: string | null; since: string }[];
+  invite: { code: string; url: string; expiresAt: string; usedCount: number; maxUses: number } | null;
+}
+
+// 직원 관리 — 사장님이 초대 링크를 만들어 직원에게 보내고, 참여한 직원을 해제한다. 2026-09-23 사용자 요청 "직원이 관리하는 경우도 있잖아".
+// 컴포넌트 재생성으로 상태가 날아가지 않게 MyShops 밖에 둔다.
+function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string; shopId: string; shopName: string; approved: boolean }) {
+  const [data, setData] = useState<StaffInfo | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = () => api<StaffInfo>(`/shop-staff/shops/${shopType}/${shopId}`).then(setData).catch((e) => toastError(e instanceof Error ? e.message : '직원 목록을 불러오지 못했어요.'));
+  useEffect(() => { load(); }, [shopType, shopId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const makeInvite = async () => {
+    setBusy(true);
+    try { await api(`/shop-staff/shops/${shopType}/${shopId}/invites`, { method: 'POST' }); toastSuccess('초대 링크를 만들었어요. 직원에게 보내 주세요.'); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '초대 링크를 만들지 못했어요.'); }
+    finally { setBusy(false); }
+  };
+  const revoke = async () => {
+    if (!confirm('초대 링크를 없앨까요? 이미 참여한 직원은 그대로예요.')) return;
+    try { await api(`/shop-staff/shops/${shopType}/${shopId}/invites`, { method: 'DELETE' }); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
+  };
+  const remove = async (userId: string, name: string) => {
+    if (!confirm(`${name}님을 직원에서 해제할까요?`)) return;
+    try { await api(`/shop-staff/shops/${shopType}/${shopId}/staff/${userId}`, { method: 'DELETE' }); toastSuccess('해제했어요.'); await load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
+  };
+  const copy = async (url: string) => {
+    try { await navigator.clipboard.writeText(url); toastSuccess('링크를 복사했어요.'); }
+    catch { toastError('복사하지 못했어요. 링크를 길게 눌러 복사해 주세요.'); }
+  };
+  const share = async (url: string) => {
+    if (navigator.share) {
+      try { await navigator.share({ title: `${shopName} 직원 초대`, text: `스노우판에서 '${shopName}' 매장을 함께 관리해요. 링크를 열고 참여를 눌러 주세요.`, url }); } catch { /* 공유 취소 */ }
+    } else await copy(url);
+  };
+  return (
+    <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
+      <p className="text-[11px] text-gray-500 leading-relaxed">직원은 예약 확정·거절, 매장 정보 수정, 소식·이벤트, 리뷰 답글, 광고 신청을 함께 할 수 있어요. 매장 삭제와 직원 관리는 사장님만 할 수 있고, 손님 문의 채팅은 사장님 계정으로 와요.</p>
+      {!data ? <p className="text-xs text-gray-400">불러오는 중...</p> : (
+        <>
+          {data.staff.length === 0
+            ? <p className="text-xs text-gray-500">아직 직원이 없어요.</p>
+            : data.staff.map((s) => (
+              <div key={s.userId} className="flex items-center justify-between text-xs">
+                <span className="font-medium text-gray-900">{s.name} <span className="text-[10px] text-gray-400 font-normal">{new Date(s.since).toLocaleDateString('ko-KR')}부터</span></span>
+                <button onClick={() => remove(s.userId, s.name)} className="text-[11px] text-red-500 px-1.5 py-1">해제</button>
+              </div>
+            ))}
+          {data.invite ? (
+            <div className="bg-gray-50 rounded-lg p-2.5 space-y-1.5">
+              <p className="text-[11px] text-gray-500">초대 링크 · {new Date(data.invite.expiresAt).toLocaleDateString('ko-KR')}까지 · {data.invite.usedCount}/{data.invite.maxUses}명 참여</p>
+              <p className="text-[11px] text-gray-800 break-all select-all">{data.invite.url}</p>
+              <div className="flex gap-2">
+                <button onClick={() => share(data.invite!.url)} className="flex-1 py-1.5 text-xs font-bold text-white bg-gray-900 rounded-md">직원에게 보내기</button>
+                <button onClick={() => copy(data.invite!.url)} className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-md">복사</button>
+                <button onClick={revoke} className="px-3 py-1.5 text-xs font-bold text-gray-500 bg-white border border-gray-200 rounded-md">없애기</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={makeInvite} disabled={busy || !approved} className="w-full py-2 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors disabled:opacity-40">
+              {approved ? (busy ? '만드는 중...' : '초대 링크 만들기') : '매장 승인 후 초대할 수 있어요'}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 interface ShopPostItem {
@@ -61,6 +134,7 @@ export default function MyShops() {
   const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   // 소식 패널 — 매장별 토글. key = `${cat.key}:${shop.id}`
   const [openNews, setOpenNews] = useState<string | null>(null);
+  const [openStaff, setOpenStaff] = useState<string | null>(null); // 직원 관리 패널이 열린 카드
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
   // 예약 관리 진입 카드의 "요청 N건" — 사장님이 아직 답하지 않은 방문 예약 수 (조회 실패면 건수 없이 카드만)
@@ -109,6 +183,20 @@ export default function MyShops() {
   };
 
   // 겸업 섹션에서 "여기서 내리기" — 겸업 칩만 빼는 수정 (증빙·재심사 없음)
+  // 직원으로 붙은 매장에서 스스로 나가기
+  const handleLeave = async (cat: typeof CATEGORIES[number], shop: Shop) => {
+    if (!confirm(`"${shop.name}" 매장 관리에서 나갈까요? 사장님이 다시 초대하면 참여할 수 있어요.`)) return;
+    const me = getUser();
+    if (!me) return;
+    try {
+      await api(`/shop-staff/shops/${shop._src || cat.key}/${shop.id}/staff/${me.id}`, { method: 'DELETE' });
+      setShops((prev) => ({ ...prev, [cat.key]: prev[cat.key].filter((s) => s.id !== shop.id) }));
+      toastSuccess('매장 관리에서 나왔어요.');
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : '처리하지 못했어요.');
+    }
+  };
+
   const handleUnlink = async (src: typeof CATEGORIES[number], cat: typeof CATEGORIES[number], shop: Shop) => {
     if (!confirm(`"${shop.name}"을(를) ${cat.label} 목록에서 내릴까요? (${src.label} 등록은 그대로 유지됩니다)`)) return;
     try {
@@ -217,8 +305,11 @@ export default function MyShops() {
               {isGuest && <p className="text-[10px] text-violet-700">{src.label}으로 등록된 매장 · {cat.label} 겸업</p>}
             </div>
           </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.claimable ? 'bg-gray-100 text-gray-600' : shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-            {shop.claimable ? '사장님 확인 전' : shop.approved ? '승인됨' : '대기중'}
+          <span className="flex items-center gap-1 flex-shrink-0">
+            {shop.staffRole === 'staff' && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">직원</span>}
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.claimable ? 'bg-gray-100 text-gray-600' : shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+              {shop.claimable ? '사장님 확인 전' : shop.approved ? '승인됨' : '대기중'}
+            </span>
           </span>
         </div>
         <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
@@ -226,9 +317,17 @@ export default function MyShops() {
           <button onClick={() => toggleNews(cat, shop)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
           {isGuest
             ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
-            : <button onClick={() => handleDelete(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>}
+            : shop.staffRole === 'staff'
+              ? <button onClick={() => handleLeave(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">나가기</button>
+              : (
+                <>
+                  <button onClick={() => setOpenStaff(openStaff === key ? null : key)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openStaff === key ? 'text-white bg-gray-900' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}>직원</button>
+                  <button onClick={() => handleDelete(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
+                </>
+              )}
         </div>
         {openNews === key && <NewsPanel shop={shop} cat={cat} />}
+        {openStaff === key && !isGuest && shop.staffRole !== 'staff' && <StaffPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
       </div>
     );
   };

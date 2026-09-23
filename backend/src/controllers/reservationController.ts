@@ -12,6 +12,7 @@ import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { alertUser } from '../utils/ownerAlerts';
 import { emitToRoom, emitToUser } from '../realtime';
+import { isShopStaff, staffShopsOf, shopManagerIds } from '../utils/shopAccess';
 
 const SHOP_TYPES = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'] as const; // 정비샵은 2026-09-22 추가 (사용자 요청)
 type ShopType = (typeof SHOP_TYPES)[number];
@@ -232,7 +233,7 @@ export const createReservation = async (req: AuthRequest, res: Response): Promis
     const { shop, exists } = await findManagedShop(shopType, shopId);
     if (!exists) { res.status(404).json({ error: '매장을 찾을 수 없어요' }); return; }
     if (!shop) { res.status(400).json({ error: NOT_ACCEPTING }); return; }
-    if (shop.ownerId === customerId) { res.status(400).json({ error: '내 매장에는 예약을 보낼 수 없어요' }); return; }
+    if (shop.ownerId === customerId || (await isShopStaff(customerId, shopType, shop.id))) { res.status(400).json({ error: '내 매장에는 예약을 보낼 수 없어요' }); return; }
 
     const owner = await prisma.user.findUnique({ where: { id: shop.ownerId }, select: { id: true, role: true } });
     if (!owner || owner.role === 'deleted' || owner.role === 'banned') { res.status(400).json({ error: NOT_ACCEPTING }); return; }
@@ -284,7 +285,7 @@ export const createReservation = async (req: AuthRequest, res: Response): Promis
 
     const customerName = await nameOf(customerId);
     const body = `${whenLabel(shop.name, date, endDate, time)} · 성인 ${adults}${children ? `, 아동 ${children}` : ''}`;
-    notify(shop.ownerId, `${customerName}님의 예약 요청`, body, `/chat/${room.id}`);
+    for (const mid of await shopManagerIds(shopType, shop.id, shop.ownerId)) notify(mid, `${customerName}님의 예약 요청`, body, `/chat/${room.id}`); // 사장님 + 직원
     // 앱이 없는 사장님도 놓치지 않게 문자·메일 (알림 번호 → 매장 전화 → 계정 번호 순)
     alertUser(shop.ownerId, { kind: 'reservation_request', title: `${customerName}님의 예약 요청`, text: `${body}\n채팅에서 확정하거나 거절해 주세요.`, link: `/chat/${room.id}`, fallbackPhone: shop.phone }).catch(() => {});
 
@@ -322,7 +323,7 @@ export const getShopReservations = async (req: AuthRequest, res: Response): Prom
     if (status && !STATUSES.includes(status as ReservationStatus)) { res.status(400).json({ error: '상태 값이 올바르지 않아요' }); return; }
     if (shopType && !SHOP_TYPES.includes(shopType as ShopType)) { res.status(400).json({ error: '매장 종류가 올바르지 않아요' }); return; }
     const rows = await prisma.reservation.findMany({
-      where: { ownerId: req.user!.id, ownerHidden: false, ...(status ? { status } : {}), ...(shopType ? { shopType } : {}) },
+      where: { OR: [{ ownerId: req.user!.id }, ...(await staffShopsOf(req.user!.id)).map((s) => ({ shopType: s.shopType, shopId: s.shopId }))], ownerHidden: false, ...(status ? { status } : {}), ...(shopType ? { shopType } : {}) }, // 내 매장 + 직원으로 관리하는 매장
       include: { customer: { select: publicUser } },
       orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
       take: 300,
@@ -344,7 +345,7 @@ export const getReservation = async (req: AuthRequest, res: Response): Promise<v
       include: { customer: { select: publicUser }, owner: { select: publicUser } },
     });
     const me = req.user!;
-    if (!r || (r.customerId !== me.id && r.ownerId !== me.id && me.role !== 'admin')) { res.status(404).json({ error: '예약을 찾을 수 없어요' }); return; }
+    if (!r || (r.customerId !== me.id && r.ownerId !== me.id && me.role !== 'admin' && !(await isShopStaff(me.id, r.shopType, r.shopId)))) { res.status(404).json({ error: '예약을 찾을 수 없어요' }); return; }
     res.json({ ...serialize(r), customer: serializeUser(r.customer), owner: serializeUser(r.owner) });
   } catch (error) {
     console.error('Get reservation error:', error);
@@ -356,7 +357,7 @@ export const getReservation = async (req: AuthRequest, res: Response): Promise<v
 async function loadForParticipant(req: AuthRequest, res: Response): Promise<ReservationRow | null> {
   const r = await prisma.reservation.findUnique({ where: { id: String(req.params.id) } });
   const me = req.user!.id;
-  if (!r || (r.customerId !== me && r.ownerId !== me)) { res.status(404).json({ error: '예약을 찾을 수 없어요' }); return null; }
+  if (!r || (r.customerId !== me && r.ownerId !== me && !(await isShopStaff(me, r.shopType, r.shopId)))) { res.status(404).json({ error: '예약을 찾을 수 없어요' }); return null; }
   return r;
 }
 
@@ -365,7 +366,7 @@ export const confirmReservation = async (req: AuthRequest, res: Response): Promi
   try {
     const r = await loadForParticipant(req, res);
     if (!r) return;
-    if (r.ownerId !== req.user!.id) { res.status(403).json({ error: '매장 사장님만 확정할 수 있어요' }); return; }
+    if (r.ownerId !== req.user!.id && !(await isShopStaff(req.user!.id, r.shopType, r.shopId))) { res.status(403).json({ error: '매장 사장님이나 직원만 확정할 수 있어요' }); return; }
     if (r.status !== 'requested') { res.status(400).json({ error: '이미 답한 예약이에요' }); return; }
     const raw = req.body?.message;
     if (raw !== undefined && raw !== null && typeof raw !== 'string') { res.status(400).json({ error: '메시지 형식이 올바르지 않아요' }); return; }
@@ -398,7 +399,7 @@ export const declineReservation = async (req: AuthRequest, res: Response): Promi
   try {
     const r = await loadForParticipant(req, res);
     if (!r) return;
-    if (r.ownerId !== req.user!.id) { res.status(403).json({ error: '매장 사장님만 답할 수 있어요' }); return; }
+    if (r.ownerId !== req.user!.id && !(await isShopStaff(req.user!.id, r.shopType, r.shopId))) { res.status(403).json({ error: '매장 사장님이나 직원만 답할 수 있어요' }); return; }
     if (r.status !== 'requested') { res.status(400).json({ error: '이미 답한 예약이에요' }); return; }
     const raw = req.body?.reason;
     if (raw !== undefined && raw !== null && typeof raw !== 'string') { res.status(400).json({ error: '사유 형식이 올바르지 않아요' }); return; }
@@ -448,7 +449,7 @@ export const cancelReservation = async (req: AuthRequest, res: Response): Promis
 
     const room = r.roomId ? { id: r.roomId } : await getOrCreateRoom(r.customerId, r.ownerId);
     if (!r.roomId) await prisma.reservation.update({ where: { id: r.id }, data: { roomId: room.id } });
-    await sendCard(room.id, me, cardContent(updated, 'cancelled', { by: isCustomer ? 'customer' : 'owner' }));
+    await sendCard(room.id, isCustomer ? me : r.ownerId, cardContent(updated, 'cancelled', { by: isCustomer ? 'customer' : 'owner' })); // 직원이 취소해도 카드는 사장님 명의로
 
     const otherId = isCustomer ? r.ownerId : r.customerId;
     const myName = await nameOf(me);
@@ -471,7 +472,7 @@ export const hideReservation = async (req: AuthRequest, res: Response): Promise<
     if (!r) { res.status(404).json({ error: '예약을 찾을 수 없어요.' }); return; }
     const uid = req.user!.id;
     const isCustomer = r.customerId === uid;
-    const isOwner = r.ownerId === uid;
+    const isOwner = r.ownerId === uid || (await isShopStaff(uid, r.shopType, r.shopId));
     if (!isCustomer && !isOwner) { res.status(403).json({ error: '내 예약만 정리할 수 있어요.' }); return; }
     const lastDay = (r.endDate || r.date).getTime() + 24 * 60 * 60 * 1000;
     const finished = r.status === 'declined' || r.status === 'cancelled' || (r.status === 'confirmed' && lastDay < Date.now());

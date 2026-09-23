@@ -3,6 +3,7 @@ import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { toastSuccess, toastError } from './Toast';
+import { useShopAccess } from '../hooks/useShopAccess';
 
 // 매장 리뷰 — 매장 상세 하단 공용. 매장별 1인 1리뷰, 로그인하면 작성 가능(2026-09-22 휴대폰 인증 조건 제거).
 interface ShopReview {
@@ -57,7 +58,8 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   useEffect(load, [shopType, shopId]);
 
   const myReview = user ? reviews.find((r) => r.userId === user.id) : null;
-  const isOwner = !!user && !!ownerId && user.id === ownerId;
+  const access = useShopAccess(shopType, shopId); // 직원(공동 관리)도 사장님처럼 — 리뷰는 못 쓰고 답글은 가능 (2026-09-23)
+  const isOwner = (!!user && !!ownerId && user.id === ownerId) || access.isStaff;
   const canReply = isOwner || (!!user && user.role === 'admin');
   const replyLabel = isLesson ? '강사 답글' : '사장님 답글';
 
