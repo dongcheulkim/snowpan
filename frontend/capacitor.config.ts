@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   appId: 'kr.snowpan.app',
   appName: '스노우판',
   webDir: 'dist',
-  backgroundColor: '#ffffff',
+  backgroundColor: '#000000', // 웹뷰 바탕 — 스플래시가 사라지고 첫 화면이 그려지기 전까지 검정 유지 (흰 화면 깜빡임 방지, 2026-09-23)
   android: {
     // 릴리즈 빌드는 https 만 — 평문 http 차단(보안).
     allowMixedContent: false,
@@ -16,7 +16,8 @@ const config: CapacitorConfig = {
     // 네이티브 스플래시(흰 배경)를 짧게 → 웹 스플래시(워드마크 리빌)가 이어받아
     // 하나의 인트로처럼 보이게. 오래 잡고 있으면 이중 대기처럼 느껴짐.
     SplashScreen: {
-      backgroundColor: '#ffffff',
+      // 웹 로더(index.html #app-splash)가 검정이라 네이티브 스플래시도 검정 — 앱 켤 때 흰 화면 → 검정으로 튀던 것 제거 (2026-09-23 사장님 신고)
+      backgroundColor: '#000000',
       launchShowDuration: 600,
       launchAutoHide: true,
     },

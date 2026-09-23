@@ -70,6 +70,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
 	<!-- 소셜 로그인 딥링크 (kr.snowpan.app://...) — 백엔드가 OAuth 토큰을 앱으로 되돌릴 때. 안드로이드 intent-filter 와 짝 -->
 	<key>CFBundleURLTypes</key>
 	<array>
