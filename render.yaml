@@ -5,6 +5,11 @@ services:
     rootDir: backend
     # 헬스체크 — 유료 인스턴스에서 무중단(zero-downtime) 배포 활성화.
     healthCheckPath: /api/health
+    # 백엔드 파일이 바뀐 커밋만 재배포 — 프론트·문서·검사 스크립트만 바뀐 푸시로 서버가 재시작되지 않게 (2026-09-23, 잦은 재시작으로 느려진 문제)
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
     # ▼ 인스턴스 업그레이드: 아래 줄 주석 해제(starter 또는 standard) 후 Blueprint 동기화하면 적용.
     #   또는 Render 대시보드 → snowpan-backend → Settings → Instance Type 에서 직접 변경.
     # plan: starter
