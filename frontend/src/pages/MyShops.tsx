@@ -24,6 +24,12 @@ interface Shop {
   staffRole?: 'staff'; // 내 매장이 아니라 직원으로 붙은 매장 (2026-09-23) — 삭제·직원 관리 대신 '나가기'
 }
 
+// 매장 카드 버튼 — 스노우판 시그니처(흰·검)로 통일, 열린 패널만 검정 (2026-09-23)
+const BTN = 'flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md border transition-colors';
+const BTN_OFF = `${BTN} bg-white text-gray-900 border-gray-200 hover:bg-gray-50`;
+const BTN_ON = `${BTN} bg-gray-900 text-white border-gray-900`;
+const BTN_DANGER = `${BTN} bg-white text-red-500 border-gray-200 hover:bg-red-50`;
+
 // 직원 관리 패널 데이터 (사장님만 조회)
 interface StaffInfo {
   staff: { userId: string; name: string; profileImage?: string | null; since: string }[];
@@ -85,7 +91,7 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
               <p className="text-xs font-bold text-gray-900 truncate">{r.title}</p>
               <p className="text-[10px] text-gray-500">{r.active ? (r.deadline ? `${r.deadline.replace(/-/g, '.')}까지` : '무기한') : '마감'} · 신청 {r.applicationCount}명</p>
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${r.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{r.active ? '모집 중' : '마감'}</span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex-shrink-0 ${r.active ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'}`}>{r.active ? '모집 중' : '마감'}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             <button onClick={() => showApps(r)} className={`px-2.5 py-1.5 text-[11px] font-bold rounded-md ${open === r.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-700'}`}>신청자 {r.applicationCount}</button>
@@ -98,7 +104,7 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
               {!apps[r.id] ? <p className="text-[11px] text-gray-400">불러오는 중...</p> : apps[r.id].length === 0 ? <p className="text-[11px] text-gray-500">아직 신청자가 없어요.</p> : apps[r.id].map((a) => (
                 <div key={a.id} className="bg-white rounded-md border border-gray-100 p-2 text-[11px] space-y-0.5">
                   <div className="flex items-center justify-between"><span className="font-bold text-gray-900">{a.name}</span><span className="text-gray-400">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</span></div>
-                  <p><a href={`tel:${a.phone}`} className="text-sky-600">{a.phone}</a>{a.instagram && <> · <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener noreferrer" className="text-pink-500">@{a.instagram}</a></>}</p>
+                  <p><a href={`tel:${a.phone}`} className="text-gray-900 underline underline-offset-2">{a.phone}</a>{a.instagram && <> · <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener noreferrer" className="text-pink-500">@{a.instagram}</a></>}</p>
                   {a.message && <p className="text-gray-700 whitespace-pre-wrap">{a.message}</p>}
                   <p className="text-gray-400">스노우판 {a.user.name}</p>
                 </div>
@@ -121,7 +127,7 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
           </div>
         </div>
       ) : (
-        <button onClick={() => setWriting(true)} disabled={!approved} className="w-full py-2 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors disabled:opacity-40">{approved ? '+ 새 모집 올리기' : '매장 승인 후 모집을 올릴 수 있어요'}</button>
+        <button onClick={() => setWriting(true)} disabled={!approved} className="w-full py-2 text-xs font-bold text-gray-900 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-40">{approved ? '+ 새 모집 올리기' : '매장 승인 후 모집을 올릴 수 있어요'}</button>
       )}
     </div>
   );
@@ -183,7 +189,7 @@ function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string
               </div>
             </div>
           ) : (
-            <button onClick={makeInvite} disabled={busy || !approved} className="w-full py-2 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors disabled:opacity-40">
+            <button onClick={makeInvite} disabled={busy || !approved} className="w-full py-2 text-xs font-bold text-gray-900 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-40">
               {approved ? (busy ? '만드는 중...' : '초대 링크 만들기') : '매장 승인 후 초대할 수 있어요'}
             </button>
           )}
@@ -230,9 +236,7 @@ export default function MyShops() {
   const [loadError, setLoadError] = useState<string | null>(null); // 매장 목록 로드 실패 메시지 (빈 상태와 구분)
   const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   // 소식 패널 — 매장별 토글. key = `${cat.key}:${shop.id}`
-  const [openNews, setOpenNews] = useState<string | null>(null);
-  const [openStaff, setOpenStaff] = useState<string | null>(null); // 직원 관리 패널이 열린 카드
-  const [openRecruit, setOpenRecruit] = useState<string | null>(null); // 모집·신청 패널이 열린 카드
+  const [openPanel, setOpenPanel] = useState<string | null>(null); // 소식·모집·직원 패널 — 한 번에 하나만 열림 ('news:키' | 'recruit:키' | 'staff:키'), 사용자 요청 2026-09-23
   const [posts, setPosts] = useState<Record<string, ShopPostItem[]>>({});
   const [postsLoading, setPostsLoading] = useState<string | null>(null);
   // 예약 관리 진입 카드의 "요청 N건" — 사장님이 아직 답하지 않은 방문 예약 수 (조회 실패면 건수 없이 카드만)
@@ -315,8 +319,8 @@ export default function MyShops() {
   const toggleNews = async (cat: typeof CATEGORIES[number], shop: Shop) => {
     const key = `${cat.key}:${shop.id}`;
     const srcKey = shop._src || cat.key; // 소식은 원 카테고리 기준 (한 매장 = 하나의 소식 피드)
-    if (openNews === key) { setOpenNews(null); return; }
-    setOpenNews(key);
+    if (openPanel === `news:${key}`) { setOpenPanel(null); return; }
+    setOpenPanel(`news:${key}`);
     if (posts[key]) return; // 이미 불러옴
     setPostsLoading(key);
     try {
@@ -348,7 +352,7 @@ export default function MyShops() {
         {shop.approved ? (
           <Link
             to={`/shop/${srcKey}/${shop.id}/post/new`}
-            className="block w-full py-2 text-center text-xs font-bold text-white bg-sky-500 rounded-md hover:bg-sky-600 transition-colors"
+            className="block w-full py-2 text-center text-xs font-bold text-white bg-gray-900 rounded-md hover:bg-gray-800 transition-colors"
           >
             + 소식·이벤트 쓰기
           </Link>
@@ -371,7 +375,7 @@ export default function MyShops() {
                     {new Date(p.createdAt).toLocaleDateString('ko-KR')} · 조회 {(p.viewCount ?? 0).toLocaleString()}
                   </p>
                 </Link>
-                <button onClick={() => navigate(`/shop-post/${p.id}/edit`)} className="shrink-0 text-[11px] font-bold text-sky-600 px-1.5 py-1">수정</button>
+                <button onClick={() => navigate(`/shop-post/${p.id}/edit`)} className="shrink-0 text-[11px] font-bold text-gray-900 px-1.5 py-1">수정</button>
                 <button onClick={() => handleDeletePost(key, p)} className="shrink-0 text-[11px] font-bold text-red-500 px-1.5 py-1">삭제</button>
               </div>
             );
@@ -400,34 +404,34 @@ export default function MyShops() {
                 {(cat.key === 'skishop' || cat.key === 'repair' || cat.key === 'rental') && <KindTags shop={shop} own={cat.key as ShopKind} />}
               </div>
               {sub && <p className="text-[10px] text-gray-500">{sub}</p>}
-              {isGuest && <p className="text-[10px] text-violet-700">{src.label}으로 등록된 매장 · {cat.label} 겸업</p>}
+              {isGuest && <p className="text-[10px] text-gray-600">{src.label}으로 등록된 매장 · {cat.label} 겸업</p>}
             </div>
           </div>
           <span className="flex items-center gap-1 flex-shrink-0">
-            {shop.staffRole === 'staff' && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">직원</span>}
+            {shop.staffRole === 'staff' && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-gray-900 border border-gray-900">직원</span>}
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${shop.claimable ? 'bg-gray-100 text-gray-600' : shop.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
               {shop.claimable ? '사장님 확인 전' : shop.approved ? '승인됨' : '대기중'}
             </span>
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
-          <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
-          <button onClick={() => toggleNews(cat, shop)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
-          {!isGuest && <button onClick={() => setOpenRecruit(openRecruit === key ? null : key)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openRecruit === key ? 'text-white bg-emerald-600' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'}`}>모집</button>}
+          <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className={BTN_OFF}>수정</button>
+          <button onClick={() => toggleNews(cat, shop)} className={openPanel === `news:${key}` ? BTN_ON : BTN_OFF}>소식·이벤트</button>
+          {!isGuest && <button onClick={() => setOpenPanel(openPanel === `recruit:${key}` ? null : `recruit:${key}`)} className={openPanel === `recruit:${key}` ? BTN_ON : BTN_OFF}>모집</button>}
           {isGuest
-            ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
+            ? <button onClick={() => handleUnlink(src, cat, shop)} className={BTN_OFF}>여기서 내리기</button>
             : shop.staffRole === 'staff'
-              ? <button onClick={() => handleLeave(cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">나가기</button>
+              ? <button onClick={() => handleLeave(cat, shop)} className={BTN_OFF}>나가기</button>
               : (
                 <>
-                  <button onClick={() => setOpenStaff(openStaff === key ? null : key)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openStaff === key ? 'text-white bg-gray-900' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}>직원</button>
-                  <button onClick={() => handleDelete(cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
+                  <button onClick={() => setOpenPanel(openPanel === `staff:${key}` ? null : `staff:${key}`)} className={openPanel === `staff:${key}` ? BTN_ON : BTN_OFF}>직원</button>
+                  <button onClick={() => handleDelete(cat, shop)} className={BTN_DANGER}>삭제</button>
                 </>
               )}
         </div>
-        {openNews === key && <NewsPanel shop={shop} cat={cat} />}
-        {openStaff === key && !isGuest && shop.staffRole !== 'staff' && <StaffPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
-        {openRecruit === key && !isGuest && <RecruitPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
+        {openPanel === `news:${key}` && <NewsPanel shop={shop} cat={cat} />}
+        {openPanel === `staff:${key}` && !isGuest && shop.staffRole !== 'staff' && <StaffPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
+        {openPanel === `recruit:${key}` && !isGuest && <RecruitPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
       </div>
     );
   };
@@ -447,7 +451,7 @@ export default function MyShops() {
           <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">사장님 대시보드</h1>
         </div>
-        <Link to="/mypage/ads" className="text-xs text-sky-600 font-bold">광고 관리</Link>
+        <Link to="/mypage/ads" className="text-xs text-gray-900 font-bold underline underline-offset-2">광고 관리</Link>
       </div>
 
       <p className="text-xs text-gray-500 -mt-2">
@@ -462,7 +466,7 @@ export default function MyShops() {
             <div className="text-[11px] text-gray-500 mt-0.5">등록 업소</div>
           </div>
           <div className="card p-4 text-center">
-            <div className="text-2xl font-bold text-sky-600">{totalViews.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-gray-900">{totalViews.toLocaleString()}</div>
             <div className="text-[11px] text-gray-500 mt-0.5">총 조회수</div>
           </div>
         </div>
@@ -502,7 +506,7 @@ export default function MyShops() {
             <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5">
               <cat.Icon size={16} /> {cat.label}
             </h2>
-            <Link to={cat.registerPath} className="text-xs text-sky-600 font-bold">+ 추가 등록</Link>
+            <Link to={cat.registerPath} className="text-xs text-gray-900 font-bold underline underline-offset-2">+ 추가 등록</Link>
           </div>
           <div className="space-y-2">
             {shops[cat.key].map((s) => <ShopCard key={`${s._src || cat.key}:${s.id}`} shop={s} cat={cat} />)}
@@ -517,7 +521,7 @@ export default function MyShops() {
             <Link
               key={cat.key}
               to={cat.registerPath}
-              className="flex flex-col items-center gap-1.5 py-2.5 rounded-lg border border-gray-200 text-gray-700 hover:border-sky-300 hover:text-sky-600 transition-colors"
+              className="flex flex-col items-center gap-1.5 py-2.5 rounded-lg border border-gray-200 text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors"
             >
               <cat.Icon size={20} />
               <span className="text-[10px] font-medium">{cat.label}</span>
