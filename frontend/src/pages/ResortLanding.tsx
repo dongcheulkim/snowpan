@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ResortReviews from '../components/ResortReviews';
+import { RowListSkeleton } from '../components/Skeleton';
 
 interface MiniItem { id: string; name: string; price?: number; image?: string | null; area?: string; address?: string | null; }
 interface Landing {
@@ -71,7 +72,7 @@ export default function ResortLanding() {
       .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, [decoded]);
-  if (loading) return <div className="text-center py-20 text-sm text-gray-500">로딩 중...</div>;
+  // 데이터를 기다리는 동안에도 헤더·안내는 바로 그리고 목록만 스켈레톤 (느린 회선에서 빈 화면 방지, 2026-09-23 전체검사)
 
   const sections: { title: string; items: MiniItem[]; to: (i: MiniItem) => string; listTo: string }[] = data ? [
     { title: '스키·보드샵', items: data.skiShops, to: i => `/skishop/${i.id}`, listTo: '/skishop' },
@@ -99,7 +100,7 @@ export default function ResortLanding() {
         <p className="text-sm text-gray-600">
           <span className="font-bold text-gray-900">{decoded}</span> 근처 스키·보드샵, 렌탈샵, 레슨, 숙소를 한눈에.
         </p>
-        <p className="text-xs text-gray-400 mt-1">등록된 업체 {totalCount}곳</p>
+        <p className="text-xs text-gray-400 mt-1">{loading ? '불러오는 중...' : `등록된 업체 ${totalCount}곳`}</p>
         <div className="flex gap-2 mt-3">
           <Link to="/webcam" className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold text-center">실시간 웹캠</Link>
           <Link to="/community" className="flex-1 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold text-center">커뮤니티</Link>
@@ -120,7 +121,9 @@ export default function ResortLanding() {
         </div>
       )}
 
-      {totalCount === 0 ? (
+      {loading ? (
+        <RowListSkeleton count={4} />
+      ) : totalCount === 0 ? (
         <div className="card p-8 text-center">
           <p className="text-sm text-gray-500 mb-3">아직 {decoded}에 등록된 업체가 없어요.</p>
           <Link to="/mypage/shops" className="inline-block px-4 py-2 bg-gray-900 text-white rounded-lg font-bold text-xs">사장님 대시보드에서 등록하기</Link>
