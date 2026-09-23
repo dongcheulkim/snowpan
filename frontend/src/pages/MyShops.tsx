@@ -177,7 +177,7 @@ function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string
               <p className="text-[11px] text-gray-500">초대 링크 · {new Date(data.invite.expiresAt).toLocaleDateString('ko-KR')}까지 · {data.invite.usedCount}/{data.invite.maxUses}명 참여</p>
               <p className="text-[11px] text-gray-800 break-all select-all">{data.invite.url}</p>
               <div className="flex gap-2">
-                <button onClick={() => share(data.invite!.url)} className="flex-1 py-1.5 text-xs font-bold text-white bg-gray-900 rounded-md">직원에게 보내기</button>
+                <button onClick={() => share(data.invite!.url)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-white bg-gray-900 rounded-md">직원에게 보내기</button>
                 <button onClick={() => copy(data.invite!.url)} className="px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-md">복사</button>
                 <button onClick={revoke} className="px-3 py-1.5 text-xs font-bold text-gray-500 bg-white border border-gray-200 rounded-md">없애기</button>
               </div>
@@ -411,17 +411,17 @@ export default function MyShops() {
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mt-2.5 pt-2.5 border-t border-gray-100">
-          <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className="flex-1 py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
-          <button onClick={() => toggleNews(cat, shop)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
-          {!isGuest && <button onClick={() => setOpenRecruit(openRecruit === key ? null : key)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openRecruit === key ? 'text-white bg-emerald-600' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'}`}>모집</button>}
+          <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-sky-600 bg-sky-50 rounded-md hover:bg-sky-100 transition-colors">수정</button>
+          <button onClick={() => toggleNews(cat, shop)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openNews === key ? 'text-white bg-violet-500' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>소식·이벤트</button>
+          {!isGuest && <button onClick={() => setOpenRecruit(openRecruit === key ? null : key)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openRecruit === key ? 'text-white bg-emerald-600' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'}`}>모집</button>}
           {isGuest
-            ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
+            ? <button onClick={() => handleUnlink(src, cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">여기서 내리기</button>
             : shop.staffRole === 'staff'
-              ? <button onClick={() => handleLeave(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">나가기</button>
+              ? <button onClick={() => handleLeave(cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">나가기</button>
               : (
                 <>
-                  <button onClick={() => setOpenStaff(openStaff === key ? null : key)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${openStaff === key ? 'text-white bg-gray-900' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}>직원</button>
-                  <button onClick={() => handleDelete(cat, shop)} className="flex-1 py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
+                  <button onClick={() => setOpenStaff(openStaff === key ? null : key)} className={`flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold rounded-md transition-colors ${openStaff === key ? 'text-white bg-gray-900' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'}`}>직원</button>
+                  <button onClick={() => handleDelete(cat, shop)} className="flex-1 min-w-[4.5rem] whitespace-nowrap py-1.5 text-xs font-bold text-red-500 bg-red-50 rounded-md hover:bg-red-100 transition-colors">삭제</button>
                 </>
               )}
         </div>
