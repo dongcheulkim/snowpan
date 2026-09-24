@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
 import { CalendarIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
-import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, isReservationFinished, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation } from '../utils/reservation';
+import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, isReservationFinished, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, WORK_LABEL } from '../utils/reservation';
 
 // 내 예약 (손님) — 렌탈·스키샵·정비샵·레슨·숙소에 보낸 방문 예약 목록. 결제 없음, 사장님이 확정하면 상태가 바뀐다.
 type Filter = 'all' | 'requested' | 'confirmed' | 'closed';
@@ -124,6 +124,9 @@ export default function MyReservations() {
                   <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CHIP[r.status] || STATUS_CHIP.requested}`}>
                     {STATUS_LABEL[r.status] || r.status}
                   </span>
+                  {r.shopType === 'repair' && r.status === 'confirmed' && r.workStatus && (
+                    <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-gray-900 text-white border-gray-900">{WORK_LABEL[r.workStatus]}</span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-800">{when} · {peopleLabel(r.adults, r.children)}</p>
                 {detailLines(r.shopType, r.details).map((l) => <p key={l} className="text-xs text-gray-500">{l}</p>)}

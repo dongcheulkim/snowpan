@@ -6,6 +6,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth';
 import { displayName } from '../utils/displayName';
 import { kstDayStart } from '../utils/kst';
 import { viewerOf, unreadByRoom } from '../utils/supportInbox';
+import { summarize } from '../utils/responseStats';
 import { staffShopsOf, StaffShopType } from '../utils/shopAccess';
 
 const router = Router();
@@ -51,7 +52,7 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response
     if (!pairs.length) { res.json(empty); return; }
     const shopWhere = { OR: pairs };
 
-    const [reservations, reviews, recruits, posts, rooms, viewer] = await Promise.all([
+    const [reservations, reviews, recruits, posts, rooms, viewer, follows, responseStats] = await Promise.all([
       prisma.reservation.findMany({ where: { ...shopWhere, ownerHidden: false }, include: { customer: { select: { id: true, name: true, nickname: true } } }, orderBy: [{ date: 'asc' }, { time: 'asc' }] }),
       prisma.shopReview.findMany({ where: shopWhere, select: { shopType: true, shopId: true, rating: true, ownerReply: true, createdAt: true } }),
       prisma.shopRecruit.findMany({ where: shopWhere, include: { applications: { select: { createdAt: true } } } }),
@@ -59,6 +60,8 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response
       // 내 방 + 내 매장(사장님·직원)에 연결된 방 — 직원도 매장 문의 안읽음을 본다
       prisma.chatRoom.findMany({ where: { OR: [{ user1Id: me }, { user2Id: me }, { shops: { some: { OR: pairs } } }], status: 'accepted' }, include: { shops: true } }),
       viewerOf(me, req.user!.role),
+      prisma.shopFollow.groupBy({ by: ['shopType', 'shopId'], where: shopWhere, _count: { _all: true } }), // 매장 찜 수
+      prisma.shopResponseStat.findMany({ where: shopWhere }), // 답장 속도
     ]);
 
     const key = (t: string, id: string) => `${t}:${id}`;
@@ -88,7 +91,7 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response
     res.json({
       todo: { requested, unrepliedReviews, newApplications7d, unreadChats, todayReservations },
       last30d,
-      shops: shops.map((s) => { const k = perShop[key(s.shopType, s.shopId)]; return { ...s, label: LABEL[s.shopType], path: `${PATH[s.shopType]}/${s.shopId}`, reservations: { requested: k.requested, confirmed: k.confirmed, total: k.total }, reviews: { count: k.reviews, avg: k.reviews ? Math.round((k.ratingSum / k.reviews) * 10) / 10 : 0, unreplied: k.unreplied }, applications: k.applications, posts: k.posts }; }),
+      shops: shops.map((s) => { const k = perShop[key(s.shopType, s.shopId)]; const fc = follows.find((f) => f.shopType === s.shopType && f.shopId === s.shopId); const rs = responseStats.find((f) => f.shopType === s.shopType && f.shopId === s.shopId); return { ...s, label: LABEL[s.shopType], path: `${PATH[s.shopType]}/${s.shopId}`, followers: fc ? fc._count._all : 0, response: summarize(rs), reservations: { requested: k.requested, confirmed: k.confirmed, total: k.total }, reviews: { count: k.reviews, avg: k.reviews ? Math.round((k.ratingSum / k.reviews) * 10) / 10 : 0, unreplied: k.unreplied }, applications: k.applications, posts: k.posts }; }),
       schedule: [...scheduleMap.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([date, items]) => ({ date, items })),
     });
   } catch (e) { console.error('Owner summary error:', e); res.status(500).json({ error: '현황을 불러오지 못했어요.' }); }

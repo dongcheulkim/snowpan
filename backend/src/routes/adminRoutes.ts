@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { loginHistoryHandler } from '../utils/loginLog';
 import { runReservationReminders } from '../utils/reservationReminders';
+import { updateResponseStats } from '../utils/responseStats';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
@@ -92,6 +93,12 @@ router.post('/jobs/reservation-reminders', async (req: any, res) => {
     console.error('reservation reminders job error:', e);
     res.status(500).json({ error: '예약 알림 실행 실패' });
   }
+});
+
+// 매장 답장 속도 즉시 갱신 (E2E·운영 점검용)
+router.post('/jobs/response-stats', async (_req: any, res) => {
+  try { res.json({ shops: await updateResponseStats() }); }
+  catch (e) { console.error('response stats job error:', e); res.status(500).json({ error: '답장 속도 갱신 실패' }); }
 });
 
 router.post('/push-test', async (req: any, res) => {

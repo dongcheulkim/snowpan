@@ -19,7 +19,9 @@ const SHOP_TYPES = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'] as
 type ShopType = (typeof SHOP_TYPES)[number];
 const STATUSES = ['requested', 'confirmed', 'declined', 'cancelled'] as const;
 type ReservationStatus = (typeof STATUSES)[number];
-type ReservationEvent = ReservationStatus;
+const WORK_STATUSES = ['received', 'working', 'done'] as const; // 정비샵 작업 현황 (2026-09-24)
+type WorkStatus = (typeof WORK_STATUSES)[number];
+type ReservationEvent = ReservationStatus | `work_${WorkStatus}`;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -140,6 +142,7 @@ interface ReservationRow {
   id: string; shopType: string; shopId: string; shopName: string; ownerId: string; customerId: string; roomId: string | null;
   date: Date; endDate: Date | null; time: string | null; adults: number; children: number; details: string | null; note: string | null;
   status: string; ownerMessage: string | null; respondedAt: Date | null; createdAt: Date; updatedAt: Date;
+  workStatus?: string | null; workUpdatedAt?: Date | null;
 }
 
 // content(JSON) 스키마 — 프론트가 채팅방에서 예약 카드로 그린다
@@ -159,6 +162,7 @@ function cardContent(r: ReservationRow, event: ReservationEvent, extra: { messag
     note: r.note,
     message: extra.message ?? null,
     by: extra.by ?? null,
+    workStatus: r.workStatus ?? null, // 정비 작업 현황 (카드에 표시)
   });
 }
 
@@ -203,6 +207,8 @@ function serialize(r: ReservationRow) {
     roomId: r.roomId,
     createdAt: r.createdAt,
     respondedAt: r.respondedAt,
+    workStatus: r.workStatus ?? null,
+    workUpdatedAt: r.workUpdatedAt ?? null,
   };
 }
 
@@ -485,5 +491,38 @@ export const hideReservation = async (req: AuthRequest, res: Response): Promise<
   } catch (error) {
     console.error('Hide reservation error:', error);
     res.status(500).json({ error: '정리 중 오류가 발생했어요.' });
+  }
+};
+
+// ═════════ PUT /reservations/:id/work-status — 정비샵 작업 현황 (사장님·직원, 확정된 정비 예약만) ═════════
+// 접수 → 작업 중 → 완료. 바뀔 때마다 채팅 카드(사장님 명의) + 손님 알림. 완료는 "찾아가세요" 안내.
+const WORK_NOTICE: Record<WorkStatus, { title: string; text: (shop: string) => string }> = {
+  received: { title: '장비를 접수했어요', text: (shop) => `${shop}: 맡기신 장비를 접수했어요.` },
+  working: { title: '작업 중이에요', text: (shop) => `${shop}: 장비 작업을 시작했어요.` },
+  done: { title: '작업이 끝났어요', text: (shop) => `${shop}: 작업이 끝났어요. 찾아가세요.` },
+};
+export const setWorkStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const r = await loadForParticipant(req, res);
+    if (!r) return;
+    if (r.ownerId !== req.user!.id && !(await isShopStaff(req.user!.id, r.shopType, r.shopId))) { res.status(403).json({ error: '매장 사장님이나 직원만 바꿀 수 있어요' }); return; }
+    if (r.shopType !== 'repair') { res.status(400).json({ error: '정비 예약에만 작업 현황이 있어요' }); return; }
+    if (r.status !== 'confirmed') { res.status(400).json({ error: '확정된 예약만 작업 현황을 바꿀 수 있어요' }); return; }
+    const status = req.body?.status;
+    if (!WORK_STATUSES.includes(status)) { res.status(400).json({ error: '작업 현황 값이 올바르지 않아요' }); return; }
+    if (r.workStatus === status) { res.status(400).json({ error: '이미 그 상태예요' }); return; }
+    const now = new Date();
+    await prisma.reservation.update({ where: { id: r.id }, data: { workStatus: status, workUpdatedAt: now } });
+    const updated = { ...r, workStatus: status, workUpdatedAt: now };
+    const room = r.roomId ? { id: r.roomId } : await getOrCreateRoom(r.customerId, r.ownerId);
+    if (!r.roomId) await prisma.reservation.update({ where: { id: r.id }, data: { roomId: room.id } });
+    await sendCard(room.id, r.ownerId, cardContent(updated, `work_${status as WorkStatus}`));
+    const notice = WORK_NOTICE[status as WorkStatus];
+    notify(r.customerId, notice.title, notice.text(r.shopName), `/chat/${room.id}`);
+    alertUser(r.customerId, { kind: 'reservation_result', title: notice.title, text: notice.text(r.shopName), link: `/chat/${room.id}` }).catch(() => {});
+    res.json({ reservation: serialize({ ...updated, roomId: room.id }) });
+  } catch (error) {
+    console.error('Work status error:', error);
+    res.status(500).json({ error: '작업 현황을 바꾸지 못했어요' });
   }
 };

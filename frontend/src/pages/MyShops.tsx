@@ -29,7 +29,7 @@ interface Shop {
 interface OwnerSummary {
   todo: { requested: number; unrepliedReviews: number; newApplications7d: number; unreadChats: number; todayReservations: number };
   last30d: { requests: number; confirmed: number; declined: number; cancelled: number; reviews: number; applications: number; chats: number };
-  shops: { shopType: string; shopId: string; name: string; path: string; views: number; reservations: { requested: number; confirmed: number; total: number }; reviews: { count: number; avg: number; unreplied: number }; applications: number; posts: number }[];
+  shops: { shopType: string; shopId: string; name: string; path: string; views: number; reservations: { requested: number; confirmed: number; total: number }; reviews: { count: number; avg: number; unreplied: number }; applications: number; posts: number; followers?: number; response?: { label: string | null; replyRate: number | null } | null }[];
   schedule: { date: string; items: { id: string; shopType: ShopType; shopName: string; time: string | null; status: string; adults: number; children: number; endDate: string | null; details: ReservationDetails | null; note: string | null; customer: string; roomId: string | null }[] }[];
 }
 function TodoTile({ label, n, to }: { label: string; n: number; to?: string }) {
@@ -164,6 +164,101 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
 
 // 직원 관리 — 사장님이 초대 링크를 만들어 직원에게 보내고, 참여한 직원을 해제한다. 2026-09-23 사용자 요청 "직원이 관리하는 경우도 있잖아".
 // 컴포넌트 재생성으로 상태가 날아가지 않게 MyShops 밖에 둔다.
+// 매장 QR (2026-09-24) — 카운터에 붙여 두면 손님이 찍어서 매장 페이지로 (리뷰·예약·찜). qrcode 는 필요할 때만 불러온다.
+function QrPanel({ shopType, shopId, shopName }: { shopType: string; shopId: string; shopName: string }) {
+  const url = `https://snowpan.kr/${shopType}/${shopId}?from=qr`;
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    import('qrcode')
+      .then((QR) => QR.toDataURL(url, { width: 512, margin: 1, color: { dark: '#111111', light: '#ffffff' } }))
+      .then((d) => { if (alive) setDataUrl(d); })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, [url]);
+  return (
+    <div className="mt-3 border border-gray-200 rounded-xl p-4 space-y-3">
+      <p className="text-xs font-bold text-gray-900">매장 QR 코드</p>
+      <p className="text-[11px] text-gray-500 leading-relaxed">카운터나 입구에 붙여 두면 손님이 찍어서 매장 페이지로 바로 와요. 리뷰 쓰기, 예약, 매장 찜을 그 자리에서 할 수 있어요.</p>
+      {dataUrl ? (
+        <img src={dataUrl} alt={`${shopName} QR 코드`} className="w-[200px] h-[200px] mx-auto border border-gray-200 rounded-lg" />
+      ) : (
+        <p className="text-xs text-gray-500 text-center py-6">{failed ? 'QR 코드를 만들지 못했어요. 새로고침해 주세요.' : '만드는 중...'}</p>
+      )}
+      <p className="text-[10px] text-gray-400 break-all text-center">{url}</p>
+      {dataUrl && <a href={dataUrl} download={`snowpan-qr-${shopName}.png`} className={`${BTN_OFF} block text-center`}>PNG 내려받기</a>}
+    </div>
+  );
+}
+
+// 답장 문구 (2026-09-24) — 매장별 공유(사장님+직원), 채팅의 '문구' 버튼에서 바로 넣는다. 최대 20개.
+function RepliesPanel({ shopType, shopId }: { shopType: string; shopId: string }) {
+  const [items, setItems] = useState<{ id: string; text: string }[]>([]);
+  const [text, setText] = useState('');
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const load = () => api<{ id: string; text: string }[]>(`/shop-replies/shops/${shopType}/${shopId}`).then(setItems).catch(() => {});
+  useEffect(() => { load(); }, [shopType, shopId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const add = async () => {
+    const v = text.trim(); if (!v || busy) return;
+    setBusy(true);
+    try { await api(`/shop-replies/shops/${shopType}/${shopId}`, { method: 'POST', body: { text: v } }); setText(''); toastSuccess('저장했어요.'); load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '저장하지 못했어요.'); }
+    finally { setBusy(false); }
+  };
+  const save = async (id: string) => {
+    const v = editText.trim(); if (!v || busy) return;
+    setBusy(true);
+    try { await api(`/shop-replies/${id}`, { method: 'PUT', body: { text: v } }); setEditing(null); load(); }
+    catch (e) { toastError(e instanceof Error ? e.message : '고치지 못했어요.'); }
+    finally { setBusy(false); }
+  };
+  const remove = async (id: string) => {
+    if (busy || !confirm('이 문구를 지울까요?')) return;
+    setBusy(true);
+    try { await api(`/shop-replies/${id}`, { method: 'DELETE' }); load(); }
+    catch { toastError('지우지 못했어요.'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-3 border border-gray-200 rounded-xl p-4 space-y-3">
+      <p className="text-xs font-bold text-gray-900">답장 문구 <span className="text-gray-400 font-normal">({items.length}/20)</span></p>
+      <p className="text-[11px] text-gray-500 leading-relaxed">영업시간, 가격, 오시는 길처럼 자주 하는 답을 저장해 두면 채팅의 "문구" 버튼으로 한 번에 넣을 수 있어요. 직원도 같이 써요.</p>
+      {items.length > 0 && (
+        <ul className="space-y-1.5">
+          {items.map((it) => (
+            <li key={it.id} className="border border-gray-100 rounded-lg p-2">
+              {editing === it.id ? (
+                <div className="space-y-1.5">
+                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} maxLength={500} rows={3} className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-900" />
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => save(it.id)} disabled={busy} className={BTN_ON}>저장</button>
+                    <button type="button" onClick={() => setEditing(null)} className={BTN_OFF}>취소</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <p className="flex-1 text-sm text-gray-900 whitespace-pre-wrap break-words">{it.text}</p>
+                  <button type="button" onClick={() => { setEditing(it.id); setEditText(it.text); }} className="shrink-0 text-[11px] font-bold text-gray-900 px-1.5 py-1">수정</button>
+                  <button type="button" onClick={() => remove(it.id)} className="shrink-0 text-[11px] font-bold text-red-500 px-1.5 py-1">삭제</button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {items.length < 20 && (
+        <div className="space-y-1.5">
+          <textarea value={text} onChange={(e) => setText(e.target.value)} maxLength={500} rows={2} placeholder="예: 영업시간은 오전 8시부터 저녁 8시까지예요." className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-900" />
+          <button type="button" onClick={add} disabled={busy || !text.trim()} className={`${BTN_ON} disabled:opacity-40`}>문구 저장</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string; shopId: string; shopName: string; approved: boolean }) {
   const [data, setData] = useState<StaffInfo | null>(null);
   const [busy, setBusy] = useState(false);
@@ -422,7 +517,7 @@ export default function MyShops() {
       cat.hasViews ? `조회 ${(shop.viewCount ?? 0).toLocaleString()}` : (shop.price ? `${shop.price.toLocaleString()}원` : null),
     ].filter(Boolean).join(' · ');
     const st = summary?.shops.find((x) => x.shopType === src.key && x.shopId === shop.id); // 매장별 예약·리뷰·신청·소식 숫자
-    const stat = st ? `예약 ${st.reservations.total}${st.reservations.requested ? ` (대기 ${st.reservations.requested})` : ''} · 리뷰 ${st.reviews.count}${st.reviews.count ? ` ★${st.reviews.avg}` : ''}${st.reviews.unreplied ? ` (답글 ${st.reviews.unreplied})` : ''} · 신청 ${st.applications} · 소식 ${st.posts}` : null;
+    const stat = st ? `예약 ${st.reservations.total}${st.reservations.requested ? ` (대기 ${st.reservations.requested})` : ''} · 리뷰 ${st.reviews.count}${st.reviews.count ? ` ★${st.reviews.avg}` : ''}${st.reviews.unreplied ? ` (답글 ${st.reviews.unreplied})` : ''} · 신청 ${st.applications} · 소식 ${st.posts} · 찜 ${st.followers ?? 0}${st.response?.label ? ` · ${st.response.label}` : ''}` : null;
     return (
       <div className="p-3 bg-snow rounded-lg border border-gray-200">
         <div className="flex items-center justify-between">
@@ -449,6 +544,8 @@ export default function MyShops() {
           <button onClick={() => navigate(`${src.editBase}/${shop.id}/edit`)} className={BTN_OFF}>수정</button>
           <button onClick={() => toggleNews(cat, shop)} className={openPanel === `news:${key}` ? BTN_ON : BTN_OFF}>소식·이벤트</button>
           {!isGuest && <button onClick={() => setOpenPanel(openPanel === `recruit:${key}` ? null : `recruit:${key}`)} className={openPanel === `recruit:${key}` ? BTN_ON : BTN_OFF}>모집</button>}
+          {!isGuest && <button onClick={() => setOpenPanel(openPanel === `replies:${key}` ? null : `replies:${key}`)} className={openPanel === `replies:${key}` ? BTN_ON : BTN_OFF}>답장 문구</button>}
+          {!isGuest && <button onClick={() => setOpenPanel(openPanel === `qr:${key}` ? null : `qr:${key}`)} className={openPanel === `qr:${key}` ? BTN_ON : BTN_OFF}>QR</button>}
           {isGuest
             ? <button onClick={() => handleUnlink(src, cat, shop)} className={BTN_OFF}>여기서 내리기</button>
             : shop.staffRole === 'staff'
@@ -463,6 +560,8 @@ export default function MyShops() {
         {openPanel === `news:${key}` && <NewsPanel shop={shop} cat={cat} />}
         {openPanel === `staff:${key}` && !isGuest && shop.staffRole !== 'staff' && <StaffPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
         {openPanel === `recruit:${key}` && !isGuest && <RecruitPanel shopType={src.key} shopId={shop.id} shopName={shop.name} approved={shop.approved} />}
+        {openPanel === `replies:${key}` && !isGuest && <RepliesPanel shopType={src.key} shopId={shop.id} />}
+        {openPanel === `qr:${key}` && !isGuest && <QrPanel shopType={src.key} shopId={shop.id} shopName={shop.name} />}
       </div>
     );
   };

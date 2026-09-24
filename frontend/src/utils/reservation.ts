@@ -2,7 +2,8 @@
 // ReservationForm(요청 폼)·Chat(예약 카드)·MyChatList(미리보기)·MyReservations(손님)·ShopReservations(사장님)가 같이 쓴다.
 export type ShopType = 'rental' | 'skishop' | 'repair' | 'lesson' | 'accommodation'; // 정비샵 2026-09-22 추가
 export type ReservationStatus = 'requested' | 'confirmed' | 'declined' | 'cancelled';
-export type ReservationEvent = ReservationStatus;
+export type WorkStatus = 'received' | 'working' | 'done'; // 정비샵 작업 현황 (2026-09-24): 접수 → 작업 중 → 완료
+export type ReservationEvent = ReservationStatus | 'work_received' | 'work_working' | 'work_done';
 
 export interface ReservationDetails {
   ski?: number;        // rental — 스키 세트 수
@@ -33,6 +34,7 @@ export interface Reservation {
   roomId?: string | null;
   createdAt: string;
   respondedAt?: string | null;
+  workStatus?: WorkStatus | null; // 정비 예약 작업 현황
 }
 
 export interface ReservationParty { id: string; name: string; profileImage?: string | null }
@@ -51,10 +53,13 @@ export interface ReservationCard {
   details?: ReservationDetails | null;
   note?: string;
   message?: string; // 확정 메시지 / 거절 사유
+  workStatus?: WorkStatus | null; // 정비 작업 현황 (카드 표시)
 }
 
 export const SHOP_TYPES: ShopType[] = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'];
 const STATUSES: ReservationStatus[] = ['requested', 'confirmed', 'declined', 'cancelled'];
+const EVENTS: ReservationEvent[] = [...STATUSES, 'work_received', 'work_working', 'work_done'];
+const WORK_STATUSES: WorkStatus[] = ['received', 'working', 'done'];
 
 export const SHOP_TYPE_LABEL: Record<ShopType, string> = { rental: '렌탈샵', skishop: '스키·보드샵', repair: '정비샵', lesson: '레슨', accommodation: '숙소' };
 // 버튼·시트 제목 — 렌탈/스키샵은 방문, 레슨·숙소는 성격에 맞게
@@ -66,8 +71,11 @@ export const STATUS_CHIP: Record<ReservationStatus, string> = {
   declined: 'bg-gray-100 text-gray-600 border-gray-200',
   cancelled: 'bg-gray-100 text-gray-600 border-gray-200',
 };
-export const EVENT_TITLE: Record<ReservationEvent, string> = { requested: '방문 예약 요청', confirmed: '예약 확정', declined: '예약 거절', cancelled: '예약 취소' };
-export const EVENT_SHORT: Record<ReservationEvent, string> = { requested: '요청', confirmed: '확정', declined: '거절', cancelled: '취소' };
+export const EVENT_TITLE: Record<ReservationEvent, string> = { requested: '방문 예약 요청', confirmed: '예약 확정', declined: '예약 거절', cancelled: '예약 취소', work_received: '장비 접수', work_working: '작업 중', work_done: '작업 완료' };
+export const EVENT_SHORT: Record<ReservationEvent, string> = { requested: '요청', confirmed: '확정', declined: '거절', cancelled: '취소', work_received: '접수', work_working: '작업 중', work_done: '작업 완료' };
+// 정비 작업 현황 라벨과 다음 단계 버튼 (사장님·직원)
+export const WORK_LABEL: Record<WorkStatus, string> = { received: '접수됨', working: '작업 중', done: '작업 완료' };
+export const WORK_NEXT: Record<'none' | WorkStatus, { status: WorkStatus; label: string } | null> = { none: { status: 'received', label: '장비 접수' }, received: { status: 'working', label: '작업 시작' }, working: { status: 'done', label: '작업 완료' }, done: null };
 
 export function shopPath(shopType: ShopType, shopId: string): string {
   return `/${shopType}/${shopId}`;
@@ -138,7 +146,7 @@ export function parseReservationCard(content: string): ReservationCard | null {
   try {
     const p = JSON.parse(content) as Partial<ReservationCard> & Record<string, unknown>;
     if (!p || typeof p !== 'object' || typeof p.reservationId !== 'string' || !p.reservationId) return null;
-    const event = STATUSES.includes(p.event as ReservationStatus) ? (p.event as ReservationStatus) : 'requested';
+    const event = EVENTS.includes(p.event as ReservationEvent) ? (p.event as ReservationEvent) : 'requested';
     const shopType = SHOP_TYPES.includes(p.shopType as ShopType) ? (p.shopType as ShopType) : 'rental';
     return {
       reservationId: p.reservationId,
@@ -153,6 +161,7 @@ export function parseReservationCard(content: string): ReservationCard | null {
       details: p.details && typeof p.details === 'object' ? (p.details as ReservationDetails) : null,
       note: typeof p.note === 'string' && p.note ? p.note : undefined,
       message: typeof p.message === 'string' && p.message ? p.message : undefined,
+      workStatus: WORK_STATUSES.includes(p.workStatus as WorkStatus) ? (p.workStatus as WorkStatus) : null,
     };
   } catch {
     return null;

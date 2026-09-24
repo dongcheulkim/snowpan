@@ -102,6 +102,10 @@ import { trustProxy } from './utils/trustedProxies';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { startReservationReminderScheduler } from './utils/reservationReminders';
 import { backfillChatRoomShops } from './utils/chatRoomShops';
+import shopFollowRoutes from './routes/shopFollowRoutes';
+import shopReplyRoutes from './routes/shopReplyRoutes';
+import shopStatsRoutes from './routes/shopStatsRoutes';
+import { startResponseStatScheduler } from './utils/responseStats';
 import { seedAdPricing } from './utils/seedAdPricing';
 
 const app = express();
@@ -357,6 +361,9 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/shop-staff', shopStaffRoutes); // 매장 직원(공동 관리) 초대·참여 (2026-09-23)
+app.use('/api/shop-follows', shopFollowRoutes); // 매장 찜 (2026-09-24)
+app.use('/api/shop-replies', strictWriteLimiter, shopReplyRoutes); // 사장님·직원 답장 문구
+app.use('/api/shop-stats', shopStatsRoutes); // 매장 공개 통계 (답장 속도)
 app.use('/api/recruits', strictWriteLimiter, recruitRoutes); // 매장 모집·신청 (앰버서더 등, 2026-09-23)
 app.use('/api/owner', ownerRoutes); // 사장님 현황(오늘 할 일·일정·통계, 2026-09-23)
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
@@ -672,6 +679,11 @@ httpServer.listen(PORT, async () => {
     startReservationReminderScheduler(); // 예약 전날·당일 리마인더 + 방문 다음 날 리뷰 요청
   } catch (err) {
     console.error('예약 리마인더 스케줄러 시작 실패:', err);
+  }
+  try {
+    startResponseStatScheduler(); // 매장 답장 속도 (6시간마다)
+  } catch (err) {
+    console.error('답장 속도 스케줄러 시작 실패:', err);
   }
   // 채팅방 ↔ 매장 연결 백필 (표가 비어 있을 때 한 번) — 직원이 기존 문의·예약 방도 볼 수 있게
   backfillChatRoomShops()

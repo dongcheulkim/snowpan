@@ -8,6 +8,7 @@ import { useMeta } from '../hooks/useMeta';
 import ShareButton from '../components/ShareButton';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
+import ShopFollowBar from '../components/ShopFollowBar';
 import PhotoGallery from '../components/PhotoGallery';
 import ShopPostsFeed from '../components/ShopPostsFeed';
 import ShopReportButton from '../components/ShopReportButton';
@@ -194,6 +195,8 @@ export default function SkiShopDetail() {
         </div>
       )}
       {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      {/* 매장 찜 + 답장 속도 (2026-09-24) */}
+      <ShopFollowBar shopType="skishop" shopId={shop.id} />
       <RecruitCard shopType="skishop" shopId={shop.id} />
       <ReservationForm
         open={reserveOpen}

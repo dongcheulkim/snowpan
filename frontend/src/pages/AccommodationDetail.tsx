@@ -14,6 +14,7 @@ import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import ClaimShopButton from '../components/ClaimShopButton';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
+import ShopFollowBar from '../components/ShopFollowBar';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -187,6 +188,8 @@ const AccommodationDetail = () => {
         </div>
       )}
       {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      {/* 매장 찜 + 답장 속도 (2026-09-24) */}
+      <ShopFollowBar shopType="accommodation" shopId={item.id} />
       <RecruitCard shopType="accommodation" shopId={item.id} />
       <ReservationForm
         open={reserveOpen}

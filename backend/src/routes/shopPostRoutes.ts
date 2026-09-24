@@ -8,6 +8,7 @@ import prisma from '../config/database';
 import { maskRowUser, maskRowUserAll } from '../utils/displayName';
 import { sanitizeText } from '../utils/sanitize';
 import { isAllowedImageUrl } from '../utils/validate';
+import { notifyShopFollowers } from '../utils/shopFollows';
 
 const router = Router();
 
@@ -243,6 +244,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response): Pro
       },
     });
 
+    // 찜한 손님에게 새 소식 알림 (사장님·직원 제외) — 응답을 막지 않음
+    notifyShopFollowers(shopType, shopId, cleanTitle, `/shop-post/${post.id}`).catch((e) => console.warn('shop follower notify failed:', e instanceof Error ? e.message : e));
     res.status(201).json(post);
   } catch (err) {
     console.error('Create shop post error:', err);

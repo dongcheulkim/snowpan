@@ -73,6 +73,7 @@ const EditProfile = lazy(() => import('./pages/EditProfile'));
 const MySales = lazy(() => import('./pages/MySales'));
 const UsedEdit = lazy(() => import('./pages/UsedEdit'));
 const MyWishlist = lazy(() => import('./pages/MyWishlist'));
+const MyShopFollows = lazy(() => import('./pages/MyShopFollows'));
 const MyPosts = lazy(() => import('./pages/MyPosts'));
 const MyReservations = lazy(() => import('./pages/MyReservations'));
 const ShopReservations = lazy(() => import('./pages/ShopReservations'));
@@ -183,6 +184,7 @@ function App() {
             <Route path="mypage/sales" element={<RequireAuth><MySales /></RequireAuth>} />
             <Route path="used/:id/edit" element={<RequireAuth><UsedEdit /></RequireAuth>} />
             <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
+            <Route path="mypage/shop-follows" element={<RequireAuth><MyShopFollows /></RequireAuth>} />
             <Route path="mypage/keywords" element={<RequireAuth><KeywordAlerts /></RequireAuth>} />
             <Route path="mypage/blocks" element={<RequireAuth><MyBlocks /></RequireAuth>} />
             <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />

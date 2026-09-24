@@ -135,6 +135,7 @@ const MyPage = () => {
     { label: t('mypage.mySales'), link: '/mypage/sales' },
     { label: t('mypage.wishlist'), link: '/mypage/wishlist' },
     { label: '내 예약', link: '/mypage/reservations' }, // 렌탈·스키샵·레슨·숙소 방문 예약 (결제 없음)
+    { label: '찜한 매장', link: '/mypage/shop-follows' }, // 매장 찜 — 소식·이벤트 알림 (2026-09-24)
     { label: '키워드 알림', link: '/mypage/keywords' },
     { label: '차단한 사용자', link: '/mypage/blocks' },
     { label: t('mypage.recentlyViewed'), link: '/mypage/recent' },

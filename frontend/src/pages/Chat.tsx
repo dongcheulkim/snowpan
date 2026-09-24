@@ -9,7 +9,7 @@ import { toastError, toastSuccess } from '../components/Toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 import AdInvitePanel from '../components/AdInvitePanel';
 import ReservationActions from '../components/ReservationActions';
-import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_LABEL, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty } from '../utils/reservation';
+import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty, WORK_LABEL, EVENT_SHORT } from '../utils/reservation';
 
 // 방문 예약 상세 (GET /reservations/:id) — owner/customer 로 내가 어느 쪽인지 판단
 type ResDetail = Reservation & { customer?: ReservationParty; owner?: ReservationParty; viewerRole?: 'shop' | 'customer' }; // viewerRole: 서버가 정한 내 역할 (직원·관리자도 매장 쪽)
@@ -77,6 +77,19 @@ const Chat = () => {
   const [roomShop, setRoomShop] = useState<{ shopType: string; shopId: string; name: string } | null>(null);
   const [viewerRole, setViewerRole] = useState<'shop' | 'customer' | null>(null);
   const [isParticipant, setIsParticipant] = useState(true); // 직원이 남의(사장님) 방을 보면 false — 차단·삭제 숨김
+  // 사장님·직원 답장 문구 (2026-09-24) — 매장 연결 방에서 '문구' 버튼 → 저장해 둔 문구를 입력창에 넣는다 (관리는 사장님 대시보드)
+  const [replyTemplates, setReplyTemplates] = useState<{ id: string; text: string }[] | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const openTemplates = () => {
+    if (templatesOpen) { setTemplatesOpen(false); return; }
+    setTemplatesOpen(true);
+    if (replyTemplates === null && roomShop) api<{ id: string; text: string }[]>(`/shop-replies/shops/${roomShop.shopType}/${roomShop.shopId}`).then(setReplyTemplates).catch(() => setReplyTemplates([]));
+  };
+  const useTemplate = (text: string) => {
+    setInput((prev) => (prev.trim() ? `${prev.trimEnd()}\n${text}` : text));
+    setTemplatesOpen(false);
+    setTimeout(() => { const el = textareaRef.current; if (el) { el.focus(); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; } }, 0);
+  };
   const [inviteOpen, setInviteOpen] = useState(false); // 관리자: 고객센터 상담 후 광고 소재 작성 링크 발급 모달
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
@@ -176,14 +189,14 @@ const Chat = () => {
       loadReservation(rid);
     }
   }, [latestResCard]);
-  const runResAction = async (rid: string, action: 'confirm' | 'decline' | 'cancel', text?: string) => {
+  const runResAction = async (rid: string, action: 'confirm' | 'decline' | 'cancel' | 'work-status', text?: string) => {
     if (resBusy) return;
     setResBusy(rid);
     try {
-      const body = action === 'confirm' ? { message: text || undefined } : action === 'decline' ? { reason: text || undefined } : undefined;
+      const body = action === 'confirm' ? { message: text || undefined } : action === 'decline' ? { reason: text || undefined } : action === 'work-status' ? { status: text } : undefined;
       const updated = await api<ResDetail>(`/reservations/${rid}/${action}`, { method: 'PUT', ...(body ? { body } : {}) });
       setResInfo((prev) => ({ ...prev, [rid]: { ...prev[rid], ...updated } }));
-      toastSuccess(action === 'confirm' ? '예약을 확정했어요.' : action === 'decline' ? '예약을 거절했어요.' : '예약을 취소했어요.');
+      toastSuccess(action === 'confirm' ? '예약을 확정했어요.' : action === 'decline' ? '예약을 거절했어요.' : action === 'work-status' ? '손님에게 작업 현황을 알렸어요.' : '예약을 취소했어요.');
       // 새 카드는 소켓 new_message 로 온다 — 상세는 한 번 더 맞춰 둔다
       loadReservation(rid);
     } catch (e) {
@@ -715,6 +728,7 @@ const Chat = () => {
                 ['인원', peopleLabel(card.adults, card.children)],
                 ...detailPairs(card.shopType, card.details),
                 ...(card.note ? [['요청사항', card.note] as [string, string]] : []),
+                ...(card.workStatus ? [['작업', WORK_LABEL[card.workStatus]] as [string, string]] : []),
                 ...(card.message ? [[card.event === 'declined' ? '사유' : '메시지', card.message] as [string, string]] : []),
               ] : [];
               return (
@@ -728,7 +742,7 @@ const Chat = () => {
                           <>
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <span className={`text-[10px] font-semibold tracking-wide ${muted}`}>{SHOP_TYPE_LABEL[card.shopType]} 예약</span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isMe ? 'border-white/30 text-white/90' : STATUS_CHIP[card.event]}`}>{STATUS_LABEL[card.event]}</span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isMe ? 'border-white/30 text-white/90' : (STATUS_CHIP as Record<string, string>)[card.event] || 'bg-gray-900 text-white border-gray-900'}`}>{EVENT_SHORT[card.event]}</span>
                             </div>
                             <p className="text-base font-bold leading-snug">{EVENT_TITLE[card.event]}</p>
                             <dl className="mt-2 space-y-1 text-xs">
@@ -748,6 +762,9 @@ const Chat = () => {
                                 onConfirm={(m) => runResAction(info.id, 'confirm', m)}
                                 onDecline={(r) => runResAction(info.id, 'decline', r)}
                                 onCancel={() => runResAction(info.id, 'cancel')}
+                                shopType={card.shopType}
+                                workStatus={info.workStatus}
+                                onWorkStatus={(s) => runResAction(info.id, 'work-status', s)}
                               />
                             )}
                           </>
@@ -924,8 +941,29 @@ const Chat = () => {
             className="hidden"
             onChange={handleFileUpload}
           />
+          {/* 답장 문구 목록 — 매장 쪽(사장님·직원)만. 누르면 입력창에 들어가고 보내는 건 직접 */}
+          {templatesOpen && viewerRole === 'shop' && roomShop && (
+            <div className="mb-2 bg-white border border-gray-200 rounded-2xl shadow-sm max-h-52 overflow-y-auto">
+              {replyTemplates === null ? (
+                <p className="px-4 py-3 text-xs text-gray-500">불러오는 중...</p>
+              ) : replyTemplates.length === 0 ? (
+                <p className="px-4 py-3 text-xs text-gray-500">저장한 답장 문구가 없어요. 사장님 대시보드의 매장 카드에서 "답장 문구"로 만들 수 있어요.</p>
+              ) : replyTemplates.map((tpl) => (
+                <button key={tpl.id} type="button" onClick={() => useTemplate(tpl.text)} className="block w-full text-left px-4 py-3 text-sm text-gray-900 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 whitespace-pre-wrap">{tpl.text}</button>
+              ))}
+            </div>
+          )}
           {/* 통합 pill: 좌측 버튼들 + 입력 + 우측 전송 모두 한 pill 안 */}
           <div className="flex items-end gap-1 bg-gray-100 rounded-3xl pl-1.5 pr-1.5 py-1.5 transition-colors focus-within:bg-gray-200/70">
+            {viewerRole === 'shop' && roomShop && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={openTemplates}
+                aria-label="답장 문구"
+                className={`min-w-11 min-h-11 h-11 px-2 flex items-center justify-center rounded-full text-[11px] font-bold transition-colors active:scale-95 flex-shrink-0 ${templatesOpen ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-snow'}`}
+              >문구</button>
+            )}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={!connected || uploading || roomStatus === 'pending'}

@@ -7,7 +7,7 @@ import LoadError from '../components/LoadError';
 import ReservationActions from '../components/ReservationActions';
 import { CalendarIcon, UserIcon } from '../components/Icons';
 import { toastError, toastSuccess } from '../components/Toast';
-import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, detailLines, isReservationFinished, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, type ReservationParty } from '../utils/reservation';
+import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, detailLines, isReservationFinished, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, type ReservationParty, WORK_LABEL } from '../utils/reservation';
 
 // 예약 관리 (사장님) — 내 매장들로 들어온 방문 예약. 요청 대기 건은 확정/거절, 확정 건은 취소할 수 있다. 결제 없음.
 type ShopReservation = Reservation & { customer?: ReservationParty };
@@ -40,14 +40,14 @@ export default function ShopReservations() {
 
   const shown = items.filter((r) => matches(r, filter));
 
-  const runAction = async (r: ShopReservation, action: 'confirm' | 'decline' | 'cancel', text?: string) => {
+  const runAction = async (r: ShopReservation, action: 'confirm' | 'decline' | 'cancel' | 'work-status', text?: string) => {
     if (busy) return;
     setBusy(r.id);
     try {
-      const body = action === 'confirm' ? { message: text || undefined } : action === 'decline' ? { reason: text || undefined } : undefined;
+      const body = action === 'confirm' ? { message: text || undefined } : action === 'decline' ? { reason: text || undefined } : action === 'work-status' ? { status: text } : undefined;
       const updated = await api<Reservation>(`/reservations/${r.id}/${action}`, { method: 'PUT', ...(body ? { body } : {}) });
       setItems((prev) => prev.map((x) => (x.id === r.id ? { ...x, ...updated } : x)));
-      toastSuccess(action === 'confirm' ? '예약을 확정했어요. 손님에게 알림이 가요.' : action === 'decline' ? '예약을 거절했어요.' : '예약을 취소했어요.');
+      toastSuccess(action === 'confirm' ? '예약을 확정했어요. 손님에게 알림이 가요.' : action === 'decline' ? '예약을 거절했어요.' : action === 'work-status' ? '손님에게 작업 현황을 알렸어요.' : '예약을 취소했어요.');
     } catch (e) {
       toastError(e instanceof Error ? e.message : '처리하지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
@@ -136,6 +136,9 @@ export default function ShopReservations() {
                   <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CHIP[r.status] || STATUS_CHIP.requested}`}>
                     {STATUS_LABEL[r.status] || r.status}
                   </span>
+                  {r.shopType === 'repair' && r.status === 'confirmed' && r.workStatus && (
+                    <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-gray-900 text-white border-gray-900">{WORK_LABEL[r.workStatus]}</span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-800">{when} · {peopleLabel(r.adults, r.children)}</p>
                 {detailLines(r.shopType, r.details).map((l) => <p key={l} className="text-xs text-gray-500">{l}</p>)}
@@ -159,6 +162,9 @@ export default function ShopReservations() {
                   onConfirm={(m) => runAction(r, 'confirm', m)}
                   onDecline={(reason) => runAction(r, 'decline', reason)}
                   onCancel={() => runAction(r, 'cancel')}
+                  shopType={r.shopType}
+                  workStatus={r.workStatus}
+                  onWorkStatus={(s) => runAction(r, 'work-status', s)}
                 />
                 {isReservationFinished(r) && (
                   <button

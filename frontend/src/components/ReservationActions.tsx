@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { canCustomerCancel, canOwnerCancel, canOwnerRespond, type ReservationStatus } from '../utils/reservation';
+import { canCustomerCancel, canOwnerCancel, canOwnerRespond, WORK_NEXT, type ReservationStatus, type ShopType, type WorkStatus } from '../utils/reservation';
 
 // 방문 예약 카드의 버튼 묶음 — 채팅 카드(Chat)와 사장님 예약 관리(ShopReservations)가 같이 쓴다.
 // 사장님: 요청됨 → [예약 확정](메시지 선택) [거절](사유 선택), 확정 → [예약 취소]. 손님: 요청됨·확정 → [예약 취소].
@@ -12,16 +12,21 @@ interface Props {
   onConfirm: (message: string) => void | Promise<void>;
   onDecline: (reason: string) => void | Promise<void>;
   onCancel: () => void | Promise<void>;
+  // 정비샵 작업 현황 (2026-09-24): 확정된 정비 예약에서 사장님·직원에게 다음 단계 버튼 (접수 → 작업 시작 → 작업 완료)
+  shopType?: ShopType;
+  workStatus?: WorkStatus | null;
+  onWorkStatus?: (status: WorkStatus) => void | Promise<void>;
 }
 
-export default function ReservationActions({ status, role, busy = false, tone = 'light', onConfirm, onDecline, onCancel }: Props) {
+export default function ReservationActions({ status, role, busy = false, tone = 'light', onConfirm, onDecline, onCancel, shopType, workStatus, onWorkStatus }: Props) {
   const [mode, setMode] = useState<'confirm' | 'decline' | null>(null);
   const [text, setText] = useState('');
 
   if (!role) return null;
   const ownerRespond = role === 'owner' && canOwnerRespond(status);
   const canCancel = role === 'owner' ? canOwnerCancel(status) : canCustomerCancel(status);
-  if (!ownerRespond && !canCancel) return null;
+  const workNext = role === 'owner' && status === 'confirmed' && shopType === 'repair' && onWorkStatus ? WORK_NEXT[workStatus || 'none'] : null;
+  if (!ownerRespond && !canCancel && !workNext) return null;
 
   const dark = tone === 'dark';
   const primary = `flex-1 min-h-11 px-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-40 ${dark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`;
@@ -43,6 +48,11 @@ export default function ReservationActions({ status, role, busy = false, tone = 
 
   return (
     <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+      {workNext && (
+        <button type="button" onClick={() => { if (!busy) onWorkStatus!(workNext.status); }} disabled={busy} className={`w-full ${primary}`}>
+          {busy ? '처리 중...' : `${workNext.label} 알리기`}
+        </button>
+      )}
       {ownerRespond && mode === null && (
         <div className="flex gap-2">
           <button type="button" onClick={() => { setMode('confirm'); setText(''); }} disabled={busy} className={primary}>예약 확정</button>

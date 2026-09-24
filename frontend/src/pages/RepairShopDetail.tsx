@@ -13,6 +13,7 @@ import { MaintenanceIcon } from '../components/CategoryIcons';
 import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
+import ShopFollowBar from '../components/ShopFollowBar';
 import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { districtFromAddress } from '../utils/location';
 import { useMyLocation } from '../hooks/useMyLocation';
@@ -201,6 +202,8 @@ export default function RepairShopDetail() {
         </div>
       )}
       {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      {/* 매장 찜 + 답장 속도 (2026-09-24) */}
+      <ShopFollowBar shopType="repair" shopId={shop.id} />
       <RecruitCard shopType="repair" shopId={shop.id} />
       <ReservationForm
         open={reserveOpen}

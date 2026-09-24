@@ -12,6 +12,7 @@ import ShopReportButton from '../components/ShopReportButton';
 import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
+import ShopFollowBar from '../components/ShopFollowBar';
 
 interface LessonData {
   phone?: string | null;
@@ -123,6 +124,8 @@ const LessonDetail = () => {
         </div>
       )}
       {/* 모집 중(앰버서더 등) — 사장님이 올린 모집이 있으면 카드로, 신청은 /recruit/:id (2026-09-23) */}
+      {/* 매장 찜 + 답장 속도 (2026-09-24) */}
+      <ShopFollowBar shopType="lesson" shopId={item.id} />
       <RecruitCard shopType="lesson" shopId={item.id} />
       <ReservationForm
         open={reserveOpen}
