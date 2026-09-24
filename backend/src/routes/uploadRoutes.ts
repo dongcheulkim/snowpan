@@ -38,11 +38,11 @@ async function uploadToBunny(buffer: Buffer, mime: string): Promise<string> {
         method: 'PUT',
         headers: { AccessKey: BUNNY_KEY, 'Content-Type': mime },
         body: buffer,
-        signal: AbortSignal.timeout(8_000),
+        signal: AbortSignal.timeout(attempt === 1 ? 15_000 : 10_000), // 저장소가 전체적으로 느린 밤엔 8초로 끊으면 헛수고만 늘어 첫 시도는 15초까지 기다림
       });
       if (!res.ok) throw new Error(`Bunny upload failed: ${res.status}`);
       const ms = Date.now() - started;
-      if (ms > 5_000 || attempt > 1) console.warn(`Bunny upload slow: ${ms}ms, attempt ${attempt}, ${Math.round(buffer.length / 1024)}KB`);
+      if (ms > 3_000 || attempt > 1) console.warn(`Bunny upload slow: ${ms}ms total, attempt ${attempt}, ${Math.round(buffer.length / 1024)}KB`); // Render 로그에서 지연 추이 확인용
       return `https://${BUNNY_CDN_HOST}/${objectPath}`;
     } catch (e) {
       lastErr = e;
