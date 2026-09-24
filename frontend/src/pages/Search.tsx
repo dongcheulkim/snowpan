@@ -70,7 +70,7 @@ export default function Search() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder={isSnow ? "장비, 게시글, 스키·보드샵 검색..." : "장비, 게시글 검색..."}
-          className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
+          className="flex-1 min-w-0 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent" // min-w-0: 사파리는 input 의 기본 최소 너비 때문에 flex 줄이 넘쳐 지우기 버튼이 화면 밖으로 밀림 (2026-09-24 WebKit 검사)
         />
         {query && (
           <button onClick={() => { setQuery(''); setResults(null); }} aria-label="지우기" className="text-gray-500 hover:text-gray-500"><CloseIcon size={16} /></button>
