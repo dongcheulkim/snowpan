@@ -54,7 +54,8 @@ async function waitText(p, re, ms = 8000) { const end = Date.now() + ms; while (
   await p.getByPlaceholder('예: 450,000').fill('10000'); const loc = p.getByPlaceholder('예: 서울 강남구'); if (await loc.count()) await loc.fill('강원 평창'); const desc = p.getByPlaceholder(/장비의 상태/); if (await desc.count()) await desc.fill('전체검사용 임시 매물, 곧 삭제');
   await p.locator('input[type="checkbox"]').last().check().catch(() => {}); // 중고거래 주의사항 동의
   await p.locator('button[type="submit"]').first().click(); await p.waitForTimeout(3000);
-  const prodOk = await waitText(p, new RegExp(`점검 매물 ${ts}`), 20000) || /\/used\/[0-9a-f-]{36}/.test(p.url()); // 사진 업로드+등록이 배포 직후엔 10초 넘게 걸릴 수 있어 20초까지 기다림 ok('중고 등록', prodOk, p.url().replace(BASE, '') + ' ' + (await txt(p)).replace(/\s+/g, ' ').slice(0, 100));
+  const prodOk = await waitText(p, new RegExp(`점검 매물 ${ts}`), 20000) || /\/used\/[0-9a-f-]{36}/.test(p.url()); // 사진 업로드+등록이 배포 직후엔 10초 넘게 걸릴 수 있어 20초까지 기다림
+  ok('중고 등록', prodOk, p.url().replace(BASE, '') + ' ' + (await txt(p)).replace(/\s+/g, ' ').slice(0, 160)); // (예전엔 주석 뒤에 붙어 있어 실행되지 않았음 — 2026-09-24)
   // 등록 후 목록으로 감 → 내 판매내역에서 열어 상태 변경 → 삭제
   await p.goto(`${BASE}/mypage/sales`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(1000);
   const card = p.locator('.card').filter({ hasText: `점검 매물 ${ts}` }).first();

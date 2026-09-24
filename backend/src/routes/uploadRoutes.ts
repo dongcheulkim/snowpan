@@ -28,18 +28,30 @@ async function uploadToBunny(buffer: Buffer, mime: string): Promise<string> {
   const name = `${crypto.randomBytes(16).toString('hex')}.${ext}`;
   const objectPath = `snowpan/${datePath}/${name}`;
 
-  const res = await fetch(`https://${BUNNY_STORAGE_HOST}/${BUNNY_ZONE}/${objectPath}`, {
-    method: 'PUT',
-    headers: {
-      AccessKey: BUNNY_KEY,
-      'Content-Type': mime,
-    },
-    body: buffer,
-  });
-  if (!res.ok) {
-    throw new Error(`Bunny upload failed: ${res.status}`);
+  // Bunny 로 보내는 PUT 이 가끔 15~30초씩 멈춘다 (2026-09-24 밤 운영 측정: 40KB 도 1초~34초 들쭉날쭉, 서버 자체는 0.2초).
+  // 한 번의 느린 연결에 매달리지 않게 8초 안에 안 끝나면 끊고 새 연결로 다시 보낸다 (최대 3번). 실패해도 파일명이 매번 달라 중복 걱정 없음.
+  const started = Date.now();
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`https://${BUNNY_STORAGE_HOST}/${BUNNY_ZONE}/${objectPath}`, {
+        method: 'PUT',
+        headers: { AccessKey: BUNNY_KEY, 'Content-Type': mime },
+        body: buffer,
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (!res.ok) throw new Error(`Bunny upload failed: ${res.status}`);
+      const ms = Date.now() - started;
+      if (ms > 5_000 || attempt > 1) console.warn(`Bunny upload slow: ${ms}ms, attempt ${attempt}, ${Math.round(buffer.length / 1024)}KB`);
+      return `https://${BUNNY_CDN_HOST}/${objectPath}`;
+    } catch (e) {
+      lastErr = e;
+      const timedOut = e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError');
+      if (!timedOut && !(e instanceof Error && /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN/.test(e.message))) throw e; // 4xx/5xx 응답은 재시도해도 같음
+      console.warn(`Bunny upload ${timedOut ? 'timeout' : 'network error'} (attempt ${attempt}): ${e instanceof Error ? e.message : e}`);
+    }
   }
-  return `https://${BUNNY_CDN_HOST}/${objectPath}`;
+  throw lastErr instanceof Error ? lastErr : new Error('Bunny upload failed');
 }
 
 // 사용자별 업로드 한도 — 스토리지 abuse 방지.
