@@ -161,11 +161,8 @@ router.post('/', uploadLimitPerMin, uploadLimitPerHour, uploadImages, async (req
   try {
     // 프론트에서 이미 리사이즈+WebP 압축을 마치고 보내므로 (api.ts compressImage)
     // 서버는 그대로 Bunny 에 저장. Bunny CDN 이 배포 담당.
-    const urls: string[] = [];
-    for (const file of files) {
-      const url = await uploadToBunny(file.buffer, file.mimetype);
-      urls.push(url);
-    }
+    // 여러 장은 동시에 올린다 — 한 장씩 차례로 올리면 5장에 저장소 지연(장당 수 초~수십 초)이 다섯 번 쌓였음 (2026-09-24). 순서는 유지.
+    const urls = await Promise.all(files.map((file) => uploadToBunny(file.buffer, file.mimetype)));
     res.json({ urls });
   } catch (error) {
     console.error('Upload error:', error);
