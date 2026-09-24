@@ -188,6 +188,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
     // CF-Connecting-IP 등 클라이언트 조작 가능 헤더 신뢰 제거 — 로그인 잠금 우회 방지.
+    // req.ip 는 trust proxy 함수(utils/trustedProxies.ts)가 Cloudflare·Render 홉을 건너뛴 실제 클라이언트 IP.
     const ip = (req.ip || 'unknown').toString();
 
     // type 검증 — 객체/배열 주입 차단 (NoSQL injection 방어).

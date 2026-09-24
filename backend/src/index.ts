@@ -98,16 +98,18 @@ import { trackVisit } from './middleware/trackVisit';
 import { startAdBookingScheduler } from './utils/adBookingScheduler';
 import { startInstagramScheduler } from './utils/instagram';
 import { startLoginLogPruner } from './utils/loginLog';
+import { trustProxy } from './utils/trustedProxies';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { seedAdPricing } from './utils/seedAdPricing';
 
 const app = express();
 const httpServer = createServer(app);
 
-// Render / Vercel 리버스 프록시 뒤에 있을 때 req.ip 가 실제 클라이언트 IP 되도록.
+// Render 리버스 프록시 뒤에 있을 때 req.ip 가 실제 클라이언트 IP 되도록.
 // 이게 없으면 모든 사용자가 LB IP 하나로 잡혀 rate limit 이 전원 공유되는 버그 발생.
-// 프록시 한 홉만 신뢰 (true 는 헤더 스푸핑에 취약).
-app.set('trust proxy', 1);
+// 숫자 1(한 홉)만 신뢰하면 Render 앞 Cloudflare 엣지 IP 가 클라이언트로 잡혀 IP 기준
+// 레이트리밋·로그인 잠금이 엣지 단위로 뒤섞였음 → 체인 판별 함수 사용 (utils/trustedProxies.ts).
+app.set('trust proxy', trustProxy);
 
 // CORS 허용 origin 목록: CORS_ORIGIN 환경변수(콤마구분) 우선,
 // 미설정 시 프로덕션=snowpan.kr(신규 대표) + www + 이전 snowpan.vercel.app(전환 호환), dev=localhost

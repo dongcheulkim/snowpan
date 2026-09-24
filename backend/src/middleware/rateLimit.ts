@@ -7,10 +7,11 @@ interface RateLimitEntry {
 
 const ipMap = new Map<string, RateLimitEntry>();
 
-// 실제 클라이언트 IP: req.ip 만 신뢰 (trust proxy 1 + Render LB 가 XFF 세팅).
-// ⚠️ CF-Connecting-IP / X-Real-IP 는 신뢰하지 않음 — API 호스트(snowpan.onrender.com)는
-// Cloudflare 뒤에 있지 않아 이 헤더들은 클라이언트가 임의 조작 가능했고,
-// 조작 시 레이트리밋·로그인 잠금이 통째로 우회되던 취약점 수정 (2026-08).
+// 실제 클라이언트 IP: req.ip 만 신뢰 (trust proxy 함수가 Render LB·Cloudflare 홉을 건너뛰고 판별,
+// utils/trustedProxies.ts). CF-Connecting-IP / X-Real-IP 는 여전히 신뢰하지 않음 — 클라이언트가
+// 임의 조작 가능해 레이트리밋·로그인 잠금이 통째로 우회되던 취약점 수정 (2026-08).
+// 2026-09: trust proxy 1 이던 시절 req.ip 가 Cloudflare 엣지 IP 로 잡혀 한도가 엣지 단위로
+// 뒤섞이던 문제 수정 (엣지 IP 는 요청마다 바뀌어 공격자 개별 차단이 안 됐음).
 function getClientIp(req: Request): string {
   return req.ip || req.socket.remoteAddress || 'unknown';
 }
