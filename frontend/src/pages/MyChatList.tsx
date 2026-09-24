@@ -15,6 +15,7 @@ interface ChatRoom {
   user1: { id: string; name: string; profileImage?: string | null };
   user2: { id: string; name: string; profileImage?: string | null };
   otherUser?: { id: string; name: string; profileImage?: string | null } | null;
+  shop?: { shopType: string; shopId: string; name: string } | null; // 매장 연결 방 (문의·예약) — 직원도 보는 방
   messages: { content: string; createdAt: string; type?: string; senderId?: string }[];
   unreadCount: number;
   updatedAt: string;
@@ -176,6 +177,7 @@ const MyChatList = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-bold text-gray-900 truncate">{other.name}</div>
+                    {room.shop && <span className="text-[10px] text-gray-500 truncate flex-shrink min-w-0">{room.shop.name}</span>}
                     {room.status === 'pending' && (
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${room.requestedBy === user.id ? 'bg-gray-100 text-gray-500' : 'bg-sky-100 text-sky-700'}`}>
                         {room.requestedBy === user.id ? '수락 대기' : '채팅 요청'}

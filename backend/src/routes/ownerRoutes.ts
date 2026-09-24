@@ -5,6 +5,7 @@ import prisma from '../config/database';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import { displayName } from '../utils/displayName';
 import { kstDayStart } from '../utils/kst';
+import { viewerOf, unreadByRoom } from '../utils/supportInbox';
 import { staffShopsOf, StaffShopType } from '../utils/shopAccess';
 
 const router = Router();
@@ -50,22 +51,20 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response
     if (!pairs.length) { res.json(empty); return; }
     const shopWhere = { OR: pairs };
 
-    const [reservations, reviews, recruits, posts, rooms, unreadRaw] = await Promise.all([
+    const [reservations, reviews, recruits, posts, rooms, viewer] = await Promise.all([
       prisma.reservation.findMany({ where: { ...shopWhere, ownerHidden: false }, include: { customer: { select: { id: true, name: true, nickname: true } } }, orderBy: [{ date: 'asc' }, { time: 'asc' }] }),
       prisma.shopReview.findMany({ where: shopWhere, select: { shopType: true, shopId: true, rating: true, ownerReply: true, createdAt: true } }),
       prisma.shopRecruit.findMany({ where: shopWhere, include: { applications: { select: { createdAt: true } } } }),
       prisma.shopPost.groupBy({ by: ['shopType', 'shopId'], where: shopWhere, _count: { _all: true } }),
-      prisma.chatRoom.findMany({ where: { OR: [{ user1Id: me }, { user2Id: me }], status: 'accepted', updatedAt: { gte: since30 } }, select: { id: true } }),
-      prisma.$queryRaw<{ cnt: bigint }[]>`
-        SELECT COUNT(*) AS cnt FROM "messages" m JOIN "chat_rooms" r ON r.id = m."roomId"
-        WHERE (r."user1Id" = ${me} OR r."user2Id" = ${me}) AND m."senderId" <> ${me}
-          AND m."createdAt" > COALESCE(CASE WHEN r."user1Id" = ${me} THEN r."user1LastReadAt" ELSE r."user2LastReadAt" END, 'epoch'::timestamptz)`,
+      // 내 방 + 내 매장(사장님·직원)에 연결된 방 — 직원도 매장 문의 안읽음을 본다
+      prisma.chatRoom.findMany({ where: { OR: [{ user1Id: me }, { user2Id: me }, { shops: { some: { OR: pairs } } }], status: 'accepted' }, include: { shops: true } }),
+      viewerOf(me, req.user!.role),
     ]);
 
     const key = (t: string, id: string) => `${t}:${id}`;
     const perShop: Record<string, { requested: number; confirmed: number; total: number; reviews: number; ratingSum: number; unreplied: number; applications: number; posts: number }> = {};
     for (const s of shops) perShop[key(s.shopType, s.shopId)] = { requested: 0, confirmed: 0, total: 0, reviews: 0, ratingSum: 0, unreplied: 0, applications: 0, posts: 0 };
-    const last30d = { requests: 0, confirmed: 0, declined: 0, cancelled: 0, reviews: 0, applications: 0, chats: rooms.length };
+    const last30d = { requests: 0, confirmed: 0, declined: 0, cancelled: 0, reviews: 0, applications: 0, chats: rooms.filter((r) => r.updatedAt >= since30).length };
     let requested = 0, todayReservations = 0;
     const scheduleMap = new Map<string, unknown[]>();
     for (const r of reservations) {
@@ -84,7 +83,7 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response
     let newApplications7d = 0;
     for (const rc of recruits) { const k = perShop[key(rc.shopType, rc.shopId)]; for (const a of rc.applications) { if (k) k.applications++; if (a.createdAt >= since30) last30d.applications++; if (a.createdAt >= since7) newApplications7d++; } }
     for (const p of posts) { const k = perShop[key(p.shopType, p.shopId)]; if (k) k.posts = p._count._all; }
-    const unreadChats = Number(unreadRaw[0]?.cnt || 0);
+    const unreadChats = Object.values(await unreadByRoom(rooms, viewer)).reduce((a, b) => a + b, 0);
 
     res.json({
       todo: { requested, unrepliedReviews, newApplications7d, unreadChats, todayReservations },

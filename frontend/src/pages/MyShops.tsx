@@ -196,7 +196,7 @@ function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string
   };
   return (
     <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
-      <p className="text-[11px] text-gray-500 leading-relaxed">직원은 예약 확정·거절, 매장 정보 수정, 소식·이벤트, 리뷰 답글, 광고 신청을 함께 할 수 있어요. 매장 삭제와 직원 관리는 사장님만 할 수 있고, 손님 문의 채팅은 사장님 계정으로 와요.</p>
+      <p className="text-[11px] text-gray-500 leading-relaxed">직원은 예약 확정·거절, 매장 정보 수정, 소식·이벤트, 리뷰 답글, 광고 신청, 매장으로 온 손님 문의 채팅 답변을 함께 할 수 있어요. 매장 삭제와 직원 관리는 사장님만 할 수 있어요.</p>
       {!data ? <p className="text-xs text-gray-400">불러오는 중...</p> : (
         <>
           {data.staff.length === 0

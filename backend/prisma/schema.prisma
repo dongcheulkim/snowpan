@@ -272,6 +272,12 @@ model Reservation {
   respondedAt DateTime?
   customerHidden Boolean @default(false) // 손님이 내 예약 목록에서 정리(끝난 예약만) — 2026-09-22
   ownerHidden    Boolean @default(false) // 사장님이 예약 관리 목록에서 정리
+  // 자동 알림 발송 기록 (2026-09-24, utils/reservationReminders.ts) — 전날 저녁·당일 아침 리마인더(손님 개별/매장 묶음), 방문 다음 날 리뷰 요청(손님)
+  customerRemindedEveAt DateTime?
+  customerRemindedDayAt DateTime?
+  ownerRemindedEveAt    DateTime?
+  ownerRemindedDayAt    DateTime?
+  reviewRequestedAt     DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -558,9 +564,28 @@ model ChatRoom {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   messages        Message[]
+  shops           ChatRoomShop[]
 
   @@unique([user1Id, user2Id])
   @@map("chat_rooms")
+}
+
+// 채팅방 ↔ 매장 연결 (2026-09-24 직원 공동 응대) — 매장 페이지 '채팅 문의'와 방문 예약으로 생긴 방만 연결한다.
+// 방 자체는 손님↔사장님 계정 둘의 쌍이지만, 직원은 여기 연결된 방을 사장님 자리에서 같이 보고 답한다
+// (사장님의 다른 개인 대화는 안 보이고, 연결 시점 이전 메시지도 직원에겐 안 보임). ownerUserId = 연결 당시 사장님 계정(방의 매장 쪽).
+model ChatRoomShop {
+  id          String   @id @default(uuid())
+  roomId      String
+  room        ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  shopType    String   // 'skishop' | 'repair' | 'rental' | 'lesson' | 'accommodation'
+  shopId      String
+  shopName    String   // 연결 시점 상호 (목록·헤더 표시용)
+  ownerUserId String
+  createdAt   DateTime @default(now())
+
+  @@unique([roomId, shopType, shopId])
+  @@index([shopType, shopId])
+  @@map("chat_room_shops")
 }
 
 // 탈퇴 후 재가입 제한 — 탈퇴한 계정의 전화번호·이메일·소셜 ID 를 HMAC 해시로만 보관(원문 없음)하고

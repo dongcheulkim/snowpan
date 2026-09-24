@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+// iOS 사파리 스마트 앱 배너(index.html 의 apple-itunes-app) — 지금 보는 주소를 app-argument 로 넣어 "열기"를 누르면 앱이 같은 화면을 연다.
+try {
+  const banner = document.querySelector('meta[name="apple-itunes-app"]');
+  if (banner) banner.setAttribute('content', `app-id=6810708515, app-argument=${window.location.href}`);
+} catch { /* 배너는 부가 기능 */ }
+
 // 새 배포 후 옛 chunk 파일이 사라져 dynamic import 가 실패하면 캐시·SW 를 비우고 새로고침 (utils/staleChunk.ts).
 // 같은 파일이 1분 안에 또 실패할 때만 포기 → 탭을 오래 열어 둔 채 배포가 여러 번 나가도 매번 복구된다.
 import { reloadForStaleChunk } from './utils/staleChunk';

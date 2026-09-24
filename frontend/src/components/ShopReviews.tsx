@@ -56,6 +56,12 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
       .finally(() => setLoading(false));
   };
   useEffect(load, [shopType, shopId]);
+  // 리뷰 요청 알림(/경로#reviews)으로 들어오면 리뷰 칸으로 스크롤 — 목록이 그려진 뒤에
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#reviews') return;
+    const t = setTimeout(() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   const myReview = user ? reviews.find((r) => r.userId === user.id) : null;
   const access = useShopAccess(shopType, shopId); // 직원(공동 관리)도 사장님처럼 — 리뷰는 못 쓰고 답글은 가능 (2026-09-23)
@@ -99,7 +105,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   };
 
   return (
-    <section className="card p-5">
+    <section id="reviews" className="card p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-gray-900">{isLesson ? '레슨 리뷰' : '방문자 리뷰'} {count > 0 && <span className="text-gray-400 font-normal">({count})</span>}</h2>
         {count > 0 && (

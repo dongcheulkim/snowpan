@@ -10,6 +10,7 @@ import { parseKstDate, kstDayStart } from '../utils/kst';
 import { sanitizeText } from '../utils/sanitize';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
+import { linkRoomToShop } from '../utils/chatRoomShops';
 import { alertUser } from '../utils/ownerAlerts';
 import { emitToRoom, emitToUser } from '../realtime';
 import { isShopStaff, staffShopsOf, shopManagerIds } from '../utils/shopAccess';
@@ -274,6 +275,7 @@ export const createReservation = async (req: AuthRequest, res: Response): Promis
     if (await isBlockedEither(customerId, shop.ownerId)) { res.status(403).json({ error: BLOCKED_CHAT_MESSAGE }); return; }
 
     const room = await getOrCreateRoom(customerId, shop.ownerId);
+    await linkRoomToShop(room.id, shopType, shop.id, shop.name, shop.ownerId); // 직원도 이 방을 보고 답할 수 있게 매장에 연결
     const reservation = await prisma.reservation.create({
       data: {
         shopType, shopId: shop.id, shopName: shop.name, ownerId: shop.ownerId, customerId, roomId: room.id,
@@ -346,7 +348,8 @@ export const getReservation = async (req: AuthRequest, res: Response): Promise<v
     });
     const me = req.user!;
     if (!r || (r.customerId !== me.id && r.ownerId !== me.id && me.role !== 'admin' && !(await isShopStaff(me.id, r.shopType, r.shopId)))) { res.status(404).json({ error: '예약을 찾을 수 없어요' }); return; }
-    res.json({ ...serialize(r), customer: serializeUser(r.customer), owner: serializeUser(r.owner) });
+    // viewerRole — 채팅 카드 버튼 결정용 (직원·관리자도 매장 쪽)
+    res.json({ ...serialize(r), customer: serializeUser(r.customer), owner: serializeUser(r.owner), viewerRole: r.customerId === me.id ? 'customer' : 'shop' });
   } catch (error) {
     console.error('Get reservation error:', error);
     res.status(500).json({ error: '예약을 불러오지 못했어요' });

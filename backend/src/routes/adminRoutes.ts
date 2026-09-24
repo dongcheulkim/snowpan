@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { loginHistoryHandler } from '../utils/loginLog';
+import { runReservationReminders } from '../utils/reservationReminders';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
@@ -79,6 +80,18 @@ router.get('/daily-summary', async (_req, res) => {
 });
 router.post('/daily-summary', async (_req, res) => {
   try { const s = await sendDailySummary(); res.json({ ...s, message: '관리자 전원에게 요약을 보냈어요.', email: smtpConfigured() }); } catch (e) { console.error('daily summary send error:', e); res.status(500).json({ error: '요약을 보내지 못했어요.' }); }
+});
+
+// 예약 자동 알림 즉시 실행 (E2E·운영 점검용) — body.at 이 있으면 그 시각 기준으로 창을 판단한다
+router.post('/jobs/reservation-reminders', async (req: any, res) => {
+  try {
+    const at = req.body?.at ? new Date(String(req.body.at)) : new Date();
+    if (isNaN(at.getTime())) { res.status(400).json({ error: 'at 형식이 올바르지 않습니다.' }); return; }
+    res.json(await runReservationReminders(at));
+  } catch (e) {
+    console.error('reservation reminders job error:', e);
+    res.status(500).json({ error: '예약 알림 실행 실패' });
+  }
 });
 
 router.post('/push-test', async (req: any, res) => {

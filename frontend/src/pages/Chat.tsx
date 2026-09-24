@@ -12,7 +12,7 @@ import ReservationActions from '../components/ReservationActions';
 import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_LABEL, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty } from '../utils/reservation';
 
 // 방문 예약 상세 (GET /reservations/:id) — owner/customer 로 내가 어느 쪽인지 판단
-type ResDetail = Reservation & { customer?: ReservationParty; owner?: ReservationParty };
+type ResDetail = Reservation & { customer?: ReservationParty; owner?: ReservationParty; viewerRole?: 'shop' | 'customer' }; // viewerRole: 서버가 정한 내 역할 (직원·관리자도 매장 쪽)
 
 interface Message {
   id: string;
@@ -38,6 +38,11 @@ interface ChatRoomInfo {
   mySide?: 1 | 2 | null;                    // 서버가 정한 내 자리 (관리자 공용 받은편지함)
   otherUser?: { id: string; name: string; profileImage?: string | null } | null;
   supportAdminIds?: string[];               // 관리자끼리 보낸 메시지를 내 말풍선으로
+  // 매장 연결 방 (직원 공동 응대, 2026-09-24) — sideIds: 내 쪽(사장님+직원) 전원, sideLabels: 사장님/직원 라벨, shop: 연결된 매장
+  sideIds?: string[];
+  sideLabels?: Record<string, string>;
+  shop?: { shopType: string; shopId: string; name: string } | null;
+  viewerRole?: 'shop' | 'customer' | null;
 }
 
 // 메시지 그룹 사이 날짜 구분선
@@ -68,6 +73,10 @@ const Chat = () => {
   const [otherProfileImage, setOtherProfileImage] = useState<string | null>(null);
   const [otherId, setOtherId] = useState<string | null>(null);
   const [supportAdminIds, setSupportAdminIds] = useState<string[]>([]);
+  const [sideLabels, setSideLabels] = useState<Record<string, string>>({}); // 매장 방: 사장님/직원 라벨 (senderId → 라벨)
+  const [roomShop, setRoomShop] = useState<{ shopType: string; shopId: string; name: string } | null>(null);
+  const [viewerRole, setViewerRole] = useState<'shop' | 'customer' | null>(null);
+  const [isParticipant, setIsParticipant] = useState(true); // 직원이 남의(사장님) 방을 보면 false — 차단·삭제 숨김
   const [inviteOpen, setInviteOpen] = useState(false); // 관리자: 고객센터 상담 후 광고 소재 작성 링크 발급 모달
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   // 채팅 요청 게이트 — pending 이면 수신자에겐 수락/거절 배너, 요청자에겐 대기 안내 + 입력 잠금
@@ -223,7 +232,11 @@ const Chat = () => {
       setOtherLastReadAt(isUser1 ? room.user2LastReadAt : room.user1LastReadAt);
       setRoomStatus(room.status || 'accepted');
       setRequestedBy(room.requestedBy || null);
-      setSupportAdminIds(room.supportAdminIds || []);
+      setSupportAdminIds([...(room.supportAdminIds || []), ...(room.sideIds || [])]); // 내 쪽 사람들(관리자 전원 / 사장님+직원)의 메시지를 내 말풍선으로
+      setSideLabels(room.sideLabels || {});
+      setRoomShop(room.shop || null);
+      setViewerRole(room.viewerRole || null);
+      setIsParticipant(room.user1Id === user.id || room.user2Id === user.id);
       if (room.isSupportRoom && user.role !== 'admin') { setIsAdminChat(true); }
       const other = room.otherUser || (isUser1 ? room.user2 : room.user1);
       setOtherName(other.name);
@@ -291,7 +304,7 @@ const Chat = () => {
       safeConnect(chatId);
       api<ChatRoomInfo>(`/chat/rooms/${chatId}`).then(room => {
         if (cancelled) return;
-        const other = room.user1.id === user.id ? room.user2 : room.user1;
+        const other = room.otherUser || (room.user1.id === user.id ? room.user2 : room.user1); // 서버가 정한 상대(관리자·직원 공용 방)
         setOtherName(other.name);
         setOtherProfileImage(other.profileImage || null);
         setOtherId(other.id);
@@ -506,15 +519,15 @@ const Chat = () => {
             </span>
           )}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-gray-900 truncate">{otherName}</div>
-            <div className="text-[10px] text-gray-500">{connected ? '연결됨' : '연결 중…'}</div>
+            <div className="text-sm font-bold text-gray-900 truncate">{otherName}{roomShop && <span className="font-normal text-gray-500"> · {roomShop.name}</span>}</div>
+            <div className="text-[10px] text-gray-500">{viewerRole === 'shop' && !isParticipant ? '직원으로 답하는 중 · ' : ''}{connected ? '연결됨' : '연결 중…'}</div>
           </div>
           {/* 관리자: 광고 상담이 끝나면 여기서 바로 소재 작성 링크를 만들어 이 방에 보낸다 */}
           {user?.role === 'admin' && chatId && (
             <button onClick={() => setInviteOpen(true)} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold">광고 링크</button>
           )}
           {/* 상대 차단 (고객센터 방·관리자 제외) — 앱스토어 지침 1.2 */}
-          {!isAdminChat && user?.role !== 'admin' && otherId && (
+          {!isAdminChat && user?.role !== 'admin' && otherId && isParticipant && (
             <button onClick={blockOther} className="flex-shrink-0 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[11px] font-bold">차단</button>
           )}
         </div>
@@ -658,7 +671,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[85%] w-[320px]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                       <div className={`rounded-2xl px-4 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
                         <div className={`text-[10px] font-semibold tracking-wide mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>광고 신청</div>
                         <p className="text-base font-bold leading-snug">{slot} 광고</p>
@@ -691,7 +704,8 @@ const Chat = () => {
               const card = parseReservationCard(msg.content);
               const info = card ? resInfo[card.reservationId] : undefined;
               const isLatest = !!card && latestResCard[card.reservationId] === msg.id;
-              const role: 'owner' | 'customer' | null = info && user ? (info.owner?.id === user.id ? 'owner' : info.customer?.id === user.id ? 'customer' : null) : null;
+              // 직원·관리자도 매장 쪽(owner) — 서버 viewerRole 우선, 없으면 당사자 id 비교
+              const role: 'owner' | 'customer' | null = info && user ? (info.viewerRole === 'shop' || info.owner?.id === user.id ? 'owner' : info.viewerRole === 'customer' || info.customer?.id === user.id ? 'customer' : null) : null;
               const muted = isMe ? 'text-white/60' : 'text-gray-500';
               const nights = card && card.shopType === 'accommodation' ? nightsBetween(card.date, card.endDate) : 0;
               const rows: [string, string][] = card ? [
@@ -708,7 +722,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[85%] w-[320px]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                       <div className={`rounded-2xl px-4 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
                         {card ? (
                           <>
@@ -776,7 +790,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                       {safePath ? (
                         <Link to={safePath} className="block active:opacity-70 transition-opacity">{inner}</Link>
                       ) : inner}
@@ -797,7 +811,7 @@ const Chat = () => {
                   {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
                   <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className="max-w-[78%]">
-                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                       <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200'}`}>
                         <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>가격 제안</div>
                         <div className="text-xl font-black tracking-tight">
@@ -831,7 +845,7 @@ const Chat = () => {
                     )
                   )}
                   <div className="max-w-[72%]">
-                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                    {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                     {msg.imageUrl && (
                       (/\.(mp4|mov|webm)(\?|$)/i.test(msg.imageUrl) || msg.imageUrl.includes('/video/')) ? (
                         <video src={imageUrl(msg.imageUrl)} controls className="rounded-2xl max-w-full w-full mb-1" style={{ maxHeight: 280 }} />

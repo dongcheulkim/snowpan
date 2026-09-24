@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import prisma from '../config/database';
-import { getAdminIds, roomAccessWhere, mySideOf, adminSideOf } from '../utils/supportInbox';
+import { getAdminIds, roomAccessWhere, adminSideOf, viewerOf, sideOf, staffLinkOf, isParticipant, shopSideOf, unreadByRoom } from '../utils/supportInbox';
+import { linkRoomIfShopInquiry } from '../utils/chatRoomShops';
 import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from '../utils/blocks';
 import { displayName } from '../utils/displayName';
 import { createNotification } from '../controllers/notificationController';
@@ -30,8 +31,7 @@ function takeRequestToken(userId: string): boolean {
 router.get('/rooms', async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const isAdmin = req.user.role === 'admin';
-    const adminIds = isAdmin ? await getAdminIds() : [userId];
+    const viewer = await viewerOf(userId, req.user.role); // 관리자 목록 + 직원인 매장 목록
     const allRooms = await prisma.chatRoom.findMany({
       where: {
         ...(await roomAccessWhere(userId, req.user.role)),
@@ -42,6 +42,7 @@ router.get('/rooms', async (req: any, res: Response) => {
         user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
         user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 }, // 목록 미리보기용 마지막 메시지
+        shops: true, // 매장 연결 (직원 공동 응대·매장명 표시)
         // _count 제거 — 방마다 전체 메시지 카운트 서브쿼리를 돌렸으나 응답에서 버려지던 순수 낭비
       },
       orderBy: { updatedAt: 'desc' },
@@ -49,38 +50,18 @@ router.get('/rooms', async (req: any, res: Response) => {
     });
     // "대화 삭제"한 방은 내 쪽에서만 숨김 — 숨긴 뒤 새 메시지가 왔으면 다시 보인다 (상대 내역은 항상 유지)
     const rooms = allRooms.filter((room) => {
-      const side = mySideOf(room, userId, req.user.role, adminIds);
+      const side = sideOf(room, viewer);
       const hiddenAt = side === 1 ? room.user1HiddenAt : side === 2 ? room.user2HiddenAt : null;
       if (!hiddenAt) return true;
       const last = room.messages[0];
       return !!last && last.createdAt > hiddenAt;
     }).slice(0, 50);
 
-    // Batch unread count: single grouped query instead of N individual queries
-    const roomIds = rooms.map(r => r.id);
-    const unreadCounts: Record<string, number> = {};
-
-    if (roomIds.length > 0) {
-      // 방별 lastReadAt 이 달라 Prisma groupBy 로는 한 방에 못 세던 것 →
-      // 단일 raw 쿼리로 통합. (기존: groupBy 1회 + 방마다 count 병렬 최대 50쿼리 →
-      // 목록 요청당 최대 51쿼리이던 최다 핫패스가 2쿼리로)
-      // lastReadAt 이 NULL 이면 epoch 취급 = 상대가 보낸 전부가 안읽음 (기존 로직과 동일).
-      // 관리자는 고객센터 방에서 "내 쪽" = 관리자 쪽(어느 관리자든), 관리자끼리 보낸 메시지는 안읽음에서 제외
-      const raw = await prisma.$queryRaw<{ roomId: string; cnt: bigint }[]>`
-        SELECT m."roomId", COUNT(*) AS cnt
-        FROM "messages" m
-        JOIN "chat_rooms" r ON r.id = m."roomId"
-        WHERE m."roomId" = ANY(${roomIds})
-          AND m."senderId" <> ALL(${adminIds})
-          AND m."createdAt" > COALESCE(
-            CASE WHEN r."user1Id" = ANY(${adminIds}) THEN r."user1LastReadAt" ELSE r."user2LastReadAt" END,
-            'epoch'::timestamptz)
-        GROUP BY m."roomId"`;
-      for (const row of raw) unreadCounts[row.roomId] = Number(row.cnt);
-    }
+    // 방별 안읽음 — 내 쪽(나 / 관리자 전원 / 매장의 사장님+직원)이 아닌 사람이 내 쪽 읽음 시각 뒤에 보낸 메시지 수 (unnest 한 쿼리)
+    const unreadCounts = await unreadByRoom(rooms, viewer);
 
     const roomsWithUnread = rooms.map(room => {
-      const side = mySideOf(room, userId, req.user.role, adminIds);
+      const side = sideOf(room, viewer);
       return {
         ...room,
         // 요청자에게 거절 사실 비노출 — declined 를 pending 으로 위장 (여기 도달한 declined 는 전부 요청자 본인 것)
@@ -91,6 +72,9 @@ router.get('/rooms', async (req: any, res: Response) => {
         // 공용 받은편지함: 관리자가 자기 방이 아닌 고객센터 방을 볼 때 "상대"를 서버가 정해준다
         mySide: side,
         otherUser: side ? { ...(side === 1 ? room.user2 : room.user1), name: displayName(side === 1 ? room.user2 : room.user1) } : null,
+        // 매장 연결 방 — 목록에 매장명, 내 자리가 매장 쪽(사장님·직원)인지
+        shop: room.shops[0] ? { shopType: room.shops[0].shopType, shopId: room.shops[0].shopId, name: room.shops[0].shopName } : null,
+        viewerRole: room.shops.length ? (room.shops.some((l) => l.ownerUserId === (side === 1 ? room.user1Id : room.user2Id)) ? 'shop' : 'customer') : null,
       };
     });
 
@@ -170,6 +154,10 @@ router.post('/rooms', async (req: any, res: Response) => {
       });
       await prisma.chatRoom.update({ where: { id: room.id }, data: { updatedAt: new Date() } });
     }
+
+    // 매장 페이지에서 온 문의면 방을 매장에 연결 — 직원도 같이 보고 답할 수 있게 (상대가 그 매장 사장님일 때만).
+    // 문의 카드보다 먼저 연결해야 직원에게 카드부터 보인다 (직원은 연결 시점 이후 메시지만 봄).
+    await linkRoomIfShopInquiry(room.id, productPath, [userId, targetUserId]).catch((e) => console.warn('chat room shop link failed:', e instanceof Error ? e.message : e));
 
     // 상품명이 있으면 안내 메시지 자동 전송
     if (productName) {
@@ -395,6 +383,7 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
       include: {
         user1: { select: { id: true, name: true, nickname: true, profileImage: true } },
         user2: { select: { id: true, name: true, nickname: true, profileImage: true } },
+        shops: true,
       },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
@@ -402,7 +391,12 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
     const shownStatus = room.status === 'declined' && room.requestedBy === userId ? 'pending' : room.status;
     const allAdminIds = await getAdminIds();
     const adminIds = req.user.role === 'admin' ? allAdminIds : [];
-    const side = mySideOf(room, userId, req.user.role, adminIds);
+    const viewer = await viewerOf(userId, req.user.role);
+    const side = sideOf(room, viewer);
+    // 매장 연결 방: 매장 쪽 사람들(사장님+직원)과 라벨, 내 자리가 매장 쪽인지
+    const shopSide = room.shops.length ? await shopSideOf(room) : { ids: [] as string[], labels: {} as Record<string, string> };
+    const mySideUser = side === 1 ? room.user1Id : side === 2 ? room.user2Id : null;
+    const onShopSide = !!mySideUser && room.shops.some((l) => l.ownerUserId === mySideUser);
     res.json({
       ...room, status: shownStatus,
       // 고객센터 방 여부 — 손님 화면에 안내 메뉴(고정)를 띄우는 기준
@@ -412,6 +406,11 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
       otherUser: side ? { ...(side === 1 ? room.user2 : room.user1), name: displayName(side === 1 ? room.user2 : room.user1) } : null,
       // 관리자끼리 보낸 메시지는 전부 "내 쪽" 말풍선으로 — 클라이언트가 senderId 로 정렬할 때 씀
       supportAdminIds: req.user.role === 'admin' && adminSideOf(room, adminIds) ? adminIds : [],
+      // 매장 연결 방 (직원 공동 응대): 매장명, 내 역할, 내 쪽 전원(사장님+직원 — 내 말풍선으로), 라벨(사장님/직원)
+      shop: room.shops[0] ? { shopType: room.shops[0].shopType, shopId: room.shops[0].shopId, name: room.shops[0].shopName } : null,
+      viewerRole: room.shops.length ? (onShopSide ? 'shop' : 'customer') : null,
+      sideIds: onShopSide ? shopSide.ids : [],
+      sideLabels: shopSide.labels,
     });
   } catch (error) {
     console.error('Get chat room error:', error);
@@ -427,13 +426,19 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
     // 채팅방 멤버인지 확인 (관리자는 고객센터 방 전체)
     const room = await prisma.chatRoom.findFirst({
       where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
+      include: { shops: true },
     });
     if (!room) { res.status(403).json({ error: '접근 권한이 없습니다.' }); return; }
     // 내가 "대화 삭제"한 시점 이전 메시지는 내 화면에서만 제외 (상대는 전부 봄)
-    const side = mySideOf(room, userId, req.user.role, req.user.role === 'admin' ? await getAdminIds() : [userId]);
+    const viewer = await viewerOf(userId, req.user.role);
+    const side = sideOf(room, viewer);
     const hiddenAt = side === 1 ? room.user1HiddenAt : side === 2 ? room.user2HiddenAt : null;
+    // 직원(참여자 아님)은 매장에 연결된 시점 이후 메시지만 — 그 전 사장님 개인 대화는 안 보임
+    const staffLink = isParticipant(room, userId) ? null : staffLinkOf(room, viewer);
+    const cutoffs = [hiddenAt, staffLink ? new Date(staffLink.createdAt.getTime() - 1) : null].filter((d): d is Date => !!d);
+    const from = cutoffs.length ? new Date(Math.max(...cutoffs.map((d) => d.getTime()))) : null;
     const messages = await prisma.message.findMany({
-      where: { roomId, ...(hiddenAt ? { createdAt: { gt: hiddenAt } } : {}) },
+      where: { roomId, ...(from ? { createdAt: { gt: from } } : {}) },
       include: { sender: { select: { id: true, name: true, nickname: true, profileImage: true } } },
       orderBy: { createdAt: 'asc' },
     });
@@ -452,12 +457,13 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
     const { roomId } = req.params;
     const room = await prisma.chatRoom.findFirst({
       where: { id: roomId, ...(await roomAccessWhere(userId, req.user.role)) },
+      include: { shops: true },
     });
     if (!room) { res.status(404).json({ error: '채팅방을 찾을 수 없습니다.' }); return; }
 
     const now = new Date();
-    // 관리자가 남의 고객센터 방을 읽으면 관리자 쪽 읽음 시각을 갱신 (관리자 전원 공용)
-    const side = mySideOf(room, userId, req.user.role, req.user.role === 'admin' ? await getAdminIds() : []);
+    // 관리자가 남의 고객센터 방을 읽으면 관리자 쪽, 직원이 매장 방을 읽으면 사장님 쪽 읽음 시각을 갱신 (같은 쪽 공용)
+    const side = sideOf(room, await viewerOf(userId, req.user.role));
     if (side === 1) {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user1LastReadAt: now } });
     } else if (side === 2) {

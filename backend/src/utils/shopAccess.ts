@@ -1,6 +1,6 @@
 // 매장 공동 관리(직원) 권한 — 2026-09-23 사용자 요청 "사장님이 한 명인데 직원이 관리하는 경우도 있잖아, 공동관리 못하나".
 // 사장님(shop.userId)·관리자 외에 shop_staff 에 등록된 직원도 예약 관리·매장 수정·소식·리뷰 답글·광고 신청을 할 수 있다.
-// 매장 삭제·직원 초대/해제·소유권 이전은 사장님(과 관리자)만. 손님 문의 채팅은 여전히 사장님 계정으로 간다.
+// 매장 삭제·직원 초대/해제·소유권 이전은 사장님(과 관리자)만. 손님 문의 채팅은 사장님 계정과의 방이지만 직원도 매장 연결 방(ChatRoomShop)은 같이 보고 답한다(utils/supportInbox.ts).
 import prisma from '../config/database';
 
 export const STAFF_SHOP_TYPES = ['skishop', 'repair', 'rental', 'lesson', 'accommodation'] as const;

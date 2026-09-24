@@ -54,7 +54,7 @@ import instagramRoutes from './routes/instagramRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
-import { roomAccessWhere, recipientsOf, getAdminIds } from './utils/supportInbox';
+import { roomAccessWhere, recipientsOf, recipientsOfRoom, getAdminIds } from './utils/supportInbox';
 import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from './utils/blocks';
 import { findSupportAnswer, searchSupportAnswer } from './utils/supportAnswers';
 import { isTokenIatStale } from './utils/tokens';
@@ -100,6 +100,8 @@ import { startInstagramScheduler } from './utils/instagram';
 import { startLoginLogPruner } from './utils/loginLog';
 import { trustProxy } from './utils/trustedProxies';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
+import { startReservationReminderScheduler } from './utils/reservationReminders';
+import { backfillChatRoomShops } from './utils/chatRoomShops';
 import { seedAdPricing } from './utils/seedAdPricing';
 
 const app = express();
@@ -494,6 +496,7 @@ io.on('connection', (socket) => {
       // 채팅방 멤버인지 확인 (관리자는 고객센터 방 전체 — 공용 받은편지함)
       const room = await prisma.chatRoom.findFirst({
         where: { id: data.roomId, ...(await roomAccessWhere(userId, socket.data.role)) },
+        include: { shops: true }, // 매장 연결 — 직원 공동 응대 수신자 판별용
       });
       if (!room) {
         // 상대가 방을 삭제한 경우 등 — 무음 드롭하면 보낸 내용이 증발한 것처럼 보임
@@ -515,7 +518,8 @@ io.on('connection', (socket) => {
       {
         const adminIdsNow = await getAdminIds();
         const other = room.user1Id === userId ? room.user2Id : room.user1Id;
-        if (!adminIdsNow.includes(userId) && !adminIdsNow.includes(other) && (await isBlockedEither(userId, other))) {
+        const participant = room.user1Id === userId || room.user2Id === userId; // 직원(참여자 아님)은 매장 명의라 차단 검사 대상이 아님
+        if (participant && !adminIdsNow.includes(userId) && !adminIdsNow.includes(other) && (await isBlockedEither(userId, other))) {
           socket.emit('room_error', { roomId: data.roomId, error: BLOCKED_CHAT_MESSAGE });
           return;
         }
@@ -554,7 +558,7 @@ io.on('connection', (socket) => {
       } catch (e) { console.error('support auto answer error:', e); }
 
       // 수신자 알림 — 고객센터 방에서 손님이 보내면 관리자 전원, 관리자가 보내면 손님에게.
-      const recipients = recipientsOf(room, userId, await getAdminIds());
+      const recipients = await recipientsOfRoom(room, userId, await getAdminIds()); // 매장 방: 손님→사장님+직원, 매장 쪽→손님
       // 수신자가 지금 이 방을 보고 있으면(해당 room 소켓 보유) new_message 로 이미 전달됨
       // → DB 알림·토스트·푸시 생략(메시지마다 알림 row 쌓이는 폭주 방지).
       const roomSockets = await io.in(`room:${data.roomId}`).fetchSockets();
@@ -663,6 +667,16 @@ httpServer.listen(PORT, async () => {
   } catch (err) {
     console.error('AI 직원 스케줄러 시작 실패:', err);
   }
+
+  try {
+    startReservationReminderScheduler(); // 예약 전날·당일 리마인더 + 방문 다음 날 리뷰 요청
+  } catch (err) {
+    console.error('예약 리마인더 스케줄러 시작 실패:', err);
+  }
+  // 채팅방 ↔ 매장 연결 백필 (표가 비어 있을 때 한 번) — 직원이 기존 문의·예약 방도 볼 수 있게
+  backfillChatRoomShops()
+    .then((n) => { if (n) console.log(`채팅방-매장 연결 백필 ${n}건`); })
+    .catch((e) => console.warn('채팅방-매장 연결 백필 실패:', e instanceof Error ? e.message : e));
 
   try {
     startInstagramScheduler(); // 인스타 최신 게시물 1시간 주기 + 토큰 자동 연장

@@ -57,7 +57,7 @@ export default function InviteAccept() {
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
             직원으로 참여하면 이 매장의 예약 확정·거절, 매장 정보 수정, 소식·이벤트, 리뷰 답글, 광고 신청을 사장님과 함께 할 수 있어요.
-            매장 삭제와 직원 관리는 사장님만 할 수 있고, 손님 문의 채팅은 사장님 계정으로 갑니다.
+            매장 삭제와 직원 관리는 사장님만 할 수 있고, 매장으로 온 손님 문의 채팅은 사장님과 함께 보고 답할 수 있습니다.
           </p>
           {info.isOwner ? (
             <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">이 매장의 사장님 계정이에요. 직원에게 링크를 보내 주세요.</p>

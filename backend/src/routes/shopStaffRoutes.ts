@@ -1,6 +1,7 @@
 // 매장 직원(공동 관리) — 2026-09-23. 사장님이 초대 링크(7일·10명)를 만들어 직원에게 보내고, 직원이 자기 계정으로 링크를 열어 참여한다.
 // 직원 권한 판단은 utils/shopAccess.ts. 여기서는 초대·참여·목록·해제만.
 import { Router, Response } from 'express';
+import { invalidateStaffPairs } from '../utils/supportInbox';
 import crypto from 'crypto';
 import prisma from '../config/database';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
@@ -138,6 +139,7 @@ router.post('/invites/:code/accept', authenticateToken, async (req: AuthRequest,
       prisma.shopStaff.create({ data: { shopType: inv.shopType, shopId: inv.shopId, userId: me.id, invitedBy: inv.createdBy } }),
       prisma.shopInvite.update({ where: { id: inv.id }, data: { usedCount: { increment: 1 } } }),
     ]);
+    invalidateStaffPairs(me.id); // 채팅 접근 캐시 — 참여 즉시 매장 문의 방이 보이게
     const meRow = await prisma.user.findUnique({ where: { id: me.id }, select: publicUser });
     if (shop.userId) notify(shop.userId, '직원이 참여했어요', `${meRow ? displayName(meRow) : '회원'}님이 '${shop.name}' 직원으로 참여했어요. 예약 관리·소식·리뷰 답글을 함께 할 수 있어요.`, '/mypage/shops');
     res.status(201).json({ message: `'${shop.name}' 직원으로 참여했어요.`, shopType: inv.shopType, shopId: inv.shopId, shopName: shop.name });
@@ -154,6 +156,7 @@ router.delete('/shops/:shopType/:shopId/staff/:userId', authenticateToken, async
     if (!self && !a.isOwner && !a.isAdmin) { res.status(403).json({ error: '사장님만 직원을 해제할 수 있어요.' }); return; }
     const del = await prisma.shopStaff.deleteMany({ where: { shopType: t, shopId: a.shop.id, userId: req.params.userId } });
     if (!del.count) { res.status(404).json({ error: '직원이 아니에요.' }); return; }
+    invalidateStaffPairs(req.params.userId); // 해제 즉시 매장 문의 방 접근 차단
     if (!self) notify(req.params.userId, '매장 직원에서 해제됐어요', `'${a.shop.name}' 매장 관리 권한이 해제됐어요.`, '/mypage');
     res.json({ message: self ? '매장 관리에서 나왔어요.' : '직원을 해제했어요.' });
   } catch (e) { console.error('Staff remove error:', e); res.status(500).json({ error: '처리하지 못했어요.' }); }
