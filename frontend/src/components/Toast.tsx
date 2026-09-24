@@ -23,7 +23,6 @@ export function toast(message: string, type: ToastType = 'info', durationMs = 25
 
 export const toastSuccess = (m: string) => toast(m, 'success');
 export const toastError = (m: string) => toast(m, 'error', 3500);
-export const toastInfo = (m: string) => toast(m, 'info');
 
 export default function ToastHost() {
   const [list, setList] = useState<ToastItem[]>(items);

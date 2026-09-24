@@ -3,7 +3,7 @@ import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
 import { alertUser } from '../utils/ownerAlerts';
-import { maskRowUser, maskRowUserAll } from '../utils/displayName';
+import { maskRowUser } from '../utils/displayName';
 import { notifyAdmins, createNotification } from '../controllers/notificationController';
 import { sendPushToUser } from '../utils/push';
 import { sendSupportMessage, cleanReason, rejectChatText, withReason } from '../utils/supportMessage';

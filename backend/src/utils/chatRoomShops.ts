@@ -4,8 +4,8 @@ import prisma from '../config/database';
 import { getShopBasic, isStaffShopType, type StaffShopType } from './shopAccess';
 
 // 매장 상세 경로 → (업종, id). 프론트 라우트와 동일: /skishop/:id, /repair/:id, /rental/:id, /lesson/:id, /accommodation/:id
-export const SHOP_PATH_RE = /^\/(skishop|repair|rental|lesson|accommodation)\/([0-9a-f-]{36})(?:[/?#].*)?$/;
-export function parseShopPath(path: unknown): { shopType: StaffShopType; shopId: string } | null {
+const SHOP_PATH_RE = /^\/(skishop|repair|rental|lesson|accommodation)\/([0-9a-f-]{36})(?:[/?#].*)?$/;
+function parseShopPath(path: unknown): { shopType: StaffShopType; shopId: string } | null {
   if (typeof path !== 'string') return null;
   const m = SHOP_PATH_RE.exec(path);
   if (!m || !isStaffShopType(m[1])) return null;

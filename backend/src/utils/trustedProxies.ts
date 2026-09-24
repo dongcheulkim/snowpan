@@ -17,7 +17,7 @@
 // 대역이 추가되면 그 엣지를 거친 요청만 예전처럼 엣지 IP 로 잡힌다(안전한 쪽으로 실패).
 import proxyaddr from 'proxy-addr';
 
-export const CLOUDFLARE_RANGES: string[] = [
+const CLOUDFLARE_RANGES: string[] = [
   // IPv4
   '173.245.48.0/20',
   '103.21.244.0/22',

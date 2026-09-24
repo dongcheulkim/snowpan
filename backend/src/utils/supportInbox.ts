@@ -21,7 +21,7 @@ type RoomLite = { user1Id: string; user2Id: string; shops?: RoomShopLink[] };
 type RoomRead = RoomLite & { id: string; user1LastReadAt: Date | null; user2LastReadAt: Date | null };
 
 // 직원으로 등록된 매장 목록 — 소켓 메시지·방 목록마다 조회하지 않게 30초 캐시. 참여/해제 때 invalidateStaffPairs.
-export async function staffPairsOf(userId: string): Promise<ShopPair[]> {
+async function staffPairsOf(userId: string): Promise<ShopPair[]> {
   const key = `staffPairs:${userId}`;
   const hit = cacheGet<ShopPair[]>(key);
   if (hit) return hit;
@@ -72,13 +72,6 @@ export function sideOf(room: RoomLite, viewer: Viewer): 1 | 2 | null {
   return null;
 }
 
-// (구 API — 직원 정보 없이 호출하는 곳용) 참여자·관리자만 판별
-export function mySideOf(room: RoomLite, userId: string, role: string | undefined, adminIds: string[]): 1 | 2 | null {
-  if (room.user1Id === userId) return 1;
-  if (room.user2Id === userId) return 2;
-  if (role === 'admin') return adminSideOf(room, adminIds);
-  return null;
-}
 
 // 내 자리가 매장 쪽인 링크들 (사장님 본인이든 직원이든) — 매장 쪽 사람들(사장님+직원)이 "내 쪽"
 function shopLinksOnSide(room: RoomLite, side: 1 | 2 | null): RoomShopLink[] {

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { revokeAppleToken } from './socialAuthController';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';

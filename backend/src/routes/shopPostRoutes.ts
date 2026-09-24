@@ -14,11 +14,6 @@ const router = Router();
 const VALID_SHOP_TYPES = ['skishop', 'repair', 'rental', 'lesson', 'accommodation'];
 const VALID_POST_TYPES = ['general', 'promo', 'notice', 'event'];
 
-// 각 shop 테이블에서 owner userId 조회 헬퍼.
-async function getShopOwner(shopType: string, shopId: string): Promise<string | null> {
-  const info = await getShopInfo(shopType, shopId);
-  return info?.userId ?? null;
-}
 
 // 소유자 + 승인 여부 — 미승인 매장의 소식 작성·공개 차단용
 async function getShopInfo(shopType: string, shopId: string): Promise<{ userId: string; approved: boolean } | null> {

@@ -46,24 +46,3 @@ export default function Logo({ withText = true, className = '' }: LogoProps) {
   );
 }
 
-// 6점 눈송이 아이콘 — snow vertical 전용 ICON 영역.
-export function Snowflake({ size = 24 }: { size?: number }) {
-  const arm = (
-    <g>
-      <line x1="32" y1="8" x2="32" y2="56" />
-      <line x1="32" y1="14" x2="27" y2="19" />
-      <line x1="32" y1="14" x2="37" y2="19" />
-      <line x1="32" y1="50" x2="27" y2="45" />
-      <line x1="32" y1="50" x2="37" y2="45" />
-    </g>
-  );
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-        {arm}
-        <g transform="rotate(60 32 32)">{arm}</g>
-        <g transform="rotate(120 32 32)">{arm}</g>
-      </g>
-    </svg>
-  );
-}

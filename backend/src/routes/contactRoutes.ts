@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
 import { notifyAdmins } from '../controllers/notificationController';
 import { sendEmail } from '../utils/email';
 import { strictWriteLimiter } from '../middleware/rateLimit';

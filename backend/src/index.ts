@@ -54,7 +54,7 @@ import instagramRoutes from './routes/instagramRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import { displayName } from './utils/displayName';
-import { roomAccessWhere, recipientsOf, recipientsOfRoom, getAdminIds } from './utils/supportInbox';
+import { roomAccessWhere, recipientsOfRoom, getAdminIds } from './utils/supportInbox';
 import { isBlockedEither, BLOCKED_CHAT_MESSAGE } from './utils/blocks';
 import { findSupportAnswer, searchSupportAnswer } from './utils/supportAnswers';
 import { isTokenIatStale } from './utils/tokens';

@@ -60,11 +60,6 @@ export const CameraIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProp
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M3 8a2 2 0 012-2h2.5l1.5-2h6l1.5 2H19a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><circle cx="12" cy="13" r="4"/></svg>
 );
 
-// 📄 document
-export const DocumentIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg>
-);
-
 // 📋 clipboard
 export const ClipboardIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="3" width="8" height="3" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/></svg>
@@ -130,16 +125,6 @@ export const PhoneIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L7.9 9.7a16 16 0 006.4 6.4l1.3-1.3a2 2 0 012-.5c.9.3 1.7.5 2.6.6a2 2 0 011.8 2z"/></svg>
 );
 
-// 💰 money
-export const MoneyIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h4.5a2 2 0 010 4H9m6 4H9"/></svg>
-);
-
-// 🏦 bank
-export const BankIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M2 9l10-6 10 6"/><path d="M4 10v8M9 10v8M15 10v8M20 10v8M2 21h20"/></svg>
-);
-
 // 📊 chart
 export const ChartIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="14" width="3" height="4"/></svg>
@@ -148,11 +133,6 @@ export const ChartIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps
 // 🚨 alert (siren)
 export const AlertIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-);
-
-// 🤖 bot
-export const BotIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconProps) => (
-  <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"/><circle cx="9" cy="13" r="1.5"/><circle cx="15" cy="13" r="1.5"/><path d="M12 4v4M9 18h6"/></svg>
 );
 
 // 🏔 mountain
@@ -185,5 +165,3 @@ export const SnowboardIcon = ({ size = 20, className, strokeWidth = 1.7 }: IconP
   <svg {...base(size, className)} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><g transform="rotate(-35 12 12)"><rect x="2.5" y="9.5" width="19" height="5" rx="2.5"/><path d="M8.5 9.5v5M15.5 9.5v5"/></g></svg>
 );
 
-// ✕ small close (for chips)
-export const XIcon = CloseIcon;

@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { maskRowUser, maskRowUserAll, displayName } from '../utils/displayName';
+import { maskRowUser, displayName } from '../utils/displayName';
 import { cacheGet, cacheSet, cacheDelPrefix, cacheDel } from '../utils/cache';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';

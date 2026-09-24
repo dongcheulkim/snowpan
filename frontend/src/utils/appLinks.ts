@@ -3,4 +3,3 @@
 export const APP_STORE_URL = 'https://apps.apple.com/kr/app/%EC%8A%A4%EB%85%B8%EC%9A%B0%ED%8C%90/id6810708515?l=ko'; // 2026-09-13 출시 — l=ko 로 페이지 언어 한국어 고정
 // Android: 구글 플레이 심사 중 (2026-09-08 제출). 승인되면 채움.
 export const PLAY_STORE_URL = '';
-export const hasAppLinks = () => !!APP_STORE_URL || !!PLAY_STORE_URL;
