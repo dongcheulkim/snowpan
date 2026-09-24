@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { cleanupShopRows } from '../utils/shopRows';
 import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
@@ -220,6 +221,7 @@ export const deleteAccommodation = async (req: AuthRequest, res: Response): Prom
     if (item.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
     await prisma.accommodation.delete({ where: { id } });
+    cleanupShopRows('accommodation', id).catch((e) => console.warn('shop rows cleanup failed:', e instanceof Error ? e.message : e)); // 직원·찜·문구·채팅 연결 정리
     res.json({ message: '숙소가 삭제되었습니다.' });
   } catch (error) { res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' }); }
 };

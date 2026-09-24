@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { loginHistoryHandler } from '../utils/loginLog';
 import { runReservationReminders } from '../utils/reservationReminders';
 import { updateResponseStats } from '../utils/responseStats';
+import { cleanupOrphanShopRows } from '../utils/shopRows';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
@@ -99,6 +100,12 @@ router.post('/jobs/reservation-reminders', async (req: any, res) => {
 router.post('/jobs/response-stats', async (_req: any, res) => {
   try { res.json({ shops: await updateResponseStats() }); }
   catch (e) { console.error('response stats job error:', e); res.status(500).json({ error: '답장 속도 갱신 실패' }); }
+});
+
+// 사라진 매장의 부속 행 정리 즉시 실행
+router.post('/jobs/cleanup-shop-rows', async (_req: any, res) => {
+  try { res.json({ removed: await cleanupOrphanShopRows() }); }
+  catch (e) { console.error('cleanup shop rows job error:', e); res.status(500).json({ error: '정리 실패' }); }
 });
 
 router.post('/push-test', async (req: any, res) => {

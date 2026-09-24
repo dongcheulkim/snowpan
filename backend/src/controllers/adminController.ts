@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { cleanupShopRows } from '../utils/shopRows';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { createNotification } from './notificationController';
@@ -570,6 +571,7 @@ export const rejectRental = async (req: AuthRequest, res: Response): Promise<voi
     const rentalUserId = rental?.userId;
     const rentalName = rental?.name;
     await prisma.rental.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
+    cleanupShopRows('rental', id).catch((e) => console.warn('shop rows cleanup failed:', e instanceof Error ? e.message : e)); // 직원·찜·문구·채팅 연결 정리
 
     // 거부 사유(선택) — 알림에 붙이고, sendChat 이 false 가 아니면 고객센터 1:1 채팅으로도 전달
     const reason = cleanReason(req.body?.reason);
@@ -601,6 +603,7 @@ export const rejectLesson = async (req: AuthRequest, res: Response): Promise<voi
     const lessonUserId = lesson?.userId;
     const lessonName = lesson?.name;
     await prisma.lesson.deleteMany({ where: { id } }); // 멱등 — 더블클릭 P2025 500 방지
+    cleanupShopRows('lesson', id).catch((e) => console.warn('shop rows cleanup failed:', e instanceof Error ? e.message : e)); // 직원·찜·문구·채팅 연결 정리
 
     if (lessonUserId) {
       const reason = cleanReason(req.body?.reason);
@@ -654,6 +657,7 @@ export const rejectAccommodation = async (req: AuthRequest, res: Response): Prom
     const accomUserId = accom?.userId;
     const accomName = accom?.name;
     await prisma.accommodation.delete({ where: { id: req.params.id } });
+    cleanupShopRows('accommodation', String(req.params.id)).catch((e) => console.warn('shop rows cleanup failed:', e instanceof Error ? e.message : e)); // 직원·찜·문구·채팅 연결 정리
     const reason = cleanReason(req.body?.reason);
     if (accomUserId) {
       const msg = withReason(`'${accomName}' 숙소 등록이 거부되었습니다.`, reason);

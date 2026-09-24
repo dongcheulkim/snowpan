@@ -102,6 +102,7 @@ import { trustProxy } from './utils/trustedProxies';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { startReservationReminderScheduler } from './utils/reservationReminders';
 import { backfillChatRoomShops } from './utils/chatRoomShops';
+import { cleanupOrphanShopRows } from './utils/shopRows';
 import shopFollowRoutes from './routes/shopFollowRoutes';
 import shopReplyRoutes from './routes/shopReplyRoutes';
 import shopStatsRoutes from './routes/shopStatsRoutes';
@@ -686,6 +687,9 @@ httpServer.listen(PORT, async () => {
     console.error('답장 속도 스케줄러 시작 실패:', err);
   }
   // 채팅방 ↔ 매장 연결 백필 (표가 비어 있을 때 한 번) — 직원이 기존 문의·예약 방도 볼 수 있게
+  cleanupOrphanShopRows()
+    .then((n) => { if (n) console.log(`사라진 매장의 직원·찜·문구·채팅 연결 정리 ${n}곳`); })
+    .catch((e) => console.warn('고아 매장 행 정리 실패:', e instanceof Error ? e.message : e));
   backfillChatRoomShops()
     .then((n) => { if (n) console.log(`채팅방-매장 연결 백필 ${n}건`); })
     .catch((e) => console.warn('채팅방-매장 연결 백필 실패:', e instanceof Error ? e.message : e));

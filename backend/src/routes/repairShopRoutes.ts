@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { cleanupShopRows } from '../utils/shopRows';
 import { isShopStaff, staffShopIds, withStaffRole } from '../utils/shopAccess';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
@@ -210,6 +211,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
     if (!shop) { res.status(404).json({ error: '정비샵을 찾을 수 없습니다.' }); return; }
     if (shop.userId !== req.user!.id && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
     await prisma.repairShop.delete({ where: { id: req.params.id } });
+    cleanupShopRows('repair', String(req.params.id)).catch((e) => console.warn('shop rows cleanup failed:', e instanceof Error ? e.message : e)); // 직원·찜·문구·채팅 연결 정리
     // 관리자가 남의 매장을 지운 경우 소유자에게 알림 (스키샵과 동일 UX)
     if (req.user!.role === 'admin' && shop.userId !== req.user!.id) {
       const reason = cleanReason(req.body?.reason);

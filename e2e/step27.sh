@@ -58,4 +58,13 @@ api GET "/shop-follows/mine" "" "$CUST2"; [ "$(echo "$RESP" | jq -r "[.[] | sele
 
 # 사장님 현황에 찜 수
 api GET /owner/summary "" "$OWNER"; [ "$(echo "$RESP" | jq -r "[.shops[] | select(.shopId==\"$RENTAL\")][0].followers")" = "2" ] && ok "현황 매장별 찜 2" || bad "현황 찜 수=$(echo "$RESP" | jq -r "[.shops[] | select(.shopId==\"$RENTAL\")][0].followers")"
+# 매장을 지우면 찜·직원·답장 문구·답장 속도 행이 같이 정리된다
+api POST "/shop-replies/shops/rental/$RENTAL" '{"text":"정리 검사용 문구"}' "$OWNER"
+api DELETE "/rentals/$RENTAL" "" "$OWNER"; [ "$CODE" = "200" ] && ok "렌탈 삭제" || bad "렌탈 삭제 CODE=$CODE"; sleep 1
+LEFT=$(pq "SELECT (SELECT count(*) FROM shop_follows WHERE \"shopId\"='$RENTAL') + (SELECT count(*) FROM shop_staff WHERE \"shopId\"='$RENTAL') + (SELECT count(*) FROM shop_reply_templates WHERE \"shopId\"='$RENTAL') + (SELECT count(*) FROM chat_room_shops WHERE \"shopId\"='$RENTAL')")
+[ "$LEFT" = "0" ] && ok "삭제된 매장의 찜·직원·문구·채팅 연결 0" || bad "남은 행 $LEFT"
+api GET "/shop-follows/mine" "" "$CUST"; [ "$(echo "$RESP" | jq -r "[.[] | select(.shopId==\"$RENTAL\")] | length")" = "0" ] && ok "찜 목록에서도 사라짐" || bad "찜 목록에 남음"
+# 고아 행 정리 작업 — 직접 남긴 고아 행이 지워지는지
+pq "INSERT INTO shop_follows (id, \"shopType\", \"shopId\", \"userId\") VALUES (gen_random_uuid()::text, 'rental', '$RENTAL', '$(pq "SELECT id FROM users WHERE email='fl_cust@s27.test'")')" >/dev/null
+api POST /admin/jobs/cleanup-shop-rows "{}" "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.removed')" -ge 1 ] && [ "$(pq "SELECT count(*) FROM shop_follows WHERE \"shopId\"='$RENTAL'")" = "0" ] && ok "관리자 고아 행 정리 작업" || bad "고아 정리 CODE=$CODE RESP=$RESP left=$(pq "SELECT count(*) FROM shop_follows WHERE \"shopId\"='$RENTAL'")"
 echo "----- STEP27: PASS=$PASS FAIL=$FAIL -----"

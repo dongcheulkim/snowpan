@@ -109,6 +109,13 @@ api POST /reservations "{\"shopType\":\"rental\",\"shopId\":\"$RENTAL\",\"date\"
 api GET "/chat/rooms/$DM/messages" "" "$STAFF"
 [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '[.[] | select(.type=="reservation")] | length')" = "1" ] && ! echo "$RESP" | grep -q "사장님 개인 메시지" && ok "예약으로 연결된 방: 직원은 예약 카드부터만 봄" || bad "예약 방 직원 메시지 CODE=$CODE n=$(echo "$RESP" | jq 'length')"
 api GET "/chat/rooms/$DM" "" "$STAFF"; [ "$(echo "$RESP" | jq -r '.shop.name')" = "S25렌탈" ] && [ "$(echo "$RESP" | jq -r '.otherUser.id')" = "$FRIEND_ID" ] && ok "예약 방 상세: 매장명·상대=예약 손님" || bad "예약 방 상세 $(echo "$RESP" | jq -c '{shop,otherUser}')"
+# 같은 손님·사장님 방에 두 번째 매장(정비샵) 예약 → 연결 2개, 대표 매장은 가장 최근 연결
+api POST /repair-shops "{\"name\":\"S25정비\",\"area\":\"강원\",\"address\":\"평창\",\"description\":\"d\",\"businessLicense\":\"/uploads/e2e.jpg\"}" "$OWNER"; RS=$(echo "$RESP" | jq -r '.id // empty'); pq "UPDATE repair_shops SET approved=true WHERE id='$RS'" >/dev/null
+api POST /reservations "{\"shopType\":\"repair\",\"shopId\":\"$RS\",\"date\":\"$D3\",\"adults\":1}" "$FRIEND"
+api GET "/chat/rooms/$DM" "" "$OWNER"; [ "$(echo "$RESP" | jq -r '.shops | length')" = "2" ] && [ "$(echo "$RESP" | jq -r '.shop.name')" = "S25정비" ] && ok "연결 2개면 대표 매장은 최근 연결(S25정비)" || bad "대표 매장 $(echo "$RESP" | jq -c '{n: (.shops|length), shop}')"
+# 정비샵을 지우면 그 연결·직원·찜 행도 같이 사라지고 대표 매장은 렌탈로 돌아간다
+api DELETE "/repair-shops/$RS" "" "$OWNER"; sleep 1
+api GET "/chat/rooms/$DM" "" "$OWNER"; [ "$(echo "$RESP" | jq -r '.shops | length')" = "1" ] && [ "$(echo "$RESP" | jq -r '.shop.name')" = "S25렌탈" ] && [ "$(pq "SELECT count(*) FROM chat_room_shops WHERE \"shopId\"='$RS'")" = "0" ] && ok "매장 삭제 → 채팅 연결 정리, 대표 매장 복귀" || bad "삭제 후 $(echo "$RESP" | jq -c '{n: (.shops|length), shop}') links=$(pq "SELECT count(*) FROM chat_room_shops WHERE \"shopId\"='$RS'")"
 
 # ── 매장 사장님이 아닌 상대와의 방에 매장 경로를 붙여도 연결 안 됨
 api POST /chat/rooms "{\"targetUserId\":\"$FRIEND_ID\",\"productName\":\"S25렌탈\",\"productPath\":\"/rental/$RENTAL\"}" "$CUST"; X=$(echo "$RESP" | jq -r '.id // empty')

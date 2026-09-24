@@ -9,6 +9,13 @@ import { sendPushToUser } from '../utils/push';
 
 const router = Router();
 
+// 방의 대표 매장 — 연결이 여러 개(같은 손님이 같은 사장님의 여러 매장에 문의)면 가장 최근 연결. 사라진 매장 연결은 utils/shopRows.ts 가 지운다.
+function latestShopLink(shops: { shopType: string; shopId: string; shopName: string; createdAt: Date }[]): { shopType: string; shopId: string; name: string } | null {
+  if (!shops.length) return null;
+  const l = [...shops].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  return { shopType: l.shopType, shopId: l.shopId, name: l.shopName };
+}
+
 // 채팅 요청 남발 방지 — 유저당 1시간에 신규 요청 10건 (콜드 DM 스팸 캡).
 // 인메모리 (재시작 초기화 OK — 남발 억제가 목적이지 정확한 회계가 아님).
 const requestBuckets = new Map<string, { count: number; resetAt: number }>();
@@ -73,7 +80,7 @@ router.get('/rooms', async (req: any, res: Response) => {
         mySide: side,
         otherUser: side ? { ...(side === 1 ? room.user2 : room.user1), name: displayName(side === 1 ? room.user2 : room.user1) } : null,
         // 매장 연결 방 — 목록에 매장명, 내 자리가 매장 쪽(사장님·직원)인지
-        shop: room.shops[0] ? { shopType: room.shops[0].shopType, shopId: room.shops[0].shopId, name: room.shops[0].shopName } : null,
+        shop: latestShopLink(room.shops),
         viewerRole: room.shops.length ? (room.shops.some((l) => l.ownerUserId === (side === 1 ? room.user1Id : room.user2Id)) ? 'shop' : 'customer') : null,
       };
     });
@@ -407,7 +414,7 @@ router.get('/rooms/:roomId', async (req: any, res: Response) => {
       // 관리자끼리 보낸 메시지는 전부 "내 쪽" 말풍선으로 — 클라이언트가 senderId 로 정렬할 때 씀
       supportAdminIds: req.user.role === 'admin' && adminSideOf(room, adminIds) ? adminIds : [],
       // 매장 연결 방 (직원 공동 응대): 매장명, 내 역할, 내 쪽 전원(사장님+직원 — 내 말풍선으로), 라벨(사장님/직원)
-      shop: room.shops[0] ? { shopType: room.shops[0].shopType, shopId: room.shops[0].shopId, name: room.shops[0].shopName } : null,
+      shop: latestShopLink(room.shops),
       viewerRole: room.shops.length ? (onShopSide ? 'shop' : 'customer') : null,
       sideIds: onShopSide ? shopSide.ids : [],
       sideLabels: shopSide.labels,
