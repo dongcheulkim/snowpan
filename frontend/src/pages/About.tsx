@@ -26,7 +26,7 @@ export default function About() {
     <article className="max-w-3xl mx-auto py-8 space-y-12 animate-fade-in">
       {/* Hero */}
       <header className="text-center space-y-3">
-        <p className="text-[11px] font-bold tracking-widest text-gray-400">ABOUT SNOW PAN</p>
+        <p className="text-[11px] font-bold tracking-widest text-gray-500">ABOUT SNOW PAN</p>
         <img src="/snowpan-wordmark.svg" alt="SNOW PAN" className="h-10 mx-auto" />
         <p className="text-base font-bold text-gray-900">설원 위의 자유, 끝없는 플레이의 장</p>
         <p className="text-xs tracking-[0.18em] text-gray-500">FREEDOM ON THE SNOW · ENDLESS PLAYGROUND</p>
@@ -86,7 +86,7 @@ export default function About() {
       {/* 사업자 정보 */}
       <section className="card p-6 space-y-4 bg-white">
         <div>
-          <p className="text-[10px] font-bold tracking-widest text-gray-400">BUSINESS INFORMATION</p>
+          <p className="text-[10px] font-bold tracking-widest text-gray-500">BUSINESS INFORMATION</p>
           <h2 className="text-base font-bold text-gray-900 mt-1">사업자 정보</h2>
         </div>
         <dl className="grid grid-cols-3 gap-y-2 text-xs">
@@ -115,7 +115,7 @@ export default function About() {
           <dt className="col-span-1 text-gray-500">호스팅 서비스</dt>
           <dd className="col-span-2 text-gray-900 font-medium">Vercel · Render</dd>
         </dl>
-        <p className="text-[10px] text-gray-400 pt-2 border-t border-gray-100">
+        <p className="text-[10px] text-gray-500 pt-2 border-t border-gray-100">
           문의 · 신고 · 광고 문의는 대표 이메일로 연락 부탁드립니다.
         </p>
       </section>

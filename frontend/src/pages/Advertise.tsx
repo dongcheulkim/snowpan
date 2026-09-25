@@ -51,7 +51,7 @@ const Advertise = () => {
   return (
     <div className="max-w-md mx-auto space-y-6 animate-fade-in">
       <header className="text-center pt-2">
-        <p className="text-[10px] font-bold tracking-widest text-gray-400">SNOWPAN ADVERTISING</p>
+        <p className="text-[10px] font-bold tracking-widest text-gray-500">SNOWPAN ADVERTISING</p>
         <h1 className="text-2xl font-bold text-gray-900 mt-1">광고 안내</h1>
         <p className="text-sm text-gray-500 mt-2">
           스키·스노보드를 즐기는 이용자에게<br />매장·브랜드를 노출하세요.
@@ -60,7 +60,7 @@ const Advertise = () => {
 
       {/* 광고 상품 */}
       {loading ? (
-        <div className="text-center text-sm text-gray-400 py-10">불러오는 중...</div>
+        <div className="text-center text-sm text-gray-500 py-10">불러오는 중...</div>
       ) : groups.length === 0 ? (
         <div className="card p-6 text-center text-sm text-gray-500">
           광고는 고객센터 채팅으로 상담한 뒤 진행해요.<br />
@@ -77,7 +77,7 @@ const Advertise = () => {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-sm font-bold text-gray-900">상담 후 안내</div>
-                  <div className="text-[11px] text-gray-400">기간·금액 협의</div>
+                  <div className="text-[11px] text-gray-500">기간·금액 협의</div>
                 </div>
               </div>
             </div>
@@ -109,7 +109,7 @@ const Advertise = () => {
       >
         고객센터 채팅으로 광고 문의하기
       </Link>
-      <p className="text-center text-[11px] text-gray-400 pb-2">신청은 로그인 후 진행됩니다.</p>
+      <p className="text-center text-[11px] text-gray-500 pb-2">신청은 로그인 후 진행됩니다.</p>
       <section className="card p-5 text-center">
         <p className="text-sm font-bold text-gray-900">매장 사장님이신가요?</p>
         <p className="text-xs text-gray-500 mt-1">매장 등록과 소식·이벤트는 무료입니다. 광고는 원할 때만 선택하세요.</p>

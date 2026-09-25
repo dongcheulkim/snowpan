@@ -47,7 +47,7 @@ export default function ShopReportButton({ shopType, shopId, ownerId }: Props) {
         <button
           type="button"
           onClick={() => { if (!user) { navigate(loginPath()); return; } setOpen(true); }}
-          className="text-[11px] text-gray-400 underline underline-offset-2 hover:text-gray-600 transition-colors"
+          className="text-[11px] text-gray-500 underline underline-offset-2 hover:text-gray-600 transition-colors"
         >폐업했거나 정보가 잘못됐나요? 신고하기</button>
       </div>
 

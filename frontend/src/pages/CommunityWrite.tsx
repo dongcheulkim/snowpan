@@ -300,7 +300,7 @@ const CommunityWrite = () => {
         </div>
         {/* 협찬·제휴 링크 안내 — 흐린 글씨로 조용히 (사용자 요청 2026-09-09) */}
         {!isPoll && (
-          <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+          <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
             협찬받은 물품 소개는 괜찮아요. 협찬이나 대가를 받았다면 글에 밝혀 주세요.
             쿠팡 파트너스처럼 수수료를 받는 링크는 올릴 수 없어요.
           </p>

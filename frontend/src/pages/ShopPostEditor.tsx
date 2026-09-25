@@ -168,7 +168,7 @@ export default function ShopPostEditor() {
               placeholder="예: 신상 살로몬 입고 · 설날 20% 할인"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-gray-900"
             />
-            <p className="text-[10px] text-gray-400 mt-1 text-right">{title.length}/100</p>
+            <p className="text-[10px] text-gray-500 mt-1 text-right">{title.length}/100</p>
           </div>
 
           {/* 내용 */}
@@ -182,7 +182,7 @@ export default function ShopPostEditor() {
               placeholder={`매장 소식 · 이벤트 · 신상품 등을 자유롭게 작성하세요.\n\n줄바꿈은 그대로 유지돼요.`}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-gray-900 resize-none leading-relaxed"
             />
-            <p className="text-[10px] text-gray-400 mt-1 text-right">{content.length}/5000</p>
+            <p className="text-[10px] text-gray-500 mt-1 text-right">{content.length}/5000</p>
           </div>
 
           {/* 이미지 */}
@@ -202,7 +202,7 @@ export default function ShopPostEditor() {
                 </div>
               ))}
               {images.length < 5 && (
-                <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-900 hover:text-gray-900 cursor-pointer transition-colors">
+                <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-gray-900 hover:text-gray-900 cursor-pointer transition-colors">
                   <input type="file" accept="image/*" multiple onChange={onFilePick} className="hidden" disabled={uploading} />
                   <span className="text-2xl leading-none">+</span>
                   <span className="text-[10px] mt-1">{uploading ? '업로드 중' : '사진 추가'}</span>

@@ -110,7 +110,7 @@ const LessonEdit = () => {
         </div>
       </div>
       <div>
-        <label className={labelClass}>강습 분야 <span className="font-normal text-gray-400">(복수 선택 가능)</span></label>
+        <label className={labelClass}>강습 분야 <span className="font-normal text-gray-500">(복수 선택 가능)</span></label>
         <div className="flex flex-wrap gap-1.5">
           {SPECIALTIES.map(sp => (
             <button key={sp} onClick={() => toggleSpecialty(sp)} className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${specialties.includes(sp) ? 'bg-primary text-white' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>{sp}</button>

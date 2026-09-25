@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, imageUrl } from '../api';
+import MultiImageUpload from './MultiImageUpload';
+import PhotoViewer from './PhotoViewer';
 import { toastSuccess, toastError } from './Toast';
 import { useShopAccess } from '../hooks/useShopAccess';
 
@@ -14,6 +16,7 @@ interface ShopReview {
   userId: string;
   user: { id: string; name: string; nickname?: string | null; profileImage?: string | null } | null;
   ownerReply?: string | null;     // 사장님·강사 답글 (2026-09-22)
+  images?: string | null;         // 리뷰 사진 (콤마 구분, 최대 3장, 2026-09-25)
   ownerRepliedAt?: string | null;
 }
 
@@ -42,6 +45,8 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   const [writing, setWriting] = useState(false);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
+  const [images, setImages] = useState(''); // 리뷰 사진 (콤마 구분 URL)
+  const [viewer, setViewer] = useState<{ urls: string[]; index: number } | null>(null); // 사진 크게보기
   const [submitting, setSubmitting] = useState(false);
   // 사장님 답글 편집 상태 — 편집 중인 리뷰 id
   const [replyFor, setReplyFor] = useState<string | null>(null);
@@ -73,9 +78,9 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
     if (content.trim().length < 5) { toastError('리뷰를 5자 이상 입력해주세요.'); return; }
     setSubmitting(true);
     try {
-      await api('/shop-reviews', { method: 'POST', body: { shopType, shopId, rating, content: content.trim() } });
+      await api('/shop-reviews', { method: 'POST', body: { shopType, shopId, rating, content: content.trim(), ...(images ? { images } : {}) } });
       toastSuccess('리뷰가 등록되었어요. 고맙습니다!');
-      setWriting(false); setContent(''); setRating(5);
+      setWriting(false); setContent(''); setImages(''); setRating(5);
       load();
     } catch (e) { toastError(e instanceof Error ? e.message : '리뷰 등록에 실패했어요.'); }
     finally { setSubmitting(false); }
@@ -107,7 +112,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
   return (
     <section id="reviews" className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-gray-900">{isLesson ? '레슨 리뷰' : '방문자 리뷰'} {count > 0 && <span className="text-gray-400 font-normal">({count})</span>}</h2>
+        <h2 className="text-sm font-bold text-gray-900">{isLesson ? '레슨 리뷰' : '방문자 리뷰'} {count > 0 && <span className="text-gray-500 font-normal">({count})</span>}</h2>
         {count > 0 && (
           <span className="inline-flex items-center gap-1.5">
             <Stars value={Math.round(avg)} />
@@ -135,6 +140,8 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
               placeholder={isLesson ? '레슨 경험을 남겨주세요 (강사 설명, 친절도, 실력 향상 등)' : '방문 경험을 남겨주세요 (친절도, 시설, 가격 등)'}
               className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 resize-none"
             />
+            {/* 리뷰 사진 — 최대 3장 (2026-09-25) */}
+            <MultiImageUpload value={images} onChange={setImages} max={3} />
             <div className="flex gap-2">
               <button onClick={() => setWriting(false)} className="flex-1 py-2 text-xs font-bold text-gray-500 border border-gray-200 rounded-lg">취소</button>
               <button onClick={submit} disabled={submitting} className="flex-1 py-2 text-xs font-bold bg-gray-900 text-white rounded-lg disabled:opacity-40">{submitting ? '등록 중...' : '리뷰 등록'}</button>
@@ -149,11 +156,11 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
           </button>
         )
       )}
-      {isOwner && <p className="text-[11px] text-gray-400 mb-3">내 {noun}에는 리뷰를 쓸 수 없어요.</p>}
+      {isOwner && <p className="text-[11px] text-gray-500 mb-3">내 {noun}에는 리뷰를 쓸 수 없어요.</p>}
 
       {/* 목록 */}
       {loading ? (
-        <p className="text-sm text-gray-400 text-center py-4">불러오는 중...</p>
+        <p className="text-sm text-gray-500 text-center py-4">불러오는 중...</p>
       ) : reviews.length === 0 ? (
         <p className="text-sm text-gray-500 text-center py-6">아직 리뷰가 없어요. 첫 {isLesson ? '레슨' : '방문'} 리뷰를 남겨보세요.</p>
       ) : (
@@ -165,23 +172,32 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
                   <Stars value={r.rating} size={12} />
                   <span className="text-xs font-medium text-gray-700">{r.user?.name || '스노우판 회원'}</span>
                 </span>
-                <span className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
+                <span className="text-[11px] text-gray-500">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</span>
               </div>
               <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{r.content}</p>
+              {r.images && (
+                <div className="flex gap-1.5 mt-2">
+                  {r.images.split(',').map((u) => u.trim()).filter(Boolean).slice(0, 3).map((u, i, arr) => (
+                    <button key={u} type="button" onClick={() => setViewer({ urls: arr, index: i })} aria-label={`리뷰 사진 ${i + 1} 크게 보기`} className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex-shrink-0">
+                      <img src={imageUrl(u)} alt="" loading="lazy" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
               {user && (r.userId === user.id || user.role === 'admin') && (
-                <button onClick={() => remove(r.id)} className="text-[11px] text-gray-400 hover:text-red-400 mt-1">삭제</button>
+                <button onClick={() => remove(r.id)} className="text-[11px] text-gray-500 hover:text-red-400 mt-1">삭제</button>
               )}
               {r.ownerReply && replyFor !== r.id && (
                 <div className="mt-2 ml-2 pl-3 border-l-2 border-sky-200">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-sky-700">{replyLabel}</span>
-                    {r.ownerRepliedAt && <span className="text-[10px] text-gray-400">{new Date(r.ownerRepliedAt).toLocaleDateString('ko-KR')}</span>}
+                    {r.ownerRepliedAt && <span className="text-[10px] text-gray-500">{new Date(r.ownerRepliedAt).toLocaleDateString('ko-KR')}</span>}
                   </div>
                   <p className="text-xs text-gray-700 mt-0.5 leading-relaxed whitespace-pre-wrap">{r.ownerReply}</p>
                   {canReply && (
                     <div className="flex gap-3 mt-1">
-                      <button onClick={() => { setReplyFor(r.id); setReplyText(r.ownerReply || ''); }} className="text-[11px] text-gray-400 hover:text-gray-700">수정</button>
-                      <button onClick={() => removeReply(r.id)} className="text-[11px] text-gray-400 hover:text-red-400">지우기</button>
+                      <button onClick={() => { setReplyFor(r.id); setReplyText(r.ownerReply || ''); }} className="text-[11px] text-gray-500 hover:text-gray-700">수정</button>
+                      <button onClick={() => removeReply(r.id)} className="text-[11px] text-gray-500 hover:text-red-400">지우기</button>
                     </div>
                   )}
                 </div>
@@ -209,6 +225,7 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
           ))}
         </div>
       )}
+      {viewer && <PhotoViewer urls={viewer.urls} index={viewer.index} onClose={() => setViewer(null)} />}
     </section>
   );
 }

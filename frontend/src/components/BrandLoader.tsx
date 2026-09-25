@@ -4,7 +4,7 @@ export default function BrandLoader({ fullScreen = true, label }: { fullScreen?:
   return (
     <div className={`${fullScreen ? 'min-h-[60vh]' : 'py-14'} flex flex-col items-center justify-center gap-3`} role="status" aria-live="polite" aria-label={label || '불러오는 중'}>
       <img src="/snowpan-wordmark.svg" alt="" className="brand-loader-mark w-[112px] h-auto select-none" draggable={false} />
-      {label && <span className="text-[11px] text-gray-400">{label}</span>}
+      {label && <span className="text-[11px] text-gray-500">{label}</span>}
     </div>
   );
 }

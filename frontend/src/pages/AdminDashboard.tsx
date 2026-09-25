@@ -453,7 +453,7 @@ const AdminDashboard = () => {
                             문제 없음 · 유지
                           </button>
                         </div>
-                        {!canDelete && <p className="text-[10px] text-gray-400">{r.type === 'user' ? '정지·차단은 유저관리 탭에서 할 수 있어요.' : '매장 정보 수정·삭제는 승인관리 탭에서 할 수 있어요.'}</p>}
+                        {!canDelete && <p className="text-[10px] text-gray-500">{r.type === 'user' ? '정지·차단은 유저관리 탭에서 할 수 있어요.' : '매장 정보 수정·삭제는 승인관리 탭에서 할 수 있어요.'}</p>}
                       </div>
                     )}
                   </div>
@@ -512,7 +512,7 @@ const AdminDashboard = () => {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-2.5">누적 상세 조회수 기준 (렌탈·레슨·숙소는 2026-09-06부터 집계)</p>
+                    <p className="text-[10px] text-gray-500 mt-2.5">누적 상세 조회수 기준 (렌탈·레슨·숙소는 2026-09-06부터 집계)</p>
                   </div>
                 );
               })()}
@@ -640,7 +640,7 @@ const AdminDashboard = () => {
                             {loginInfo.data.logins.length === 0 ? <p className="text-gray-500">기록 없음</p> : (
                               <div className="overflow-x-auto"><table className="w-full text-[11px]"><tbody>
                                 {loginInfo.data.logins.map((l, i) => (
-                                  <tr key={i} className="border-t border-gray-100"><td className="py-1 pr-2 whitespace-nowrap text-gray-600">{new Date(l.createdAt).toLocaleString('ko-KR')}</td><td className="py-1 pr-2 font-mono text-gray-800">{l.ip}</td><td className="py-1 pr-2 text-gray-600">{({ email: '이메일', register: '가입', kakao: '카카오', naver: '네이버', apple: 'Apple' } as Record<string, string>)[l.method] || l.method}</td><td className="py-1 text-gray-400 truncate max-w-[220px]">{l.userAgent || ''}</td></tr>
+                                  <tr key={i} className="border-t border-gray-100"><td className="py-1 pr-2 whitespace-nowrap text-gray-600">{new Date(l.createdAt).toLocaleString('ko-KR')}</td><td className="py-1 pr-2 font-mono text-gray-800">{l.ip}</td><td className="py-1 pr-2 text-gray-600">{({ email: '이메일', register: '가입', kakao: '카카오', naver: '네이버', apple: 'Apple' } as Record<string, string>)[l.method] || l.method}</td><td className="py-1 text-gray-500 truncate max-w-[220px]">{l.userAgent || ''}</td></tr>
                                 ))}
                               </tbody></table></div>
                             )}
@@ -650,12 +650,12 @@ const AdminDashboard = () => {
                             {loginInfo.data.sameIpAccounts.length === 0 ? <p className="text-gray-500">없음</p> : (
                               <ul className="space-y-0.5">
                                 {loginInfo.data.sameIpAccounts.map((a, i) => (
-                                  <li key={i} className="flex items-center gap-2 flex-wrap"><span className="font-mono text-gray-500">{a.ip}</span><span className="font-bold text-gray-900">{a.nickname || '(닉네임 없음)'}</span><span className="text-gray-500">{a.email}</span><span className="text-gray-400">{({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[a.role] || a.role}</span><span className="text-gray-400">{new Date(a.lastAt).toLocaleDateString('ko-KR')}</span></li>
+                                  <li key={i} className="flex items-center gap-2 flex-wrap"><span className="font-mono text-gray-500">{a.ip}</span><span className="font-bold text-gray-900">{a.nickname || '(닉네임 없음)'}</span><span className="text-gray-500">{a.email}</span><span className="text-gray-500">{({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[a.role] || a.role}</span><span className="text-gray-500">{new Date(a.lastAt).toLocaleDateString('ko-KR')}</span></li>
                                 ))}
                               </ul>
                             )}
                           </div>
-                          <p className="text-[10px] text-gray-400">사기 신고·분쟁 확인 용도로만 열람하세요. 기록은 {loginInfo.data.retentionDays}일 뒤 자동 삭제됩니다.</p>
+                          <p className="text-[10px] text-gray-500">사기 신고·분쟁 확인 용도로만 열람하세요. 기록은 {loginInfo.data.retentionDays}일 뒤 자동 삭제됩니다.</p>
                         </>
                       )}
                     </div>
@@ -783,7 +783,7 @@ const AdminDashboard = () => {
                               <div className="relative w-full h-20 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center mb-1.5">
                                 {b.image
                                   ? <img src={imageUrl(b.image, 300)} alt="" className="w-full h-full object-cover" />
-                                  : <span className="text-[9px] text-gray-400">텍스트 광고</span>}
+                                  : <span className="text-[9px] text-gray-500">텍스트 광고</span>}
                                 <span className={`absolute top-1 left-1 text-[9px] font-bold px-1 py-0.5 rounded ${s.color}`}>{s.label}</span>
                                 {isActive && (
                                   <span className="absolute bottom-1 right-1 text-[9px] font-bold text-white bg-black/55 rounded px-1 py-0.5">클릭 {(b.clickCount ?? 0).toLocaleString()}</span>
@@ -794,10 +794,10 @@ const AdminDashboard = () => {
                               <p className="text-[10px] text-gray-500 mt-0.5">
                                 {startD.getMonth() + 1}/{startD.getDate()}~{endD.getMonth() + 1}/{endD.getDate()} · <span className="font-bold text-gray-900">{b.totalPrice.toLocaleString()}원</span>
                               </p>
-                              <p className="text-[10px] text-gray-400 truncate">{b.user.name} · {b.user.phone}</p>
-                              <p className="text-[10px] text-gray-400 truncate">{b.user.email}</p>
+                              <p className="text-[10px] text-gray-500 truncate">{b.user.name} · {b.user.phone}</p>
+                              <p className="text-[10px] text-gray-500 truncate">{b.user.email}</p>
                               {b.payment && b.payment.status === 'paid' && (
-                                <p className="text-[9px] text-gray-400 mt-0.5">결제 {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}</p>
+                                <p className="text-[9px] text-gray-500 mt-0.5">결제 {b.payment.payMethod} · {new Date(b.payment.paidAt).toLocaleDateString('ko-KR')}</p>
                               )}
                               {(b.status === 'pending_payment' || b.status === 'paid' || b.status === 'active') && (
                                 <div className="flex gap-1.5 mt-2 pt-2 border-t border-gray-100">
@@ -915,7 +915,7 @@ const AdminDashboard = () => {
                   ));
                 })()
               )}
-              <p className="text-[10px] text-gray-400 px-1">가격·동시 수는 입력 후 바깥을 누르면 저장됩니다. 상태 버튼으로 슬롯 판매 켜기/끄기.</p>
+              <p className="text-[10px] text-gray-500 px-1">가격·동시 수는 입력 후 바깥을 누르면 저장됩니다. 상태 버튼으로 슬롯 판매 켜기/끄기.</p>
             </div>
           )}
         </>

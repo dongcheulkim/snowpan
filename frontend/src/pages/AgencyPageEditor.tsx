@@ -78,9 +78,9 @@ export default function AgencyPageEditor() {
 
       {preview ? (
         <div className="card p-4">
-          <p className="text-[11px] text-gray-400 mb-3">미리보기 — 스키어에게 이렇게 보여요</p>
+          <p className="text-[11px] text-gray-500 mb-3">미리보기 — 스키어에게 이렇게 보여요</p>
           <div className="text-lg font-bold text-gray-900 mb-3">{agency.name}</div>
-          {blocks.length ? <AgencyBlocks blocks={blocks} /> : <p className="text-sm text-gray-400 text-center py-8">아직 내용이 없어요. 편집에서 글·사진을 추가하세요.</p>}
+          {blocks.length ? <AgencyBlocks blocks={blocks} /> : <p className="text-sm text-gray-500 text-center py-8">아직 내용이 없어요. 편집에서 글·사진을 추가하세요.</p>}
         </div>
       ) : (
         <>
@@ -89,7 +89,7 @@ export default function AgencyPageEditor() {
             {blocks.map((b, i) => (
               <div key={i} className="card p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-gray-400">{b.type === 'image' ? '사진' : '글'} {i + 1}</span>
+                  <span className="text-[10px] font-bold text-gray-500">{b.type === 'image' ? '사진' : '글'} {i + 1}</span>
                   <div className="flex gap-1">
                     <button onClick={() => move(i, -1)} disabled={i === 0} className="w-6 h-6 rounded bg-gray-100 text-gray-500 text-xs disabled:opacity-30">↑</button>
                     <button onClick={() => move(i, 1)} disabled={i === blocks.length - 1} className="w-6 h-6 rounded bg-gray-100 text-gray-500 text-xs disabled:opacity-30">↓</button>

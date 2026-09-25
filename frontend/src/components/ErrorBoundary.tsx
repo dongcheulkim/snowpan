@@ -69,7 +69,7 @@ class ErrorBoundary extends Component<Props, State> {
               </Link>
             </div>
             {this.state.detail && (
-              <p className="mt-6 text-[10px] text-gray-400 break-all max-w-xs mx-auto">계속 보이면 이 화면을 캡처해서 고객센터에 보내 주세요. {this.state.detail}</p>
+              <p className="mt-6 text-[10px] text-gray-500 break-all max-w-xs mx-auto">계속 보이면 이 화면을 캡처해서 고객센터에 보내 주세요. {this.state.detail}</p>
             )}
           </div>
         </div>

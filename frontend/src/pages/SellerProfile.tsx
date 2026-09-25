@@ -305,8 +305,8 @@ const SellerProfile = () => {
         )}
         {user && user.id !== sellerId && (
           <div className="mt-1.5 flex items-center justify-center gap-3">
-            <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-400 hover:text-coral transition-colors">이 사용자 신고</button>
-            <button onClick={toggleBlock} disabled={blockBusy} className="text-[11px] text-gray-400 hover:text-gray-700 transition-colors disabled:opacity-60">
+            <button onClick={() => setShowReport(true)} className="text-[11px] text-gray-500 hover:text-coral transition-colors">이 사용자 신고</button>
+            <button onClick={toggleBlock} disabled={blockBusy} className="text-[11px] text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-60">
               {blocked ? '차단 해제' : '이 사용자 차단'}
             </button>
           </div>

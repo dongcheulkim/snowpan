@@ -13,6 +13,9 @@ interface SearchResult {
   shops: { id: string; name: string; area: string; type: string }[];
 }
 
+const RECENT_KEY = 'snowpan:recent-searches';
+const SUGGEST_LABEL: Record<string, string> = { resort: '스키장', skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨', accommodation: '숙소', brand: '브랜드', product: '중고' };
+
 export default function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
   const vertical = useVertical();
@@ -27,6 +30,12 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null); // 검색 요청 실패 메시지 ("결과 없음"과 구분)
   const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 같은 검색어로 재요청
+  // 최근 검색어 (이 기기에만 저장, 최대 10개) + 자동완성 (2026-09-25)
+  const [recent, setRecent] = useState<string[]>(() => { try { const v = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 10) : []; } catch { return []; } });
+  const [suggestions, setSuggestions] = useState<{ text: string; type: string }[]>([]);
+  const saveRecent = (list: string[]) => { setRecent(list); try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch { /* 저장 불가 환경 */ } };
+  const rememberQuery = (q: string) => { const v = q.trim(); if (v.length < 2) return; saveRecent([v, ...recent.filter((x) => x !== v)].slice(0, 10)); };
+  const removeRecent = (q: string) => saveRecent(recent.filter((x) => x !== q));
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -50,10 +59,22 @@ export default function Search() {
     setLoading(true);
     setLoadError(null);
     api<SearchResult>(`/search?q=${encodeURIComponent(debounced)}`)
-      .then(setResults)
+      .then((r) => { setResults(r); rememberQuery(debounced); })
       .catch((err) => { setResults(null); setLoadError(err instanceof Error ? err.message : '검색 결과를 불러오지 못했어요.'); })
       .finally(() => setLoading(false));
   }, [debounced, retryKey]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 1) { setSuggestions([]); return; }
+    let alive = true;
+    const t = setTimeout(() => {
+      api<{ text: string; type: string }[]>(`/search/suggest?q=${encodeURIComponent(q)}`)
+        .then((list) => { if (alive) setSuggestions((list || []).filter((x) => x.text.toLowerCase() !== q.toLowerCase())); })
+        .catch(() => { if (alive) setSuggestions([]); });
+    }, 150);
+    return () => { alive = false; clearTimeout(t); };
+  }, [query]);
 
   const hasResults = results && (results.products.length > 0 || results.posts.length > 0 || results.shops.length > 0);
 
@@ -76,6 +97,35 @@ export default function Search() {
           <button onClick={() => { setQuery(''); setResults(null); }} aria-label="지우기" className="text-gray-500 hover:text-gray-500"><CloseIcon size={16} /></button>
         )}
       </div>
+
+      {/* 추천 검색어 — 입력 중일 때 매장·매물·리조트 이름에서 (탭하면 그 이름으로 검색) */}
+      {query.trim() && suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {suggestions.map((sg) => (
+            <button key={`${sg.type}:${sg.text}`} type="button" onClick={() => setQuery(sg.text)} className="min-h-9 px-3 rounded-full border border-gray-200 bg-white text-xs text-gray-800 hover:bg-gray-50">
+              {sg.text}<span className="text-gray-500 ml-1">{SUGGEST_LABEL[sg.type] || ''}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 최근 검색어 — 입력 전 (이 기기에만 저장) */}
+      {!query.trim() && recent.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-gray-900">최근 검색어</p>
+            <button type="button" onClick={() => saveRecent([])} className="text-[11px] text-gray-500 hover:text-gray-900">모두 지우기</button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {recent.map((r) => (
+              <span key={r} className="inline-flex items-center rounded-full border border-gray-200 bg-white text-xs text-gray-800">
+                <button type="button" onClick={() => setQuery(r)} className="min-h-9 pl-3 pr-1">{r}</button>
+                <button type="button" onClick={() => removeRecent(r)} aria-label={`${r} 지우기`} className="min-h-9 pr-2 pl-1 text-gray-500 hover:text-gray-900"><CloseIcon size={12} /></button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 검색 전 안내 */}
       {!debounced && !loading && (

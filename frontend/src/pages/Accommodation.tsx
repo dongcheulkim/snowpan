@@ -208,7 +208,7 @@ const Accommodation = () => {
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : (
         <div className="text-center py-12 px-6 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/>
             </svg>

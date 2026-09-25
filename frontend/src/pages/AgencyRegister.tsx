@@ -81,7 +81,7 @@ export default function AgencyRegister() {
           <div className="text-sm font-bold text-gray-900 mb-1.5">사업자등록증 *</div>
           <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], setLicense)} className="text-xs" />
           {license && <p className="text-[11px] text-mint mt-1">사업자등록증 첨부 완료</p>}
-          <p className="text-[10px] text-gray-400 mt-1">본인 확인용 · 비공개로 관리됩니다.</p>
+          <p className="text-[10px] text-gray-500 mt-1">본인 확인용 · 비공개로 관리됩니다.</p>
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export default function AgencyRegister() {
         <div className="space-y-3">
           {groups.map((g) => (
             <div key={g.c}>
-              <div className="text-[11px] font-bold text-gray-400 mb-1">{g.c}</div>
+              <div className="text-[11px] font-bold text-gray-500 mb-1">{g.c}</div>
               <div className="flex flex-wrap gap-1.5">
                 {g.list.map((r) => (
                   <button key={r.slug} onClick={() => toggle(r.slug)} className={`px-2.5 py-1 rounded-full text-xs font-bold ${slugs.includes(r.slug) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>

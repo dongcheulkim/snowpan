@@ -124,7 +124,7 @@ export default function ShopNewsPage() {
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-600 border border-sky-200 flex-shrink-0">{SHOP_TYPE_LABEL[n.shopType]}</span>
                     )}
                     <span className="text-[11px] font-bold text-gray-500 truncate">{n.shopName}</span>
-                    <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">{formatDate(n.createdAt)}</span>
+                    <span className="text-[10px] text-gray-500 ml-auto flex-shrink-0">{formatDate(n.createdAt)}</span>
                   </div>
                   <p className="text-sm font-bold text-gray-900 mt-1.5 line-clamp-1">{n.title}</p>
                   <p className="text-[12px] text-gray-500 mt-0.5 line-clamp-2 leading-snug">{n.content}</p>

@@ -137,7 +137,7 @@ function DomesticCard({ r, temp }: { r: Resort; temp: number | null }) {
       {r.liftPrice ? (
         <p className="text-[11px] font-bold text-gray-900 mt-1 px-0.5 line-clamp-1">{r.liftPrice}</p>
       ) : (
-        <p className="text-[11px] text-gray-400 mt-1 px-0.5 line-clamp-1">{r.nightSki ? '야간 운영' : '주간 운영'}{r.season ? ` · ${r.season}` : ''}</p>
+        <p className="text-[11px] text-gray-500 mt-1 px-0.5 line-clamp-1">{r.nightSki ? '야간 운영' : '주간 운영'}{r.season ? ` · ${r.season}` : ''}</p>
       )}
     </div>
   );
@@ -248,7 +248,7 @@ export default function Overseas() {
         {/* 광고 배너 — 다른 카테고리와 같이 제목 바로 아래 (사장님 요청 2026-09-14) */}
         <div className="mt-3"><CategoryAdBanner category="overseas" /></div>
         <div className="relative mt-3">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input

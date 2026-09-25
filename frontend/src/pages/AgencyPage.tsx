@@ -60,7 +60,7 @@ export default function AgencyPage() {
         ) : a.description ? (
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{a.description}</p>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-6">소개글이 아직 없어요.</p>
+          <p className="text-sm text-gray-500 text-center py-6">소개글이 아직 없어요.</p>
         )}
       </div>
 

@@ -396,7 +396,7 @@ const UsedDetail = () => {
                     <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-1.5 py-0.5">
                       정가 대비 {Math.round((1 - product.price / product.retailPrice) * 100)}%↓
                     </span>
-                    <span className="text-xs text-gray-400 line-through">신품 {product.retailPrice.toLocaleString()}원</span>
+                    <span className="text-xs text-gray-500 line-through">신품 {product.retailPrice.toLocaleString()}원</span>
                   </span>
                 )}
                 <MarketPriceBadge subcategory={product.subcategory} brand={product.brand} price={product.price} variant="badge" />
@@ -530,7 +530,7 @@ const UsedDetail = () => {
                   sellerRating.count > 0 ? (
                     <div className="text-[11px] text-gold font-bold mt-0.5">★ {sellerRating.avg.toFixed(1)} <span className="text-gray-500 font-medium">· 후기 {sellerRating.count}</span></div>
                   ) : (
-                    <div className="text-[10px] text-gray-400 mt-0.5">신규 판매자</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">신규 판매자</div>
                   )
                 )}
               </div>
@@ -649,7 +649,7 @@ const UsedDetail = () => {
         <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 bg-snow/95 backdrop-blur border-t border-gray-200 px-4 py-2.5 animate-fade-in-up">
           <div className="max-w-4xl mx-auto flex items-center gap-2.5">
             <div className="flex-shrink-0">
-              <p className="text-[11px] text-gray-400 leading-none">{product.status === 'reserved' ? '예약중' : '판매중'}</p>
+              <p className="text-[11px] text-gray-500 leading-none">{product.status === 'reserved' ? '예약중' : '판매중'}</p>
               <p className="text-base font-bold text-gray-900 leading-tight">{product.price.toLocaleString()}원</p>
             </div>
             <button

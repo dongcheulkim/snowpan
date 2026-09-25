@@ -16,7 +16,7 @@ const NotFound = () => (
       <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center text-gray-500">
         <SadIcon size={64} strokeWidth={1.4} />
       </div>
-      <p className="text-xs font-bold text-gray-400 tracking-widest mb-2">404 NOT FOUND</p>
+      <p className="text-xs font-bold text-gray-500 tracking-widest mb-2">404 NOT FOUND</p>
       <h1 className="text-2xl font-bold text-gray-900 mb-2">페이지를 찾을 수 없습니다</h1>
       <p className="text-sm text-gray-500">
         링크가 만료되었거나 주소가 잘못되었을 수 있어요.

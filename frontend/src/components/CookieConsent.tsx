@@ -55,7 +55,7 @@ export default function CookieConsent() {
       <div className="bg-white border-t border-gray-200 md:border md:rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3">
         <p id="cookie-desc" className="flex-1 text-[11px] text-gray-600 leading-tight">
           <span id="cookie-title" className="font-bold text-gray-900">쿠키 사용 안내</span> · 로그인 유지와 방문 통계에만 쓰고 광고 추적에는 쓰지 않아요.{' '}
-          <Link to="/privacy" className="text-sky-600 underline">자세히</Link>
+          <Link to="/privacy" aria-label="개인정보처리방침 자세히 보기" className="text-sky-600 underline">자세히</Link>
         </p>
         <button
           onClick={() => accept('essential')}

@@ -103,7 +103,7 @@ export default function ResortReviews({ resortId }: { resortId: string }) {
   return (
     <section className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-gray-900">스키장 후기 {count > 0 && <span className="text-gray-400 font-normal">({count})</span>}</h2>
+        <h2 className="text-sm font-bold text-gray-900">스키장 후기 {count > 0 && <span className="text-gray-500 font-normal">({count})</span>}</h2>
         {count > 0 && (
           <span className="inline-flex items-center gap-1.5">
             <Stars value={Math.round(avg)} />
@@ -136,7 +136,7 @@ export default function ResortReviews({ resortId }: { resortId: string }) {
             className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400 resize-none"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-gray-400 tabular-nums">{content.length}/{CONTENT_MAX}</span>
+            <span className="text-[11px] text-gray-500 tabular-nums">{content.length}/{CONTENT_MAX}</span>
             <div className="flex gap-2">
               {myReview && (
                 <button type="button" onClick={() => { setEditing(false); setRating(myReview.rating); setContent(myReview.content); }} className="px-3 py-2 text-xs font-bold text-gray-500 border border-gray-200 rounded-lg">취소</button>
@@ -156,7 +156,7 @@ export default function ResortReviews({ resortId }: { resortId: string }) {
             </span>
             <div className="flex gap-2">
               <button type="button" onClick={() => setEditing(true)} className="text-[11px] font-bold text-gray-600">수정</button>
-              <button type="button" onClick={removeMine} disabled={busy} className="text-[11px] font-bold text-gray-400 hover:text-red-400 disabled:opacity-40">삭제</button>
+              <button type="button" onClick={removeMine} disabled={busy} className="text-[11px] font-bold text-gray-500 hover:text-red-400 disabled:opacity-40">삭제</button>
             </div>
           </div>
           <p className="text-sm text-gray-800 mt-1 leading-relaxed whitespace-pre-wrap">{myReview.content}</p>
@@ -165,7 +165,7 @@ export default function ResortReviews({ resortId }: { resortId: string }) {
 
       {/* 목록 */}
       {loading && !data ? (
-        <p className="text-sm text-gray-400 text-center py-4">불러오는 중...</p>
+        <p className="text-sm text-gray-500 text-center py-4">불러오는 중...</p>
       ) : count === 0 ? (
         <p className="text-sm text-gray-500 text-center py-6">아직 후기가 없어요. 첫 후기를 남겨보세요.</p>
       ) : (
@@ -178,9 +178,9 @@ export default function ResortReviews({ resortId }: { resortId: string }) {
                   <span className="text-xs font-medium text-gray-700">{r.user?.name || '스노우판 회원'}</span>
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-[11px] text-gray-400">{fmtDate(r.createdAt)}</span>
+                  <span className="text-[11px] text-gray-500">{fmtDate(r.createdAt)}</span>
                   {user?.role === 'admin' && r.user && r.user.id !== user.id && (
-                    <button type="button" onClick={() => removeByAdmin(r.user!.id)} disabled={busy} className="text-[11px] text-gray-400 hover:text-red-400 disabled:opacity-40">삭제</button>
+                    <button type="button" onClick={() => removeByAdmin(r.user!.id)} disabled={busy} className="text-[11px] text-gray-500 hover:text-red-400 disabled:opacity-40">삭제</button>
                   )}
                 </span>
               </div>

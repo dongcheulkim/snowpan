@@ -163,7 +163,7 @@ const Rental = () => {
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : (
         <div className="text-center py-12 px-6 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 7l3-4h12l3 4M3 7v13h18V7M3 7h18M9 11h6"/>
             </svg>

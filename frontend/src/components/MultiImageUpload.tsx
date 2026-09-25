@@ -38,14 +38,14 @@ export default function MultiImageUpload({ value, onChange, max = 8 }: { value: 
           </div>
         ))}
         {urls.length < max && (
-          <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-gray-400">
+          <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:border-gray-400">
             <span className="text-2xl leading-none">+</span>
             <span className="text-[10px] mt-1">{uploading ? '업로드중' : '사진'}</span>
             <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={(e) => e.target.files && add(e.target.files)} />
           </label>
         )}
       </div>
-      <p className="text-[10px] text-gray-400 mt-1">최대 {max}장 · 첫 번째 사진이 대표로 노출돼요</p>
+      <p className="text-[10px] text-gray-500 mt-1">최대 {max}장 · 첫 번째 사진이 대표로 노출돼요</p>
     </div>
   );
 }

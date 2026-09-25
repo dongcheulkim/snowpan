@@ -147,7 +147,7 @@ const EditProfile = () => {
             <button
               type="button"
               onClick={() => { setProfilePreview(null); setProfileFile(null); setForm(f => ({ ...f, profileImage: '' })); }}
-              className="text-xs text-gray-400 underline underline-offset-2 hover:text-coral"
+              className="text-xs text-gray-500 underline underline-offset-2 hover:text-coral"
             >사진 삭제</button>
           )}
         </div>
@@ -216,7 +216,7 @@ const EditProfile = () => {
           {badgeSubmitting ? '인증 요청 중...' : '자격증 사진 올려 인증받기'}
           <input type="file" accept="image/*" className="hidden" disabled={badgeSubmitting} onChange={handleBadgeUpload} />
         </label>
-        <p className="text-[10px] text-gray-400 text-center">사진을 올리면 관리자가 확인 후 뱃지를 달아드려요.</p>
+        <p className="text-[10px] text-gray-500 text-center">사진을 올리면 관리자가 확인 후 뱃지를 달아드려요.</p>
       </div>
 
       <button onClick={handleSubmit} disabled={loading} className="w-full py-3.5 bg-accent text-white rounded-xl font-bold text-sm transition-colors active:scale-[0.98] disabled:opacity-50">

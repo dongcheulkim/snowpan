@@ -98,7 +98,7 @@ export default function NewEquipment() {
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : shops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><SkiShopIcon size={44} /></div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SkiShopIcon size={44} /></div>
           <h3 className="text-base font-bold text-gray-900 mb-1.5">
             {selectedArea !== 'all' || selectedResort !== 'all' ? '이 지역엔 아직 스키·보드샵이 없어요' : '아직 등록된 스키·보드샵이 없어요'}
           </h3>

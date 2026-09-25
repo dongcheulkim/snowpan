@@ -67,7 +67,7 @@ export default function PartnerFind() {
           <button type="submit" disabled={busy} className="px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-bold disabled:opacity-40">{busy ? '검색 중' : '찾기'}</button>
         </div>
         {error && <p className="text-xs text-coral">{error}</p>}
-        <p className="text-[11px] text-gray-400">네이버에 올라온 상호와 조금 다를 수 있으니 짧게(두세 글자) 검색해 보세요.</p>
+        <p className="text-[11px] text-gray-500">네이버에 올라온 상호와 조금 다를 수 있으니 짧게(두세 글자) 검색해 보세요.</p>
       </form>
 
       {hits && (
@@ -93,7 +93,7 @@ export default function PartnerFind() {
                   이미 다른 계정이 관리 중인 매장입니다. 내 매장이 맞다면 <Link to="/mypage/support" className="underline text-gray-700">고객센터 채팅</Link>으로 알려주세요.
                 </p>
               )}
-              <Link to={`${KIND_PATH[h.kind]}/${h.id}`} className="block text-[11px] text-gray-400 underline underline-offset-2">매장 페이지 보기</Link>
+              <Link to={`${KIND_PATH[h.kind]}/${h.id}`} className="block text-[11px] text-gray-500 underline underline-offset-2">매장 페이지 보기</Link>
             </div>
           ))}
         </div>

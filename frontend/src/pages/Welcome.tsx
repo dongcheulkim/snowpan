@@ -89,7 +89,7 @@ const Welcome = () => {
             {!charsOk ? (
               <p className="text-xs text-coral mt-1.5">한글·영문·숫자만 사용할 수 있어요. (특수문자·공백 불가)</p>
             ) : (
-              <p className="text-xs text-gray-400 mt-1.5">한글·영문·숫자 2~20자, 스노우판에서 표시되는 이름이에요.</p>
+              <p className="text-xs text-gray-500 mt-1.5">한글·영문·숫자 2~20자, 스노우판에서 표시되는 이름이에요.</p>
             )}
           </div>
 

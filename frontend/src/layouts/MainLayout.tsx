@@ -97,7 +97,7 @@ const MainLayout = () => {
         <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
           <Outlet />
           {/* 푸터 — 링크만 (사업자 정보 상시 표시는 토스 심사용이었고 심사 거절로 접음. 사업자정보는 /about 에 유지: 전자상거래법 표시는 링크 도달로 충족) */}
-          <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-400">
+          <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-500">
             <p>
               <Link to="/about" className="underline underline-offset-2 hover:text-gray-600">사업자정보</Link>
               <span className="mx-1.5">·</span>

@@ -796,6 +796,7 @@ model ShopReview {
   content   String
   ownerReply     String?   // 사장님 답글 (2026-09-22)
   ownerRepliedAt DateTime?
+  images         String?   // 리뷰 사진 (콤마 구분, 최대 3장, 2026-09-25)
   createdAt DateTime @default(now())
 
   @@unique([shopType, shopId, userId]) // 매장별 1인 1리뷰 — 조작 방지 핵심

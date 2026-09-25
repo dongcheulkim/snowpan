@@ -40,7 +40,7 @@ export default function Partners() {
   return (
     <div className="max-w-md mx-auto space-y-6 animate-fade-in">
       <header className="text-center pt-2">
-        <p className="text-[10px] font-bold tracking-widest text-gray-400">SNOWPAN PARTNERS</p>
+        <p className="text-[10px] font-bold tracking-widest text-gray-500">SNOWPAN PARTNERS</p>
         <h1 className="text-2xl font-bold text-gray-900 mt-1">사장님 입점 안내</h1>
         <p className="text-sm text-gray-500 mt-2">
           스키·보드샵 · 정비샵 · 렌탈샵 · 레슨 · 숙소<br />등록부터 노출까지 무료입니다.

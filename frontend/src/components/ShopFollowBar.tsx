@@ -52,7 +52,7 @@ export default function ShopFollowBar({ shopType, shopId }: { shopType: string; 
           <p className="text-[11px] text-gray-500 text-right">{stat.label}{stat.replyRate != null ? ` · 답장률 ${stat.replyRate}%` : ''}</p>
         )}
       </div>
-      {!status.following && <p className="text-[10px] text-gray-400">찜하면 이 매장의 소식과 이벤트 알림을 받아요.</p>}
+      {!status.following && <p className="text-[10px] text-gray-500">찜하면 이 매장의 소식과 이벤트 알림을 받아요.</p>}
     </div>
   );
 }

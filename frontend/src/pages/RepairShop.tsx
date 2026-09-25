@@ -118,7 +118,7 @@ export default function RepairShop() {
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : shownShops.length === 0 ? (
         <div className="text-center py-16 px-6 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400"><MaintenanceIcon size={44} /></div>
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><MaintenanceIcon size={44} /></div>
           {selectedService !== 'all' ? (
             <>
               <h3 className="text-base font-bold text-gray-900 mb-1.5">조건에 맞는 {vertical.pageLabels?.repair || '정비샵'}이 없어요</h3>

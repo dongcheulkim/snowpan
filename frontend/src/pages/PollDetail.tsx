@@ -246,7 +246,7 @@ const PollDetail = () => {
               </div>
             </div>
           ))}
-          {comments.length === 0 && <p className="text-xs text-gray-400 text-center py-3">첫 댓글을 남겨보세요.</p>}
+          {comments.length === 0 && <p className="text-xs text-gray-500 text-center py-3">첫 댓글을 남겨보세요.</p>}
         </div>
         {user ? (
           <div className="flex gap-2 mt-5 pt-4 border-t border-gray-200">

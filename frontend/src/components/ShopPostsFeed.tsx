@@ -54,7 +54,7 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
   if (posts === null) {
     return (
       <div className="pt-6">
-        <p className="text-xs text-gray-400 text-center py-4">불러오는 중…</p>
+        <p className="text-xs text-gray-500 text-center py-4">불러오는 중…</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
                       </div>
                       <p className="text-sm font-bold text-gray-900 mt-1 line-clamp-1">{p.title}</p>
                       <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2 leading-snug">{p.content}</p>
-                      <p className="text-[10px] text-gray-400 mt-1.5">
+                      <p className="text-[10px] text-gray-500 mt-1.5">
                         {new Date(p.createdAt).toLocaleDateString('ko-KR')} · 조회 {p.viewCount}
                       </p>
                     </div>

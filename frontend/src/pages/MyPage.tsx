@@ -237,9 +237,9 @@ const MyPage = () => {
                 ) : !m.on && m.canLink ? (
                   <button onClick={() => (m.id === 'kakao' ? linkKakao() : doLinkApple())} disabled={linking !== null} className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-bold disabled:opacity-50">{linking === m.id ? '연결 중...' : '연결하기'}</button>
                 ) : !m.on && m.id === 'apple' ? (
-                  <span className="text-[11px] text-gray-400">아이폰 앱에서 연결</span>
+                  <span className="text-[11px] text-gray-500">아이폰 앱에서 연결</span>
                 ) : !m.on && m.id === 'email' ? (
-                  <span className="text-[11px] text-gray-400">소셜 전용</span>
+                  <span className="text-[11px] text-gray-500">소셜 전용</span>
                 ) : null}
               </li>
             ))}
@@ -256,7 +256,7 @@ const MyPage = () => {
               등록하신 매장을 확인하고 있어요. 승인되면 매장 관리가 열려요.
             </div>
           </div>
-          <span className="text-gray-400 text-lg">›</span>
+          <span className="text-gray-500 text-lg">›</span>
         </Link>
       )}
 

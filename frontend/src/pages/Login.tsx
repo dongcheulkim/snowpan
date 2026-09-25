@@ -162,7 +162,7 @@ const Login = () => {
           )}
         </div>
 
-        <p className="mt-4 text-center text-xs text-gray-400">처음이신가요? {showApple ? '카카오나 Apple로 바로 가입돼요.' : '카카오로 바로 가입돼요.'}</p>
+        <p className="mt-4 text-center text-xs text-gray-500">처음이신가요? {showApple ? '카카오나 Apple로 바로 가입돼요.' : '카카오로 바로 가입돼요.'}</p>
 
         {error && !showEmail && (
           <div className="mt-4 text-xs text-coral bg-coral/10 border border-coral/20 rounded-lg px-3 py-2">{error}</div>
@@ -172,7 +172,7 @@ const Login = () => {
         <div className="mt-6">
           {!showEmail ? (
             <div className="text-center">
-              <button type="button" onClick={() => setShowEmail(true)} className="text-xs text-gray-400 underline underline-offset-4 hover:text-gray-600">
+              <button type="button" onClick={() => setShowEmail(true)} className="text-xs text-gray-500 underline underline-offset-4 hover:text-gray-600">
                 이메일로 로그인
               </button>
             </div>
@@ -201,7 +201,7 @@ const Login = () => {
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
                     aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 min-w-11 min-h-11 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 min-w-11 min-h-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {showPassword ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -173,7 +173,7 @@ export default function AgencyManage() {
                 <button onClick={startPayment} disabled={paying} className="w-full py-2.5 bg-accent text-white rounded-lg text-sm font-bold disabled:opacity-50">
                   {paying ? '결제 진행 중...' : `${estAmount.toLocaleString()}원 결제하기`}
                 </button>
-                <p className="text-[10px] text-gray-400 mt-1 text-center">토스페이먼츠 안전 결제</p>
+                <p className="text-[10px] text-gray-500 mt-1 text-center">토스페이먼츠 안전 결제</p>
               </div>
             )}
           </div>

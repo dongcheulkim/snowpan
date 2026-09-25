@@ -141,7 +141,7 @@ function Card({ title, onClose, children }: { title: string; onClose: () => void
         <button
           onClick={onClose}
           aria-label="닫기"
-          className="absolute top-2 right-2 w-9 h-9 inline-flex items-center justify-center text-gray-400 hover:text-gray-700"
+          className="absolute top-2 right-2 w-9 h-9 inline-flex items-center justify-center text-gray-500 hover:text-gray-700"
         >
           <CloseIcon size={16} />
         </button>

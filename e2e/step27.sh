@@ -58,6 +58,12 @@ api GET "/shop-follows/mine" "" "$CUST2"; [ "$(echo "$RESP" | jq -r "[.[] | sele
 
 # 사장님 현황에 찜 수
 api GET /owner/summary "" "$OWNER"; [ "$(echo "$RESP" | jq -r "[.shops[] | select(.shopId==\"$RENTAL\")][0].followers")" = "2" ] && ok "현황 매장별 찜 2" || bad "현황 찜 수=$(echo "$RESP" | jq -r "[.shops[] | select(.shopId==\"$RENTAL\")][0].followers")"
+# 리뷰 사진 (2026-09-25): 최대 3장, 허용된 주소만, 목록에 images 포함
+api POST /shop-reviews "{\"shopType\":\"rental\",\"shopId\":\"$RENTAL\",\"rating\":5,\"content\":\"사진 리뷰예요 좋아요\",\"images\":\"/uploads/e2e.jpg,/uploads/e2e2.jpg\"}" "$CUST2"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.images // .review.images // empty')" != "" ] && ok "사진 2장 리뷰 201" || bad "사진 리뷰 CODE=$CODE RESP=$(echo $RESP | head -c 150)"
+api GET "/shop-reviews?shopType=rental&shopId=$RENTAL" ""; [ "$(echo "$RESP" | jq -r '[.reviews[] | select(.images != null)] | length')" = "1" ] && [ "$(echo "$RESP" | jq -r '[.reviews[] | select(.images != null)][0].images')" = "/uploads/e2e.jpg,/uploads/e2e2.jpg" ] && ok "리뷰 목록에 사진 주소" || bad "목록 images $(echo "$RESP" | jq -c '[.reviews[].images]')"
+api POST /shop-reviews "{\"shopType\":\"rental\",\"shopId\":\"$RENTAL\",\"rating\":4,\"content\":\"사진 네 장 리뷰\",\"images\":[\"/uploads/1.jpg\",\"/uploads/2.jpg\",\"/uploads/3.jpg\",\"/uploads/4.jpg\"]}" "$STAFF"; [ "$CODE" = "400" ] && ok "사진 4장 → 400" || bad "4장 CODE=$CODE"
+api POST /shop-reviews "{\"shopType\":\"rental\",\"shopId\":\"$RENTAL\",\"rating\":4,\"content\":\"외부 주소 리뷰\",\"images\":\"https://evil.example/x.jpg\"}" "$STAFF"; [ "$CODE" = "400" ] && ok "외부 이미지 주소 → 400" || bad "외부 주소 CODE=$CODE"
+
 # 매장을 지우면 찜·직원·답장 문구·답장 속도 행이 같이 정리된다
 api POST "/shop-replies/shops/rental/$RENTAL" '{"text":"정리 검사용 문구"}' "$OWNER"
 api DELETE "/rentals/$RENTAL" "" "$OWNER"; [ "$CODE" = "200" ] && ok "렌탈 삭제" || bad "렌탈 삭제 CODE=$CODE"; sleep 1

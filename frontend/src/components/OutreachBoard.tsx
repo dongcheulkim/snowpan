@@ -255,7 +255,7 @@ export default function OutreachBoard() {
       {/* 통화 스크립트 · 문자 템플릿 */}
       <details className="card">
         <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-gray-900 list-none flex items-center justify-between">
-          통화 스크립트 · 문자 템플릿 <span className="text-[11px] font-medium text-gray-400">펼치기 / 접기</span>
+          통화 스크립트 · 문자 템플릿 <span className="text-[11px] font-medium text-gray-500">펼치기 / 접기</span>
         </summary>
         <div className="px-4 pb-4 space-y-3">
           <div>
@@ -265,7 +265,7 @@ export default function OutreachBoard() {
           <div>
             <p className="text-[11px] font-bold text-gray-500 mb-1">문자 템플릿 (매장별 "문자 복사"를 누르면 상호·링크가 자동으로 들어갑니다)</p>
             <textarea value={tplDraft} onChange={(e) => setTplDraft(e.target.value)} onBlur={saveTemplate} rows={6} spellCheck={false} className="w-full px-3 py-2 bg-snow border border-gray-200 rounded-lg text-xs text-gray-900 leading-relaxed focus:outline-none focus:border-gray-400 resize-y" />
-            <p className="text-[11px] text-gray-400 mt-1">자리표시자: {'{상호} {링크} {리조트}'}. 칸을 벗어나면 저장됩니다.</p>
+            <p className="text-[11px] text-gray-500 mt-1">자리표시자: {'{상호} {링크} {리조트}'}. 칸을 벗어나면 저장됩니다.</p>
           </div>
           <ul className="text-xs text-gray-700 leading-relaxed list-disc pl-4 space-y-0.5">
             <li>리조트 한 곳씩 끝내기. 곤지암 → 지산 → 비발디 → 휘닉스 → 용평·알펜시아 → 하이원 → 무주 순으로, 리뷰 많은 매장부터.</li>
@@ -285,14 +285,14 @@ export default function OutreachBoard() {
           return (
             <section key={g.key} className="card overflow-hidden">
               <button onClick={() => toggle(g.key)} aria-expanded={isOpen} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                <span className="flex-1 text-sm font-bold text-gray-900">{g.name} <span className="text-[11px] font-medium text-gray-400 ml-1">{g.hint}</span></span>
+                <span className="flex-1 text-sm font-bold text-gray-900">{g.name} <span className="text-[11px] font-medium text-gray-500 ml-1">{g.hint}</span></span>
                 <ProgressBar shops={rows} className="w-16" />
                 <span className="text-[11px] text-gray-500 tabular-nums whitespace-nowrap"><b className="text-gray-900">{doneN}</b>/{rows.length}</span>
-                <svg className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+                <svg className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
               </button>
               {isOpen && (
                 <div className="border-t border-gray-100">
-                  {rows.length === 0 && <div className="px-4 py-6 text-center text-xs text-gray-400">해당하는 매장이 없습니다</div>}
+                  {rows.length === 0 && <div className="px-4 py-6 text-center text-xs text-gray-500">해당하는 매장이 없습니다</div>}
                   {rows.map((s, i) => {
                     const st = effStatus(s);
                     const extra = s.extraKinds.split(',').map((x) => x.trim()).filter((x): x is BoardKind => x in KIND_LABEL && x !== s.kind);
@@ -300,11 +300,11 @@ export default function OutreachBoard() {
                     return (
                       <div key={`${s.kind}:${s.id}`} className={`px-4 py-3 border-b border-gray-100 last:border-b-0 border-l-[3px] ${border} space-y-2`}>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] text-gray-400 tabular-nums w-5">{i + 1}</span>
+                          <span className="text-[11px] text-gray-500 tabular-nums w-5">{i + 1}</span>
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${KIND_CLS[s.kind]}`}>{KIND_LABEL[s.kind]}</span>
-                          <span className={`text-sm font-bold ${st === 'del' ? 'line-through text-gray-400' : 'text-gray-900'}`}>{s.name}</span>
+                          <span className={`text-sm font-bold ${st === 'del' ? 'line-through text-gray-500' : 'text-gray-900'}`}>{s.name}</span>
                           {extra.map((k) => <span key={k} className="text-[10px] font-semibold px-1.5 py-0.5 rounded border border-dashed border-gray-300 text-gray-500">+{KIND_LABEL[k]}</span>)}
-                          <span className={`text-[11px] tabular-nums ${s.priority >= 100 ? 'text-amber-700 font-bold' : 'text-gray-400'}`}>리뷰 {s.priority}</span>
+                          <span className={`text-[11px] tabular-nums ${s.priority >= 100 ? 'text-amber-700 font-bold' : 'text-gray-500'}`}>리뷰 {s.priority}</span>
                           {s.owner && s.kind !== 'lesson' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">사장님 등록 완료</span>}
                           {s.kind === 'lesson' && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.approved ? 'bg-emerald-50 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>{s.approved ? '공개 중' : '승인 대기'}</span>}
                           {s.kind === 'lesson' && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${s.providerType === 'freelance' ? 'bg-amber-100 text-amber-800' : s.providerType === 'business' ? 'bg-sky-50 text-sky-700' : 'bg-gray-100 text-gray-500'}`}>{s.providerType === 'freelance' ? '개인 강사' : s.providerType === 'business' ? '스키학교·샵' : '소속 미선택'}</span>}
@@ -321,7 +321,7 @@ export default function OutreachBoard() {
                           {s.phone ? (
                             <a href={`tel:${s.phone.replace(/[^0-9+]/g, '')}`} className="px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold tabular-nums">전화 {s.phone}</a>
                           ) : (
-                            <span className="px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold">전화번호 없음</span>
+                            <span className="px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold">전화번호 없음</span>
                           )}
                           {s.naver && <button onClick={() => openExternal(s.naver)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">네이버</button>}
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}`} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">스노우판</Link>
@@ -343,7 +343,7 @@ export default function OutreachBoard() {
                               {STATUS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
                             </select>
                             <MemoInput value={s.memo} onSave={(memo) => save(s, { memo })} />
-                            <span className="text-[11px] text-gray-400 tabular-nums whitespace-nowrap">{fmtWhen(s.updatedAt)}</span>
+                            <span className="text-[11px] text-gray-500 tabular-nums whitespace-nowrap">{fmtWhen(s.updatedAt)}</span>
                           </div>
                         )}
                       </div>

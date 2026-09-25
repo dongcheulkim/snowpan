@@ -76,7 +76,7 @@ export default function AdminResortsPanel() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-400 text-center py-4">불러오는 중...</p>
+        <p className="text-sm text-gray-500 text-center py-4">불러오는 중...</p>
       ) : rows.length === 0 ? (
         <p className="text-sm text-gray-500 text-center py-4">등록된 리조트가 없어요.</p>
       ) : (
@@ -87,7 +87,7 @@ export default function AdminResortsPanel() {
             return (
               <div key={r.id} className="p-3 bg-gray-50 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-gray-900 truncate">{r.name}{r.location ? <span className="text-xs text-gray-400 font-normal ml-1.5">{r.location}</span> : null}</p>
+                  <p className="text-sm font-bold text-gray-900 truncate">{r.name}{r.location ? <span className="text-xs text-gray-500 font-normal ml-1.5">{r.location}</span> : null}</p>
                   <button
                     type="button"
                     onClick={() => save(r)}

@@ -310,7 +310,7 @@ const UsedEdit = () => {
 
           {/* 신품 정가 (선택) */}
           <div>
-            <label className={labelClass}>신품 정가 (원) <span className="text-gray-400 font-normal">· 선택</span></label>
+            <label className={labelClass}>신품 정가 (원) <span className="text-gray-500 font-normal">· 선택</span></label>
             <input type="text" inputMode="numeric" value={form.retailPrice ? Number(form.retailPrice).toLocaleString() : ''} onChange={e => setForm({ ...form, retailPrice: e.target.value.replace(/[^0-9]/g, '') })} placeholder="예: 900,000" className={inputClass} />
           </div>
 

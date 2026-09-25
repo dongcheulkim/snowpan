@@ -77,7 +77,7 @@ export default function AdPay() {
     }
   };
 
-  if (loading) return <div className="max-w-md mx-auto py-20 text-center text-sm text-gray-400">불러오는 중...</div>;
+  if (loading) return <div className="max-w-md mx-auto py-20 text-center text-sm text-gray-500">불러오는 중...</div>;
   if (!info) return <div className="max-w-md mx-auto py-20 text-center text-sm text-gray-500">결제할 예약을 찾을 수 없어요.</div>;
 
   if (!TOSS_CLIENT_KEY) {

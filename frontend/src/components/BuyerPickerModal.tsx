@@ -69,7 +69,7 @@ export default function BuyerPickerModal({ productId, productName, onPick, onClo
             <h3 id="buyer-picker-title" className="text-lg font-bold text-gray-900">누구에게 판매했나요?</h3>
             <p className="text-xs text-gray-500 mt-1 truncate">{productName}</p>
           </div>
-          <button type="button" onClick={onClose} disabled={busy} aria-label="닫기" className="p-1 -mr-1 text-gray-400 hover:text-gray-600 disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={busy} aria-label="닫기" className="p-1 -mr-1 text-gray-500 hover:text-gray-600 disabled:opacity-50">
             <CloseIcon size={20} />
           </button>
         </div>
@@ -118,7 +118,7 @@ export default function BuyerPickerModal({ productId, productName, onPick, onClo
                       {c.profileImage ? (
                         <img src={imageUrl(c.profileImage, 80)} alt="" className="w-10 h-10 rounded-full object-cover bg-gray-100 flex-shrink-0" loading="lazy" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center flex-shrink-0"><UserIcon size={20} /></div>
+                        <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center flex-shrink-0"><UserIcon size={20} /></div>
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-gray-900 truncate">{c.name}</p>

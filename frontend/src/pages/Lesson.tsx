@@ -215,7 +215,7 @@ const Lesson = () => {
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
       ) : (
         <div className="text-center py-12 px-6 card">
-          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-400">
+          <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="7" r="3"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/>
             </svg>

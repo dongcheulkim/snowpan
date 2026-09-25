@@ -650,7 +650,7 @@ export default function AdBooking() {
                     </div>
                     <div className="text-right">
                       {dc > 0 && (
-                        <div className="text-xs text-gray-400 line-through">{formatPrice(base)}원</div>
+                        <div className="text-xs text-gray-500 line-through">{formatPrice(base)}원</div>
                       )}
                       <div className="text-sky-600 font-bold text-lg">{formatPrice(price)}원</div>
                     </div>
@@ -662,7 +662,7 @@ export default function AdBooking() {
 
           {/* 희망 시작일 (선택) */}
           <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <label className="text-sm font-medium text-gray-600">시작일 <span className="text-xs text-gray-400">(선택)</span></label>
+            <label className="text-sm font-medium text-gray-600">시작일 <span className="text-xs text-gray-500">(선택)</span></label>
             <input
               type="date"
               value={desiredStart}
@@ -708,7 +708,7 @@ export default function AdBooking() {
           <h2 className="text-lg font-bold mb-2">광고 내용 작성</h2>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">광고 제목 <span className="text-xs text-gray-400 font-normal">(이미지 광고면 생략 가능)</span></label>
+            <label className="text-sm font-medium text-gray-600">광고 제목 <span className="text-xs text-gray-500 font-normal">(이미지 광고면 생략 가능)</span></label>
             <input
               type="text"
               value={title}
@@ -719,7 +719,7 @@ export default function AdBooking() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">광고 설명 <span className="text-xs text-gray-400 font-normal">(이미지 광고면 생략 가능)</span></label>
+            <label className="text-sm font-medium text-gray-600">광고 설명 <span className="text-xs text-gray-500 font-normal">(이미지 광고면 생략 가능)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -779,7 +779,7 @@ export default function AdBooking() {
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com"
                   disabled={noUrl || (!!editAd && editAd.status === 'active')}
-                  className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full mt-1 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-sky-400 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                 />
                 <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                   <input
@@ -802,7 +802,7 @@ export default function AdBooking() {
             <label className="text-sm font-medium text-gray-600">
               광고 이미지
               {/* 슬롯별 노출 비율이 달라 업로드 전에 권장 크기 안내 — 잘림·저화질 예방 */}
-              <span className="text-xs text-gray-400 font-normal ml-2">
+              <span className="text-xs text-gray-500 font-normal ml-2">
                 {selectedSlot === 'main_banner'
                   ? '권장 1000x800px 이상 (5:4 비율)'
                   : selectedSlot === 'category'
@@ -834,7 +834,7 @@ export default function AdBooking() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span className="text-sm text-gray-500">이미지 업로드</span>
-                  <span className="text-[11px] text-gray-400 mt-1">
+                  <span className="text-[11px] text-gray-500 mt-1">
                     {selectedSlot === 'main_banner'
                       ? '1000x800px 이상, 5:4 비율이 가장 잘 맞아요'
                       : selectedSlot === 'category'
@@ -877,7 +877,7 @@ export default function AdBooking() {
               {/* 미리보기 — 선택한 슬롯의 실제 노출 모양 그대로 (비율·AD 칩 포함) */}
               <div>
                 <label className="text-sm font-medium text-gray-600">
-                  미리보기 <span className="text-xs text-gray-400 font-normal">— 실제 노출과 동일 · 사진을 드래그해 보여줄 부분을 맞추고, 아래에서 크기를 조절하세요</span>
+                  미리보기 <span className="text-xs text-gray-500 font-normal">— 실제 노출과 동일 · 사진을 드래그해 보여줄 부분을 맞추고, 아래에서 크기를 조절하세요</span>
                 </label>
                 {selectedSlot === 'main_banner' ? (
                   /* 홈 메인 배너 — 5:4 큰 카드, AD 칩은 좌하단 (Home.tsx 와 동일) */
@@ -939,7 +939,7 @@ export default function AdBooking() {
                       </div>
                     </div>
                     {imgFocus.fit === 'contain' ? (
-                      <p className="text-[11px] text-gray-400">사진이 잘리지 않고 다 보여요. 남는 자리는 같은 사진을 흐리게 깔아 채우고, 드래그로 위치를 옮길 수 있어요.</p>
+                      <p className="text-[11px] text-gray-500">사진이 잘리지 않고 다 보여요. 남는 자리는 같은 사진을 흐리게 깔아 채우고, 드래그로 위치를 옮길 수 있어요.</p>
                     ) : (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 flex-shrink-0">사진 크기</span>
@@ -955,7 +955,7 @@ export default function AdBooking() {
                     </div>
                     )}
                     <div className="flex items-center justify-between mt-1">
-                      {imgFocus.fit === 'cover' ? <p className="text-[11px] text-gray-400">사진을 키우면 드래그로 보여줄 부분을 다시 맞춰 주세요</p> : <span />}
+                      {imgFocus.fit === 'cover' ? <p className="text-[11px] text-gray-500">사진을 키우면 드래그로 보여줄 부분을 다시 맞춰 주세요</p> : <span />}
                       {(imgFocus.scale !== 1 || imgFocus.x !== 50 || imgFocus.y !== 50 || imgFocus.fit !== 'cover') && (
                         <button type="button" onClick={() => setImgFocus({ x: 50, y: 50, scale: 1, fit: 'cover' })} className="text-[11px] text-gray-600 underline underline-offset-2">원래대로</button>
                       )}

@@ -123,6 +123,7 @@ const Home = () => {
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
   const [ig, setIg] = useState<{ posts: IgPost[]; username: string | null }>({ posts: [], username: null }); // 인스타 @snowpan.kr 최신 게시물 (서버 캐시)
+  const [igLoaded, setIgLoaded] = useState(false); // 매거진 응답 전엔 자리를 잡아 둔다 (섹션이 늦게 끼어들며 화면이 밀리던 것, Lighthouse CLS 0.14 → 2026-09-25)
   const [season, setSeason] = useState<SeasonInfo | null>(null); // 시즌 오픈 카운트다운 (실패해도 조용히 숨김)
   useEffect(() => {
     api<SeasonInfo>('/resorts/season')
@@ -231,7 +232,8 @@ const Home = () => {
       .catch(() => {});
     api<{ posts: IgPost[]; username: string | null }>('/instagram')
       .then((d) => setIg({ posts: d.posts || [], username: d.username || null }))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setIgLoaded(true));
     if (!usedFeedCache) {
       loadMoreUsed(true);
     } else {
@@ -362,7 +364,7 @@ const Home = () => {
                 style={{ backgroundColor: '#ffffff' }}
               >
                 <div className="relative z-10">
-                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1.5">SNOWPAN</p>
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mb-1.5">SNOWPAN</p>
                   <p className="text-xl font-bold text-gray-900 leading-snug">스키장 근처 매장, 한곳에서</p>
                   <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                     리조트별 렌탈샵·스키샵·정비샵·레슨·숙소와 중고 장비를 모았어요.<br />
@@ -490,7 +492,7 @@ const Home = () => {
                 className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
                 <div className="relative w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
-                  {Icon ? <Icon size={32} /> : <span className="text-[10px] font-black tracking-widest text-gray-400">{cat.id.toUpperCase().slice(0, 4)}</span>}
+                  {Icon ? <Icon size={32} /> : <span className="text-[10px] font-black tracking-widest text-gray-500">{cat.id.toUpperCase().slice(0, 4)}</span>}
                 </div>
                 <span className="text-[11px] font-medium text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
@@ -510,7 +512,7 @@ const Home = () => {
       )}
 
       {/* 스노우판 매거진 — 인스타 @snowpan.kr 최신 게시물(서버가 1시간마다 공식 API 로 수집). 누르면 인스타 게시물로. 없으면 섹션 숨김 */}
-      {isSnow && magazine.length > 0 && (
+      {isSnow && (magazine.length > 0 || !igLoaded) && (
         <div className="px-4 pt-2 pb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">스노우판 매거진</h2>
@@ -520,6 +522,12 @@ const Home = () => {
           </div>
           {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래. 2초마다 한 칸씩 자동으로 넘어가고, 손대면 멈췄다가 다시 돈다 (사용자 요청 2026-09-09) */}
           <HScroll autoScrollMs={3000} drag noArrows className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+            {!igLoaded && magazine.length === 0 && [0, 1].map((i) => (
+              <div key={`sk-${i}`} className="card overflow-hidden flex-shrink-0 w-[64%] max-w-[260px] snap-start" aria-hidden="true">
+                <div className="aspect-[4/5] bg-gray-100" />
+                <div className="p-3"><div className="h-4 bg-gray-100 rounded w-3/4" /><div className="h-3 bg-gray-100 rounded w-1/4 mt-3 ml-auto" /></div>
+              </div>
+            ))}
             {magazine.map((m) => {
               const d = new Date(m.date);
               return (
@@ -541,7 +549,7 @@ const Home = () => {
                   </div>
                   <div className="p-3">
                     <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">{m.title}</p>
-                    <span className="block text-[10px] text-gray-400 mt-2 tabular-nums text-right">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
+                    <span className="block text-[10px] text-gray-500 mt-2 tabular-nums text-right">{isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`}</span>
                   </div>
                 </button>
               );
@@ -606,7 +614,7 @@ const Home = () => {
                     )}
                     {item.title}
                   </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="text-[10px] text-gray-500 mt-0.5">
                     {item.kind === 'poll'
                       ? `투표 ${item.votes.toLocaleString()}명 · 조회 ${item.views.toLocaleString()} · 좋아요 ${item.likes}`
                       : `${POST_CAT_LABEL[item.category] || item.category} · 조회 ${item.views.toLocaleString()} · 좋아요 ${item.likes} · 댓글 ${item.comments}`}
@@ -633,7 +641,7 @@ const Home = () => {
           {news.length === 0 ? (
             <div className="bg-snow rounded-2xl border border-gray-200 p-6 text-center">
               <p className="text-sm text-gray-500">아직 올라온 매장 소식이 없어요.</p>
-              <p className="text-xs text-gray-400 mt-1.5">스키·보드샵, 렌탈샵, 레슨, 정비샵, 숙소의 프로모션 소식이 여기에 표시됩니다.</p>
+              <p className="text-xs text-gray-500 mt-1.5">스키·보드샵, 렌탈샵, 레슨, 정비샵, 숙소의 프로모션 소식이 여기에 표시됩니다.</p>
             </div>
           ) : (
           <div className="bg-snow rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">

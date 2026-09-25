@@ -101,13 +101,13 @@ export default function RecruitDetail() {
             <input value={phone} onChange={(e) => setPhone(e.target.value.slice(0, 20))} inputMode="tel" placeholder="010-0000-0000" className={inputClass} />
           </div>
           <div>
-            <label className="block text-[11px] text-gray-500 mb-1">인스타그램 <span className="text-gray-400">(선택)</span></label>
+            <label className="block text-[11px] text-gray-500 mb-1">인스타그램 <span className="text-gray-500">(선택)</span></label>
             <input value={instagram} onChange={(e) => setInstagram(e.target.value.slice(0, 40))} placeholder="@아이디" className={inputClass} />
           </div>
           <div>
-            <label className="block text-[11px] text-gray-500 mb-1">하고 싶은 말 <span className="text-gray-400">(선택)</span></label>
+            <label className="block text-[11px] text-gray-500 mb-1">하고 싶은 말 <span className="text-gray-500">(선택)</span></label>
             <textarea value={message} onChange={(e) => setMessage(e.target.value.slice(0, 500))} rows={4} maxLength={500} placeholder="경력, 타는 스타일, 활동 지역 등 자유롭게 적어 주세요." className={`${inputClass} resize-none`} />
-            <p className="text-[10px] text-gray-400 text-right mt-0.5">{message.length}/500</p>
+            <p className="text-[10px] text-gray-500 text-right mt-0.5">{message.length}/500</p>
           </div>
           <p className="text-[11px] text-gray-500">적어 주신 연락처는 이 매장 사장님과 직원만 볼 수 있어요.</p>
           <button type="button" onClick={submit} disabled={busy} className="w-full min-h-11 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors disabled:opacity-40">{busy ? '신청 중...' : '신청하기'}</button>

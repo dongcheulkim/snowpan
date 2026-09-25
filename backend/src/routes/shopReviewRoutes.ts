@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
+import { isAllowedImageUrl } from '../utils/validate';
 import { sanitizeText } from '../utils/sanitize';
 import { reviewCreateLimiter } from '../middleware/rateLimit';
 import { createNotification } from '../controllers/notificationController';
@@ -70,7 +71,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { shopType, shopId, rating, content } = req.body;
+    const { shopType, shopId, rating, content, images } = req.body;
     const noun = shopType === 'lesson' ? '레슨' : '매장'; // 레슨은 '매장'이 아니라 '레슨' 으로 안내 (2026-09-22)
     if (!SHOP_TYPES.includes(shopType) || !shopId) {
       res.status(400).json({ error: 'shopType 과 shopId 를 확인해주세요.' });
@@ -82,6 +83,12 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
       return;
     }
     const cleanContent = sanitizeText(content, 1000);
+    // 리뷰 사진 — 콤마 문자열 또는 배열, 최대 3장, 허용된 업로드 주소만 (2026-09-25)
+    const rawImages: unknown[] = Array.isArray(images) ? images : typeof images === 'string' ? images.split(',') : [];
+    const imageList = rawImages.map((u) => (typeof u === 'string' ? u.trim() : '')).filter(Boolean);
+    if (imageList.length > 3) { res.status(400).json({ error: '리뷰 사진은 3장까지 올릴 수 있어요.' }); return; }
+    if (imageList.some((u) => !isAllowedImageUrl(u))) { res.status(400).json({ error: '허용되지 않은 이미지입니다.' }); return; }
+    const cleanImages = imageList.length ? imageList.join(',') : null;
     if (!cleanContent || cleanContent.trim().length < 5) {
       res.status(400).json({ error: '리뷰 내용을 5자 이상 입력해주세요.' });
       return;
@@ -112,7 +119,7 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
     }
 
     const created = await prisma.shopReview.create({
-      data: { shopType, shopId, userId, rating: ratingNum, content: cleanContent },
+      data: { shopType, shopId, userId, rating: ratingNum, content: cleanContent, images: cleanImages },
       include: { user: { select: { id: true, name: true, nickname: true, profileImage: true } } },
     });
     // 사장님에게 새 리뷰 알림 (앱 푸시 + 알림함) — 답글을 유도. 2026-09-22

@@ -101,14 +101,14 @@ export default function Help() {
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-5 animate-fade-in">
       <header className="space-y-1">
-        <p className="text-[11px] font-bold tracking-widest text-gray-400">HELP CENTER</p>
+        <p className="text-[11px] font-bold tracking-widest text-gray-500">HELP CENTER</p>
         <h1 className="text-2xl font-bold text-gray-900">도움말 센터</h1>
         <p className="text-sm text-gray-600">자주 묻는 질문을 모았어요. 답을 못 찾으면 <Link to="/mypage/support" className="text-sky-600 underline">1:1 문의</Link>로 알려 주세요.</p>
       </header>
 
       {/* 검색 */}
       <div className="relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -157,7 +157,7 @@ export default function Help() {
                     {cat.label}
                     <span className="text-[10px] text-gray-500 font-normal">({cat.faqs.length})</span>
                   </span>
-                  <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>→</span>
+                  <span className={`text-gray-500 transition-transform ${isOpen ? 'rotate-90' : ''}`}>→</span>
                 </button>
                 {isOpen && (
                   <div className="border-t border-gray-100">
@@ -172,7 +172,7 @@ export default function Help() {
                             aria-expanded={expanded}
                           >
                             <span className="text-sm text-gray-900">{f.q}</span>
-                            <span className={`text-gray-400 text-xs transition-transform ${expanded ? 'rotate-90' : ''}`}>→</span>
+                            <span className={`text-gray-500 text-xs transition-transform ${expanded ? 'rotate-90' : ''}`}>→</span>
                           </button>
                           {expanded && (
                             <p className="text-xs text-gray-600 leading-relaxed mx-5 mb-4 bg-gray-50 rounded-lg p-3">{f.a}</p>
@@ -223,8 +223,8 @@ export default function Help() {
           <span className="mx-1.5">·</span>
           <a href="https://www.instagram.com/snowpan.kr/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-gray-700">인스타그램</a>
         </p>
-        <p className="mt-2 text-gray-400">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
-        <p className="text-gray-400">© 2026 스노우판</p>
+        <p className="mt-2 text-gray-500">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
+        <p className="text-gray-500">© 2026 스노우판</p>
       </section>
     </div>
   );

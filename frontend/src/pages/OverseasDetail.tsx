@@ -97,7 +97,7 @@ export default function OverseasDetail() {
           <div className="bg-snow border border-gray-200 rounded-2xl p-3 grid grid-cols-2 gap-y-2.5 gap-x-4">
             {metas.map((m) => (
               <div key={m.label} className="min-w-0">
-                <div className="text-[10px] text-gray-400">{m.label}</div>
+                <div className="text-[10px] text-gray-500">{m.label}</div>
                 <div className="text-xs font-bold text-gray-900 truncate">{m.value}</div>
               </div>
             ))}
@@ -111,7 +111,7 @@ export default function OverseasDetail() {
           <div className="bg-snow border border-gray-200 rounded-2xl p-3">
             {resort.address && (
               <div className="mb-2">
-                <div className="text-[10px] text-gray-400">위치</div>
+                <div className="text-[10px] text-gray-500">위치</div>
                 <div className="text-xs font-medium text-gray-800">{resort.address}</div>
               </div>
             )}

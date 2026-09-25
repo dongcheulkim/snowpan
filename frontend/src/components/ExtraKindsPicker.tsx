@@ -41,7 +41,7 @@ export default function ExtraKindsPicker({ own, value, onChange, initial = [], p
           );
         })}
       </div>
-      <p className="text-[11px] text-gray-400 mt-1">선택한 업종의 목록에도 매장이 함께 보입니다. 새로 추가하면 관리자 확인 후 반영돼요.</p>
+      <p className="text-[11px] text-gray-500 mt-1">선택한 업종의 목록에도 매장이 함께 보입니다. 새로 추가하면 관리자 확인 후 반영돼요.</p>
       {adding && onProof && (
         <div className="mt-2 p-3 rounded-lg bg-violet-50 border border-violet-200 space-y-2">
           <p className="text-xs font-bold text-violet-800">겸업 증빙 (필수)</p>

@@ -69,7 +69,7 @@ export default function AdminOpsPanel() {
             <p className="col-span-3 text-[11px] text-gray-500 text-left">지난 24시간: 가입 {summary.last24h.users} · 중고 매물 {summary.last24h.products} · 글 {summary.last24h.posts} · 새 채팅 {summary.last24h.chatRooms}</p>
           </div>
         ) : (
-          <p className="text-xs text-gray-400">요약을 불러오는 중이에요.</p>
+          <p className="text-xs text-gray-500">요약을 불러오는 중이에요.</p>
         )}
         <button onClick={sendNow} disabled={sending} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold disabled:opacity-50">
           {sending ? '보내는 중' : '지금 보내기'}
@@ -85,14 +85,14 @@ export default function AdminOpsPanel() {
               <li key={key} className="flex items-center justify-between py-2">
                 <div>
                   <p className="text-xs font-medium text-gray-900">{label}</p>
-                  <p className="text-[10px] text-gray-400">{hint}</p>
+                  <p className="text-[10px] text-gray-500">{hint}</p>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${integrations[key] ? 'bg-mint/20 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>{integrations[key] ? '켜짐' : '꺼짐'}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-gray-400">상태를 불러오는 중이에요.</p>
+          <p className="text-xs text-gray-500">상태를 불러오는 중이에요.</p>
         )}
       </div>
 
@@ -106,7 +106,7 @@ export default function AdminOpsPanel() {
                 <span key={k} className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">{k.startsWith('sms') ? '문자' : '메일'} {STATUS_KR[k.split(':')[1]]} <b>{logs.counts30d[k] || 0}</b></span>
               ))}
             </div>
-            {logs.items.length === 0 ? <p className="text-xs text-gray-400">아직 보낸 기록이 없어요.</p> : (
+            {logs.items.length === 0 ? <p className="text-xs text-gray-500">아직 보낸 기록이 없어요.</p> : (
               <ul className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
                 {logs.items.slice(0, 30).map((l) => (
                   <li key={l.id} className="py-2 text-[11px]">
@@ -120,7 +120,7 @@ export default function AdminOpsPanel() {
               </ul>
             )}
           </>
-        ) : <p className="text-xs text-gray-400">기록을 불러오는 중이에요.</p>}
+        ) : <p className="text-xs text-gray-500">기록을 불러오는 중이에요.</p>}
       </div>
     </>
   );

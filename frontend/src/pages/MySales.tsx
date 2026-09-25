@@ -133,7 +133,7 @@ const MySales = () => {
                   {(item.image?.startsWith('http') || item.image?.startsWith('/')) ? (
                     <img src={imageUrl(item.image, 200)} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400"><PackageIcon size={28} /></div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-500"><PackageIcon size={28} /></div>
                   )}
                 </div>
                 {/* 정보 + 액션 (아래) */}

@@ -410,7 +410,7 @@ const UsedRegister = () => {
 
           {/* 신품 정가 (선택) — 상세에서 '정가 대비 %' 로 구매자에게 할인율 표시 */}
           <div>
-            <label className={labelClass}>신품 정가 (원) <span className="text-gray-400 font-normal">· 선택</span></label>
+            <label className={labelClass}>신품 정가 (원) <span className="text-gray-500 font-normal">· 선택</span></label>
             <input
               type="text"
               inputMode="numeric"

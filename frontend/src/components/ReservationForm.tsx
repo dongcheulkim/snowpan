@@ -282,7 +282,7 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
             placeholder={isRental ? '예: 키 175 발 270이에요. 초보라 짧은 스키 부탁드려요.' : isRepair ? '예: 엣지가 많이 상했어요. 당일 찾을 수 있는지 궁금해요.' : isStay ? '예: 늦은 체크인 가능한지 궁금해요.' : shopType === 'lesson' ? '예: 아이 둘이 같이 받고 싶어요.' : '예: 부츠 사이즈 270 재고 있는지 궁금해요.'}
             className={`${inputClass} resize-none`}
           />
-          <p className="text-[10px] text-gray-400 text-right mt-0.5">{note.length}/300</p>
+          <p className="text-[10px] text-gray-500 text-right mt-0.5">{note.length}/300</p>
         </div>
 
         <div className="flex gap-2 pt-1">

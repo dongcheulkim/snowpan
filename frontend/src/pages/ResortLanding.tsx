@@ -100,7 +100,7 @@ export default function ResortLanding() {
         <p className="text-sm text-gray-600">
           <span className="font-bold text-gray-900">{decoded}</span> 근처 스키·보드샵, 렌탈샵, 레슨, 숙소를 한눈에.
         </p>
-        <p className="text-xs text-gray-400 mt-1">{loading ? '불러오는 중...' : `등록된 업체 ${totalCount}곳`}</p>
+        <p className="text-xs text-gray-500 mt-1">{loading ? '불러오는 중...' : `등록된 업체 ${totalCount}곳`}</p>
         <div className="flex gap-2 mt-3">
           <Link to="/webcam" className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold text-center">실시간 웹캠</Link>
           <Link to="/community" className="flex-1 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-bold text-center">커뮤니티</Link>

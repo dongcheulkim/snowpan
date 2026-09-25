@@ -195,7 +195,7 @@ export default function Competitions() {
           <TrophyIcon size={16} className="text-amber-400 flex-shrink-0" />
           <div className="min-w-0">
             <span className="block text-sm font-bold text-white">대회 기록 조회는 라이브타이밍에서</span>
-            <span className="block text-[11px] text-gray-400 truncate">실시간 경기 기록·순위 확인 — livetiming.co.kr</span>
+            <span className="block text-[11px] text-gray-500 truncate">실시간 경기 기록·순위 확인 — livetiming.co.kr</span>
           </div>
         </div>
         <span className="flex-shrink-0 text-[11px] font-bold text-gray-900 bg-white rounded-lg px-2.5 py-1.5">바로가기</span>
@@ -237,7 +237,7 @@ export default function Competitions() {
         </div>
         <div className="grid grid-cols-7 gap-1 text-center">
           {['일', '월', '화', '수', '목', '금', '토'].map((w, i) => (
-            <div key={w} className={`text-[10px] font-bold py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-sky-400' : 'text-gray-400'}`}>{w}</div>
+            <div key={w} className={`text-[10px] font-bold py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-sky-400' : 'text-gray-500'}`}>{w}</div>
           ))}
           {cells.map((day, idx) => {
             if (day === null) return <div key={`e${idx}`} />;
@@ -259,7 +259,7 @@ export default function Competitions() {
                   isSelected ? 'bg-sky-500 text-white font-bold'
                   : has ? 'bg-sky-50 hover:bg-sky-100 cursor-pointer'
                   : isToday ? 'ring-1 ring-sky-300 text-gray-700'
-                  : weekday === 0 ? 'text-red-300' : weekday === 6 ? 'text-sky-300' : 'text-gray-400'
+                  : weekday === 0 ? 'text-red-300' : weekday === 6 ? 'text-sky-300' : 'text-gray-500'
                 }`}
               >
                 <span className={has && !isSelected ? 'text-gray-900 font-bold' : ''}>{day}</span>
@@ -315,8 +315,8 @@ export default function Competitions() {
                 onClick={() => setOpenMonths(prev => ({ ...prev, [month]: !open }))}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-sm font-bold text-gray-900">{month} <span className="text-gray-400 font-medium">({list.length})</span></span>
-                <svg className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                <span className="text-sm font-bold text-gray-900">{month} <span className="text-gray-500 font-medium">({list.length})</span></span>
+                <svg className={`w-4 h-4 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
               {open && (
                 <div className="divide-y divide-gray-100 border-t border-gray-100">
@@ -332,7 +332,7 @@ export default function Competitions() {
                       >
                         <div className="flex-shrink-0 w-12 text-center">
                           <div className={`text-sm font-black ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>{formatDate(comp.date)}</div>
-                          <div className="text-[9px] text-gray-400">({formatDay(comp.date)}){comp.endDate && `~${formatDate(comp.endDate)}`}</div>
+                          <div className="text-[9px] text-gray-500">({formatDay(comp.date)}){comp.endDate && `~${formatDate(comp.endDate)}`}</div>
                         </div>
                         <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${sportDot}`} />
                         <div className="flex-1 min-w-0">

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
+import { cacheGet, cacheSet } from '../utils/cache';
 import { pickVertical } from '../utils/vertical';
 
 const router = Router();
@@ -146,6 +147,41 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: '검색 중 오류가 발생했습니다.' });
+  }
+});
+
+// 검색 자동완성 (2026-09-25) — 매장 5종·매물·리조트 이름에서 앞부분 일치 우선, 최대 8개. 60초 캐시.
+router.get('/suggest', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const raw = Array.isArray(req.query.q) ? req.query.q[0] : req.query.q;
+    const q = typeof raw === 'string' ? raw.trim().slice(0, 40) : '';
+    if (q.length < 1) { res.json([]); return; }
+    const cacheKey = `suggest:${q.toLowerCase()}`;
+    const hit = cacheGet<{ text: string; type: string }[]>(cacheKey);
+    if (hit) { res.json(hit); return; }
+    const like = { contains: q, mode: 'insensitive' as const };
+    const [ski, repair, rental, lesson, acc, products, resorts] = await Promise.all([
+      prisma.skiShop.findMany({ where: { approved: true, name: like }, select: { name: true }, take: 4 }),
+      prisma.repairShop.findMany({ where: { approved: true, name: like }, select: { name: true }, take: 4 }),
+      prisma.rental.findMany({ where: { approved: true, name: like }, select: { name: true }, take: 4 }),
+      prisma.lesson.findMany({ where: { approved: true, name: like }, select: { name: true }, take: 4 }),
+      prisma.accommodation.findMany({ where: { approved: true, name: like }, select: { name: true }, take: 4 }),
+      prisma.product.findMany({ where: { status: { not: 'sold' }, OR: [{ name: like }, { brand: like }] }, select: { name: true, brand: true }, take: 6, orderBy: { createdAt: 'desc' } }),
+      prisma.skiResort.findMany({ where: { name: like }, select: { name: true }, take: 3 }),
+    ]);
+    const items: { text: string; type: string }[] = [];
+    const seen = new Set<string>();
+    const push = (text: string | null | undefined, type: string) => { const t = (text || '').trim(); const k = t.toLowerCase(); if (!t || seen.has(k)) return; seen.add(k); items.push({ text: t, type }); };
+    resorts.forEach((r) => push(r.name, 'resort'));
+    ski.forEach((r) => push(r.name, 'skishop')); repair.forEach((r) => push(r.name, 'repair')); rental.forEach((r) => push(r.name, 'rental')); lesson.forEach((r) => push(r.name, 'lesson')); acc.forEach((r) => push(r.name, 'accommodation'));
+    products.forEach((r) => { push(r.brand, 'brand'); push(r.name, 'product'); });
+    const lower = q.toLowerCase();
+    const sorted = items.sort((a, b) => Number(b.text.toLowerCase().startsWith(lower)) - Number(a.text.toLowerCase().startsWith(lower)) || a.text.length - b.text.length).slice(0, 8);
+    cacheSet(cacheKey, sorted, 60);
+    res.json(sorted);
+  } catch (error) {
+    console.error('Search suggest error:', error);
+    res.status(500).json({ error: '자동완성 실패' });
   }
 });
 

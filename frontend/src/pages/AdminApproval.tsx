@@ -76,7 +76,7 @@ interface PendingItem {
 // AI 직원 검증 결과 배지 — 관리자가 한눈에 신뢰도 파악.
 function AiBadge({ item }: { item: PendingItem }) {
   if (!item.aiReviewedAt) {
-    return <div className="mt-2 text-[11px] text-gray-400">AI 검증 대기 중…</div>;
+    return <div className="mt-2 text-[11px] text-gray-500">AI 검증 대기 중…</div>;
   }
   const ok = item.aiVerified;
   return (
@@ -480,7 +480,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 {item.type && <div className="text-xs text-gray-500 mt-0.5">{item.type}</div>}
                 {item.description && <ExpandableText text={item.description} />}
                 {/* '사업자 확인' 배지 — 아래 인증서류 칸의 사업자등록증을 보고 결정 (2026-09-23). 서류가 있으면 기본으로 켜 둠 */}
-                {!item.businessLicense && <p className="text-[11px] text-gray-400 mt-2">사업자등록증 첨부 없음</p>}
+                {!item.businessLicense && <p className="text-[11px] text-gray-500 mt-2">사업자등록증 첨부 없음</p>}
                 <label className="flex items-center gap-2 mt-2 text-xs text-gray-800">
                   <input type="checkbox" checked={bizBadge[item.id] ?? !!item.businessLicense} onChange={(e) => setBizBadge((m) => ({ ...m, [item.id]: e.target.checked }))} />
                   승인하면서 "사업자 확인" 배지 부여
@@ -592,7 +592,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
               <input type="checkbox" checked={rejectSendChat} onChange={(e) => setRejectSendChat(e.target.checked)} />
               사유를 1:1 채팅으로도 보내기
             </label>
-            <p className="mt-1 text-[11px] text-gray-400">사유를 적으면 알림에 함께 들어가요. 비워 두면 알림만 가요.</p>
+            <p className="mt-1 text-[11px] text-gray-500">사유를 적으면 알림에 함께 들어가요. 비워 두면 알림만 가요.</p>
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setRejectTarget(null)} disabled={rejecting} className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm">취소</button>
               <button type="button" onClick={confirmReject} disabled={rejecting} className="flex-1 py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm disabled:opacity-60">{rejecting ? '처리 중...' : '거부하기'}</button>

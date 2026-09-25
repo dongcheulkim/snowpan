@@ -20,7 +20,7 @@ export default function ShopHoursFields({ value, onChange, inputClass, labelClas
       <label className={labelClass}>영업시간</label>
       <div className="flex items-center gap-2">
         <input type="time" step={1800} value={value.openTime} onChange={(e) => onChange({ openTime: e.target.value })} aria-label="영업 시작" className={inputClass} />
-        <span className="text-sm text-gray-400 flex-shrink-0">~</span>
+        <span className="text-sm text-gray-500 flex-shrink-0">~</span>
         <input type="time" step={1800} value={value.closeTime} onChange={(e) => onChange({ closeTime: e.target.value })} aria-label="영업 종료" className={inputClass} />
       </div>
       <p className="text-[11px] text-gray-500 mt-2 mb-1.5">휴무일 (눌러서 선택)</p>

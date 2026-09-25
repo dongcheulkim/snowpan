@@ -35,7 +35,7 @@ interface OwnerSummary {
 function TodoTile({ label, n, to }: { label: string; n: number; to?: string }) {
   const inner = (
     <>
-      <div className={`text-xl font-bold ${n > 0 ? 'text-gray-900' : 'text-gray-400'}`}>{n}</div>
+      <div className={`text-xl font-bold ${n > 0 ? 'text-gray-900' : 'text-gray-500'}`}>{n}</div>
       <div className="text-[11px] text-gray-500">{label}</div>
     </>
   );
@@ -112,7 +112,7 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
   return (
     <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
       <p className="text-[11px] text-gray-500 leading-relaxed">앰버서더·시즌 직원 같은 모집을 올리면 매장 페이지에 "모집 중" 카드가 뜨고, 링크를 인스타·카톡에 올리면 스노우판에 가입해서 신청해요. 신청자의 이름·연락처는 여기서만 볼 수 있어요.</p>
-      {items === null ? <p className="text-xs text-gray-400">불러오는 중...</p> : items.length === 0 && !writing ? <p className="text-xs text-gray-500">아직 올린 모집이 없어요.</p> : null}
+      {items === null ? <p className="text-xs text-gray-500">불러오는 중...</p> : items.length === 0 && !writing ? <p className="text-xs text-gray-500">아직 올린 모집이 없어요.</p> : null}
       {items?.map((r) => (
         <div key={r.id} className="bg-gray-50 rounded-lg p-2.5 space-y-1.5">
           <div className="flex items-center justify-between gap-2">
@@ -130,12 +130,12 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
           </div>
           {open === r.id && (
             <div className="space-y-1.5 pt-1">
-              {!apps[r.id] ? <p className="text-[11px] text-gray-400">불러오는 중...</p> : apps[r.id].length === 0 ? <p className="text-[11px] text-gray-500">아직 신청자가 없어요.</p> : apps[r.id].map((a) => (
+              {!apps[r.id] ? <p className="text-[11px] text-gray-500">불러오는 중...</p> : apps[r.id].length === 0 ? <p className="text-[11px] text-gray-500">아직 신청자가 없어요.</p> : apps[r.id].map((a) => (
                 <div key={a.id} className="bg-white rounded-md border border-gray-100 p-2 text-[11px] space-y-0.5">
-                  <div className="flex items-center justify-between"><span className="font-bold text-gray-900">{a.name}</span><span className="text-gray-400">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</span></div>
+                  <div className="flex items-center justify-between"><span className="font-bold text-gray-900">{a.name}</span><span className="text-gray-500">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</span></div>
                   <p><a href={`tel:${a.phone}`} className="text-gray-900 underline underline-offset-2">{a.phone}</a>{a.instagram && <> · <a href={`https://instagram.com/${a.instagram}`} target="_blank" rel="noopener noreferrer" className="text-pink-500">@{a.instagram}</a></>}</p>
                   {a.message && <p className="text-gray-700 whitespace-pre-wrap">{a.message}</p>}
-                  <p className="text-gray-400">스노우판 {a.user.name}</p>
+                  <p className="text-gray-500">스노우판 {a.user.name}</p>
                 </div>
               ))}
             </div>
@@ -186,7 +186,7 @@ function QrPanel({ shopType, shopId, shopName }: { shopType: string; shopId: str
       ) : (
         <p className="text-xs text-gray-500 text-center py-6">{failed ? 'QR 코드를 만들지 못했어요. 새로고침해 주세요.' : '만드는 중...'}</p>
       )}
-      <p className="text-[10px] text-gray-400 break-all text-center">{url}</p>
+      <p className="text-[10px] text-gray-500 break-all text-center">{url}</p>
       {dataUrl && <a href={dataUrl} download={`snowpan-qr-${shopName}.png`} className={`${BTN_OFF} block text-center`}>PNG 내려받기</a>}
     </div>
   );
@@ -224,7 +224,7 @@ function RepliesPanel({ shopType, shopId }: { shopType: string; shopId: string }
   };
   return (
     <div className="mt-3 border border-gray-200 rounded-xl p-4 space-y-3">
-      <p className="text-xs font-bold text-gray-900">답장 문구 <span className="text-gray-400 font-normal">({items.length}/20)</span></p>
+      <p className="text-xs font-bold text-gray-900">답장 문구 <span className="text-gray-500 font-normal">({items.length}/20)</span></p>
       <p className="text-[11px] text-gray-500 leading-relaxed">영업시간, 가격, 오시는 길처럼 자주 하는 답을 저장해 두면 채팅의 "문구" 버튼으로 한 번에 넣을 수 있어요. 직원도 같이 써요.</p>
       {items.length > 0 && (
         <ul className="space-y-1.5">
@@ -292,13 +292,13 @@ function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string
   return (
     <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">
       <p className="text-[11px] text-gray-500 leading-relaxed">직원은 예약 확정·거절, 매장 정보 수정, 소식·이벤트, 리뷰 답글, 광고 신청, 매장으로 온 손님 문의 채팅 답변을 함께 할 수 있어요. 매장 삭제와 직원 관리는 사장님만 할 수 있어요.</p>
-      {!data ? <p className="text-xs text-gray-400">불러오는 중...</p> : (
+      {!data ? <p className="text-xs text-gray-500">불러오는 중...</p> : (
         <>
           {data.staff.length === 0
             ? <p className="text-xs text-gray-500">아직 직원이 없어요.</p>
             : data.staff.map((s) => (
               <div key={s.userId} className="flex items-center justify-between text-xs">
-                <span className="font-medium text-gray-900">{s.name} <span className="text-[10px] text-gray-400 font-normal">{new Date(s.since).toLocaleDateString('ko-KR')}부터</span></span>
+                <span className="font-medium text-gray-900">{s.name} <span className="text-[10px] text-gray-500 font-normal">{new Date(s.since).toLocaleDateString('ko-KR')}부터</span></span>
                 <button onClick={() => remove(s.userId, s.name)} className="text-[11px] text-red-500 px-1.5 py-1">해제</button>
               </div>
             ))}
@@ -483,9 +483,9 @@ export default function MyShops() {
           <p className="text-[11px] text-gray-500 text-center py-1">매장 승인 후에 새 소식을 올릴 수 있어요.</p>
         )}
         {postsLoading === key ? (
-          <p className="text-[11px] text-gray-400 text-center py-2">불러오는 중...</p>
+          <p className="text-[11px] text-gray-500 text-center py-2">불러오는 중...</p>
         ) : list.length === 0 ? (
-          <p className="text-[11px] text-gray-400 text-center py-2">아직 올린 소식이 없어요.</p>
+          <p className="text-[11px] text-gray-500 text-center py-2">아직 올린 소식이 없어요.</p>
         ) : (
           list.map((p) => {
             const t = POST_TYPE_LABEL[p.postType] || POST_TYPE_LABEL.general;
@@ -494,7 +494,7 @@ export default function MyShops() {
                 <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${t.color}`}>{t.text}</span>
                 <Link to={`/shop-post/${p.id}`} className="flex-1 min-w-0">
                   <p className="text-xs text-gray-800 truncate">{p.title}</p>
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-[10px] text-gray-500">
                     {new Date(p.createdAt).toLocaleDateString('ko-KR')} · 조회 {(p.viewCount ?? 0).toLocaleString()}
                   </p>
                 </Link>
@@ -673,7 +673,7 @@ export default function MyShops() {
       ) : (
         <div className="card p-8 text-center">
           <p className="text-sm text-gray-500">아직 등록한 매장이 없어요.</p>
-          <p className="text-xs text-gray-400 mt-1">아래에서 업종을 선택해 첫 매장을 등록해보세요.</p>
+          <p className="text-xs text-gray-500 mt-1">아래에서 업종을 선택해 첫 매장을 등록해보세요.</p>
         </div>
       ))}
 
