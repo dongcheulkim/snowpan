@@ -2,10 +2,15 @@
 // 원본: BUNNY_STORAGE_HOST / BUNNY_STORAGE_ZONE / BUNNY_STORAGE_KEY (지금 쓰는 존)
 // 대상: BUNNY_LA_HOST (기본 la.storage.bunnycdn.com) / BUNNY_LA_ZONE / BUNNY_LA_KEY
 // 같은 경로에 같은 크기의 파일이 이미 있으면 건너뛴다 (여러 번 돌려도 안전). 키는 절대 출력하지 않는다.
+import https from 'node:https';
+import fs from 'node:fs';
+import os from 'node:os';
+import crypto from 'node:crypto';
+
 const SRC = { host: process.env.BUNNY_STORAGE_HOST || 'sg.storage.bunnycdn.com', zone: process.env.BUNNY_STORAGE_ZONE || 'snowman', key: process.env.BUNNY_STORAGE_KEY || '' };
 const DST = { host: process.env.BUNNY_LA_HOST || 'la.storage.bunnycdn.com', zone: process.env.BUNNY_LA_ZONE || '', key: process.env.BUNNY_LA_KEY || '' };
 const DRY = process.argv.includes('--dry');
-const CONCURRENCY = 8;
+const CONCURRENCY = 4;
 
 interface Entry { ObjectName: string; IsDirectory: boolean; Length: number; Path: string }
 
@@ -29,21 +34,46 @@ async function walk(z: typeof SRC, dir = ''): Promise<{ path: string; size: numb
   return out;
 }
 
+// 파일을 통째로 메모리에 올리지 않고 임시 파일로 흘려보낸다 (동영상 수백 MB 여러 개를 동시에 다루면 Render 512MB 를 넘길 수 있음).
+function download(path: string, tmp: string): Promise<{ size: number; type: string }> {
+  return new Promise((resolve, reject) => {
+    const req = https.request({ host: SRC.host, path: `/${SRC.zone}/${enc(path)}`, method: 'GET', headers: { AccessKey: SRC.key }, timeout: 120_000 }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); reject(new Error(`GET ${res.statusCode}`)); return; }
+      const out = fs.createWriteStream(tmp);
+      res.pipe(out);
+      out.on('finish', () => resolve({ size: fs.statSync(tmp).size, type: String(res.headers['content-type'] || 'application/octet-stream') }));
+      out.on('error', reject); res.on('error', reject);
+    });
+    req.on('timeout', () => req.destroy(new Error('GET timeout'))); req.on('error', reject); req.end();
+  });
+}
+function upload(path: string, tmp: string, size: number, type: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const req = https.request({ host: DST.host, path: `/${DST.zone}/${enc(path)}`, method: 'PUT', headers: { AccessKey: DST.key, 'Content-Type': type, 'Content-Length': size }, timeout: 300_000 }, (res) => {
+      res.resume();
+      res.on('end', () => (res.statusCode && res.statusCode < 300 ? resolve() : reject(new Error(`PUT ${res.statusCode}`))));
+      res.on('error', reject);
+    });
+    req.on('timeout', () => req.destroy(new Error('PUT timeout'))); req.on('error', reject);
+    fs.createReadStream(tmp).on('error', reject).pipe(req);
+  });
+}
 async function copyOne(path: string): Promise<'copied' | 'failed'> {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const get = await fetch(`https://${SRC.host}/${SRC.zone}/${enc(path)}`, { headers: { AccessKey: SRC.key }, signal: AbortSignal.timeout(60_000) });
-      if (!get.ok) throw new Error(`GET ${get.status}`);
-      const body = Buffer.from(await get.arrayBuffer());
-      const type = get.headers.get('content-type') || 'application/octet-stream';
-      const put = await fetch(`https://${DST.host}/${DST.zone}/${enc(path)}`, { method: 'PUT', headers: { AccessKey: DST.key, 'Content-Type': type }, body, signal: AbortSignal.timeout(60_000) });
-      if (!put.ok) throw new Error(`PUT ${put.status}`);
-      return 'copied';
-    } catch (e) {
-      console.warn(`  재시도 ${attempt}/3 ${path}: ${e instanceof Error ? e.message : e}`);
+  const tmp = `${os.tmpdir()}/bunny-migrate-${crypto.randomBytes(6).toString('hex')}`;
+  try {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const { size, type } = await download(path, tmp);
+        await upload(path, tmp, size, type);
+        return 'copied';
+      } catch (e) {
+        console.warn(`  재시도 ${attempt}/3 ${path}: ${e instanceof Error ? e.message : e}`);
+      }
     }
+    return 'failed';
+  } finally {
+    try { fs.unlinkSync(tmp); } catch { /* 없으면 무시 */ }
   }
-  return 'failed';
 }
 
 (async () => {
