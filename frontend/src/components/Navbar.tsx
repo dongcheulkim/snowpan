@@ -8,7 +8,7 @@ import { showBrowserNotification } from '../utils/pushNotification';
 import Logo from './Logo';
 import { useVertical } from '../hooks/useVertical';
 
-const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
 
 function useLocalStorageUser() {
   return useSyncExternalStore(

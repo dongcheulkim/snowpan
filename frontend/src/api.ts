@@ -281,7 +281,8 @@ export function logout() {
   localStorage.removeItem('snowpan.persistent');
 }
 
-export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+// 끝의 /api 만 떼어낸다 — 호스트에 'api' 가 들어가면(api.snowpan.kr) 앞의 '/api' 가 먼저 지워져 소켓 주소가 깨졌음 (2026-09-25)
+export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
 
 // ===== 소셜 로그인 =====
 export type LoginMethod = 'email' | 'kakao' | 'naver' | 'apple';
