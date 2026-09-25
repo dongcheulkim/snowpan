@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "https://snowpan.onrender.com/sitemap.xml"
+      "destination": "https://api.snowpan.kr/sitemap.xml"
     },
     {
       "source": "/cam/high1/:path*",
@@ -27,7 +27,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/used/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/used/:id"
     },
     {
       "source": "/skishop/:id([0-9a-fA-F-]{36})",
@@ -38,7 +38,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/skishop/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/skishop/:id"
     },
     {
       "source": "/repair/:id([0-9a-fA-F-]{36})",
@@ -49,7 +49,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/repair/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/repair/:id"
     },
     {
       "source": "/rental/:id([0-9a-fA-F-]{36})",
@@ -60,7 +60,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/rental/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/rental/:id"
     },
     {
       "source": "/lesson/:id([0-9a-fA-F-]{36})",
@@ -71,7 +71,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/lesson/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/lesson/:id"
     },
     {
       "source": "/accommodation/:id([0-9a-fA-F-]{36})",
@@ -82,7 +82,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/accommodation/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/accommodation/:id"
     },
     {
       "source": "/community/post/:id([0-9a-fA-F-]{36})",
@@ -93,7 +93,7 @@
           "value": ".*([Kk]akao[Tt]alk|kakaotalk-scrap|facebookexternalhit|[Ff]acebot|[Tt]witterbot|[Ss]lackbot|[Dd]iscordbot|[Ll]inked[Ii]n[Bb]ot|[Tt]elegram[Bb]ot|[Ww]hats[Aa]pp|[Ll]ine/|[Pp]interest|redditbot|embedly|[Ss]kype[Uu]ri[Pp]review|[Ii]framely|[Nn]aver[Bb]log|[Bb]and/).*"
         }
       ],
-      "destination": "https://snowpan.onrender.com/api/og/page/post/:id"
+      "destination": "https://api.snowpan.kr/api/og/page/post/:id"
     },
     {
       "source": "/((?!api/|\\.well-known/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
@@ -159,7 +159,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://js.tosspayments.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://snowpankr.b-cdn.net https://commons.wikimedia.org https://upload.wikimedia.org https://thumb.wikimedia.org https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pansports.vercel.app https://snowpan.vercel.app https://*.cdninstagram.com https://*.fbcdn.net https://*.kakaocdn.net https://*.pstatic.net; connect-src 'self' https://snowpan.onrender.com https://cloudflareinsights.com https://api.tosspayments.com https://*.tosspayments.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; media-src 'self' blob: https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; frame-src https://*.tosspayments.com https://www.youtube.com https://www.youtube-nocookie.com https://rtsp.me https://rtsp.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self' blob:; manifest-src 'self'"
+          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://js.tosspayments.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://snowpankr.b-cdn.net https://commons.wikimedia.org https://upload.wikimedia.org https://thumb.wikimedia.org https://res.cloudinary.com https://picsum.photos https://images.unsplash.com https://pansports.vercel.app https://snowpan.vercel.app https://*.cdninstagram.com https://*.fbcdn.net https://*.kakaocdn.net https://*.pstatic.net; connect-src 'self' https://api.snowpan.kr wss://api.snowpan.kr https://snowpan.onrender.com https://cloudflareinsights.com https://api.tosspayments.com https://*.tosspayments.com wss://snowpan.onrender.com https://*.sentry.io https://*.ingest.sentry.io https://api.cloudinary.com https://www.google-analytics.com https://*.analytics.google.com https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; media-src 'self' blob: https://live.yongpyong.co.kr https://live.wellihillipark.com https://streaming.phoenixhnr.co.kr https://ant.livecity.co.kr:5443; frame-src https://*.tosspayments.com https://www.youtube.com https://www.youtube-nocookie.com https://rtsp.me https://rtsp.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self' blob:; manifest-src 'self'"
         },
         {
           "key": "X-Frame-Options",
