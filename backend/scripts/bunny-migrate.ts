@@ -9,8 +9,11 @@ const CONCURRENCY = 8;
 
 interface Entry { ObjectName: string; IsDirectory: boolean; Length: number; Path: string }
 
+// 경로 조각마다 URL 인코딩 (한글·공백 파일명 대비)
+const enc = (p: string): string => p.split('/').map((seg) => encodeURIComponent(seg)).join('/');
+
 async function list(z: typeof SRC, dir: string): Promise<Entry[]> {
-  const res = await fetch(`https://${z.host}/${z.zone}/${dir}`, { headers: { AccessKey: z.key, Accept: 'application/json' } });
+  const res = await fetch(`https://${z.host}/${z.zone}/${enc(dir)}`, { headers: { AccessKey: z.key, Accept: 'application/json' } });
   if (res.status === 404) return [];
   if (!res.ok) throw new Error(`목록 실패 ${res.status} ${dir}`);
   return (await res.json()) as Entry[];
@@ -29,11 +32,11 @@ async function walk(z: typeof SRC, dir = ''): Promise<{ path: string; size: numb
 async function copyOne(path: string): Promise<'copied' | 'failed'> {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const get = await fetch(`https://${SRC.host}/${SRC.zone}/${path}`, { headers: { AccessKey: SRC.key }, signal: AbortSignal.timeout(60_000) });
+      const get = await fetch(`https://${SRC.host}/${SRC.zone}/${enc(path)}`, { headers: { AccessKey: SRC.key }, signal: AbortSignal.timeout(60_000) });
       if (!get.ok) throw new Error(`GET ${get.status}`);
       const body = Buffer.from(await get.arrayBuffer());
       const type = get.headers.get('content-type') || 'application/octet-stream';
-      const put = await fetch(`https://${DST.host}/${DST.zone}/${path}`, { method: 'PUT', headers: { AccessKey: DST.key, 'Content-Type': type }, body, signal: AbortSignal.timeout(60_000) });
+      const put = await fetch(`https://${DST.host}/${DST.zone}/${enc(path)}`, { method: 'PUT', headers: { AccessKey: DST.key, 'Content-Type': type }, body, signal: AbortSignal.timeout(60_000) });
       if (!put.ok) throw new Error(`PUT ${put.status}`);
       return 'copied';
     } catch (e) {
