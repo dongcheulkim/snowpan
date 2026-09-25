@@ -3,6 +3,7 @@ import { loginHistoryHandler } from '../utils/loginLog';
 import { runReservationReminders } from '../utils/reservationReminders';
 import { updateResponseStats } from '../utils/responseStats';
 import { cleanupOrphanShopRows } from '../utils/shopRows';
+import { readAppVersionValues, invalidateAppVersionCache, APP_VERSION_KEYS, VERSION_RE } from './appVersionRoutes';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
   getPendingRentals,
@@ -106,6 +107,24 @@ router.post('/jobs/response-stats', async (_req: any, res) => {
 router.post('/jobs/cleanup-shop-rows', async (_req: any, res) => {
   try { res.json({ removed: await cleanupOrphanShopRows() }); }
   catch (e) { console.error('cleanup shop rows job error:', e); res.status(500).json({ error: '정리 실패' }); }
+});
+
+// 앱 버전 안내 값 (최신·최소 지원) — 설정 탭에서 수정
+router.get('/app-version', async (_req: any, res) => {
+  try { res.json(await readAppVersionValues()); } catch (e) { console.error('app version read error:', e); res.status(500).json({ error: '조회 실패' }); }
+});
+router.put('/app-version', async (req: any, res) => {
+  try {
+    const body = req.body || {};
+    const entries: [keyof typeof APP_VERSION_KEYS, unknown][] = [['iosLatest', body.iosLatest], ['iosMin', body.iosMin], ['androidLatest', body.androidLatest], ['androidMin', body.androidMin]];
+    for (const [k, v] of entries) {
+      if (v === undefined) continue;
+      if (typeof v !== 'string' || !VERSION_RE.test(v.trim())) { res.status(400).json({ error: `${k}: 버전은 1.7 또는 1.7.2 형식으로 적어 주세요.` }); return; }
+      await prisma.adminSetting.upsert({ where: { key: APP_VERSION_KEYS[k] }, create: { key: APP_VERSION_KEYS[k], value: v.trim() }, update: { value: v.trim() } });
+    }
+    invalidateAppVersionCache();
+    res.json(await readAppVersionValues());
+  } catch (e) { console.error('app version update error:', e); res.status(500).json({ error: '저장 실패' }); }
 });
 
 router.post('/push-test', async (req: any, res) => {

@@ -8,6 +8,7 @@ import { adSlotLabelKr, SLOT_DESCRIPTIONS, SLOT_LABELS, AD_CATEGORY_LABELS } fro
 import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
 import InstagramPanel from '../components/InstagramPanel';
+import AdminAppVersionPanel from '../components/AdminAppVersionPanel';
 import AdminOpsPanel from '../components/AdminOpsPanel';
 import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
@@ -383,6 +384,7 @@ const AdminDashboard = () => {
               <AdminOpsPanel />
               <AdminResortsPanel />
               <InstagramPanel />
+              <AdminAppVersionPanel />
             </div>
           )}
           {tab === 'reports' && (() => {

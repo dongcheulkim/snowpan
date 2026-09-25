@@ -7,6 +7,7 @@ import ToastHost from '../components/Toast';
 import PushPermissionPrompt from '../components/PushPermissionPrompt';
 import ReviewPromptModal from '../components/ReviewPromptModal';
 import CookieConsent from '../components/CookieConsent';
+import AppUpdatePrompt from '../components/AppUpdatePrompt';
 import InstallPrompt from '../components/InstallPrompt';
 import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
@@ -110,6 +111,7 @@ const MainLayout = () => {
           </footer>
         </main>
         {showAppChrome && <BottomNav />}
+        <AppUpdatePrompt />
         <ToastHost />
         <PushPermissionPrompt />
         <ReviewPromptModal />

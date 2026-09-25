@@ -104,6 +104,7 @@ import { startReservationReminderScheduler } from './utils/reservationReminders'
 import { backfillChatRoomShops } from './utils/chatRoomShops';
 import { cleanupOrphanShopRows } from './utils/shopRows';
 import shopFollowRoutes from './routes/shopFollowRoutes';
+import appVersionRoutes from './routes/appVersionRoutes';
 import shopReplyRoutes from './routes/shopReplyRoutes';
 import shopStatsRoutes from './routes/shopStatsRoutes';
 import { startResponseStatScheduler } from './utils/responseStats';
@@ -363,6 +364,7 @@ app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/shop-staff', shopStaffRoutes); // 매장 직원(공동 관리) 초대·참여 (2026-09-23)
 app.use('/api/shop-follows', shopFollowRoutes); // 매장 찜 (2026-09-24)
+app.use('/api/app', appVersionRoutes); // 앱 버전 안내 (2026-09-25)
 app.use('/api/shop-replies', strictWriteLimiter, shopReplyRoutes); // 사장님·직원 답장 문구
 app.use('/api/shop-stats', shopStatsRoutes); // 매장 공개 통계 (답장 속도)
 app.use('/api/recruits', strictWriteLimiter, recruitRoutes); // 매장 모집·신청 (앰버서더 등, 2026-09-23)
