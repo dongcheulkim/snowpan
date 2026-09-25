@@ -281,6 +281,14 @@ api POST /products/new '{"name":"신제품","price":1000}' "$U_TOKEN"; expect 40
 # ── 로그아웃/리프레시
 LR=$(curl -s -m 10 -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -X POST "$BASE/auth/logout"); [ "$LR" = "200" ] && ok "로그아웃 200" || bad "로그아웃 CODE=$LR"
 RR=$(curl -s -m 10 -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: application/json' -X POST "$BASE/auth/refresh" -d '{}'); [ "$RR" = "401" ] && ok "쿠키 없는 refresh 401" || bad "refresh CODE=$RR"
+# 로그아웃하면 그 세션의 리프레시 토큰은 폐기돼야 한다 (쿠키 값이 새어 나가도 재사용 불가, 2026-09-25)
+CJ=$(mktemp)
+curl -s -m 10 -c "$CJ" -o /dev/null -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: application/json' -X POST "$BASE/auth/login" -d '{"email":"smoke_user@re.test","password":"Re!pass1234"}'
+R1=$(curl -s -m 10 -b "$CJ" -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: application/json' -X POST "$BASE/auth/refresh" -d '{}')
+curl -s -m 10 -b "$CJ" -o /dev/null -H 'X-Loadtest-Key: e2e-local-bypass' -X POST "$BASE/auth/logout"
+R2=$(curl -s -m 10 -b "$CJ" -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H 'Content-Type: application/json' -X POST "$BASE/auth/refresh" -d '{}')
+[ "$R1" = "200" ] && [ "$R2" = "401" ] && ok "로그아웃 뒤 옛 리프레시 쿠키 재사용 401" || bad "로그아웃 폐기 before=$R1 after=$R2"
+rm -f "$CJ"
 
 # ── 업로드: 잘못된 파일(텍스트) 거부 — 키 없는 환경이라도 400/415/500 중 하나로 안전 실패, 200 아니어야
 UPC=$(curl -s -m 20 -o /dev/null -w '%{http_code}' -H 'X-Loadtest-Key: e2e-local-bypass' -H "Authorization: Bearer $U_TOKEN" -F "images=@/etc/hosts;type=text/plain" "$BASE/upload")

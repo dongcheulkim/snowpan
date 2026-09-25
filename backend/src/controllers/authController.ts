@@ -1096,11 +1096,13 @@ export const logout = (req: Request, res: Response): void => {
     // 기기 구분 없는 무조건 말소 금지 — 웹 브라우저 로그아웃이 앱 기기의 푸시를 끊던 문제.
     // 클라이언트가 자기 기기 토큰을 보내온 경우 그 토큰일 때만 말소.
     const deviceFcm = typeof (req.body as { fcmToken?: unknown })?.fcmToken === 'string' ? (req.body as { fcmToken: string }).fcmToken : null;
-    if (cookieToken && deviceFcm) {
+    if (cookieToken) {
       const payload = verifyRefreshToken(cookieToken);
-      prisma.user.updateMany({ where: { id: payload.userId, fcmToken: deviceFcm }, data: { fcmToken: null } }).catch(() => {});
+      // 로그아웃한 세션의 리프레시 토큰은 즉시 폐기 — 쿠키만 지우면 토큰 값이 새어 나갔을 때 그대로 재사용 가능했음 (2026-09-25)
+      revokeFamily(payload.fam);
+      if (deviceFcm) prisma.user.updateMany({ where: { id: payload.userId, fcmToken: deviceFcm }, data: { fcmToken: null } }).catch(() => {});
     }
-  } catch { /* 쿠키 없음/무효 — 푸시 정리 생략 */ }
+  } catch { /* 쿠키 없음/무효 — 폐기·푸시 정리 생략 */ }
   clearRefreshCookie(res);
   res.json({ message: '로그아웃되었습니다.' });
 };
