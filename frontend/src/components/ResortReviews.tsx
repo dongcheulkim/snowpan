@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { loginPath } from '../utils/loginPath';
 import { StarIcon } from './Icons';
 

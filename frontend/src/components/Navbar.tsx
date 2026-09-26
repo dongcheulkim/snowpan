@@ -8,6 +8,10 @@ import { showBrowserNotification } from '../utils/pushNotification';
 import Logo from './Logo';
 import { useVertical } from '../hooks/useVertical';
 
+type NotifRow = { read?: boolean; type?: string };
+type ChatRoomRow = { unreadCount?: number };
+type PushPayload = { type?: string; title?: string; message?: string; body?: string; link?: string };
+
 const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
 
 function useLocalStorageUser() {
@@ -44,16 +48,16 @@ const Navbar = () => {
       if (!user) return;
       const token = getToken();
       if (!token) return;
-      api<any>('/notifications?limit=50')
+      api<NotifRow[] | { notifications?: NotifRow[] }>('/notifications?limit=50')
         .then(data => {
           try {
             const notifs = Array.isArray(data) ? data : (data?.notifications || []);
-            const count = notifs.filter((n: any) => !n.read && n.type !== 'chat').length; // 채팅은 벨 제외(자체 점 dot)
+            const count = notifs.filter((n: NotifRow) => !n.read && n.type !== 'chat').length; // 채팅은 벨 제외(자체 점 dot)
             setUnreadNotifCount(count);
-          } catch {}
+          } catch { /* 응답 형식이 달라도 벨 숫자만 건너뜀 */ }
         })
         .catch(() => {});
-    } catch {}
+    } catch { /* 토큰 읽기 실패 등은 무시 */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!user]);
 
@@ -66,13 +70,13 @@ const Navbar = () => {
     if (now - lastFetchRef.current < 30000) return;
     lastFetchRef.current = now;
 
-    api<any>('/chat/rooms')
+    api<ChatRoomRow[]>('/chat/rooms')
       .then(data => {
         try {
           const rooms = Array.isArray(data) ? data : [];
-          const total = rooms.reduce((sum: number, r: any) => sum + (r.unreadCount || 0), 0);
+          const total = rooms.reduce((sum: number, r: ChatRoomRow) => sum + (r.unreadCount || 0), 0);
           setHasUnread(total > 0);
-        } catch {}
+        } catch { /* 형식 오류는 무시 */ }
       })
       .catch(() => {});
 
@@ -101,7 +105,7 @@ const Navbar = () => {
       } finally { refreshingSock = false; }
     });
 
-    socket.on('new_notification', (data: any) => {
+    socket.on('new_notification', (data: PushPayload | undefined) => {
       if (data?.type === 'chat') {
         // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
         // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).

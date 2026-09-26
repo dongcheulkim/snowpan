@@ -4,7 +4,7 @@
 // 사용법: main.tsx 에서 setupAnalytics() 한 번 호출.
 // 페이지뷰는 React Router 변경 감지로 자동 트래킹 (initAnalyticsRouter 훅).
 
-import { getCookieConsent } from '../components/CookieConsent';
+import { getCookieConsent } from './cookieConsent';
 import { isNativeApp } from '../api';
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;

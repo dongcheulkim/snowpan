@@ -2,10 +2,10 @@
 // 스노우판이 먼저 올려 둔(사장님 확인 전) 매장 사장님께 전화·문자로
 // "직접 관리하기"를 안내하는 작업판. 리조트별로 접어 두고, 그룹 안은 우선순위(수집 시점 리뷰 수)·조회수 순.
 // 상태·메모는 /admin/outreach 에 저장돼 폰·PC 어디서 열어도 같다. 백엔드 outreachController 와 짝.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl, openExternal } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import HScroll from './HScroll';
 import { KIND_LABEL as SHOP_KIND_LABEL, KIND_PATH as SHOP_KIND_PATH, type ShopKind } from '../utils/shopKinds';
 
@@ -95,14 +95,16 @@ function ProgressBar({ shops, className = '' }: { shops: Shop[]; className?: str
 // 메모 입력 — 포커스가 빠지거나 Enter 일 때만 저장 (타이핑마다 요청하지 않음)
 function MemoInput({ value, onSave }: { value: string; onSave: (v: string) => void }) {
   const [draft, setDraft] = useState(value);
-  const focused = useRef(false);
-  useEffect(() => { if (!focused.current) setDraft(value); }, [value]);
-  const commit = () => { focused.current = false; const v = draft.trim(); if (v !== value) onSave(v); };
+  const [focused, setFocused] = useState(false);
+  // 저장된 값이 바뀌면(다른 곳에서 갱신) 입력 중이 아닐 때만 따라감
+  const [seenValue, setSeenValue] = useState(value);
+  if (seenValue !== value) { setSeenValue(value); if (!focused) setDraft(value); }
+  const commit = () => { setFocused(false); const v = draft.trim(); if (v !== value) onSave(v); };
   return (
     <input
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onFocus={() => { focused.current = true; }}
+      onFocus={() => setFocused(true)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
       placeholder="메모 (예: 9/8 다시 전화, 사진 받음)"
@@ -133,7 +135,7 @@ export default function OutreachBoard() {
   useEffect(() => { load(); }, [load]);
 
   const groups = useMemo(() => buildGroups(data?.resorts || []), [data?.resorts]);
-  const shops = data?.shops || [];
+  const shops = useMemo(() => data?.shops || [], [data?.shops]);
   const template = data?.template || DEFAULT_SMS;
 
   const patchShop = (id: string, kindOf: BoardKind, patch: Partial<Shop>) =>

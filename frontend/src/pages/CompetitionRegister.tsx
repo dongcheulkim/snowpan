@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, imageUrl, uploadImages } from '../api';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { loginPath } from '../utils/loginPath';
 import { useMeta } from '../hooks/useMeta';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
-import { toastError } from '../components/Toast';
+import { toastError } from '../utils/toast';
 
 // 광고 카드 결제 — 토스페이먼츠 결제창(v1 SDK).
 // 클라이언트 키: VITE_TOSS_CLIENT_KEY. 미설정(지금 운영 = 계좌이체 상담형)이면 결제 화면 대신 안내만 —

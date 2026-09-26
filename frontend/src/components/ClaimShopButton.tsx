@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
-import { toastSuccess, toastError } from './Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 
 interface Props {
   shopType: 'skishop' | 'repair' | 'rental' | 'accommodation';

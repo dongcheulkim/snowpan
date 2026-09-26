@@ -3,7 +3,7 @@ import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';

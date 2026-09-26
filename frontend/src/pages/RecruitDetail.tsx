@@ -4,7 +4,7 @@ import { api, getUser } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import { loginPath } from '../utils/loginPath';
 import ShareButton from '../components/ShareButton';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import type { Recruit } from '../components/RecruitCard';
 
 // 모집 상세 + 신청서 (/recruit/:id) — 인스타 등에 이 링크를 올리면 스노우판 가입 → 신청까지 이어진다. 2026-09-23

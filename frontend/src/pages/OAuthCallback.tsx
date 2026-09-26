@@ -7,21 +7,19 @@ import { initPush } from '../push';
 // 해시에서 토큰/유저를 꺼내 세션에 저장하고 홈으로 이동.
 const OAuthCallback = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState('');
+  const readHash = () => new URLSearchParams(window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash);
+  // 토큰이 없으면 첫 렌더에서 바로 오류 (effect 안에서 setState 하지 않음)
+  const [error, setError] = useState(() => { const p = readHash(); return !p.get('token') || !p.get('user') ? '로그인 정보를 받지 못했어요. 다시 시도해주세요.' : ''; });
 
   useEffect(() => {
+    if (error) return;
     try {
-      const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
-      const params = new URLSearchParams(hash);
+      const params = readHash();
       const token = params.get('token');
       const userRaw = params.get('user');
       const provider = params.get('provider');
       const isNew = params.get('isNew') === '1';
-
-      if (!token || !userRaw) {
-        setError('로그인 정보를 받지 못했어요. 다시 시도해주세요.');
-        return;
-      }
+      if (!token || !userRaw) return;
 
       // base64url → JSON
       const json = decodeURIComponent(escape(atob(userRaw.replace(/-/g, '+').replace(/_/g, '/'))));
@@ -52,8 +50,9 @@ const OAuthCallback = () => {
       // 해시 제거 후 이동 (뒤로가기 시 토큰 노출 방지).
       navigate(dest, { replace: true });
     } catch {
-      setError('로그인 처리 중 문제가 발생했어요. 다시 시도해주세요.');
+      setTimeout(() => setError('로그인 처리 중 문제가 발생했어요. 다시 시도해주세요.'), 0);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- error 는 최초 판정값만 쓴다 (한 번만 실행)
   }, [navigate]);
 
   if (error) {

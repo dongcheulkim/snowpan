@@ -50,12 +50,13 @@ export default function ShopNewsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [shopFilter, setShopFilter] = useState('all');
+  const [now, setNow] = useState(0); // 상대 시각 기준 — 목록이 도착한 시점 (렌더 중 Date.now 호출 안 함)
 
   useEffect(() => {
     document.title = '매장 소식·이벤트 - 스노우판';
     api<{ items: ShopNews[] }>('/shop-posts/recent?all=1&limit=50')
-      .then((d) => setItems(d.items || []))
-      .catch(() => setItems([]))
+      .then((d) => { setNow(Date.now()); setItems(d.items || []); })
+      .catch(() => { setNow(Date.now()); setItems([]); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -65,7 +66,7 @@ export default function ShopNewsPage() {
 
   const formatDate = (s: string) => {
     const d = new Date(s);
-    const diff = Date.now() - d.getTime();
+    const diff = (now || d.getTime()) - d.getTime();
     if (diff < 3600000) return `${Math.max(1, Math.floor(diff / 60000))}분 전`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}시간 전`;
     return `${d.getMonth() + 1}/${d.getDate()}`;

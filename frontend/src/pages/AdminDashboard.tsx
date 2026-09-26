@@ -1,4 +1,4 @@
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
@@ -57,6 +57,7 @@ interface UserItem {
   email: string;
   role: string;
   phone: string;
+  nickname?: string | null;
   createdAt: string;
   // 탈퇴 회원의 원래 신원 (관리자 전용, 사기·분쟁 대응)
   withdrawnName?: string | null;
@@ -604,7 +605,7 @@ const AdminDashboard = () => {
                   u.email.toLowerCase().includes(q) ||
                   (u.withdrawnName || '').toLowerCase().includes(q) ||
                   (u.withdrawnEmail || '').toLowerCase().includes(q) ||
-                  ((u as any).nickname || '').toLowerCase().includes(q)
+                  (u.nickname || '').toLowerCase().includes(q)
                 )
               : users;
             const totalPages = Math.max(1, Math.ceil(filtered.length / USERS_PER_PAGE));
@@ -628,7 +629,7 @@ const AdminDashboard = () => {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-gray-900">{u.role === 'deleted' && u.withdrawnName ? u.withdrawnName : u.name}</span>
-                        {(u as any).nickname && <span className="text-xs text-gray-500">({(u as any).nickname})</span>}
+                        {u.nickname && <span className="text-xs text-gray-500">({u.nickname})</span>}
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-600'
                         }`}>

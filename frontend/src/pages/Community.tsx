@@ -118,6 +118,7 @@ const Community = () => {
     ...(vertical.slug === 'snow' ? [{ id: 'poll', name: communityCategoryLabel('poll', sport) }] : []),
   ];
   const activeGroup = tabs.find((tb) => tb.id === selectedTab);
+  const activeSubs = activeGroup?.subs?.join(',') ?? ''; // 문자열이라 렌더마다 새 배열이 되지 않음 (effect 의존성용)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -125,13 +126,15 @@ const Community = () => {
   }, [searchQuery]);
 
   useEffect(() => { setTimeout(() => setPage(1), 0); }, [sport, selectedTab, selectedSub, debouncedSearch]);
-  useEffect(() => { setSelectedSub('all'); }, [selectedTab]);
+  // 대분류가 바뀌면 소분류는 '전체'로 — 렌더 중 탭 변화를 보고 조정
+  const [seenTab, setSeenTab] = useState(selectedTab);
+  if (seenTab !== selectedTab) { setSeenTab(selectedTab); setSelectedSub('all'); }
 
   // 인기 게시글 로딩
   useEffect(() => {
     if (selectedTab !== 'popular') return;
     const seq = ++reqSeq.current;
-    setLoading(true);
+    setTimeout(() => { if (reqSeq.current === seq) setLoading(true); }, 0);
     api<Post[]>(`/community/popular?sport=${sport || ''}`)
       .then(data => { if (reqSeq.current === seq) setPopularPosts(Array.isArray(data) ? data : []); })
       .catch(() => { if (reqSeq.current === seq) setPopularPosts([]); })
@@ -156,8 +159,8 @@ const Community = () => {
     setTimeout(() => { if (reqSeq.current === seq) { setLoading(true); setLoadError(null); } }, 0);
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
     if (sport) params.set('sport', sport);
-    if (activeGroup?.subs) {
-      params.set('category', selectedSub !== 'all' ? selectedSub : activeGroup.subs.join(','));
+    if (activeSubs) {
+      params.set('category', selectedSub !== 'all' ? selectedSub : activeSubs);
     }
     if (debouncedSearch) params.set('search', debouncedSearch);
 
@@ -165,7 +168,7 @@ const Community = () => {
       .then(data => { if (reqSeq.current === seq) { setPosts(data.posts); setTotalCount(data.totalCount); } })
       .catch((err) => { if (reqSeq.current === seq) { setPosts([]); setTotalCount(0); setLoadError(err instanceof Error ? err.message : '게시글을 불러오지 못했어요.'); } })
       .finally(() => { if (reqSeq.current === seq) setLoading(false); });
-  }, [sport, selectedTab, selectedSub, debouncedSearch, page, retryKey]);
+  }, [sport, selectedTab, selectedSub, debouncedSearch, page, retryKey, activeSubs]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 

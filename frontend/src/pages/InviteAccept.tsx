@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useMeta } from '../hooks/useMeta';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 
 // 매장 직원 초대 링크 (/invite/:code) — 사장님이 보낸 링크를 직원이 로그인한 채 열고 "참여"를 누르면 그 매장을 함께 관리한다. 2026-09-23
 interface Preview {

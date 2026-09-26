@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
 import ReservationActions from '../components/ReservationActions';
 import { CalendarIcon, UserIcon } from '../components/Icons';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, detailLines, isReservationFinished, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, type ReservationParty, WORK_LABEL } from '../utils/reservation';
 
 // 예약 관리 (사장님) — 내 매장들로 들어온 방문 예약. 요청 대기 건은 확정/거절, 확정 건은 취소할 수 있다. 결제 없음.

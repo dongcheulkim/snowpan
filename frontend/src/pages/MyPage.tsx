@@ -4,7 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api, getUser, setUser as saveUser, uploadImages, logout, imageUrl, getLoginMethods, unlinkLoginMethod, startSocialLogin, linkApple, isNativeApp, type LoginMethods } from '../api';
 import { Capacitor } from '@capacitor/core';
 import { CameraIcon, UserIcon } from '../components/Icons';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { t } from '../i18n';
 
 interface BadgeRequest {

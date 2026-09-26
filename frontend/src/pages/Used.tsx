@@ -10,7 +10,7 @@ import LoadError from '../components/LoadError';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';
 

@@ -66,17 +66,17 @@ export default function CategoryAdBanner({ category }: { category: string }) {
         if (slot && typeof slot.maxConcurrent === 'number' && slot.maxConcurrent > 0) setMaxConcurrent(slot.maxConcurrent);
       })
       .catch(() => {});
-    setCurrent(0); // 카테고리 전환 시 슬라이드 인덱스 초기화
     return () => { cancelled = true; };
   }, [category]);
+  // 카테고리 전환 시 슬라이드 인덱스 초기화 — 렌더 중 카테고리 변화를 보고 조정
+  const [seenCategory, setSeenCategory] = useState(category);
+  if (seenCategory !== category) { setSeenCategory(category); setCurrent(0); }
 
   const hasVacancy = banners.length < maxConcurrent; // 자리 남음 → 모집 슬라이드 표시
   const totalSlides = banners.length + (banners.length > 0 && hasVacancy ? 1 : 0);
   // 슬라이드 수가 줄었을 때(슬롯 정원 늦게 도착 등) current 가 범위 밖에 남아
   // 배너가 빈 화면으로 굳던 것 방지 — 범위 밖이면 0 으로 클램프
-  useEffect(() => {
-    if (totalSlides > 0 && current >= totalSlides) setCurrent(0);
-  }, [totalSlides, current]);
+  if (totalSlides > 0 && current >= totalSlides) setCurrent(0);
   useEffect(() => {
     if (totalSlides <= 1) return;
     const t = setInterval(() => setCurrent((p) => (p + 1) % totalSlides), 4000);

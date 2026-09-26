@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
-import { toastError } from '../components/Toast';
+import { toastError } from '../utils/toast';
 import EmptyState from '../components/EmptyState';
 import { LocationIcon } from '../components/Icons';
 

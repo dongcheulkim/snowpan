@@ -69,7 +69,7 @@ export async function tryRefreshAccessToken(): Promise<string | null> {
       // user 정보도 함께 갱신 (role 변경 등 반영).
       try {
         if (data.user) authStore().setItem('user', JSON.stringify(data.user));
-      } catch {}
+      } catch { /* 저장 불가 환경(시크릿 모드 등)은 무시 */ }
       authStore().setItem('token', data.token);
       return data.token as string;
     } catch {
@@ -145,7 +145,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
     throw new Error('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
   }
 
-  let data: any;
+  let data: { error?: string; [key: string]: unknown };
   try { data = await res.json(); } catch { data = {}; }
   if (!res.ok) {
     // 401 → access 토큰 만료 가능성 → 쿠키 기반 refresh 시도, 성공하면 한 번 재시도.
@@ -158,14 +158,14 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       // 세션 상태와 무관하게 항상 로그인 화면으로 — 만료 시 사용자가 헤매지 않게.
       if (!window.location.pathname.includes('/login')) {
         logout();
-        data && (data.error = '로그인을 다시 해주세요.');
+        if (data) data.error = '로그인을 다시 해주세요.';
         setTimeout(() => { window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 0);
       }
     }
     // refresh 후 재시도했는데도 401 이면 (새 토큰도 거부됨) 로그인 화면으로.
     if (res.status === 401 && _retried && !window.location.pathname.includes('/login')) {
       logout();
-      data && (data.error = '로그인을 다시 해주세요.');
+      if (data) data.error = '로그인을 다시 해주세요.';
       setTimeout(() => { window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 0);
     }
     // 401 은 사용자에겐 한 문장으로 — 원시 서버 메시지("인증 토큰이 필요합니다" 등) 노출 금지.

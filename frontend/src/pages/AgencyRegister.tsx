@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, uploadImages } from '../api';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 
 interface ResortOpt { slug: string; name: string; country: string; continent?: string | null; scope?: string }
 

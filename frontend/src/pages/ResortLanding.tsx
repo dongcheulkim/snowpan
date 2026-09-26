@@ -64,9 +64,10 @@ export default function ResortLanding() {
     } : null,
   });
 
+  const [seenResort, setSeenResort] = useState(decoded);
+  if (seenResort !== decoded) { setSeenResort(decoded); setLoading(true); }
   useEffect(() => {
     if (!decoded) return;
-    setLoading(true);
     api<Landing>(`/resorts/landing/${encodeURIComponent(decoded)}`)
       .then(setData)
       .catch(() => setData(null))

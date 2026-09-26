@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl, isNativeApp } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 import AdInvitePanel from '../components/AdInvitePanel';
 import ReservationActions from '../components/ReservationActions';
@@ -85,7 +85,7 @@ const Chat = () => {
     setTemplatesOpen(true);
     if (replyTemplates === null && roomShop) api<{ id: string; text: string }[]>(`/shop-replies/shops/${roomShop.shopType}/${roomShop.shopId}`).then(setReplyTemplates).catch(() => setReplyTemplates([]));
   };
-  const useTemplate = (text: string) => {
+  const applyTemplate = (text: string) => {
     setInput((prev) => (prev.trim() ? `${prev.trimEnd()}\n${text}` : text));
     setTemplatesOpen(false);
     setTimeout(() => { const el = textareaRef.current; if (el) { el.focus(); el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; } }, 0);
@@ -377,7 +377,6 @@ const Chat = () => {
     const ro = new ResizeObserver(() => { if (atBottomRef.current) stickToBottom(); });
     if (el.firstElementChild) ro.observe(el.firstElementChild);
     return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 키보드 대응 — 앱: Keyboard 플러그인이 웹뷰를 줄이고 'snowpan:keyboard' 로 알려줌 → 맨 아래로.
@@ -949,7 +948,7 @@ const Chat = () => {
               ) : replyTemplates.length === 0 ? (
                 <p className="px-4 py-3 text-xs text-gray-500">저장한 답장 문구가 없어요. 사장님 대시보드의 매장 카드에서 "답장 문구"로 만들 수 있어요.</p>
               ) : replyTemplates.map((tpl) => (
-                <button key={tpl.id} type="button" onClick={() => useTemplate(tpl.text)} className="block w-full text-left px-4 py-3 text-sm text-gray-900 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 whitespace-pre-wrap">{tpl.text}</button>
+                <button key={tpl.id} type="button" onClick={() => applyTemplate(tpl.text)} className="block w-full text-left px-4 py-3 text-sm text-gray-900 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 whitespace-pre-wrap">{tpl.text}</button>
               ))}
             </div>
           )}

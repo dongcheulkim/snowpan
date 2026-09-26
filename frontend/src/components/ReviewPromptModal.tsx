@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
-import { toastSuccess, toastError } from './Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 
 interface PendingReview {
   productId: string;

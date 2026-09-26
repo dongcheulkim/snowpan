@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { UserIcon } from '../components/Icons';
 
 interface BlockedUser { id: string; name: string; profileImage?: string | null; blockedAt: string; }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
-import { toastSuccess, toastError } from './Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 
 // 매장 신고 버튼 — 폐업·잘못된 정보·부적절 콘텐츠 제보. 5종 매장 상세에서 재사용.
 // 접수되면 관리자 신고함(/admin)에 유형·매장명·바로가기와 함께 표시됨.

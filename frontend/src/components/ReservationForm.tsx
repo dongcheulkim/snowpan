@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { RESERVE_TITLE, type Reservation, type ReservationDetails, type ShopType } from '../utils/reservation';
 
 // 방문 예약 바텀시트 (결제 없음) — 날짜·시간·인원·업종별 항목·요청사항을 받아 POST /reservations 로 보낸다.

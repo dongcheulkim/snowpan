@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { uploadImages, imageUrl } from '../api';
-import { toastError } from './Toast';
+import { toastError } from '../utils/toast';
 
 // 여러 사진(포스터) 업로드 — value/onChange 는 콤마 구분 URL 문자열. 첫 장이 대표.
 export default function MultiImageUpload({ value, onChange, max = 8 }: { value: string; onChange: (v: string) => void; max?: number }) {

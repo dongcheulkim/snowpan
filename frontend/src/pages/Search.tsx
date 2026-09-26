@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
@@ -33,9 +33,9 @@ export default function Search() {
   // 최근 검색어 (이 기기에만 저장, 최대 10개) + 자동완성 (2026-09-25)
   const [recent, setRecent] = useState<string[]>(() => { try { const v = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 10) : []; } catch { return []; } });
   const [suggestions, setSuggestions] = useState<{ text: string; type: string }[]>([]);
-  const saveRecent = (list: string[]) => { setRecent(list); try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); } catch { /* 저장 불가 환경 */ } };
-  const rememberQuery = (q: string) => { const v = q.trim(); if (v.length < 2) return; saveRecent([v, ...recent.filter((x) => x !== v)].slice(0, 10)); };
-  const removeRecent = (q: string) => saveRecent(recent.filter((x) => x !== q));
+  useEffect(() => { try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent)); } catch { /* 저장 불가 환경 */ } }, [recent]);
+  const rememberQuery = useCallback((q: string) => { const v = q.trim(); if (v.length < 2) return; setRecent((prev) => [v, ...prev.filter((x) => x !== v)].slice(0, 10)); }, []);
+  const removeRecent = (q: string) => setRecent((prev) => prev.filter((x) => x !== q));
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -62,7 +62,7 @@ export default function Search() {
       .then((r) => { setResults(r); rememberQuery(debounced); })
       .catch((err) => { setResults(null); setLoadError(err instanceof Error ? err.message : '검색 결과를 불러오지 못했어요.'); })
       .finally(() => setLoading(false));
-  }, [debounced, retryKey]);
+  }, [debounced, retryKey, rememberQuery]);
 
   useEffect(() => {
     const q = query.trim();
@@ -114,7 +114,7 @@ export default function Search() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-gray-900">최근 검색어</p>
-            <button type="button" onClick={() => saveRecent([])} className="text-[11px] text-gray-500 hover:text-gray-900">모두 지우기</button>
+            <button type="button" onClick={() => setRecent([])} className="text-[11px] text-gray-500 hover:text-gray-900">모두 지우기</button>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {recent.map((r) => (

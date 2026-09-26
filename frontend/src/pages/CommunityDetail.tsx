@@ -1,4 +1,4 @@
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { loginPath } from '../utils/loginPath';
 import { hapticLight } from '../utils/haptics';
 import { useState, useEffect } from 'react';
@@ -98,7 +98,7 @@ const CommunityDetail = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, vertical.slug, vertical.name]);
 
   const handleLike = async () => {
     if (!id || !user) {

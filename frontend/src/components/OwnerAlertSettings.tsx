@@ -2,7 +2,7 @@
 // 웹에서 보면 앱 설치 안내, 앱에서 보면 알림 허용 상태와 켜기 버튼. 문자·메일은 관리자가 채널을 켠 경우에만 보조로 노출.
 import { useEffect, useState } from 'react';
 import { api, isNativeApp } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { APP_STORE_URL, PLAY_STORE_URL } from '../utils/appLinks';
 
 interface Settings { alertPhone: string; smsAlerts: boolean; emailAlerts: boolean; accountPhone: string; email: string; emailUsable: boolean; channels?: { sms: boolean; email: boolean } }

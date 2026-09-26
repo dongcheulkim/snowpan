@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { HeartFilledIcon, HeartOutlineIcon, PackageIcon } from '../components/Icons';
 import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';

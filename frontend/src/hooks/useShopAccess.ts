@@ -6,15 +6,15 @@ export interface ShopAccess { canManage: boolean; isOwner: boolean; isStaff: boo
 const NONE: ShopAccess = { canManage: false, isOwner: false, isStaff: false, isAdmin: false };
 
 export function useShopAccess(shopType: string, shopId?: string | null): ShopAccess & { loading: boolean } {
-  const [state, setState] = useState<ShopAccess & { loading: boolean }>({ ...NONE, loading: !!shopId && !!getUser() });
+  const disabled = !shopId || !getUser(); // 비로그인이거나 매장이 없으면 조회 자체를 안 함
+  const [state, setState] = useState<ShopAccess & { loading: boolean }>({ ...NONE, loading: !disabled });
   useEffect(() => {
-    const user = getUser();
-    if (!shopId || !user) { setState({ ...NONE, loading: false }); return; }
+    if (disabled) return;
     let alive = true;
     api<ShopAccess>(`/shop-staff/access/${shopType}/${shopId}`)
       .then((a) => { if (alive) setState({ ...a, loading: false }); })
       .catch(() => { if (alive) setState({ ...NONE, loading: false }); });
     return () => { alive = false; };
-  }, [shopType, shopId]);
-  return state;
+  }, [shopType, shopId, disabled]);
+  return disabled ? { ...NONE, loading: false } : state;
 }

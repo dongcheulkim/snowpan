@@ -33,10 +33,12 @@ export default function BuyerPickerModal({ productId, productName, onPick, onClo
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // 매물이 바뀌거나 다시 시도하면 목록을 비운다 — 렌더 중 키 변화를 보고 조정
+  const fetchKey = `${productId}:${reloadKey}`;
+  const [seenKey, setSeenKey] = useState(fetchKey);
+  if (seenKey !== fetchKey) { setSeenKey(fetchKey); setCandidates(null); setError(null); }
   useEffect(() => {
     let cancelled = false;
-    setCandidates(null);
-    setError(null);
     api<{ candidates: BuyerCandidate[] }>(`/products/${productId}/buyer-candidates`)
       .then((data) => { if (!cancelled) setCandidates(data?.candidates || []); })
       .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : '채팅 상대를 불러오지 못했어요.'); });

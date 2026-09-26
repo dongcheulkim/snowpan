@@ -5,7 +5,7 @@ import { useMeta } from '../hooks/useMeta';
 import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
 import { CalendarIcon } from '../components/Icons';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { SHOP_TYPE_LABEL, STATUS_CHIP, STATUS_LABEL, canCustomerCancel, isReservationFinished, detailLines, formatDateRange, nightsBetween, peopleLabel, shopPath, type Reservation, WORK_LABEL } from '../utils/reservation';
 
 // 내 예약 (손님) — 렌탈·스키샵·정비샵·레슨·숙소에 보낸 방문 예약 목록. 결제 없음, 사장님이 확정하면 상태가 바뀐다.

@@ -7,7 +7,7 @@ import EmptyState from '../components/EmptyState';
 import LoadError from '../components/LoadError';
 import { ListRowSkeleton } from '../components/Skeleton';
 import { ChatIcon, CloseIcon, UserIcon } from '../components/Icons';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { parseReservationCard, formatDateRange, peopleLabel, EVENT_SHORT } from '../utils/reservation';
 
 interface ChatRoom {

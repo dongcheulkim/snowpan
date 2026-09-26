@@ -35,17 +35,18 @@ function splitLines(v: string | null | undefined): string[] {
 export default function CompetitionDetail() {
   const { id } = useParams();
   const [comp, setComp] = useState<Competition | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(!!id);
+  const [notFound, setNotFound] = useState(!id);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  // 대회가 바뀌거나 다시 시도하면 상태 초기화 — 렌더 중 키 변화를 보고 조정
+  const fetchKey = `${id || ''}:${retryKey}`;
+  const [seenKey, setSeenKey] = useState(fetchKey);
+  if (seenKey !== fetchKey) { setSeenKey(fetchKey); setLoading(!!id); setLoadError(null); setNotFound(!id); }
 
   useEffect(() => {
-    if (!id) { setNotFound(true); setLoading(false); return; }
+    if (!id) return;
     let cancelled = false;
-    setLoading(true);
-    setLoadError(null);
-    setNotFound(false);
     api<Competition>(`/competitions/${id}`)
       .then((data) => { if (!cancelled) setComp(data); })
       .catch((err) => {

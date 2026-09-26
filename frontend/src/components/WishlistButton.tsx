@@ -7,7 +7,7 @@ import { loginPath } from '../utils/loginPath';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { HeartFilledIcon, HeartOutlineIcon } from './Icons';
-import { toastError } from './Toast';
+import { toastError } from '../utils/toast';
 import { hapticLight } from '../utils/haptics';
 
 interface Props {

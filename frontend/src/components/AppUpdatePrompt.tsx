@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { compareVersions } from '../utils/appVersion';
 import { App } from '@capacitor/app';
 import { api } from '../api';
 
@@ -12,12 +13,6 @@ type Level = 'none' | 'soft' | 'force';
 const DISMISS_KEY = 'snowpan:update-dismissed';
 const DISMISS_MS = 3 * 24 * 60 * 60 * 1000;
 
-// '1.7' vs '1.7.1' 처럼 자리 수가 달라도 비교 (숫자 조각 순서대로)
-export function compareVersions(a: string, b: string): number {
-  const pa = a.split('.').map((n) => parseInt(n, 10) || 0); const pb = b.split('.').map((n) => parseInt(n, 10) || 0);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d < 0 ? -1 : 1; }
-  return 0;
-}
 
 async function installed(): Promise<{ platform: 'ios' | 'android'; version: string } | null> {
   if (Capacitor.isNativePlatform()) {

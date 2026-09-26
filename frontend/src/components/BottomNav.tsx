@@ -43,7 +43,9 @@ const BottomNav = () => {
     window.addEventListener('snowpan:chat-unread', on);
     return () => window.removeEventListener('snowpan:chat-unread', on);
   }, []);
-  useEffect(() => { if (path.startsWith('/chat')) setChatUnread(false); }, [path]);
+  // 채팅 목록에 들어오면 점 해제 — 렌더 중 경로 변화를 보고 상태를 조정 (effect 안 setState 대신)
+  const [seenPath, setSeenPath] = useState(path);
+  if (seenPath !== path) { setSeenPath(path); if (path.startsWith('/chat')) setChatUnread(false); }
   const vertical = useVertical();
 
   if (path.startsWith('/chat/') && path !== '/chat/rooms') return null;

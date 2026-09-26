@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 
 // 관리자 설정 — 리조트별 개장·폐장일·시즌 메모. 홈 "시즌 오픈 카운트다운"과 리조트 랜딩 "시즌 정보"가 여기 값을 쓴다.
 // 날짜는 한국 날짜(KST) 기준으로 저장된다.

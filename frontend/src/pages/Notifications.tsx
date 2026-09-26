@@ -1,3 +1,4 @@
+import type { ElementType } from 'react';
 import { useState, useEffect } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { Link } from 'react-router-dom';
@@ -46,7 +47,7 @@ const Notifications = () => {
     const load = () => {
       setLoading(true);
       setLoadError(null);
-      api<any>('/notifications')
+      api<Notification[] | { notifications?: Notification[] }>('/notifications')
         .then(data => {
           const notifs = Array.isArray(data) ? data : (data?.notifications || []);
           setNotifications(notifs);
@@ -147,7 +148,7 @@ const Notifications = () => {
       ) : (
         <div className="card overflow-hidden">
           {notifications.map((noti, idx) => {
-            const W: any = noti.link ? Link : 'div';
+            const W = (noti.link ? Link : 'div') as ElementType;
             return (
             <W
               key={noti.id}

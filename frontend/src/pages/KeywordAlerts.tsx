@@ -1,4 +1,4 @@
-import { toastError } from '../components/Toast';
+import { toastError } from '../utils/toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';

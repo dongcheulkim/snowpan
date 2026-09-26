@@ -2,8 +2,8 @@
 // 회원가입 폼에서 폼 데이터를 잃지 않고 같은 화면에서 슬라이드업으로 전문 확인.
 
 import { useEffect } from 'react';
-import { termsSections } from '../pages/Terms';
-import { privacySections } from '../pages/Privacy';
+import { termsSections } from '../content/termsSections';
+import { privacySections } from '../content/privacySections';
 
 // 'ad-terms' 는 광고 신청 화면용 — 이용약관 중 광고 관련 조항(제13조·제14조)만 보여준다.
 export type LegalSheetType = 'terms' | 'privacy' | 'ad-terms';

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import UserBadges from '../components/UserBadges';
 import { UserIcon } from '../components/Icons';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { hapticLight } from '../utils/haptics';
 
 interface PollOption {

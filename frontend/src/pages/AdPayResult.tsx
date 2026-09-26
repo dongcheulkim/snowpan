@@ -8,8 +8,14 @@ export default function AdPayResult() {
   const [params] = useSearchParams();
   const location = useLocation();
   const isSuccessPath = location.pathname.endsWith('/success');
-  const [state, setState] = useState<'confirming' | 'done' | 'error'>('confirming');
-  const [message, setMessage] = useState('');
+  // 실패 경로나 결제 정보 누락은 첫 렌더에 바로 판정 (effect 안에서 setState 하지 않음)
+  const initial = (() => {
+    if (!isSuccessPath) return { state: 'error' as const, message: params.get('message') || '결제가 취소되었거나 실패했습니다.' };
+    const complete = ['bookingId', 'paymentKey', 'orderId', 'amount'].every((k) => params.get(k));
+    return complete ? { state: 'confirming' as const, message: '' } : { state: 'error' as const, message: '결제 정보가 누락되었습니다. 광고 관리에서 다시 시도해주세요.' };
+  })();
+  const [state, setState] = useState<'confirming' | 'done' | 'error'>(initial.state);
+  const [message, setMessage] = useState(initial.message);
   const ran = useRef(false);
 
   useEffect(() => {
@@ -17,20 +23,12 @@ export default function AdPayResult() {
     if (ran.current) return;
     ran.current = true;
 
-    if (!isSuccessPath) {
-      setState('error');
-      setMessage(params.get('message') || '결제가 취소되었거나 실패했습니다.');
-      return;
-    }
+    if (!isSuccessPath) return;
     const bookingId = params.get('bookingId');
     const paymentKey = params.get('paymentKey');
     const orderId = params.get('orderId');
     const amount = params.get('amount');
-    if (!bookingId || !paymentKey || !orderId || !amount) {
-      setState('error');
-      setMessage('결제 정보가 누락되었습니다. 광고 관리에서 다시 시도해주세요.');
-      return;
-    }
+    if (!bookingId || !paymentKey || !orderId || !amount) return; // 첫 렌더에서 이미 오류로 판정됨
     api(`/ad-booking/${bookingId}/confirm-payment`, {
       method: 'POST',
       body: { paymentKey, orderId, amount: Number(amount) },

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import HScroll from '../components/HScroll';
 import PhotoViewer from '../components/PhotoViewer';
 

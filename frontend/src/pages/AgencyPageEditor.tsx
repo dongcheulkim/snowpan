@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, uploadImages } from '../api';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import AgencyBlocks from '../components/AgencyBlocks';
 import { FONTS, SIZES, loadAgencyFonts, type PageBlock } from '../agencyFonts';
 

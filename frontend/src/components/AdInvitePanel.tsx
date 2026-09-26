@@ -2,7 +2,7 @@
 // 광고주는 링크(/ad-booking/invite/:token)에서 소재만 작성하면 협의 금액으로 예약이 생기고, 입금 확인 후 게시된다.
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 import { SLOT_LABELS, AD_CATEGORY_LABELS, AD_PLAN_PRESETS } from '../utils/adLabels';
 
 interface Invite {

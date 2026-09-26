@@ -1,7 +1,7 @@
 // 관리자 설정 탭 — 운영 도구: 하루 요약(미리보기·지금 보내기) + 외부 연동 상태 (2026-09-17)
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from '../components/Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 
 interface Summary {
   date: string;

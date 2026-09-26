@@ -1,29 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { isNativeApp } from '../api';
+import { getCookieConsent, setCookieConsent, type Consent } from '../utils/cookieConsent';
 
 // 한국 개인정보보호법 (PIPA) — 쿠키 사용 시 정보 제공 의무.
 // 분석 도구 (GA 등) 활성화 전 사용자 동의를 받기 위한 배너.
 // 필수 쿠키는 동의 없이도 동작 (세션, 인증) — 분석/광고만 게이트.
 // 네이티브 앱(iOS/Android)에서는 표시하지 않음 — 앱은 분석 도구를 아예 안 쓰고, 애플 5.1.2(i)가 쿠키 안내를 '추적'으로 봄 (2026-09-15 반려).
 
-const STORAGE_KEY = 'cookie-consent-v1';
-type Consent = 'all' | 'essential' | null;
-
-export function getCookieConsent(): Consent {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v === 'all' || v === 'essential') return v;
-  } catch { /* private mode */ }
-  return null;
-}
-
-export function setCookieConsent(v: Consent) {
-  if (!v) return;
-  try { localStorage.setItem(STORAGE_KEY, v); } catch { /* ignore */ }
-  // 동의 후 분석 도구 초기화는 main.tsx 의 옵저버 또는 GA 모듈에서 감지.
-  window.dispatchEvent(new CustomEvent('cookie-consent-changed', { detail: v }));
-}
 
 export default function CookieConsent() {
   const [open, setOpen] = useState(false);

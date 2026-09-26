@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 
 // 관리자 설정 — 인스타그램 @snowpan.kr 연동. 토큰을 한 번 넣으면 서버가 1시간마다 최신 게시물을 받아
 // 홈 "인스타그램" 섹션에 띄우고, 60일마다 만료되는 토큰도 알아서 연장한다.

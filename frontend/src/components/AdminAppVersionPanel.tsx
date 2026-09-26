@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { toastError, toastSuccess } from './Toast';
+import { toastError, toastSuccess } from '../utils/toast';
 
 // 관리자 설정 → 앱 버전 안내 (2026-09-25). 최신 버전보다 낮은 앱엔 '새 버전이 있어요' 띠, 최소 버전보다 낮으면 업데이트 전까지 사용 불가 창.
 interface Values { iosLatest: string; iosMin: string; androidLatest: string; androidMin: string }

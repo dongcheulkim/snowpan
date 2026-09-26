@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, setUser, uploadImages, imageUrl } from '../api';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { CameraIcon, UserIcon } from '../components/Icons';
 
 interface BadgeRequest { id: string; badgeType: string; status: string; image?: string }

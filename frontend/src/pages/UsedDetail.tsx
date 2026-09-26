@@ -4,7 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
 import PhotoViewer from '../components/PhotoViewer';
 import MarketPriceBadge from '../components/MarketPriceBadge';
@@ -145,7 +145,7 @@ const UsedDetail = () => {
     script.text = JSON.stringify(data);
     document.head.appendChild(script);
     return () => { document.getElementById(SCRIPT_ID)?.remove(); };
-  }, [product]);
+  }, [product, gearLabel]);
 
   // 판매자 평점 요약 — 판매자 카드 배지용 (공개 API)
   useEffect(() => {

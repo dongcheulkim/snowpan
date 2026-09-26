@@ -129,10 +129,12 @@ const WebcamDetail = () => {
   const { id } = useParams();
   const [selectedCam, setSelectedCam] = useState(0);
   const [cam, setCam] = useState<WebcamData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!id);
+  const [seenId, setSeenId] = useState(id);
+  if (seenId !== id) { setSeenId(id); setLoading(!!id); }
 
   useEffect(() => {
-    if (!id) { setLoading(false); return; }
+    if (!id) return;
     api<WebcamData>(`/webcams/${encodeURIComponent(id)}`)
       .then(setCam)
       .catch(() => setCam(null))

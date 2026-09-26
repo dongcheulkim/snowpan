@@ -2,7 +2,7 @@
 // 새로 추가하는 겸업은 사업자등록증으로 확인이 안 되므로 증빙(판매·정비 사진 업로드 또는 영상 링크)을 받고 관리자 승인 후 반영.
 import { useState } from 'react';
 import { uploadImages } from '../api';
-import { toastError } from './Toast';
+import { toastError } from '../utils/toast';
 import { KIND_LABEL, type ShopKind } from '../utils/shopKinds';
 
 interface Props {

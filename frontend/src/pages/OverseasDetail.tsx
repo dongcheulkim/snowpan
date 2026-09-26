@@ -35,9 +35,10 @@ export default function OverseasDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const [seenSlug, setSeenSlug] = useState(slug);
+  if (seenSlug !== slug) { setSeenSlug(slug); setLoading(true); setNotFound(false); }
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
     api<ResortDetail>(`/overseas/resorts/${slug}`)
       .then((r) => { setResort(r); document.title = `${r.name} - 스키장 투어`; })
       .catch(() => setNotFound(true))

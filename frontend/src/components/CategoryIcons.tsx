@@ -111,15 +111,3 @@ export const OverseasIcon = ({ size = 32, className }: IconProps) => (
   </svg>
 );
 
-export const categoryIcons = {
-  skishop: SkiShopIcon,
-  overseas: OverseasIcon,
-  repair: MaintenanceIcon,
-  used: SecondHandIcon,
-  rental: RentalIcon,
-  lesson: LessonIcon,
-  accommodation: AccommodationIcon,
-  community: CommunityIcon,
-  competitions: ScheduleIcon,
-  webcam: LivecamIcon,
-};

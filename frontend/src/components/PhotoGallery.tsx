@@ -15,10 +15,9 @@ export default function PhotoGallery({ images }: { images?: string | null }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   // 매물 전환 등으로 사진 목록이 바뀌면 첫 장부터 (stale index 방지)
-  useEffect(() => {
-    setIdx(0);
-    trackRef.current?.scrollTo({ left: 0 });
-  }, [images]);
+  const [seenImages, setSeenImages] = useState(images);
+  if (seenImages !== images) { setSeenImages(images); setIdx(0); }
+  useEffect(() => { trackRef.current?.scrollTo({ left: 0 }); }, [images]);
 
   if (!urls.length) return null;
 

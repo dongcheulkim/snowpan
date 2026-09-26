@@ -23,8 +23,8 @@ export default function ShareButton({ title, text, url, className = '' }: ShareB
       try {
         await navigator.share(shareData);
         return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return; // 사용자 취소
+      } catch (err) {
+        if ((err as { name?: string } | null)?.name === 'AbortError') return; // 사용자 취소
         // 다른 오류면 fallback
       }
     }

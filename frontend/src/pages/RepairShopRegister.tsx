@@ -1,4 +1,4 @@
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { loginPath } from '../utils/loginPath';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';

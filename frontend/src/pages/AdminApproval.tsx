@@ -1,4 +1,4 @@
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import ExtraKindsNote from '../components/ExtraKindsNote';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';

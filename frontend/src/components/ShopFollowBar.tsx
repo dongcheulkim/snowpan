@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
 import { loginPath } from '../utils/loginPath';
-import { toastError } from './Toast';
+import { toastError } from '../utils/toast';
 
 // 매장 찜 + 답장 속도 (2026-09-24) — 상세 5종 공용. 찜하면 매장 소식·이벤트 알림. 답장 속도는 문의 3건 이상 쌓인 매장만 표시.
 interface Status { following: boolean; count: number }

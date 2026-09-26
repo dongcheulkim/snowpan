@@ -1,4 +1,4 @@
-import { toastSuccess, toastError } from '../components/Toast';
+import { toastSuccess, toastError } from '../utils/toast';
 import { loginPath } from '../utils/loginPath';
 import BrandLoader from '../components/BrandLoader';
 import { useState, useEffect, useRef } from 'react';
@@ -57,23 +57,25 @@ const PREMIUM_CATEGORIES = ['used', 'skishop', 'repair', 'rental', 'lesson', 'ac
 
 // 본인 등록물 dropdown 에 쓰일 entity API 경로 + URL 형식.
 interface MyListing { id: string; name: string; image?: string }
-const MY_LISTINGS_API: Record<string, { url: string; pickArray: (data: any) => any[] }> = {
+type Row = Record<string, unknown>;
+const rows = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : []);
+const MY_LISTINGS_API: Record<string, { url: string; pickArray: (data: unknown) => MyListing[] }> = {
   used: {
     url: '/products?category=used&userId=__ME__',
-    pickArray: (d) => Array.isArray(d) ? d : (d?.products || []),
+    pickArray: (d) => (Array.isArray(d) ? rows(d) : rows((d as { products?: unknown })?.products)) as unknown as MyListing[],
   },
-  skishop: { url: '/ski-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
-  repair: { url: '/repair-shops/my', pickArray: (d) => Array.isArray(d) ? d : [] },
-  rental: { url: '/rentals/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
-  lesson: { url: '/lessons/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
-  accommodation: { url: '/accommodations/my', pickArray: (d) => Array.isArray(d) ? d : (d?.items || []) },
+  skishop: { url: '/ski-shops/my', pickArray: (d) => rows(d) as unknown as MyListing[] },
+  repair: { url: '/repair-shops/my', pickArray: (d) => rows(d) as unknown as MyListing[] },
+  rental: { url: '/rentals/my', pickArray: (d) => (Array.isArray(d) ? rows(d) : rows((d as { items?: unknown })?.items)) as unknown as MyListing[] },
+  lesson: { url: '/lessons/my', pickArray: (d) => (Array.isArray(d) ? rows(d) : rows((d as { items?: unknown })?.items)) as unknown as MyListing[] },
+  accommodation: { url: '/accommodations/my', pickArray: (d) => (Array.isArray(d) ? rows(d) : rows((d as { items?: unknown })?.items)) as unknown as MyListing[] },
   // 커뮤니티 = 내가 쓴 글 (title→name, 첫 이미지)
   community: {
     url: '/community?userId=__ME__&limit=50',
-    pickArray: (d) => ((d?.posts || []) as any[]).map((p) => ({ id: p.id, name: p.title, image: (p.images || '').split(',').filter(Boolean)[0] })),
+    pickArray: (d) => rows((d as { posts?: unknown })?.posts).map((p) => ({ id: String(p.id), name: String(p.title || ''), image: String(p.images || '').split(',').filter(Boolean)[0] })),
   },
   // 투어 = 내 여행사
-  overseas: { url: '/agencies/my', pickArray: (d) => (Array.isArray(d) ? d : []).map((a: any) => ({ id: a.id, name: a.name, image: a.image })) },
+  overseas: { url: '/agencies/my', pickArray: (d) => rows(d).map((a) => ({ id: String(a.id), name: String(a.name || ''), image: a.image ? String(a.image) : undefined })) },
 };
 const URL_PREFIX: Record<string, string> = {
   used: '/used/',
@@ -212,21 +214,22 @@ export default function AdBooking() {
   const [myListings, setMyListings] = useState<MyListing[]>([]);
   const [myListingsLoading, setMyListingsLoading] = useState(false);
   const me = getUser();
+  const meId = me?.id;
 
   useEffect(() => {
-    if (selectedSlot !== 'premium' || !selectedCategory || !me) {
+    if (selectedSlot !== 'premium' || !selectedCategory || !meId) {
       setMyListings([]);
       return;
     }
     const config = MY_LISTINGS_API[selectedCategory];
     if (!config) { setMyListings([]); return; }
     setMyListingsLoading(true);
-    const path = config.url.replace('__ME__', me.id);
-    api<any>(path)
+    const path = config.url.replace('__ME__', meId);
+    api<unknown>(path)
       .then((data) => setMyListings(config.pickArray(data).slice(0, 50)))
       .catch(() => setMyListings([]))
       .finally(() => setMyListingsLoading(false));
-  }, [selectedSlot, selectedCategory, me?.id]);
+  }, [selectedSlot, selectedCategory, meId]);
 
   useEffect(() => {
     if (!token) return;
@@ -363,8 +366,8 @@ export default function AdBooking() {
       } else {
         navigate('/chat/rooms');
       }
-    } catch (err: any) {
-      setError(err.message || '광고 신청 중 오류가 발생했습니다.');
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : '광고 신청 중 오류가 발생했습니다.');
     } finally {
       setPaying(false);
     }
