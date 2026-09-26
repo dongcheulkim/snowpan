@@ -28,7 +28,7 @@ export default function AgencyCard({ agency }: { agency: Agency }) {
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
-            <span className="text-white font-black text-sm">{agency.name.slice(0, 2)}</span>
+            <span className="text-white font-bold text-sm">{agency.name.slice(0, 2)}</span>
           )}
         </div>
         <div className="min-w-0 flex-1">

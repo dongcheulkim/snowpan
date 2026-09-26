@@ -45,7 +45,7 @@ export default function AgencyPage() {
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center overflow-hidden flex-shrink-0">
           {a.image ? (
             <img src={imageUrl(a.image, 120)} alt={a.name} className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-          ) : <span className="text-white font-black text-sm">{a.name.slice(0, 2)}</span>}
+          ) : <span className="text-white font-bold text-sm">{a.name.slice(0, 2)}</span>}
         </div>
         <div className="min-w-0">
           <h1 className="text-base font-bold text-gray-900 truncate">{a.name}</h1>

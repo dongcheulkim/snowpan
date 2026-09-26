@@ -134,12 +134,14 @@ createRoot(document.getElementById('root')!).render(
 // Capacitor 네이티브(앱) 초기화 — 웹에선 no-op.
 import('./native').then(m => m.initNative()).catch(() => {});
 
+const FONT_CSS_URL = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap';
 // 웹폰트 비차단 로딩 — 렌더는 시스템 폰트로 먼저, 로드되면 교체(swap).
 // index.html 인라인 핸들러는 CSP(script-src 'self')에 막히므로 여기서 주입.
 (() => {
   const l = document.createElement('link');
   l.rel = 'stylesheet';
-  l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap';
+  // 400·700 두 굵기만 — 굵기 하나당 CSS 가 90KB 씩 늘어 4개는 370KB 였다 (2026-09-27 성능). index.html 의 preload 가 먼저 받아 둔다.
+  l.href = FONT_CSS_URL;
   document.head.appendChild(l);
 })();
 

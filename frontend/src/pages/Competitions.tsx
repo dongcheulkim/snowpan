@@ -331,7 +331,7 @@ export default function Competitions() {
                         className={`flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors ${isPast ? 'opacity-50' : ''}`}
                       >
                         <div className="flex-shrink-0 w-12 text-center">
-                          <div className={`text-sm font-black ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>{formatDate(comp.date)}</div>
+                          <div className={`text-sm font-bold ${isPast ? 'text-gray-500' : 'text-sky-500'}`}>{formatDate(comp.date)}</div>
                           <div className="text-[9px] text-gray-500">({formatDay(comp.date)}){comp.endDate && `~${formatDate(comp.endDate)}`}</div>
                         </div>
                         <span className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${sportDot}`} />

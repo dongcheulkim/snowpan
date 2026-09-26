@@ -6,6 +6,7 @@
 // - 게시물은 1시간마다 받아 캐시. 인스타가 잠깐 막혀도 마지막 캐시를 그대로 보여준다.
 // - media_url 은 서명된 CDN 주소라 며칠이면 만료 → 1시간 주기 갱신으로 항상 신선하게 유지.
 import prisma from '../config/database';
+import { isStorageConfigured, isOurCdn, putObject } from './bunnyStorage';
 
 const KEY_TOKEN = 'instagram.token';
 const KEY_EXPIRES = 'instagram.tokenExpiresAt';
@@ -18,6 +19,7 @@ const KEY_LAST_ERROR_AT = 'instagram.lastErrorAt';
 const GRAPH = 'https://graph.instagram.com';
 const FIELDS = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp';
 const MAX_POSTS = 12;
+const IG_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const REFRESH_BEFORE_MS = 10 * 24 * 60 * 60 * 1000; // 만료 10일 전부터 연장
 
 export interface IgPost {
@@ -104,6 +106,32 @@ export async function clearInstagramToken(): Promise<void> {
   await prisma.adminSetting.deleteMany({ where: { key: { in: [KEY_TOKEN, KEY_EXPIRES, KEY_CACHE, KEY_FETCHED, KEY_USERNAME] } } });
 }
 
+// 인스타 사진을 우리 CDN(Bunny)에 복사 — 홈 매거진이 인스타 원본(200KB 안팎, 리사이즈 불가) 대신 ?width= 로 줄인 WebP 를 받게 (2026-09-27 성능).
+// 같은 게시물이 이미 우리 CDN 에 있으면 재사용. 저장소 키가 없거나 실패하면 인스타 주소 그대로 둔다.
+async function cacheImagesOnCdn(posts: IgPost[], previous: IgPost[]): Promise<IgPost[]> {
+  if (!isStorageConfigured()) return posts;
+  const known = new Map(previous.filter((p) => isOurCdn(p.image)).map((p) => [p.id, p.image]));
+  const out = posts.map((p) => ({ ...p }));
+  const queue = out.filter((p) => !known.has(p.id));
+  for (const p of out) { const cached = known.get(p.id); if (cached) p.image = cached; }
+  const worker = async () => {
+    for (let p = queue.shift(); p; p = queue.shift()) {
+      try {
+        const res = await fetch(p.image, { signal: AbortSignal.timeout(15_000) });
+        if (!res.ok) continue;
+        const mime = (res.headers.get('content-type') || '').split(';')[0].trim();
+        const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+        if (!mime.startsWith('image/')) continue;
+        const buf = Buffer.from(await res.arrayBuffer());
+        if (!buf.length || buf.length > IG_IMAGE_MAX_BYTES) continue;
+        p.image = await putObject(`snowpan/instagram/${p.id}.${ext}`, buf, mime);
+      } catch (e) { console.warn('instagram image cache skip:', p.id, e instanceof Error ? e.message : e); }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  return out;
+}
+
 // 캐시 읽기 — 공개 API 가 쓴다. 토큰이 없으면 빈 배열(홈 섹션이 숨겨짐).
 export async function getInstagramPosts(): Promise<{ posts: IgPost[]; username: string | null; fetchedAt: string | null }> {
   const [cache, username, fetchedAt] = await Promise.all([getSetting(KEY_CACHE), getSetting(KEY_USERNAME), getSetting(KEY_FETCHED)]);
@@ -118,7 +146,8 @@ export async function refreshInstagramPosts(throwOnError = false): Promise<IgPos
   if (!token) return [];
   try {
     const data = await igFetch(`${GRAPH}/me/media?fields=${FIELDS}&limit=${MAX_POSTS}&access_token=${encodeURIComponent(token)}`);
-    const posts = toPosts(data);
+    const { posts: previous } = await getInstagramPosts();
+    const posts = await cacheImagesOnCdn(toPosts(data), previous);
     await setSetting(KEY_CACHE, JSON.stringify(posts));
     await setSetting(KEY_FETCHED, new Date().toISOString());
     await setSetting(KEY_LAST_ERROR, '');

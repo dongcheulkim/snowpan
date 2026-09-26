@@ -243,7 +243,7 @@ export default function Overseas() {
     <div className="min-h-screen bg-sky-50 pb-10">
       {/* 헤더 + 검색 */}
       <div className="px-4 pt-5 pb-3">
-        <h1 className="text-2xl font-black text-gray-900">스키장 투어</h1>
+        <h1 className="text-2xl font-bold text-gray-900">스키장 투어</h1>
         <p className="text-xs text-gray-500 mt-0.5">이번 시즌, 어디로 떠날까요?</p>
         {/* 광고 배너 — 다른 카테고리와 같이 제목 바로 아래 (사장님 요청 2026-09-14) */}
         <div className="mt-3"><CategoryAdBanner category="overseas" /></div>

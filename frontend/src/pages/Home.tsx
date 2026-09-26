@@ -414,7 +414,7 @@ const Home = () => {
                 <div className={`flex-1 relative z-10 ${banner.textAlign === 'center' ? 'text-center' : banner.textAlign === 'right' ? 'text-right' : 'text-left'}`}>
                   <div className={`flex items-center gap-2 mb-1 ${banner.textAlign === 'center' ? 'justify-center' : banner.textAlign === 'right' ? 'justify-end' : ''}`}>
                     <span
-                      className={banner.image ? 'text-xl font-black leading-snug' : 'text-[15px] font-bold'}
+                      className={banner.image ? 'text-xl font-bold leading-snug' : 'text-[15px] font-bold'}
                       style={banner.textColor ? { color: banner.textColor } : banner.image ? { color: '#ffffff' } : undefined}
                     >{banner.title}</span>
                   </div>
@@ -493,7 +493,7 @@ const Home = () => {
                 className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
               >
                 <div className="relative w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-900 hover:bg-gray-200 transition-colors">
-                  {Icon ? <Icon size={32} /> : <span className="text-[10px] font-black tracking-widest text-gray-500">{cat.id.toUpperCase().slice(0, 4)}</span>}
+                  {Icon ? <Icon size={32} /> : <span className="text-[10px] font-bold tracking-widest text-gray-500">{cat.id.toUpperCase().slice(0, 4)}</span>}
                 </div>
                 <span className="text-[11px] font-medium text-gray-900 text-center whitespace-nowrap">{cat.title}</span>
               </Link>
@@ -541,7 +541,7 @@ const Home = () => {
                   {/* 인스타 사진은 정사각·세로·가로가 섞여 있어 자르지 않고 전부 보여준다.
                       남는 자리는 흰 배경 (사용자 결정 2026-09-09 "그냥 흰색 배경으로 처리해 #ffffff") */}
                   <div className="aspect-[4/5] overflow-hidden relative" style={{ backgroundColor: '#ffffff' }}>
-                    <img src={m.thumb} alt="" className="absolute inset-0 w-full h-full object-contain" loading="lazy" />
+                    <img src={imageUrl(m.thumb, 400)} alt="" className="absolute inset-0 w-full h-full object-contain" loading="lazy" decoding="async" />
                     {m.video && (
                       <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/55 flex items-center justify-center">
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
@@ -597,7 +597,7 @@ const Home = () => {
                 to={item.kind === 'poll' ? `/poll/${item.id}` : `/community/post/${item.id}`}
                 className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 transition-colors"
               >
-                <span className={`text-sm font-black w-4 text-center flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
+                <span className={`text-sm font-bold w-4 text-center flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-medium text-gray-900 truncate">
                     {item.kind === 'poll' && (

@@ -830,7 +830,7 @@ const Chat = () => {
                       {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}{sideLabels[msg.senderId] ? ` · ${sideLabels[msg.senderId]}` : ''}</div>}{isMe && msg.senderId !== user.id && isFirstInGroup && sideLabels[msg.senderId] && <div className="text-[10px] text-gray-500 mb-1 mr-1 text-right">{sideLabels[msg.senderId]} · {msg.sender.nickname || msg.sender.name}</div>}
                       <div className={`rounded-2xl px-5 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200'}`}>
                         <div className={`text-[10px] font-medium mb-1 ${isMe ? 'text-white/60' : 'text-gray-500'}`}>가격 제안</div>
-                        <div className="text-xl font-black tracking-tight">
+                        <div className="text-xl font-bold tracking-tight">
                           {isNaN(priceVal) ? msg.content : `${priceVal.toLocaleString()}원`}
                         </div>
                       </div>

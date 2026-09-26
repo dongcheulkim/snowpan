@@ -131,7 +131,7 @@ const AccommodationDetail = () => {
           <div className="text-sm text-gray-500 line-through mb-1">{item.originalPrice.toLocaleString()}원</div>
         )}
         <div className="flex items-center gap-3">
-          <span className="text-3xl font-black text-mint">{item.price.toLocaleString()}원</span>
+          <span className="text-3xl font-bold text-mint">{item.price.toLocaleString()}원</span>
           {discount > 0 && (
             <span className="text-sm text-coral font-bold bg-coral/10 px-2 py-1 rounded-lg border border-coral/20">{discount}% 할인</span>
           )}

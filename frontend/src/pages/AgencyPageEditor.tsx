@@ -113,7 +113,7 @@ export default function AgencyPageEditor() {
                       {(['left', 'center', 'right'] as const).map((a) => (
                         <button key={a} onClick={() => update(i, { align: a })} className={`px-2 py-1 rounded text-xs ${b.align === a ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>{a === 'left' ? '왼쪽' : a === 'center' ? '가운데' : '오른쪽'}</button>
                       ))}
-                      <button onClick={() => update(i, { bold: !b.bold })} className={`px-2 py-1 rounded text-xs font-black ${b.bold ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>굵게</button>
+                      <button onClick={() => update(i, { bold: !b.bold })} className={`px-2 py-1 rounded text-xs font-bold ${b.bold ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>굵게</button>
                     </div>
                   </>
                 ) : (

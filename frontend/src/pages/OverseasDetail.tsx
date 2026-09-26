@@ -87,7 +87,7 @@ export default function OverseasDetail() {
           <span className="text-[11px] font-bold bg-white/20 px-2 py-0.5 rounded">
             {resort.country}{resort.region ? ` · ${resort.region}` : ''}
           </span>
-          <h1 className="text-2xl font-black mt-1.5">{resort.name}</h1>
+          <h1 className="text-2xl font-bold mt-1.5">{resort.name}</h1>
           {resort.summary && <p className="text-xs text-gray-200 mt-0.5">{resort.summary}</p>}
         </div>
       </div>

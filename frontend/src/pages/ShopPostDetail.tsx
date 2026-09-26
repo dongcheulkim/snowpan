@@ -166,7 +166,7 @@ export default function ShopPostDetail() {
             )}
             <span className="text-[10px] text-gray-500 ml-auto">조회 {post.viewCount}</span>
           </div>
-          <h1 className="text-xl font-black text-gray-900 leading-snug">{post.title}</h1>
+          <h1 className="text-xl font-bold text-gray-900 leading-snug">{post.title}</h1>
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
             <div className="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
               {post.user?.profileImage && (

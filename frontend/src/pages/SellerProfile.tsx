@@ -278,7 +278,7 @@ const SellerProfile = () => {
             {Object.entries(seller.badgesByVertical).map(([v, list]) => (
               list.length > 0 && (
                 <div key={v} className="flex items-center justify-center gap-1.5 flex-wrap">
-                  <span className="text-[9px] font-black tracking-[0.18em] text-gray-500">{VERTICAL_LABEL[v] || v.toUpperCase()}</span>
+                  <span className="text-[9px] font-bold tracking-[0.18em] text-gray-500">{VERTICAL_LABEL[v] || v.toUpperCase()}</span>
                   <UserBadges badges={list} />
                 </div>
               )

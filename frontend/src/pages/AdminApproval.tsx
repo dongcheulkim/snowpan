@@ -493,7 +493,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
             {item.user && <div className="text-xs text-gray-500 mt-0.5">등록자: {item.user.name}</div>}
           </div>
           <div className="text-right flex-shrink-0">
-            {item.price != null && <div className="text-base font-black text-gray-900">{item.price.toLocaleString()}원</div>}
+            {item.price != null && <div className="text-base font-bold text-gray-900">{item.price.toLocaleString()}원</div>}
           </div>
         </div>
 

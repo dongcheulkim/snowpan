@@ -137,13 +137,13 @@ export default function CompetitionDetail() {
         )}
         <div className="relative bg-gradient-to-br from-sky-500 to-blue-700 text-white p-8 text-center">
           {isToday && (
-            <div className="absolute top-3 right-3 bg-snow text-sky-600 text-[10px] font-black px-2 py-1 rounded-full animate-pulse">TODAY</div>
+            <div className="absolute top-3 right-3 bg-snow text-sky-600 text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">TODAY</div>
           )}
           {isPast && (
             <div className="absolute top-3 right-3 bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full">종료</div>
           )}
           {!comp.poster && <div className="mx-auto mb-4 text-white flex justify-center"><TrophyIcon size={56} /></div>}
-          <h1 className="text-2xl font-black mb-2">{comp.title}</h1>
+          <h1 className="text-2xl font-bold mb-2">{comp.title}</h1>
           <p className="text-sky-100 text-sm">{comp.organizer} 주최</p>
           <div className="mt-4 flex items-center justify-center gap-3 text-sm">
             <span className="inline-flex items-center gap-1"><LocationIcon size={14} /> {comp.location}{comp.resort?.name && comp.resort.name !== comp.location ? ` (${comp.resort.name})` : ''}</span>

@@ -522,7 +522,7 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
                       {stats.categoryViews.map((c, i) => (
                         <div key={c.key} className="flex items-center gap-2">
-                          <span className={`w-4 text-center text-xs font-black flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
+                          <span className={`w-4 text-center text-xs font-bold flex-shrink-0 ${i < 3 ? 'text-sky-500' : 'text-gray-300'}`}>{i + 1}</span>
                           <span className="w-20 text-xs font-medium text-gray-700 flex-shrink-0 truncate">{c.label}</span>
                           <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
                             <div className="h-full bg-sky-400 rounded-full" style={{ width: `${Math.max(2, (c.views / max) * 100)}%` }} />

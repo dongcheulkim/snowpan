@@ -63,7 +63,7 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
     <section className="pt-6">
       {/* 소식 작성·관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-black text-gray-900">매장 소식</h2>
+        <h2 className="text-base font-bold text-gray-900">매장 소식</h2>
       </div>
 
       {posts.length === 0 ? (

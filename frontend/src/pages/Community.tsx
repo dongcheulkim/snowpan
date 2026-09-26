@@ -327,7 +327,7 @@ const Community = () => {
             <Link to={`${vbase}/community/post/${post.id}`} key={post.id} className="card p-4 block card-hover">
               <div className="flex gap-3">
                 {rank > 0 && (
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${rank <= 3 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
                     {rank}
                   </div>
                 )}

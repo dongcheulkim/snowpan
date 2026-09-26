@@ -2,7 +2,7 @@ import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from '
 import { loginPath } from '../utils/loginPath';
 import { Link, useLocation } from 'react-router-dom';
 import { tryRefreshAccessToken, api, getToken } from '../api';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
 import { showBrowserNotification } from '../utils/pushNotification';
 import Logo from './Logo';
@@ -88,24 +88,30 @@ const Navbar = () => {
     const token = getToken();
     if (!user || !token) return;
 
+    // socket.io 는 로그인한 사람만 필요 — 첫 번들에서 빼고 여기서 받는다 (2026-09-27 성능, 비로그인 15KB 절약)
+    let socket: Socket | null = null;
+    let disposed = false;
+    import('socket.io-client').then(({ io }) => {
+    if (disposed) return;
     // 함수형 auth — 재연결 시 최신 토큰을 다시 읽음. 고정 토큰이면 1시간 만료 후
     // 재연결이 인증 거부돼 실시간 알림이 조용히 끊김.
-    const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
-    socketRef.current = socket;
+    const s = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
+    socket = s;
+    socketRef.current = s;
 
     // 토큰 만료로 핸드셰이크가 거부되면 Socket.IO 는 자동 재연결을 멈춤(active=false).
     // refresh 성공 시 수동 재연결 — 없으면 1시간 뒤 실시간 알림이 조용히 죽음.
     let refreshingSock = false;
-    socket.on('connect_error', async () => {
+    s.on('connect_error', async () => {
       if (refreshingSock) return;
       refreshingSock = true;
       try {
         const t = await tryRefreshAccessToken();
-        if (t) socket.connect();
+        if (t) s.connect();
       } finally { refreshingSock = false; }
     });
 
-    socket.on('new_notification', (data: PushPayload | undefined) => {
+    s.on('new_notification', (data: PushPayload | undefined) => {
       if (data?.type === 'chat') {
         // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
         // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).
@@ -128,8 +134,11 @@ const Navbar = () => {
       });
     });
 
+    }).catch(() => { /* 소켓 모듈을 못 받으면 실시간 알림만 없음 */ });
+
     return () => {
-      socket.disconnect();
+      disposed = true;
+      socket?.disconnect();
       socketRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

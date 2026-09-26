@@ -59,7 +59,7 @@ export default function DealCard({ deal, showResort = false }: { deal: Deal; sho
             {deal.price != null ? (
               <div className="flex items-baseline gap-1.5">
                 {discount > 0 && <span className="text-xs font-bold text-coral">{discount}%</span>}
-                <span className="text-base font-black text-gray-900">{deal.price.toLocaleString()}원~</span>
+                <span className="text-base font-bold text-gray-900">{deal.price.toLocaleString()}원~</span>
                 {deal.originalPrice != null && deal.originalPrice > (deal.price ?? 0) && (
                   <span className="text-[11px] text-gray-500 line-through">{deal.originalPrice.toLocaleString()}</span>
                 )}

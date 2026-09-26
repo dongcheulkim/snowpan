@@ -112,7 +112,7 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
       <div className={`mt-2 rounded-xl border-2 ${toneBorder} ${toneBg} px-4 py-3`} title={sourceTitle}>
         <div className="flex items-center gap-2 mb-1">
           <span className={`text-sm font-bold ${toneText}`}>{label}</span>
-          <span className={`ml-auto text-base font-black ${toneAccent} font-mono`}>{diffText}</span>
+          <span className={`ml-auto text-base font-bold ${toneAccent} font-mono`}>{diffText}</span>
         </div>
         <div className={`text-xs ${toneText} opacity-90`}>
           {scope} 시세 중앙값 <strong>{median.toLocaleString()}원</strong>
@@ -131,7 +131,7 @@ export default function MarketPriceBadge({ subcategory, brand, price, variant = 
       <div className="flex flex-col gap-0">
         <div className="flex items-baseline gap-1.5">
           <span className={`text-sm font-bold ${toneText} leading-tight`}>{label}</span>
-          <span className={`text-base font-black ${toneAccent} font-mono leading-tight`}>{diffText}</span>
+          <span className={`text-base font-bold ${toneAccent} font-mono leading-tight`}>{diffText}</span>
         </div>
         <span className={`text-[10px] ${toneText} opacity-70`}>
           스노우판 매물 {stats.count}건 · 최근 {windowMonths}개월 분석

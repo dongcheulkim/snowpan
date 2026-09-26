@@ -62,7 +62,7 @@ export default function AdminOpsPanel() {
           <div className="grid grid-cols-3 gap-2 text-center">
             {[['신고 대기', summary.pendingReports], ['승인 대기', summary.pendingApprovals.total], ['답 없는 문의', summary.unansweredSupport]].map(([l, v]) => (
               <div key={String(l)} className="bg-gray-50 rounded-xl py-2.5">
-                <p className="text-lg font-black text-gray-900">{v}</p>
+                <p className="text-lg font-bold text-gray-900">{v}</p>
                 <p className="text-[10px] text-gray-500">{l}</p>
               </div>
             ))}

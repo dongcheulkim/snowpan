@@ -899,7 +899,7 @@ export default function AdBooking() {
                     {(title || description || !imagePreview) && (
                     <div className={`relative z-10 flex items-center h-full px-5 ${textAlign === 'center' ? 'justify-center text-center' : textAlign === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
                       <div>
-                        {(title || !imagePreview) && <div className={imagePreview ? 'text-xl font-black leading-snug' : 'text-[15px] font-bold'} style={{ color: textColor }}>{title || '광고 제목'}</div>}
+                        {(title || !imagePreview) && <div className={imagePreview ? 'text-xl font-bold leading-snug' : 'text-[15px] font-bold'} style={{ color: textColor }}>{title || '광고 제목'}</div>}
                         {(description || !imagePreview) && <p className={imagePreview ? 'text-[13px] line-clamp-2' : 'text-sm'} style={{ color: textColor, opacity: 0.85 }}>{description || '광고 설명'}</p>}
                       </div>
                     </div>

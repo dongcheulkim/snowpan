@@ -31,7 +31,7 @@ export default function AgencyPayResult({ mode }: { mode: 'success' | 'fail' }) 
       {state === 'loading' && <p className="text-sm text-gray-600">결제를 확인하고 있어요...</p>}
       {state === 'ok' && (
         <>
-          <div className="w-14 h-14 rounded-full bg-mint/20 flex items-center justify-center text-mint text-2xl font-black">✓</div>
+          <div className="w-14 h-14 rounded-full bg-mint/20 flex items-center justify-center text-mint text-2xl font-bold">✓</div>
           <div>
             <p className="text-base font-bold text-gray-900">구독이 완료됐어요!</p>
             <p className="text-xs text-gray-500 mt-1">이제 여행 상품을 등록하고 추천 여행사로 노출됩니다.</p>
