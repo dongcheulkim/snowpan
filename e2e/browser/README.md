@@ -16,6 +16,8 @@ node edge_check.cjs   # 비로그인 → /login?next=, 상세 찜 → next, 404 
 node feature_check.cjs # 2026-09-17 기능: 시합 등록 폼, 리조트 후기 작성·삭제, 홈 카운트다운, 렌탈 가격 정렬·예약 문의 폼, 공유 카드(봇 UA), 관리자 설정·시합 승인 탭
 node deep_feature_check.cjs # 데이터 없어 건너뛰는 흐름 실제 실행: 렌탈 예약 문의(소유자를 관리자로 가로채 고객센터 방으로) → 자동 전송, 판매완료 구매자 선택 창, 시합 신청 제출→관리자 삭제, 글·스키샵 공유 카드
 node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(방문/미방문=app-shell)·앱 내 이동 (BASE=http://localhost:4173 로 로컬 preview 도 가능)
+node admin_new_check.cjs # 2026-09-26 관리자 신규: 탈퇴 회원 마스킹·원래 정보 보기, 설정 탭 열람 기록·앱 버전 패널, 이용 안내 페이지
+node webkit_smoke.cjs # 사파리 엔진(WebKit)으로 17개 경로 렌더·문구·가로 스크롤·페이지 오류
 ```
 
 - full_audit 과 chat_test/guide_test 는 같은 고객센터 방을 써서 **동시에 돌리면 안 됨**(순서대로).
