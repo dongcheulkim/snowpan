@@ -23,4 +23,7 @@ api GET /admin/jobs/storage-orphans ""; [ "$CODE" = "401" ] && ok "비로그인 
 api GET /admin/jobs/storage-orphans "" "$USER"; [ "$CODE" = "403" ] && ok "비관리자 403" || bad "비관리자 CODE=$CODE"
 api GET "/admin/jobs/storage-orphans?olderThanDays=abc" "" "$ADM"; [ "$CODE" = "400" ] && ok "잘못된 기간 400" || bad "기간 CODE=$CODE"
 api GET /admin/jobs/storage-orphans "" "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.configured')" = "false" ] && [ "$(echo "$RESP" | jq -r '.orphans')" = "0" ] && ok "키 없는 환경: configured=false, 대상 0" || bad "점검 CODE=$CODE RESP=$(echo $RESP | head -c 150)"
+api POST /admin/jobs/storage-orphans/delete '{}' "$USER"; [ "$CODE" = "403" ] && ok "비관리자 삭제 403" || bad "비관리자 삭제 CODE=$CODE"
+api POST /admin/jobs/storage-orphans/delete '{"olderThanDays":-1}' "$ADM"; [ "$CODE" = "400" ] && ok "삭제 잘못된 기간 400" || bad "삭제 기간 CODE=$CODE"
+api POST /admin/jobs/storage-orphans/delete '{"olderThanDays":7}' "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.configured')" = "false" ] && [ "$(echo "$RESP" | jq -r '.deleted // "none"')" = "none" ] && ok "키 없는 환경: 삭제 안 함" || bad "삭제 CODE=$CODE RESP=$(echo $RESP | head -c 150)"
 echo "----- STEP33: PASS=$PASS FAIL=$FAIL -----"

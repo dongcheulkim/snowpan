@@ -96,4 +96,24 @@ export async function findStorageOrphans(olderThanDays = 1): Promise<OrphanRepor
   };
 }
 
-// 삭제는 아직 넣지 않는다 — 훑어본 결과를 사장님이 보고 결정한 뒤 붙인다 (2026-09-26).
+// 안 쓰는 파일 삭제 — 사장님 결정(2026-09-26 "삭제해")으로 추가. 찾은 목록을 4개씩 동시에 지우고, 이미 없는 파일(404)은 지운 것으로 센다.
+export async function deleteStorageOrphans(olderThanDays = 1): Promise<OrphanReport> {
+  const report = await findStorageOrphans(olderThanDays);
+  const { orphanFiles, ...rest } = report;
+  if (!report.configured) return rest;
+  let deleted = 0, failed = 0;
+  const queue = [...orphanFiles];
+  const worker = async () => {
+    for (let f = queue.shift(); f; f = queue.shift()) {
+      try {
+        const res = await fetch(`https://${BUNNY_STORAGE_HOST}/${BUNNY_ZONE}/${encodePath(f.path)}`, {
+          method: 'DELETE', headers: { AccessKey: BUNNY_KEY }, signal: AbortSignal.timeout(20_000),
+        });
+        if (res.ok || res.status === 404) deleted++; else { failed++; console.warn(`storage orphan delete ${res.status}: ${f.path}`); }
+      } catch (e) { failed++; console.warn(`storage orphan delete error: ${f.path} ${(e as Error).message}`); }
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  console.log(`storage orphans: deleted ${deleted}, failed ${failed}, olderThanDays ${olderThanDays}`);
+  return { ...rest, deleted, failed };
+}
