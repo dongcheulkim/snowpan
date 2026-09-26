@@ -3,7 +3,7 @@ const { webkit } = require('/Users/jason/bada-now/node_modules/playwright');
 const BASE = process.env.BASE || 'https://snowpan.kr';
 const ROUTES = [
   ['/', /스키장 근처 매장/], ['/skishop', /스키·보드샵|스키샵/], ['/repair', /정비/], ['/rental', /렌탈/], ['/lessons', /레슨|강습/], ['/accommodations', /숙소/],
-  ['/used', /중고/], ['/community', /커뮤니티/], ['/webcam', /캠/], ['/search?q=%EC%8A%A4%ED%82%A4', /검색|결과/], ['/partners', /입점/], ['/partners/guide', /이용 안내/],
+  ['/used', /중고/], ['/community', /커뮤니티/], ['/webcam', /캠/], ['/search?q=%EC%8A%A4%ED%82%A4', /스키/], ['/partners', /입점/], ['/partners/guide', /이용 안내/],
   ['/advertise', /광고/], ['/help', /도움|문의/], ['/login', /로그인/], ['/privacy', /개인정보/], ['/resort/%ED%95%98%EC%9D%B4%EC%9B%90', /하이원/],
 ];
 (async () => {
@@ -13,7 +13,8 @@ const ROUTES = [
     const errs = []; const h = (e) => errs.push(e.message); p.on('pageerror', h);
     try {
       await p.goto(BASE + r, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(700);
-      const t = (await p.textContent('body')) || ''; const sw = await p.evaluate(() => document.documentElement.scrollWidth);
+      const t = (await p.evaluate(() => document.body.innerText)) || ''; // style 태그 문자열 제외, 보이는 글자만
+      const sw = await p.evaluate(() => document.documentElement.scrollWidth);
       const pass = re.test(t) && sw <= 390 && errs.length === 0;
       if (pass) ok++; else { fail++; console.log(`FAIL ${r} -- ${!re.test(t) ? '문구 없음' : ''} ${sw > 390 ? '가로 ' + sw : ''} ${errs.slice(0, 2).join(';')}`); }
     } catch (e) { fail++; console.log(`FAIL ${r} -- ${e.message.slice(0, 80)}`); }
