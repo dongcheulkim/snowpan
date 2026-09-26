@@ -2,6 +2,7 @@
 BASE="http://localhost:4001/api"; BYPASS="X-Loadtest-Key: e2e-local-bypass"
 SP="${E2E_STATE_DIR:-$(cd "$(dirname "$0")" && pwd)/.state}"
 source "$SP/state.env"
+source "$(cd "$(dirname "$0")" && pwd)/lib.sh"  # register_verified·login·pq (관리자 계정 생성용)
 PASS=0; FAIL=0
 ok()  { PASS=$((PASS+1)); echo "PASS | $1"; }
 bad() { FAIL=$((FAIL+1)); echo "FAIL | $1"; }
@@ -38,6 +39,16 @@ api POST /auth/register "{\"email\":\"buyer_e2e@re.test\",\"password\":\"Re!pass
 [ "$CODE" = "403" ] && echo "$RESP" | grep -q "다시 가입할 수 없" && ok "탈퇴 이메일·번호로 재가입 403 (재가입 제한)" || bad "재가입 CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
 api POST /auth/register "{\"email\":\"buyer_e2e@re.test\",\"password\":\"Re!pass1234\",\"name\":\"재가입\",\"nickname\":\"재가입시도\",\"phone\":\"01099990099\"}"
 [ "$CODE" = "403" ] && echo "$RESP" | grep -q "다시 가입할 수 없" && ok "탈퇴 이메일 + 새 번호도 403 (이메일 잠금)" || bad "이메일 잠금 CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
+
+# ── 관리자 화면엔 원래 이름·이메일·전화가 남는다 (사기 대응, 사장님 결정 2026-09-26). 공개 프로필엔 절대 안 나감.
+ADM8=$(register_verified "01099990085" "wd_admin@s8.test" "탈퇴관리자" "탈퇴관리자"); pq "UPDATE users SET role='admin' WHERE email='wd_admin@s8.test'" >/dev/null; ADMIN_TOKEN=$(login "wd_admin@s8.test" 'Re!pass1234')
+api GET /admin/users "" "$ADMIN_TOKEN"
+WROW=$(echo "$RESP" | jq -r --arg id "$BUYER_ID" '.[] | select(.id==$id) | [.role, .email, .withdrawnEmail, .withdrawnName, (.withdrawnPhone // "")] | join("|")')
+echo "[admin row] $WROW"
+case "$WROW" in "deleted|deleted_"*"|buyer_e2e@re.test|"*) ok "관리자 목록: 탈퇴 회원의 원래 이메일·이름 보존" ;; *) bad "관리자 목록 원래 신원 없음: $WROW" ;; esac
+echo "$WROW" | grep -qE '\|010\*\*\*\*[0-9]{4}$' && ok "관리자 목록: 원래 전화번호 가운데 마스킹" || bad "전화 마스킹: $WROW"
+api GET "/auth/seller/$BUYER_ID" ""
+echo "$RESP" | grep -qiE "withdrawn|buyer_e2e@re.test|$BUYER_PHONE" && bad "공개 프로필에 원래 신원 노출" || ok "공개 프로필엔 원래 신원 없음"
 
 # Old token invalidated
 api GET /auth/profile "" "$BUYER_TOKEN"

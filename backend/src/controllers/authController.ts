@@ -676,6 +676,11 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           phoneVerified: false,
           password: lockedPasswordHash,
           role: 'deleted',
+          // 원래 신원은 관리자 전용 칸에 보관 — 사기 신고·수사 협조용 (공개 API select 에 절대 포함하지 않는다)
+          withdrawnName: user.name,
+          withdrawnEmail: user.email,
+          withdrawnPhone: user.phone,
+          withdrawnAt: new Date(),
           // 소셜 연결 해제 — 안 지우면 같은 카카오/네이버로 재로그인 시 탈퇴 계정이 부활함.
           provider: null,
           appleRefreshToken: null,

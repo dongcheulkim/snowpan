@@ -134,7 +134,7 @@ router.get('/products/deleted', async (req: any, res) => {
       where: { deletedAt: { not: null }, ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { id: q }, { userId: q }] } : {}) },
       orderBy: { deletedAt: 'desc' }, take: limit,
       select: { id: true, name: true, price: true, status: true, image: true, images: true, userId: true, buyerId: true, soldAt: true, createdAt: true, deletedAt: true,
-        user: { select: { id: true, nickname: true, email: true, phone: true } } },
+        user: { select: { id: true, name: true, nickname: true, email: true, phone: true, role: true, withdrawnName: true, withdrawnEmail: true, withdrawnPhone: true, withdrawnAt: true } } },
     });
     res.json({ items });
   } catch (e) { console.error('deleted products list error:', e); res.status(500).json({ error: '조회 실패' }); }

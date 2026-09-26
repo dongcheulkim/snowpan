@@ -318,14 +318,16 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
   try {
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, nickname: true, email: true, role: true, phone: true, createdAt: true },
+      select: { id: true, name: true, nickname: true, email: true, role: true, phone: true, createdAt: true, withdrawnName: true, withdrawnEmail: true, withdrawnPhone: true, withdrawnAt: true },
       orderBy: { createdAt: 'desc' },
     });
     // 전화번호 마스킹 — 가운데 4자리 가림 (010-1234-5678 → 010-****-5678).
     // admin 권한이라도 list 화면에선 평문 노출 X. 신고 처리 등 필요 시 별도 단건 조회로.
+    const maskPhone = (p: string | null) => (p ? p.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1****$3') : p);
     const masked = users.map((u) => ({
       ...u,
-      phone: u.phone ? u.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1****$3') : u.phone,
+      phone: maskPhone(u.phone),
+      withdrawnPhone: maskPhone(u.withdrawnPhone), // 탈퇴 회원의 원래 번호도 같은 마스킹
     }));
     res.json(masked);
   } catch (error) {
@@ -386,6 +388,10 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
           phoneVerified: false,
           password: lockedHash,
           role: 'deleted',
+          withdrawnName: target.name,
+          withdrawnEmail: target.email,
+          withdrawnPhone: target.phone,
+          withdrawnAt: new Date(),
         },
       });
       await tx.product.updateMany({ where: { userId: id, status: 'selling' }, data: { status: 'sold' } });

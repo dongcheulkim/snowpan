@@ -16,6 +16,11 @@ model User {
   nickname      String?  @unique // 앱 검증 + DB 유니크로 경합 시 중복 차단(P2002)
   displayName   String   @default("name") // 'name' | 'nickname'
   phone         String?  @unique // 소셜 유저는 전화번호 없이 가입 (본인인증 도입 시 채움)
+  // 탈퇴 시 원래 신원 — 관리자 화면(사기·분쟁 대응)에서만 보이고 공개 응답엔 절대 안 나감. 5년 보관 (사장님 결정 2026-09-26)
+  withdrawnName  String?
+  withdrawnEmail String?
+  withdrawnPhone String?
+  withdrawnAt    DateTime?
   phoneVerified Boolean  @default(false)
   // 사장님 알림 채널 (2026-09-21, 사용자 "사장님들이 알림을 받아야"): 예약 요청·새 문의·승인 결과를 문자/메일로. alertPhone 없으면 매장 전화 → 계정 phone 순.
   alertPhone    String?

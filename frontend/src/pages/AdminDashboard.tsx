@@ -57,6 +57,11 @@ interface UserItem {
   role: string;
   phone: string;
   createdAt: string;
+  // 탈퇴 회원의 원래 신원 (관리자 전용, 사기·분쟁 대응)
+  withdrawnName?: string | null;
+  withdrawnEmail?: string | null;
+  withdrawnPhone?: string | null;
+  withdrawnAt?: string | null;
 }
 
 interface AdBookingItem {
@@ -586,6 +591,8 @@ const AdminDashboard = () => {
               ? users.filter(u =>
                   u.name.toLowerCase().includes(q) ||
                   u.email.toLowerCase().includes(q) ||
+                  (u.withdrawnName || '').toLowerCase().includes(q) ||
+                  (u.withdrawnEmail || '').toLowerCase().includes(q) ||
                   ((u as any).nickname || '').toLowerCase().includes(q)
                 )
               : users;
@@ -609,7 +616,7 @@ const AdminDashboard = () => {
                   <div className="card p-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-gray-900">{u.name}</span>
+                        <span className="text-sm font-bold text-gray-900">{u.role === 'deleted' && u.withdrawnName ? u.withdrawnName : u.name}</span>
                         {(u as any).nickname && <span className="text-xs text-gray-500">({(u as any).nickname})</span>}
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                           u.role === 'admin' ? 'bg-accent/20 text-accent' : u.role === 'banned' ? 'bg-coral/20 text-coral' : 'bg-gray-100 text-gray-600'
@@ -617,7 +624,14 @@ const AdminDashboard = () => {
                           {({ admin: '관리자', user: '일반', banned: '정지', deleted: '탈퇴' } as Record<string, string>)[u.role] || u.role}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                      <p className="text-xs text-gray-500 truncate">{u.role === 'deleted' && u.withdrawnEmail ? u.withdrawnEmail : u.email}</p>
+                      {u.role === 'deleted' && (
+                        <p className="text-[11px] text-gray-500">
+                          {u.withdrawnAt ? `${new Date(u.withdrawnAt).toLocaleDateString('ko-KR')} 탈퇴` : '탈퇴'}
+                          {u.withdrawnPhone ? ` · ${u.withdrawnPhone}` : ''}
+                          {!u.withdrawnName && !u.withdrawnEmail ? ' · 원래 정보 없음(이전 방식 탈퇴)' : ' · 원래 이름·이메일 표시 중'}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap sm:flex-shrink-0">
                       {/* 프로필(공개 페이지: 닉네임·리뷰·글) · 1:1 대화(관리자 → 유저 채팅방) — 사용자 요청 2026-09-09 */}
