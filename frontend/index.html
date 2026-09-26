@@ -91,8 +91,9 @@
   <body>
     <!-- 웹 첫 로딩 스플래시 — 워드마크 리빌. JS 로드 전에도 즉시 표시, React 마운트 후 main.tsx 가 제거. -->
     <div id="app-splash" aria-hidden="true">
+      <!-- 꺼진 간판(희미한 로고)은 애니메이션 없이 첫 프레임부터 그린다 — 첫 화면 표시(FCP)가 리빌 애니메이션 끝까지 밀리지 않게 (2026-09-27 성능) -->
+      <div id="app-splash-logo-static"><img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-dim" /></div>
       <div id="app-splash-logo-wrap">
-        <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-dim" />
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo" />
         <img src="/snowpan-wordmark.svg" alt="" id="app-splash-logo-hot" />
       </div>
@@ -102,7 +103,7 @@
         position: fixed; inset: 0; z-index: 9999;
         display: flex; align-items: center; justify-content: center;
         background: #000000;
-        opacity: 1; transition: opacity .45s ease;
+        opacity: 1; transition: opacity .3s ease;
         overflow: hidden;
         /* 번들 로드 실패 시에도 스플래시가 영원히 남지 않게 — JS 없이 8초 후 자동 소멸. */
         animation: splashAutoHide .4s ease 8s forwards;
@@ -129,9 +130,13 @@
         width: min(82vw, 380px);
         animation: splashLogo 1s cubic-bezier(.16, .84, .28, 1) both;
       }
+      #app-splash-logo-static {
+        position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        width: min(82vw, 380px);
+      }
       /* 미점등 상태 로고 — 꺼진 간판처럼 아주 희미하게 */
       #app-splash-logo-dim {
-        position: absolute; inset: 0; width: 100%; height: auto;
+        display: block; width: 100%; height: auto;
         filter: brightness(0) invert(1);
         opacity: 0.13;
       }

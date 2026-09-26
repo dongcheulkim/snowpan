@@ -163,12 +163,12 @@ const FONT_CSS_URL = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght
   const start = performance.now();
   // 리빌 애니메이션 완성 시점(0.25s 지연 + 1.15s = 1.4s)까지만 최소 노출 — 그 뒤 죽은 대기 제거.
   // 애니메이션이 온전히 보이는 선에서 콘텐츠로 최대한 빨리 넘김 (매 콜드로드 ~0.45s 단축).
-  const MIN_MS = 1400;
+  const MIN_MS = 1000; // 리빌 애니메이션(1초)이 끝나는 시점까지만 붙잡는다 (1400→1000, 2026-09-27 성능)
   requestAnimationFrame(() => {
     const wait = Math.max(0, MIN_MS - (performance.now() - start));
     setTimeout(() => {
       splash.classList.add('hide');
-      setTimeout(() => splash.remove(), 480);
+      setTimeout(() => splash.remove(), 320);
     }, wait);
   });
 })();
