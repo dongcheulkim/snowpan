@@ -48,9 +48,9 @@ export async function purgeRetention(now: Date = new Date()): Promise<PurgeResul
     where: {
       role: 'deleted',
       withdrawnAt: { lt: identityCutoff },
-      OR: [{ withdrawnName: { not: null } }, { withdrawnEmail: { not: null } }, { withdrawnPhone: { not: null } }],
+      OR: [{ withdrawnName: { not: null } }, { withdrawnEmail: { not: null } }, { withdrawnPhone: { not: null } }, { withdrawnProviders: { not: null } }],
     },
-    data: { withdrawnName: null, withdrawnEmail: null, withdrawnPhone: null },
+    data: { withdrawnName: null, withdrawnEmail: null, withdrawnPhone: null, withdrawnProviders: null },
   });
   // 지운 매물: 소프트 삭제 필터를 덮어써서(deletedAt 직접 지정) 5년 지난 행만 완전 삭제
   const products = await prisma.product.deleteMany({ where: { deletedAt: { lt: identityCutoff } } });

@@ -655,6 +655,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     // Apple 로그인 계정은 애플 쪽 앱 연결도 철회 (앱스토어 지침, 키 미설정이면 건너뜀·실패해도 탈퇴는 진행)
     if (user.provider === 'apple' || logins.some((l) => l.provider === 'apple')) await revokeAppleToken(user.appleRefreshToken).catch(() => {});
 
+    // 소셜 식별자 요약 — 카카오 회원번호·애플 sub 등. 탈퇴 후 5년 보관(관리자 전용)
+    const providerPairs = [...logins.map((l) => `${l.provider}:${l.providerId}`), ...(user.provider && user.providerId ? [`${user.provider}:${user.providerId}`] : [])];
+    const providersSummary = Array.from(new Set(providerPairs)).join(',') || 'email';
     const stamp = Date.now();
     const anonEmail = `deleted_${userId}@snowpan.local`;
     const anonPhone = `deleted_${stamp}_${userId.slice(0, 8)}`;
@@ -681,6 +684,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           withdrawnEmail: user.email,
           withdrawnPhone: user.phone,
           withdrawnAt: new Date(),
+          withdrawnProviders: providersSummary,
           // 소셜 연결 해제 — 안 지우면 같은 카카오/네이버로 재로그인 시 탈퇴 계정이 부활함.
           provider: null,
           appleRefreshToken: null,

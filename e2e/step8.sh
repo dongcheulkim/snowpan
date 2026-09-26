@@ -48,7 +48,7 @@ echo "[admin row] $WROW"
 case "$WROW" in "deleted|deleted_"*"|bu***@re.test|"*"|true") ok "관리자 목록: 탈퇴 회원 원래 이메일·이름 마스킹 표시 + 보존 표시" ;; *) bad "관리자 목록 마스킹: $WROW" ;; esac
 echo "$WROW" | grep -qE '\|010\*\*\*\*[0-9]{4}\|' && ok "관리자 목록: 원래 전화번호 가운데 마스킹" || bad "전화 마스킹: $WROW"
 api GET "/admin/users/$BUYER_ID/identity" "" "$ADMIN_TOKEN"
-[ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.withdrawnEmail')" = "buyer_e2e@re.test" ] && [ "$(echo "$RESP" | jq -r '.withdrawnPhone')" = "$BUYER_PHONE" ] && ok "관리자 단건 조회: 원래 이메일·전화 전체 값" || bad "identity CODE=$CODE RESP=$(echo $RESP | head -c 150)"
+[ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.withdrawnEmail')" = "buyer_e2e@re.test" ] && [ "$(echo "$RESP" | jq -r '.withdrawnPhone')" = "$BUYER_PHONE" ] && [ "$(echo "$RESP" | jq -r '.withdrawnProviders')" = "email" ] && ok "관리자 단건 조회: 원래 이메일·전화·로그인 수단" || bad "identity CODE=$CODE RESP=$(echo $RESP | head -c 150)"
 api GET "/admin/users/$BUYER_ID/identity" "" "$BUYER2_TOKEN"; [ "$CODE" = "403" ] && ok "일반 회원의 원래 신원 조회 403" || bad "비관리자 identity CODE=$CODE"
 LOGN=$(pq "SELECT count(*) FROM admin_access_logs WHERE action='withdrawn_identity_view' AND \"targetId\"='$BUYER_ID'"); [ "$LOGN" = "1" ] && ok "열람 기록 1건 남음" || bad "열람 기록 LOGN=$LOGN"
 api GET "/auth/seller/$BUYER_ID" ""

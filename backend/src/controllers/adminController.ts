@@ -373,6 +373,9 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
     if (!target) { res.status(404).json({ error: '유저를 찾을 수 없습니다.' }); return; }
     if (target.role === 'deleted') { res.status(400).json({ error: '이미 탈퇴 처리된 계정입니다.' }); return; }
 
+    const targetLogins = await prisma.userLogin.findMany({ where: { userId: id }, select: { provider: true, providerId: true } });
+    const providerPairs = [...targetLogins.map((l) => `${l.provider}:${l.providerId}`), ...(target.provider && target.providerId ? [`${target.provider}:${target.providerId}`] : [])];
+    const providersSummary = Array.from(new Set(providerPairs)).join(',') || 'email';
     const stamp = Date.now();
     const anonEmail = `deleted_${id}@snowpan.local`;
     const anonPhone = `deleted_${stamp}_${id.slice(0, 8)}`;
@@ -396,6 +399,7 @@ export const adminDeleteUser = async (req: AuthRequest, res: Response): Promise<
           withdrawnEmail: target.email,
           withdrawnPhone: target.phone,
           withdrawnAt: new Date(),
+          withdrawnProviders: providersSummary,
         },
       });
       await tx.product.updateMany({ where: { userId: id, status: 'selling' }, data: { status: 'sold' } });

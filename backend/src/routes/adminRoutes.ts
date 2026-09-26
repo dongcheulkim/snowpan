@@ -147,7 +147,7 @@ router.get('/users/:id/identity', async (req: any, res) => {
   const id = String(req.params.id || '');
   if (!/^[0-9a-f-]{36}$/i.test(id)) { res.status(400).json({ error: '잘못된 사용자 ID' }); return; }
   try {
-    const u = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, withdrawnName: true, withdrawnEmail: true, withdrawnPhone: true, withdrawnAt: true } });
+    const u = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, withdrawnName: true, withdrawnEmail: true, withdrawnPhone: true, withdrawnAt: true, withdrawnProviders: true } });
     if (!u || u.role !== 'deleted') { res.status(404).json({ error: '탈퇴 회원이 아닙니다.' }); return; }
     logAdminAccess(req, ACCESS_ACTIONS.withdrawnIdentity, id);
     res.json(u);

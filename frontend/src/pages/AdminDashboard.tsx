@@ -204,11 +204,11 @@ const AdminDashboard = () => {
   interface LoginHistory { retentionDays: number; logins: { ip: string; userAgent: string | null; method: string; createdAt: string }[]; sameIpAccounts: { id: string; nickname: string | null; email: string; role: string; ip: string; lastAt: string }[] }
   const [loginInfo, setLoginInfo] = useState<{ userId: string; data: LoginHistory | null; loading: boolean } | null>(null);
   // 탈퇴 회원 원래 정보(전체 값) — 볼 때마다 서버에 열람 기록이 남는다
-  const [identity, setIdentity] = useState<Record<string, { withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null } | 'loading' | 'error'>>({});
+  const [identity, setIdentity] = useState<Record<string, { withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null; withdrawnProviders?: string | null } | 'loading' | 'error'>>({});
   const showIdentity = async (u: UserItem) => {
     if (identity[u.id] && identity[u.id] !== 'error') { setIdentity((m) => { const n = { ...m }; delete n[u.id]; return n; }); return; }
     setIdentity((m) => ({ ...m, [u.id]: 'loading' }));
-    try { const data = await api<{ withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null }>(`/admin/users/${u.id}/identity`); setIdentity((m) => ({ ...m, [u.id]: data })); }
+    try { const data = await api<{ withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null; withdrawnProviders: string | null }>(`/admin/users/${u.id}/identity`); setIdentity((m) => ({ ...m, [u.id]: data })); }
     catch { setIdentity((m) => ({ ...m, [u.id]: 'error' })); }
   };
   const showLogins = async (u: UserItem) => {
@@ -653,6 +653,7 @@ const AdminDashboard = () => {
                           {identity[u.id] && typeof identity[u.id] === 'object' && (
                             <p className="text-[11px] text-gray-900 mt-0.5">
                               {(identity[u.id] as { withdrawnName: string | null }).withdrawnName || '-'} · {(identity[u.id] as { withdrawnEmail: string | null }).withdrawnEmail || '-'} · {(identity[u.id] as { withdrawnPhone: string | null }).withdrawnPhone || '-'}
+                              <br />로그인 수단 {(identity[u.id] as { withdrawnProviders?: string | null }).withdrawnProviders || '-'}
                             </p>
                           )}
                         </div>
