@@ -3,6 +3,7 @@ import { loginHistoryHandler } from '../utils/loginLog';
 import { runReservationReminders } from '../utils/reservationReminders';
 import { updateResponseStats } from '../utils/responseStats';
 import { cleanupOrphanShopRows } from '../utils/shopRows';
+import { findStorageOrphans } from '../utils/storageOrphans';
 import { readAppVersionValues, invalidateAppVersionCache, APP_VERSION_KEYS, VERSION_RE } from './appVersionRoutes';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
@@ -107,6 +108,14 @@ router.post('/jobs/response-stats', async (_req: any, res) => {
 router.post('/jobs/cleanup-shop-rows', async (_req: any, res) => {
   try { res.json({ removed: await cleanupOrphanShopRows() }); }
   catch (e) { console.error('cleanup shop rows job error:', e); res.status(500).json({ error: '정리 실패' }); }
+});
+
+// 저장소에 남았지만 DB 어디에서도 참조하지 않는 사진 훑어보기 (조회만, 삭제 없음). olderThanDays 기본 1 = 하루 안 된 파일은 제외
+router.get('/jobs/storage-orphans', async (req: any, res) => {
+  const d = req.query?.olderThanDays === undefined ? 1 : Number(req.query.olderThanDays);
+  if (!Number.isFinite(d) || d < 0 || d > 3650) { res.status(400).json({ error: 'olderThanDays 는 0~3650 숫자' }); return; }
+  try { const { orphanFiles: _files, ...report } = await findStorageOrphans(d); res.json(report); }
+  catch (e) { console.error('storage orphans scan error:', e); res.status(500).json({ error: '저장소 점검 실패' }); }
 });
 
 // 앱 버전 안내 값 (최신·최소 지원) — 설정 탭에서 수정
