@@ -1518,3 +1518,17 @@ model ShopResponseStat {
   @@unique([shopType, shopId])
   @@map("shop_response_stats")
 }
+
+// 관리자 개인정보 열람 기록 (2026-09-26) — 탈퇴 회원 원래 신원·지운 매물·로그인 기록을 본 사람과 시각. 2년 보관 후 자동 삭제.
+model AdminAccessLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String   // withdrawn_identity_view | deleted_products_view | login_history_view
+  targetId  String?  // 본 회원·매물 id
+  detail    String?  // 검색어 등
+  ip        String?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+  @@index([targetId])
+  @@map("admin_access_logs")
+}

@@ -9,6 +9,7 @@ import AdminApproval from './AdminApproval';
 import OutreachBoard from '../components/OutreachBoard';
 import InstagramPanel from '../components/InstagramPanel';
 import AdminAppVersionPanel from '../components/AdminAppVersionPanel';
+import AdminAccessLogPanel from '../components/AdminAccessLogPanel';
 import AdminOpsPanel from '../components/AdminOpsPanel';
 import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
@@ -62,6 +63,7 @@ interface UserItem {
   withdrawnEmail?: string | null;
   withdrawnPhone?: string | null;
   withdrawnAt?: string | null;
+  hasWithdrawnIdentity?: boolean;
 }
 
 interface AdBookingItem {
@@ -201,6 +203,14 @@ const AdminDashboard = () => {
   // 로그인 기록 (IP·기기·같은 IP 다른 계정) — 사기 신고·분쟁 때만 보는 용도. 사용자 요청 2026-09-13
   interface LoginHistory { retentionDays: number; logins: { ip: string; userAgent: string | null; method: string; createdAt: string }[]; sameIpAccounts: { id: string; nickname: string | null; email: string; role: string; ip: string; lastAt: string }[] }
   const [loginInfo, setLoginInfo] = useState<{ userId: string; data: LoginHistory | null; loading: boolean } | null>(null);
+  // 탈퇴 회원 원래 정보(전체 값) — 볼 때마다 서버에 열람 기록이 남는다
+  const [identity, setIdentity] = useState<Record<string, { withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null } | 'loading' | 'error'>>({});
+  const showIdentity = async (u: UserItem) => {
+    if (identity[u.id] && identity[u.id] !== 'error') { setIdentity((m) => { const n = { ...m }; delete n[u.id]; return n; }); return; }
+    setIdentity((m) => ({ ...m, [u.id]: 'loading' }));
+    try { const data = await api<{ withdrawnName: string | null; withdrawnEmail: string | null; withdrawnPhone: string | null }>(`/admin/users/${u.id}/identity`); setIdentity((m) => ({ ...m, [u.id]: data })); }
+    catch { setIdentity((m) => ({ ...m, [u.id]: 'error' })); }
+  };
   const showLogins = async (u: UserItem) => {
     if (loginInfo?.userId === u.id) { setLoginInfo(null); return; }
     setLoginInfo({ userId: u.id, data: null, loading: true });
@@ -390,6 +400,7 @@ const AdminDashboard = () => {
               <AdminResortsPanel />
               <InstagramPanel />
               <AdminAppVersionPanel />
+              <AdminAccessLogPanel />
             </div>
           )}
           {tab === 'reports' && (() => {
@@ -629,8 +640,22 @@ const AdminDashboard = () => {
                         <p className="text-[11px] text-gray-500">
                           {u.withdrawnAt ? `${new Date(u.withdrawnAt).toLocaleDateString('ko-KR')} 탈퇴` : '탈퇴'}
                           {u.withdrawnPhone ? ` · ${u.withdrawnPhone}` : ''}
-                          {!u.withdrawnName && !u.withdrawnEmail ? ' · 원래 정보 없음(이전 방식 탈퇴)' : ' · 원래 이름·이메일 표시 중'}
+                          {!u.hasWithdrawnIdentity ? ' · 원래 정보 없음(이전 방식 탈퇴)' : ''}
                         </p>
+                      )}
+                      {u.role === 'deleted' && u.hasWithdrawnIdentity && (
+                        <div className="mt-1">
+                          <button onClick={() => showIdentity(u)} className="text-[11px] font-bold text-gray-900 underline">
+                            {identity[u.id] && identity[u.id] !== 'error' ? '원래 정보 닫기' : '원래 정보 보기 (열람 기록 남음)'}
+                          </button>
+                          {identity[u.id] === 'loading' && <span className="text-[11px] text-gray-500 ml-2">불러오는 중</span>}
+                          {identity[u.id] === 'error' && <span className="text-[11px] text-gray-700 ml-2">불러오지 못했어요</span>}
+                          {identity[u.id] && typeof identity[u.id] === 'object' && (
+                            <p className="text-[11px] text-gray-900 mt-0.5">
+                              {(identity[u.id] as { withdrawnName: string | null }).withdrawnName || '-'} · {(identity[u.id] as { withdrawnEmail: string | null }).withdrawnEmail || '-'} · {(identity[u.id] as { withdrawnPhone: string | null }).withdrawnPhone || '-'}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap sm:flex-shrink-0">

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { cleanupShopRows } from '../utils/shopRows';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { maskName, maskEmail, maskPhone } from '../utils/adminAudit';
 import { createNotification } from './notificationController';
 import { sendPushToUser } from '../utils/push';
 import { alertUser } from '../utils/ownerAlerts';
@@ -323,11 +324,14 @@ export const getUsers = async (req: AuthRequest, res: Response): Promise<void> =
     });
     // 전화번호 마스킹 — 가운데 4자리 가림 (010-1234-5678 → 010-****-5678).
     // admin 권한이라도 list 화면에선 평문 노출 X. 신고 처리 등 필요 시 별도 단건 조회로.
-    const maskPhone = (p: string | null) => (p ? p.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1****$3') : p);
+    // 탈퇴 회원의 원래 신원은 목록에선 마스킹만 — 전체 값은 GET /admin/users/:id/identity (열람 기록 남음)
     const masked = users.map((u) => ({
       ...u,
       phone: maskPhone(u.phone),
-      withdrawnPhone: maskPhone(u.withdrawnPhone), // 탈퇴 회원의 원래 번호도 같은 마스킹
+      withdrawnName: maskName(u.withdrawnName),
+      withdrawnEmail: maskEmail(u.withdrawnEmail),
+      withdrawnPhone: maskPhone(u.withdrawnPhone),
+      hasWithdrawnIdentity: Boolean(u.withdrawnName || u.withdrawnEmail || u.withdrawnPhone),
     }));
     res.json(masked);
   } catch (error) {

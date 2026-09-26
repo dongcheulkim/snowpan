@@ -103,6 +103,7 @@ import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { startReservationReminderScheduler } from './utils/reservationReminders';
 import { backfillChatRoomShops } from './utils/chatRoomShops';
 import { cleanupOrphanShopRows } from './utils/shopRows';
+import { startRetentionScheduler } from './utils/adminAudit';
 import shopFollowRoutes from './routes/shopFollowRoutes';
 import appVersionRoutes from './routes/appVersionRoutes';
 import shopReplyRoutes from './routes/shopReplyRoutes';
@@ -692,6 +693,7 @@ httpServer.listen(PORT, async () => {
   cleanupOrphanShopRows()
     .then((n) => { if (n) console.log(`사라진 매장의 직원·찜·문구·채팅 연결 정리 ${n}곳`); })
     .catch((e) => console.warn('고아 매장 행 정리 실패:', e instanceof Error ? e.message : e));
+  startRetentionScheduler(); // 매일 03시 KST: 탈퇴 5년 지난 원래 신원·지운 지 5년 지난 매물·2년 지난 열람 기록 파기
   backfillChatRoomShops()
     .then((n) => { if (n) console.log(`채팅방-매장 연결 백필 ${n}건`); })
     .catch((e) => console.warn('채팅방-매장 연결 백필 실패:', e instanceof Error ? e.message : e));

@@ -1,6 +1,7 @@
 // 로그인 기록 (IP·기기) — 사기 신고·분쟁 대응용. 기본 90일 뒤 자동 삭제.
 import type { Request, Response } from 'express';
 import prisma from '../config/database';
+import { logAdminAccess, ACCESS_ACTIONS } from './adminAudit';
 import type { AuthRequest } from '../middleware/auth';
 
 export const LOGIN_LOG_DAYS = Math.max(1, Number(process.env.LOGIN_LOG_DAYS) || 90);
@@ -29,6 +30,7 @@ export const loginHistoryHandler = async (req: AuthRequest, res: Response): Prom
     if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
     const userId = String(req.params.id || '');
     if (!/^[0-9a-f-]{36}$/i.test(userId)) { res.status(400).json({ error: '잘못된 사용자 ID' }); return; }
+    logAdminAccess(req, ACCESS_ACTIONS.loginHistory, userId);
     const logins = await prisma.loginLog.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20, select: { ip: true, userAgent: true, method: true, createdAt: true } });
     const ips = Array.from(new Set(logins.map((l) => l.ip))).filter((ip) => ip && ip !== 'unknown');
     let sameIpAccounts: { id: string; nickname: string | null; email: string; role: string; ip: string; lastAt: Date }[] = [];

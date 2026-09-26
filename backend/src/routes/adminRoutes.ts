@@ -4,6 +4,7 @@ import { runReservationReminders } from '../utils/reservationReminders';
 import { updateResponseStats } from '../utils/responseStats';
 import { cleanupOrphanShopRows } from '../utils/shopRows';
 import { findStorageOrphans, deleteStorageOrphans } from '../utils/storageOrphans';
+import { logAdminAccess, ACCESS_ACTIONS, purgeRetention } from '../utils/adminAudit';
 import { readAppVersionValues, invalidateAppVersionCache, APP_VERSION_KEYS, VERSION_RE } from './appVersionRoutes';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
@@ -129,6 +130,7 @@ router.post('/jobs/storage-orphans/delete', async (req: any, res) => {
 router.get('/products/deleted', async (req: any, res) => {
   const limit = Math.min(Math.max(parseInt(String(req.query?.limit || '50'), 10) || 50, 1), 200);
   const q = String(req.query?.q || '').trim();
+  logAdminAccess(req, ACCESS_ACTIONS.deletedProducts, null, q || null);
   try {
     const items = await prisma.product.findMany({
       where: { deletedAt: { not: null }, ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { id: q }, { userId: q }] } : {}) },
@@ -138,6 +140,39 @@ router.get('/products/deleted', async (req: any, res) => {
     });
     res.json({ items });
   } catch (e) { console.error('deleted products list error:', e); res.status(500).json({ error: '조회 실패' }); }
+});
+
+// 탈퇴 회원의 원래 신원 (전체 값) — 볼 때마다 열람 기록이 남는다. 목록(/users)은 마스킹만.
+router.get('/users/:id/identity', async (req: any, res) => {
+  const id = String(req.params.id || '');
+  if (!/^[0-9a-f-]{36}$/i.test(id)) { res.status(400).json({ error: '잘못된 사용자 ID' }); return; }
+  try {
+    const u = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, withdrawnName: true, withdrawnEmail: true, withdrawnPhone: true, withdrawnAt: true } });
+    if (!u || u.role !== 'deleted') { res.status(404).json({ error: '탈퇴 회원이 아닙니다.' }); return; }
+    logAdminAccess(req, ACCESS_ACTIONS.withdrawnIdentity, id);
+    res.json(u);
+  } catch (e) { console.error('withdrawn identity error:', e); res.status(500).json({ error: '조회 실패' }); }
+});
+
+// 관리자 열람 기록 — 최근 순, 최대 500
+router.get('/access-logs', async (req: any, res) => {
+  const limit = Math.min(Math.max(parseInt(String(req.query?.limit || '200'), 10) || 200, 1), 500);
+  try {
+    const logs = await prisma.adminAccessLog.findMany({ orderBy: { createdAt: 'desc' }, take: limit });
+    const adminIds = Array.from(new Set(logs.map((l) => l.adminId)));
+    const admins = adminIds.length ? await prisma.user.findMany({ where: { id: { in: adminIds } }, select: { id: true, name: true, email: true } }) : [];
+    const byId = new Map(admins.map((a) => [a.id, a]));
+    res.json({ items: logs.map((l) => ({ ...l, admin: byId.get(l.adminId) || null })) });
+  } catch (e) { console.error('access logs error:', e); res.status(500).json({ error: '조회 실패' }); }
+});
+
+// 보관 기간 만료 파기 즉시 실행 (E2E·운영 점검용). body.at 이 있으면 그 시각 기준
+router.post('/jobs/retention-purge', async (req: any, res) => {
+  try {
+    const at = req.body?.at ? new Date(String(req.body.at)) : new Date();
+    if (isNaN(at.getTime())) { res.status(400).json({ error: 'at 형식이 올바르지 않습니다.' }); return; }
+    res.json(await purgeRetention(at));
+  } catch (e) { console.error('retention purge error:', e); res.status(500).json({ error: '파기 실행 실패' }); }
 });
 
 // 앱 버전 안내 값 (최신·최소 지원) — 설정 탭에서 수정
