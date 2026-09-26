@@ -108,7 +108,7 @@ export const resolveReport = async (req: AuthRequest, res: Response): Promise<vo
     // 1) 대상 삭제 (게시글·중고 매물) — 이미 지워졌으면 그대로 결과만 기록
     if (action === 'delete' && targetExists) {
       if (report.type === 'post') await prisma.post.delete({ where: { id: report.targetId } });
-      else { await prisma.product.delete({ where: { id: report.targetId } }); cacheDelPrefix('products:'); cacheDelPrefix('market:'); cacheDelPrefix('home:hotdeals'); }
+      else { await prisma.product.update({ where: { id: report.targetId }, data: { deletedAt: new Date() } }); await prisma.wishlist.deleteMany({ where: { productId: report.targetId } }).catch(() => {}); cacheDelPrefix('products:'); cacheDelPrefix('market:'); cacheDelPrefix('home:hotdeals'); }
     }
 
     // 2) 같은 대상의 대기 신고 전부 같은 결과로

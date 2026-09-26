@@ -365,6 +365,7 @@ model Product {
   status      String?  @default("selling") // 'selling' | 'reserved' | 'sold'
   buyerId     String?  // 판매 완료 시 판매자가 지정한 구매자 (2026-09-17) — 후기 요청·후기 자격 검증용. 앱 밖 거래면 null
   soldAt      DateTime?
+  deletedAt   DateTime? // 판매자·관리자가 지운 시각 — 거래 기록 보관(전자상거래법 5년)을 위해 행은 남기고 화면에서만 숨김 (2026-09-26)
   retailPrice Int?     // 신품 정가(판매자 입력, 선택) — 상세에서 '정가 대비 %' 표시
   isPremium   Boolean? @default(false)
   premiumUntil DateTime?
@@ -383,6 +384,7 @@ model Product {
   @@index([userId])
   @@index([createdAt])
   @@index([status])
+  @@index([deletedAt])
   @@index([bumpedAt])
   @@index([brand])
   @@index([category, subcategory, brand])

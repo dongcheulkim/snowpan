@@ -783,7 +783,9 @@ export const deleteProduct = async (req: AuthRequest, res: Response): Promise<vo
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && req.user!.role !== 'admin') { res.status(403).json({ error: '삭제 권한이 없습니다.' }); return; }
 
-    await prisma.product.delete({ where: { id } });
+    // 행은 남기고 숨긴다(거래 기록 5년 보관). 찜은 정리해서 찜 목록에 지운 매물이 남지 않게.
+    await prisma.product.update({ where: { id }, data: { deletedAt: new Date() } });
+    await prisma.wishlist.deleteMany({ where: { productId: id } }).catch(() => {});
     cacheDelPrefix('products:');    cacheDelPrefix('market:');
     cacheDelPrefix('home:hotdeals');
     res.json({ message: '상품이 삭제되었습니다.' });

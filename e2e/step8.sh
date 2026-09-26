@@ -73,7 +73,7 @@ echo "[chat other] name=$CHATOTHER"
 # DB confirm
 DBROW=$(psql "postgresql://snowtest@localhost:5433/snowpan_test" -tA -c "SELECT name||'|'||role||'|'||COALESCE(nickname,'NULL')||'|'||email FROM users WHERE id='$BUYER_ID';")
 echo "[db row] $DBROW"
-case "$DBROW" in "탈퇴한 회원|deleted|탈퇴한 회원|deleted_"*) ok "DB 익명화(name·nickname=탈퇴한회원, role=deleted, email 마스킹)";; *) bad "DB 익명화 미흡: $DBROW";; esac
+case "$DBROW" in "탈퇴한 회원|deleted|NULL|deleted_"*) ok "DB 익명화(name·nickname=탈퇴한회원, role=deleted, email 마스킹)";; *) bad "DB 익명화 미흡: $DBROW";; esac
 
 # New chat to deleted user blocked
 api POST /chat/rooms "{\"targetUserId\":\"$BUYER_ID\"}" "$SELLER_TOKEN"

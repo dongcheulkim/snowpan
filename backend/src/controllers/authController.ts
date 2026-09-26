@@ -667,9 +667,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
           email: anonEmail,
           phone: anonPhone,
           name: '탈퇴한 회원',
-          // 닉네임도 '탈퇴한 회원'으로 — null 이면 공개 마스킹(maskRowUser)이
-          // '스노우판 회원' 폴백을 써서 탈퇴 여부가 안 보임
-          nickname: '탈퇴한 회원',
+          // 닉네임은 비운다 — '탈퇴한 회원'을 넣으면 닉네임 유니크 제약에 걸려 두 번째 탈퇴부터 500 (2026-09-26 E2E 발견).
+          // 공개 표시는 maskRowUser·displayName 이 name('탈퇴한 회원')·role 로 '탈퇴한 회원'을 보여 준다.
+          nickname: null,
           profileImage: null,
           fcmToken: null,
           activeBadge: null,
@@ -700,8 +700,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       await tx.notification.deleteMany({ where: { userId } });
       await tx.shopClaim.deleteMany({ where: { userId, status: 'pending' } });
       await tx.userLogin.deleteMany({ where: { userId } }); // 연결된 소셜 로그인 전부 해제
-      // 판매중·예약중 매물은 삭제 (판매완료 매물은 거래 기록으로 유지)
-      await tx.product.deleteMany({ where: { userId, status: { in: ['selling', 'reserved'] } } });
+      // 판매중·예약중 매물은 숨김(deletedAt) — 행은 거래 기록으로 남김. 판매완료 매물은 그대로 유지 (2026-09-26)
+      await tx.product.updateMany({ where: { userId, status: { in: ['selling', 'reserved'] } }, data: { deletedAt: new Date() } });
+      await tx.wishlist.deleteMany({ where: { product: { userId } } }).catch(() => {});
       // 매장·레슨·숙소: 직접 등록한 건 삭제. 크롤 매장을 넘겨받은(소유권 이전 승인) 건 목록에서 사라지면 안 되니 관리자 계정으로 되돌림.
       const admin = await tx.user.findFirst({ where: { role: 'admin', id: { not: userId } }, orderBy: { createdAt: 'asc' }, select: { id: true } });
       const claimed = await tx.shopClaim.findMany({ where: { userId, status: 'approved' }, select: { shopType: true, shopId: true } });

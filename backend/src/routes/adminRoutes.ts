@@ -125,6 +125,21 @@ router.post('/jobs/storage-orphans/delete', async (req: any, res) => {
   catch (e) { console.error('storage orphans delete error:', e); res.status(500).json({ error: '저장소 정리 실패' }); }
 });
 
+// 지운 중고 매물 기록 (분쟁·사기 대응용, 거래 기록 5년 보관). 화면에서는 안 보이지만 행은 남아 있다 — 판매자·구매자·가격·사진·지운 시각
+router.get('/products/deleted', async (req: any, res) => {
+  const limit = Math.min(Math.max(parseInt(String(req.query?.limit || '50'), 10) || 50, 1), 200);
+  const q = String(req.query?.q || '').trim();
+  try {
+    const items = await prisma.product.findMany({
+      where: { deletedAt: { not: null }, ...(q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { id: q }, { userId: q }] } : {}) },
+      orderBy: { deletedAt: 'desc' }, take: limit,
+      select: { id: true, name: true, price: true, status: true, image: true, images: true, userId: true, buyerId: true, soldAt: true, createdAt: true, deletedAt: true,
+        user: { select: { id: true, nickname: true, email: true, phone: true } } },
+    });
+    res.json({ items });
+  } catch (e) { console.error('deleted products list error:', e); res.status(500).json({ error: '조회 실패' }); }
+});
+
 // 앱 버전 안내 값 (최신·최소 지원) — 설정 탭에서 수정
 router.get('/app-version', async (_req: any, res) => {
   try { res.json(await readAppVersionValues()); } catch (e) { console.error('app version read error:', e); res.status(500).json({ error: '조회 실패' }); }

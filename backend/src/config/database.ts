@@ -15,10 +15,24 @@ function withPoolDefaults(url: string | undefined): string | undefined {
   }
 }
 
+// 지운 매물(deletedAt 있음)은 모든 조회에서 자동으로 뺀다 — 거래 기록은 남기되 화면엔 안 보이게 (2026-09-26).
+// 지운 것까지 보려면 where 에 deletedAt 을 직접 적는다 (예: 관리자 분쟁 조회 { deletedAt: { not: null } }).
+const liveProduct = <A extends { where?: Record<string, unknown> }>(args: A): A => ({ ...args, where: { deletedAt: null, ...(args.where || {}) } });
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'error'],
   datasources: {
     db: { url: withPoolDefaults(process.env.DATABASE_URL) },
+  },
+}).$extends({
+  query: {
+    product: {
+      findMany: ({ args, query }) => query(liveProduct(args)),
+      findFirst: ({ args, query }) => query(liveProduct(args)),
+      findUnique: ({ args, query }) => query(liveProduct(args)),
+      count: ({ args, query }) => query(liveProduct(args)),
+      aggregate: ({ args, query }) => query(liveProduct(args)),
+      groupBy: ({ args, query }) => query(liveProduct(args)),
+    },
   },
 });
 

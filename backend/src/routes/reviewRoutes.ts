@@ -1,3 +1,4 @@
+import { publicName } from '../utils/displayName';
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken } from '../middleware/auth';
 import prisma from '../config/database';
@@ -91,14 +92,14 @@ router.post('/', authenticateToken, reviewCreateLimiter, async (req: AuthRequest
 
     const title = '새 리뷰';
     // 알림 본문도 익명 라벨 — 리뷰 응답은 익명인데 알림으로 실명이 새면 리뷰어 특정 가능
-    const body = `${review.buyer.nickname || '스노우판 회원'}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
+    const body = `${publicName(review.buyer)}님이 별점 ${review.rating}점 리뷰를 남겼습니다.`;
     const link = `/seller/${sellerId}`;
     await createNotification(sellerId, 'system', title, body, link);
     sendPushToUser(sellerId, title, body, link);
 
     res.status(201).json({
       ...review,
-      buyer: review.buyer ? { ...review.buyer, name: review.buyer.nickname || '스노우판 회원' } : review.buyer,
+      buyer: review.buyer ? { ...review.buyer, name: publicName(review.buyer) } : review.buyer,
     });
   } catch (error) {
     console.error('Create review error:', error);
@@ -142,7 +143,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     // 실명 보호 — 공개 API 라 name 을 닉네임으로 치환 (커뮤니티와 동일 정책)
     const shaped = reviews.map((r) => ({
       ...r,
-      buyer: r.buyer ? { ...r.buyer, name: r.buyer.nickname || '스노우판 회원' } : r.buyer,
+      buyer: r.buyer ? { ...r.buyer, name: publicName(r.buyer) } : r.buyer,
     }));
     res.json({ reviews: shaped, averageRating, totalCount });
   } catch (error) {
@@ -200,7 +201,7 @@ router.get('/pending-for-me', authenticateToken, async (req: AuthRequest, res: R
       seller: (() => {
         const sel = p.userId ? sellerById.get(p.userId) || null : null;
         // 실명 비노출 — 표시명(닉네임 우선) 치환
-        return sel ? { ...sel, name: sel.nickname || '스노우판 회원' } : null;
+        return sel ? { ...sel, name: publicName(sel) } : null;
       })(),
       soldAt: p.soldAt ?? p.updatedAt,
     })).filter((x) => x.seller && x.seller.role !== 'deleted');

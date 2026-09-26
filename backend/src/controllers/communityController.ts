@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
+import { publicName } from '../utils/displayName';
 import { createNotification } from './notificationController';
 import { cacheGet, cacheSet } from '../utils/cache';
 import { sendPushToUser } from '../utils/push';
@@ -30,8 +31,7 @@ setInterval(() => {
 }, 5 * 60_000);
 
 // 공개 표면 표시명 — 닉네임 없으면 실명 대신 익명 라벨 (실명 폴백 유출 차단)
-const resolveDisplayName = (user: { name: string; nickname?: string | null }) =>
-  user.nickname || '스노우판 회원';
+const resolveDisplayName = (user: { name: string; nickname?: string | null; role?: string | null }) => publicName(user);
 
 // 카테고리 화이트리스트. 'notice'(공지)·'news'(스노우판 매거진)는 관리자 전용.
 // 스노우판 매거진: 시즌권 판매·개장일·할인 같은 리조트 뉴스를 사장님이 올리는 채널. 공용(sport='all')이라 스키·보드 양쪽에 보이고,
