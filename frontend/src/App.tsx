@@ -92,6 +92,7 @@ const AdPay = lazy(() => import('./pages/AdPay'));
 const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
 const Partners = lazy(() => import('./pages/Partners'));
+const PartnerGuide = lazy(() => import('./pages/PartnerGuide'));
 const AccountDeletion = lazy(() => import('./pages/AccountDeletion'));
 const PartnerFind = lazy(() => import('./pages/PartnerFind'));
 const Overseas = lazy(() => import('./pages/Overseas'));
@@ -210,6 +211,7 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="advertise" element={<Advertise />} />
             <Route path="partners" element={<Partners />} />
+            <Route path="partners/guide" element={<PartnerGuide />} />
             <Route path="partners/find" element={<RequireAuth><PartnerFind /></RequireAuth>} />
             <Route path="overseas" element={<Overseas />} />
             <Route path="overseas/agency/register" element={<RequireAuth><AgencyRegister /></RequireAuth>} />

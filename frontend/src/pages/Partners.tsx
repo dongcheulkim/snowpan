@@ -100,6 +100,16 @@ export default function Partners() {
         </p>
       </section>
 
+      <section className="card p-5">
+        <h2 className="text-sm font-bold text-gray-900 mb-2">입점하면 이렇게 씁니다</h2>
+        <p className="text-xs text-gray-600 leading-relaxed">
+          예약 카드 확정, 손님 채팅과 답장 문구, 정비 작업 현황 알림, 소식·이벤트와 찜 알림, 리뷰 답글, 직원 함께 응대, 매장 QR, 자동으로 손님에게 가는 예약 안내까지 사장님이 쓰는 기능 전부를 한 페이지에 정리했습니다.
+        </p>
+        <Link to="/partners/guide" className="block mt-3 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold text-center hover:bg-gray-800 transition-colors">
+          사장님 이용 안내 자세히 보기
+        </Link>
+      </section>
+
       <section className="card p-5 space-y-3">
         <h2 className="text-sm font-bold text-gray-900">자주 묻는 질문</h2>
         {FAQ.map((f) => (
