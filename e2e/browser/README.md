@@ -4,7 +4,7 @@
 
 ```bash
 cd e2e/browser
-export U_EMAIL=reviewer@snowpan.kr U_PW='Snowpan-Review-2026' A_EMAIL=help.snowpan@gmail.com A_PW='snowpan12!'
+source .env   # 계정 정보는 여기(.env, git 제외)에 둔다 — export U_EMAIL U_PW A_EMAIL A_PW
 node full_audit.cjs   # 홈→카테고리(모든 버튼)→채팅→알림→알람→검색→마이→관리자 (~25분)
 node chat_test.cjs    # 고객센터 왕복 + 대화 삭제(내 쪽만 숨김) + 새 메시지로 재표시
 node guide_test.cjs   # 안내 메뉴 전수: 6 카테고리 × 소분류 22개 자동답변
