@@ -22,8 +22,12 @@ export async function resolveYoutubeLive(channelId: string): Promise<{ live: boo
     if (res.ok) {
       const html = await res.text();
       live = /"isLive":true/.test(html) || /"isLiveNow":true/.test(html);
-      const m = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_-]{6,})"/);
+      // 지역·봇 판정에 따라 HTML 형태가 달라서 세 가지로 찾는다: canonical → itemprop identifier → 첫 videoId
+      const m = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_-]{6,})"/)
+        || html.match(/<meta itemprop="identifier" content="([A-Za-z0-9_-]{6,})"/)
+        || html.match(/"videoId":"([A-Za-z0-9_-]{11})"/);
       if (live && m) videoId = m[1];
+      if (live && !videoId) console.warn(`youtube live: videoId 못 찾음 channel=${channelId} html=${html.length}B`);
     }
   } catch { live = null; }
   cache.set(channelId, { at: Date.now(), live, videoId });
