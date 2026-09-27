@@ -12,7 +12,8 @@ function parseYouTubeEmbed(stream: string): string | null {
   const params = 'autoplay=1&mute=1&playsinline=1';
   if (stream.startsWith('youtube:')) return `https://www.youtube-nocookie.com/embed/${stream.slice(8)}?${params}`;
   const ch = stream.match(/youtube\.com\/embed\/live_stream\?channel=([A-Za-z0-9_-]+)/);
-  if (ch) return `https://www.youtube.com/embed/live_stream?channel=${ch[1]}&${params}`;
+  // 채널 라이브는 nocookie 도메인으로 — youtube.com 은 동시 방송이 여러 개인 채널(니세코 그랑히라후)에서 '동영상을 볼 수 없습니다'가 뜸 (2026-09-27 확인)
+  if (ch) return `https://www.youtube-nocookie.com/embed/live_stream?channel=${ch[1]}&${params}`;
   const m = stream.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([A-Za-z0-9_-]{6,})/);
   return m ? `https://www.youtube-nocookie.com/embed/${m[1]}?${params}` : null;
 }
