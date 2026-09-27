@@ -205,6 +205,7 @@ router.put('/resorts/:id', authenticateToken, requireAdmin, async (req: AuthRequ
     if (b.highlights !== undefined) data.highlights = b.highlights ? (sanitizeText(b.highlights, 300) || b.highlights) : null;
     if (b.slopes !== undefined) data.slopes = b.slopes != null ? Number(b.slopes) || null : null;
     if (b.bestFor !== undefined) data.bestFor = b.bestFor ? (sanitizeText(b.bestFor, 100) || b.bestFor) : null;
+    if (b.imageCredit !== undefined) data.imageCredit = b.imageCredit ? (sanitizeText(b.imageCredit, 120) || b.imageCredit) : null;
     if (b.webcamUrl !== undefined) data.webcamUrl = b.webcamUrl && /^https:\/\//i.test(b.webcamUrl) ? String(b.webcamUrl).slice(0, 300) : null;
     if (b.webcams !== undefined) {
       // [{label, stream}] 최대 6개 — stream 은 https 또는 youtube:/iframe: 접두 (안전한 출처만)

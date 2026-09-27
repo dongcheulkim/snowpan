@@ -1301,6 +1301,7 @@ model OverseasResort {
   bestFor     String?                   // '상급자,파우더 매니아'
   webcams     Json?                     // 실시간 웹캠 [{label, stream}] — stream 은 유튜브 채널 라이브(embed/live_stream?channel=)·HLS·iframe: (2026-09-27 스키장 투어 꾸미기)
   webcamUrl   String?                   // 공식 웹캠 페이지(임베드 불가 리조트는 이 링크만)
+  imageCredit String?                   // 대표 사진 출처 표기 (예: '위키미디어 공용 · CC BY-SA 3.0', '웰리힐리파크 공식 홈페이지') — 상세 사진 우하단 (2026-09-27)
   published   Boolean  @default(true)
   order       Int      @default(0)
   viewCount   Int      @default(0)
