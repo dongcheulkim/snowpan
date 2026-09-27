@@ -222,6 +222,7 @@ app.use(cors({
     return cb(null, false);
   },
   credentials: true,
+  maxAge: 86400, // preflight(OPTIONS) 결과를 브라우저가 하루 캐시 — 요청마다 왕복 한 번씩 줄어듦 (2026-09-27 성능)
 }));
 // JSON body 200KB 상한 — 일반 폼 충분, 거대 페이로드 DoS 방지.
 // 이미지 업로드는 multipart 라 별도 (uploadRoutes 의 multer 가 20MB).

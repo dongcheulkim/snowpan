@@ -113,7 +113,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
   const { method = 'GET', body, token, _retried, _attempt = 0 } = options;
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // Content-Type 은 본문이 있을 때만 — GET 에 붙이면 브라우저가 preflight(OPTIONS)를 먼저 보내 왕복이 하나 늘어난다 (2026-09-27 성능)
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -126,6 +127,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   const finalBody = method !== 'GET' ? injectVerticalToBody(body) : body;
   let res: Response;
   try {
+    if (finalBody) headers['Content-Type'] = 'application/json';
     res = await fetch(`${API_BASE}${finalPath}`, {
       method,
       headers,
