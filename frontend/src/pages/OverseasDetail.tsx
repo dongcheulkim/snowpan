@@ -9,7 +9,7 @@ import { camSlugOf, hasDomesticCam } from '../utils/webcamSlug';
 // hls.js(520KB) 를 품고 있어 필요할 때만 받는다
 const WebcamPlayer = lazy(() => import('../components/WebcamPlayer'));
 
-interface Cam { label: string; stream: string; liveNow?: boolean | null } // liveNow: 유튜브 채널이 지금 방송 중인지(서버 판정), null 은 모름
+interface Cam { label: string; stream: string; liveNow?: boolean | null; liveVideoId?: string | null } // liveNow: 유튜브 채널이 지금 방송 중인지(서버 판정), null 은 모름
 interface ResortDetail {
   id: string;
   slug: string;
@@ -94,7 +94,7 @@ function WebcamSection({ resort }: { resort: ResortDetail }) {
               </div>
             ) : (
               <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-gray-400">웹캠 불러오는 중</div>}>
-                <WebcamPlayer key={cur.stream} stream={cur.stream} fallbackUrl={externalUrl} fallbackName={resort.name} />
+                <WebcamPlayer key={cur.liveVideoId || cur.stream} stream={cur.liveVideoId ? `youtube:${cur.liveVideoId}` : cur.stream} fallbackUrl={externalUrl} fallbackName={resort.name} />
               </Suspense>
             )}
           </div>
