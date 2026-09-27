@@ -360,7 +360,7 @@ const Used = () => {
         <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {products.map((product) => {
+          {products.map((product, idx) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             return (
               <Link
@@ -377,7 +377,8 @@ const Used = () => {
                       src={imageUrl(product.image, 400)}
                       alt={product.name}
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading={idx < 4 ? 'eager' : 'lazy'} // 첫 화면 4장은 바로 받는다 (LCP, 2026-09-27)
+                      fetchPriority={idx === 0 ? 'high' : undefined}
                       onError={e => {
                         const img = e.target as HTMLImageElement;
                         if (!img.dataset.fallback) {
