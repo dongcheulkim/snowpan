@@ -9,7 +9,7 @@ import { camSlugOf, hasDomesticCam } from '../utils/webcamSlug';
 // hls.js(520KB) 를 품고 있어 필요할 때만 받는다
 const WebcamPlayer = lazy(() => import('../components/WebcamPlayer'));
 
-interface Cam { label: string; stream: string }
+interface Cam { label: string; stream: string; liveNow?: boolean | null } // liveNow: 유튜브 채널이 지금 방송 중인지(서버 판정), null 은 모름
 interface ResortDetail {
   id: string;
   slug: string;
@@ -74,7 +74,7 @@ function WebcamSection({ resort }: { resort: ResortDetail }) {
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
           실시간 웹캠
-          {cams.length > 0 && (
+          {cams.length > 0 && cams.some((c) => c.liveNow !== false) && (
             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE
             </span>
@@ -85,15 +85,26 @@ function WebcamSection({ resort }: { resort: ResortDetail }) {
       {cams.length > 0 ? (
         <div className="bg-black rounded-2xl overflow-hidden">
           <div className="aspect-video">
-            <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-gray-400">웹캠 불러오는 중</div>}>
-              <WebcamPlayer key={cur.stream} stream={cur.stream} fallbackUrl={externalUrl} fallbackName={resort.name} />
-            </Suspense>
+            {cur.liveNow === false ? (
+              // 유튜브 채널이 지금 방송 중이 아님(시즌오프·야간) — 깨진 임베드 대신 안내
+              <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white px-4">
+                <span className="text-sm text-gray-300 font-medium">지금은 방송 중이 아니에요</span>
+                <span className="text-[11px] text-gray-500 text-center">스키 시즌이나 낮 시간에만 방송되는 카메라예요</span>
+                {externalUrl && <button type="button" onClick={() => openExternal(externalUrl)} className="mt-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-xs font-bold text-white">공식 웹캠 페이지 열기</button>}
+              </div>
+            ) : (
+              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-gray-400">웹캠 불러오는 중</div>}>
+                <WebcamPlayer key={cur.stream} stream={cur.stream} fallbackUrl={externalUrl} fallbackName={resort.name} />
+              </Suspense>
+            )}
           </div>
           {cams.length > 1 && (
             <HScroll className="overflow-x-auto bg-gray-900">
               <div className="flex gap-1 p-2 min-w-max">
                 {cams.map((c, i) => (
-                  <button key={i} type="button" onClick={() => setIdx(i)} className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap ${i === idx ? 'bg-white text-gray-900' : 'bg-white/10 text-gray-300'}`}>{c.label}</button>
+                  <button key={i} type="button" onClick={() => setIdx(i)} className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap inline-flex items-center gap-1.5 ${i === idx ? 'bg-white text-gray-900' : 'bg-white/10 text-gray-300'}`}>
+                    {c.liveNow === true && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}{c.label}
+                  </button>
                 ))}
               </div>
             </HScroll>

@@ -6,6 +6,7 @@ import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
 import { isAgencyActive, agencyActiveWhere } from '../utils/agencyActive';
+import { annotateLive } from '../utils/youtubeLive';
 
 // 해외 스키 여행 — 콘텐츠형(가이드) + 딜/광고(외부 파트너 중개).
 // 공개: 목록/상세/딜 조회 + 딜 클릭 추적. 쓰기: 관리자(에디터)만.
@@ -87,6 +88,8 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
     // 조회수 증가 (fire-and-forget).
     prisma.overseasResort.update({ where: { id: resort.id }, data: { viewCount: { increment: 1 } } }).catch(() => {});
     // 여행사 딜은 그 여행사가 활성(베타 무료 or 구독중)일 때만 노출. 관리자 딜(agency 없음)은 항상 노출.
+    // 웹캠(유튜브 채널)이 지금 방송 중인지 — 시즌오프엔 안내 화면으로 대신 (10분 캐시)
+    const webcams = Array.isArray(resort.webcams) ? await annotateLive(resort.webcams as { label: string; stream: string }[]) : null;
     const deals = resort.deals
       .filter((d) => !d.agency || isAgencyActive(d.agency))
       .map((d) => ({ ...d, agency: d.agency ? { id: d.agency.id, name: d.agency.name } : null }));
@@ -104,7 +107,7 @@ router.get('/resorts/:slug', async (req: Request, res: Response): Promise<void> 
     const agencies = activeAgencies.filter((a) =>
       tok(a.resortSlugs).includes(resort.slug) || tok(a.countries).includes(resort.country)
     );
-    res.json({ ...resort, deals, agencies });
+    res.json({ ...resort, webcams, deals, agencies });
   } catch (error) {
     console.error('Get overseas resort error:', error);
     res.status(500).json({ error: '해외 스키장 조회 중 오류가 발생했습니다.' });
