@@ -1,10 +1,9 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
-import Hls from 'hls.js';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { ProhibitIcon } from '../components/Icons';
-import { LivecamIcon } from '../components/CategoryIcons';
 import HScroll from '../components/HScroll';
+import WebcamPlayer from '../components/WebcamPlayer';
 
 interface CamInfo { label: string; stream: string }
 interface WebcamData {
@@ -18,112 +17,6 @@ interface WebcamData {
   cameras: CamInfo[] | null;
   externalUrl: string | null;
 }
-
-// 유튜브 판별 → 임베드 src 변환. cameras[].stream 에 유튜브 라이브를 넣을 수 있게.
-// 지원: youtube:VIDEOID | youtu.be/ID | watch?v=ID | /live/ID | /embed/ID
-//      | embed/live_stream?channel=UC... (채널 상시 라이브 — 방송 ID 가 바뀌어도 유효)
-function parseYouTubeEmbed(stream: string): string | null {
-  const params = 'autoplay=1&mute=1&playsinline=1';
-  if (stream.startsWith('youtube:')) return `https://www.youtube-nocookie.com/embed/${stream.slice(8)}?${params}`;
-  const ch = stream.match(/youtube\.com\/embed\/live_stream\?channel=([A-Za-z0-9_-]+)/);
-  if (ch) return `https://www.youtube.com/embed/live_stream?channel=${ch[1]}&${params}`;
-  const m = stream.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([A-Za-z0-9_-]{6,})/);
-  return m ? `https://www.youtube-nocookie.com/embed/${m[1]}?${params}` : null;
-}
-
-const YouTubePlayer = ({ src }: { src: string }) => (
-  <iframe
-    src={src}
-    className="w-full h-full border-0"
-    title="실시간 웹캠"
-    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-    allowFullScreen
-  />
-);
-
-// 일반 임베드 iframe — rtsp.me/rtsp.ru 같은 "임베드 전용" 웹캠 서비스 (에덴밸리 등).
-// stream 을 'iframe:URL' 로 넣거나, rtsp.me/rtsp.ru embed URL 이면 자동 인식.
-function parseIframeEmbed(stream: string): string | null {
-  if (stream.startsWith('iframe:')) return stream.slice(7);
-  if (/https:\/\/rtsp\.(me|ru)\/embed\//.test(stream)) return stream;
-  return null;
-}
-
-const HlsPlayer = ({ src, autoPlay = true, fallbackUrl, fallbackName }: { src: string; autoPlay?: boolean; fallbackUrl?: string | null; fallbackName?: string }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const resetTimer = setTimeout(() => setError(false), 0);
-
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true,
-      });
-      hlsRef.current = hls;
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (autoPlay) video.play().catch(() => {});
-      });
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        if (data.fatal) setError(true);
-      });
-
-      return () => {
-        clearTimeout(resetTimer);
-        hls.destroy();
-        hlsRef.current = null;
-      };
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari 네이티브 HLS — 오프시즌 404 스트림도 오프라인 폴백 UI 가 뜨도록 error 감지
-      const onErr = () => setError(true);
-      video.addEventListener('error', onErr);
-      video.src = src;
-      if (autoPlay) video.play().catch(() => {});
-      return () => {
-        clearTimeout(resetTimer);
-        video.removeEventListener('error', onErr);
-        video.removeAttribute('src');
-        video.load();
-      };
-    } else {
-      clearTimeout(resetTimer);
-      const errorTimer = setTimeout(() => setError(true), 0);
-      return () => clearTimeout(errorTimer);
-    }
-  }, [src, autoPlay]);
-
-  if (error) {
-    return (
-      <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white min-h-[200px] px-4">
-        <LivecamIcon size={28} className="text-gray-500" />
-        <span className="text-sm text-gray-300 font-medium">지금은 방송 중이 아니에요</span>
-        <span className="text-[11px] text-gray-500 text-center">스키 시즌 중에만 방송되는 카메라일 수 있어요</span>
-        {fallbackUrl && (
-          <a href={fallbackUrl} target="_blank" rel="noopener noreferrer" className="mt-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-xs font-bold text-white">
-            {fallbackName || '공식'} 웹캠 페이지 열기
-          </a>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <video
-      ref={videoRef}
-      className="w-full h-full bg-black object-contain"
-      controls
-      muted
-      playsInline
-    />
-  );
-};
 
 const WebcamDetail = () => {
   const { id } = useParams();
@@ -213,13 +106,7 @@ const WebcamDetail = () => {
           {/* Video player — 유튜브 라이브면 임베드, 아니면 HLS */}
           <div className="card rounded-2xl overflow-hidden bg-black">
             <div className="aspect-video">
-              {(() => {
-                const ytSrc = parseYouTubeEmbed(currentStream!.stream);
-                if (ytSrc) return <YouTubePlayer key={ytSrc} src={ytSrc} />;
-                const frameSrc = parseIframeEmbed(currentStream!.stream);
-                if (frameSrc) return <YouTubePlayer key={frameSrc} src={frameSrc} />;
-                return <HlsPlayer key={currentStream!.stream} src={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />;
-              })()}
+              <WebcamPlayer key={currentStream!.stream} stream={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />
             </div>
           </div>
 

@@ -1299,6 +1299,8 @@ model OverseasResort {
   highlights  String?                   // 콤마 구분 (파우더,나이트스키,온천)
   slopes      Int?                      // 슬로프 수
   bestFor     String?                   // '상급자,파우더 매니아'
+  webcams     Json?                     // 실시간 웹캠 [{label, stream}] — stream 은 유튜브 채널 라이브(embed/live_stream?channel=)·HLS·iframe: (2026-09-27 스키장 투어 꾸미기)
+  webcamUrl   String?                   // 공식 웹캠 페이지(임베드 불가 리조트는 이 링크만)
   published   Boolean  @default(true)
   order       Int      @default(0)
   viewCount   Int      @default(0)

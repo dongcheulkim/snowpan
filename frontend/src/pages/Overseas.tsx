@@ -7,6 +7,7 @@ import { RowListSkeleton } from '../components/Skeleton';
 import LoadError from '../components/LoadError';
 import { hasMouse } from '../utils/pointer';
 import HScroll from '../components/HScroll';
+import { camSlugOf, WEBCAM_SLUGS } from '../utils/webcamSlug';
 
 interface Resort {
   id: string;
@@ -25,6 +26,8 @@ interface Resort {
   season?: string | null;
   highlights?: string | null;
   slopes?: number | null;
+  hasWebcam?: boolean;   // 해외: 상세에 웹캠 있음 (2026-09-27)
+  dealCount?: number;    // 활성 여행 상품 수
 }
 
 const CONTINENT_ORDER = ['아시아', '유럽', '북미', '기타'];
@@ -50,7 +53,13 @@ function PhotoCard({ r, scope }: { r: Resort; scope: '국내' | '해외' }) {
           <p className="text-white/80 text-[11px] mt-0.5">{place}</p>
         </div>
       </div>
-      {r.liftPrice && <p className="text-xs font-bold text-gray-900 mt-1.5 px-0.5 line-clamp-1">{r.liftPrice}</p>}
+      <div className="mt-1.5 px-0.5 flex items-center justify-between gap-2">
+        {r.liftPrice ? <p className="text-xs font-bold text-gray-900 line-clamp-1">{r.liftPrice}</p> : <span />}
+        <span className="flex-shrink-0 flex items-center gap-1">
+          {r.hasWebcam && scope === '해외' && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">라이브</span>}
+          {!!r.dealCount && <span className="text-[10px] font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded">상품 {r.dealCount}</span>}
+        </span>
+      </div>
     </Link>
   );
 }
@@ -66,25 +75,28 @@ function GridCard({ r, scope }: { r: Resort; scope: '국내' | '해외' }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
         {r.nightSki && <span className="absolute top-2 right-2 text-[9px] font-bold text-white bg-black/50 px-1.5 py-0.5 rounded">야간</span>}
+        {r.hasWebcam && scope === '해외' && (
+          <span className="absolute bottom-[42px] right-2 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-emerald-500/90 px-1.5 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> 라이브
+          </span>
+        )}
         <div className="absolute bottom-0 inset-x-0 p-2.5">
           <p className="text-white font-bold text-sm leading-tight">{r.name}</p>
           <p className="text-white/80 text-[10px] mt-0.5">{place}</p>
         </div>
       </div>
-      {r.liftPrice ? (
-        <p className="text-[11px] font-bold text-gray-900 mt-1 px-0.5 line-clamp-1">{r.liftPrice}</p>
-      ) : r.summary ? (
-        <p className="text-[11px] text-gray-500 mt-1 px-0.5 line-clamp-1">{r.summary}</p>
-      ) : null}
+      <div className="mt-1 px-0.5 flex items-center justify-between gap-2">
+        {r.liftPrice ? (
+          <p className="text-[11px] font-bold text-gray-900 line-clamp-1">{r.liftPrice}</p>
+        ) : r.summary ? (
+          <p className="text-[11px] text-gray-500 line-clamp-1">{r.summary}</p>
+        ) : <span />}
+        {!!r.dealCount && <span className="flex-shrink-0 text-[10px] font-bold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded">상품 {r.dealCount}</span>}
+      </div>
     </Link>
   );
 }
 
-// 투어 슬러그 → 웹캠 슬러그 (표기가 다른 3곳만 보정)
-const WEBCAM_ALIAS: Record<string, string> = { 'elysian-gangchon': 'elysian', oakvalley: 'oak', edenvalley: 'eden' };
-const camSlugOf = (slug: string) => WEBCAM_ALIAS[slug] || slug;
-// 웹캠 보유 리조트 고정 목록 — 기온 API 가 일시 실패해도 웹캠 버튼은 유지
-const WEBCAM_SLUGS = new Set(['yongpyong', 'wellihilli', 'konjiam', 'phoenix', 'high1', 'vivaldi', 'elysian', 'jisan', 'muju', 'oak', 'o2', 'alpensia', 'eden']);
 
 // 사진 없는 리조트용 설산 그라데이션 — 슬러그 해시로 고정 배정 (로드마다 안 바뀜)
 const CARD_GRADS = [

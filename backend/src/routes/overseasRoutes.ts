@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 import prisma from '../config/database';
+import { Prisma } from '@prisma/client';
 import { isDuplicateClick, recordClick } from '../utils/clickDedup';
 import { sanitizeText } from '../utils/sanitize';
 import { pickVertical } from '../utils/vertical';
@@ -28,10 +29,13 @@ router.get('/resorts', async (req: Request, res: Response): Promise<void> => {
         id: true, slug: true, name: true, scope: true, country: true, continent: true, popular: true,
         region: true, address: true, liftPrice: true, nightSki: true, image: true, summary: true,
         season: true, snowType: true, highlights: true, slopes: true, order: true,
+        webcams: true, webcamUrl: true,
+        _count: { select: { deals: { where: { active: true } } } },
       },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
-    res.json(resorts);
+    // 목록엔 웹캠 유무·여행 상품 수만 — 카드 배지용 (2026-09-27)
+    res.json(resorts.map(({ webcams, webcamUrl, _count, ...r }) => ({ ...r, hasWebcam: (Array.isArray(webcams) && webcams.length > 0) || Boolean(webcamUrl), dealCount: _count.deals })));
   } catch (error) {
     console.error('Get overseas resorts error:', error);
     res.status(500).json({ error: '해외 스키장 조회 중 오류가 발생했습니다.' });
@@ -198,6 +202,15 @@ router.put('/resorts/:id', authenticateToken, requireAdmin, async (req: AuthRequ
     if (b.highlights !== undefined) data.highlights = b.highlights ? (sanitizeText(b.highlights, 300) || b.highlights) : null;
     if (b.slopes !== undefined) data.slopes = b.slopes != null ? Number(b.slopes) || null : null;
     if (b.bestFor !== undefined) data.bestFor = b.bestFor ? (sanitizeText(b.bestFor, 100) || b.bestFor) : null;
+    if (b.webcamUrl !== undefined) data.webcamUrl = b.webcamUrl && /^https:\/\//i.test(b.webcamUrl) ? String(b.webcamUrl).slice(0, 300) : null;
+    if (b.webcams !== undefined) {
+      // [{label, stream}] 최대 6개 — stream 은 https 또는 youtube:/iframe: 접두 (안전한 출처만)
+      const list = Array.isArray(b.webcams) ? b.webcams : [];
+      const ok = (list as unknown[]).filter((c): c is { label?: unknown; stream?: unknown } => !!c && typeof c === 'object')
+        .map((c) => ({ label: sanitizeText(String(c.label || ''), 60) || '웹캠', stream: String(c.stream || '').trim().slice(0, 400) }))
+        .filter((c: { label: string; stream: string }) => /^(https:\/\/|youtube:|iframe:https:\/\/)/i.test(c.stream)).slice(0, 6);
+      data.webcams = ok.length ? ok : Prisma.DbNull;
+    }
     if (b.published !== undefined) data.published = !!b.published;
     if (b.order !== undefined) data.order = Number(b.order) || 0;
     const updated = await prisma.overseasResort.update({ where: { id: req.params.id }, data });

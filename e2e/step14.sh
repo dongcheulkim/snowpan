@@ -242,6 +242,12 @@ ODID=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] || [ "$CODE" = 
 api POST "/overseas/deals/$ODID/click" "{}" ""; expect 200 "딜 클릭 추적"
 api POST "/overseas/deals/$ODID/click" "{}" ""; expect 200 "딜 클릭 중복(dedup) 200"
 CC=$(pq "SELECT \"clickCount\" FROM overseas_deals WHERE id='$ODID'"); [ "$CC" = "1" ] && ok "딜 클릭 dedup (count=1)" || bad "딜 clickCount=$CC"
+# 스키장 투어 꾸미기(2026-09-27): 웹캠 필드·여행 상품 수
+api PUT "/overseas/resorts/$ORID" '{"webcamUrl":"https://example.com/live","webcams":[{"label":"정상","stream":"https://www.youtube.com/embed/live_stream?channel=UC1234567890abcdefghijkl"},{"label":"나쁜","stream":"http://insecure.example/x"},{"label":"프레임","stream":"iframe:https://rtsp.me/embed/abc/"}]}' "$A_TOKEN"; expect 200 "해외 스키장 웹캠 저장"
+api GET /overseas/resorts/e2e-niseko ""; [ "$(echo "$RESP" | jq -r '.webcams | length')" = "2" ] && [ "$(echo "$RESP" | jq -r '.webcamUrl')" = "https://example.com/live" ] && ok "상세: 안전한 스트림 2개만 저장, http 는 버림" || bad "웹캠 상세 RESP=$(echo $RESP | head -c 200)"
+api GET /overseas/resorts ""; ROW=$(echo "$RESP" | jq -c '.[] | select(.slug=="e2e-niseko") | {hasWebcam, dealCount, webcams}'); [ "$ROW" = '{"hasWebcam":true,"dealCount":1,"webcams":null}' ] && ok "목록: hasWebcam·dealCount 만, 스트림은 숨김" || bad "목록 ROW=$ROW"
+api PUT "/overseas/resorts/$ORID" '{"webcams":[],"webcamUrl":"ftp://bad"}' "$A_TOKEN"; expect 200 "웹캠 비우기"
+api GET /overseas/resorts ""; ROW=$(echo "$RESP" | jq -c '.[] | select(.slug=="e2e-niseko") | .hasWebcam'); [ "$ROW" = "false" ] && ok "목록: 웹캠 없음 반영" || bad "웹캠 비움 ROW=$ROW"
 api PUT "/overseas/deals/$ODID" '{"active":false}' "$A_TOKEN"; expect 200 "딜 비활성"
 api POST "/overseas/deals/$ODID/click" "{}" ""; CC2=$(pq "SELECT \"clickCount\" FROM overseas_deals WHERE id='$ODID'"); [ "$CC2" = "1" ] && ok "비활성 딜 클릭 미집계" || bad "비활성 클릭 count=$CC2"
 api DELETE "/overseas/deals/$ODID" "" "$A_TOKEN"; expect 200 "딜 삭제"
