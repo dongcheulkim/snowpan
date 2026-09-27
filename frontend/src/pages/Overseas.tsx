@@ -30,7 +30,7 @@ interface Resort {
   dealCount?: number;    // 활성 여행 상품 수
 }
 
-const CONTINENT_ORDER = ['아시아', '유럽', '북미', '오세아니아', '기타'];
+const CONTINENT_ORDER = ['아시아', '유럽', '북미', '오세아니아', '남미', '기타'];
 const REGION_ORDER = ['강원', '경기', '충청', '전북', '전남', '경북', '경남', '제주', '기타'];
 
 // 사진 위 텍스트 오버레이 카드 — 가로 스크롤 섹션용 (야놀자식 풀포토 카드)
