@@ -175,6 +175,26 @@ router.post('/jobs/retention-purge', async (req: any, res) => {
   } catch (e) { console.error('retention purge error:', e); res.status(500).json({ error: '파기 실행 실패' }); }
 });
 
+// 유튜브 채널 /live 페이지를 서버가 어떻게 받는지 확인 (관리자, 웹캠 판정 디버그용)
+router.get('/jobs/youtube-probe', async (req: any, res) => {
+  const ch = String(req.query?.channel || '');
+  if (!/^UC[A-Za-z0-9_-]{22}$/.test(ch)) { res.status(400).json({ error: 'channel' }); return; }
+  try {
+    const r = await fetch(`https://www.youtube.com/channel/${ch}/live`, { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36', 'Accept-Language': 'en' }, signal: AbortSignal.timeout(10_000) });
+    const html = await r.text();
+    res.json({
+      status: r.status, finalUrl: r.url, bytes: html.length,
+      title: (html.match(/<title>([^<]*)/) || [])[1] || null,
+      canonical: (html.match(/<link rel="canonical" href="([^"]*)"/) || [])[1] || null,
+      identifier: (html.match(/<meta itemprop="identifier" content="([^"]*)"/) || [])[1] || null,
+      isLive: /"isLive":true/.test(html), isLiveNow: /"isLiveNow":true/.test(html),
+      ownedChannel: html.includes(`"channelId":"${ch}"`) || html.includes(`"externalChannelId":"${ch}"`),
+      firstVideoIds: Array.from(new Set((html.match(/"videoId":"([A-Za-z0-9_-]{11})"/g) || []).map((m) => m.slice(11, 22)))).slice(0, 5),
+      consent: /consent\.youtube\.com/.test(r.url) || /consent/i.test((html.match(/<title>([^<]*)/) || [])[1] || ''),
+    });
+  } catch (e) { res.status(500).json({ error: e instanceof Error ? e.message : String(e) }); }
+});
+
 // 앱 버전 안내 값 (최신·최소 지원) — 설정 탭에서 수정
 router.get('/app-version', async (_req: any, res) => {
   try { res.json(await readAppVersionValues()); } catch (e) { console.error('app version read error:', e); res.status(500).json({ error: '조회 실패' }); }
