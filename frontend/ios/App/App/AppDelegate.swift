@@ -52,7 +52,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func applicationWillResignActive(_ application: UIApplication) {}
     func applicationDidEnterBackground(_ application: UIApplication) {}
     func applicationWillEnterForeground(_ application: UIApplication) {}
-    func applicationDidBecomeActive(_ application: UIApplication) {}
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // 아이폰 기본 뒤로가기 제스처(왼쪽 끝에서 스와이프) — WKWebView 는 기본 꺼져 있어 켜 준다.
+        // SPA(react-router)의 pushState 이동도 WebKit 히스토리에 쌓여 스와이프로 뒤로 간다. (사장님 요청 2026-09-27)
+        // SceneDelegate 를 쓰는 앱이라 AppDelegate.window 는 비어 있을 수 있음 — 연결된 모든 씬의 윈도우를 훑는다
+        var roots: [UIViewController?] = [window?.rootViewController]
+        for scene in UIApplication.shared.connectedScenes {
+            if let ws = scene as? UIWindowScene { roots.append(contentsOf: ws.windows.map { $0.rootViewController }) }
+        }
+        for root in roots { enableSwipeBack(in: root) }
+    }
+    private func enableSwipeBack(in vc: UIViewController?) {
+        if let bridge = vc as? CAPBridgeViewController { bridge.webView?.allowsBackForwardNavigationGestures = true; return }
+        for child in vc?.children ?? [] { enableSwipeBack(in: child) }
+        if let presented = vc?.presentedViewController { enableSwipeBack(in: presented) }
+    }
     func applicationWillTerminate(_ application: UIApplication) {}
 
     func application(_ application: UIApplication,
