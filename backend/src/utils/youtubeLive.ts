@@ -28,8 +28,8 @@ export async function resolveYoutubeLive(channelId: string): Promise<{ live: boo
         || html.match(/<meta itemprop="identifier" content="([A-Za-z0-9_-]{6,})"/);
       const owned = html.includes(`"channelId":"${channelId}"`) || html.includes(`"externalChannelId":"${channelId}"`);
       if (live && m && owned) videoId = m[1];
-      // 데이터센터 IP 로 받으면 canonical 없는 껍데기 페이지가 온다 — 그땐 목록 안에서 LIVE 배지가 붙은 영상 ID 를 고른다
-      if (live && !videoId && owned) { const c = findLiveVideoIds(html); if (c.length) videoId = c[0]; }
+      // 데이터센터 IP 로 받는 껍데기 페이지의 영상 목록에서 고르는 건 금지 — 다른 채널의 추천 라이브(마쓰모토성 등)가 붙었음 (2026-09-27).
+      // 껍데기 페이지면 영상 ID 없이 채널 임베드로 두고, 정확한 판정은 YOUTUBE_API_KEY(Data API) 로 한다.
       if (live && !videoId) console.warn(`youtube live: videoId 미확정 channel=${channelId} canonical=${m ? m[1] : '-'} owned=${owned} title=${(html.match(/<title>([^<]*)/) || [])[1] || '-'}`);
     }
   } catch { live = null; }
@@ -51,12 +51,41 @@ export function findLiveVideoIds(html: string): string[] {
 
 export async function isYoutubeChannelLive(channelId: string): Promise<boolean | null> { return (await resolveYoutubeLive(channelId)).live; }
 
-// 웹캠 목록에 liveNow 를 붙인다 (유튜브 채널만 판정, 나머지는 null)
-export async function annotateLive<T extends { stream: string }>(cams: T[]): Promise<(T & { liveNow: boolean | null; liveVideoId: string | null })[]> {
-  return Promise.all(cams.map(async (c) => {
+// YouTube Data API(키가 있을 때) — 채널의 지금 라이브 영상 목록을 정확히 준다. search.list 는 100 유닛이라 2시간 캐시 (일 1만 유닛 한도 안).
+const API_TTL_MS = 2 * 60 * 60 * 1000;
+const apiCache = new Map<string, { at: number; lives: { id: string; title: string }[] | null }>();
+export async function listLiveViaApi(channelId: string): Promise<{ id: string; title: string }[] | null> {
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return null;
+  const hit = apiCache.get(channelId);
+  if (hit && Date.now() - hit.at < API_TTL_MS) return hit.lives;
+  let lives: { id: string; title: string }[] | null = null;
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${encodeURIComponent(channelId)}&eventType=live&type=video&maxResults=5&key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+    if (res.ok) {
+      const data = (await res.json()) as { items?: { id?: { videoId?: string }; snippet?: { title?: string } }[] };
+      lives = (data.items || []).map((it) => ({ id: String(it.id?.videoId || ''), title: String(it.snippet?.title || '') })).filter((v) => /^[A-Za-z0-9_-]{11}$/.test(v.id));
+    } else {
+      console.warn('youtube api', res.status, (await res.text()).slice(0, 200));
+    }
+  } catch (e) { console.warn('youtube api error:', e instanceof Error ? e.message : e); }
+  apiCache.set(channelId, { at: Date.now(), lives });
+  return lives;
+}
+
+// 웹캠 목록에 liveNow 를 붙인다 (유튜브 채널만 판정, 나머지는 null). API 키가 있으면 채널의 라이브를 전부 탭으로 펼친다.
+export async function annotateLive<T extends { label: string; stream: string }>(cams: T[]): Promise<(T & { liveNow: boolean | null; liveVideoId: string | null })[]> {
+  const rows = await Promise.all(cams.map(async (c) => {
     const ch = youtubeChannelOf(c.stream);
-    if (!ch) return { ...c, liveNow: null, liveVideoId: null };
+    if (!ch) return [{ ...c, liveNow: null, liveVideoId: null }];
+    const lives = await listLiveViaApi(ch);
+    if (lives) {
+      if (lives.length === 0) return [{ ...c, liveNow: false, liveVideoId: null }];
+      return lives.map((v, i) => ({ ...c, label: lives.length > 1 ? `${c.label} ${i + 1}` : c.label, liveNow: true, liveVideoId: v.id }));
+    }
     const r = await resolveYoutubeLive(ch);
-    return { ...c, liveNow: r.live, liveVideoId: r.videoId };
+    return [{ ...c, liveNow: r.live, liveVideoId: r.videoId }];
   }));
+  return rows.flat();
 }
