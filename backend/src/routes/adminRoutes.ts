@@ -5,6 +5,7 @@ import { updateResponseStats } from '../utils/responseStats';
 import { cleanupOrphanShopRows } from '../utils/shopRows';
 import { findStorageOrphans, deleteStorageOrphans } from '../utils/storageOrphans';
 import { logAdminAccess, ACCESS_ACTIONS, purgeRetention } from '../utils/adminAudit';
+import { findLiveVideoIds } from '../utils/youtubeLive';
 import { readAppVersionValues, invalidateAppVersionCache, APP_VERSION_KEYS, VERSION_RE } from './appVersionRoutes';
 import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
 import {
@@ -190,6 +191,7 @@ router.get('/jobs/youtube-probe', async (req: any, res) => {
       isLive: /"isLive":true/.test(html), isLiveNow: /"isLiveNow":true/.test(html),
       ownedChannel: html.includes(`"channelId":"${ch}"`) || html.includes(`"externalChannelId":"${ch}"`),
       firstVideoIds: Array.from(new Set((html.match(/"videoId":"([A-Za-z0-9_-]{11})"/g) || []).map((m) => m.slice(11, 22)))).slice(0, 5),
+      liveCandidates: findLiveVideoIds(html),
       consent: /consent\.youtube\.com/.test(r.url) || /consent/i.test((html.match(/<title>([^<]*)/) || [])[1] || ''),
     });
   } catch (e) { res.status(500).json({ error: e instanceof Error ? e.message : String(e) }); }

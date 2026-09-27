@@ -28,12 +28,27 @@ export async function resolveYoutubeLive(channelId: string): Promise<{ live: boo
         || html.match(/<meta itemprop="identifier" content="([A-Za-z0-9_-]{6,})"/);
       const owned = html.includes(`"channelId":"${channelId}"`) || html.includes(`"externalChannelId":"${channelId}"`);
       if (live && m && owned) videoId = m[1];
+      // 데이터센터 IP 로 받으면 canonical 없는 껍데기 페이지가 온다 — 그땐 목록 안에서 LIVE 배지가 붙은 영상 ID 를 고른다
+      if (live && !videoId && owned) { const c = findLiveVideoIds(html); if (c.length) videoId = c[0]; }
       if (live && !videoId) console.warn(`youtube live: videoId 미확정 channel=${channelId} canonical=${m ? m[1] : '-'} owned=${owned} title=${(html.match(/<title>([^<]*)/) || [])[1] || '-'}`);
     }
   } catch { live = null; }
   cache.set(channelId, { at: Date.now(), live, videoId });
   return { live, videoId };
 }
+// HTML 의 "videoId":"X" 조각마다 그 뒤(다음 videoId 전까지)에 LIVE NOW 배지가 있으면 방송 중인 영상으로 본다
+export function findLiveVideoIds(html: string): string[] {
+  const out: string[] = [];
+  const re = /"videoId":"([A-Za-z0-9_-]{11})"/g;
+  const hits: { id: string; at: number }[] = [];
+  for (let m = re.exec(html); m; m = re.exec(html)) hits.push({ id: m[1], at: m.index });
+  for (let i = 0; i < hits.length; i++) {
+    const seg = html.slice(hits[i].at, Math.min(hits[i + 1]?.at ?? html.length, hits[i].at + 6000));
+    if (/BADGE_STYLE_TYPE_LIVE_NOW|"style":"LIVE"|"isLiveNow":true|thumbnailOverlayTimeStatusRenderer":\{"text":\{"runs":\[\{"text":"LIVE"/.test(seg) && !out.includes(hits[i].id)) out.push(hits[i].id);
+  }
+  return out;
+}
+
 export async function isYoutubeChannelLive(channelId: string): Promise<boolean | null> { return (await resolveYoutubeLive(channelId)).live; }
 
 // 웹캠 목록에 liveNow 를 붙인다 (유튜브 채널만 판정, 나머지는 null)
