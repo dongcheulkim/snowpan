@@ -14,7 +14,11 @@ import { recordLogin } from '../utils/loginLog';
 // FRONTEND_URL 로 콜백 후 리다이렉트.
 
 const FRONTEND = () => process.env.FRONTEND_URL || 'https://snowpan.kr';
-const API_BASE = () => process.env.RENDER_EXTERNAL_URL || 'https://snowpan.onrender.com';
+// 소셜 로그인 redirect_uri 의 호스트 — 요청이 들어온 호스트를 그대로 쓴다 (api.snowpan.kr 로 시작하면 api.snowpan.kr 로 돌아옴).
+// 예전엔 RENDER_EXTERNAL_URL(snowpan.onrender.com) 고정이라, 프론트가 api.snowpan.kr 로 옮긴 2026-09-25 이후
+// 시작(api.snowpan.kr 에 state 쿠키) ↔ 콜백(onrender.com, 쿠키 없음) 호스트가 달라 state 검증에 실패해 카카오 로그인이 막혔음 (2026-09-27 수정).
+// PUBLIC_API_URL 이 있으면 그 값을 우선. 카카오 개발자 콘솔 Redirect URI 에 두 호스트 모두 등록해 둔다.
+const API_BASE = (req: Request) => process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`;
 const APP_SCHEME = 'kr.snowpan.app'; // Capacitor 앱 커스텀 스킴 (딥링크로 토큰 되돌림)
 
 // ===== OAuth state (CSRF/로그인 고정 방지) =====
@@ -185,7 +189,7 @@ export function kakaoConfigured() { return Boolean(process.env.KAKAO_CLIENT_ID);
 
 export const kakaoStart = (req: Request, res: Response): void => {
   if (!kakaoConfigured()) { res.status(503).json({ error: '카카오 로그인 준비 중입니다.' }); return; }
-  const redirectUri = `${API_BASE()}/api/auth/kakao/callback`;
+  const redirectUri = `${API_BASE(req)}/api/auth/kakao/callback`;
   // state = platform.nonce — platform 으로 앱 딥링크 판단, nonce 로 CSRF 검증.
   const state = makeState(req, res);
   const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
@@ -199,7 +203,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
     if (!verifyState(req, res)) return fail(res, '로그인 요청이 만료됐거나 유효하지 않아요. 다시 시도해주세요.', isApp);
     const code = String(req.query.code || '');
     if (!code) return fail(res, '인증 코드가 없습니다.', isApp);
-    const redirectUri = `${API_BASE()}/api/auth/kakao/callback`;
+    const redirectUri = `${API_BASE(req)}/api/auth/kakao/callback`;
 
     // 토큰 교환
     const tokenRes = await fetch('https://kauth.kakao.com/oauth/token', {
@@ -249,7 +253,7 @@ export function naverLoginConfigured() { return Boolean(process.env.NAVER_LOGIN_
 
 export const naverStart = (req: Request, res: Response): void => {
   if (!naverLoginConfigured()) { res.status(503).json({ error: '네이버 로그인 준비 중입니다.' }); return; }
-  const redirectUri = `${API_BASE()}/api/auth/naver/callback`;
+  const redirectUri = `${API_BASE(req)}/api/auth/naver/callback`;
   // state = platform.nonce (카카오와 동일 규칙). nonce 쿠키로 CSRF 검증.
   const state = makeState(req, res);
   const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
@@ -264,7 +268,7 @@ export const naverCallback = async (req: Request, res: Response): Promise<void> 
     if (!verifyState(req, res)) return fail(res, '로그인 요청이 만료됐거나 유효하지 않아요. 다시 시도해주세요.', isApp);
     const code = String(req.query.code || '');
     if (!code) return fail(res, '인증 코드가 없습니다.', isApp);
-    const redirectUri = `${API_BASE()}/api/auth/naver/callback`;
+    const redirectUri = `${API_BASE(req)}/api/auth/naver/callback`;
 
     const tokenRes = await fetch(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&client_secret=${process.env.NAVER_LOGIN_CLIENT_SECRET}&code=${code}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`);
     const tokenData = await tokenRes.json() as { access_token?: string; error?: string; error_description?: string };

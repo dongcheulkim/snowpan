@@ -8,7 +8,7 @@ import { renderOgCardCached, OgCardInput } from '../utils/ogImage';
 
 const router = Router();
 const SITE = process.env.FRONTEND_URL || 'https://snowpan.kr';
-const API_ORIGIN = process.env.RENDER_EXTERNAL_URL || 'https://snowpan.onrender.com';
+const API_ORIGIN = process.env.PUBLIC_API_URL || 'https://api.snowpan.kr'; // 공유 카드 이미지 주소 — 새 도메인 (2026-09-27)
 const DEFAULT_IMAGE = `${SITE}/icons/og-image-v3.jpg`;
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 
