@@ -22,12 +22,13 @@ export async function resolveYoutubeLive(channelId: string): Promise<{ live: boo
     if (res.ok) {
       const html = await res.text();
       live = /"isLive":true/.test(html) || /"isLiveNow":true/.test(html);
-      // 지역·봇 판정에 따라 HTML 형태가 달라서 세 가지로 찾는다: canonical → itemprop identifier → 첫 videoId
-      const m = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_-]{6,})"/)
-        || html.match(/<meta itemprop="identifier" content="([A-Za-z0-9_-]{6,})"/)
-        || html.match(/"videoId":"([A-Za-z0-9_-]{11})"/);
-      if (live && m) videoId = m[1];
-      if (live && !videoId) console.warn(`youtube live: videoId 못 찾음 channel=${channelId} html=${html.length}B`);
+      // 영상 ID 는 "이 페이지가 그 채널의 라이브 시청 페이지"일 때만 믿는다 — canonical/itemprop 이 watch?v= 를 가리키고,
+      // 페이지 소유 채널이 요청한 채널과 같아야 한다. (첫 "videoId" 를 잡으면 추천 영상 등 엉뚱한 영상이 붙는다 — 2026-09-27 실제 발생)
+      const m = html.match(/<link rel="canonical" href="https:\/\/(?:www|m)\.youtube\.com\/watch\?v=([A-Za-z0-9_-]{6,})"/)
+        || html.match(/<meta itemprop="identifier" content="([A-Za-z0-9_-]{6,})"/);
+      const owned = html.includes(`"channelId":"${channelId}"`) || html.includes(`"externalChannelId":"${channelId}"`);
+      if (live && m && owned) videoId = m[1];
+      if (live && !videoId) console.warn(`youtube live: videoId 미확정 channel=${channelId} canonical=${m ? m[1] : '-'} owned=${owned} title=${(html.match(/<title>([^<]*)/) || [])[1] || '-'}`);
     }
   } catch { live = null; }
   cache.set(channelId, { at: Date.now(), live, videoId });
