@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 
 // 환경변수 설정 예시 (.env):
 // SMTP_HOST=smtp.gmail.com
@@ -7,9 +7,9 @@ import nodemailer from 'nodemailer';
 // SMTP_PASS=your-app-password
 // SMTP_FROM=스노우판 <noreply@snowpan.com>
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 
-function getTransporter(): nodemailer.Transporter | null {
+function getTransporter(): Transporter | null {
   if (transporter) return transporter;
 
   const host = process.env.SMTP_HOST;
