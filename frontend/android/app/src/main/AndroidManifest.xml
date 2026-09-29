@@ -26,6 +26,15 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="kr.snowpan.app" />
             </intent-filter>
+
+            <!-- Android 앱 링크 — https://snowpan.kr/... 를 누르면 브라우저 대신 앱이 열림 (assetlinks.json 검증, 2026-09-29) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="snowpan.kr" />
+                <data android:scheme="https" android:host="www.snowpan.kr" />
+            </intent-filter>
         </activity>
 
         <provider
