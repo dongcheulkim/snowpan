@@ -1,3 +1,4 @@
+import { syncBadge } from '../utils/push';
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
@@ -38,6 +39,7 @@ export const markAsRead = async (req: AuthRequest, res: Response): Promise<void>
       data: { read: true },
     });
     res.json({ message: '읽음 처리되었습니다.' });
+    syncBadge(userId).catch(() => {}); // 아이콘 배지 = 남은 미읽음 수
   } catch (error) {
     console.error('Mark as read error:', error);
     res.status(500).json({ error: '읽음 처리 중 오류가 발생했습니다.' });
@@ -52,6 +54,7 @@ export const markAllAsRead = async (req: AuthRequest, res: Response): Promise<vo
       data: { read: true },
     });
     res.json({ message: '모든 알림을 읽음 처리했습니다.' });
+    syncBadge(userId).catch(() => {}); // 아이콘 배지 = 남은 미읽음 수
   } catch (error) {
     console.error('Mark all as read error:', error);
     res.status(500).json({ error: '읽음 처리 중 오류가 발생했습니다.' });
@@ -64,6 +67,7 @@ export const deleteNotification = async (req: AuthRequest, res: Response): Promi
     const { id } = req.params;
     await prisma.notification.deleteMany({ where: { id, userId } });
     res.json({ message: '알림이 삭제되었습니다.' });
+    syncBadge(userId).catch(() => {}); // 아이콘 배지 = 남은 미읽음 수
   } catch (error) {
     console.error('Delete notification error:', error);
     res.status(500).json({ error: '알림 삭제 중 오류가 발생했습니다.' });
@@ -75,6 +79,7 @@ export const deleteAllNotifications = async (req: AuthRequest, res: Response): P
     const userId = req.user!.id;
     await prisma.notification.deleteMany({ where: { userId } });
     res.json({ message: '모든 알림이 삭제되었습니다.' });
+    syncBadge(userId).catch(() => {}); // 아이콘 배지 = 남은 미읽음 수
   } catch (error) {
     console.error('Delete all notifications error:', error);
     res.status(500).json({ error: '알림 삭제 중 오류가 발생했습니다.' });

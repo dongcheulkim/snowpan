@@ -1,4 +1,5 @@
 import UIKit
+import UserNotifications
 import Capacitor
 import FirebaseCore
 import FirebaseMessaging
@@ -53,6 +54,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {}
     func applicationWillEnterForeground(_ application: UIApplication) {}
     func applicationDidBecomeActive(_ application: UIApplication) {
+        // 앱을 열면 아이콘 배지와 알림센터의 스노우판 알림을 비운다 (배지 1 이 안 사라진다는 신고 2026-09-30). 서버도 읽음 처리 때 배지를 0 으로 맞춘다.
+        application.applicationIconBadgeNumber = 0
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         // 아이폰 기본 뒤로가기 제스처(왼쪽 끝에서 스와이프) — WKWebView 는 기본 꺼져 있어 켜 준다.
         // SPA(react-router)의 pushState 이동도 WebKit 히스토리에 쌓여 스와이프로 뒤로 간다. (사장님 요청 2026-09-27)
         // SceneDelegate 를 쓰는 앱이라 AppDelegate.window 는 비어 있을 수 있음 — 연결된 모든 씬의 윈도우를 훑는다

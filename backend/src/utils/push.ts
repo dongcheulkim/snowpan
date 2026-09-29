@@ -40,6 +40,32 @@ async function clearToken(userId: string): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { fcmToken: null } }).catch(() => {});
 }
 
+async function unreadCount(userId: string): Promise<number> {
+  return prisma.notification.count({ where: { userId, read: false } }).catch(() => 0);
+}
+
+// 아이콘 배지를 현재 미읽음 수로 맞춘다 — 알림을 읽거나 지웠을 때 호출. iOS 는 앱이 꺼져 있어도 조용한 푸시(content-available)로 배지만 바뀐다.
+// 앱 빌드 없이 지금 1.7 앱에서도 동작. (안드로이드는 배지 개념이 달라 건너뜀, Expo 레거시 토큰도 건너뜀)
+export async function syncBadge(userId: string): Promise<void> {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { fcmToken: true } });
+    const token = user?.fcmToken;
+    if (!token || token.startsWith('ExponentPushToken')) return;
+    const messaging = await getFcm();
+    if (!messaging) return;
+    const badge = await unreadCount(userId);
+    await messaging.send({
+      token,
+      apns: { payload: { aps: { badge, 'content-available': 1 } }, headers: { 'apns-priority': '5', 'apns-push-type': 'background' } },
+      android: { priority: 'normal' },
+      data: { badge: String(badge), silent: '1' },
+    });
+  } catch (err: unknown) {
+    const code = String((err as { errorInfo?: { code?: string }; code?: string })?.errorInfo?.code || (err as { code?: string })?.code || '');
+    if (code.includes('registration-token-not-registered') || code.includes('invalid-registration-token')) await clearToken(userId);
+  }
+}
+
 // 반환값: 발송 결과 (관리자 푸시 테스트 진단용). 일반 호출부는 fire-and-forget 으로 무시해도 무방.
 export async function sendPushToUser(userId: string, title: string, body: string, link?: string): Promise<{ ok: boolean; detail: string }> {
   try {
@@ -84,8 +110,9 @@ export async function sendPushToUser(userId: string, title: string, body: string
           priority: 'high',
           notification: { channelId: 'default', sound: 'default' },
         },
-        // iOS(APNs 경유): 소리 + 배지, 앱이 꺼져 있어도 배너로
-        apns: { payload: { aps: { sound: 'default', badge: 1 } }, headers: { 'apns-priority': '10' } },
+        // iOS(APNs 경유): 소리 + 배지(실제 미읽음 수), 앱이 꺼져 있어도 배너로.
+        // 배지를 1 로 고정하면 읽어도 아이콘의 1 이 안 사라짐(사장님 신고 2026-09-30) → 미읽음 수를 보내고, 읽으면 syncBadge 로 0 을 보낸다.
+        apns: { payload: { aps: { sound: 'default', badge: await unreadCount(userId) } }, headers: { 'apns-priority': '10' } },
       });
       return { ok: true, detail: `fcm-sent:${msgId}` };
     } catch (err: unknown) {
