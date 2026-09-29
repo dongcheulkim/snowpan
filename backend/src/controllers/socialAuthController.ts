@@ -188,7 +188,7 @@ function httpsProfile(url?: string | null): string | null {
 export function kakaoConfigured() { return Boolean(process.env.KAKAO_CLIENT_ID); }
 
 export const kakaoStart = (req: Request, res: Response): void => {
-  if (!kakaoConfigured()) { res.status(503).json({ error: '카카오 로그인 준비 중입니다.' }); return; }
+  if (!kakaoConfigured()) { res.status(503).json({ error: '지금은 카카오 로그인을 사용할 수 없습니다.' }); return; }
   const redirectUri = `${API_BASE(req)}/api/auth/kakao/callback`;
   // state = platform.nonce — platform 으로 앱 딥링크 판단, nonce 로 CSRF 검증.
   const state = makeState(req, res);
@@ -252,7 +252,7 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
 export function naverLoginConfigured() { return Boolean(process.env.NAVER_LOGIN_CLIENT_ID && process.env.NAVER_LOGIN_CLIENT_SECRET); }
 
 export const naverStart = (req: Request, res: Response): void => {
-  if (!naverLoginConfigured()) { res.status(503).json({ error: '네이버 로그인 준비 중입니다.' }); return; }
+  if (!naverLoginConfigured()) { res.status(503).json({ error: '네이버 로그인은 지원하지 않습니다.' }); return; }
   const redirectUri = `${API_BASE(req)}/api/auth/naver/callback`;
   // state = platform.nonce (카카오와 동일 규칙). nonce 쿠키로 CSRF 검증.
   const state = makeState(req, res);
