@@ -197,6 +197,7 @@ export default function Overseas() {
   const [retryKey, setRetryKey] = useState(0); // '다시 시도' — 목록 이펙트 재실행
   const [scope, setScope] = useState<'국내' | '해외'>('국내');
   const [sub, setSub] = useState<string>('전체');
+  const [country, setCountry] = useState<string>('');   // 해외 대륙 탭 안 나라 필터 ('' = 전체, 2026-09-29 사장님 "나라별 묶음")
   const [query, setQuery] = useState('');
   // 국내 디렉토리용 — 실시간 기온(웹캠 API 공유) + 정렬
   const [temps, setTemps] = useState<Record<string, number>>({});
@@ -236,6 +237,12 @@ export default function Overseas() {
         ? scoped.filter((r) => r.continent === activeSub)
         : scoped.filter((r) => r.region === activeSub);
 
+  // 해외 대륙 탭: 나라별 묶음 (스키장 많은 나라부터)
+  const byCountry = scope === '해외' && activeSub !== '전체' && activeSub !== '인기';
+  const countryCount = new Map<string, number>();
+  if (byCountry) filtered.forEach((r) => countryCount.set(r.country || '기타', (countryCount.get(r.country || '기타') || 0) + 1));
+  const countries: [string, number][] = [...countryCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
+
   // 검색 — 이름·나라·지역, 국내외 통합 (야놀자식 검색 우선)
   const q = query.trim();
   const searched = useMemo(() => {
@@ -248,7 +255,7 @@ export default function Overseas() {
     );
   }, [q, resorts]);
 
-  const switchScope = (s: '국내' | '해외') => { setScope(s); setSub('전체'); };
+  const switchScope = (s: '국내' | '해외') => { setScope(s); setSub('전체'); setCountry(''); };
   const showThemeRows = !q && activeSub === '전체';
 
   return (
@@ -306,7 +313,7 @@ export default function Overseas() {
           {!loading && subTabs.length > 1 && (
             <HScroll className="px-4 pb-3 flex gap-1.5 overflow-x-auto no-scrollbar">
               {subTabs.map((tb) => (
-                <button key={tb} onClick={() => setSub(tb)} className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeSub === tb ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>{tb}</button>
+                <button key={tb} onClick={() => { setSub(tb); setCountry(''); }} className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeSub === tb ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>{tb}</button>
               ))}
             </HScroll>
           )}
@@ -377,6 +384,23 @@ export default function Overseas() {
             <div className="px-4">
               {filtered.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-12">등록된 스키장이 없어요.</p>
+              ) : byCountry ? (
+                <>
+                  {/* 대륙 안 나라 칩 — 많은 순, 선택하면 그 나라만 */}
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-3">
+                    {[['', `전체 ${filtered.length}`], ...countries.map(([c, n]) => [c, `${c} ${n}`])].map(([c, label]) => (
+                      <button key={c} onClick={() => setCountry(c)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${country === c ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>{label}</button>
+                    ))}
+                  </div>
+                  {(country ? countries.filter(([c]) => c === country) : countries).map(([c]) => (
+                    <section key={c} className="mb-5">
+                      <h2 className="text-sm font-bold text-gray-900 mb-2">{c} <span className="text-gray-400 font-medium">{filtered.filter((r) => r.country === c).length}</span></h2>
+                      <div className="grid grid-cols-2 gap-3">
+                        {filtered.filter((r) => r.country === c).sort((a, b) => Number(b.popular) - Number(a.popular)).map((r) => <GridCard key={r.id} r={r} scope={scope} />)}
+                      </div>
+                    </section>
+                  ))}
+                </>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {filtered.map((r) => <GridCard key={r.id} r={r} scope={scope} />)}
