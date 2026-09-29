@@ -23,6 +23,8 @@ export default defineConfig({
       injectRegister: 'script-defer', // 기본(blocking script)은 head 에서 첫 페인트를 막는다 — defer 로 (2026-09-27 성능)
       includeAssets: ['snowpan-icon.svg', 'icons/og-image.png', 'icons/og-image-v2.png', 'icons/og-partners.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-16.png', 'robots.txt'],
       manifest: {
+        related_applications: [{ platform: 'play', url: 'https://play.google.com/store/apps/details?id=kr.snowpan.app', id: 'kr.snowpan.app' }, { platform: 'itunes', url: 'https://apps.apple.com/kr/app/id6810708515' }],
+        prefer_related_applications: false,
         name: '스노우판',
         short_name: '스노우판',
         description: '리조트별 스키·보드 매장 찾기와 스키·보드 중고거래',
