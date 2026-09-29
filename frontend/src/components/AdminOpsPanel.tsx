@@ -10,7 +10,7 @@ interface Summary {
   unansweredSupport: number;
   last24h: { users: number; products: number; posts: number; chatRooms: number };
 }
-interface Integrations { appleRevoke: boolean; kakao: boolean; naver: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean; sms: boolean }
+interface Integrations { appleRevoke: boolean; kakao: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean; sms: boolean }
 interface AlertLogItem { id: string; channel: 'sms' | 'email'; kind: string; to: string; text: string; status: string; detail: string | null; createdAt: string; user: { id: string; name: string } | null }
 interface AlertLogs { items: AlertLogItem[]; counts30d: Record<string, number> }
 const KIND_KR: Record<string, string> = { reservation_request: '예약 요청', reservation_result: '예약 결과', chat: '새 문의', approval: '승인 결과', daily_summary: '하루 요약' };

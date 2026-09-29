@@ -43,7 +43,7 @@ const MyPage = () => {
   useEffect(() => {
     loadMethods();
     const linked = searchParams.get('linked'); const err = searchParams.get('link_error');
-    if (linked) { toastSuccess(`${linked === 'kakao' ? '카카오' : linked === 'apple' ? 'Apple' : '네이버'} 계정을 연결했어요.`); loadMethods(); }
+    if (linked) { toastSuccess(`${linked === 'apple' ? 'Apple' : '카카오'} 계정을 연결했어요.`); loadMethods(); }
     if (err) toastError(err);
     if (linked || err) { searchParams.delete('linked'); searchParams.delete('link_error'); setSearchParams(searchParams, { replace: true }); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +80,7 @@ const MyPage = () => {
 
   const handleLogout = () => { logout(); navigate('/'); };
 
-  const isSocialUser = !!user?.provider; // 카카오/네이버 계정 — 비밀번호가 없음
+  const isSocialUser = !!user?.provider; // 카카오/Apple 계정 — 비밀번호가 없음
 
   const handleDeleteAccount = async () => {
     if (!isSocialUser && !deletePassword) { toastError('비밀번호를 입력해주세요.'); return; }
@@ -190,7 +190,7 @@ const MyPage = () => {
             </div>
             <p className="text-sm text-gray-500">
               {user.email?.endsWith('@social.local')
-                ? (user.provider === 'apple' ? 'Apple 계정' : user.provider === 'naver' || user.email.startsWith('naver_') ? '네이버 계정' : '카카오 계정')
+                ? (user.provider === 'apple' ? 'Apple 계정' : '카카오 계정')
                 : (user.email || '')}
             </p>
           </div>
@@ -225,7 +225,6 @@ const MyPage = () => {
               { id: 'email', label: '이메일·비밀번호', on: methods.hasPassword, canLink: false },
               { id: 'kakao', label: '카카오', on: methods.logins.some((l) => l.provider === 'kakao'), canLink: true },
               { id: 'apple', label: 'Apple', on: methods.logins.some((l) => l.provider === 'apple'), canLink: isNativeApp() && Capacitor.getPlatform() === 'ios' },
-              ...(methods.logins.some((l) => l.provider === 'naver') ? [{ id: 'naver', label: '네이버', on: true, canLink: false }] : []),
             ].map((m) => (
               <li key={m.id} className="flex items-center justify-between py-2.5">
                 <div className="flex items-center gap-2">

@@ -169,7 +169,6 @@ const translations: Record<Lang, Record<string, string>> = {
     'login.submit': '로그인',
     'login.socialLogin': '간편 로그인',
     'login.kakao': '카카오 로그인',
-    'login.naver': '네이버 로그인',
     'login.lastUsed': '최근 로그인',
     'login.forgotPassword': '비밀번호를 잊으셨나요?',
 

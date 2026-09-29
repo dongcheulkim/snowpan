@@ -303,7 +303,7 @@ const AUTH_BYPASS = new Set([
   '/auth/login', '/auth/register', '/auth/refresh', '/auth/logout',
   '/auth/reset-password-request', '/auth/reset-password',
   '/auth/phone/send', '/auth/phone/verify',
-  '/auth/kakao', '/auth/kakao/callback', '/auth/naver', '/auth/naver/callback',
+  '/auth/kakao', '/auth/kakao/callback',
 ]);
 app.use('/api', (req, res, next) => {
   if (AUTH_BYPASS.has(req.path)) return next();

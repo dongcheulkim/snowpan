@@ -49,7 +49,7 @@ const Login = () => {
   }, [searchParams]);
 
   // 소셜 로그인 시작 — 로그인 후 돌아올 경로 저장 후 OAuth 시작(앱=인앱브라우저, 웹=현재창).
-  const startSocial = (provider: 'kakao' | 'naver') => {
+  const startSocial = (provider: 'kakao') => {
     try {
       const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '';
       if (safeNext) sessionStorage.setItem('snowpan.oauthNext', safeNext);

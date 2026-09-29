@@ -9,8 +9,7 @@ import { socialLockedUntil, emailLockedUntil, reregisterBlockedMessage } from '.
 import { recordLogin } from '../utils/loginLog';
 
 // 소셜 로그인 (카카오/네이버). 서버사이드 OAuth authorization code flow.
-// 키: KAKAO_CLIENT_ID (+옵션 KAKAO_CLIENT_SECRET), NAVER_LOGIN_CLIENT_ID/SECRET.
-//   ⚠️ 네이버 로그인은 검색 API(NAVER_CLIENT_ID)와 다른 앱 키 — NAVER_LOGIN_* 사용.
+// 키: KAKAO_CLIENT_ID (+옵션 KAKAO_CLIENT_SECRET). 네이버 로그인은 2026-09-29 제거(카카오·Apple 만 사용).
 // FRONTEND_URL 로 콜백 후 리다이렉트.
 
 const FRONTEND = () => process.env.FRONTEND_URL || 'https://snowpan.kr';
@@ -63,7 +62,7 @@ function verifyState(req: Request, res: Response): boolean {
 }
 
 interface SocialProfile {
-  provider: 'kakao' | 'naver' | 'apple';
+  provider: 'kakao' | 'apple';
   providerId: string;
   email?: string | null;
   emailVerified?: boolean; // 제공자가 이메일 인증됨을 보증하는가 (카카오 is_email_verified / 네이버는 true)
@@ -248,56 +247,6 @@ export const kakaoCallback = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// ===== 네이버 =====
-export function naverLoginConfigured() { return Boolean(process.env.NAVER_LOGIN_CLIENT_ID && process.env.NAVER_LOGIN_CLIENT_SECRET); }
-
-export const naverStart = (req: Request, res: Response): void => {
-  if (!naverLoginConfigured()) { res.status(503).json({ error: '네이버 로그인은 지원하지 않습니다.' }); return; }
-  const redirectUri = `${API_BASE(req)}/api/auth/naver/callback`;
-  // state = platform.nonce (카카오와 동일 규칙). nonce 쿠키로 CSRF 검증.
-  const state = makeState(req, res);
-  const url = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
-  res.redirect(url);
-};
-
-export const naverCallback = async (req: Request, res: Response): Promise<void> => {
-  const isApp = String(req.query.state || '').startsWith('app.');
-  try {
-    const state = String(req.query.state || '');
-    // CSRF: nonce 쿠키 대조. (verifyState 가 쿠키를 소비하므로 토큰 교환 전에 호출)
-    if (!verifyState(req, res)) return fail(res, '로그인 요청이 만료됐거나 유효하지 않아요. 다시 시도해주세요.', isApp);
-    const code = String(req.query.code || '');
-    if (!code) return fail(res, '인증 코드가 없습니다.', isApp);
-    const redirectUri = `${API_BASE(req)}/api/auth/naver/callback`;
-
-    const tokenRes = await fetch(`https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=${process.env.NAVER_LOGIN_CLIENT_ID}&client_secret=${process.env.NAVER_LOGIN_CLIENT_SECRET}&code=${code}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`);
-    const tokenData = await tokenRes.json() as { access_token?: string; error?: string; error_description?: string };
-    if (!tokenData.access_token) {
-      console.error('네이버 토큰 발급 실패:', tokenData);
-      return fail(res, `네이버 토큰 발급 실패: ${tokenData.error_description || tokenData.error || '알 수 없음'}`, isApp);
-    }
-
-    const meRes = await fetch('https://openapi.naver.com/v1/nid/me', {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const me = await meRes.json() as { response?: { id?: string; email?: string; name?: string; nickname?: string; profile_image?: string } };
-    const r = me.response;
-    if (!r?.id) return fail(res, '네이버 프로필 조회 실패', isApp);
-
-    await completeLogin(req, res, {
-      provider: 'naver',
-      providerId: r.id,
-      email: r.email || null,
-      emailVerified: !!r.email, // 네이버 로그인 이메일은 인증된 값
-      name: r.name || r.nickname || null,
-      profileImage: httpsProfile(r.profile_image),
-    }, isApp);
-  } catch (err) {
-    console.error('네이버 콜백 에러:', err);
-    fail(res, '로그인 처리 중 오류가 발생했습니다.', isApp);
-  }
-};
-
 // ===== Apple (Sign in with Apple — iOS 앱 네이티브 시트) =====
 // 앱이 네이티브로 받은 identityToken(JWT)을 서버가 애플 공개키로 검증한 뒤 유저를 조회·생성하고 우리 토큰을 JSON 으로 돌려준다.
 // 앱스토어 심사 지침 4.8: 카카오 같은 제3자 로그인을 쓰는 앱은 Apple 로그인도 함께 제공해야 함 (2026-09-10).
@@ -464,7 +413,7 @@ export const getLoginMethods = async (req: AuthReq, res: Response): Promise<void
 export const unlinkLoginMethod = async (req: AuthReq, res: Response): Promise<void> => {
   try {
     const provider = String(req.params.provider || '');
-    if (!['kakao', 'naver', 'apple'].includes(provider)) { res.status(400).json({ error: '알 수 없는 로그인 방법이에요.' }); return; }
+    if (!['kakao', 'apple'].includes(provider)) { res.status(400).json({ error: '알 수 없는 로그인 방법이에요.' }); return; }
     const me = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!me) { res.status(404).json({ error: '계정을 찾을 수 없어요.' }); return; }
     const logins = await prisma.userLogin.findMany({ where: { userId: me.id } });

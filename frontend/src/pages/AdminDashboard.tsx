@@ -683,7 +683,7 @@ const AdminDashboard = () => {
                             {loginInfo.data.logins.length === 0 ? <p className="text-gray-500">기록 없음</p> : (
                               <div className="overflow-x-auto"><table className="w-full text-[11px]"><tbody>
                                 {loginInfo.data.logins.map((l, i) => (
-                                  <tr key={i} className="border-t border-gray-100"><td className="py-1 pr-2 whitespace-nowrap text-gray-600">{new Date(l.createdAt).toLocaleString('ko-KR')}</td><td className="py-1 pr-2 font-mono text-gray-800">{l.ip}</td><td className="py-1 pr-2 text-gray-600">{({ email: '이메일', register: '가입', kakao: '카카오', naver: '네이버', apple: 'Apple' } as Record<string, string>)[l.method] || l.method}</td><td className="py-1 text-gray-500 truncate max-w-[220px]">{l.userAgent || ''}</td></tr>
+                                  <tr key={i} className="border-t border-gray-100"><td className="py-1 pr-2 whitespace-nowrap text-gray-600">{new Date(l.createdAt).toLocaleString('ko-KR')}</td><td className="py-1 pr-2 font-mono text-gray-800">{l.ip}</td><td className="py-1 pr-2 text-gray-600">{({ email: '이메일', register: '가입', kakao: '카카오', apple: 'Apple' } as Record<string, string>)[l.method] || l.method}</td><td className="py-1 text-gray-500 truncate max-w-[220px]">{l.userAgent || ''}</td></tr>
                                 ))}
                               </tbody></table></div>
                             )}

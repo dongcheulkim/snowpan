@@ -7,7 +7,7 @@ import type { AuthRequest } from '../middleware/auth';
 export const LOGIN_LOG_DAYS = Math.max(1, Number(process.env.LOGIN_LOG_DAYS) || 90);
 
 // 실패해도 로그인은 막지 않는다 (fire-and-forget)
-export function recordLogin(req: Request, userId: string, method: 'email' | 'register' | 'kakao' | 'naver' | 'apple'): void {
+export function recordLogin(req: Request, userId: string, method: 'email' | 'register' | 'kakao' | 'apple'): void {
   const ip = (req.ip || req.socket?.remoteAddress || 'unknown').toString().slice(0, 64);
   const ua = String(req.headers['user-agent'] || '').slice(0, 200) || null;
   prisma.loginLog.create({ data: { userId, ip, userAgent: ua, method } }).catch((e) => console.warn('login log failed:', e instanceof Error ? e.message : e));

@@ -30,7 +30,7 @@ const OAuthCallback = () => {
       // 앱: 딥링크로 받은 refresh 토큰 저장 — 앱 재시작/1h 후에도 로그인 유지 (웹 no-op).
       const refresh = params.get('refresh');
       if (refresh) setAppRefreshToken(refresh);
-      if (provider === 'kakao' || provider === 'naver') markLastLogin(provider);
+      if (provider === 'kakao') markLastLogin(provider);
       initPush().catch(() => {}); // 앱: 로그인 직후 FCM 토큰 등록 (웹 no-op)
 
       // 신규 가입자 or 닉네임 미설정 → 온보딩(/welcome)으로. (oauthNext 는 Welcome 이 소비)

@@ -287,7 +287,7 @@ export function logout() {
 export const SERVER_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
 
 // ===== 소셜 로그인 =====
-export type LoginMethod = 'email' | 'kakao' | 'naver' | 'apple';
+export type LoginMethod = 'email' | 'kakao' | 'apple';
 
 // Apple 로그인 (iOS 앱 네이티브 시트) — 앱스토어 심사 지침 4.8: 카카오 로그인이 있으면 Apple 로그인도 제공해야 함.
 // 네이티브에서 받은 identityToken 을 백엔드 /auth/apple 로 보내 검증하고 우리 토큰을 받는다. 웹에서는 쓰지 않음.
@@ -314,13 +314,13 @@ export async function linkApple(): Promise<{ logins: LoginMethods['logins'] }> {
 }
 
 // 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
-export function oauthStartUrl(provider: 'kakao' | 'naver'): string {
+export function oauthStartUrl(provider: 'kakao'): string {
   return `${API_BASE}/auth/${provider}`;
 }
 
 // 소셜 로그인 시작 — 앱: 인앱 브라우저로 열고 platform=app(백엔드가 앱 딥링크로 토큰 반환).
 // 웹: 기존처럼 현재 창을 백엔드 OAuth 로 이동.
-export async function startSocialLogin(provider: 'kakao' | 'naver', opts?: { link?: boolean }): Promise<void> {
+export async function startSocialLogin(provider: 'kakao', opts?: { link?: boolean }): Promise<void> {
   // link=true: 이미 로그인된 계정에 이 소셜을 붙이는 모드 (10분짜리 티켓을 서버에서 받아 넘김)
   let q = isNativeApp() ? '?platform=app' : '';
   if (opts?.link) { const { ticket } = await api<{ ticket: string }>('/auth/link-ticket', { method: 'POST' }); q += (q ? '&' : '?') + `link=${encodeURIComponent(ticket)}`; }
@@ -345,7 +345,7 @@ export function markLastLogin(method: LoginMethod): void {
 export function getLastLogin(): LoginMethod | null {
   try {
     const v = localStorage.getItem('snowpan.lastLogin');
-    return v === 'email' || v === 'kakao' || v === 'naver' || v === 'apple' ? v : null;
+    return v === 'email' || v === 'kakao' || v === 'apple' ? v : null;
   } catch { return null; }
 }
 
