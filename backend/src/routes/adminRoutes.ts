@@ -37,7 +37,7 @@ import {
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { geocodeBackfill, resortsGeocode, autoResort } from '../controllers/geocodeController';
 import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from '../controllers/outreachController';
-import { isFcmConfigured, sendPushToUser } from '../utils/push';
+import { isFcmConfigured, sendPushToUser, syncBadge } from '../utils/push';
 import { appleRevokeStatus, kakaoConfigured } from '../controllers/socialAuthController';
 import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
 import { smsConfigured } from '../utils/sms';
@@ -228,6 +228,27 @@ router.post('/push-test', async (req: any, res) => {
   } catch (e) {
     console.error('Push test error:', e);
     res.status(500).json({ error: '푸시 테스트 실패' });
+  }
+});
+
+// iOS 아이콘 배지를 그 사용자의 현재 미읽음 수로 다시 맞춤(조용한 푸시). 배지가 안 사라진다는 신고 대응용 (2026-09-30).
+router.post('/push-badge-sync', async (req: any, res) => {
+  try {
+    if (req.body?.all === true) {
+      // 토큰 있는 모든 사용자에게 조용한 배지 갱신 (알림 안 뜸)
+      const users = await prisma.user.findMany({ where: { fcmToken: { not: null } }, select: { id: true }, take: 1000 });
+      let done = 0;
+      for (const u of users) { await syncBadge(u.id); done++; }
+      res.json({ all: true, users: users.length, done }); return;
+    }
+    const userId = String(req.body?.userId || req.user.id);
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { fcmToken: true } });
+    const unread = await prisma.notification.count({ where: { userId, read: false } });
+    await syncBadge(userId);
+    res.json({ userId, hasToken: !!u?.fcmToken, tokenKind: u?.fcmToken ? (u.fcmToken.startsWith('ExponentPushToken') ? 'expo' : 'fcm') : null, unread });
+  } catch (e) {
+    console.error('badge sync error:', e);
+    res.status(500).json({ error: '배지 동기화 실패' });
   }
 });
 
