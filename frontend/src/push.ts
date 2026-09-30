@@ -62,6 +62,8 @@ export async function initPush(): Promise<void> {
             body: n.body || '',
             channelId: 'default',
             extra: { link },
+            // 즉시 표시용이라 정확한 알람 불필요 — 기본값(true)이면 Android 12+ 에서 '알람 및 리마인더' 설정 화면이 튀어나옴 (에뮬레이터 1.8 검사에서 발견 2026-09-30)
+            isExactNotification: false,
           }],
         }).catch(() => {});
       });
