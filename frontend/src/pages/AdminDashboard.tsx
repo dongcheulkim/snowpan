@@ -10,6 +10,7 @@ import OutreachBoard from '../components/OutreachBoard';
 import InstagramPanel from '../components/InstagramPanel';
 import AdminAppVersionPanel from '../components/AdminAppVersionPanel';
 import AdminAccessLogPanel from '../components/AdminAccessLogPanel';
+import AdminLinkHealthPanel from '../components/AdminLinkHealthPanel';
 import AdminOpsPanel from '../components/AdminOpsPanel';
 import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
@@ -401,6 +402,7 @@ const AdminDashboard = () => {
               <AdminResortsPanel />
               <InstagramPanel />
               <AdminAppVersionPanel />
+              <AdminLinkHealthPanel />
               <AdminAccessLogPanel />
             </div>
           )}

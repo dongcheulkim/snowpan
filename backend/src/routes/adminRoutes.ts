@@ -38,6 +38,7 @@ import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { geocodeBackfill, resortsGeocode, autoResort } from '../controllers/geocodeController';
 import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from '../controllers/outreachController';
 import { isFcmConfigured, sendPushToUser, syncBadge } from '../utils/push';
+import { runLinkHealth, getLastReport, isLinkHealthRunning } from '../utils/linkHealth';
 import { appleRevokeStatus, kakaoConfigured } from '../controllers/socialAuthController';
 import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
 import { smsConfigured } from '../utils/sms';
@@ -250,6 +251,17 @@ router.post('/push-badge-sync', async (req: any, res) => {
     console.error('badge sync error:', e);
     res.status(500).json({ error: '배지 동기화 실패' });
   }
+});
+
+// 외부 링크·사진·웹캠 점검 결과 (매일 04시 자동, 지금 점검은 POST). 결과는 AdminSetting link_health_last.
+router.get('/jobs/link-health', async (_req, res) => {
+  try { res.json({ running: isLinkHealthRunning(), report: await getLastReport() }); }
+  catch (e) { console.error('link-health get error:', e); res.status(500).json({ error: '점검 결과를 불러오지 못했어요.' }); }
+});
+router.post('/jobs/link-health/run', async (_req, res) => {
+  if (isLinkHealthRunning()) { res.status(409).json({ error: '이미 점검 중이에요. 잠시 뒤 새로고침해 주세요.' }); return; }
+  runLinkHealth().catch((e) => console.error('link-health run error:', e)); // 수 분 걸리므로 바로 응답하고 백그라운드로
+  res.json({ started: true });
 });
 
 // 승인 대기 목록 조회
