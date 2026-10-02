@@ -12,6 +12,7 @@ import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
 import HScroll from '../components/HScroll';
 import BuyerPickerModal from '../components/BuyerPickerModal';
+import { useBumpWithAd } from '../components/BumpWithAd';
 
 interface Product {
   id: string;
@@ -253,19 +254,10 @@ const UsedDetail = () => {
      
   }, [product?.id]);
 
-  const [bumping, setBumping] = useState(false);
-  const handleBump = async () => {
-    if (!id || bumping) return;
-    setBumping(true);
-    try {
-      await api(`/products/${id}/bump`, { method: 'PUT' });
-      toastSuccess('맨 위로 끌어올렸어요!');
-    } catch (e) {
-      toastError(e instanceof Error ? e.message : '끌어올리기에 실패했습니다.');
-    } finally {
-      setBumping(false);
-    }
-  };
+  // 끌어올리기 = 광고 보기 (앱: 애드몹 영상, 웹: 광고 카드 5초) — 2026-10-02
+  const { start: startBump, busy: bumping, modal: bumpModal } = useBumpWithAd(() => { setProduct((p) => p ? { ...p, bumpedAt: new Date().toISOString() } : p); });
+  const handleBump = () => { if (id) void startBump(id); };
+
 
   const handleReport = async () => {
     if (!reportReason || !id) return;
@@ -418,7 +410,7 @@ const UsedDetail = () => {
                         className="text-xs font-bold px-2.5 py-1 rounded bg-gray-900 text-white active:scale-95 transition-transform disabled:opacity-50 inline-flex items-center gap-1"
                       >
                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                        {bumping ? '처리중' : '끌어올리기'}
+                        {bumping ? '처리중' : '광고 보고 끌어올리기'}
                       </button>
                     )}
                   </>
@@ -642,6 +634,7 @@ const UsedDetail = () => {
           onClose={() => setShowBuyerPicker(false)}
         />
       )}
+      {bumpModal}
 
       {/* 하단 sticky 액션바 — 채팅 버튼이 스크롤로 사라지면 화면 하단에 고정 노출.
           당근·번개장터식 — 거래 시작까지의 스크롤 마찰 제거 (하단 네비 위에 안착) */}

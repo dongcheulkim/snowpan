@@ -6,6 +6,7 @@ import { t, onLangChange } from '../i18n';
 import { PackageIcon } from '../components/Icons';
 import LoadError from '../components/LoadError';
 import BuyerPickerModal, { type BuyerCandidate } from '../components/BuyerPickerModal';
+import { useBumpWithAd } from '../components/BumpWithAd';
 
 interface Product {
   id: string;
@@ -100,15 +101,10 @@ const MySales = () => {
     }
   };
 
-  const handleBump = async (id: string) => {
-    try {
-      await api(`/products/${id}/bump`, { method: 'PUT' });
-      toastSuccess(t('mySales.bumpSuccess'));
-      loadProducts();
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : '끌어올리기 실패');
-    }
-  };
+  // 끌어올리기 = 광고 보기 (앱: 애드몹 영상, 웹: 광고 카드 5초) — 2026-10-02
+  const { start: startBump, modal: bumpModal } = useBumpWithAd(() => loadProducts());
+  const handleBump = (id: string) => { void startBump(id); };
+
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -195,6 +191,7 @@ const MySales = () => {
           onClose={() => setPicker(null)}
         />
       )}
+      {bumpModal}
     </div>
   );
 };

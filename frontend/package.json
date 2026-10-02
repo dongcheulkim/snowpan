@@ -16,6 +16,7 @@
     "ios:assets": "npx capacitor-assets generate --ios"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
     "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/app": "^8.1.1",

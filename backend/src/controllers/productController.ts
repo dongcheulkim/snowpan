@@ -831,32 +831,42 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
 };
 
 // 끌어올리기
+// 끌어올리기 — "광고 보고 끌어올리기" 로 바뀜 (사장님 결정 2026-10-02). 광고 1회 시청 = 끌어올리기 1회.
+//  - body.adProof: { source: 'admob' | 'house', adId? }  앱은 애드몹 보상형 영상, 웹은 입점 광고주 카드 5초 시청(house).
+//  - 같은 매물은 1시간에 한 번, 한 회원은 하루 3회(KST). 관리자는 광고 없이 가능.
+//  - 애드몹 서버 검증(SSV)은 미도입 — 클라이언트 보상 콜백을 믿되 하루 3회 한도로 어뷰징 상한.
+const BUMP_MIN_INTERVAL_MS = 60 * 60 * 1000;
+const BUMP_DAILY_LIMIT = 3;
+const BUMP_LEGACY_UNTIL = Date.parse('2026-11-30T15:00:00Z'); // 2.0 배포 뒤 지나면 구앱도 광고 필수
 export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
+    const isAdmin = req.user!.role === 'admin';
+    const proof = (req.body && typeof req.body === 'object' ? (req.body as { adProof?: { source?: string; adId?: string } }).adProof : undefined) || undefined;
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
-    if (product.userId !== userId) { res.status(403).json({ error: '본인의 상품만 끌어올릴 수 있습니다.' }); return; }
-
-    if (product.bumpedAt) {
-      const hoursSinceBump = (Date.now() - new Date(product.bumpedAt).getTime()) / (1000 * 60 * 60);
-      if (hoursSinceBump < 24) {
-        const remaining = Math.ceil(24 - hoursSinceBump);
-        res.status(429).json({ error: `끌어올리기는 24시간에 한 번만 가능합니다. ${remaining}시간 후 다시 시도해주세요.` });
-        return;
-      }
+    if (product.userId !== userId && !isAdmin) { res.status(403).json({ error: '본인의 상품만 끌어올릴 수 있습니다.' }); return; }
+    // 1.9 이하 앱(광고 기능 없음)은 2.0 심사 통과 전까지 예전 규칙(24시간 1회)으로 — 앱 웹뷰 UA 만, 기한 지나면 자동 종료
+    const ua = String(req.headers['user-agent'] || '');
+    const legacyApp = !proof && Date.now() < BUMP_LEGACY_UNTIL && (/; wv\)/.test(ua) || (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua)));
+    if (!isAdmin && !legacyApp) {
+      if (!proof || !['admob', 'house'].includes(String(proof.source))) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1회가 주어져요.', needAd: true }); return; }
+      // 하루 한도 — 오늘(KST) 내 매물 중 끌어올린 수
+      const kstNow = new Date(Date.now() + 9 * 3600_000); const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600_000);
+      const today = await prisma.product.count({ where: { userId, bumpedAt: { gte: dayStartUtc }, deletedAt: null } });
+      if (today >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `끌어올리기는 하루 ${BUMP_DAILY_LIMIT}회까지예요. 내일 다시 할 수 있어요.` }); return; }
     }
-
-    // 조건부 원자 업데이트 — 동시 요청이 둘 다 쿨다운 통과하는 race 차단.
-    // 24시간 전 bumpedAt (또는 null) 일 때만 갱신. count=0 이면 방금 다른 요청이 처리한 것.
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // 조건부 원자 업데이트 — 1시간 안 재요청·동시 요청 차단 (count=0 이면 방금 다른 요청이 처리했거나 아직 1시간 안 지남)
+    const cutoff = new Date(Date.now() - (legacyApp ? 24 * 3600_000 : BUMP_MIN_INTERVAL_MS));
     const bumped = await prisma.product.updateMany({
-      where: { id, userId, OR: [{ bumpedAt: null }, { bumpedAt: { lt: cutoff } }] },
+      where: { id, OR: [{ bumpedAt: null }, { bumpedAt: { lt: cutoff } }] },
       data: { bumpedAt: new Date() },
     });
     if (bumped.count === 0) {
-      res.status(429).json({ error: '끌어올리기는 24시간에 한 번만 가능합니다.' });
+      const interval = legacyApp ? 24 * 3600_000 : BUMP_MIN_INTERVAL_MS;
+      const mins = product.bumpedAt ? Math.max(1, Math.ceil((interval - (Date.now() - new Date(product.bumpedAt).getTime())) / 60000)) : 60;
+      res.status(429).json({ error: legacyApp ? `끌어올리기는 24시간에 한 번 할 수 있어요. 앱을 최신으로 업데이트하면 광고 보고 더 자주 끌어올릴 수 있어요.` : `같은 매물은 1시간에 한 번만 끌어올릴 수 있어요. ${mins}분 뒤 다시 해 주세요.` });
       return;
     }
     const updated = await prisma.product.findUnique({ where: { id } });

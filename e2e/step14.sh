@@ -278,7 +278,11 @@ api POST /products/used '{"name":"E2E스키","brand":"살로몬","price":300000,
 PD=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && ok "매물 등록" || bad "매물 등록 CODE=$CODE"
 api POST "/products/$PD/wishlist" "{}" "$U_TOKEN"; expect 400 "본인 매물 찜 차단"
 api PUT "/products/$PD/bump" "{}" "$N_TOKEN"; expect 403 "타인 매물 끌올 403"
-api PUT "/products/$PD/bump" "{}" "$U_TOKEN"; expect 429 "등록 직후 끌올 24h 제한"
+api PUT "/products/$PD/bump" "{}" "$U_TOKEN"; expect 400 "광고 안 보고 끌올 400 (광고 보기 필요)"
+api PUT "/products/$PD/bump" '{"adProof":{"source":"house","adId":"e2e"}}' "$U_TOKEN"; expect 429 "등록 직후(1시간 안) 끌올 429"
+pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null
+api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 200 "광고 본 뒤 끌올 200 (1시간 지남)"
+api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 429 "방금 끌올한 매물 1시간 제한 429"
 api GET "/products/market-stats?subcategory=%EC%8A%A4%ED%82%A4" ""; expect 200 "시장 통계"
 api GET "/products/market-stats" ""; expect 400 "시장 통계 subcategory 누락"
 api DELETE "/products/$PD" "" "$N_TOKEN"; expect 403 "타인 매물 삭제 403"

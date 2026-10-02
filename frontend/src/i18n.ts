@@ -182,7 +182,7 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // MySales
     'mySales.title': '판매 물품',
-    'mySales.bump': '끌어올리기',
+    'mySales.bump': '광고 보고 끌어올리기',
     'mySales.edit': '수정',
     'mySales.delete': '삭제',
     'mySales.toSelling': '판매중으로',

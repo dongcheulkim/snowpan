@@ -93,6 +93,19 @@
 	<!-- 권한 안내 문구 — 심사에서 이 문구가 없으면 리젝. 실제 쓰임과 일치해야 함 -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>내 주변 스키·보드샵, 정비샵, 렌탈샵을 거리순으로 보여드리기 위해 사용합니다. 위치는 기기 안에서만 쓰이고 서버로 보내지 않습니다.</string>
+	<key>GADIsAdManagerApp</key>
+	<true/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>회원님께 더 맞는 광고를 보여드리기 위해 사용됩니다. 허용하지 않아도 앱의 모든 기능을 쓸 수 있습니다.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>매물과 매장 사진을 찍어 올릴 때 사용합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
