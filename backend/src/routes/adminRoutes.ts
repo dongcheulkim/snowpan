@@ -41,6 +41,7 @@ import { isFcmConfigured, sendPushToUser, syncBadge } from '../utils/push';
 import { runLinkHealth, getLastReport, isLinkHealthRunning } from '../utils/linkHealth';
 import { appleRevokeStatus, kakaoConfigured } from '../controllers/socialAuthController';
 import { naverConfigured } from '../utils/naverSearch';
+import { enrichShops } from '../utils/shopEnrich';
 import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
 import { smsConfigured } from '../utils/sms';
 import prisma from '../config/database';
@@ -264,6 +265,15 @@ router.post('/jobs/link-health/run', async (_req, res) => {
   if (isLinkHealthRunning()) { res.status(409).json({ error: '이미 점검 중이에요. 잠시 뒤 새로고침해 주세요.' }); return; }
   runLinkHealth().catch((e) => console.error('link-health run error:', e)); // 수 분 걸리므로 바로 응답하고 백그라운드로
   res.json({ started: true });
+});
+
+// 매장 정보 보강(네이버 지역검색) — 빈 전화·주소·지도 링크만 채움. body {dryRun:true}(기본) 면 계획만, {dryRun:false} 면 적용.
+router.post('/jobs/shop-enrich', async (req: any, res) => {
+  try {
+    const dryRun = req.body?.dryRun !== false;
+    const limit = Math.min(Math.max(parseInt(String(req.body?.limit ?? 700), 10) || 700, 1), 2000);
+    res.json(await enrichShops(dryRun, limit));
+  } catch (e) { console.error('shop-enrich error:', e); res.status(500).json({ error: '매장 정보 보강 실패' }); }
 });
 
 // 승인 대기 목록 조회

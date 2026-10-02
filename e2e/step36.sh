@@ -40,5 +40,8 @@ done
 [ "$(pq "SELECT count(*) FROM notifications WHERE type='link_health'")" -ge "1" ] && ok "관리자에게 죽은 링크 알림" || bad "알림 없음"
 # 저장 키
 [ "$(pq "SELECT count(*) FROM admin_settings WHERE key='link_health_last'")" = "1" ] && ok "결과 저장(admin_settings)" || bad "저장 안 됨"
+# 매장 정보 보강(네이버 키 없는 로컬에선 configured=false, 관리자만)
+api POST /admin/jobs/shop-enrich '{"dryRun":true}' "$USER"; [ "$CODE" = "403" ] && ok "보강: 일반 회원 거부" || bad "보강 일반 CODE=$CODE"
+api POST /admin/jobs/shop-enrich '{"dryRun":true}' "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.dryRun')" = "true" ] && [ "$(echo "$RESP" | jq -r 'has("plan") and has("unmatched") and has("configured")')" = "true" ] && ok "보강: 관리자 dryRun 응답 형식 (configured=$(echo "$RESP" | jq -r '.configured'))" || bad "보강 CODE=$CODE RESP=$RESP"
 pq "DELETE FROM banners WHERE title='E2E 죽은 링크 배너 36'" >/dev/null
 echo "----- STEP36: PASS=$PASS FAIL=$FAIL -----"
