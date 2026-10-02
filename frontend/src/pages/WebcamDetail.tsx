@@ -97,7 +97,7 @@ const WebcamDetail = () => {
                       : 'bg-snow text-gray-500 border border-gray-200 hover:bg-gray-50'
                   }`}
                 >
-                  {String(idx + 1).padStart(2, '0')}. {c.label}
+                  {String(idx + 1).padStart(2, '0')}. {c.label}{c.liveNow === false ? ' · 오프' : ''}
                 </button>
               ))}
             </div>
@@ -107,7 +107,7 @@ const WebcamDetail = () => {
           <div className="card rounded-2xl overflow-hidden bg-black">
             <div className="aspect-video">
               {currentStream!.liveNow === false ? (
-                // 유튜브 채널인데 지금 방송 없음(시즌 오프) — 채널 임베드 대신 안내
+                // 서버 확인 결과 지금 송출 없음(시즌 오프) — 플레이어 대신 안내 (유튜브·HLS 공통)
                 <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white px-4">
                   <span className="text-sm text-gray-300 font-medium">지금은 방송 중이 아니에요</span>
                   <span className="text-[11px] text-gray-500 text-center">스키 시즌 중에만 방송되는 카메라예요</span>

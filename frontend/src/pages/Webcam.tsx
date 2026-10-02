@@ -13,6 +13,7 @@ interface WebcamItem {
   slopes: number;
   elevation: string | null;
   camCount: number;
+  liveCount?: number; // 지금 송출 중인 카메라 수 (서버 10분 캐시)
   externalUrl: string | null;
   image?: string | null;
 }
@@ -56,6 +57,7 @@ const Webcam = () => {
         <div className="grid grid-cols-2 gap-3">
           {webcams.map((cam) => {
             const hasStream = cam.camCount > 0;
+            const isLive = (cam.liveCount ?? 0) > 0;
             const cardContent = (
               <>
                 {/* 스키장 투어 카드 스타일 — 사진 위 텍스트 오버레이 (사진 없으면 설산 그라데이션) */}
@@ -66,10 +68,13 @@ const Webcam = () => {
                     <div className="w-full h-full flex items-center justify-center text-white/50"><MountainIcon size={30} /></div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                  {hasStream ? (
+                  {hasStream && isLive ? (
                     <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-green-500/90 px-1.5 py-0.5 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
                     </span>
+                  ) : hasStream ? (
+                    // 카메라는 등록돼 있지만 지금 송출이 없음(시즌 오프) — LIVE 로 속이지 않음
+                    <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">시즌 오프</span>
                   ) : (
                     <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">외부 링크</span>
                   )}
@@ -82,7 +87,7 @@ const Webcam = () => {
                     <p className="text-white font-bold text-sm leading-tight truncate">{cam.name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-[10px] font-medium text-white/90">{cam.region}</span>
-                      <span className="text-[10px] text-white/70 truncate">{cam.slopes}면{hasStream ? ` · ${cam.camCount}캠` : ''}</span>
+                      <span className="text-[10px] text-white/70 truncate">{cam.slopes}면{hasStream ? (isLive ? ` · ${cam.liveCount}/${cam.camCount}캠 송출 중` : ` · ${cam.camCount}캠`) : ''}</span>
                     </div>
                   </div>
                 </div>
