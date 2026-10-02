@@ -5,7 +5,7 @@ import prisma from '../config/database';
 import { naverConfigured, naverLocalSearch, type NaverPlace } from './naverSearch';
 
 // 2차 소스: 카카오 로컬 키워드 검색 — 네이버와 달리 전화번호(phone)를 돌려준다. 키는 지오코딩과 같은 KAKAO_REST_API_KEY.
-const KAKAO_KEY = process.env.KAKAO_REST_API_KEY || '';
+const KAKAO_KEY = process.env.KAKAO_REST_API_KEY || process.env.KAKAO_CLIENT_ID || ''; // 지오코딩(geocode.ts)과 같은 키 우선순위
 async function kakaoKeyword(query: string): Promise<NaverPlace[]> {
   if (!KAKAO_KEY) return [];
   try {
