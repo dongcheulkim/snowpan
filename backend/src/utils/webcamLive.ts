@@ -35,7 +35,8 @@ export async function annotateHls<T extends { stream: string }>(cams: T[]): Prom
   return Promise.all(cams.map(async (c) => (youtubeChannelOf(c.stream) ? c : { ...c, liveNow: await probeStream(c.stream) })));
 }
 
-export async function liveCountOf(cams: { stream: string }[]): Promise<number> {
+// live = 송출 확인, off = 꺼짐 확인(404 등). iframe 류(rtsp.me 등)는 확인 불가라 둘 다 아님 → 목록은 '시즌 오프'를 전부 off 일 때만 표시.
+export async function liveCountOf(cams: { stream: string }[]): Promise<{ live: number; off: number }> {
   const r = await Promise.all(cams.map((c) => probeStream(c.stream)));
-  return r.filter((x) => x === true).length;
+  return { live: r.filter((x) => x === true).length, off: r.filter((x) => x === false).length };
 }

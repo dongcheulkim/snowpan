@@ -14,6 +14,7 @@ interface WebcamItem {
   elevation: string | null;
   camCount: number;
   liveCount?: number; // 지금 송출 중인 카메라 수 (서버 10분 캐시)
+  offCount?: number;  // 꺼짐 확인된 카메라 수 (iframe 류는 확인 불가라 어느 쪽에도 안 들어감)
   externalUrl: string | null;
   image?: string | null;
 }
@@ -58,6 +59,7 @@ const Webcam = () => {
           {webcams.map((cam) => {
             const hasStream = cam.camCount > 0;
             const isLive = (cam.liveCount ?? 0) > 0;
+            const allOff = hasStream && (cam.offCount ?? 0) >= cam.camCount; // 전부 꺼짐 확인된 경우만 '시즌 오프'
             const cardContent = (
               <>
                 {/* 스키장 투어 카드 스타일 — 사진 위 텍스트 오버레이 (사진 없으면 설산 그라데이션) */}
@@ -72,9 +74,12 @@ const Webcam = () => {
                     <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold text-white bg-green-500/90 px-1.5 py-0.5 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
                     </span>
-                  ) : hasStream ? (
-                    // 카메라는 등록돼 있지만 지금 송출이 없음(시즌 오프) — LIVE 로 속이지 않음
+                  ) : allOff ? (
+                    // 카메라는 등록돼 있지만 전부 꺼짐 확인(시즌 오프) — LIVE 로 속이지 않음
                     <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">시즌 오프</span>
+                  ) : hasStream ? (
+                    // 확인 불가(iframe 류) — 배지 없이 캠 수만
+                    <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">{cam.camCount}캠</span>
                   ) : (
                     <span className="absolute top-2 left-2 text-[10px] font-medium text-white/90 bg-black/40 px-1.5 py-0.5 rounded">외부 링크</span>
                   )}

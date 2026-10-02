@@ -31,7 +31,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       select: { slug: true, image: true },
     });
     const imageBySlug = new Map(resorts.map((r) => [r.slug, r.image]));
-    const withImage = list.map(({ cameras: _cams, ...c }, i) => ({ ...c, liveCount: liveCounts[i], image: imageBySlug.get(camToResort[c.slug] || c.slug) || null }));
+    const withImage = list.map(({ cameras: _cams, ...c }, i) => ({ ...c, liveCount: liveCounts[i].live, offCount: liveCounts[i].off, image: imageBySlug.get(camToResort[c.slug] || c.slug) || null }));
     res.json(withImage);
   } catch (error) {
     console.error('Webcam list error:', error);
