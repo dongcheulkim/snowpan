@@ -11,6 +11,10 @@
       "destination": "http://59.30.12.195:1935/:path*"
     },
     {
+      "source": "/cam/oak/:path*",
+      "destination": "http://cctv-oak9.ktcdn.co.kr/:path*"
+    },
+    {
       "source": "/cam/konjiam/:path*",
       "destination": "http://konjiam.live.cdn.cloudn.co.kr/:path*"
     },

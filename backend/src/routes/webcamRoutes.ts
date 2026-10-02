@@ -1,4 +1,5 @@
 // 웹캠 — 공개 read-only API. 어드민 추가/수정은 향후 어드민 라우트에서.
+import { annotateLive } from '../utils/youtubeLive';
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
 import { pickVertical } from '../utils/vertical';
@@ -101,7 +102,10 @@ router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ error: '존재하지 않는 웹캠입니다.' });
       return;
     }
-    res.json(cam);
+    // 유튜브 채널 라이브 카메라(엘리시안·알펜시아 등)는 Data API 로 지금 방송 중인 영상 ID 를 붙여 준다 — 채널 임베드가 '동영상을 볼 수 없습니다' 로 뜨는 문제 방지, 방송 없으면 liveNow:false (2026-10-02)
+    const cameras = Array.isArray(cam.cameras) ? (cam.cameras as { label: string; stream: string }[]) : [];
+    const annotated = cameras.length ? await annotateLive(cameras) : cameras;
+    res.json({ ...cam, cameras: annotated, camCount: annotated.length });
   } catch (error) {
     console.error('Webcam detail error:', error);
     res.status(500).json({ error: '웹캠 조회 중 오류가 발생했습니다.' });

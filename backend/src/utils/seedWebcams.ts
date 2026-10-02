@@ -14,6 +14,14 @@ import prisma from '../config/database';
 type Cam = { label: string; stream: string };
 
 const WEBCAM_STREAMS: Record<string, Cam[]> = {
+  // 오크밸리 — 공식 사이트(React 번들)의 HLS 5개. 원본이 HTTP 라 snowpan.kr/cam/oak 프록시(vercel.json) 경유. 채널↔이름은 공식 페이지 섹션 순서 기준(2026-10-02, 시즌오프라 502 — 겨울에 살아남)
+  oak: [
+    { label: '스키 광장', stream: 'https://snowpan.kr/cam/oak/cctv/ch2.stream/playlist.m3u8' },
+    { label: 'I 슬로프', stream: 'https://snowpan.kr/cam/oak/cctv/ch5.stream/playlist.m3u8' },
+    { label: 'F 슬로프', stream: 'https://snowpan.kr/cam/oak/cctv/ch9.stream/playlist.m3u8' },
+    { label: 'G 슬로프', stream: 'https://snowpan.kr/cam/oak/cctv/ch6.stream/playlist.m3u8' },
+    { label: '플라워 정상', stream: 'https://snowpan.kr/cam/oak/cctv/ch7.stream/playlist.m3u8' },
+  ],
   yongpyong: [
     { label: '베이스 전경 · 레드 슬로프', stream: 'https://live.yongpyong.co.kr/cam08/index.m3u8' },
     { label: '옐로우 슬로프', stream: 'https://live.yongpyong.co.kr/cam11/index.m3u8' },

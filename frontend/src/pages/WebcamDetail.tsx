@@ -5,7 +5,7 @@ import { ProhibitIcon } from '../components/Icons';
 import HScroll from '../components/HScroll';
 import WebcamPlayer from '../components/WebcamPlayer';
 
-interface CamInfo { label: string; stream: string }
+interface CamInfo { label: string; stream: string; liveNow?: boolean | null; liveVideoId?: string | null }
 interface WebcamData {
   id: string;
   slug: string;
@@ -106,7 +106,16 @@ const WebcamDetail = () => {
           {/* Video player — 유튜브 라이브면 임베드, 아니면 HLS */}
           <div className="card rounded-2xl overflow-hidden bg-black">
             <div className="aspect-video">
-              <WebcamPlayer key={currentStream!.stream} stream={currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />
+              {currentStream!.liveNow === false ? (
+                // 유튜브 채널인데 지금 방송 없음(시즌 오프) — 채널 임베드 대신 안내
+                <div className="w-full h-full bg-gray-900 flex flex-col items-center justify-center gap-2 text-white px-4">
+                  <span className="text-sm text-gray-300 font-medium">지금은 방송 중이 아니에요</span>
+                  <span className="text-[11px] text-gray-500 text-center">스키 시즌 중에만 방송되는 카메라예요</span>
+                  {cam.externalUrl && <a href={cam.externalUrl} target="_blank" rel="noopener noreferrer" className="mt-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-xs font-bold text-white">{cam.name} 웹캠 페이지 열기</a>}
+                </div>
+              ) : (
+                <WebcamPlayer key={currentStream!.liveVideoId || currentStream!.stream} stream={currentStream!.liveVideoId ? `youtube:${currentStream!.liveVideoId}` : currentStream!.stream} fallbackUrl={cam.externalUrl} fallbackName={cam.name} />
+              )}
             </div>
           </div>
 
