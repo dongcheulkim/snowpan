@@ -40,6 +40,7 @@ import { listOutreach, upsertOutreach, bulkOutreach, putOutreachTemplate } from 
 import { isFcmConfigured, sendPushToUser, syncBadge } from '../utils/push';
 import { runLinkHealth, getLastReport, isLinkHealthRunning } from '../utils/linkHealth';
 import { appleRevokeStatus, kakaoConfigured } from '../controllers/socialAuthController';
+import { naverConfigured } from '../utils/naverSearch';
 import { buildDailySummary, sendDailySummary, smtpConfigured } from '../utils/dailySummary';
 import { smsConfigured } from '../utils/sms';
 import prisma from '../config/database';
@@ -57,6 +58,7 @@ router.get('/integrations', async (_req, res) => {
     appleRevoke: apple.configured, // 탈퇴 시 Apple 로그인 연결 철회 키(APPLE_TEAM_ID/KEY_ID/PRIVATE_KEY)
     appleRevokeDetail: apple, // 어떤 env 가 빠졌는지·키 형식 문제인지 (값은 없고 이름·길이·모양만)
     kakao: kakaoConfigured(),
+    naverSearch: naverConfigured(), // 네이버 지역검색 키(NAVER_CLIENT_ID/SECRET) — AI 직원·매장 정보 보강
     fcm: await isFcmConfigured(),
     bunny: Boolean(process.env.BUNNY_STORAGE_KEY),
     adDeposit: Boolean(process.env.AD_DEPOSIT_BANK && process.env.AD_DEPOSIT_ACCOUNT && process.env.AD_DEPOSIT_HOLDER),

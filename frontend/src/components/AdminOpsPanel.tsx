@@ -10,7 +10,7 @@ interface Summary {
   unansweredSupport: number;
   last24h: { users: number; products: number; posts: number; chatRooms: number };
 }
-interface Integrations { appleRevoke: boolean; kakao: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean; sms: boolean }
+interface Integrations { appleRevoke: boolean; kakao: boolean; naverSearch?: boolean; fcm: boolean; bunny: boolean; adDeposit: boolean; smtp: boolean; discord: boolean; sms: boolean }
 interface AlertLogItem { id: string; channel: 'sms' | 'email'; kind: string; to: string; text: string; status: string; detail: string | null; createdAt: string; user: { id: string; name: string } | null }
 interface AlertLogs { items: AlertLogItem[]; counts30d: Record<string, number> }
 const KIND_KR: Record<string, string> = { reservation_request: '예약 요청', reservation_result: '예약 결과', chat: '새 문의', approval: '승인 결과', daily_summary: '하루 요약' };
@@ -19,6 +19,7 @@ const STATUS_KR: Record<string, string> = { sent: '보냄', dry: '검사(미발�
 const INTEGRATION_LABELS: { key: keyof Integrations; label: string; hint: string }[] = [
   { key: 'fcm', label: '푸시 알림', hint: 'Firebase 서비스 계정' },
   { key: 'kakao', label: '카카오 로그인', hint: 'KAKAO_CLIENT_ID' },
+  { key: 'naverSearch', label: '네이버 지역검색 (AI 직원·매장 정보 보강)', hint: 'NAVER_CLIENT_ID / NAVER_CLIENT_SECRET' },
   { key: 'appleRevoke', label: 'Apple 탈퇴 연결 해제', hint: 'APPLE_TEAM_ID / KEY_ID / PRIVATE_KEY' },
   { key: 'bunny', label: '이미지 저장소', hint: 'BUNNY_STORAGE_KEY' },
   { key: 'adDeposit', label: '광고 입금 계좌 안내', hint: 'AD_DEPOSIT_BANK / ACCOUNT / HOLDER' },
