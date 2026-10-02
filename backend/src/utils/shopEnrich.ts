@@ -4,6 +4,18 @@
 import prisma from '../config/database';
 import { naverConfigured, naverLocalSearch, type NaverPlace } from './naverSearch';
 
+// 2차 소스: 카카오 로컬 키워드 검색 — 네이버와 달리 전화번호(phone)를 돌려준다. 키는 지오코딩과 같은 KAKAO_REST_API_KEY.
+const KAKAO_KEY = process.env.KAKAO_REST_API_KEY || '';
+async function kakaoKeyword(query: string): Promise<NaverPlace[]> {
+  if (!KAKAO_KEY) return [];
+  try {
+    const res = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=5`, { headers: { Authorization: `KakaoAK ${KAKAO_KEY}` }, signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return [];
+    const data = await res.json() as { documents?: { place_name: string; phone: string; address_name: string; road_address_name: string; category_name: string }[] };
+    return (data.documents || []).map((d) => ({ title: d.place_name, telephone: d.phone || '', address: d.address_name || '', roadAddress: d.road_address_name || '', category: d.category_name || '' }));
+  } catch { return []; }
+}
+
 type Kind = 'skishop' | 'repair' | 'rental';
 export interface EnrichPlan { kind: Kind; id: string; name: string; fill: Record<string, string>; from: string }
 export interface EnrichReport { configured: boolean; dryRun: boolean; scanned: number; matched: number; applied: number; plan: EnrichPlan[]; unmatched: string[] }
@@ -26,7 +38,7 @@ function pick(shop: { name: string; address?: string | null; area?: string | nul
 }
 
 export async function enrichShops(dryRun = true, limit = 700): Promise<EnrichReport> {
-  const report: EnrichReport = { configured: naverConfigured(), dryRun, scanned: 0, matched: 0, applied: 0, plan: [], unmatched: [] };
+  const report: EnrichReport = { configured: naverConfigured() || Boolean(KAKAO_KEY), dryRun, scanned: 0, matched: 0, applied: 0, plan: [], unmatched: [] };
   if (!report.configured) return report;
   const sel = { id: true, name: true, phone: true, address: true, area: true, naverMap: true, website: true, resort: { select: { name: true } } } as const;
   const need = (s: { phone?: string | null; address?: string | null; naverMap?: string | null }) => !s.phone || !s.address || !s.naverMap;
@@ -41,7 +53,12 @@ export async function enrichShops(dryRun = true, limit = 700): Promise<EnrichRep
     const q = `${s.name} ${s.resort?.name || s.area || ''}`.trim();
     let places = await naverLocalSearch(q);
     if (!places.length && s.resort?.name) places = await naverLocalSearch(`${s.name} ${s.area || ''}`.trim());
-    const p = pick(s, places);
+    let p = pick(s, places); let src = 'naver';
+    // 네이버에 없거나 전화가 비어 있으면 카카오로 한 번 더 (전화는 카카오가 거의 유일한 공개 소스)
+    if (!p || (!s.phone && !(p.telephone || '').trim())) {
+      const kp = pick(s, await kakaoKeyword(q)) || (s.resort?.name ? pick(s, await kakaoKeyword(`${s.name} ${s.area || ''}`.trim())) : null);
+      if (kp && (!p || (kp.telephone || '').trim())) { p = kp; src = 'kakao'; }
+    }
     if (!p) { report.unmatched.push(`${g.kind}:${s.name}`); continue; }
     const fill: Record<string, string> = {};
     const tel = (p.telephone || '').trim();
@@ -51,7 +68,7 @@ export async function enrichShops(dryRun = true, limit = 700): Promise<EnrichRep
     if (!s.naverMap) fill.naverMap = `https://map.naver.com/p/search/${encodeURIComponent(`${p.title.replace(/<[^>]+>/g, '')} ${addr}`.trim())}`;
     if (!Object.keys(fill).length) continue;
     report.matched++;
-    report.plan.push({ kind: g.kind, id: s.id, name: s.name, fill, from: `${p.title.replace(/<[^>]+>/g, '')} · ${addr}` });
+    report.plan.push({ kind: g.kind, id: s.id, name: s.name, fill, from: `[${src}] ${p.title.replace(/<[^>]+>/g, '')} · ${addr}` });
     if (!dryRun) {
       const delegate = g.kind === 'skishop' ? prisma.skiShop : g.kind === 'repair' ? prisma.repairShop : prisma.rental;
       await (delegate as unknown as { update: (a: { where: { id: string }; data: Record<string, string> }) => Promise<unknown> }).update({ where: { id: s.id }, data: fill });
