@@ -5,12 +5,14 @@ export const SLOT_LABELS: Record<string, string> = {
   main_banner: '메인 배너',
   category: '카테고리 배너',
   premium: '프리미엄 노출',
+  feed: '중고 목록 광고 카드',
 };
 
 export const SLOT_DESCRIPTIONS: Record<string, string> = {
   main_banner: '홈 화면 상단 배너 — 모든 방문자에게 노출',
   category: '카테고리 페이지 상단 배너 — 해당 카테고리 방문자에게 노출',
   premium: '카테고리 리스트 최상단 고정 — 본인 등록물만 가능',
+  feed: '중고거래 목록 사이에 매물처럼 섞여 노출되는 광고 카드 — 작은 광고 표시만 붙음',
 };
 
 export const AD_CATEGORY_LABELS: Record<string, string> = {

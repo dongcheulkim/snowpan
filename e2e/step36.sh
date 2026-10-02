@@ -43,5 +43,16 @@ done
 # 매장 정보 보강(네이버 키 없는 로컬에선 configured=false, 관리자만)
 api POST /admin/jobs/shop-enrich '{"dryRun":true}' "$USER"; [ "$CODE" = "403" ] && ok "보강: 일반 회원 거부" || bad "보강 일반 CODE=$CODE"
 api POST /admin/jobs/shop-enrich '{"dryRun":true}' "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.dryRun')" = "true" ] && [ "$(echo "$RESP" | jq -r 'has("plan") and has("unmatched") and has("configured")')" = "true" ] && ok "보강: 관리자 dryRun 응답 형식 (configured=$(echo "$RESP" | jq -r '.configured'))" || bad "보강 CODE=$CODE RESP=$RESP"
+# 쿠팡 파트너스 카드 — 공개 목록, 관리자 등록(링크 검증), 클릭 집계, 삭제
+api GET /coupang-ads "" ""; [ "$CODE" = "200" ] && ok "쿠팡 카드 공개 목록" || bad "쿠팡 목록 CODE=$CODE"
+api POST /coupang-ads/admin '{"title":"E2E 고글","link":"https://link.coupang.com/a/e2e36","price":12345}' "$USER"; [ "$CODE" = "403" ] && ok "쿠팡 카드: 일반 회원 등록 거부" || bad "쿠팡 일반 CODE=$CODE"
+api POST /coupang-ads/admin '{"title":"E2E 나쁜링크","link":"https://example.com/x"}' "$ADM"; [ "$CODE" = "400" ] && ok "쿠팡 카드: 쿠팡 아닌 링크 거부" || bad "링크검증 CODE=$CODE"
+api POST /coupang-ads/admin '{"title":"E2E 고글","link":"https://link.coupang.com/a/e2e36","price":12345,"image":"https://snowpankr.b-cdn.net/x.jpg"}' "$ADM"; CP_ID=$(echo "$RESP" | jq -r '.id // empty'); [ "$CODE" = "201" ] && [ -n "$CP_ID" ] && ok "쿠팡 카드 등록" || bad "쿠팡 등록 CODE=$CODE RESP=$RESP"
+api GET /coupang-ads "" ""; [ "$(echo "$RESP" | jq -r "[.[] | select(.id==\"$CP_ID\")] | length")" = "1" ] && [ "$(echo "$RESP" | jq -r ".[0] | has(\"clickCount\")")" = "false" ] && ok "공개 목록에 노출 (클릭수는 비공개)" || bad "공개 목록 불일치"
+api POST "/coupang-ads/$CP_ID/click" "" ""; [ "$CODE" = "200" ] && [ "$(pq "SELECT \"clickCount\" FROM coupang_ads WHERE id='$CP_ID'")" = "1" ] && ok "클릭 집계" || bad "클릭 CODE=$CODE"
+api PUT "/coupang-ads/admin/$CP_ID" '{"active":false}' "$ADM"; api GET /coupang-ads "" ""; [ "$(echo "$RESP" | jq -r "[.[] | select(.id==\"$CP_ID\")] | length")" = "0" ] && ok "숨김 처리 시 공개 목록에서 제외" || bad "숨김 실패"
+api DELETE "/coupang-ads/admin/$CP_ID" "" "$ADM"; [ "$CODE" = "200" ] && ok "쿠팡 카드 삭제" || bad "삭제 CODE=$CODE"
+# 피드 광고 슬롯이 문의형(셀프 신청 불가)인지
+api POST /ad-booking/create '{"slotType":"feed","category":"used","title":"E2E","description":"E2E","url":"https://snowpan.kr","periodMonths":1,"payMethod":"transfer"}' "$USER"; [ "$CODE" = "403" ] || [ "$CODE" = "400" ] && ok "피드 광고 슬롯은 셀프 신청 불가 (CODE=$CODE)" || bad "피드 셀프신청 CODE=$CODE"
 pq "DELETE FROM banners WHERE title='E2E 죽은 링크 배너 36'" >/dev/null
 echo "----- STEP36: PASS=$PASS FAIL=$FAIL -----"

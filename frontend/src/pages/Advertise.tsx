@@ -16,12 +16,14 @@ const SLOT_LABELS: Record<string, string> = {
   main_banner: '메인 배너',
   category: '카테고리 배너',
   premium: '프리미엄 노출',
+  feed: '중고 목록 광고 카드',
 };
 
 const SLOT_DESCRIPTIONS: Record<string, string> = {
   main_banner: '홈 화면 최상단 회전 배너 — 가장 많이 노출됩니다.',
   category: '카테고리 페이지 상단 배너 — 관심 카테고리 이용자에게 노출됩니다.',
   premium: '내 상품·매장을 목록 최상단에 고정 노출합니다.',
+  feed: '중고거래 목록 사이에 매물처럼 섞여 보이는 광고 카드입니다. 스크롤하는 모든 손님에게 자연스럽게 노출됩니다.',
 };
 
 
@@ -40,7 +42,7 @@ const Advertise = () => {
   }, []);
 
   // 슬롯별 최저 월 단가 (pricePerDay 필드에 월 단가 저장).
-  const groups = ['main_banner', 'category', 'premium']
+  const groups = ['main_banner', 'category', 'feed', 'premium']
     .map((slot) => {
       const rows = pricings.filter((p) => p.slotType === slot);
       const minMonthly = rows.length ? Math.min(...rows.map((r) => r.pricePerDay)) : null;

@@ -14,6 +14,7 @@ import AdminLinkHealthPanel from '../components/AdminLinkHealthPanel';
 import AdminOpsPanel from '../components/AdminOpsPanel';
 import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
+import AdminCoupangAdPanel from '../components/AdminCoupangAdPanel';
 import { Link } from 'react-router-dom';
 
 type TabId = 'approval' | 'reports' | 'stats' | 'users' | 'adBookings' | 'outreach' | 'settings';
@@ -119,7 +120,7 @@ const AdminDashboard = () => {
   const [adBookings, setAdBookings] = useState<AdBookingItem[]>([]);
   // 광고예약 필터 — 카테고리(슬롯)별 · 상태별 골라보기
   const [adCatFilter, setAdCatFilter] = useState('all');
-  const [adSection, setAdSection] = useState<'bookings' | 'invites' | 'pricing'>('bookings'); // 광고관리 내 서브탭(예약/가격). 홈 배너는 광고 승인 시 자동 생성·만료 시 자동 삭제라 수동 관리 화면 없음
+  const [adSection, setAdSection] = useState<'bookings' | 'invites' | 'pricing' | 'coupang'>('bookings'); // 광고관리 내 서브탭(예약/가격). 홈 배너는 광고 승인 시 자동 생성·만료 시 자동 삭제라 수동 관리 화면 없음
   const [adStatusFilter, setAdStatusFilter] = useState('all');
   const [adPricings, setAdPricings] = useState<AdPricingItem[]>([]);
   const [adRevenue, setAdRevenue] = useState<RevenueData | null>(null);
@@ -374,7 +375,7 @@ const AdminDashboard = () => {
 
       {tab === 'adBookings' && (
         <div className="flex gap-1 mb-1">
-          {([['bookings','예약·결제'],['invites','초대 링크'],['pricing','광고 가격']] as const).map(([id,label]) => (
+          {([['bookings','예약·결제'],['invites','초대 링크'],['pricing','광고 가격'],['coupang','쿠팡 카드']] as const).map(([id,label]) => (
             <button key={id} onClick={() => setAdSection(id)}
               className={`flex-1 py-2 px-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors ${adSection === id ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {label}
@@ -721,6 +722,9 @@ const AdminDashboard = () => {
           {/* 광고 초대 링크 — 상담 후 조건을 정해 광고주에게 소재 작성 링크 발급 */}
           {tab === 'adBookings' && adSection === 'invites' && (
             <AdInvitePanel />
+          )}
+          {tab === 'adBookings' && adSection === 'coupang' && (
+            <AdminCoupangAdPanel />
           )}
 
           {/* Ad Bookings Tab */}

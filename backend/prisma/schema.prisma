@@ -1536,3 +1536,20 @@ model AdminAccessLog {
   @@index([targetId])
   @@map("admin_access_logs")
 }
+
+// 쿠팡 파트너스 상품 카드 — 중고거래 목록 사이에 매물 모양으로 끼는 제휴 광고 (당근식, 2026-10-02). 관리자가 쿠팡 파트너스에서 만든 링크·사진·가격을 등록.
+model CoupangAd {
+  id         String   @id @default(uuid())
+  title      String
+  image      String?
+  price      Int?
+  link       String   // 쿠팡 파트너스 링크 (link.coupang.com/…)
+  active     Boolean  @default(true)
+  order      Int      @default(0)
+  clickCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([active, order])
+  @@map("coupang_ads")
+}

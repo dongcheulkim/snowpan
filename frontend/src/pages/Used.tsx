@@ -10,6 +10,7 @@ import LoadError from '../components/LoadError';
 import { PackageIcon } from '../components/Icons';
 import CategoryAdBanner from '../components/CategoryAdBanner';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
+import FeedAdCard, { type FeedAd } from '../components/FeedAdCard';
 import { toastError, toastSuccess } from '../utils/toast';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';
@@ -30,6 +31,7 @@ interface Product {
 }
 
 const PAGE_SIZE = 12;
+const FEED_AD_POSITIONS = [3, 9]; // 한 페이지(12개) 안에서 광고 카드가 끼는 자리 (4번째·10번째)
 
 // 중고 2단계 탐색 (snow) — 대분류 선택 시 세부카테고리 칩이 아래로 펼쳐짐.
 const SNOW_GROUPS = SNOW_USED_GROUPS;
@@ -49,6 +51,7 @@ const Used = () => {
   const brandParam = searchParams.get('brand') || '';
   const lenBucket = searchParams.get('len') || '';
   const [brandInput, setBrandInput] = useState(brandParam);
+  const [feedAds, setFeedAds] = useState<FeedAd[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -58,6 +61,23 @@ const Used = () => {
   const [, setLangTick] = useState(0);
 
   // 로그인 상태면 내 찜 목록 id 집합 로드 (하트 초기 상태 표시용).
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      api<{ id: string; title: string; description: string; url: string; image: string | null }[]>('/ad-booking/active?slotType=feed&category=used').catch(() => []),
+      api<{ id: string; title: string; image: string | null; price: number | null; link: string }[]>('/coupang-ads').catch(() => []),
+    ]).then(([bk, cp]) => {
+      if (cancelled) return;
+      const a: FeedAd[] = [
+        ...(Array.isArray(bk) ? bk : []).map((b) => ({ kind: 'booking' as const, id: b.id, title: b.title, description: b.description, image: b.image, url: b.url })),
+        ...(Array.isArray(cp) ? cp : []).map((c) => ({ kind: 'coupang' as const, id: c.id, title: c.title, image: c.image, url: c.link, price: c.price })),
+      ];
+      for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } // 섞어서 회전, 세션 안에선 고정
+      setFeedAds(a);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (!getUser()) return;
     api<{ id: string }[] | { products?: { id: string }[]; items?: { id: string }[] }>('/products/wishlist')
@@ -358,11 +378,15 @@ const Used = () => {
 
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />
-      ) : (
+      ) : (<>
         <div className="grid grid-cols-2 gap-3">
           {products.map((product, idx) => {
             const st = statusLabel[product.status] || statusLabel.selling;
-            return (
+            // 당근식 피드 광고 — 4번째·10번째 자리에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)
+            const adSlot = FEED_AD_POSITIONS.indexOf(idx);
+            const ad = adSlot >= 0 && feedAds.length ? feedAds[(adSlot + (page - 1) * FEED_AD_POSITIONS.length) % feedAds.length] : null;
+            return (<>
+              {ad && <FeedAdCard key={`ad-${ad.kind}-${ad.id}-${idx}`} ad={ad} />}
               <Link
                 to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/used/${product.id}`}
                 key={product.id}
@@ -423,10 +447,13 @@ const Used = () => {
                   )}
                 </div>
               </Link>
-            );
+            </>);
           })}
         </div>
-      )}
+        {feedAds.some((a) => a.kind === 'coupang') && (
+          <p className="text-[10px] text-gray-400 text-center mt-3">쿠팡 광고 카드는 쿠팡 파트너스 활동의 일환으로, 구매 시 스노우판이 일정액의 수수료를 받습니다.</p>
+        )}
+      </>)}
 
       {!loading && products.length === 0 && (loadError ? (
         <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />

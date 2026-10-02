@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages, imageUrl as cdnImageUrl } from '../api';
 // 문의형 슬롯 — 가격 비공개, 셀프 신청 불가 (Advertise.tsx·백엔드 INQUIRY_ONLY_SLOTS 와 짝)
-const INQUIRY_SLOTS = ['main_banner', 'category'];
+const INQUIRY_SLOTS = ['main_banner', 'category', 'feed'];
 import { CloseIcon } from '../components/Icons';
 import { AD_CATEGORY_LABELS as SHARED_CATEGORY_LABELS } from '../utils/adLabels';
 import { formatImagePos, parseImagePos, AD_IMAGE_SCALE_MIN, AD_IMAGE_SCALE_MAX, type AdImageFocus } from '../utils/adImage';
@@ -31,12 +31,14 @@ const SLOT_LABELS: Record<string, string> = {
   main_banner: '메인 배너',
   category: '카테고리 배너',
   premium: '프리미엄 노출',
+  feed: '중고 목록 광고 카드',
 };
 
 const SLOT_DESCRIPTIONS: Record<string, string> = {
   main_banner: '홈 화면 최상단 회전 배너 — 가장 많이 노출',
   category: '카테고리 페이지 상단 배너',
   premium: '내 상품·샵·글을 리스트 최상단에 고정 노출',
+  feed: '중고거래 목록 사이에 매물처럼 섞여 노출되는 광고 카드',
 };
 
 

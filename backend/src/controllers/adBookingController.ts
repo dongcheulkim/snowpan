@@ -206,7 +206,7 @@ const PERIOD_DAYS: Record<number, number> = { 12: 360 };
 const PERIOD_DISCOUNT: Record<number, number> = { 12: 0 };
 
 // 문의형 슬롯 — 일반 사용자는 신청 불가(관리자 대리 등록만)
-const INQUIRY_ONLY_SLOTS = ['main_banner', 'category'];
+const INQUIRY_ONLY_SLOTS = ['main_banner', 'category', 'feed']; // feed = 중고 목록 사이 매물형 광고 카드 (2026-10-02, 당근식)
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
