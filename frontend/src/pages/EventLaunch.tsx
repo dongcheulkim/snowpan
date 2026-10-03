@@ -7,7 +7,7 @@ import { useMeta } from '../hooks/useMeta';
 
 // 앱 출시 기념 이벤트 신청 (2026-10-03). 홈 배너에서 진입. 로그인한 회원만 신청, 인스타그램 아이디는 선택.
 interface EventInfo { key: string; open: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; count: number }
-interface Mine { applied: boolean; instagram?: string | null; createdAt?: string }
+interface Mine { applied: boolean; instagram?: string | null; phone?: string | null; createdAt?: string; needPhone?: boolean }
 
 export default function EventLaunch() {
   const navigate = useNavigate();
@@ -16,20 +16,22 @@ export default function EventLaunch() {
   const [ev, setEv] = useState<EventInfo | null | undefined>(undefined);
   const [mine, setMine] = useState<Mine | null>(null);
   const [instagram, setInstagram] = useState('');
+  const [phone, setPhone] = useState(''); // 계정에 전화번호 없는 회원(카카오·애플)만 입력
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   useMeta({ title: ev?.title || '이벤트', description: ev?.description || '스노우판 이벤트 신청' });
 
   useEffect(() => {
     api<EventInfo>('/events/launch').then(setEv).catch(() => setEv(null));
-    if (userId) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); }).catch(() => {});
+    if (userId) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); if (m.needPhone && m.phone) setPhone(m.phone); }).catch(() => {});
   }, [userId]);
 
   const submit = async () => {
     if (busy) return;
+    if (mine?.needPhone && !/^01[016789]\d{7,8}$/.test(phone.replace(/\D/g, ''))) { toastError('당첨 안내를 드릴 휴대폰 번호를 적어 주세요.'); return; }
     setBusy(true);
     try {
-      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { instagram } });
+      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { instagram, phone: mine?.needPhone ? phone : undefined } });
       setMine(r); setEditing(false);
       toastSuccess(r.updated ? '인스타그램 아이디를 바꿨어요.' : '이벤트 신청이 완료됐어요.');
     } catch (e) { toastError(e instanceof Error ? e.message : '신청하지 못했어요.'); }
@@ -61,12 +63,34 @@ export default function EventLaunch() {
       </div>
 
       <div className="px-5 py-6 max-w-md mx-auto space-y-5">
-        {ev.prize && (
-          <section className="border border-gray-200 rounded-2xl p-4">
-            <p className="text-[11px] font-bold text-gray-500 mb-1">경품</p>
-            <p className="text-sm text-gray-900 whitespace-pre-line leading-relaxed">{ev.prize}</p>
-          </section>
-        )}
+        {ev.prize && (() => {
+          // 경품 텍스트 형식(관리자 입력): "이름|부제|N명" 줄은 검정 카드, 첫 카드 앞 줄은 안내 문구, 카드 뒤 줄은 주의 문구
+          const lines = ev.prize.split('\n').map((l) => l.trim()).filter(Boolean);
+          const cards = lines.filter((l) => l.includes('|')).map((l) => { const [name, sub, n] = l.split('|').map((x) => x.trim()); return { name, sub, n }; });
+          const firstCard = lines.findIndex((l) => l.includes('|'));
+          const head = firstCard < 0 ? lines : lines.slice(0, firstCard).filter((l) => !l.includes('|'));
+          const foot = firstCard < 0 ? [] : lines.slice(firstCard).filter((l) => !l.includes('|'));
+          return (
+            <section>
+              <h2 className="text-lg font-bold text-gray-900">경품 안내</h2>
+              {head.map((l, i) => <p key={i} className="text-xs text-gray-500 mt-1">{l}</p>)}
+              {cards.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {cards.map((c, i) => (
+                    <div key={i} className="rounded-2xl bg-[#111111] text-white px-5 py-5 flex items-center justify-between" style={{ marginLeft: `${Math.max(0, (cards.length - 1 - i) * 10)}px` }}>
+                      <div>
+                        <p className="text-base font-bold">{c.name}</p>
+                        {c.sub && <p className="text-[11px] text-gray-400 mt-0.5">{c.sub}</p>}
+                      </div>
+                      {c.n && <span className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white text-gray-900 text-xs font-bold">{c.n}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {foot.length > 0 && <div className="mt-3 space-y-0.5">{foot.map((l, i) => <p key={i} className="text-[11px] text-gray-400 leading-relaxed">{l}</p>)}</div>}
+            </section>
+          );
+        })()}
 
         {!ev.open ? (
           <section className="border border-gray-200 rounded-2xl p-5 text-center">
@@ -83,15 +107,29 @@ export default function EventLaunch() {
           <section className="border border-gray-900 rounded-2xl p-5">
             <p className="text-sm font-bold text-gray-900">신청 완료</p>
             <p className="text-xs text-gray-500 mt-1">{mine?.createdAt ? new Date(mine.createdAt).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</p>
-            <div className="mt-3 text-sm text-gray-900">
-              인스타그램: {mine?.instagram ? <span className="font-bold">@{mine.instagram}</span> : <span className="text-gray-500">남기지 않음</span>}
+            <div className="mt-3 text-sm text-gray-900 space-y-1">
+              <p>인스타그램: {mine?.instagram ? <span className="font-bold">@{mine.instagram}</span> : <span className="text-gray-500">남기지 않음</span>}</p>
+              <p>연락처: {mine?.phone ? <span className="font-bold">{mine.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3')}</span> : <span className="text-gray-500">없음</span>}</p>
             </div>
-            <button onClick={() => setEditing(true)} className="mt-4 w-full py-2.5 rounded-xl border border-gray-900 text-gray-900 text-sm font-bold">인스타그램 아이디 {mine?.instagram ? '바꾸기' : '남기기'}</button>
+            <button onClick={() => setEditing(true)} className="mt-4 w-full py-2.5 rounded-xl border border-gray-900 text-gray-900 text-sm font-bold">{mine?.needPhone ? '연락처·인스타그램 바꾸기' : `인스타그램 아이디 ${mine?.instagram ? '바꾸기' : '남기기'}`}</button>
           </section>
         ) : (
           <section className="border border-gray-200 rounded-2xl p-5">
-            <p className="text-sm font-bold text-gray-900">{applied ? '인스타그램 아이디 바꾸기' : '이벤트 신청'}</p>
+            <p className="text-sm font-bold text-gray-900">{applied ? '신청 정보 바꾸기' : '이벤트 신청'}</p>
             <p className="text-xs text-gray-500 mt-1">{user.nickname || user.name} 님으로 신청해요. 인스타그램 아이디를 남기면 당첨 소식을 DM 으로도 알려드려요.</p>
+            {mine?.needPhone && (
+              <label className="block mt-4">
+                <span className="text-[11px] font-bold text-gray-500">휴대폰 번호 (당첨 안내용, 필수)</span>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9-]/g, ''))}
+                  placeholder="01012345678"
+                  type="tel" inputMode="numeric" maxLength={13}
+                  className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900"
+                />
+                <span className="block text-[11px] text-gray-400 mt-1">카카오·애플 로그인은 전화번호가 없어서 따로 받아요. 당첨 안내에만 써요.</span>
+              </label>
+            )}
             <label className="block mt-4">
               <span className="text-[11px] font-bold text-gray-500">인스타그램 아이디 (선택)</span>
               <div className="mt-1 flex items-center border border-gray-200 rounded-xl px-3 focus-within:border-gray-900">

@@ -4,7 +4,7 @@ import { toastError, toastSuccess } from '../utils/toast';
 
 // 관리자 설정 → 이벤트 (2026-10-03). 앱 출시 이벤트 문구·활성·마감일 수정, 신청자 목록(인스타·이름·연락처) 확인·CSV 저장.
 interface Cfg { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; open: boolean; count?: number }
-interface Entry { id: string; instagram: string | null; createdAt: string; user: { id: string; name: string; nickname: string | null; email: string; phone: string | null; provider: string | null } }
+interface Entry { id: string; instagram: string | null; phone: string | null; createdAt: string; user: { id: string; name: string; nickname: string | null; email: string; phone: string | null; provider: string | null } }
 const KEY = 'launch';
 
 export default function AdminEventPanel() {
@@ -31,7 +31,7 @@ export default function AdminEventPanel() {
   const downloadCsv = () => {
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [['신청일시', '이름', '닉네임', '인스타그램', '전화', '이메일', '가입방식'].map(esc).join(',')];
-    for (const e of entries) lines.push([new Date(e.createdAt).toLocaleString('ko-KR'), e.user.name, e.user.nickname || '', e.instagram ? '@' + e.instagram : '', e.user.phone || '', e.user.email, e.user.provider || 'email'].map(esc).join(','));
+    for (const e of entries) lines.push([new Date(e.createdAt).toLocaleString('ko-KR'), e.user.name, e.user.nickname || '', e.instagram ? '@' + e.instagram : '', e.phone || e.user.phone || '', e.user.email, e.user.provider || 'email'].map(esc).join(','));
     const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `이벤트_신청자_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
   };
@@ -54,7 +54,7 @@ export default function AdminEventPanel() {
         <div className="grid gap-2">
           <input className={input} placeholder="제목" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <textarea className={input} rows={3} placeholder="설명 (배너와 신청 페이지에 보임)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <textarea className={input} rows={2} placeholder="경품 (비우면 숨김)" value={form.prize} onChange={(e) => setForm({ ...form, prize: e.target.value })} />
+          <textarea className={input} rows={6} placeholder={"경품 (비우면 숨김). 한 줄에 하나:\n이름|부제|인원  → 검정 카드 (예: 시즌 풀케어|본인 한정|1명)\n카드 앞 줄은 안내(예: Snow Meta 제공 · 총 9분께 드려요), 카드 뒤 줄은 주의 문구"} value={form.prize} onChange={(e) => setForm({ ...form, prize: e.target.value })} />
           <div className="grid grid-cols-2 gap-2">
             <label className="text-[11px] text-gray-500">마감일 (비우면 무기한)<input type="date" className={input + ' mt-1'} value={form.endsAt} onChange={(e) => setForm({ ...form, endsAt: e.target.value })} /></label>
             <label className="text-[11px] text-gray-500">버튼 문구<input className={input + ' mt-1'} value={form.buttonLabel} onChange={(e) => setForm({ ...form, buttonLabel: e.target.value })} /></label>
@@ -72,7 +72,7 @@ export default function AdminEventPanel() {
             <li key={e.id} className="py-2.5 flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-gray-900 truncate">{e.user.name}{e.user.nickname ? ` (${e.user.nickname})` : ''} {e.instagram ? <span className="font-normal text-gray-700">@{e.instagram}</span> : <span className="font-normal text-gray-400">인스타 없음</span>}</p>
-                <p className="text-[11px] text-gray-500 truncate">{e.user.phone || '전화 없음'} · {e.user.email} · {new Date(e.createdAt).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                <p className="text-[11px] text-gray-500 truncate">{e.phone || e.user.phone || '전화 없음'} · {e.user.email} · {new Date(e.createdAt).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}</p>
               </div>
               <button onClick={() => remove(e)} className="text-[11px] text-gray-500 flex-shrink-0">삭제</button>
             </li>

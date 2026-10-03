@@ -10,6 +10,7 @@ import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth
 const router = Router();
 const KEY_RE = /^[a-z0-9-]{1,40}$/;
 const IG_RE = /^[A-Za-z0-9._]{1,30}$/;
+const PHONE_RE = /^01[016789]\d{7,8}$/;
 
 export interface EventConfig { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string }
 const DEFAULTS: Record<string, EventConfig> = {
@@ -42,6 +43,13 @@ function normalizeInstagram(raw: unknown): { ok: true; value: string | null } | 
   if (!IG_RE.test(v)) return { ok: false };
   return { ok: true, value: v.toLowerCase() };
 }
+function normalizePhone(raw: unknown): { ok: true; value: string | null } | { ok: false } {
+  if (raw === undefined || raw === null) return { ok: true, value: null };
+  const v = String(raw).replace(/\D/g, '');
+  if (!v) return { ok: true, value: null };
+  if (!PHONE_RE.test(v)) return { ok: false };
+  return { ok: true, value: v };
+}
 
 router.get('/:key', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -58,8 +66,15 @@ router.get('/:key/me', authenticateToken, async (req: AuthRequest, res: Response
   try {
     const key = String(req.params.key);
     if (!KEY_RE.test(key)) { res.status(400).json({ error: '잘못된 이벤트입니다.' }); return; }
-    const row = await prisma.eventEntry.findUnique({ where: { eventKey_userId: { eventKey: key, userId: req.user!.id } } });
-    res.json(row ? { applied: true, instagram: row.instagram, createdAt: row.createdAt } : { applied: false });
+    const [row, me] = await Promise.all([
+      prisma.eventEntry.findUnique({ where: { eventKey_userId: { eventKey: key, userId: req.user!.id } } }),
+      prisma.user.findUnique({ where: { id: req.user!.id }, select: { phone: true } }),
+    ]);
+    const accountPhone = me?.phone || null;
+    // needPhone: 계정에 전화번호가 없는 회원(카카오·애플 로그인)은 신청 때 연락처를 받아야 함
+    res.json(row
+      ? { applied: true, instagram: row.instagram, phone: row.phone || accountPhone, createdAt: row.createdAt, needPhone: !accountPhone }
+      : { applied: false, phone: accountPhone, needPhone: !accountPhone });
   } catch (e) { console.error('event me error:', e); res.status(500).json({ error: '신청 정보를 불러오지 못했어요.' }); }
 });
 
@@ -70,14 +85,21 @@ router.post('/:key/apply', authenticateToken, async (req: AuthRequest, res: Resp
     const cfg = await readEventConfig(key);
     if (!cfg) { res.status(404).json({ error: '이벤트를 찾을 수 없어요.' }); return; }
     if (!isOpen(cfg)) { res.status(409).json({ error: '이벤트 신청이 마감됐어요.' }); return; }
-    const ig = normalizeInstagram((req.body || {}).instagram);
+    const body = (req.body || {}) as { instagram?: unknown; phone?: unknown };
+    const ig = normalizeInstagram(body.instagram);
     if (!ig.ok) { res.status(400).json({ error: '인스타그램 아이디는 영문·숫자·밑줄·점만 30자까지 쓸 수 있어요.' }); return; }
+    const ph = normalizePhone(body.phone);
+    if (!ph.ok) { res.status(400).json({ error: '휴대폰 번호를 숫자만 10~11자리로 적어 주세요. (예: 01012345678)' }); return; }
     const userId = req.user!.id;
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { phone: true } });
     const existing = await prisma.eventEntry.findUnique({ where: { eventKey_userId: { eventKey: key, userId } } });
+    // 계정에 전화번호가 없으면(카카오·애플) 신청 때 연락처 필수 — 당첨 안내를 못 하면 이벤트가 의미 없음
+    const phoneToSave = ph.value ?? existing?.phone ?? null;
+    if (!me?.phone && !phoneToSave) { res.status(400).json({ error: '당첨 안내를 드릴 휴대폰 번호를 남겨 주세요.', needPhone: true }); return; }
     const row = existing
-      ? await prisma.eventEntry.update({ where: { id: existing.id }, data: { instagram: ig.value } })
-      : await prisma.eventEntry.create({ data: { eventKey: key, userId, instagram: ig.value } });
-    res.status(existing ? 200 : 201).json({ applied: true, instagram: row.instagram, createdAt: row.createdAt, updated: !!existing });
+      ? await prisma.eventEntry.update({ where: { id: existing.id }, data: { instagram: ig.value, phone: phoneToSave } })
+      : await prisma.eventEntry.create({ data: { eventKey: key, userId, instagram: ig.value, phone: phoneToSave } });
+    res.status(existing ? 200 : 201).json({ applied: true, instagram: row.instagram, phone: row.phone || me?.phone || null, createdAt: row.createdAt, updated: !!existing, needPhone: !me?.phone });
   } catch (e) { console.error('event apply error:', e); res.status(500).json({ error: '신청하지 못했어요. 잠시 뒤 다시 해 주세요.' }); }
 });
 

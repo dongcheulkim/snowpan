@@ -1563,6 +1563,7 @@ model EventEntry {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   instagram String?
+  phone     String?  // 카카오·애플 회원은 계정에 전화번호가 없어 신청 때 받음 (당첨 연락용)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

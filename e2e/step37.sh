@@ -31,14 +31,22 @@ api GET /events/launch/me "" "$USER"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" |
 api POST /events/launch/apply '{"instagram":"bad id!"}' "$USER"; [ "$CODE" = "400" ] && ok "이상한 인스타 아이디 거부" || bad "인스타 검증 CODE=$CODE"
 api POST /events/launch/apply '{"instagram":"@Snow.User_37"}' "$USER"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "snow.user_37" ] && ok "신청 201 (@ 떼고 소문자로 저장)" || bad "신청 CODE=$CODE RESP=$RESP"
 api POST /events/launch/apply '{"instagram":"https://www.instagram.com/snowpan_official/"}' "$USER"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "snowpan_official" ] && [ "$(echo "$RESP" | jq -r '.updated')" = "true" ] && ok "재신청은 수정 200 (주소 붙여넣어도 아이디만)" || bad "재신청 CODE=$CODE RESP=$RESP"
-api POST /events/launch/apply '{}' "$USER2"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "null" ] && ok "인스타 없이도 신청 가능" || bad "인스타 없이 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{}' "$USER2"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "null" ] && [ "$(echo "$RESP" | jq -r '.phone')" = "01099990373" ] && ok "인스타 없이도 신청 가능 (연락처는 계정 전화)" || bad "인스타 없이 CODE=$CODE RESP=$RESP"
+# 카카오·애플처럼 계정에 전화번호 없는 회원 → 신청 때 연락처 필수
+USER3=$(register_verified "01099990374" "ev_kakao@s37.test" "카카오회원37" "카카오회원37"); [ -z "$USER3" ] && USER3=$(login "ev_kakao@s37.test" 'Re!pass1234')
+pq "UPDATE users SET phone=NULL, \"phoneVerified\"=false WHERE email='ev_kakao@s37.test'" >/dev/null
+api GET /events/launch/me "" "$USER3"; [ "$(echo "$RESP" | jq -r '.needPhone')" = "true" ] && ok "전화 없는 회원 needPhone=true" || bad "needPhone RESP=$RESP"
+api POST /events/launch/apply '{"instagram":"kakao_user"}' "$USER3"; [ "$CODE" = "400" ] && [ "$(echo "$RESP" | jq -r '.needPhone')" = "true" ] && ok "전화 없는 회원이 연락처 없이 신청 400" || bad "연락처 없이 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{"instagram":"kakao_user","phone":"02-123-4567"}' "$USER3"; [ "$CODE" = "400" ] && ok "휴대폰 아닌 번호 거부" || bad "번호 검증 CODE=$CODE"
+api POST /events/launch/apply '{"instagram":"kakao_user","phone":"010-9999-0375"}' "$USER3"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.phone')" = "01099990375" ] && ok "연락처 적으면 신청 201 (숫자만 저장)" || bad "연락처 신청 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{"instagram":"kakao_user2"}' "$USER3"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.phone')" = "01099990375" ] && ok "재신청 때 연락처 안 보내도 기존 번호 유지" || bad "연락처 유지 CODE=$CODE RESP=$RESP"
 api GET /events/launch/me "" "$USER"; [ "$(echo "$RESP" | jq -r '.applied')" = "true" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "snowpan_official" ] && ok "내 신청 상태 조회" || bad "me 후 RESP=$RESP"
 api GET /events/launch "" ""; [ "$(echo "$RESP" | jq -r '.count')" -ge "2" ] && ok "신청자 수 집계 ($(echo "$RESP" | jq -r '.count'))" || bad "count RESP=$RESP"
 [ "$(pq "SELECT count(*) FROM event_entries WHERE \"eventKey\"='launch' AND \"userId\"=(SELECT id FROM users WHERE email='ev_user@s37.test')")" = "1" ] && ok "같은 회원은 한 건만 (유니크)" || bad "중복 행"
 
 api GET /events/admin/launch/entries "" "$USER"; [ "$CODE" = "403" ] && ok "일반 회원 신청자 목록 거부" || bad "일반 목록 CODE=$CODE"
 api GET /events/admin/launch/entries "" ""; [ "$CODE" = "401" ] && ok "비로그인 신청자 목록 거부" || bad "비로그인 목록 CODE=$CODE"
-api GET /events/admin/launch/entries "" "$ADM"; EN_ID=$(echo "$RESP" | jq -r '[.[] | select(.user.email=="ev_user2@s37.test")][0].id // empty'); [ "$CODE" = "200" ] && [ -n "$EN_ID" ] && [ "$(echo "$RESP" | jq -r '[.[] | select(.user.email=="ev_user@s37.test")][0] | .instagram + "|" + .user.phone + "|" + .user.name')" = "snowpan_official|01099990371|이벤트회원37" ] && ok "관리자 목록에 인스타·전화·이름" || bad "관리자 목록 CODE=$CODE RESP=$(echo "$RESP" | head -c 200)"
+api GET /events/admin/launch/entries "" "$ADM"; EN_ID=$(echo "$RESP" | jq -r '[.[] | select(.user.email=="ev_user2@s37.test")][0].id // empty'); [ "$CODE" = "200" ] && [ -n "$EN_ID" ] && [ "$(echo "$RESP" | jq -r '[.[] | select(.user.email=="ev_user@s37.test")][0] | .instagram + "|" + .user.phone + "|" + .user.name')" = "snowpan_official|01099990371|이벤트회원37" ] && [ "$(echo "$RESP" | jq -r '[.[] | select(.user.email=="ev_kakao@s37.test")][0].phone')" = "01099990375" ] && ok "관리자 목록에 인스타·전화·이름 (신청 때 적은 연락처 포함)" || bad "관리자 목록 CODE=$CODE RESP=$(echo "$RESP" | head -c 200)"
 api PUT /events/admin/launch '{"title":"E2E 이벤트","prize":"스키 고글 1개","endsAt":"2099-12-31T00:00:00Z"}' "$USER"; [ "$CODE" = "403" ] && ok "일반 회원 설정 변경 거부" || bad "일반 설정 CODE=$CODE"
 api PUT /events/admin/launch '{"title":"E2E 이벤트","prize":"스키 고글 1개","endsAt":"2099-12-31T00:00:00Z"}' "$ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.title')" = "E2E 이벤트" ] && [ "$(echo "$RESP" | jq -r '.open')" = "true" ] && ok "관리자 문구·경품·마감일 저장" || bad "설정 저장 CODE=$CODE RESP=$RESP"
 api GET /events/launch "" ""; [ "$(echo "$RESP" | jq -r '.prize')" = "스키 고글 1개" ] && ok "공개 조회에 반영" || bad "반영 안 됨 RESP=$RESP"
