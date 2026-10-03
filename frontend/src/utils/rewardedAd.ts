@@ -5,11 +5,11 @@ import { isNativeApp } from '../api';
 
 export type AdProof = { source: 'admob' | 'house'; adId?: string };
 
-// 애드몹 광고 단위 ID (공개 식별자 — 비밀 아님). 사장님 계정 2026-10-03 발급. iOS 는 발급 전이라 구글 테스트 ID.
+// 애드몹 광고 단위 ID (공개 식별자 — 비밀 아님). 사장님 계정 2026-10-03 발급. 비어 있으면 구글 테스트 ID 로 동작.
 const TEST_REWARD = { android: 'ca-app-pub-3940256099942544/5224354917', ios: 'ca-app-pub-3940256099942544/1712485313' };
 const REAL_REWARD: { android: string | null; ios: string | null } = {
   android: 'ca-app-pub-5238113676351064/6417586102', // 끌어올리기 보상 (Android)
-  ios: null, // TODO 사장님 iOS 광고 단위 ID 받으면 채우기
+  ios: 'ca-app-pub-5238113676351064/9295030881', // 끌어올리기 보상 (iOS)
 };
 function platformKey(): 'android' | 'ios' { return Capacitor.getPlatform() === 'ios' ? 'ios' : 'android'; }
 export function admobIsTestFor(pf: 'android' | 'ios' = platformKey()): boolean { return !REAL_REWARD[pf]; }
