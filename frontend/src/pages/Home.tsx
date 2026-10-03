@@ -284,20 +284,23 @@ const Home = () => {
       .then((ev) => setLaunchEvent(ev && ev.open ? ev : null))
       .catch(() => {});
   }, [isSnow]);
-  const eventOffset = isSnow && launchEvent ? 1 : 0;
+  // 이벤트가 열려 있으면 소개 슬라이드 대신 이벤트가 0번(메인) — 사장님 2026-10-03 "소개 배너 없애고 이벤트 10초 고정"
+  const showIntro = isSnow && !launchEvent;
 
   // snow: 브랜드 1 + 광고 N + 광고모집 1 (상시 회전). 다른 판: 브랜드 슬라이드만.
   // snow: 브랜드 소개 슬라이드 제거(요청) — 광고 N + 모집 1. 다른 버티컬은 소개 1장 유지.
   // snow: [베타 안내] + 광고 N + [광고 모집]
-  const totalSlides = isSnow ? banners.length + 2 + eventOffset : 1;
+  const totalSlides = isSnow ? banners.length + 2 : 1;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
-    const timer = setInterval(() => {
+    // 이벤트 슬라이드(0번)는 10초 머물고, 나머지는 4초
+    const delay = currentBanner === 0 && isSnow && launchEvent ? 10000 : 4000;
+    const timer = setTimeout(() => {
       setCurrentBanner((prev) => (prev + 1) % totalSlides);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [totalSlides]);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [totalSlides, currentBanner, isSnow, launchEvent]);
 
   // 카테고리는 vertical 별로 다름.
   // snow 는 기존 9개 (스키 도메인 특화). 다른 vertical 은 config 의 homeCategories.
@@ -358,7 +361,7 @@ const Home = () => {
           )}
 
           {/* Slide #0 (snow): 서비스 소개 + 고객센터 유도. (2026-09-15 애플 2.2 반려 대응 — '베타' 표기 전부 제거, 앱 안에서는 스토어 버튼 숨김) */}
-          {isSnow && (() => {
+          {showIntro && (() => {
             const inactive = currentBanner !== 0;
             return (
               <Link
@@ -387,16 +390,16 @@ const Home = () => {
             );
           })()}
 
-          {/* Slide #1 (snow, 이벤트 열려 있을 때): 앱 출시 이벤트 신청 — 흑백 카드, 누르면 /event/launch (로그인 필수는 그 페이지에서) */}
+          {/* Slide #0 (snow, 이벤트 열려 있을 때): 앱 출시 이벤트 — 소개 슬라이드 대신 메인, 10초 고정 뒤 광고로 넘어감 */}
           {isSnow && launchEvent && (() => {
-            const inactive = currentBanner !== 1;
+            const inactive = currentBanner !== 0;
             return (
               <Link
                 to="/event/launch"
                 aria-hidden={inactive}
                 tabIndex={inactive ? -1 : 0}
                 className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out cursor-pointer ${
-                  currentBanner === 1 ? 'translate-x-0' : currentBanner > 1 ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
+                  currentBanner === 0 ? 'translate-x-0' : '-translate-x-full pointer-events-none'
                 }`}
                 style={{ backgroundColor: '#111111' }}
               >
@@ -415,7 +418,7 @@ const Home = () => {
 
           {/* Slide #1~N: 광고 (snow 는 소개 슬라이드 뒤) */}
           {banners.map((banner, idx) => {
-            const slideIdx = isSnow ? idx + 1 + eventOffset : idx;
+            const slideIdx = isSnow ? idx + 1 : idx;
             const inactive = slideIdx !== currentBanner;
             return (
               <a
@@ -465,7 +468,7 @@ const Home = () => {
 
           {/* 마지막 슬라이드: 광고 모집 (snow 전용, 상시) — 눌리면 광고 신청으로 */}
           {isSnow && (() => {
-            const slideIdx = banners.length + 1 + eventOffset;
+            const slideIdx = banners.length + 1;
             const inactive = slideIdx !== currentBanner;
             return (
               <Link
