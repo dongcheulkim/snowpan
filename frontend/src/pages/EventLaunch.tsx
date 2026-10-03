@@ -7,7 +7,7 @@ import { useMeta } from '../hooks/useMeta';
 
 // 앱 출시 기념 이벤트 신청 (2026-10-03). 홈 배너에서 진입. 로그인한 회원만 신청, 인스타그램 아이디는 선택.
 interface EventInfo { key: string; open: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; count: number }
-interface Mine { applied: boolean; instagram?: string | null; phone?: string | null; createdAt?: string; needPhone?: boolean }
+interface Mine { applied: boolean; instagram?: string | null; phone?: string | null; message?: string | null; createdAt?: string; needPhone?: boolean }
 
 export default function EventLaunch() {
   const navigate = useNavigate();
@@ -17,21 +17,23 @@ export default function EventLaunch() {
   const [mine, setMine] = useState<Mine | null>(null);
   const [instagram, setInstagram] = useState('');
   const [phone, setPhone] = useState(''); // 계정에 전화번호 없는 회원(카카오·애플)만 입력
+  const [message, setMessage] = useState(''); // 응원 한마디 (선택)
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   useMeta({ title: ev?.title || '이벤트', description: ev?.description || '스노우판 이벤트 신청' });
 
   useEffect(() => {
     api<EventInfo>('/events/launch').then(setEv).catch(() => setEv(null));
-    if (userId) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); if (m.needPhone && m.phone) setPhone(m.phone); }).catch(() => {});
+    if (userId) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); if (m.needPhone && m.phone) setPhone(m.phone); if (m.message) setMessage(m.message); }).catch(() => {});
   }, [userId]);
 
   const submit = async () => {
     if (busy) return;
+    if (!instagram.trim()) { toastError('인스타그램 아이디를 적어 주세요.'); return; }
     if (mine?.needPhone && !/^01[016789]\d{7,8}$/.test(phone.replace(/\D/g, ''))) { toastError('당첨 안내를 드릴 휴대폰 번호를 적어 주세요.'); return; }
     setBusy(true);
     try {
-      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { instagram, phone: mine?.needPhone ? phone : undefined } });
+      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { instagram, phone: mine?.needPhone ? phone : undefined, message } });
       setMine(r); setEditing(false);
       toastSuccess(r.updated ? '인스타그램 아이디를 바꿨어요.' : '이벤트 신청이 완료됐어요.');
     } catch (e) { toastError(e instanceof Error ? e.message : '신청하지 못했어요.'); }
@@ -110,13 +112,27 @@ export default function EventLaunch() {
             <div className="mt-3 text-sm text-gray-900 space-y-1">
               <p>인스타그램: {mine?.instagram ? <span className="font-bold">@{mine.instagram}</span> : <span className="text-gray-500">남기지 않음</span>}</p>
               <p>연락처: {mine?.phone ? <span className="font-bold">{mine.phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3')}</span> : <span className="text-gray-500">없음</span>}</p>
+              {mine?.message && <p className="text-gray-700">응원 한마디: <span className="font-bold">{mine.message}</span></p>}
             </div>
-            <button onClick={() => setEditing(true)} className="mt-4 w-full py-2.5 rounded-xl border border-gray-900 text-gray-900 text-sm font-bold">{mine?.needPhone ? '연락처·인스타그램 바꾸기' : `인스타그램 아이디 ${mine?.instagram ? '바꾸기' : '남기기'}`}</button>
+            <button onClick={() => setEditing(true)} className="mt-4 w-full py-2.5 rounded-xl border border-gray-900 text-gray-900 text-sm font-bold">신청 정보 바꾸기</button>
           </section>
         ) : (
           <section className="border border-gray-200 rounded-2xl p-5">
             <p className="text-sm font-bold text-gray-900">{applied ? '신청 정보 바꾸기' : '이벤트 신청'}</p>
-            <p className="text-xs text-gray-500 mt-1">{user.nickname || user.name} 님으로 신청해요. 인스타그램 아이디를 남기면 당첨 소식을 DM 으로도 알려드려요.</p>
+            <p className="text-xs text-gray-500 mt-1">{user.nickname || user.name} 님으로 신청해요. 당첨 소식은 인스타그램 DM 으로 드려요.</p>
+            <label className="block mt-4">
+              <span className="text-[11px] font-bold text-gray-500">인스타그램 아이디 (필수)</span>
+              <div className="mt-1 flex items-center border border-gray-200 rounded-xl px-3 focus-within:border-gray-900">
+                <span className="text-sm text-gray-400">@</span>
+                <input
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value.replace(/^@/, ''))}
+                  placeholder="snowpan_official"
+                  autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
+                  className="flex-1 py-2.5 pl-1 text-sm outline-none bg-transparent"
+                />
+              </div>
+            </label>
             {mine?.needPhone && (
               <label className="block mt-4">
                 <span className="text-[11px] font-bold text-gray-500">휴대폰 번호 (당첨 안내용, 필수)</span>
@@ -131,19 +147,17 @@ export default function EventLaunch() {
               </label>
             )}
             <label className="block mt-4">
-              <span className="text-[11px] font-bold text-gray-500">인스타그램 아이디 (선택)</span>
-              <div className="mt-1 flex items-center border border-gray-200 rounded-xl px-3 focus-within:border-gray-900">
-                <span className="text-sm text-gray-400">@</span>
-                <input
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value.replace(/^@/, ''))}
-                  placeholder="snowpan_official"
-                  autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}
-                  className="flex-1 py-2.5 pl-1 text-sm outline-none bg-transparent"
-                />
-              </div>
+              <span className="text-[11px] font-bold text-gray-500">스노우판에 응원 한마디 (선택)</span>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value.slice(0, 200))}
+                placeholder="이번 시즌 스노우판에 바라는 점, 응원 한마디"
+                rows={3} maxLength={200}
+                className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 resize-none"
+              />
+              <span className="block text-right text-[11px] text-gray-400">{message.length}/200</span>
             </label>
-            <button onClick={submit} disabled={busy} className="mt-4 w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">
+            <button onClick={submit} disabled={busy} className="mt-2 w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">
               {busy ? '처리중' : applied ? '저장' : ev.buttonLabel}
             </button>
             {applied && <button onClick={() => setEditing(false)} className="mt-2 w-full py-2 text-xs text-gray-500">취소</button>}
