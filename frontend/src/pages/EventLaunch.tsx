@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api, getUser } from '../api';
+import { api, getUser, isNativeApp } from '../api';
+import { APP_STORE_URL, PLAY_STORE_URL } from '../utils/appLinks';
 import { loginPath } from '../utils/loginPath';
 import { toastError, toastSuccess } from '../utils/toast';
 import { useMeta } from '../hooks/useMeta';
 
 // 앱 출시 기념 이벤트 신청 (2026-10-03). 홈 배너에서 진입. 로그인한 회원만 신청, 인스타그램 아이디는 선택.
-interface EventInfo { key: string; open: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; count: number }
+interface EventInfo { key: string; appOnly?: boolean; open: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; count: number }
 interface Mine { applied: boolean; name?: string; phone?: string | null; instagram?: string | null; message?: string | null; createdAt?: string }
 
 export default function EventLaunch() {
@@ -100,6 +101,15 @@ export default function EventLaunch() {
           <section className="border border-gray-200 rounded-2xl p-5 text-center">
             <p className="text-sm font-bold text-gray-900">이벤트 신청이 마감됐어요.</p>
             <p className="text-xs text-gray-500 mt-1">참여해 주신 분들께 감사드려요.</p>
+          </section>
+        ) : ev.appOnly !== false && !isNativeApp() ? (
+          <section className="border border-gray-900 rounded-2xl p-5">
+            <p className="text-sm font-bold text-gray-900">스노우판 앱에서 신청할 수 있어요</p>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">앱을 받고 로그인한 뒤, 홈 첫 화면의 이벤트 배너에서 신청해 주세요.{mine?.applied ? ' 이미 신청하신 내역은 그대로 접수돼 있어요.' : ''}</p>
+            <div className="grid gap-2 mt-4">
+              {APP_STORE_URL && <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold text-center">App Store 에서 받기</a>}
+              {PLAY_STORE_URL && <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl border border-gray-900 text-gray-900 text-sm font-bold text-center">Google Play 에서 받기</a>}
+            </div>
           </section>
         ) : !user ? (
           <section className="border border-gray-200 rounded-2xl p-5">

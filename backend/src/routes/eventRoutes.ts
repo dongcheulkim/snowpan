@@ -12,7 +12,7 @@ const KEY_RE = /^[a-z0-9-]{1,40}$/;
 const IG_RE = /^[A-Za-z0-9._]{1,30}$/;
 const PHONE_RE = /^01[016789]\d{7,8}$/;
 
-export interface EventConfig { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string }
+export interface EventConfig { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; appOnly: boolean }
 const DEFAULTS: Record<string, EventConfig> = {
   launch: {
     active: true,
@@ -21,6 +21,7 @@ const DEFAULTS: Record<string, EventConfig> = {
     prize: '',
     endsAt: null,
     buttonLabel: '이벤트 신청하기',
+    appOnly: true, // 앱을 받아야만 신청 가능 (사장님 2026-10-04 "무조건 다운받아야 신청") — 웹은 스토어 버튼만
   },
 };
 
@@ -29,6 +30,11 @@ export async function readEventConfig(key: string): Promise<EventConfig | null> 
   const row = await prisma.adminSetting.findUnique({ where: { key: `event_${key}` } });
   if (!row) return base ?? null;
   try { return { ...(base ?? DEFAULTS.launch), ...(JSON.parse(row.value) as Partial<EventConfig>) }; } catch { return base ?? null; }
+}
+// 앱(Capacitor 웹뷰)에서 온 요청인지 — 안드로이드 origin=https://localhost, iOS=capacitor://localhost
+function fromApp(req: Request): boolean {
+  const o = String(req.headers.origin || '');
+  return o === 'https://localhost' || o === 'capacitor://localhost';
 }
 function isOpen(cfg: EventConfig): boolean {
   if (!cfg.active) return false;
@@ -84,6 +90,7 @@ router.post('/:key/apply', authenticateToken, async (req: AuthRequest, res: Resp
     const cfg = await readEventConfig(key);
     if (!cfg) { res.status(404).json({ error: '이벤트를 찾을 수 없어요.' }); return; }
     if (!isOpen(cfg)) { res.status(409).json({ error: '이벤트 신청이 마감됐어요.' }); return; }
+    if (cfg.appOnly && !fromApp(req)) { res.status(403).json({ error: '이벤트는 스노우판 앱에서만 신청할 수 있어요. 앱을 받은 뒤 신청해 주세요.', appOnly: true }); return; }
     const body = (req.body || {}) as { name?: unknown; instagram?: unknown; phone?: unknown; message?: unknown };
     const userId = req.user!.id;
     const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, phone: true } });
@@ -131,6 +138,7 @@ router.put('/admin/:key', authenticateToken, requireAdmin, async (req: AuthReque
     prize: typeof b.prize === 'string' ? b.prize.trim().slice(0, 300) : cur.prize,
     endsAt: b.endsAt === null ? null : typeof b.endsAt === 'string' && !Number.isNaN(Date.parse(b.endsAt)) ? new Date(b.endsAt).toISOString() : cur.endsAt,
     buttonLabel: typeof b.buttonLabel === 'string' ? b.buttonLabel.trim().slice(0, 30) || cur.buttonLabel : cur.buttonLabel,
+    appOnly: typeof (b as { appOnly?: unknown }).appOnly === 'boolean' ? Boolean((b as { appOnly?: boolean }).appOnly) : cur.appOnly !== false,
   };
   await prisma.adminSetting.upsert({ where: { key: `event_${key}` }, update: { value: JSON.stringify(next) }, create: { key: `event_${key}`, value: JSON.stringify(next) } });
   res.json({ key, ...next, open: isOpen(next) });
