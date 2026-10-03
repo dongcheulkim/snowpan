@@ -36,11 +36,17 @@ api POST /events/launch/apply '{"instagram":"user2_ig"}' "$USER2"; [ "$CODE" = "
 # 카카오·애플처럼 계정에 전화번호 없는 회원 → 신청 때 연락처 필수
 USER3=$(register_verified "01099990374" "ev_kakao@s37.test" "카카오회원37" "카카오회원37"); [ -z "$USER3" ] && USER3=$(login "ev_kakao@s37.test" 'Re!pass1234')
 pq "UPDATE users SET phone=NULL, \"phoneVerified\"=false WHERE email='ev_kakao@s37.test'" >/dev/null
-api GET /events/launch/me "" "$USER3"; [ "$(echo "$RESP" | jq -r '.needPhone')" = "true" ] && ok "전화 없는 회원 needPhone=true" || bad "needPhone RESP=$RESP"
+api GET /events/launch/me "" "$USER3"; [ "$(echo "$RESP" | jq -r '.phone')" = "" ] && [ "$(echo "$RESP" | jq -r '.name')" = "카카오회원37" ] && ok "전화 없는 회원: 폼 기본값 연락처 빈칸·성함은 계정 이름" || bad "me 기본값 RESP=$RESP"
 api POST /events/launch/apply '{"instagram":"kakao_user"}' "$USER3"; [ "$CODE" = "400" ] && [ "$(echo "$RESP" | jq -r '.needPhone')" = "true" ] && ok "전화 없는 회원이 연락처 없이 신청 400" || bad "연락처 없이 CODE=$CODE RESP=$RESP"
 api POST /events/launch/apply '{"instagram":"kakao_user","phone":"02-123-4567"}' "$USER3"; [ "$CODE" = "400" ] && ok "휴대폰 아닌 번호 거부" || bad "번호 검증 CODE=$CODE"
 api POST /events/launch/apply '{"instagram":"kakao_user","phone":"010-9999-0375"}' "$USER3"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.phone')" = "01099990375" ] && ok "연락처 적으면 신청 201 (숫자만 저장)" || bad "연락처 신청 CODE=$CODE RESP=$RESP"
 api POST /events/launch/apply '{"instagram":"kakao_user2"}' "$USER3"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.phone')" = "01099990375" ] && ok "재신청 때 연락처 안 보내도 기존 번호 유지" || bad "연락처 유지 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{"name":"  김  동철 ","instagram":"kakao_user2","phone":"01099990375"}' "$USER3"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.name')" = "김 동철" ] && ok "성함 직접 적으면 저장 (공백 정리)" || bad "성함 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{"name":"","instagram":"kakao_user2","phone":"01099990375"}' "$USER3"; [ "$CODE" = "400" ] && ok "성함 비우면 400" || bad "성함 필수 CODE=$CODE"
+# 중복 신청 차단: 다른 계정이 같은 연락처 / 같은 인스타로 신청
+api POST /events/launch/apply '{"instagram":"someone_else","phone":"01099990375"}' "$USER2"; [ "$CODE" = "409" ] && ok "다른 계정이 같은 연락처로 신청 409" || bad "연락처 중복 CODE=$CODE RESP=$RESP"
+api POST /events/launch/apply '{"instagram":"kakao_user2"}' "$USER2"; [ "$CODE" = "409" ] && ok "다른 계정이 같은 인스타로 신청 409" || bad "인스타 중복 CODE=$CODE RESP=$RESP"
+api GET /events/launch/me "" "$USER2"; [ "$(echo "$RESP" | jq -r '.instagram')" = "user2_ig" ] && ok "중복 시도해도 기존 신청은 그대로" || bad "기존 신청 변경됨 RESP=$RESP"
 api GET /events/launch/me "" "$USER"; [ "$(echo "$RESP" | jq -r '.applied')" = "true" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "snowpan_official" ] && ok "내 신청 상태 조회" || bad "me 후 RESP=$RESP"
 api GET /events/launch "" ""; [ "$(echo "$RESP" | jq -r '.count')" -ge "2" ] && ok "신청자 수 집계 ($(echo "$RESP" | jq -r '.count'))" || bad "count RESP=$RESP"
 [ "$(pq "SELECT count(*) FROM event_entries WHERE \"eventKey\"='launch' AND \"userId\"=(SELECT id FROM users WHERE email='ev_user@s37.test')")" = "1" ] && ok "같은 회원은 한 건만 (유니크)" || bad "중복 행"
