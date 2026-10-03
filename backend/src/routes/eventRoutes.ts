@@ -17,7 +17,7 @@ const DEFAULTS: Record<string, EventConfig> = {
   launch: {
     active: true,
     title: '스노우판 앱 출시 기념 이벤트',
-    description: '성함·연락처·인스타 아이디만 적으면 신청 끝.\n당첨 안내는 앱 채팅으로.',
+    description: '성함·연락처·인스타만 적으면 신청 끝.\n당첨 안내는 앱 채팅으로.',
     prize: '',
     endsAt: null,
     buttonLabel: '이벤트 신청하기',
