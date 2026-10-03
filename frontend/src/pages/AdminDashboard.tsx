@@ -1,5 +1,5 @@
 import { toastSuccess, toastError } from '../utils/toast';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getUser, imageUrl } from '../api';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
@@ -399,14 +399,15 @@ const AdminDashboard = () => {
           )}
           {/* 설정 — 인스타 연동 등 사이트 전역 설정 */}
           {tab === 'settings' && (
-            <div className="space-y-3">
-              <AdminOpsPanel />
-              <AdminEventPanel />
-              <AdminResortsPanel />
-              <InstagramPanel />
-              <AdminAppVersionPanel />
-              <AdminLinkHealthPanel />
-              <AdminAccessLogPanel />
+            <div className="space-y-2">
+              {/* 접이식 — 사장님 2026-10-03 "다 접어서 깔끔하게". 펼친 섹션만 내용(및 API 호출)이 뜸 */}
+              <SettingsFold id="event" title="앱 출시 이벤트" hint="홈 배너 이벤트 켜고 끄기 · 신청자 목록 · CSV"><AdminEventPanel /></SettingsFold>
+              <SettingsFold id="ops" title="운영 현황" hint="하루 요약 · 외부 연동 상태 · 사장님 알림 발송 기록"><AdminOpsPanel /></SettingsFold>
+              <SettingsFold id="resorts" title="리조트 시즌" hint="개장·폐장일"><AdminResortsPanel /></SettingsFold>
+              <SettingsFold id="instagram" title="인스타그램 연동" hint="커뮤니티 인스타 피드 토큰"><InstagramPanel /></SettingsFold>
+              <SettingsFold id="appver" title="앱 업데이트 안내" hint="스토어 최신 버전 · 업데이트 알림 문구"><AdminAppVersionPanel /></SettingsFold>
+              <SettingsFold id="links" title="외부 링크 점검" hint="매일 04시 자동 점검 · 죽은 링크 목록"><AdminLinkHealthPanel /></SettingsFold>
+              <SettingsFold id="access" title="개인정보 열람 기록" hint="탈퇴 회원 원래 정보 조회 기록"><AdminAccessLogPanel /></SettingsFold>
             </div>
           )}
           {tab === 'reports' && (() => {
@@ -976,3 +977,22 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+// 설정 탭 접이식 섹션 — 기본 접힘, 펼친 상태는 세션 동안 기억 (2026-10-03)
+function SettingsFold({ id, title, hint, children }: { id: string; title: string; hint?: string; children: ReactNode }) {
+  const key = `snowpan.admin.fold.${id}`;
+  const [open, setOpen] = useState<boolean>(() => { try { return sessionStorage.getItem(key) === '1'; } catch { return false; } });
+  const toggle = () => { setOpen((o) => { const n = !o; try { sessionStorage.setItem(key, n ? '1' : '0'); } catch { /* ignore */ } return n; }); };
+  return (
+    <section className="card overflow-hidden">
+      <button type="button" onClick={toggle} aria-expanded={open} className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left">
+        <span className="min-w-0">
+          <span className="block text-sm font-bold text-gray-900">{title}</span>
+          {hint && !open && <span className="block text-[11px] text-gray-500 mt-0.5 truncate">{hint}</span>}
+        </span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`flex-shrink-0 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+      </button>
+      {open && <div className="border-t border-gray-100 [&>.card]:border-0 [&>.card]:shadow-none [&>.card]:rounded-none">{children}</div>}
+    </section>
+  );
+}

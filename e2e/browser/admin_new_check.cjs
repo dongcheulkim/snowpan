@@ -25,6 +25,8 @@ async function login(p, email, pw) { await p.goto(`${BASE}/login`, { waitUntil: 
   // 설정 탭
   const setTab = p.getByRole('button', { name: /설정/ }).first();
   if (await setTab.count()) { await setTab.click(); await p.waitForTimeout(2000); }
+  // 설정 섹션은 접혀 있음(2026-10-03) → 검사 전에 펼침
+  for (const name of ['앱 업데이트 안내', '개인정보 열람 기록']) { const f = p.locator('button[aria-expanded="false"]', { hasText: name }).first(); if (await f.count()) { await f.click(); await p.waitForTimeout(1200); } }
   const st = await p.textContent('body');
   ok('설정 탭: 앱 업데이트 안내 패널', /앱 업데이트 안내/.test(st || ''));
   ok('설정 탭: 개인정보 열람 기록 패널', /개인정보 열람 기록/.test(st || ''));
