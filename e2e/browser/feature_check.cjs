@@ -74,6 +74,8 @@ async function login(p, email, pw) {
   await login(p, process.env.A_EMAIL, process.env.A_PW);
   await p.goto(`${BASE}/admin`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1200);
   await p.locator('button:has-text("설정")').first().click(); await p.waitForTimeout(2000);
+  // 설정 섹션은 접혀 있음(2026-10-03) → 운영 현황 섹션을 펼친 뒤 확인
+  { const f = p.locator('button[aria-expanded="false"]', { hasText: '운영 현황' }).first(); if (await f.count()) { await f.click(); await p.waitForTimeout(1500); } }
   // 하루 요약 미리보기는 API 응답 뒤에 그려진다 — 패널이 늘어 늦어질 수 있어 최대 8초 기다림 (2026-09-26)
   for (let i = 0; i < 16 && !/신고 대기/.test(await txt(p)); i++) await p.waitForTimeout(500);
   const st = await txt(p);
