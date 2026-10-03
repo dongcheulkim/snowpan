@@ -42,7 +42,7 @@ export default function AdminEventPanel() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-gray-900">앱 출시 이벤트</h3>
-          <p className="text-[11px] text-gray-500 mt-1">켜져 있으면 홈 배너 두 번째 장에 이벤트 카드가 돌고, 신청 페이지(/event/launch)에서 로그인 회원이 인스타그램 아이디를 남기고 신청합니다.</p>
+          <p className="text-[11px] text-gray-500 mt-1">켜져 있으면 홈 배너 첫 장에 이벤트 카드가 10초 고정으로 뜨고, 신청 페이지(/event/launch)에서 로그인 회원이 인스타그램 아이디를 남기고 신청합니다.</p>
         </div>
         {cfg && (
           <button onClick={() => save({ active: !cfg.active })} disabled={busy} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border ${cfg.active ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 border-gray-300'}`}>
