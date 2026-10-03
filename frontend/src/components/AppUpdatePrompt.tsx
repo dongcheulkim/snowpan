@@ -3,15 +3,16 @@ import { Capacitor } from '@capacitor/core';
 import { compareVersions } from '../utils/appVersion';
 import { App } from '@capacitor/app';
 import { api } from '../api';
+import { setUpdatePromptBusy } from '../utils/pushPrePrompt';
 
 // 앱 업데이트 안내 (2026-09-25, 사용자 요청) — 앱(iOS/Android)에서만. 켜질 때와 다시 활성화될 때 서버의 최신·최소 버전과 비교.
 //   설치 버전 < 최소 지원 버전 → 닫을 수 없는 창 (업데이트 전까지 사용 불가)
-//   설치 버전 < 최신 버전     → 아래 띠 '새 버전이 있어요' (나중에 → 3일 동안 안 보임)
+//   설치 버전 < 최신 버전     → 가운데 팝업 '새 버전이 나왔어요' + 마켓 이동 버튼 (나중에 → 하루 동안 안 보임). 알림 안내창보다 먼저 뜸 (2026-10-04)
 // 브라우저에서 확인할 땐 개발 모드에서 ?simulateApp=ios:1.5 로 흉내낼 수 있다.
 interface VersionInfo { ios: { latest: string; minSupported: string; url: string }; android: { latest: string; minSupported: string; url: string } }
 type Level = 'none' | 'soft' | 'force';
 const DISMISS_KEY = 'snowpan:update-dismissed';
-const DISMISS_MS = 3 * 24 * 60 * 60 * 1000;
+const DISMISS_MS = 24 * 60 * 60 * 1000;
 
 
 async function installed(): Promise<{ platform: 'ios' | 'android'; version: string } | null> {
@@ -35,7 +36,7 @@ export default function AppUpdatePrompt() {
     let alive = true;
     const check = async () => {
       const me = await installed();
-      if (!me) return;
+      if (!me) { setUpdatePromptBusy(false); return; }
       try {
         const v = await api<VersionInfo>('/app/version');
         const target = v[me.platform];
@@ -47,7 +48,8 @@ export default function AppUpdatePrompt() {
           try { const d = JSON.parse(localStorage.getItem(DISMISS_KEY) || 'null'); if (d && d.version === target.latest && Date.now() - d.at < DISMISS_MS) level = 'none'; } catch { /* 무시 */ }
         }
         setState({ level, latest: target.latest, url: target.url });
-      } catch { /* 서버 응답 없으면 안내하지 않음 */ }
+        setUpdatePromptBusy(level !== 'none'); // 팝업이 뜨면 알림 안내는 닫힐 때까지 대기
+      } catch { setUpdatePromptBusy(false); /* 서버 응답 없으면 안내하지 않음 */ }
     };
     check();
     let handle: { remove: () => void } | null = null;
@@ -59,7 +61,7 @@ export default function AppUpdatePrompt() {
 
   if (!state || state.level === 'none') return null;
   const openStore = () => { window.open(state.url, '_blank'); };
-  const dismiss = () => { try { localStorage.setItem(DISMISS_KEY, JSON.stringify({ version: state.latest, at: Date.now() })); } catch { /* 무시 */ } setState({ ...state, level: 'none' }); };
+  const dismiss = () => { try { localStorage.setItem(DISMISS_KEY, JSON.stringify({ version: state.latest, at: Date.now() })); } catch { /* 무시 */ } setState({ ...state, level: 'none' }); setUpdatePromptBusy(false); };
 
   if (state.level === 'force') {
     return (
@@ -73,13 +75,14 @@ export default function AppUpdatePrompt() {
     );
   }
   return (
-    <div role="status" className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+72px)] z-[150] bg-gray-900 text-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold">새 버전이 있어요</p>
-        <p className="text-[11px] text-white/70">스노우판 {state.latest}로 업데이트하면 새 기능을 쓸 수 있어요.</p>
+    <div role="dialog" aria-modal="true" aria-label="새 버전 안내" className="fixed inset-0 z-[220] bg-black/60 flex items-center justify-center px-6">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6 text-center">
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500">UPDATE</p>
+        <p className="text-lg font-bold text-gray-900 mt-2">새 버전이 나왔어요</p>
+        <p className="text-sm text-gray-700 mt-3 leading-relaxed">스노우판 {state.latest} 업데이트가 있어요.<br />업데이트해야 새 기능을 쓸 수 있어요.</p>
+        <button type="button" onClick={openStore} className="mt-5 w-full min-h-12 rounded-xl bg-gray-900 text-white text-sm font-bold">{Capacitor.getPlatform() === 'ios' ? 'App Store 에서 업데이트' : 'Google Play 에서 업데이트'}</button>
+        <button type="button" onClick={dismiss} className="mt-2 w-full min-h-10 text-xs text-gray-500">나중에</button>
       </div>
-      <button type="button" onClick={dismiss} className="min-h-10 px-2 text-xs text-white/70">나중에</button>
-      <button type="button" onClick={openStore} className="min-h-10 px-3 rounded-lg bg-white text-gray-900 text-xs font-bold">업데이트</button>
     </div>
   );
 }
