@@ -13,8 +13,10 @@ const REWARD_ID = {
 export const admobIsTest = !import.meta.env.VITE_ADMOB_REWARD_ANDROID && !import.meta.env.VITE_ADMOB_REWARD_IOS;
 
 let inited: Promise<void> | null = null;
-async function init() {
-  const { AdMob } = await import('@capacitor-community/admob');
+type AdMobPlugin = typeof import('@capacitor-community/admob').AdMob;
+// 주의: Capacitor 플러그인 프록시(AdMob)를 async 함수에서 그대로 return 하면 안 됨 — Promise 가 .then 을 찾아
+// "AdMob.then() is not implemented on android" 오류가 남 (2026-10-03 에뮬레이터에서 발견). 초기화만 하고 객체는 돌려주지 않는다.
+async function ensureInit(AdMob: AdMobPlugin): Promise<void> {
   if (!inited) {
     inited = (async () => {
       await AdMob.initialize({ initializeForTesting: admobIsTest });
@@ -25,14 +27,13 @@ async function init() {
     })();
   }
   await inited;
-  return AdMob;
 }
 
 // 앱: 보상형 영상을 끝까지 보면 adProof 를 돌려준다. 못 보여주면(미로드·닫음) null.
 export async function watchRewardedAdNative(): Promise<AdProof | null> {
   if (!isNativeApp()) return null;
-  const AdMob = await init();
-  const { RewardAdPluginEvents } = await import('@capacitor-community/admob');
+  const { AdMob, RewardAdPluginEvents } = await import('@capacitor-community/admob');
+  await ensureInit(AdMob);
   const adId = Capacitor.getPlatform() === 'ios' ? REWARD_ID.ios : REWARD_ID.android;
   return new Promise<AdProof | null>((resolve) => {
     let rewarded = false; const subs: { remove: () => Promise<void> }[] = [];
