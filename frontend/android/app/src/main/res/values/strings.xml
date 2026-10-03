@@ -4,6 +4,6 @@
     <string name="title_activity_main">스노우판</string>
     <string name="package_name">kr.snowpan.app</string>
     <string name="custom_url_scheme">kr.snowpan.app</string>
-    <!-- 애드몹 앱 ID — 지금은 구글 테스트 ID. 사장님 애드몹 콘솔 ID 로 교체 (바탕화면 애드몹_설정_안내.md) -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- 애드몹 앱 ID (사장님 계정, 2026-10-03 발급) -->
+    <string name="admob_app_id">ca-app-pub-5238113676351064~5674574056</string>
 </resources>

@@ -5,12 +5,15 @@ import { isNativeApp } from '../api';
 
 export type AdProof = { source: 'admob' | 'house'; adId?: string };
 
+// 애드몹 광고 단위 ID (공개 식별자 — 비밀 아님). 사장님 계정 2026-10-03 발급. iOS 는 발급 전이라 구글 테스트 ID.
 const TEST_REWARD = { android: 'ca-app-pub-3940256099942544/5224354917', ios: 'ca-app-pub-3940256099942544/1712485313' };
-const REWARD_ID = {
-  android: (import.meta.env.VITE_ADMOB_REWARD_ANDROID as string | undefined) || TEST_REWARD.android,
-  ios: (import.meta.env.VITE_ADMOB_REWARD_IOS as string | undefined) || TEST_REWARD.ios,
+const REAL_REWARD: { android: string | null; ios: string | null } = {
+  android: 'ca-app-pub-5238113676351064/6417586102', // 끌어올리기 보상 (Android)
+  ios: null, // TODO 사장님 iOS 광고 단위 ID 받으면 채우기
 };
-export const admobIsTest = !import.meta.env.VITE_ADMOB_REWARD_ANDROID && !import.meta.env.VITE_ADMOB_REWARD_IOS;
+function platformKey(): 'android' | 'ios' { return Capacitor.getPlatform() === 'ios' ? 'ios' : 'android'; }
+export function admobIsTestFor(pf: 'android' | 'ios' = platformKey()): boolean { return !REAL_REWARD[pf]; }
+function rewardUnitId(): string { const pf = platformKey(); return REAL_REWARD[pf] || TEST_REWARD[pf]; }
 
 let inited: Promise<void> | null = null;
 type AdMobPlugin = typeof import('@capacitor-community/admob').AdMob;
@@ -19,7 +22,7 @@ type AdMobPlugin = typeof import('@capacitor-community/admob').AdMob;
 async function ensureInit(AdMob: AdMobPlugin): Promise<void> {
   if (!inited) {
     inited = (async () => {
-      await AdMob.initialize({ initializeForTesting: admobIsTest });
+      await AdMob.initialize({ initializeForTesting: admobIsTestFor() });
       // iOS 14+: 맞춤 광고용 추적 허용 팝업 — 거부해도 광고(비맞춤)는 나옴. 처음 한 번만 뜸.
       if (Capacitor.getPlatform() === 'ios') {
         try { const st = await AdMob.trackingAuthorizationStatus(); if (st.status === 'notDetermined') await AdMob.requestTrackingAuthorization(); } catch { /* ignore */ }
@@ -34,7 +37,7 @@ export async function watchRewardedAdNative(): Promise<AdProof | null> {
   if (!isNativeApp()) return null;
   const { AdMob, RewardAdPluginEvents } = await import('@capacitor-community/admob');
   await ensureInit(AdMob);
-  const adId = Capacitor.getPlatform() === 'ios' ? REWARD_ID.ios : REWARD_ID.android;
+  const adId = rewardUnitId();
   return new Promise<AdProof | null>((resolve) => {
     let rewarded = false; const subs: { remove: () => Promise<void> }[] = [];
     const done = (v: AdProof | null) => { subs.forEach((s) => s.remove().catch(() => {})); resolve(v); };
@@ -43,7 +46,7 @@ export async function watchRewardedAdNative(): Promise<AdProof | null> {
       subs.push(await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => done(rewarded ? { source: 'admob', adId } : null)));
       subs.push(await AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => done(null)));
       subs.push(await AdMob.addListener(RewardAdPluginEvents.FailedToLoad, () => done(null)));
-      try { await AdMob.prepareRewardVideoAd({ adId, isTesting: admobIsTest }); await AdMob.showRewardVideoAd(); }
+      try { await AdMob.prepareRewardVideoAd({ adId, isTesting: admobIsTestFor() }); await AdMob.showRewardVideoAd(); }
       catch { done(null); }
     })();
   });
