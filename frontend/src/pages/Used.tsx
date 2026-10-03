@@ -35,6 +35,7 @@ const FEED_AD_EVERY = 20; // 매물 20개마다 광고 카드 1개 (사장님 20
 
 // 중고 2단계 탐색 (snow) — 대분류 선택 시 세부카테고리 칩이 아래로 펼쳐짐.
 const SNOW_GROUPS = SNOW_USED_GROUPS;
+const LENGTH_CATEGORIES = ['ski', 'board']; // 길이 필터가 뜨는 세부 카테고리
 
 const Used = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,7 +51,6 @@ const Used = () => {
   // 브랜드·길이 필터 — URL 파라미터로 유지 (뒤로가기·공유 시 상태 보존)
   const brandParam = searchParams.get('brand') || '';
   const lenBucket = searchParams.get('len') || '';
-  const [brandInput, setBrandInput] = useState(brandParam);
   const [feedAds, setFeedAds] = useState<FeedAd[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -88,28 +88,6 @@ const Used = () => {
       .catch(() => {});
   }, []);
 
-  // 뒤로가기 등으로 URL 의 brand 가 바뀌면 입력창도 동기화 (디바운스 effect 와 왕복 루프 방지 조건)
-  useEffect(() => {
-    setBrandInput((cur) => (cur.trim() === brandParam ? cur : brandParam));
-     
-  }, [brandParam]);
-
-  // 브랜드 입력 300ms 디바운스 후 URL 반영 (타이핑마다 fetch 방지).
-  // functional set — 대기 중 다른 필터(길이·카테고리)가 URL 을 바꿔도 최신값 위에 반영
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const v = brandInput.trim();
-      if (v === brandParam) return;
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (v) next.set('brand', v); else next.delete('brand');
-        next.delete('page');
-        return next;
-      }, { replace: false });
-    }, 300);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [brandInput]);
 
   const updateParam = (key: string, value: string | null, resetPage = true) => {
     const next = new URLSearchParams(searchParams);
@@ -194,7 +172,7 @@ const Used = () => {
         }
         if (debouncedSearch) params.set('search', debouncedSearch);
         if (brandParam) params.set('brand', brandParam);
-        if (lenBucket) {
+        if (lenBucket && LENGTH_CATEGORIES.includes(selectedCategory)) {
           const [lo, hi] = lenBucket.split('-');
           if (lo) params.set('lengthMin', lo);
           if (hi) params.set('lengthMax', hi);
@@ -334,16 +312,9 @@ const Used = () => {
               ))}
             </div>
           )}
-          {/* 브랜드 · 길이 필터 */}
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <input
-              type="text"
-              value={brandInput}
-              onChange={(e) => setBrandInput(e.target.value)}
-              placeholder="브랜드 (예: 살로몬)"
-              className="w-32 h-8 px-3 rounded-full text-[11px] bg-snow border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400"
-            />
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {/* 길이 필터 — 스키·보드 세부를 골랐을 때만 (전체·부츠·장갑엔 길이가 없음). 브랜드는 상단 검색창으로 (중복 입력칸 제거, 2026-10-03) */}
+          {LENGTH_CATEGORIES.includes(selectedCategory) && (
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
               {([['', '길이 전체'], ['-149', '~149cm'], ['150-159', '150~159'], ['160-169', '160~169'], ['170-', '170cm~']] as const).map(([val, label]) => (
                 <button
                   key={val || 'all'}
@@ -356,7 +327,7 @@ const Used = () => {
                 </button>
               ))}
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
