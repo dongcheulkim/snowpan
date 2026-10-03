@@ -42,9 +42,21 @@ router.post('/admin/resolve', authenticateToken, requireAdmin, async (req: AuthR
   const m = raw.match(/https?:\/\/coupa\.ng\/[A-Za-z0-9]+/);
   if (!m) { res.status(400).json({ error: '쿠팡 파트너스의 "HTML 복사" 내용이나 coupa.ng 주소를 붙여넣어 주세요.' }); return; }
   try {
-    const r = await fetch(m[0], { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36' } });
-    const loc = r.headers.get('location') || '';
-    const q = loc.includes('?') ? new URLSearchParams(loc.slice(loc.indexOf('?') + 1)) : null;
+    // 리다이렉트를 한 단계씩 따라가며(최대 5번) productDescription 이 든 위젯 주소를 찾는다 — 지역·시점에 따라 hop 수가 다름
+    let loc = m[0]; let q: URLSearchParams | null = null;
+    for (let hop = 0; hop < 5 && loc; hop++) {
+      const r = await fetch(loc, { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36', 'Accept': 'text/html,*/*' } });
+      const next = r.headers.get('location') || '';
+      if (next.includes('productDescription=')) { q = new URLSearchParams(next.slice(next.indexOf('?') + 1)); break; }
+      if (!next) {
+        // 리다이렉트가 아니라 본문으로 넘기는 경우: HTML 안의 productDescription 쿼리를 찾는다
+        const html = r.status === 200 ? await r.text() : '';
+        const mm = html.match(/[?&]productDescription=[^"'\s<>]+/);
+        if (mm) { const i = html.lastIndexOf('?', html.indexOf(mm[0]) + 1); q = new URLSearchParams(html.slice(i + 1).split(/["'\s<>]/)[0]); }
+        break;
+      }
+      loc = next.startsWith('http') ? next : new URL(next, loc).toString();
+    }
     const title = q?.get('productDescription')?.trim() || '';
     let image = q?.get('productImage')?.trim() || '';
     if (image) image = image.replace(/\/thumbnails\/remote\/\d+x\d+ex\//, '/thumbnails/remote/492x492ex/'); // 212px 썸네일 → 492px
