@@ -30,7 +30,7 @@ async function installed(): Promise<{ platform: 'ios' | 'android'; version: stri
 }
 
 export default function AppUpdatePrompt() {
-  const [state, setState] = useState<{ level: Level; latest: string; url: string } | null>(null);
+  const [state, setState] = useState<{ level: Level; latest: string; url: string; platform: 'ios' | 'android' } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -47,7 +47,7 @@ export default function AppUpdatePrompt() {
         if (level === 'soft') {
           try { const d = JSON.parse(localStorage.getItem(DISMISS_KEY) || 'null'); if (d && d.version === target.latest && Date.now() - d.at < DISMISS_MS) level = 'none'; } catch { /* 무시 */ }
         }
-        setState({ level, latest: target.latest, url: target.url });
+        setState({ level, latest: target.latest, url: target.url, platform: me.platform });
         setUpdatePromptBusy(level !== 'none'); // 팝업이 뜨면 알림 안내는 닫힐 때까지 대기
       } catch { setUpdatePromptBusy(false); /* 서버 응답 없으면 안내하지 않음 */ }
     };
@@ -80,7 +80,7 @@ export default function AppUpdatePrompt() {
         <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500">UPDATE</p>
         <p className="text-lg font-bold text-gray-900 mt-2">새 버전이 나왔어요</p>
         <p className="text-sm text-gray-700 mt-3 leading-relaxed">스노우판 {state.latest} 업데이트가 있어요.<br />업데이트해야 새 기능을 쓸 수 있어요.</p>
-        <button type="button" onClick={openStore} className="mt-5 w-full min-h-12 rounded-xl bg-gray-900 text-white text-sm font-bold">{Capacitor.getPlatform() === 'ios' ? 'App Store 에서 업데이트' : 'Google Play 에서 업데이트'}</button>
+        <button type="button" onClick={openStore} className="mt-5 w-full min-h-12 rounded-xl bg-gray-900 text-white text-sm font-bold">{state.platform === 'ios' ? 'App Store 에서 업데이트' : 'Google Play 에서 업데이트'}</button>
         <button type="button" onClick={dismiss} className="mt-2 w-full min-h-10 text-xs text-gray-500">나중에</button>
       </div>
     </div>
