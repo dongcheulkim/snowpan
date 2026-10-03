@@ -81,10 +81,15 @@ export async function checkTarget(t: Target): Promise<Result> {
     return { ...t, status: live === true ? 'ok' : live === false ? 'dead' : 'unknown', code: live === null ? 'n/a' : live ? 200 : 'off' };
   }
   if (t.kind === 'image') {
-    const r = await fetchStatus(t.url + (t.url.includes('?') ? '&' : '?') + 'width=200', 'HEAD');
-    const r2 = r.code === 405 || r.code === 403 ? await fetchStatus(t.url, 'GET', { Range: 'bytes=0-512' }) : r;
+    const probe = async () => {
+      const r = await fetchStatus(t.url + (t.url.includes('?') ? '&' : '?') + 'width=200', 'HEAD');
+      return r.code === 405 || r.code === 403 ? fetchStatus(t.url, 'GET', { Range: 'bytes=0-512' }) : r;
+    };
+    let r2 = await probe();
+    // 순간 네트워크 오류(ERR/TIMEOUT)는 1초 뒤 한 번 더 — 2026-10-03 멀쩡한 CDN 사진이 ERR 한 번으로 '죽음' 판정돼 관리자 알림이 간 적 있음
+    if (r2.code === 'ERR' || r2.code === 'TIMEOUT') { await new Promise((res) => setTimeout(res, 1000)); r2 = await probe(); }
     const ok = typeof r2.code === 'number' && r2.code >= 200 && r2.code < 400 && (!r2.type || /^image\//.test(r2.type));
-    return { ...t, status: ok ? 'ok' : r2.code === 'TIMEOUT' ? 'unknown' : 'dead', code: r2.code };
+    return { ...t, status: ok ? 'ok' : r2.code === 'TIMEOUT' || r2.code === 'ERR' ? 'unknown' : 'dead', code: r2.code };
   }
   let r = await fetchStatus(t.url, 'HEAD');
   if (typeof r.code === 'number' && [403, 405, 400, 501, 406, 429].includes(r.code)) r = await fetchStatus(t.url, 'GET');
