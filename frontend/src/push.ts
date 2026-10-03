@@ -28,6 +28,13 @@ export async function initPush(): Promise<void> {
 
     let perm = await PushNotifications.checkPermissions();
     if (perm.receive === 'prompt' || perm.receive === 'prompt-with-rationale') {
+      // 시스템 권한창 전에 우리 안내창 먼저 ("꼭 필요한 알림만, 광고 알림 없음"). "나중에"면 3일 뒤 다시 물음.
+      const ASK_KEY = 'snowpan.pushAskLater';
+      let later = 0; try { later = Number(localStorage.getItem(ASK_KEY) || 0); } catch { /* ignore */ }
+      if (later && Date.now() - later < 3 * 24 * 3600_000) { started = false; return; }
+      const { askPushPermission } = await import('./utils/pushPrePrompt');
+      const ok = await askPushPermission();
+      if (!ok) { try { localStorage.setItem(ASK_KEY, String(Date.now())); } catch { /* ignore */ } started = false; return; }
       perm = await PushNotifications.requestPermissions();
     }
     if (perm.receive !== 'granted') { started = false; return; }
