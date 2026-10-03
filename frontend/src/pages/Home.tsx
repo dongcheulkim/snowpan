@@ -416,7 +416,7 @@ const Home = () => {
                 <div className="relative z-10">
                   <p className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-2">EVENT</p>
                   <p className="text-2xl font-bold text-white leading-tight">{launchEvent.title}</p>
-                  <p className="text-[15px] text-gray-300 mt-2 leading-relaxed line-clamp-2">{launchEvent.description}</p>
+                  <p className="text-[15px] text-gray-300 mt-2 leading-normal line-clamp-3">{launchEvent.description}</p>
                   <span className="flex items-center gap-2.5 mt-3.5 mb-3">
                     <span className="inline-block px-5 py-2.5 bg-white text-gray-900 rounded-lg text-sm font-bold">{launchEvent.buttonLabel} →</span>
                     {launchEvent.count > 0 && <span className="text-xs text-gray-400">{launchEvent.count.toLocaleString()}명 신청</span>}
