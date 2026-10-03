@@ -121,7 +121,10 @@ const Home = () => {
 
   const [banners, setBanners] = useState<BannerData[]>([]);
   // 앱 출시 이벤트 슬라이드 (2026-10-03) — /api/events/launch 가 open 이면 소개 슬라이드 바로 뒤에 끼움
-  const [launchEvent, setLaunchEvent] = useState<{ open: boolean; title: string; description: string; buttonLabel: string; count: number } | null>(null);
+  // 첫 화면부터 이벤트가 보이도록 마지막으로 받은 이벤트를 기기에 기억 (서버 응답 전엔 소개 배너가 먼저 보이던 문제, 2026-10-03)
+  const [launchEvent, setLaunchEvent] = useState<{ open: boolean; title: string; description: string; buttonLabel: string; count: number } | null>(() => {
+    try { const raw = localStorage.getItem('snowpan.launchEvent'); const ev = raw ? JSON.parse(raw) : null; return ev && ev.open ? ev : null; } catch { return null; }
+  });
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
@@ -281,8 +284,15 @@ const Home = () => {
       .then((data) => setBanners(data))
       .catch(() => {});
     api<{ open: boolean; title: string; description: string; buttonLabel: string; count: number }>('/events/launch')
-      .then((ev) => setLaunchEvent(ev && ev.open ? ev : null))
-      .catch(() => {});
+      .then((ev) => {
+        const next = ev && ev.open ? ev : null;
+        setLaunchEvent((prev) => {
+          if (!prev && next) setCurrentBanner(0); // 응답이 늦어 다른 장으로 넘어갔으면 이벤트 장으로 되돌림
+          return next;
+        });
+        try { if (next) localStorage.setItem('snowpan.launchEvent', JSON.stringify(next)); else localStorage.removeItem('snowpan.launchEvent'); } catch { /* ignore */ }
+      })
+      .catch(() => {}); // 실패하면 기억해 둔 이벤트 유지
   }, [isSnow]);
   // 이벤트가 열려 있으면 소개 슬라이드 대신 이벤트가 0번(메인) — 사장님 2026-10-03 "소개 배너 없애고 이벤트 10초 고정"
   const showIntro = isSnow && !launchEvent;
