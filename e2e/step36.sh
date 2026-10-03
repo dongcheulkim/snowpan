@@ -52,6 +52,8 @@ api GET /coupang-ads "" ""; [ "$(echo "$RESP" | jq -r "[.[] | select(.id==\"$CP_
 api POST "/coupang-ads/$CP_ID/click" "" ""; [ "$CODE" = "200" ] && [ "$(pq "SELECT \"clickCount\" FROM coupang_ads WHERE id='$CP_ID'")" = "1" ] && ok "클릭 집계" || bad "클릭 CODE=$CODE"
 api PUT "/coupang-ads/admin/$CP_ID" '{"active":false}' "$ADM"; api GET /coupang-ads "" ""; [ "$(echo "$RESP" | jq -r "[.[] | select(.id==\"$CP_ID\")] | length")" = "0" ] && ok "숨김 처리 시 공개 목록에서 제외" || bad "숨김 실패"
 api DELETE "/coupang-ads/admin/$CP_ID" "" "$ADM"; [ "$CODE" = "200" ] && ok "쿠팡 카드 삭제" || bad "삭제 CODE=$CODE"
+api POST /coupang-ads/admin/resolve '{"url":"https://example.com/not-coupang"}' "$ADM"; [ "$CODE" = "400" ] && ok "쿠팡 HTML 불러오기: coupa.ng 아닌 입력 400" || bad "resolve 검증 CODE=$CODE"
+api POST /coupang-ads/admin/resolve '{"url":"<iframe src=\"https://coupa.ng/cpUfLF\"></iframe>"}' "$USER"; [ "$CODE" = "403" ] && ok "쿠팡 HTML 불러오기: 일반 회원 거부" || bad "resolve 권한 CODE=$CODE"
 # 피드 광고 슬롯이 문의형(셀프 신청 불가)인지
 api POST /ad-booking/create '{"slotType":"feed","category":"used","title":"E2E","description":"E2E","url":"https://snowpan.kr","periodMonths":1,"payMethod":"transfer"}' "$USER"; [ "$CODE" = "403" ] || [ "$CODE" = "400" ] && ok "피드 광고 슬롯은 셀프 신청 불가 (CODE=$CODE)" || bad "피드 셀프신청 CODE=$CODE"
 pq "DELETE FROM banners WHERE title='E2E 죽은 링크 배너 36'" >/dev/null

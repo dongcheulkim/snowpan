@@ -34,6 +34,27 @@ function pick(b: Record<string, unknown>) {
   return data;
 }
 
+// 쿠팡 파트너스 "이미지+텍스트" HTML(iframe src=https://coupa.ng/xxxx) 또는 coupa.ng 주소를 붙여넣으면
+// 위젯 리다이렉트 주소의 쿼리(productImage·productDescription·linkUrl)에서 이름·사진·제휴 링크를 뽑아 준다 (2026-10-03, 사장님 수동 등록 편의).
+// 가격은 위젯에 없어서 사장님이 직접 입력.
+router.post('/admin/resolve', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  const raw = String((req.body || {}).url || '').trim();
+  const m = raw.match(/https?:\/\/coupa\.ng\/[A-Za-z0-9]+/);
+  if (!m) { res.status(400).json({ error: '쿠팡 파트너스의 "HTML 복사" 내용이나 coupa.ng 주소를 붙여넣어 주세요.' }); return; }
+  try {
+    const r = await fetch(m[0], { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/120 Safari/537.36' } });
+    const loc = r.headers.get('location') || '';
+    const q = loc.includes('?') ? new URLSearchParams(loc.slice(loc.indexOf('?') + 1)) : null;
+    const title = q?.get('productDescription')?.trim() || '';
+    let image = q?.get('productImage')?.trim() || '';
+    if (image) image = image.replace(/\/thumbnails\/remote\/\d+x\d+ex\//, '/thumbnails/remote/492x492ex/'); // 212px 썸네일 → 492px
+    const link = q?.get('linkUrl')?.trim() || '';
+    if (!title || !link) { res.status(422).json({ error: '쿠팡 위젯에서 상품 정보를 읽지 못했어요. 상품 이름·사진 주소·링크를 직접 넣어 주세요.' }); return; }
+    if (!LINK_RE.test(link)) { res.status(422).json({ error: '쿠팡 링크가 아니에요.' }); return; }
+    res.json({ title: title.slice(0, 120), image: image || null, link });
+  } catch (e) { console.error('coupang resolve error:', e); res.status(502).json({ error: '쿠팡에 연결하지 못했어요. 잠시 뒤 다시 해 주세요.' }); }
+});
+
 router.get('/admin', authenticateToken, requireAdmin, async (_req: AuthRequest, res: Response): Promise<void> => {
   res.json(await prisma.coupangAd.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'desc' }] }));
 });
