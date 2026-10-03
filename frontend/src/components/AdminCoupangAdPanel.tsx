@@ -30,7 +30,7 @@ export default function AdminCoupangAdPanel() {
     <div className="card p-5 space-y-4">
       <div>
         <h3 className="text-sm font-bold text-gray-900">쿠팡 광고 카드</h3>
-        <p className="text-[11px] text-gray-500 mt-1">쿠팡 파트너스 → 링크 생성 → 상품 링크에서 단축 URL·사진 주소·가격을 복사해 넣으세요. 중고거래 목록 4번째·10번째 자리에 매물 모양으로 돌아가며 노출됩니다. 안내: 바탕화면 스노우판/쿠팡파트너스_설정_안내.md</p>
+        <p className="text-[11px] text-gray-500 mt-1">쿠팡 파트너스 → 링크 생성 → 상품 링크에서 단축 URL·사진 주소·가격을 복사해 넣으세요. 중고거래 목록에 매물 20개마다 1개씩 매물 모양으로 돌아가며 노출됩니다. 안내: 바탕화면 스노우판/쿠팡파트너스_설정_안내.md</p>
       </div>
       <div className="grid gap-2">
         <input className={input} placeholder="상품 이름 (예: 오클리 스키 고글 플라이트덱)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

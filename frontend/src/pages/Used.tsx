@@ -31,7 +31,7 @@ interface Product {
 }
 
 const PAGE_SIZE = 12;
-const FEED_AD_POSITIONS = [3, 9]; // 한 페이지(12개) 안에서 광고 카드가 끼는 자리 (4번째·10번째)
+const FEED_AD_EVERY = 20; // 매물 20개마다 광고 카드 1개 (사장님 2026-10-03). 페이지(12개) 경계와 상관없이 전체 순번 기준
 
 // 중고 2단계 탐색 (snow) — 대분류 선택 시 세부카테고리 칩이 아래로 펼쳐짐.
 const SNOW_GROUPS = SNOW_USED_GROUPS;
@@ -382,11 +382,10 @@ const Used = () => {
         <div className="grid grid-cols-2 gap-3">
           {products.map((product, idx) => {
             const st = statusLabel[product.status] || statusLabel.selling;
-            // 당근식 피드 광고 — 4번째·10번째 자리에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)
-            const adSlot = FEED_AD_POSITIONS.indexOf(idx);
-            const ad = adSlot >= 0 && feedAds.length ? feedAds[(adSlot + (page - 1) * FEED_AD_POSITIONS.length) % feedAds.length] : null;
+            // 당근식 피드 광고 — 매물 20개마다 1개, 20번째 매물 뒤에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)
+            const gIdx = (page - 1) * PAGE_SIZE + idx; // 전체 순번
+            const ad = feedAds.length && (gIdx + 1) % FEED_AD_EVERY === 0 ? feedAds[Math.floor(gIdx / FEED_AD_EVERY) % feedAds.length] : null;
             return (<>
-              {ad && <FeedAdCard key={`ad-${ad.kind}-${ad.id}-${idx}`} ad={ad} />}
               <Link
                 to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/used/${product.id}`}
                 key={product.id}
@@ -447,6 +446,7 @@ const Used = () => {
                   )}
                 </div>
               </Link>
+              {ad && <FeedAdCard key={`ad-${ad.kind}-${ad.id}-${gIdx}`} ad={ad} />}
             </>);
           })}
         </div>
