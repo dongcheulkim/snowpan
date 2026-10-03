@@ -100,7 +100,7 @@
       "destination": "https://api.snowpan.kr/api/og/page/post/:id"
     },
     {
-      "source": "/((?!api/|\\.well-known/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|sitemap.xml|snowpan-icon.svg).*)",
+      "source": "/((?!api/|\\.well-known/|assets/|icons/|cam/|sw\\.js|manifest.webmanifest|favicon.ico|robots.txt|app-ads.txt|sitemap.xml|snowpan-icon.svg).*)",
       "destination": "/index.html"
     }
   ],
