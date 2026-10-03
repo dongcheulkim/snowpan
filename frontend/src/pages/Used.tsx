@@ -384,7 +384,9 @@ const Used = () => {
             const st = statusLabel[product.status] || statusLabel.selling;
             // 당근식 피드 광고 — 매물 20개마다 1개, 20번째 매물 뒤에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)
             const gIdx = (page - 1) * PAGE_SIZE + idx; // 전체 순번
-            const ad = feedAds.length && (gIdx + 1) % FEED_AD_EVERY === 0 ? feedAds[Math.floor(gIdx / FEED_AD_EVERY) % feedAds.length] : null;
+            // 매물이 20개 미만이면 광고가 영영 안 보이므로, 그땐 마지막 매물 뒤에 1개 (2026-10-03 사장님 "스노우판에 안 나와")
+            const fewItems = totalCount < FEED_AD_EVERY && page === 1 && idx === products.length - 1;
+            const ad = feedAds.length && ((gIdx + 1) % FEED_AD_EVERY === 0 || fewItems) ? feedAds[Math.floor(gIdx / FEED_AD_EVERY) % feedAds.length] : null;
             return (<>
               <Link
                 to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/used/${product.id}`}
