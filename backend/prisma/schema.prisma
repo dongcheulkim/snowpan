@@ -91,6 +91,7 @@ model User {
   adViews          AdView[]
   shopPosts        ShopPost[]
   polls            Poll[]
+  eventEntries     EventEntry[]
   pollComments     PollComment[]
   travelAgencies   TravelAgency[]
   loginLogs        LoginLog[]
@@ -1552,4 +1553,20 @@ model CoupangAd {
 
   @@index([active, order])
   @@map("coupang_ads")
+}
+
+// 이벤트 신청 — 앱 출시 기념 이벤트 등. 홈 배너 → /event/:key 에서 로그인 회원이 인스타 아이디를 남기고 신청 (2026-10-03).
+// 이벤트 설정(제목·설명·경품·활성·종료일)은 AdminSetting("event_<key>") JSON.
+model EventEntry {
+  id        String   @id @default(uuid())
+  eventKey  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instagram String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventKey, userId])
+  @@index([eventKey, createdAt])
+  @@map("event_entries")
 }

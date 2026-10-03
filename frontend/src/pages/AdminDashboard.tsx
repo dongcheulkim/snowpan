@@ -11,6 +11,7 @@ import InstagramPanel from '../components/InstagramPanel';
 import AdminAppVersionPanel from '../components/AdminAppVersionPanel';
 import AdminAccessLogPanel from '../components/AdminAccessLogPanel';
 import AdminLinkHealthPanel from '../components/AdminLinkHealthPanel';
+import AdminEventPanel from '../components/AdminEventPanel';
 import AdminOpsPanel from '../components/AdminOpsPanel';
 import AdminResortsPanel from '../components/AdminResortsPanel';
 import AdInvitePanel from '../components/AdInvitePanel';
@@ -400,6 +401,7 @@ const AdminDashboard = () => {
           {tab === 'settings' && (
             <div className="space-y-3">
               <AdminOpsPanel />
+              <AdminEventPanel />
               <AdminResortsPanel />
               <InstagramPanel />
               <AdminAppVersionPanel />

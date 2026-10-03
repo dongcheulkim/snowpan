@@ -12,7 +12,7 @@ export function useBumpWithAd(onBumped?: (id: string) => void) {
   const submit = useCallback(async (id: string, proof: AdProof) => {
     setBusy(true);
     try {
-      await api(`/products/${id}/bump`, { method: 'PUT', body: JSON.stringify({ adProof: proof }) });
+      await api(`/products/${id}/bump`, { method: 'PUT', body: { adProof: proof } });
       toastSuccess('맨 위로 끌어올렸어요!');
       onBumped?.(id);
     } catch (e) {

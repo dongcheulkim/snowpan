@@ -120,6 +120,8 @@ const Home = () => {
   }, []);
 
   const [banners, setBanners] = useState<BannerData[]>([]);
+  // 앱 출시 이벤트 슬라이드 (2026-10-03) — /api/events/launch 가 open 이면 소개 슬라이드 바로 뒤에 끼움
+  const [launchEvent, setLaunchEvent] = useState<{ open: boolean; title: string; description: string; buttonLabel: string; count: number } | null>(null);
   const [hotAll, setHotAll] = useState<HotItem[]>([]); // 전체 랭킹 (칩 필터 전)
   const [hotTab, setHotTab] = useState('all'); // 홈 핫 섹션 카테고리 칩
   const [news, setNews] = useState<ShopNews[]>([]);
@@ -278,12 +280,16 @@ const Home = () => {
     api<BannerData[]>('/banners')
       .then((data) => setBanners(data))
       .catch(() => {});
+    api<{ open: boolean; title: string; description: string; buttonLabel: string; count: number }>('/events/launch')
+      .then((ev) => setLaunchEvent(ev && ev.open ? ev : null))
+      .catch(() => {});
   }, [isSnow]);
+  const eventOffset = isSnow && launchEvent ? 1 : 0;
 
   // snow: 브랜드 1 + 광고 N + 광고모집 1 (상시 회전). 다른 판: 브랜드 슬라이드만.
   // snow: 브랜드 소개 슬라이드 제거(요청) — 광고 N + 모집 1. 다른 버티컬은 소개 1장 유지.
   // snow: [베타 안내] + 광고 N + [광고 모집]
-  const totalSlides = isSnow ? banners.length + 2 : 1;
+  const totalSlides = isSnow ? banners.length + 2 + eventOffset : 1;
 
   useEffect(() => {
     if (totalSlides <= 1) return;
@@ -381,9 +387,35 @@ const Home = () => {
             );
           })()}
 
+          {/* Slide #1 (snow, 이벤트 열려 있을 때): 앱 출시 이벤트 신청 — 흑백 카드, 누르면 /event/launch (로그인 필수는 그 페이지에서) */}
+          {isSnow && launchEvent && (() => {
+            const inactive = currentBanner !== 1;
+            return (
+              <Link
+                to="/event/launch"
+                aria-hidden={inactive}
+                tabIndex={inactive ? -1 : 0}
+                className={`absolute inset-0 flex items-center px-6 transition-transform duration-500 ease-in-out cursor-pointer ${
+                  currentBanner === 1 ? 'translate-x-0' : currentBanner > 1 ? '-translate-x-full pointer-events-none' : 'translate-x-full pointer-events-none'
+                }`}
+                style={{ backgroundColor: '#111111' }}
+              >
+                <div className="relative z-10">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-1.5">EVENT</p>
+                  <p className="text-xl font-bold text-white leading-snug">{launchEvent.title}</p>
+                  <p className="text-sm text-gray-300 mt-2 leading-relaxed line-clamp-3">{launchEvent.description}</p>
+                  <span className="inline-flex items-center gap-2 mt-3.5">
+                    <span className="inline-block px-4 py-2 bg-white text-gray-900 rounded-lg text-xs font-bold">{launchEvent.buttonLabel} →</span>
+                    {launchEvent.count > 0 && <span className="text-[11px] text-gray-400">{launchEvent.count.toLocaleString()}명 신청</span>}
+                  </span>
+                </div>
+              </Link>
+            );
+          })()}
+
           {/* Slide #1~N: 광고 (snow 는 소개 슬라이드 뒤) */}
           {banners.map((banner, idx) => {
-            const slideIdx = isSnow ? idx + 1 : idx;
+            const slideIdx = isSnow ? idx + 1 + eventOffset : idx;
             const inactive = slideIdx !== currentBanner;
             return (
               <a
@@ -433,7 +465,7 @@ const Home = () => {
 
           {/* 마지막 슬라이드: 광고 모집 (snow 전용, 상시) — 눌리면 광고 신청으로 */}
           {isSnow && (() => {
-            const slideIdx = banners.length + 1;
+            const slideIdx = banners.length + 1 + eventOffset;
             const inactive = slideIdx !== currentBanner;
             return (
               <Link
