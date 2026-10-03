@@ -12,6 +12,7 @@ interface Mine { applied: boolean; instagram?: string | null; createdAt?: string
 export default function EventLaunch() {
   const navigate = useNavigate();
   const user = getUser();
+  const userId = user?.id; // getUser() 는 매 렌더 새 객체 — effect 의존성은 id 로 (객체로 두면 무한 재요청)
   const [ev, setEv] = useState<EventInfo | null | undefined>(undefined);
   const [mine, setMine] = useState<Mine | null>(null);
   const [instagram, setInstagram] = useState('');
@@ -21,8 +22,8 @@ export default function EventLaunch() {
 
   useEffect(() => {
     api<EventInfo>('/events/launch').then(setEv).catch(() => setEv(null));
-    if (user) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); }).catch(() => {});
-  }, [user]);
+    if (userId) api<Mine>('/events/launch/me').then((m) => { setMine(m); if (m.applied && m.instagram) setInstagram(m.instagram); }).catch(() => {});
+  }, [userId]);
 
   const submit = async () => {
     if (busy) return;
