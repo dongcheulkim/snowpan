@@ -11,6 +11,7 @@ export const ACCESS_ACTIONS = {
   withdrawnIdentity: 'withdrawn_identity_view',
   deletedProducts: 'deleted_products_view',
   loginHistory: 'login_history_view',
+  eventEntries: 'event_entries_view', // 이벤트 신청자 명단(성함·연락처·인스타) 열람
 } as const;
 
 export function logAdminAccess(req: Request & { user?: { id: string } }, action: string, targetId?: string | null, detail?: string | null): void {

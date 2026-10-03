@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../config/database';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth';
+import { logAdminAccess, ACCESS_ACTIONS } from '../utils/adminAudit';
 
 // 이벤트 신청 (2026-10-03, 사장님 "앱 출시 이벤트 — 메인배너에서 신청, 로그인 필수, 인스타 아이디 남기기")
 //  GET  /events/:key            공개: 이벤트 설정 + 신청자 수
@@ -120,6 +121,7 @@ router.post('/:key/apply', authenticateToken, async (req: AuthRequest, res: Resp
 router.get('/admin/:key/entries', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   const key = String(req.params.key);
   if (!KEY_RE.test(key)) { res.status(400).json({ error: '잘못된 이벤트입니다.' }); return; }
+  logAdminAccess(req, ACCESS_ACTIONS.eventEntries, null, key); // 개인정보(연락처) 열람 기록
   const rows = await prisma.eventEntry.findMany({
     where: { eventKey: key }, orderBy: { createdAt: 'desc' },
     include: { user: { select: { id: true, name: true, nickname: true, email: true, phone: true, provider: true } } },

@@ -56,6 +56,8 @@ router.post('/admin/resolve', authenticateToken, requireAdmin, async (req: AuthR
         break;
       }
       loc = next.startsWith('http') ? next : new URL(next, loc).toString();
+      // 쿠팡 도메인 밖으로 나가는 리다이렉트는 따라가지 않음 (서버가 임의 주소를 열지 않도록)
+      if (!/^https:\/\/([a-z0-9-]+\.)*(coupang\.com|coupangcdn\.com|coupa\.ng)\//i.test(loc)) break;
     }
     const title = q?.get('productDescription')?.trim() || '';
     let image = q?.get('productImage')?.trim() || '';

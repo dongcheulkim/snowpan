@@ -368,7 +368,7 @@ app.use('/api/instagram', instagramRoutes);
 app.use('/api/pre-register', strictWriteLimiter, preRegisterRoutes);
 app.use('/api/shop-posts', shopPostRoutes);
 app.use('/api/shop-staff', shopStaffRoutes);
-app.use('/api/events', eventRoutes); // 이벤트 신청 (앱 출시 이벤트, 2026-10-03)
+app.use('/api/events', strictWriteLimiter, eventRoutes); // 이벤트 신청 (앱 출시 이벤트, 2026-10-03)
 app.use('/api/coupang-ads', coupangAdRoutes); // 쿠팡 파트너스 카드 (중고 목록 피드 광고, 2026-10-02) // 매장 직원(공동 관리) 초대·참여 (2026-09-23)
 app.use('/api/shop-follows', shopFollowRoutes); // 매장 찜 (2026-09-24)
 app.use('/api/app', appVersionRoutes); // 앱 버전 안내 (2026-09-25)
