@@ -9,7 +9,7 @@ import ReviewPromptModal from '../components/ReviewPromptModal';
 import CookieConsent from '../components/CookieConsent';
 import AppUpdatePrompt from '../components/AppUpdatePrompt';
 import PushPrePrompt from '../components/PushPrePrompt';
-import InstallPrompt from '../components/InstallPrompt';
+import AppInstallCard from '../components/AppInstallCard';
 import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
 import { SITE_URL } from '../config/site';
@@ -114,11 +114,11 @@ const MainLayout = () => {
         {showAppChrome && <BottomNav />}
         <AppUpdatePrompt />
         <PushPrePrompt />
+        <AppInstallCard />
         <ToastHost />
         <PushPermissionPrompt />
         <ReviewPromptModal />
         <CookieConsent />
-        <InstallPrompt />
         <PullToRefresh />
       </div>
     </div>
