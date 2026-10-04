@@ -419,7 +419,6 @@ const Home = () => {
                   <p className="text-[15px] text-gray-300 mt-2 leading-normal line-clamp-3 whitespace-pre-line break-keep">{launchEvent.description}</p>
                   <span className="flex items-center gap-2.5 mt-3.5 mb-3">
                     <span className="inline-block px-5 py-2.5 bg-white text-gray-900 rounded-lg text-sm font-bold">{launchEvent.buttonLabel} →</span>
-                    {launchEvent.count > 0 && <span className="text-xs text-gray-400">{launchEvent.count.toLocaleString()}명 신청</span>}
                   </span>
                 </div>
               </Link>

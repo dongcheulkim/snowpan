@@ -62,7 +62,6 @@ export default function EventLaunch() {
         <p className="text-sm text-gray-300 mt-3 leading-relaxed whitespace-pre-line">{ev.description}</p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[11px] text-gray-400">
           {endsText && <span>{endsText}</span>}
-          <span>{ev.count.toLocaleString()}명 신청</span>
           <span>로그인 회원만 참여</span>
         </div>
       </div>
