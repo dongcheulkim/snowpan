@@ -28,8 +28,12 @@ api GET /events/no-such "" ""; [ "$CODE" = "404" ] && ok "없는 이벤트 404" 
 api GET "/events/BAD%20KEY" "" ""; [ "$CODE" = "400" ] && ok "잘못된 키 400" || bad "잘못된 키 CODE=$CODE"
 api POST /events/launch/apply '{"instagram":"snow_user"}' ""; [ "$CODE" = "401" ] && ok "비로그인 신청 거부" || bad "비로그인 CODE=$CODE"
 api GET /events/launch/me "" "$USER"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.applied')" = "false" ] && ok "신청 전 내 상태 applied=false" || bad "me CODE=$CODE"
-ORIGIN=https://snowpan.kr api POST /events/launch/apply '{"instagram":"web_user"}' "$USER"; [ "$CODE" = "403" ] && [ "$(echo "$RESP" | jq -r '.appOnly')" = "true" ] && ok "웹에서 신청 403 (앱에서만)" || bad "웹 신청 CODE=$CODE RESP=$RESP"
-ORIGIN=https://localhost api GET /events/launch "" ""; [ "$(echo "$RESP" | jq -r '.appOnly')" = "true" ] && ok "공개 설정에 appOnly=true" || bad "appOnly 없음 RESP=$RESP"
+# 앱 전용 스위치(appOnly): 기본 꺼짐(웹도 로그인하면 신청) — 켜면 웹 origin 은 403
+ORIGIN=https://snowpan.kr api GET /events/launch "" ""; [ "$(echo "$RESP" | jq -r '.appOnly')" = "false" ] && ok "기본은 웹 신청 허용 (appOnly=false)" || bad "appOnly 기본값 RESP=$RESP"
+api PUT /events/admin/launch '{"appOnly":true}' "$ADM" >/dev/null
+ORIGIN=https://snowpan.kr api POST /events/launch/apply '{"instagram":"web_user"}' "$USER"; [ "$CODE" = "403" ] && [ "$(echo "$RESP" | jq -r '.appOnly')" = "true" ] && ok "앱 전용 켜면 웹 신청 403" || bad "웹 신청 CODE=$CODE RESP=$RESP"
+api PUT /events/admin/launch '{"appOnly":false}' "$ADM" >/dev/null
+ORIGIN=https://snowpan.kr api POST /events/launch/apply '{"instagram":"bad id!"}' "$USER"; [ "$CODE" = "400" ] && ok "앱 전용 끄면 웹에서도 신청 처리 (검증 400)" || bad "웹 허용 CODE=$CODE"
 api POST /events/launch/apply '{"instagram":"bad id!"}' "$USER"; [ "$CODE" = "400" ] && ok "이상한 인스타 아이디 거부" || bad "인스타 검증 CODE=$CODE"
 api POST /events/launch/apply '{}' "$USER"; [ "$CODE" = "400" ] && ok "인스타 아이디 없이 신청 400 (필수)" || bad "인스타 필수 CODE=$CODE"
 api POST /events/launch/apply '{"instagram":"@Snow.User_37","message":"  스노우판 화이팅!  "}' "$USER"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.instagram')" = "snow.user_37" ] && [ "$(echo "$RESP" | jq -r '.message')" = "스노우판 화이팅!" ] && ok "신청 201 (@ 떼고 소문자로 저장, 응원 한마디 저장)" || bad "신청 CODE=$CODE RESP=$RESP"

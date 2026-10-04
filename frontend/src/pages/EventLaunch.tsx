@@ -102,7 +102,7 @@ export default function EventLaunch() {
             <p className="text-sm font-bold text-gray-900">이벤트 신청이 마감됐어요.</p>
             <p className="text-xs text-gray-500 mt-1">참여해 주신 분들께 감사드려요.</p>
           </section>
-        ) : ev.appOnly !== false && !isNativeApp() ? (
+        ) : ev.appOnly === true && !isNativeApp() ? (
           <section className="border border-gray-900 rounded-2xl p-5">
             <p className="text-sm font-bold text-gray-900">스노우판 앱에서 신청할 수 있어요</p>
             <p className="text-xs text-gray-500 mt-1 leading-relaxed">앱을 받고 로그인한 뒤, 홈 첫 화면의 이벤트 배너에서 신청해 주세요.{mine?.applied ? ' 이미 신청하신 내역은 그대로 접수돼 있어요.' : ''}</p>

@@ -22,7 +22,7 @@ const DEFAULTS: Record<string, EventConfig> = {
     prize: '',
     endsAt: null,
     buttonLabel: '이벤트 신청하기',
-    appOnly: true, // 앱을 받아야만 신청 가능 (사장님 2026-10-04 "무조건 다운받아야 신청") — 웹은 스토어 버튼만
+    appOnly: false, // true 로 켜면 앱에서만 신청(웹은 스토어 버튼만). 사장님 최종 결정 2026-10-04: 웹에서도 로그인하면 신청 가능 → 기본 꺼짐
   },
 };
 
@@ -140,7 +140,7 @@ router.put('/admin/:key', authenticateToken, requireAdmin, async (req: AuthReque
     prize: typeof b.prize === 'string' ? b.prize.trim().slice(0, 300) : cur.prize,
     endsAt: b.endsAt === null ? null : typeof b.endsAt === 'string' && !Number.isNaN(Date.parse(b.endsAt)) ? new Date(b.endsAt).toISOString() : cur.endsAt,
     buttonLabel: typeof b.buttonLabel === 'string' ? b.buttonLabel.trim().slice(0, 30) || cur.buttonLabel : cur.buttonLabel,
-    appOnly: typeof (b as { appOnly?: unknown }).appOnly === 'boolean' ? Boolean((b as { appOnly?: boolean }).appOnly) : cur.appOnly !== false,
+    appOnly: typeof (b as { appOnly?: unknown }).appOnly === 'boolean' ? Boolean((b as { appOnly?: boolean }).appOnly) : cur.appOnly === true,
   };
   await prisma.adminSetting.upsert({ where: { key: `event_${key}` }, update: { value: JSON.stringify(next) }, create: { key: `event_${key}`, value: JSON.stringify(next) } });
   res.json({ key, ...next, open: isOpen(next) });
