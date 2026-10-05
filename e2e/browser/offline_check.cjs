@@ -32,7 +32,7 @@ const ok = (c, label, extra = '') => { console.log(`${c ? 'OK  ' : 'FAIL'} ${lab
   // 앱 내 이동: 하단 탭 홈 → 홈 퀵메뉴 중고 (커뮤니티 화면엔 /used 링크가 없음)
   await p.locator('a[href="/"]').first().click().catch(() => {});
   await p.waitForTimeout(2000);
-  await p.locator('a[href="/used"]').first().click().catch(() => {});
+  await p.locator('a[href="/used"]:visible').first().click().catch(() => {});
   await p.waitForTimeout(3000);
   ok(p.url().endsWith('/used'), '오프라인: 앱 내 이동(홈 → 중고)', p.url());
   ok(await p.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length).catch(() => 0) === 1, 'SW 등록 유지(오프라인에서 하드리로드로 지워지지 않음)');

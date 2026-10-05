@@ -50,7 +50,7 @@ async function cycleSelects(page, section, label, bag) { const b0 = bag.length; 
     ok(S, '커뮤니티 HOT 섹션', /핫한 커뮤니티|HOT/.test(t)); ok(S, '중고거래 섹션', /중고/.test(t));
     const broken = await brokenImages(p); ok(S, '깨진 이미지 없음', broken.length === 0, broken.join(' , ')); await shot(p, 'home');
     for (const [name, link] of [['스키·보드샵', '/new-equipment'], ['정비샵', '/repair'], ['중고거래', '/used'], ['렌탈샵', '/rental'], ['강습', '/lesson'], ['숙소', '/accommodation'], ['커뮤니티', '/community'], ['시합일정', '/competitions'], ['라이브캠', '/webcam'], ['스키장 투어', '/overseas']]) {
-      const a = p.locator(`a[href="${link}"]`).first(); if (await a.count() === 0) { ok(S, `퀵메뉴 "${name}" 링크 존재`, false); continue; }
+      const a = p.locator(`a[href="${link}"]:visible`).first(); if (await a.count() === 0) { ok(S, `퀵메뉴 "${name}" 링크 존재`, false); continue; }
       const b0 = bag.length; await a.click({ timeout: 5000 }).catch(() => {}); await p.waitForTimeout(1500); await p.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
       ok(S, `퀵메뉴 "${name}" → ${link}`, p.url().startsWith(BASE + link) && !isErrScreen(await text(p)) && bag.length === b0, `${p.url().replace(BASE, '')} ${bag.slice(b0).join(' | ')}`); await go(p, '/', 800); }
     const links = await p.evaluate(() => Array.from(document.querySelectorAll('a[href^="/"]')).map((a) => a.getAttribute('href')).filter((h, i, arr) => arr.indexOf(h) === i));
