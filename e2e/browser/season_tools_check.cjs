@@ -24,8 +24,13 @@ async function login(p, email, pw) { await p.goto(`${BASE}/login`, { waitUntil: 
     const body = await p.locator('body').innerText();
     ok(`${tag} 스키 길이 계산 (175cm 입문 → 160~165cm)`, body.includes('160~165cm'), body.match(/\d+~\d+cm/)?.[0]);
     ok(`${tag} 폴·부츠 사이즈 표시`, /폴 길이/.test(body) && body.includes('260~265mm'));
+    // 바인딩 이탈값(DIN): 75kg·175cm·30세·솔 305·타입 II → 6.5 (ISO 11088 표), 보드에선 숨김
+    await p.getByPlaceholder('65', { exact: true }).fill('75'); await p.getByPlaceholder('30', { exact: true }).fill('30'); await p.getByPlaceholder('305').fill('305'); await p.waitForTimeout(300);
+    ok(`${tag} 바인딩 이탈값 6.5`, /권장 이탈값\n6\.5\n/.test(await p.locator('body').innerText()));
+    await p.getByPlaceholder('65', { exact: true }).fill('70');
     await p.getByRole('button', { name: '스노보드' }).click(); await p.waitForTimeout(300);
     ok(`${tag} 보드로 바꾸면 보드 길이 (151~155cm)`, (await p.locator('body').innerText()).includes('151~155cm'));
+    ok(`${tag} 보드에선 이탈값 계산 숨김`, !(await p.locator('body').innerText()).includes('바인딩 이탈값'));
     await p.getByPlaceholder('170').fill('99'); await p.waitForTimeout(200); ok(`${tag} 범위를 벗어난 키는 안내 문구`, (await p.locator('body').innerText()).includes('100~210cm'));
     await p.getByPlaceholder('170').fill('175'); await p.getByRole('link', { name: /이 길이의 중고/ }).click(); await p.waitForTimeout(2000);
     const u = new URL(p.url()); ok(`${tag} 해당 길이 중고 보드로 이동`, u.pathname === '/used' && u.searchParams.get('category') === 'board' && u.searchParams.get('len') === '150-159', p.url());
