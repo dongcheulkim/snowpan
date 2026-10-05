@@ -212,7 +212,7 @@ const Used = () => {
       <Link
         to={`${vbase}/used/register`}
         aria-label="장비 등록"
-        className="fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
+        className="fixed right-4 bottom-20 lg:right-10 lg:bottom-10 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg active:scale-95 flex items-center justify-center hover:bg-gray-800 transition-all"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </Link>
@@ -350,7 +350,7 @@ const Used = () => {
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (<>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
           {products.map((product, idx) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             // 당근식 피드 광고 — 매물 20개마다 1개, 20번째 매물 뒤에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)

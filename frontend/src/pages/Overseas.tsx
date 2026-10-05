@@ -289,7 +289,7 @@ export default function Overseas() {
               ? <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
               : <p className="text-sm text-gray-500 text-center py-12">검색 결과가 없어요.</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
               {searched.map((r) => <GridCard key={r.id} r={r} scope={(r.scope as '국내' | '해외') || '해외'} />)}
             </div>
           )}
@@ -343,7 +343,7 @@ export default function Overseas() {
               {filtered.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-12">등록된 스키장이 없어요.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                   {[...filtered]
                     .sort((a, b) => {
                       const ta = temps[camSlugOf(a.slug)];
@@ -395,14 +395,14 @@ export default function Overseas() {
                   {(country ? countries.filter(([c]) => c === country) : countries).map(([c]) => (
                     <section key={c} className="mb-5">
                       <h2 className="text-sm font-bold text-gray-900 mb-2">{c} <span className="text-gray-400 font-medium">{filtered.filter((r) => r.country === c).length}</span></h2>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                         {filtered.filter((r) => r.country === c).sort((a, b) => Number(b.popular) - Number(a.popular)).map((r) => <GridCard key={r.id} r={r} scope={scope} />)}
                       </div>
                     </section>
                   ))}
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                   {filtered.map((r) => <GridCard key={r.id} r={r} scope={scope} />)}
                 </div>
               )}

@@ -55,7 +55,7 @@ const Webcam = () => {
       ) : webcams.length === 0 ? (
         <div className="text-center py-12 text-gray-500 text-sm">웹캠 정보가 없어요.</div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           {webcams.map((cam) => {
             const hasStream = cam.camCount > 0;
             const isLive = (cam.liveCount ?? 0) > 0;

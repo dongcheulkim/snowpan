@@ -110,7 +110,7 @@ export default function NewEquipment() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-4">
           {shown.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (

@@ -144,7 +144,7 @@ export default function RepairShop() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-4">
           {shownShops.map((shop) => {
             const cover = (shop.images || shop.image || '').split(',')[0]?.trim();
             return (

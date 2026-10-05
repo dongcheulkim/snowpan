@@ -14,9 +14,17 @@ import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
 import { SITE_URL } from '../config/site';
 
-// 앱 우선 — 모든 페이지가 phone-width (max-w-md, ~448px) 로 중앙 정렬.
+// 폰·태블릿: phone-width (max-w-md, ~448px) 중앙 정렬. PC(lg, 1024px~): 전체 폭 + 상단 메뉴 + 넓은 화면 배치 (2026-10-05, 사장님 "웹은 PC 버전으로").
+// PC 에서 목록·홈 같은 '넓은' 화면은 max-w-6xl, 글·폼·마이 같은 화면은 읽기 좋은 폭(max-w-2xl)으로 가운데 둔다.
 // 데스크탑에선 양 옆에 빈 영역, 모바일에선 전체 폭. 추후 native app 으로 래핑 시
 // 같은 UI 그대로 동작.
+
+// PC 에서 넓게 쓰는 화면 — 홈과 목록류. 그 밖(상세·작성·마이·약관 등)은 좁은 가운데 칼럼.
+const WIDE_PATHS = ['/', '/snowpan', '/used', '/skishop', '/new-equipment', '/repair', '/rental', '/lesson', '/accommodation', '/community', '/webcam', '/overseas', '/search', '/shop-news', '/competitions', '/admin', '/gear-guide'];
+function isWidePage(pathname: string): boolean {
+  const p = pathname.replace(/\/+$/, '') || '/';
+  return WIDE_PATHS.includes(p) || /^\/community\/(ski|board)$/.test(p);
+}
 
 const MainLayout = () => {
   const location = useLocation();
@@ -87,7 +95,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center">
       {/* 앱 컨테이너 — 데스크탑에선 phone-width 중앙 정렬, 모바일에선 전체 폭 */}
-      <div className="relative w-full max-w-md bg-snow flex flex-col min-h-screen shadow-xl">
+      <div className="relative w-full max-w-md lg:max-w-none bg-snow flex flex-col min-h-screen shadow-xl lg:shadow-none">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-sky-500 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold">
           본문 바로가기
         </a>
@@ -96,7 +104,7 @@ const MainLayout = () => {
             <Navbar />
           </header>
         )}
-        <main id="main-content" className="flex-1 w-full px-4 py-4 pb-24">
+        <main id="main-content" className={`flex-1 w-full px-4 py-4 pb-24 lg:px-8 lg:py-6 lg:pb-14 lg:mx-auto ${isWidePage(location.pathname) ? 'lg:max-w-6xl' : 'lg:max-w-2xl'}`}>
           <Outlet />
           {/* 푸터 — 링크만 (사업자 정보 상시 표시는 토스 심사용이었고 심사 거절로 접음. 사업자정보는 /about 에 유지: 전자상거래법 표시는 링크 도달로 충족) */}
           <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-500">

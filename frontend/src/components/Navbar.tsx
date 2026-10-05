@@ -1,6 +1,6 @@
 import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import { loginPath } from '../utils/loginPath';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { tryRefreshAccessToken, api, getToken } from '../api';
 import type { Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
@@ -28,6 +28,13 @@ function useI18nRerender() {
   }, []);
 }
 
+// PC 상단 메뉴 (lg 이상에서만 보임)
+const PC_MENU: { to: string; label: string }[] = [
+  { to: '/new-equipment', label: '스키·보드샵' }, { to: '/repair', label: '정비샵' }, { to: '/rental', label: '렌탈샵' },
+  { to: '/used', label: '중고거래' }, { to: '/lesson', label: '레슨' }, { to: '/accommodation', label: '숙소' },
+  { to: '/community', label: '커뮤니티' }, { to: '/webcam', label: '실시간웹캠' }, { to: '/overseas', label: '스키장 투어' },
+];
+
 const Navbar = () => {
   const location = useLocation();
   const raw = useLocalStorageUser();
@@ -38,7 +45,7 @@ const Navbar = () => {
   let user: { id: string; name: string } | null = null;
   try { user = raw ? JSON.parse(raw) : null; } catch { user = null; }
 
-  const [, setHasUnread] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
@@ -158,12 +165,19 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b transition-shadow duration-300 pt-[env(safe-area-inset-top)] ${scrolled ? 'shadow-md border-transparent' : 'border-gray-200'}`}>
-      <div className="px-4">
-        <div className="flex items-center justify-between h-14">
+      <div className="px-4 lg:px-8 lg:max-w-6xl lg:mx-auto">
+        <div className="flex items-center justify-between h-14 lg:h-16 lg:gap-6">
           {/* 로고 = 홈 링크. 판 스위처(런닝·바이크·골프)는 출시 전까지 숨김 — 복원은 git 히스토리 참고 */}
           <Link to="/" aria-label="스노우판 홈으로">
             <Logo />
           </Link>
+
+          {/* PC 전용 가로 메뉴 — 폰에서는 홈 아이콘 그리드와 하단 탭이 이 역할 (2026-10-05) */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 min-w-0" role="navigation" aria-label="카테고리">
+            {PC_MENU.map((m) => (
+              <NavLink key={m.to} to={m.to} className={({ isActive }) => `px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>{m.label}</NavLink>
+            ))}
+          </div>
 
           <div className="flex items-center gap-1">
             <Link
@@ -190,6 +204,16 @@ const Navbar = () => {
                   </span>
                 )}
               </Link>
+            )}
+            {/* PC 전용: 하단 탭이 없으니 채팅·MY 를 여기에 */}
+            {user && (
+              <Link to="/chat/rooms" className="hidden lg:inline-flex relative items-center min-h-11 px-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100">
+                채팅
+                {hasUnread && <span className="absolute top-2 right-1.5 w-2 h-2 rounded-full bg-coral" aria-label="새 메시지" />}
+              </Link>
+            )}
+            {user && (
+              <Link to="/mypage" className="hidden lg:inline-flex items-center min-h-11 px-4 ml-1 rounded-lg text-sm font-bold bg-gray-900 text-white hover:bg-gray-700">MY</Link>
             )}
             {!user && (
               <Link

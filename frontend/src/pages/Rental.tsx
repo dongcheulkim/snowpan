@@ -124,7 +124,7 @@ const Rental = () => {
       {loading ? (
         <RowListSkeleton count={5} />
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-4">
           {shown.map((item) => {
             const cover = (item.images || item.image || '').split(',')[0]?.trim();
             return (

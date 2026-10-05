@@ -346,16 +346,16 @@ const Home = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-sky-50">
+    <div className="min-h-screen bg-sky-50 lg:bg-transparent lg:min-h-0 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:items-start">
       <h1 className="sr-only">{isSnow ? '스노우판 — 스키장 근처 매장 찾기와 스키·보드 중고거래' : `${vertical.name} — ${vertical.tagline}`}</h1>
 
       {/* Hero — 광고 rotator (스노우판 소개 슬라이드는 요청으로 제거, 광고부터 시작)
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
           어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피.
           모바일에서 임팩트 위해 정사각형 가까운 비율(5/4), 데스크탑은 슬림 유지. */}
-      <div className="px-4 pt-3 pb-5 bg-snow">
+      <div className="px-4 pt-3 pb-5 bg-snow lg:px-0 lg:pt-0 lg:col-span-7 lg:row-span-3">
         <div
-          className="relative overflow-hidden rounded-2xl border aspect-[5/4]"
+          className="relative overflow-hidden rounded-2xl border aspect-[5/4] lg:aspect-[16/9]"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
         >
           {/* 다른 버티컬만 소개 슬라이드 유지 (snow 는 광고부터) */}
@@ -526,8 +526,8 @@ const Home = () => {
       </div>
 
       {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
-      <div className="px-4 pb-5 bg-snow">
-        <div className={`grid ${isSnow ? 'grid-cols-5' : 'grid-cols-4'} gap-y-3 gap-x-1`}>
+      <div className="px-4 pb-5 bg-snow lg:px-0 lg:col-span-5">
+        <div className={`grid ${isSnow ? 'grid-cols-5' : 'grid-cols-4'} gap-y-3 gap-x-1 lg:gap-y-5`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
             return (
@@ -546,9 +546,27 @@ const Home = () => {
         </div>
       </div>
 
+      {/* PC 전용: 앱 받기 카드 (QR) — 오른쪽 칸의 빈 자리를 채우고 PC 방문자를 앱으로 안내 (2026-10-05) */}
+      {isSnow && !isNativeApp() && (
+        <div className="hidden lg:block lg:col-span-5">
+          <div className="card p-5 flex items-center gap-5">
+            <img src="/icons/qr-app.svg" alt="스노우판 앱 받기 QR" className="w-28 h-28 flex-shrink-0 rounded-lg border border-gray-200" />
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500">APP</p>
+              <p className="text-base font-bold text-gray-900 mt-1">휴대폰으로 더 편하게</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">카메라로 QR 을 찍으면 스토어로 이동해요.<br />채팅·댓글 알림을 바로 받을 수 있어요.</p>
+              <div className="flex gap-2 mt-3">
+                {APP_STORE_URL && <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold">App Store</a>}
+                {PLAY_STORE_URL && <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-gray-900 text-gray-900 text-xs font-bold">Google Play</a>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 시즌 오픈 카운트다운 — 가장 빠른 개장일 기준 (관리자 설정 > 리조트 시즌). 날짜 없으면 숨김 */}
       {isSnow && seasonCard && (
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 lg:px-0 lg:col-span-5">
           <Link to={seasonCard.to} className="card px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors">
             <span className="text-sm font-bold text-gray-900 truncate">{seasonCard.text}</span>
             <span className="text-xs text-gray-500 flex-shrink-0 ml-3">보러 가기 &gt;</span>
@@ -558,7 +576,7 @@ const Home = () => {
 
       {/* 스노우판 매거진 — 인스타 @snowpan.kr 최신 게시물(서버가 1시간마다 공식 API 로 수집). 누르면 인스타 게시물로. 없으면 섹션 숨김 */}
       {isSnow && (magazine.length > 0 || !igLoaded) && (
-        <div className="px-4 pt-2 pb-4">
+        <div className="px-4 pt-2 pb-4 lg:px-0 lg:pt-6 lg:col-span-12 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">스노우판 매거진</h2>
             <button type="button" onClick={() => openExternal(`https://www.instagram.com/${ig.username || 'snowpan.kr'}/`)} className="text-xs text-gray-500">
@@ -605,7 +623,7 @@ const Home = () => {
 
       {/* 지금 핫한 커뮤니티 — 최근 7일 인기글 상위 5. 비어도 섹션은 항상 표시 */}
       {isSnow && (
-        <div className="px-4 pt-2 pb-4">
+        <div className="px-4 pt-2 pb-4 lg:px-0 lg:pt-6 lg:col-span-6 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">지금 핫한 커뮤니티</h2>
             <Link to="/community" className="text-xs text-gray-500">전체 보기 &gt;</Link>
@@ -677,7 +695,7 @@ const Home = () => {
 
       {/* 매장 소식·이벤트 — 전 매장 최신 소식. 비어도 섹션은 항상 표시 ("곧 올라와요") */}
       {isSnow && (
-        <div className="px-4 pt-2 pb-4">
+        <div className="px-4 pt-2 pb-4 lg:px-0 lg:pt-6 lg:col-span-6 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">매장 소식·이벤트</h2>
             {/* 홈은 매장당 최신 1개만 — 밀려난 소식은 전체 페이지에서 */}
@@ -715,7 +733,7 @@ const Home = () => {
 
       {/* 방금 올라온 중고거래 — 맨 아래 — 무한 스크롤은 페이지 끝에 있어야 정상 동작. 비어도 섹션 항상 표시 */}
       {isSnow && (
-        <div className="px-4 pt-2 pb-4">
+        <div className="px-4 pt-2 pb-4 lg:px-0 lg:pt-6 lg:col-span-12 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">방금 올라온 중고거래</h2>
             <Link to="/used" className="text-xs text-gray-500">전체 보기 &gt;</Link>
@@ -726,7 +744,7 @@ const Home = () => {
               <p className="text-xs text-sky-600 font-bold mt-1.5">첫 매물을 올려보세요 &gt;</p>
             </Link>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
               {usedItems.map((it) => (
                 <Link key={it.id} to={`/used/${it.id}`} className="block active:scale-[0.98] transition-transform">
                   <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
@@ -752,7 +770,7 @@ const Home = () => {
       )}
 
       {/* 하단 여백 — 마지막 섹션과 바텀 내비 사이 */}
-      <div className="pb-6" />
+      <div className="pb-6 lg:col-span-12" />
     </div>
   );
 };

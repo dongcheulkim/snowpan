@@ -165,7 +165,7 @@ const Accommodation = () => {
       {loading ? (
         <RowListSkeleton count={8} />
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-4">
           {accommodations.map((item) => {
             const hasCover = item.image.startsWith('/') || item.image.startsWith('http');
             const typeLabel = item.type.split(',').map(t => typeMap[t] || t).filter(Boolean).join(', ');

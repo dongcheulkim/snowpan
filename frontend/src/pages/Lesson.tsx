@@ -174,7 +174,7 @@ const Lesson = () => {
       {loading ? (
         <RowListSkeleton count={8} />
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-4">
           {lessonItems.map((item) => {
             const cover = (item.images && item.images.split(',')[0]) || item.image || '';
             const hasCover = !!cover && (cover.startsWith('/') || cover.startsWith('http'));

@@ -639,7 +639,7 @@ const UsedDetail = () => {
       {/* 하단 sticky 액션바 — 채팅 버튼이 스크롤로 사라지면 화면 하단에 고정 노출.
           당근·번개장터식 — 거래 시작까지의 스크롤 마찰 제거 (하단 네비 위에 안착) */}
       {!isMyProduct && product.status !== 'sold' && showStickyBar && (
-        <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] z-40 bg-snow/95 backdrop-blur border-t border-gray-200 px-4 py-2.5 animate-fade-in-up">
+        <div className="fixed inset-x-0 bottom-[calc(56px+env(safe-area-inset-bottom))] lg:bottom-0 z-40 bg-snow/95 backdrop-blur border-t border-gray-200 px-4 py-2.5 animate-fade-in-up">
           <div className="max-w-4xl mx-auto flex items-center gap-2.5">
             <div className="flex-shrink-0">
               <p className="text-[11px] text-gray-500 leading-none">{product.status === 'reserved' ? '예약중' : '판매중'}</p>
