@@ -49,8 +49,6 @@ export function findLiveVideoIds(html: string): string[] {
   return out;
 }
 
-export async function isYoutubeChannelLive(channelId: string): Promise<boolean | null> { return (await resolveYoutubeLive(channelId)).live; }
-
 // YouTube Data API(키가 있을 때) — 채널의 지금 라이브 영상 목록을 정확히 준다. search.list 는 100 유닛이라 2시간 캐시 (일 1만 유닛 한도 안).
 const API_TTL_MS = 2 * 60 * 60 * 1000;
 const apiCache = new Map<string, { at: number; lives: { id: string; title: string }[] | null }>();

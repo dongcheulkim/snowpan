@@ -226,7 +226,7 @@ function SizeCalculator({ sport, level }: { sport: Sport; level: Level }) {
           {footOk && (
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-xs font-bold text-gray-600">부츠 사이즈</span>
-              <span className="text-sm font-bold text-gray-900 tabular-nums">{Math.floor(f / 5) * 5}~{Math.ceil(f / 5) * 5 === Math.floor(f / 5) * 5 ? Math.floor(f / 5) * 5 + 5 : Math.ceil(f / 5) * 5}mm</span>
+              <span className="text-sm font-bold text-gray-900 tabular-nums">{Math.floor(f / 5) * 5}~{Math.floor(f / 5) * 5 + 5}mm</span>
             </div>
           )}
           <p className="text-[11px] text-gray-500 leading-relaxed">
