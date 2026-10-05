@@ -74,7 +74,7 @@ export default function ShopReservations() {
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-4 animate-fade-in">
+    <div className="max-w-md lg:max-w-3xl mx-auto space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/mypage/shops" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">예약 관리</h1>

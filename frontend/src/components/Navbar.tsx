@@ -46,6 +46,14 @@ const Navbar = () => {
   try { user = raw ? JSON.parse(raw) : null; } catch { user = null; }
 
   const [hasUnread, setHasUnread] = useState(false);
+  // PC 상단에 '매장 관리' 바로가기 — 매장을 가진 사장님에게만 (세션 동안 기억해 화면마다 다시 묻지 않음)
+  const [isOwner, setIsOwner] = useState<boolean>(() => { try { return sessionStorage.getItem('snowpan.isOwner') === '1'; } catch { return false; } });
+  useEffect(() => {
+    if (!user?.id) { setIsOwner(false); return; }
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return; // 폰에서는 이 버튼이 안 보이니 요청하지 않음
+    api<{ isOwner: boolean }>('/auth/business-status').then((d) => { setIsOwner(!!d.isOwner); try { sessionStorage.setItem('snowpan.isOwner', d.isOwner ? '1' : '0'); } catch { /* ignore */ } }).catch(() => {});
+     
+  }, [user?.id]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
@@ -173,13 +181,13 @@ const Navbar = () => {
           </Link>
 
           {/* PC 전용 가로 메뉴 — 폰에서는 홈 아이콘 그리드와 하단 탭이 이 역할 (2026-10-05) */}
-          <div className="hidden lg:flex items-center gap-1 flex-1 min-w-0" role="navigation" aria-label="카테고리">
+          <div className="hidden lg:flex items-center gap-0.5 flex-1 min-w-0 overflow-x-auto no-scrollbar" role="navigation" aria-label="카테고리">
             {PC_MENU.map((m) => (
-              <NavLink key={m.to} to={m.to} className={({ isActive }) => `px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>{m.label}</NavLink>
+              <NavLink key={m.to} to={m.to} className={({ isActive }) => `px-2.5 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap flex-shrink-0 transition-colors ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>{m.label}</NavLink>
             ))}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Link
               to={`${vertical.slug === 'snow' ? '' : vertical.basePath}/search`}
               aria-label="검색"
@@ -211,6 +219,9 @@ const Navbar = () => {
                 채팅
                 {hasUnread && <span className="absolute top-2 right-1.5 w-2 h-2 rounded-full bg-coral" aria-label="새 메시지" />}
               </Link>
+            )}
+            {user && isOwner && (
+              <Link to="/mypage/shops" className="hidden lg:inline-flex items-center min-h-11 px-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100">매장 관리</Link>
             )}
             {user && (
               <Link to="/mypage" className="hidden lg:inline-flex items-center min-h-11 px-4 ml-1 rounded-lg text-sm font-bold bg-gray-900 text-white hover:bg-gray-700">MY</Link>

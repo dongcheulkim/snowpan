@@ -20,7 +20,7 @@ import { SITE_URL } from '../config/site';
 // 같은 UI 그대로 동작.
 
 // PC 에서 넓게 쓰는 화면 — 홈과 목록류. 그 밖(상세·작성·마이·약관 등)은 좁은 가운데 칼럼.
-const WIDE_PATHS = ['/', '/snowpan', '/used', '/skishop', '/new-equipment', '/repair', '/rental', '/lesson', '/accommodation', '/community', '/webcam', '/overseas', '/search', '/shop-news', '/competitions', '/admin', '/gear-guide'];
+const WIDE_PATHS = ['/mypage/shops', '/mypage/shop-reservations', '/mypage/ads', '/', '/snowpan', '/used', '/skishop', '/new-equipment', '/repair', '/rental', '/lesson', '/accommodation', '/community', '/webcam', '/overseas', '/search', '/shop-news', '/competitions', '/admin', '/gear-guide'];
 // 매물·매장·웹캠 상세 — 사진 왼쪽·정보 오른쪽 2단이라 중간 폭
 function isDetailPage(pathname: string): boolean {
   return /^\/(used|skishop|repair|rental|lesson|accommodation|webcam)\/[^/]+$/.test(pathname.replace(/\/+$/, '')) && !/\/(register|write)$/.test(pathname);

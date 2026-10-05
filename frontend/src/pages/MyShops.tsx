@@ -575,8 +575,9 @@ export default function MyShops() {
   const visibleCategories = CATEGORIES.filter((c) => shops[c.key].length > 0);
 
   return (
-    <div className="max-w-md mx-auto space-y-5 animate-fade-in">
-      <div className="flex items-center justify-between">
+    // 폰: 세로 한 줄(순서는 order-* 로 예전 그대로). PC(lg~): 왼쪽 넓은 칸 = 오늘 할 일·예약 일정·내 매장·새 등록, 오른쪽 좁은 칸(따라옴) = 통계·예약 관리·알림 설정 (2026-10-05 사장님 "웹에서 관리하기 쉽게")
+    <div className="max-w-md lg:max-w-none mx-auto flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start animate-fade-in">
+      <div className="flex items-center justify-between lg:col-span-12">
         <div className="flex items-center gap-3">
           <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
           <h1 className="text-xl font-bold text-gray-900">사장님 대시보드</h1>
@@ -584,15 +585,16 @@ export default function MyShops() {
         <Link to="/mypage/ads" className="text-xs text-gray-900 font-bold underline underline-offset-2">광고 관리</Link>
       </div>
 
-      <p className="text-xs text-gray-500 -mt-2">
+      <p className="text-xs text-gray-500 -mt-2 lg:col-span-12">
         매장 정보 수정, 소식·이벤트 등록, 신규 등록까지 여기서 한번에 관리하세요.{' '}
         <Link to="/partners/find" className="text-gray-700 underline underline-offset-2">이미 올라온 내 매장 찾기</Link>
       </p>
 
+      <div className="contents lg:block lg:col-span-8 lg:space-y-5">
       {totalShops > 0 && summary && (
         <>
           {/* 오늘 할 일 — 예약 요청·읽지 않은 문의·답글 없는 리뷰·새 신청 */}
-          <div className="card p-4">
+          <div className="card p-4 order-1 lg:order-none">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-gray-900">오늘 할 일</h2>
               <span className="text-[11px] text-gray-500">오늘 예약 {summary.todo.todayReservations}건</span>
@@ -606,7 +608,7 @@ export default function MyShops() {
           </div>
 
           {/* 예약 일정 — 앞으로 2주, 날짜별 */}
-          <div className="card p-4">
+          <div className="card p-4 order-2 lg:order-none">
             <h2 className="text-sm font-bold text-gray-900 mb-2">예약 일정 <span className="text-[11px] font-normal text-gray-500">앞으로 2주</span></h2>
             {summary.schedule.length === 0 ? (
               <p className="text-xs text-gray-500">앞으로 2주 안에 잡힌 예약이 없어요.</p>
@@ -633,52 +635,19 @@ export default function MyShops() {
             )}
           </div>
 
-          {/* 최근 30일 통계 */}
-          <div className="card p-4">
-            <h2 className="text-sm font-bold text-gray-900 mb-2">최근 30일</h2>
-            <div className="grid grid-cols-3 gap-2">
-              {([['예약 요청', summary.last30d.requests], ['확정', summary.last30d.confirmed], ['거절·취소', summary.last30d.declined + summary.last30d.cancelled], ['새 리뷰', summary.last30d.reviews], ['모집 신청', summary.last30d.applications], ['문의 대화', summary.last30d.chats]] as [string, number][]).map(([l, n]) => (
-                <div key={l} className="bg-gray-50 rounded-lg p-2.5 text-center">
-                  <div className="text-lg font-bold text-gray-900">{n}</div>
-                  <div className="text-[10px] text-gray-500">{l}</div>
-                </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-gray-500 mt-2">등록 업소 {totalShops} · 총 조회수 {totalViews.toLocaleString()}</p>
-          </div>
         </>
       )}
-
-      {/* 알림 받기 — 예약 요청·새 문의·승인 결과 문자·메일 채널 설정 (매장이 있을 때만) */}
-      {totalShops > 0 && <OwnerAlertSettings />}
-
-      {/* 예약 관리 — 손님이 보낸 방문 예약(결제 없음)을 확정·거절하는 곳. 매장이 하나도 없으면 숨김 */}
-      {totalShops > 0 && (
-        <Link to="/mypage/shop-reservations" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-          <div className="min-w-0">
-            <div className="text-sm font-bold text-gray-900">예약 관리{pendingReservations !== null ? ` · 요청 ${pendingReservations}건` : ''}</div>
-            <div className="text-[11px] text-gray-500 mt-0.5">손님이 보낸 방문 예약을 확정하거나 거절할 수 있어요.</div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {!!pendingReservations && (
-              <span className="bg-coral text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{pendingReservations > 99 ? '99+' : pendingReservations}</span>
-            )}
-            <span className="text-gray-500 text-xs">→</span>
-          </div>
-        </Link>
-      )}
-
       {visibleCategories.length === 0 && (loadError ? (
-        <LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} />
+        <div className="order-6 lg:order-none"><LoadError message={loadError} onRetry={() => setRetryKey((k) => k + 1)} /></div>
       ) : (
-        <div className="card p-8 text-center">
+        <div className="card p-8 text-center order-6 lg:order-none">
           <p className="text-sm text-gray-500">아직 등록한 매장이 없어요.</p>
           <p className="text-xs text-gray-500 mt-1">아래에서 업종을 선택해 첫 매장을 등록해보세요.</p>
         </div>
       ))}
 
       {visibleCategories.map((cat) => (
-        <div key={cat.key} className="card p-5">
+        <div key={cat.key} className="card p-5 order-6 lg:order-none">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5">
               <cat.Icon size={16} /> {cat.label}
@@ -691,7 +660,7 @@ export default function MyShops() {
         </div>
       ))}
 
-      <div className="card p-5">
+      <div className="card p-5 order-7 lg:order-none">
         <h2 className="text-sm font-bold text-gray-900 mb-3">새 매장 등록</h2>
         <div className="grid grid-cols-5 gap-2">
           {CATEGORIES.map((cat) => (
@@ -705,6 +674,46 @@ export default function MyShops() {
             </Link>
           ))}
         </div>
+      </div>
+      </div>
+
+      <div className="contents lg:block lg:col-span-4 lg:space-y-5 lg:sticky lg:top-24">
+      {totalShops > 0 && summary && (
+        <>
+          {/* 최근 30일 통계 */}
+          <div className="card p-4 order-3 lg:order-none">
+            <h2 className="text-sm font-bold text-gray-900 mb-2">최근 30일</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {([['예약 요청', summary.last30d.requests], ['확정', summary.last30d.confirmed], ['거절·취소', summary.last30d.declined + summary.last30d.cancelled], ['새 리뷰', summary.last30d.reviews], ['모집 신청', summary.last30d.applications], ['문의 대화', summary.last30d.chats]] as [string, number][]).map(([l, n]) => (
+                <div key={l} className="bg-gray-50 rounded-lg p-2.5 text-center">
+                  <div className="text-lg font-bold text-gray-900">{n}</div>
+                  <div className="text-[10px] text-gray-500">{l}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-500 mt-2">등록 업소 {totalShops} · 총 조회수 {totalViews.toLocaleString()}</p>
+          </div>
+        </>
+      )}
+      {/* 알림 받기 — 예약 요청·새 문의·승인 결과 문자·메일 채널 설정 (매장이 있을 때만) */}
+      {totalShops > 0 && <div className="order-4 lg:order-none"><OwnerAlertSettings /></div>}
+
+      {/* 예약 관리 — 손님이 보낸 방문 예약(결제 없음)을 확정·거절하는 곳. 매장이 하나도 없으면 숨김 */}
+      {totalShops > 0 && (
+        <Link to="/mypage/shop-reservations" className="card p-4 flex items-center justify-between hover:bg-gray-50 transition-colors order-5 lg:order-none">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-gray-900">예약 관리{pendingReservations !== null ? ` · 요청 ${pendingReservations}건` : ''}</div>
+            <div className="text-[11px] text-gray-500 mt-0.5">손님이 보낸 방문 예약을 확정하거나 거절할 수 있어요.</div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!!pendingReservations && (
+              <span className="bg-coral text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{pendingReservations > 99 ? '99+' : pendingReservations}</span>
+            )}
+            <span className="text-gray-500 text-xs">→</span>
+          </div>
+        </Link>
+      )}
+
       </div>
     </div>
   );
