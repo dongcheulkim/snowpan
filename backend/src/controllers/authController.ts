@@ -706,6 +706,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
       await tx.badgeRequest.deleteMany({ where: { userId } });
       await tx.wishlist.deleteMany({ where: { userId } });
       await tx.savedSearch.deleteMany({ where: { userId } });
+      await tx.resortOpenAlert.deleteMany({ where: { userId } }); // 스키장 개장 알림 신청
       await tx.notification.deleteMany({ where: { userId } });
       await tx.shopClaim.deleteMany({ where: { userId, status: 'pending' } });
       await tx.userLogin.deleteMany({ where: { userId } }); // 연결된 소셜 로그인 전부 해제

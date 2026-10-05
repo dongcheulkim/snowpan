@@ -65,6 +65,9 @@ api DELETE "/resorts/$RID/open-alert" "" "$U2"; [ "$CODE" = "200" ] && [ "$(echo
 pq "UPDATE ski_resorts SET \"openDate\"='$YESTERDAY' WHERE id='$RID'; UPDATE resort_open_alerts SET \"createdAt\"=now() - interval '10 days'" >/dev/null
 api POST "/resorts/$RID/open-alert" "" "$U2" >/dev/null # 개장 뒤 다음 시즌용 신청은 남아야 함
 R=$(daily); [ "$R" = "0,1" ] && [ "$(pq "SELECT count(*) FROM resort_open_alerts WHERE \"userId\"='$U1_ID'")" = "0" ] && [ "$(pq "SELECT count(*) FROM resort_open_alerts WHERE \"userId\"='$U2_ID'")" = "1" ] && ok "개장 뒤 지난 신청만 정리 (새 신청은 유지)" || bad "정리 daily=$R"
+# 탈퇴하면 신청도 함께 삭제
+api DELETE /auth/account '{"password":"Re!pass1234"}' "$U2"
+[ "$(pq "SELECT count(*) FROM resort_open_alerts WHERE \"userId\"='$U2_ID'")" = "0" ] && ok "탈퇴하면 개장 알림 신청 삭제 (CODE=$CODE)" || bad "탈퇴 후 신청 잔존 CODE=$CODE RESP=$(echo "$RESP" | head -c 120)"
 api PUT "/resorts/$RID/season" "{\"openDate\":\"$YESTERDAY\",\"seasonNote\":\"\"}" "$ADM" >/dev/null
 pq "UPDATE ski_resorts SET \"openDate\"=NULL, \"closeDate\"=NULL, \"seasonNote\"=NULL WHERE id='$RID'; DELETE FROM resort_open_alerts" >/dev/null
 
