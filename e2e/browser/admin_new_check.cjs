@@ -13,6 +13,8 @@ async function login(p, email, pw) { await p.goto(`${BASE}/login`, { waitUntil: 
   if (await userTab.count()) { await userTab.click(); await p.waitForTimeout(1500); }
   const body = await p.textContent('body');
   ok('유저관리 목록 표시', /명/.test(body || ''));
+  // 회원이 늘어 목록이 여러 쪽으로 나뉨(2026-10-05) → 검색으로 탈퇴 회원을 찾아서 확인
+  { const sb = p.locator('input[placeholder*="검색"]').first(); if (await sb.count()) { await sb.fill('탈퇴'); await p.waitForTimeout(800); } }
   const delCard = p.locator('text=탈퇴').first();
   const hasDel = (await delCard.count()) > 0;
   ok('탈퇴 회원 카드 표시(탈퇴 배지)', hasDel);
