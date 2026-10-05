@@ -17,6 +17,7 @@ node feature_check.cjs # 2026-09-17 기능: 시합 등록 폼, 리조트 후기 
 node deep_feature_check.cjs # 데이터 없어 건너뛰는 흐름 실제 실행: 렌탈 예약 문의(소유자를 관리자로 가로채 고객센터 방으로) → 자동 전송, 판매완료 구매자 선택 창, 시합 신청 제출→관리자 삭제, 글·스키샵 공유 카드
 node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(방문/미방문=app-shell)·앱 내 이동 (BASE=http://localhost:4173 로 로컬 preview 도 가능)
 node admin_new_check.cjs # 2026-09-26 관리자 신규: 탈퇴 회원 마스킹·원래 정보 보기, 설정 탭 열람 기록·앱 버전 패널, 이용 안내 페이지
+node season_tools_check.cjs # 2026-10-05 기능: 스키장 개장 알림(신청·유지·끄기, 데이터 안 남김), 장비 사이즈 계산기 → 길이별 중고 이동 (폰·PC)
 node webkit_smoke.cjs # 사파리 엔진(WebKit)으로 17개 경로 렌더·문구·가로 스크롤·페이지 오류
 ```
 

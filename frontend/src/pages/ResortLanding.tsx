@@ -87,7 +87,7 @@ export default function ResortLanding() {
   }, [userId, resortId]);
   const toggleAlert = async () => {
     if (!resortId || alertBusy) return;
-    if (!userId) { navigate('/login'); return; }
+    if (!userId) { navigate(`/login?next=${encodeURIComponent(window.location.pathname)}`); return; }
     setAlertBusy(true); setAlertMsg('');
     try {
       const r = await api<{ subscribed: boolean }>(`/resorts/${resortId}/open-alert`, { method: alertOn ? 'DELETE' : 'POST' });
