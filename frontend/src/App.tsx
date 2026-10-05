@@ -89,6 +89,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdBooking = lazy(() => import('./pages/AdBooking'));
 const EventLaunch = lazy(() => import('./pages/EventLaunch'));
+const AppRedirect = lazy(() => import('./pages/AppRedirect'));
 const AdPay = lazy(() => import('./pages/AdPay'));
 const AdPayResult = lazy(() => import('./pages/AdPayResult'));
 const Advertise = lazy(() => import('./pages/Advertise'));
@@ -227,6 +228,7 @@ function App() {
             <Route path="ad-booking/edit/:editId" element={<RequireAuth><AdBooking /></RequireAuth>} />
             <Route path="ad-booking/pay/success" element={<RequireAuth><AdPayResult /></RequireAuth>} />
             <Route path="ad-booking/pay/fail" element={<AdPayResult />} />
+            <Route path="app" element={<AppRedirect />} /> {/* 포스터 QR 용: 기기에 맞는 스토어로 이동 */}
             <Route path="event/launch" element={<EventLaunch />} /> {/* 앱 출시 이벤트 신청 (2026-10-03) — 로그인은 페이지 안에서 안내 */}
             <Route path="ad-booking/pay/:id" element={<RequireAuth><AdPay /></RequireAuth>} />
             <Route path="admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
