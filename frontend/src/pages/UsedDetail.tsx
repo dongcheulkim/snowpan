@@ -255,7 +255,7 @@ const UsedDetail = () => {
   }, [product?.id]);
 
   // 끌어올리기 = 광고 보기 (앱: 애드몹 영상, 웹: 광고 카드 5초) — 2026-10-02
-  const { start: startBump, busy: bumping, modal: bumpModal } = useBumpWithAd(() => { setProduct((p) => p ? { ...p, bumpedAt: new Date().toISOString() } : p); });
+  const { start: startBump, busy: bumping, modal: bumpModal, credits: bumpCredits } = useBumpWithAd(() => { setProduct((p) => p ? { ...p, bumpedAt: new Date().toISOString() } : p); });
   const handleBump = () => { if (id) void startBump(id); };
 
 
@@ -410,7 +410,7 @@ const UsedDetail = () => {
                         className="text-xs font-bold px-2.5 py-1 rounded bg-gray-900 text-white active:scale-95 transition-transform disabled:opacity-50 inline-flex items-center gap-1"
                       >
                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                        {bumping ? '처리중' : '광고 보고 끌어올리기'}
+                        {bumping ? '처리중' : bumpCredits ? `끌어올리기 (${bumpCredits}개 보유)` : '광고 보고 끌어올리기'}
                       </button>
                     )}
                   </>

@@ -12,6 +12,10 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   password      String?  // 소셜 로그인 유저는 비밀번호 없음
+  // 끌어올리기권 (2026-10-05): 광고 1회 시청 = 1개 적립, 매물에 쓰면 1개 차감. 적립은 하루 3개(KST)·보유 최대 10개.
+  bumpCredits   Int      @default(0)
+  bumpEarnDay   String?  // 마지막 적립 날짜 'YYYY-MM-DD'(KST)
+  bumpEarnCount Int      @default(0) // 그 날짜에 적립(또는 광고 보고 바로 끌어올린) 횟수
   name          String
   nickname      String?  @unique // 앱 검증 + DB 유니크로 경합 시 중복 차단(P2002)
   displayName   String   @default("name") // 'name' | 'nickname'

@@ -831,49 +831,100 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
 };
 
 // 끌어올리기
-// 끌어올리기 — "광고 보고 끌어올리기" 로 바뀜 (사장님 결정 2026-10-02). 광고 1회 시청 = 끌어올리기 1회.
-//  - body.adProof: { source: 'admob' | 'house', adId? }  앱은 애드몹 보상형 영상, 웹은 입점 광고주 카드 5초 시청(house).
-//  - 같은 매물은 1시간에 한 번, 한 회원은 하루 3회(KST). 관리자는 광고 없이 가능.
-//  - 애드몹 서버 검증(SSV)은 미도입 — 클라이언트 보상 콜백을 믿되 하루 3회 한도로 어뷰징 상한.
+// 끌어올리기 — 광고 1회 시청 = 끌어올리기권 1개 (사장님 결정 2026-10-02, 적립식은 2026-10-05).
+//  - POST /products/bump-credits/earn { adProof }  광고 보고 1개 적립 (하루 3개 KST, 보유 최대 10개)
+//  - GET  /products/bump-credits                  내 보유 수·오늘 적립 수
+//  - PUT  /products/:id/bump                      ① adProof 가 오면 광고 보고 바로 끌어올리기(2.0·2.1 앱) ② 없으면 보유권 1개 사용
+//  - 같은 매물은 1시간에 한 번. 관리자는 권 없이 가능. 1.9 이하 앱(광고 기능 없음)은 기한까지 예전 24시간 규칙.
+//  - 애드몹 서버 검증(SSV)은 미도입 — 클라이언트 보상 콜백을 믿되 하루 적립 3개로 어뷰징 상한.
 const BUMP_MIN_INTERVAL_MS = 60 * 60 * 1000;
 const BUMP_DAILY_LIMIT = 3;
-const BUMP_LEGACY_UNTIL = Date.parse('2026-11-30T15:00:00Z'); // 2.0 배포 뒤 지나면 구앱도 광고 필수
+const BUMP_MAX_HOLD = 10;
+const BUMP_LEGACY_UNTIL = Date.parse('2026-11-30T15:00:00Z'); // 지나면 구앱도 광고 필수
+type AdProofBody = { source?: string; adId?: string };
+function kstDay(): string { return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10); }
+function validProof(p: AdProofBody | undefined): boolean { return !!p && ['admob', 'house'].includes(String(p.source)); }
+function readProof(req: AuthRequest): AdProofBody | undefined {
+  return (req.body && typeof req.body === 'object' ? (req.body as { adProof?: AdProofBody }).adProof : undefined) || undefined;
+}
+async function bumpState(userId: string) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { bumpCredits: true, bumpEarnDay: true, bumpEarnCount: true } });
+  const today = kstDay();
+  const earnedToday = u && u.bumpEarnDay === today ? u.bumpEarnCount : 0;
+  return { credits: u?.bumpCredits ?? 0, earnedToday, today };
+}
+// 오늘 적립 횟수 +1 (날짜가 바뀌었으면 1부터)
+async function countEarn(userId: string, today: string, earnedToday: number, addCredit: boolean) {
+  await prisma.user.update({ where: { id: userId }, data: { bumpEarnDay: today, bumpEarnCount: earnedToday + 1, ...(addCredit ? { bumpCredits: { increment: 1 } } : {}) } });
+}
+
+export const getBumpCredits = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const st = await bumpState(req.user!.id);
+    res.json({ credits: st.credits, earnedToday: st.earnedToday, dailyLimit: BUMP_DAILY_LIMIT, maxHold: BUMP_MAX_HOLD });
+  } catch (error) { console.error('Bump credits error:', error); res.status(500).json({ error: '끌어올리기 정보를 불러오지 못했어요.' }); }
+};
+
+export const earnBumpCredit = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    if (!validProof(readProof(req))) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1개가 주어져요.', needAd: true }); return; }
+    const st = await bumpState(userId);
+    if (st.earnedToday >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `끌어올리기는 하루 ${BUMP_DAILY_LIMIT}개까지 받을 수 있어요. 내일 다시 받아 주세요.` }); return; }
+    if (st.credits >= BUMP_MAX_HOLD) { res.status(409).json({ error: `끌어올리기는 ${BUMP_MAX_HOLD}개까지 모을 수 있어요. 먼저 사용해 주세요.` }); return; }
+    await countEarn(userId, st.today, st.earnedToday, true);
+    res.status(201).json({ credits: st.credits + 1, earnedToday: st.earnedToday + 1, dailyLimit: BUMP_DAILY_LIMIT, maxHold: BUMP_MAX_HOLD });
+  } catch (error) { console.error('Earn bump credit error:', error); res.status(500).json({ error: '끌어올리기를 받지 못했어요. 잠시 뒤 다시 해 주세요.' }); }
+};
+
 export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
     const isAdmin = req.user!.role === 'admin';
-    const proof = (req.body && typeof req.body === 'object' ? (req.body as { adProof?: { source?: string; adId?: string } }).adProof : undefined) || undefined;
+    const proof = readProof(req);
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) { res.status(404).json({ error: '상품을 찾을 수 없습니다.' }); return; }
     if (product.userId !== userId && !isAdmin) { res.status(403).json({ error: '본인의 상품만 끌어올릴 수 있습니다.' }); return; }
-    // 1.9 이하 앱(광고 기능 없음)은 2.0 심사 통과 전까지 예전 규칙(24시간 1회)으로 — 앱 웹뷰 UA 만, 기한 지나면 자동 종료
+
+    // 어떤 방식으로 끌어올리나: admin(무조건) / proof(광고 보고 바로) / credit(보유권 사용) / legacy(구앱 24시간 규칙)
     const ua = String(req.headers['user-agent'] || '');
-    const legacyApp = !proof && Date.now() < BUMP_LEGACY_UNTIL && (/; wv\)/.test(ua) || (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua)));
-    if (!isAdmin && !legacyApp) {
-      if (!proof || !['admob', 'house'].includes(String(proof.source))) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1회가 주어져요.', needAd: true }); return; }
-      // 하루 한도 — 오늘(KST) 내 매물 중 끌어올린 수
-      const kstNow = new Date(Date.now() + 9 * 3600_000); const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600_000);
-      const today = await prisma.product.count({ where: { userId, bumpedAt: { gte: dayStartUtc }, deletedAt: null } });
-      if (today >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `끌어올리기는 하루 ${BUMP_DAILY_LIMIT}회까지예요. 내일 다시 할 수 있어요.` }); return; }
+    const st = isAdmin ? null : await bumpState(userId);
+    let mode: 'admin' | 'proof' | 'credit' | 'legacy';
+    if (isAdmin) mode = 'admin';
+    else if (proof) {
+      if (!validProof(proof)) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1개가 주어져요.', needAd: true }); return; }
+      if (st!.earnedToday >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `광고 보고 끌어올리기는 하루 ${BUMP_DAILY_LIMIT}회까지예요. 내일 다시 할 수 있어요.` }); return; }
+      mode = 'proof';
+    } else if (st!.credits > 0) mode = 'credit';
+    else if (Date.now() < BUMP_LEGACY_UNTIL && (/; wv\)/.test(ua) || (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua))) && !(req.body && (req.body as { useCredit?: boolean }).useCredit)) mode = 'legacy';
+    else { res.status(400).json({ error: '끌어올리기가 없어요. 짧은 광고를 보면 1개를 받을 수 있어요.', needAd: true }); return; }
+
+    // 보유권 사용은 먼저 원자적으로 1개 차감 (동시 요청으로 2번 쓰이지 않게). 매물 조건에 걸리면 아래에서 돌려줌.
+    if (mode === 'credit') {
+      const dec = await prisma.user.updateMany({ where: { id: userId, bumpCredits: { gt: 0 } }, data: { bumpCredits: { decrement: 1 } } });
+      if (dec.count === 0) { res.status(400).json({ error: '끌어올리기가 없어요. 짧은 광고를 보면 1개를 받을 수 있어요.', needAd: true }); return; }
     }
-    // 조건부 원자 업데이트 — 1시간 안 재요청·동시 요청 차단 (count=0 이면 방금 다른 요청이 처리했거나 아직 1시간 안 지남)
-    const cutoff = new Date(Date.now() - (legacyApp ? 24 * 3600_000 : BUMP_MIN_INTERVAL_MS));
+    // 조건부 원자 업데이트 — 1시간(구앱 24시간) 안 재요청·동시 요청 차단
+    const interval = mode === 'legacy' ? 24 * 3600_000 : BUMP_MIN_INTERVAL_MS;
+    const cutoff = new Date(Date.now() - interval);
     const bumped = await prisma.product.updateMany({
       where: { id, OR: [{ bumpedAt: null }, { bumpedAt: { lt: cutoff } }] },
       data: { bumpedAt: new Date() },
     });
     if (bumped.count === 0) {
-      const interval = legacyApp ? 24 * 3600_000 : BUMP_MIN_INTERVAL_MS;
+      if (mode === 'credit') await prisma.user.update({ where: { id: userId }, data: { bumpCredits: { increment: 1 } } }); // 못 썼으니 환불
       const mins = product.bumpedAt ? Math.max(1, Math.ceil((interval - (Date.now() - new Date(product.bumpedAt).getTime())) / 60000)) : 60;
-      res.status(429).json({ error: legacyApp ? `끌어올리기는 24시간에 한 번 할 수 있어요. 앱을 최신으로 업데이트하면 광고 보고 더 자주 끌어올릴 수 있어요.` : `같은 매물은 1시간에 한 번만 끌어올릴 수 있어요. ${mins}분 뒤 다시 해 주세요.` });
+      res.status(429).json({ error: mode === 'legacy' ? `끌어올리기는 24시간에 한 번 할 수 있어요. 앱을 최신으로 업데이트하면 광고 보고 더 자주 끌어올릴 수 있어요.` : `같은 매물은 1시간에 한 번만 끌어올릴 수 있어요. ${mins}분 뒤 다시 해 주세요.` });
       return;
     }
+    if (mode === 'proof') await countEarn(userId, st!.today, st!.earnedToday, false); // 광고 보고 바로 쓴 것도 하루 3회에 포함
     const updated = await prisma.product.findUnique({ where: { id } });
     cacheDelPrefix('products:');
     cacheDelPrefix('market:');
     cacheDelPrefix('home:hotdeals');
-    res.json(updated);
+    const after = isAdmin ? null : await bumpState(userId);
+    res.json({ ...updated, bumpCreditsLeft: after ? after.credits : undefined });
   } catch (error) {
     console.error('Bump product error:', error);
     res.status(500).json({ error: '끌어올리기 중 오류가 발생했습니다.' });

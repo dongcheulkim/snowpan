@@ -283,6 +283,23 @@ api PUT "/products/$PD/bump" '{"adProof":{"source":"house","adId":"e2e"}}' "$U_T
 pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null
 api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 200 "광고 본 뒤 끌올 200 (1시간 지남)"
 api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 429 "방금 끌올한 매물 1시간 제한 429"
+# 끌어올리기권(적립식, 2026-10-05): 광고 보고 1개 챙기기 → 매물에 사용. 하루 3개(위의 광고 보고 바로 끌올 1회 포함)
+api GET /products/bump-credits "" "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '"\(.credits)|\(.earnedToday)|\(.dailyLimit)"')" = "0|1|3" ] && ok "끌올권 조회: 보유 0·오늘 1/3" || bad "끌올권 조회 CODE=$CODE RESP=$RESP"
+api GET /products/bump-credits "" ""; expect 401 "끌올권 조회 비로그인 401"
+api POST /products/bump-credits/earn '{}' "$U_TOKEN"; expect 400 "광고 증빙 없이 챙기기 400"
+api POST /products/bump-credits/earn '{"adProof":{"source":"house","adId":"e2e"}}' "$U_TOKEN"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '"\(.credits)|\(.earnedToday)"')" = "1|2" ] && ok "광고 보고 챙기기 201 (보유 1)" || bad "챙기기 CODE=$CODE RESP=$RESP"
+api PUT "/products/$PD/bump" '{"useCredit":true}' "$U_TOKEN"; expect 429 "보유권 사용: 1시간 안 지난 매물 429"
+api GET /products/bump-credits "" "$U_TOKEN"; [ "$(echo "$RESP" | jq -r '.credits')" = "1" ] && ok "못 쓴 끌올권은 그대로 (환불)" || bad "환불 안 됨 RESP=$RESP"
+pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null
+api PUT "/products/$PD/bump" '{"useCredit":true}' "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.bumpCreditsLeft')" = "0" ] && ok "보유권으로 끌어올리기 200 (남은 0)" || bad "보유권 사용 CODE=$CODE RESP=$(echo "$RESP" | head -c 160)"
+api POST /products/bump-credits/earn '{"adProof":{"source":"admob"}}' "$U_TOKEN"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '.earnedToday')" = "3" ] && ok "세 번째 적립 201 (오늘 3/3)" || bad "세 번째 적립 CODE=$CODE RESP=$RESP"
+api POST /products/bump-credits/earn '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 429 "하루 3개 넘는 적립 429"
+pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null
+api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$N_TOKEN"; expect 403 "남의 매물은 광고를 봐도 403"
+api PUT "/products/$PD/bump" '{}' "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.bumpCreditsLeft')" = "0" ] && ok "본문 없이도 보유권이 있으면 사용 200" || bad "보유권 자동 사용 CODE=$CODE"
+pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null
+api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect 429 "오늘 3회 다 쓴 뒤 광고 보고 바로 끌올 429"
+api PUT "/products/$PD/bump" '{}' "$U_TOKEN"; expect 400 "보유권 0개·증빙 없음 400"
 api GET "/products/market-stats?subcategory=%EC%8A%A4%ED%82%A4" ""; expect 200 "시장 통계"
 api GET "/products/market-stats" ""; expect 400 "시장 통계 subcategory 누락"
 api DELETE "/products/$PD" "" "$N_TOKEN"; expect 403 "타인 매물 삭제 403"

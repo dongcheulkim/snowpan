@@ -102,7 +102,7 @@ const MySales = () => {
   };
 
   // 끌어올리기 = 광고 보기 (앱: 애드몹 영상, 웹: 광고 카드 5초) — 2026-10-02
-  const { start: startBump, modal: bumpModal } = useBumpWithAd(() => loadProducts());
+  const { start: startBump, earn: earnBump, busy: bumpBusy, modal: bumpModal, credits: bumpCredits, earnedToday: bumpEarned, dailyLimit: bumpLimit } = useBumpWithAd(() => loadProducts());
   const handleBump = (id: string) => { void startBump(id); };
 
 
@@ -111,6 +111,24 @@ const MySales = () => {
       <div className="flex items-center gap-3">
         <Link to="/mypage" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('mySales.title')}</h1>
+      </div>
+
+      {/* 끌어올리기 보유 수 + 광고 보고 챙기기 — 판매 물품이 없어도 보임 (2026-10-05) */}
+      <div className="card p-4 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold text-gray-500">내 끌어올리기</p>
+          <p className="text-xl font-bold text-gray-900 mt-0.5">{bumpCredits === null ? '-' : bumpCredits}<span className="text-sm font-bold ml-0.5">개</span></p>
+          <p className="text-[11px] text-gray-500 mt-0.5">매물을 목록 맨 위로 올려요</p>
+          <p className="text-[11px] text-gray-500">오늘 {bumpEarned}/{bumpLimit}개 받음</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void earnBump()}
+          disabled={bumpBusy || bumpEarned >= bumpLimit}
+          className="flex-shrink-0 px-3.5 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold disabled:opacity-40"
+        >
+          {bumpEarned >= bumpLimit ? '내일 다시 받기' : '짧은 광고 보고 챙기기'}
+        </button>
       </div>
 
       {loading ? (
@@ -156,7 +174,7 @@ const MySales = () => {
                     <button
                       onClick={() => handleBump(item.id)}
                       className="flex-1 py-1.5 bg-mint/10 text-emerald-600 rounded-md text-[10px] font-medium border border-mint/30 hover:bg-mint/20 transition-colors"
-                    >{t('mySales.bump')}</button>
+                    >{bumpCredits ? '끌어올리기' : t('mySales.bump')}</button>
                     <button
                       onClick={() => navigate(`/used/${item.id}/edit`)}
                       className="flex-1 py-1.5 bg-sky-50 text-sky-500 rounded-md text-[10px] font-medium border border-sky-200 hover:bg-sky-100 transition-colors"
