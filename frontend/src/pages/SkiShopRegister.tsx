@@ -78,7 +78,7 @@ export default function SkiShopRegister() {
   const labelClass = "block text-sm font-medium text-gray-500 mb-1.5";
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in">
+    <div className="max-w-lg lg:max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/new-equipment" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">스키·보드샵 등록</h1>

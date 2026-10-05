@@ -1578,3 +1578,17 @@ model EventEntry {
   @@index([eventKey, createdAt])
   @@map("event_entries")
 }
+
+// 개장 알림 신청 — "이 스키장 개장하면 알려줘" (2026-10-05). 개장일이 정해질 때·개장 전날 저녁에 알림을 보내고, 개장일이 지나면 지운다.
+model ResortOpenAlert {
+  id        String   @id @default(uuid())
+  userId    String
+  resortId  String
+  notifiedDate Boolean @default(false) // 개장일 확정 알림을 보냈는지
+  notifiedEve  Boolean @default(false) // 개장 전날 알림을 보냈는지
+  createdAt DateTime @default(now())
+
+  @@unique([userId, resortId])
+  @@index([resortId])
+  @@map("resort_open_alerts")
+}

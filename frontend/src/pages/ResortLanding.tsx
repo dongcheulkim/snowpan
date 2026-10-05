@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { api, imageUrl } from '../api';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { api, getUser, imageUrl } from '../api';
 import { useMeta } from '../hooks/useMeta';
 import ResortReviews from '../components/ResortReviews';
 import { RowListSkeleton } from '../components/Skeleton';
@@ -73,6 +73,31 @@ export default function ResortLanding() {
       .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, [decoded]);
+  // 개장 알림 — 로그인 회원이 "개장하면 알려줘"를 눌러 두면 개장일이 정해질 때·개장 전날 알림 (2026-10-05)
+  const navigate = useNavigate();
+  const userId = getUser()?.id;
+  const resortId = data?.resort?.id;
+  const [alertOn, setAlertOn] = useState(false);
+  const [alertBusy, setAlertBusy] = useState(false);
+  const [alertMsg, setAlertMsg] = useState('');
+  useEffect(() => {
+    setAlertOn(false); setAlertMsg('');
+    if (!userId || !resortId) return;
+    api<{ subscribed: boolean }>(`/resorts/${resortId}/open-alert`).then(r => setAlertOn(r.subscribed)).catch(() => {});
+  }, [userId, resortId]);
+  const toggleAlert = async () => {
+    if (!resortId || alertBusy) return;
+    if (!userId) { navigate('/login'); return; }
+    setAlertBusy(true); setAlertMsg('');
+    try {
+      const r = await api<{ subscribed: boolean }>(`/resorts/${resortId}/open-alert`, { method: alertOn ? 'DELETE' : 'POST' });
+      setAlertOn(r.subscribed);
+      setAlertMsg(r.subscribed ? '개장일이 정해질 때와 개장 전날에 알려드릴게요.' : '개장 알림을 껐어요.');
+    } catch (e) {
+      setAlertMsg(e instanceof Error ? e.message : '잠시 후 다시 시도해 주세요.');
+    } finally { setAlertBusy(false); }
+  };
+
   // 데이터를 기다리는 동안에도 헤더·안내는 바로 그리고 목록만 스켈레톤 (느린 회선에서 빈 화면 방지, 2026-09-23 전체검사)
 
   const sections: { title: string; items: MiniItem[]; to: (i: MiniItem) => string; listTo: string }[] = data ? [
@@ -108,17 +133,32 @@ export default function ResortLanding() {
         </div>
       </div>
 
-      {/* 시즌 정보 — 관리자가 넣은 개장·폐장일. 날짜가 없으면 카드 자체를 숨김 */}
-      {(status || seasonNote) && (
+      {/* 시즌 정보 — 관리자가 넣은 개장·폐장일. 시즌 중이 아니면 개장 알림 버튼을 함께 보여준다 */}
+      {(status || seasonNote || (resortId && !loading)) && (
         <div className="card p-5">
           <h2 className="text-sm font-bold text-gray-900 mb-2">시즌 정보</h2>
-          {status && (
+          {status ? (
             <p className="flex items-baseline gap-2">
               <span className={`text-base font-bold ${toneClass}`}>{status.title}</span>
               {status.sub && <span className="text-xs text-gray-500 tabular-nums">{status.sub}</span>}
             </p>
+          ) : !seasonNote && (
+            <p className="text-sm text-gray-600">이번 시즌 개장일이 아직 발표되지 않았어요.</p>
           )}
           {seasonNote && <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{seasonNote}</p>}
+          {resortId && status?.tone !== 'open' && (
+            <div className="mt-3">
+              <button
+                onClick={toggleAlert}
+                disabled={alertBusy}
+                aria-pressed={alertOn}
+                className={`w-full py-2.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-60 ${alertOn ? 'bg-white border border-gray-300 text-gray-700' : 'bg-gray-900 text-white'}`}
+              >
+                {alertOn ? '개장 알림 받는 중 · 끄기' : '개장하면 알려줘'}
+              </button>
+              <p className="text-[11px] text-gray-500 mt-1.5" role="status">{alertMsg || '개장일이 정해질 때와 개장 전날, 두 번만 알려드려요.'}</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -163,6 +163,86 @@ const LEVEL_INFO: Record<Level, { label: string; desc: string; badge: string }> 
   expert: { label: '전문가', desc: '데몬/티칭/프로 · 기술 시범 가능', badge: 'bg-red-500' },
 };
 
+// ── 사이즈 계산기 (2026-10-05) — 키·몸무게·레벨로 권장 길이를 계산. 일반적으로 쓰이는 기준(스키: 키 기준 -15~+5cm, 보드: 턱~코 높이)을 따른 참고값.
+const SKI_OFFSET: Record<Level, [number, number]> = { beginner: [-15, -10], intermediate: [-10, -5], advanced: [-5, 0], expert: [0, 5] };
+const BOARD_OFFSET: Record<Level, [number, number]> = { beginner: [-24, -20], intermediate: [-21, -17], advanced: [-19, -15], expert: [-18, -13] };
+
+function calcSize(sport: Sport, level: Level, height: number, weight: number) {
+  const [lo, hi] = (sport === 'ski' ? SKI_OFFSET : BOARD_OFFSET)[level];
+  // 체중 보정: 키 대비 무거우면 길게, 가벼우면 짧게 (표준 체중 = 키-105 기준 ±8kg)
+  const std = height - 105;
+  const adj = weight ? (weight - std > 8 ? (sport === 'ski' ? 3 : 2) : weight - std < -8 ? (sport === 'ski' ? -3 : -2) : 0) : 0;
+  const min = Math.round(height + lo + adj);
+  const max = Math.round(height + hi + adj);
+  const mid = (min + max) / 2;
+  const bucket = mid < 150 ? '-149' : mid < 160 ? '150-159' : mid < 170 ? '160-169' : '170-';
+  const round5 = (n: number) => Math.round(n / 5) * 5;
+  return { min, max, adj, bucket, poleMin: round5(height * 0.68), poleMax: round5(height * 0.7) };
+}
+
+function SizeCalculator({ sport, level }: { sport: Sport; level: Level }) {
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [foot, setFoot] = useState('');
+  const h = Number(height); const w = Number(weight); const f = Number(foot);
+  const valid = h >= 100 && h <= 210;
+  const r = valid ? calcSize(sport, level, h, w >= 20 && w <= 200 ? w : 0) : null;
+  const footOk = f >= 150 && f <= 330;
+  const num = (v: string) => v.replace(/[^0-9]/g, '').slice(0, 3);
+  const field = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 tabular-nums';
+  return (
+    <div className="card p-4 space-y-3">
+      <div>
+        <h2 className="text-sm font-bold text-gray-900">내 사이즈 계산</h2>
+        <p className="text-xs text-gray-500 mt-0.5">키와 몸무게를 넣으면 위에서 고른 종목·레벨에 맞는 길이를 알려드려요.</p>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <label className="block">
+          <span className="text-[11px] font-bold text-gray-600">키 (cm)</span>
+          <input inputMode="numeric" value={height} onChange={e => setHeight(num(e.target.value))} placeholder="170" className={field} />
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-bold text-gray-600">몸무게 (kg)</span>
+          <input inputMode="numeric" value={weight} onChange={e => setWeight(num(e.target.value))} placeholder="65" className={field} />
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-bold text-gray-600">발 길이 (mm)</span>
+          <input inputMode="numeric" value={foot} onChange={e => setFoot(num(e.target.value))} placeholder="265" className={field} />
+        </label>
+      </div>
+      {height !== '' && !valid && <p className="text-xs text-gray-500">키는 100~210cm 사이로 넣어 주세요.</p>}
+      {r && (
+        <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xs font-bold text-gray-600">{sport === 'ski' ? '스키 길이' : '보드 길이'}</span>
+            <span className="text-lg font-bold text-gray-900 tabular-nums">{r.min}~{r.max}cm</span>
+          </div>
+          {sport === 'ski' && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs font-bold text-gray-600">폴 길이</span>
+              <span className="text-sm font-bold text-gray-900 tabular-nums">{r.poleMin === r.poleMax ? `${r.poleMin}cm` : `${r.poleMin}~${r.poleMax}cm`}</span>
+            </div>
+          )}
+          {footOk && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs font-bold text-gray-600">부츠 사이즈</span>
+              <span className="text-sm font-bold text-gray-900 tabular-nums">{Math.floor(f / 5) * 5}~{Math.ceil(f / 5) * 5 === Math.floor(f / 5) * 5 ? Math.floor(f / 5) * 5 + 5 : Math.ceil(f / 5) * 5}mm</span>
+            </div>
+          )}
+          <p className="text-[11px] text-gray-500 leading-relaxed">
+            {r.adj > 0 ? '체중이 있는 편이라 조금 길게 잡았어요. ' : r.adj < 0 ? '체중이 가벼운 편이라 조금 짧게 잡았어요. ' : ''}
+            {sport === 'ski' ? '회전 위주면 짧은 쪽, 속도·안정감 위주면 긴 쪽을 고르세요.' : '트릭·파크 위주면 짧은 쪽, 카빙·파우더 위주면 긴 쪽을 고르세요.'}
+            {' '}부츠는 맨발 길이 기준이고, 꼭 신어 보고 정하세요.
+          </p>
+          <Link to={`/used?category=${sport}&len=${r.bucket}`} className="block text-center py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold">
+            이 길이의 중고 {sport === 'ski' ? '스키' : '보드'} 보기
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GearGuide() {
   const user = getUser();
   const [sport, setSport] = useState<Sport>('ski');
@@ -178,7 +258,7 @@ export default function GearGuide() {
         <Link to="/" className="text-sm text-gray-500">← 홈</Link>
       </div>
 
-      <p className="text-sm text-gray-500">레벨에 맞는 브랜드와 모델을 확인해보세요</p>
+      <p className="text-sm text-gray-500">레벨에 맞는 길이와 브랜드·모델을 확인해보세요</p>
 
       {/* 스포츠 선택 */}
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
@@ -223,6 +303,8 @@ export default function GearGuide() {
         </span>
         <span className="text-xs text-gray-500">{LEVEL_INFO[level].desc}</span>
       </div>
+
+      <SizeCalculator sport={sport} level={level} />
 
       {/* 브랜드 목록 */}
       <div className="space-y-3">

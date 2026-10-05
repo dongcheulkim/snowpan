@@ -93,7 +93,7 @@ export default function RepairShopEdit() {
   if (fetching) return <div className="text-center py-12 text-gray-500 text-sm">로딩 중...</div>;
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in">
+    <div className="max-w-lg lg:max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/mypage/shops" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">정비샵 수정</h1>

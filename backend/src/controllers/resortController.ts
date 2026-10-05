@@ -3,6 +3,8 @@ import prisma from '../config/database';
 import { stripPrivateAll } from '../utils/publicFields';
 import { kstDayStart, parseKstDate } from '../utils/kst';
 import { sanitizeText } from '../utils/sanitize';
+import { notifyOpenDateSet } from '../utils/openAlert';
+import type { AuthRequest } from '../middleware/auth';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -132,6 +134,9 @@ export const updateResortSeason = async (req: Request, res: Response): Promise<v
       data,
       select: { id: true, name: true, openDate: true, closeDate: true, seasonNote: true },
     });
+    // 개장일이 새로 정해졌거나 바뀌었으면 '개장 알림' 신청자에게 알림 (2026-10-05)
+    const openChanged = openDate !== undefined && (updated.openDate?.getTime() ?? null) !== (resort.openDate?.getTime() ?? null);
+    if (openChanged && updated.openDate) notifyOpenDateSet(updated).catch((e) => console.warn('[openAlert] 알림 실패:', e));
     // 리조트 목록은 서버 메모리 캐시를 쓰지 않는다 (HTTP 공개 캐시만) — 무효화할 키 없음.
     res.json(updated);
   } catch (error) {
@@ -222,4 +227,26 @@ export const getResortById = async (req: Request, res: Response): Promise<void> 
     console.error('Get resort error:', error);
     res.status(500).json({ error: '스키장 조회 중 오류가 발생했습니다.' });
   }
+};
+
+// ── 개장 알림 신청 (로그인 회원) — GET 상태 / POST 신청 / DELETE 취소 ──
+export const getOpenAlert = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const row = await prisma.resortOpenAlert.findUnique({ where: { userId_resortId: { userId: req.user!.id, resortId: req.params.id } } });
+    res.json({ subscribed: !!row });
+  } catch (error) { console.error('Open alert get error:', error); res.status(500).json({ error: '알림 정보를 불러오지 못했어요.' }); }
+};
+export const subscribeOpenAlert = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const resort = await prisma.skiResort.findUnique({ where: { id: req.params.id }, select: { id: true } });
+    if (!resort) { res.status(404).json({ error: '스키장을 찾을 수 없습니다.' }); return; }
+    await prisma.resortOpenAlert.upsert({ where: { userId_resortId: { userId: req.user!.id, resortId: resort.id } }, update: {}, create: { userId: req.user!.id, resortId: resort.id } });
+    res.status(201).json({ subscribed: true });
+  } catch (error) { console.error('Open alert subscribe error:', error); res.status(500).json({ error: '알림을 신청하지 못했어요.' }); }
+};
+export const unsubscribeOpenAlert = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    await prisma.resortOpenAlert.deleteMany({ where: { userId: req.user!.id, resortId: req.params.id } });
+    res.json({ subscribed: false });
+  } catch (error) { console.error('Open alert unsubscribe error:', error); res.status(500).json({ error: '알림을 취소하지 못했어요.' }); }
 };

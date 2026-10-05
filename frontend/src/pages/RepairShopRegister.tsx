@@ -69,7 +69,7 @@ export default function RepairShopRegister() {
   const labelClass = "block text-sm font-medium text-gray-500 mb-1.5";
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in">
+    <div className="max-w-lg lg:max-w-2xl mx-auto animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/repair" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">정비샵 등록</h1>

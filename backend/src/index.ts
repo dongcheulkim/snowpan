@@ -105,6 +105,7 @@ import { backfillChatRoomShops } from './utils/chatRoomShops';
 import { cleanupOrphanShopRows } from './utils/shopRows';
 import { startRetentionScheduler } from './utils/adminAudit';
 import { startLinkHealthScheduler } from './utils/linkHealth';
+import { startOpenAlertScheduler } from './utils/openAlert';
 import coupangAdRoutes from './routes/coupangAdRoutes';
 import eventRoutes, { startEventPurgeScheduler } from './routes/eventRoutes';
 import shopFollowRoutes from './routes/shopFollowRoutes';
@@ -700,6 +701,7 @@ httpServer.listen(PORT, async () => {
     .then((n) => { if (n) console.log(`사라진 매장의 직원·찜·문구·채팅 연결 정리 ${n}곳`); })
     .catch((e) => console.warn('고아 매장 행 정리 실패:', e instanceof Error ? e.message : e));
   startEventPurgeScheduler(); // 이벤트 마감 60일 뒤 응모 정보 자동 파기
+  startOpenAlertScheduler(); // 매일 18시 KST: 내일 개장하는 스키장의 '개장 알림' 신청자에게 알림
   startLinkHealthScheduler(); // 매일 04시 KST: 외부 링크·사진·웹캠 스트림 점검 → 관리자 설정 > 외부 링크 점검, 새로 죽으면 알림
   startRetentionScheduler(); // 매일 03시 KST: 탈퇴 5년 지난 원래 신원·지운 지 5년 지난 매물·2년 지난 열람 기록 파기
   backfillChatRoomShops()
