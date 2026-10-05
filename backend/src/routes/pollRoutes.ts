@@ -104,7 +104,7 @@ router.post('/', authenticateToken, pollCreateLimiter, async (req: AuthRequest, 
     const labels = options
       .map((o: unknown) => sanitizeText(o, 50))
       .filter((s): s is string => !!s)
-      .slice(0, 6);
+      .slice(0, req.user!.role === 'admin' ? 20 : 6); // 일반 회원 6개, 관리자(고객센터)는 20개까지 — '최애 스키장' 처럼 리조트 전체를 올리는 투표용 (2026-10-05)
     if (labels.length < 2) { res.status(400).json({ error: '옵션은 2개 이상이어야 합니다.' }); return; }
 
     const poll = await prisma.poll.create({
