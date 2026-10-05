@@ -1,4 +1,5 @@
-// 매장 목록 공통 위치 필터 — 1줄(주축): 리조트 + '외'(리조트 인근이 아닌 매장), 2줄: 지역(시/도).
+// 매장 목록 공통 위치 필터 — 1줄: 지역(시/도), 2줄: 그 지역의 리조트 + '외'(리조트 인근이 아닌 매장).
+// 2026-10-05 사장님: "지역을 고르면 밑에 세부 스키장이 떠야 하는데 반대로 돼 있다" → 지역이 위, 스키장이 아래 (전엔 스키장이 위).
 // 사용자 결정: "사람들이 원하는 건 그 근처 매장" → 스키장 기준이 기본.
 // 스키·보드샵·정비샵·렌탈샵이 같은 구조를 쓴다. 리조트가 없는 지역(서울 등)을 고르면 2줄은 숨긴다(전부 '외'라 의미 없음).
 import { useEffect, useState } from 'react';
@@ -24,6 +25,19 @@ export default function LocationFilter({ region, resortSel, onChange }: Props) {
 
   return (
     <>
+      <HScroll className="flex gap-2 overflow-x-auto pb-1">
+        {['all', ...SHOP_REGIONS].map((rg) => (
+          <button
+            key={rg}
+            onClick={() => onChange(rg, 'all')}
+            className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
+              region === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            {rg === 'all' ? '전체 지역' : rg}
+          </button>
+        ))}
+      </HScroll>
       {regionResorts.length > 0 && (
         <HScroll className="flex gap-2 overflow-x-auto pb-1">
           {[{ id: 'all', name: '전체' }, ...regionResorts, { id: 'none', name: '외' }].map((r) => (
@@ -39,19 +53,6 @@ export default function LocationFilter({ region, resortSel, onChange }: Props) {
           ))}
         </HScroll>
       )}
-      <HScroll className="flex gap-2 overflow-x-auto pb-1">
-        {['all', ...SHOP_REGIONS].map((rg) => (
-          <button
-            key={rg}
-            onClick={() => onChange(rg, 'all')}
-            className={`px-3 py-2 rounded-xl font-bold text-xs whitespace-nowrap transition-all flex-shrink-0 ${
-              region === rg ? 'bg-accent text-white' : 'bg-snow text-gray-600 hover:bg-gray-100 border border-gray-200'
-            }`}
-          >
-            {rg === 'all' ? '전체 지역' : rg}
-          </button>
-        ))}
-      </HScroll>
     </>
   );
 }

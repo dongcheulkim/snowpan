@@ -91,7 +91,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
       <Link
         to={adLink}
         aria-label="광고 신청"
-        className="block relative overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-white/60 hover:bg-white hover:border-gray-400 transition-colors h-24 flex items-center justify-between px-6"
+        className="block relative overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-white/60 hover:bg-white hover:border-gray-400 transition-colors h-24 lg:h-40 lg:max-w-[600px] flex items-center justify-between px-6"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export default function CategoryAdBanner({ category }: { category: string }) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border h-24"
+      className="relative overflow-hidden rounded-2xl border h-24 lg:h-40 lg:max-w-[600px]"
       style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
     >
       {banners.map((banner, idx) => {

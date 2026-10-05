@@ -353,9 +353,9 @@ const Home = () => {
           광고 카드는 다크모드에서도 light bg 강제 (광고주가 정한 textColor 가
           어두운 텍스트인 경우 가독성 보존). inline style 로 dark mode override 회피.
           모바일에서 임팩트 위해 정사각형 가까운 비율(5/4), 데스크탑은 슬림 유지. */}
-      <div className="px-4 pt-3 pb-5 bg-snow lg:px-0 lg:pt-0 lg:col-span-7 lg:row-span-3">
+      <div className="px-4 pt-3 pb-5 bg-snow lg:px-0 lg:pt-0 lg:col-span-6 lg:row-span-3">
         <div
-          className="relative overflow-hidden rounded-2xl border aspect-[5/4] lg:aspect-[16/9]"
+          className="relative overflow-hidden rounded-2xl border aspect-[5/4]"
           style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
         >
           {/* 다른 버티컬만 소개 슬라이드 유지 (snow 는 광고부터) */}
@@ -526,7 +526,7 @@ const Home = () => {
       </div>
 
       {/* Categories — 둥근 사각 + NEW 배지 (올영 스타일 명료한 클릭 유도) */}
-      <div className="px-4 pb-5 bg-snow lg:px-0 lg:col-span-5">
+      <div className="px-4 pb-5 bg-snow lg:px-0 lg:col-span-6">
         <div className={`grid ${isSnow ? 'grid-cols-5' : 'grid-cols-4'} gap-y-3 gap-x-1 lg:gap-y-5`}>
           {categories.map((cat) => {
             const Icon = (categoryIcons as Record<string, typeof SecondHandIcon>)[cat.id];
@@ -548,7 +548,7 @@ const Home = () => {
 
       {/* PC 전용: 앱 받기 카드 (QR) — 오른쪽 칸의 빈 자리를 채우고 PC 방문자를 앱으로 안내 (2026-10-05) */}
       {isSnow && !isNativeApp() && (
-        <div className="hidden lg:block lg:col-span-5">
+        <div className="hidden lg:block lg:col-span-6">
           <div className="card p-5 flex items-center gap-5">
             <img src="/icons/qr-app.svg" alt="스노우판 앱 받기 QR" className="w-28 h-28 flex-shrink-0 rounded-lg border border-gray-200" />
             <div className="min-w-0">
@@ -566,7 +566,7 @@ const Home = () => {
 
       {/* 시즌 오픈 카운트다운 — 가장 빠른 개장일 기준 (관리자 설정 > 리조트 시즌). 날짜 없으면 숨김 */}
       {isSnow && seasonCard && (
-        <div className="px-4 pb-4 lg:px-0 lg:col-span-5">
+        <div className="px-4 pb-4 lg:px-0 lg:col-span-6">
           <Link to={seasonCard.to} className="card px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors">
             <span className="text-sm font-bold text-gray-900 truncate">{seasonCard.text}</span>
             <span className="text-xs text-gray-500 flex-shrink-0 ml-3">보러 가기 &gt;</span>
