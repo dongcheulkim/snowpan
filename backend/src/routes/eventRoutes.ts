@@ -79,7 +79,7 @@ router.get('/:key/me', authenticateToken, async (req: AuthRequest, res: Response
     ]);
     // 폼 기본값: 신청했으면 적은 값, 아니면 계정 정보(카카오·애플은 전화 없음 → 빈칸)
     res.json(row
-      ? { applied: true, name: row.name || me?.name || '', phone: row.phone || me?.phone || '', instagram: row.instagram, message: row.message, createdAt: row.createdAt }
+      ? { applied: true, name: row.name || me?.name || '', phone: row.phone || me?.phone || '', instagram: row.instagram, message: row.message, agreed: !!row.agreedAt, createdAt: row.createdAt }
       : { applied: false, name: me?.name || '', phone: me?.phone || '', instagram: null, message: null });
   } catch (e) { console.error('event me error:', e); res.status(500).json({ error: '신청 정보를 불러오지 못했어요.' }); }
 });
@@ -92,7 +92,8 @@ router.post('/:key/apply', authenticateToken, async (req: AuthRequest, res: Resp
     if (!cfg) { res.status(404).json({ error: '이벤트를 찾을 수 없어요.' }); return; }
     if (!isOpen(cfg)) { res.status(409).json({ error: '이벤트 신청이 마감됐어요.' }); return; }
     if (cfg.appOnly && !fromApp(req)) { res.status(403).json({ error: '이벤트는 스노우판 앱에서만 신청할 수 있어요. 앱을 받은 뒤 신청해 주세요.', appOnly: true }); return; }
-    const body = (req.body || {}) as { name?: unknown; instagram?: unknown; phone?: unknown; message?: unknown };
+    const body = (req.body || {}) as { name?: unknown; instagram?: unknown; phone?: unknown; message?: unknown; agree?: unknown };
+    const agreed = body.agree === true; // 동의 체크 (웹·2.2 이상 앱). 2.1 이하 앱은 이 값을 안 보내므로 필수로 막지는 않고 시각만 기록
     const userId = req.user!.id;
     const me = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, phone: true } });
     const existing = await prisma.eventEntry.findUnique({ where: { eventKey_userId: { eventKey: key, userId } } });
@@ -109,11 +110,11 @@ router.post('/:key/apply', authenticateToken, async (req: AuthRequest, res: Resp
     // 중복 신청 차단 — 다른 계정이 같은 연락처나 같은 인스타 아이디로 이미 신청했으면 거절
     const dup = await prisma.eventEntry.findFirst({ where: { eventKey: key, userId: { not: userId }, OR: [{ phone: ph.value }, { instagram: ig.value }] }, select: { phone: true, instagram: true } });
     if (dup) { res.status(409).json({ error: dup.phone === ph.value ? '이 연락처로 이미 신청된 내역이 있어요. 한 사람당 한 번만 신청할 수 있어요.' : '이 인스타그램 아이디로 이미 신청된 내역이 있어요. 한 사람당 한 번만 신청할 수 있어요.' }); return; }
-    const data = { name, instagram: ig.value, phone: ph.value, ...(message !== undefined ? { message } : {}) };
+    const data = { name, instagram: ig.value, phone: ph.value, ...(message !== undefined ? { message } : {}), ...(agreed ? { agreedAt: new Date() } : {}) };
     const row = existing
       ? await prisma.eventEntry.update({ where: { id: existing.id }, data })
       : await prisma.eventEntry.create({ data: { eventKey: key, userId, ...data, message: message ?? null } });
-    res.status(existing ? 200 : 201).json({ applied: true, name: row.name, phone: row.phone, instagram: row.instagram, message: row.message, createdAt: row.createdAt, updated: !!existing });
+    res.status(existing ? 200 : 201).json({ applied: true, name: row.name, phone: row.phone, instagram: row.instagram, message: row.message, agreed: !!row.agreedAt, createdAt: row.createdAt, updated: !!existing });
   } catch (e) { console.error('event apply error:', e); res.status(500).json({ error: '신청하지 못했어요. 잠시 뒤 다시 해 주세요.' }); }
 });
 
@@ -149,5 +150,24 @@ router.delete('/admin/:key/entries/:id', authenticateToken, requireAdmin, async 
   try { await prisma.eventEntry.delete({ where: { id: String(req.params.id) } }); res.json({ ok: true }); }
   catch { res.status(404).json({ error: '신청을 찾을 수 없어요.' }); }
 });
+
+// 이벤트 응모 정보 파기 — 마감일(endsAt)부터 60일이 지난 이벤트의 신청 내역을 지운다 (개인정보처리방침 3항). 하루 한 번.
+export async function purgeExpiredEventEntries(): Promise<number> {
+  const keys = await prisma.eventEntry.findMany({ distinct: ['eventKey'], select: { eventKey: true } });
+  let removed = 0;
+  for (const { eventKey } of keys) {
+    const cfg = await readEventConfig(eventKey);
+    if (!cfg?.endsAt) continue; // 마감일이 없는 이벤트는 자동 파기하지 않음
+    if (Date.now() < Date.parse(cfg.endsAt) + 60 * 24 * 3600_000) continue;
+    const r = await prisma.eventEntry.deleteMany({ where: { eventKey } });
+    removed += r.count;
+  }
+  return removed;
+}
+export function startEventPurgeScheduler(): void {
+  const tick = () => { purgeExpiredEventEntries().then((n) => { if (n) console.log(`[event] 마감 60일 지난 응모 정보 ${n}건 파기`); }).catch((e) => console.warn('[event] 파기 실패:', e instanceof Error ? e.message : e)); };
+  setTimeout(tick, 5 * 60 * 1000);
+  setInterval(tick, 24 * 3600 * 1000);
+}
 
 export default router;

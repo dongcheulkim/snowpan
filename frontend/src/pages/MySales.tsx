@@ -102,7 +102,7 @@ const MySales = () => {
   };
 
   // 끌어올리기 = 광고 보기 (앱: 애드몹 영상, 웹: 광고 카드 5초) — 2026-10-02
-  const { start: startBump, earn: earnBump, busy: bumpBusy, modal: bumpModal, credits: bumpCredits, earnedToday: bumpEarned, dailyLimit: bumpLimit } = useBumpWithAd(() => loadProducts());
+  const { start: startBump, earn: earnBump, busy: bumpBusy, modal: bumpModal, credits: bumpCredits, earnedToday: bumpEarned, dailyLimit: bumpLimit, webLimitReached: bumpWebLimit } = useBumpWithAd(() => loadProducts());
   const handleBump = (id: string) => { void startBump(id); };
 
 
@@ -119,16 +119,20 @@ const MySales = () => {
           <p className="text-[11px] font-bold text-gray-500">내 끌어올리기</p>
           <p className="text-xl font-bold text-gray-900 mt-0.5">{bumpCredits === null ? '-' : bumpCredits}<span className="text-sm font-bold ml-0.5">개</span></p>
           <p className="text-[11px] text-gray-500 mt-0.5">매물을 목록 맨 위로 올려요</p>
-          <p className="text-[11px] text-gray-500">오늘 {bumpEarned}/{bumpLimit}개 받음</p>
+          <p className="text-[11px] text-gray-500">오늘 {bumpEarned}/{bumpLimit}개 받음{bumpWebLimit ? ' · 웹은 하루 1개, 앱에서 더 받을 수 있어요' : ''}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => void earnBump()}
-          disabled={bumpBusy || bumpEarned >= bumpLimit}
-          className="flex-shrink-0 px-3.5 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold disabled:opacity-40"
-        >
-          {bumpEarned >= bumpLimit ? '내일 다시 받기' : '짧은 광고 보고 챙기기'}
-        </button>
+        {bumpWebLimit ? (
+          <Link to="/app" className="flex-shrink-0 px-3.5 py-2.5 rounded-xl border border-gray-900 text-gray-900 text-xs font-bold">앱에서 더 받기</Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void earnBump()}
+            disabled={bumpBusy || bumpEarned >= bumpLimit}
+            className="flex-shrink-0 px-3.5 py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold disabled:opacity-40"
+          >
+            {bumpEarned >= bumpLimit ? '내일 다시 받기' : '짧은 광고 보고 챙기기'}
+          </button>
+        )}
       </div>
 
       {loading ? (

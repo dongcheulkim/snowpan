@@ -17,6 +17,7 @@ import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
 import ShopFollowBar from '../components/ShopFollowBar';
 import { hoursLabel } from '../utils/openNow';
+import { DETAIL_2COL, DETAIL_PHOTO } from '../utils/detailLayout';
 
 
 interface RentalData {
@@ -89,10 +90,10 @@ const RentalDetail = () => {
   const chatState ={ seller: item.user?.nickname || item.user?.name || '매장', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/rental/${item.id}`, productPath: `/rental/${item.id}` };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
+    <div className={`max-w-2xl mx-auto space-y-5 animate-fade-in pb-4 ${gallery ? DETAIL_2COL : ''}`}>
       <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 렌탈샵 목록</Link>
 
-      {gallery && <PhotoGallery images={gallery} />}
+      {gallery && <div className={DETAIL_PHOTO}><PhotoGallery images={gallery} /></div>}
 
       <UnverifiedShopBadge claimable={item.claimable} />
 

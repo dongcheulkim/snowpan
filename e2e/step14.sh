@@ -287,7 +287,8 @@ api PUT "/products/$PD/bump" '{"adProof":{"source":"admob"}}' "$U_TOKEN"; expect
 api GET /products/bump-credits "" "$U_TOKEN"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '"\(.credits)|\(.earnedToday)|\(.dailyLimit)"')" = "0|1|3" ] && ok "끌올권 조회: 보유 0·오늘 1/3" || bad "끌올권 조회 CODE=$CODE RESP=$RESP"
 api GET /products/bump-credits "" ""; expect 401 "끌올권 조회 비로그인 401"
 api POST /products/bump-credits/earn '{}' "$U_TOKEN"; expect 400 "광고 증빙 없이 챙기기 400"
-api POST /products/bump-credits/earn '{"adProof":{"source":"house","adId":"e2e"}}' "$U_TOKEN"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '"\(.credits)|\(.earnedToday)"')" = "1|2" ] && ok "광고 보고 챙기기 201 (보유 1)" || bad "챙기기 CODE=$CODE RESP=$RESP"
+api POST /products/bump-credits/earn '{"adProof":{"source":"house","adId":"e2e"}}' "$U_TOKEN"; [ "$CODE" = "429" ] && [ "$(echo "$RESP" | jq -r '.appOnly')" = "true" ] && ok "웹 광고 카드는 하루 1개까지 (오늘 이미 1회 → 429)" || bad "웹 한도 CODE=$CODE RESP=$RESP"
+api POST /products/bump-credits/earn '{"adProof":{"source":"admob"}}' "$U_TOKEN"; [ "$CODE" = "201" ] && [ "$(echo "$RESP" | jq -r '"\(.credits)|\(.earnedToday)"')" = "1|2" ] && ok "광고 보고 챙기기 201 (보유 1)" || bad "챙기기 CODE=$CODE RESP=$RESP"
 api PUT "/products/$PD/bump" '{"useCredit":true}' "$U_TOKEN"; expect 429 "보유권 사용: 1시간 안 지난 매물 429"
 api GET /products/bump-credits "" "$U_TOKEN"; [ "$(echo "$RESP" | jq -r '.credits')" = "1" ] && ok "못 쓴 끌올권은 그대로 (환불)" || bad "환불 안 됨 RESP=$RESP"
 pq "UPDATE products SET \"bumpedAt\" = (now() AT TIME ZONE 'UTC') - interval '2 hours' WHERE id='$PD'" >/dev/null

@@ -13,6 +13,7 @@ import ShopReviews from '../components/ShopReviews';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
 import ShopFollowBar from '../components/ShopFollowBar';
+import { DETAIL_2COL, DETAIL_PHOTO } from '../utils/detailLayout';
 
 interface LessonData {
   phone?: string | null;
@@ -66,13 +67,13 @@ const LessonDetail = () => {
   const chatState = { seller: item.user?.nickname || item.user?.name || '강사', sellerId: item.userId, productName: item.name, productImage: item.image, backTo: `/lesson/${item.id}`, productPath: `/lesson/${item.id}` };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 animate-fade-in pb-4">
+    <div className={`max-w-2xl mx-auto space-y-5 animate-fade-in pb-4 ${gallery ? DETAIL_2COL : ''}`}>
       <div className="flex items-center justify-between">
         <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">← 레슨 목록</Link>
         <ShareButton title={item.name} text={item.name} />
       </div>
 
-      {gallery && <PhotoGallery images={gallery} />}
+      {gallery && <div className={DETAIL_PHOTO}><PhotoGallery images={gallery} /></div>}
 
       <div className="card rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-1">

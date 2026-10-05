@@ -20,6 +20,7 @@ import { useMyLocation } from '../hooks/useMyLocation';
 import { distanceKm, formatDistance } from '../utils/geo';
 import OpenNowBadge from '../components/OpenNowBadge';
 import { hoursLabel } from '../utils/openNow';
+import { DETAIL_2COL, DETAIL_PHOTO } from '../utils/detailLayout';
 
 
 interface Shop {
@@ -115,13 +116,13 @@ export default function RepairShopDetail() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
+    <div className={`max-w-2xl mx-auto space-y-5 animate-fade-in ${(shop.images || shop.image) ? DETAIL_2COL : ''}`}>
       <div className="flex items-center justify-between">
         <Link to={backTo} className="inline-flex items-center text-gray-500 text-sm hover:text-gray-900">&larr; 정비샵 목록</Link>
         <ShareButton title={shop.name} text={shop.area ? `${shop.name} · ${shop.area}` : shop.name} />
       </div>
 
-      {(shop.images || shop.image) && <PhotoGallery images={shop.images || shop.image} />}
+      {(shop.images || shop.image) && <div className={DETAIL_PHOTO}><PhotoGallery images={shop.images || shop.image} /></div>}
 
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">

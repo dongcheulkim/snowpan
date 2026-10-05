@@ -1570,6 +1570,7 @@ model EventEntry {
   name      String?  // 신청자가 적은 성함 (계정 이름과 다를 수 있음)
   phone     String?  // 신청자가 적은 연락처 (카카오·애플 회원은 계정에 전화번호가 없음)
   message   String?  // 스노우판에 응원 한마디 (선택, 200자)
+  agreedAt  DateTime? // 개인정보 수집·이용 및 당첨 시 경품 제공처 제공 동의 시각 (2026-10-05~, 그 전 신청·2.1 이하 앱은 null → 당첨 연락 때 따로 동의)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

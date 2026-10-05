@@ -15,6 +15,7 @@ import ClaimShopButton from '../components/ClaimShopButton';
 import ReservationForm from '../components/ReservationForm';
 import RecruitCard from '../components/RecruitCard';
 import ShopFollowBar from '../components/ShopFollowBar';
+import { DETAIL_2COL, DETAIL_PHOTO } from '../utils/detailLayout';
 
 const typeMap: Record<string, string> = { hotel: '호텔', pension: '펜션', condo: '콘도', minbak: '민박', season: '시즌방', guest: '게스트' };
 
@@ -82,7 +83,7 @@ const AccommodationDetail = () => {
   const chatState = { seller: item.user?.nickname || item.user?.name || '등록자', sellerId: item.userId, productName: item.name, productImage: item.image, productPrice: item.price, backTo: `/accommodation/${item.id}`, productPath: `/accommodation/${item.id}` };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className={`max-w-2xl mx-auto space-y-6 animate-fade-in ${DETAIL_2COL}`}>
       <div className="flex items-center justify-between">
         <Link to={backTo} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm transition-colors">
           ← 숙소 목록
@@ -91,7 +92,7 @@ const AccommodationDetail = () => {
       </div>
 
       {/* Hero — 사진 여러 장이면 스와이프 캐러셀, 옛 이모지 매물은 이모지 표시 */}
-      <div className="relative">
+      <div className={`relative ${DETAIL_PHOTO}`}>
         {(() => {
           const gallery = item.images || item.image || '';
           const first = gallery.split(',')[0]?.trim() || '';

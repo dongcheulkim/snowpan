@@ -840,6 +840,8 @@ export const toggleWishlist = async (req: AuthRequest, res: Response): Promise<v
 const BUMP_MIN_INTERVAL_MS = 60 * 60 * 1000;
 const BUMP_DAILY_LIMIT = 3;
 const BUMP_MAX_HOLD = 10;
+const BUMP_WEB_DAILY_LIMIT = 1; // 웹(광고 카드 5초, source 'house')으로는 하루 1개만 — 나머지는 앱 영상 광고로 (2026-10-05, 웹 광고는 수익이 없음)
+const WEB_LIMIT_MSG = '웹에서는 하루 1개만 받을 수 있어요. 스노우판 앱에서 광고를 보면 더 받을 수 있어요.';
 const BUMP_LEGACY_UNTIL = Date.parse('2026-11-30T15:00:00Z'); // 지나면 구앱도 광고 필수
 type AdProofBody = { source?: string; adId?: string };
 function kstDay(): string { return new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10); }
@@ -861,7 +863,7 @@ async function countEarn(userId: string, today: string, earnedToday: number, add
 export const getBumpCredits = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const st = await bumpState(req.user!.id);
-    res.json({ credits: st.credits, earnedToday: st.earnedToday, dailyLimit: BUMP_DAILY_LIMIT, maxHold: BUMP_MAX_HOLD });
+    res.json({ credits: st.credits, earnedToday: st.earnedToday, dailyLimit: BUMP_DAILY_LIMIT, webDailyLimit: BUMP_WEB_DAILY_LIMIT, maxHold: BUMP_MAX_HOLD });
   } catch (error) { console.error('Bump credits error:', error); res.status(500).json({ error: '끌어올리기 정보를 불러오지 못했어요.' }); }
 };
 
@@ -871,6 +873,7 @@ export const earnBumpCredit = async (req: AuthRequest, res: Response): Promise<v
     if (!validProof(readProof(req))) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1개가 주어져요.', needAd: true }); return; }
     const st = await bumpState(userId);
     if (st.earnedToday >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `끌어올리기는 하루 ${BUMP_DAILY_LIMIT}개까지 받을 수 있어요. 내일 다시 받아 주세요.` }); return; }
+    if (readProof(req)!.source === 'house' && st.earnedToday >= BUMP_WEB_DAILY_LIMIT) { res.status(429).json({ error: WEB_LIMIT_MSG, appOnly: true }); return; }
     if (st.credits >= BUMP_MAX_HOLD) { res.status(409).json({ error: `끌어올리기는 ${BUMP_MAX_HOLD}개까지 모을 수 있어요. 먼저 사용해 주세요.` }); return; }
     await countEarn(userId, st.today, st.earnedToday, true);
     res.status(201).json({ credits: st.credits + 1, earnedToday: st.earnedToday + 1, dailyLimit: BUMP_DAILY_LIMIT, maxHold: BUMP_MAX_HOLD });
@@ -895,6 +898,7 @@ export const bumpProduct = async (req: AuthRequest, res: Response): Promise<void
     else if (proof) {
       if (!validProof(proof)) { res.status(400).json({ error: '광고를 끝까지 보면 끌어올리기 1개가 주어져요.', needAd: true }); return; }
       if (st!.earnedToday >= BUMP_DAILY_LIMIT) { res.status(429).json({ error: `광고 보고 끌어올리기는 하루 ${BUMP_DAILY_LIMIT}회까지예요. 내일 다시 할 수 있어요.` }); return; }
+      if (proof.source === 'house' && st!.earnedToday >= BUMP_WEB_DAILY_LIMIT) { res.status(429).json({ error: WEB_LIMIT_MSG, appOnly: true }); return; }
       mode = 'proof';
     } else if (st!.credits > 0) mode = 'credit';
     else if (Date.now() < BUMP_LEGACY_UNTIL && (/; wv\)/.test(ua) || (/iPhone|iPad/.test(ua) && !/Safari\//.test(ua))) && !(req.body && (req.body as { useCredit?: boolean }).useCredit)) mode = 'legacy';

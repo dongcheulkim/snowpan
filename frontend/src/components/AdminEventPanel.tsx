@@ -4,7 +4,7 @@ import { toastError, toastSuccess } from '../utils/toast';
 
 // 관리자 설정 → 이벤트 (2026-10-03). 앱 출시 이벤트 문구·활성·마감일 수정, 신청자 목록(인스타·이름·연락처) 확인·CSV 저장.
 interface Cfg { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; open: boolean; count?: number }
-interface Entry { id: string; name: string | null; instagram: string | null; phone: string | null; message: string | null; createdAt: string; user: { id: string; name: string; nickname: string | null; email: string; phone: string | null; provider: string | null } }
+interface Entry { id: string; agreedAt?: string | null; name: string | null; instagram: string | null; phone: string | null; message: string | null; createdAt: string; user: { id: string; name: string; nickname: string | null; email: string; phone: string | null; provider: string | null } }
 const KEY = 'launch';
 
 export default function AdminEventPanel() {
@@ -30,8 +30,8 @@ export default function AdminEventPanel() {
   };
   const downloadCsv = () => {
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const lines = [['신청일시', '이름', '닉네임', '인스타그램', '전화', '이메일', '가입방식', '응원 한마디'].map(esc).join(',')];
-    for (const e of entries) lines.push([new Date(e.createdAt).toLocaleString('ko-KR'), e.name || e.user.name, e.user.nickname || '', e.instagram ? '@' + e.instagram : '', e.phone || e.user.phone || '', e.user.email, e.user.provider || 'email', e.message || ''].map(esc).join(','));
+    const lines = [['신청일시', '이름', '닉네임', '인스타그램', '전화', '이메일', '가입방식', '응원 한마디', '개인정보 동의'].map(esc).join(',')];
+    for (const e of entries) lines.push([new Date(e.createdAt).toLocaleString('ko-KR'), e.name || e.user.name, e.user.nickname || '', e.instagram ? '@' + e.instagram : '', e.phone || e.user.phone || '', e.user.email, e.user.provider || 'email', e.message || '', e.agreedAt ? '동의' : '동의 기록 없음(당첨 연락 때 받기)'].map(esc).join(','));
     const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `이벤트_신청자_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
   };
@@ -74,6 +74,7 @@ export default function AdminEventPanel() {
                 <p className="text-sm font-bold text-gray-900 truncate">{e.name || e.user.name}{e.user.nickname ? ` (${e.user.nickname})` : ''} {e.instagram ? <span className="font-normal text-gray-700">@{e.instagram}</span> : <span className="font-normal text-gray-400">인스타 없음</span>}</p>
                 <p className="text-[11px] text-gray-500 truncate">{e.phone || e.user.phone || '전화 없음'} · {e.user.email} · {new Date(e.createdAt).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}</p>
                 {e.message && <p className="text-[11px] text-gray-700 mt-0.5 line-clamp-2">{e.message}</p>}
+                {!e.agreedAt && <p className="text-[10px] text-gray-400 mt-0.5">동의 기록 없음 — 당첨되면 연락할 때 경품 제공처 전달 동의를 받아 주세요</p>}
               </div>
               <button onClick={() => remove(e)} className="text-[11px] text-gray-500 flex-shrink-0">삭제</button>
             </li>

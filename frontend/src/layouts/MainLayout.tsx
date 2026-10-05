@@ -21,6 +21,10 @@ import { SITE_URL } from '../config/site';
 
 // PC 에서 넓게 쓰는 화면 — 홈과 목록류. 그 밖(상세·작성·마이·약관 등)은 좁은 가운데 칼럼.
 const WIDE_PATHS = ['/', '/snowpan', '/used', '/skishop', '/new-equipment', '/repair', '/rental', '/lesson', '/accommodation', '/community', '/webcam', '/overseas', '/search', '/shop-news', '/competitions', '/admin', '/gear-guide'];
+// 매물·매장·웹캠 상세 — 사진 왼쪽·정보 오른쪽 2단이라 중간 폭
+function isDetailPage(pathname: string): boolean {
+  return /^\/(used|skishop|repair|rental|lesson|accommodation|webcam)\/[^/]+$/.test(pathname.replace(/\/+$/, '')) && !/\/(register|write)$/.test(pathname);
+}
 function isWidePage(pathname: string): boolean {
   const p = pathname.replace(/\/+$/, '') || '/';
   return WIDE_PATHS.includes(p) || /^\/community\/(ski|board)$/.test(p);
@@ -104,7 +108,7 @@ const MainLayout = () => {
             <Navbar />
           </header>
         )}
-        <main id="main-content" className={`flex-1 w-full px-4 py-4 pb-24 lg:px-8 lg:py-6 lg:pb-14 lg:mx-auto ${isWidePage(location.pathname) ? 'lg:max-w-6xl' : 'lg:max-w-2xl'}`}>
+        <main id="main-content" className={`flex-1 w-full px-4 py-4 pb-24 lg:px-8 lg:py-6 lg:pb-14 lg:mx-auto ${isWidePage(location.pathname) ? 'lg:max-w-6xl' : isDetailPage(location.pathname) ? 'lg:max-w-5xl' : 'lg:max-w-2xl'}`}>
           <Outlet />
           {/* 푸터 — 링크만 (사업자 정보 상시 표시는 토스 심사용이었고 심사 거절로 접음. 사업자정보는 /about 에 유지: 전자상거래법 표시는 링크 도달로 충족) */}
           <footer className="mt-10 pt-5 border-t border-gray-200 text-[11px] leading-relaxed text-gray-500">

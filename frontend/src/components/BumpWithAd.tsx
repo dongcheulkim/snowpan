@@ -7,7 +7,8 @@ import HouseAdModal from './HouseAdModal';
 // 끌어올리기 공통 훅 (2026-10-02, 적립식 2026-10-05).
 //  - earn(): 짧은 광고(앱: 애드몹 보상형 영상 / 웹: 광고 카드 5초)를 보고 끌어올리기 1개 챙기기
 //  - start(id): 보유한 끌어올리기가 있으면 1개 써서 바로, 없으면 광고를 보고 바로 끌어올림
-interface Credits { credits: number; earnedToday: number; dailyLimit: number; maxHold: number }
+interface Credits { credits: number; earnedToday: number; dailyLimit: number; webDailyLimit?: number; maxHold: number }
+const WEB_LIMIT_MSG = '웹에서는 하루 1개만 받을 수 있어요. 스노우판 앱에서 광고를 보면 더 받을 수 있어요.';
 type Pending = { type: 'bump'; id: string } | { type: 'earn' };
 
 export function useBumpWithAd(onBumped?: (id: string) => void) {
@@ -58,21 +59,26 @@ export function useBumpWithAd(onBumped?: (id: string) => void) {
     } finally { setBusy(false); }
   }, [refresh]);
 
+  // 웹(광고 카드)은 하루 1개까지 — 그 뒤는 앱에서 (서버도 같은 규칙으로 막음)
+  const webLimitReached = !isNativeApp() && !!info && info.earnedToday >= (info.webDailyLimit ?? 1) && info.earnedToday < info.dailyLimit;
+
   // 매물 끌어올리기
   const start = useCallback(async (id: string) => {
     if (busy) return;
     if (info && info.credits > 0) { await doBump(id); return; }
+    if (webLimitReached) { toastError(WEB_LIMIT_MSG); return; }
     setBusy(true); const got = await watchAd(); setBusy(false);
     if (got === 'modal') setPending({ type: 'bump', id }); else await doBump(id, got);
-  }, [busy, info, doBump, watchAd]);
+  }, [busy, info, doBump, watchAd, webLimitReached]);
 
   // 광고 보고 끌어올리기 1개 챙기기
   const earn = useCallback(async () => {
     if (busy) return;
     if (info && info.earnedToday >= info.dailyLimit) { toastError(`끌어올리기는 하루 ${info.dailyLimit}개까지 받을 수 있어요. 내일 다시 받아 주세요.`); return; }
+    if (webLimitReached) { toastError(WEB_LIMIT_MSG); return; }
     setBusy(true); const got = await watchAd(); setBusy(false);
     if (got === 'modal') setPending({ type: 'earn' }); else await doEarn(got);
-  }, [busy, info, doEarn, watchAd]);
+  }, [busy, info, doEarn, watchAd, webLimitReached]);
 
   const modal = pending ? (
     <HouseAdModal
@@ -82,5 +88,5 @@ export function useBumpWithAd(onBumped?: (id: string) => void) {
     />
   ) : null;
 
-  return { start, earn, busy, modal, credits: info?.credits ?? null, earnedToday: info?.earnedToday ?? 0, dailyLimit: info?.dailyLimit ?? 3 };
+  return { start, earn, busy, modal, webLimitReached, credits: info?.credits ?? null, earnedToday: info?.earnedToday ?? 0, dailyLimit: info?.dailyLimit ?? 3 };
 }

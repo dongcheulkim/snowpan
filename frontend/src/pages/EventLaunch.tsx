@@ -8,7 +8,7 @@ import { useMeta } from '../hooks/useMeta';
 
 // 앱 출시 기념 이벤트 신청 (2026-10-03). 홈 배너에서 진입. 로그인한 회원만 신청, 인스타그램 아이디는 선택.
 interface EventInfo { key: string; appOnly?: boolean; open: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; count: number }
-interface Mine { applied: boolean; name?: string; phone?: string | null; instagram?: string | null; message?: string | null; createdAt?: string }
+interface Mine { applied: boolean; agreed?: boolean; name?: string; phone?: string | null; instagram?: string | null; message?: string | null; createdAt?: string }
 
 export default function EventLaunch() {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ export default function EventLaunch() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState(''); // 응원 한마디 (선택)
+  const [agreeCollect, setAgreeCollect] = useState(false); // [필수] 개인정보 수집·이용 동의
+  const [agreeProvide, setAgreeProvide] = useState(false); // [필수] 당첨 시 경품 제공처 제공 동의
+  const [showConsent, setShowConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   useMeta({ title: ev?.title || '이벤트', description: ev?.description || '스노우판 이벤트 신청' });
@@ -34,9 +37,10 @@ export default function EventLaunch() {
     if (!name.trim()) { toastError('성함을 적어 주세요.'); return; }
     if (!/^01[016789]\d{7,8}$/.test(phone.replace(/\D/g, ''))) { toastError('연락처를 숫자로 적어 주세요. (예: 01012345678)'); return; }
     if (!instagram.trim()) { toastError('인스타그램 아이디를 적어 주세요.'); return; }
+    if (!agreeCollect || !agreeProvide) { toastError('개인정보 수집·이용과 당첨자 정보 제공에 동의해 주세요.'); return; }
     setBusy(true);
     try {
-      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { name, phone, instagram, message } });
+      const r = await api<Mine & { updated: boolean }>('/events/launch/apply', { method: 'POST', body: { name, phone, instagram, message, agree: true } });
       setMine(r); setEditing(false);
       toastSuccess(r.updated ? '인스타그램 아이디를 바꿨어요.' : '이벤트 신청이 완료됐어요.');
     } catch (e) { toastError(e instanceof Error ? e.message : '신청하지 못했어요.'); }
@@ -157,7 +161,26 @@ export default function EventLaunch() {
                 className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-900 resize-none" />
               <span className="block text-right text-[11px] text-gray-400">{message.length}/200</span>
             </label>
-            <button onClick={submit} disabled={busy} className="mt-2 w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">
+            {/* 개인정보 동의 — 수집 항목·목적·보유 기간과 당첨자 정보 제공을 알리고 각각 동의받는다 (2026-10-05) */}
+            <div className="mt-2 rounded-xl bg-gray-50 border border-gray-200 p-3 space-y-2">
+              <label className="flex items-start gap-2 text-xs text-gray-800">
+                <input type="checkbox" checked={agreeCollect} onChange={(e) => setAgreeCollect(e.target.checked)} className="mt-0.5 w-4 h-4 accent-gray-900 flex-shrink-0" />
+                <span><b>[필수]</b> 개인정보 수집·이용에 동의합니다.</span>
+              </label>
+              <label className="flex items-start gap-2 text-xs text-gray-800">
+                <input type="checkbox" checked={agreeProvide} onChange={(e) => setAgreeProvide(e.target.checked)} className="mt-0.5 w-4 h-4 accent-gray-900 flex-shrink-0" />
+                <span><b>[필수]</b> 당첨되면 경품 제공처에 성함·연락처를 전달하는 데 동의합니다.</span>
+              </label>
+              <button type="button" onClick={() => setShowConsent((v) => !v)} className="text-[11px] text-gray-500 underline underline-offset-2">{showConsent ? '내용 접기' : '내용 보기'}</button>
+              {showConsent && (
+                <div className="text-[11px] text-gray-600 leading-relaxed space-y-1.5">
+                  <p><b>수집·이용</b> — 항목: 성함, 휴대폰 번호, 인스타그램 아이디, 응원 한마디(선택) / 목적: 이벤트 응모 접수, 당첨자 선정과 안내 / 보유 기간: 이벤트 마감일부터 60일 뒤 삭제</p>
+                  <p><b>제3자 제공</b> — 당첨자에 한해 / 받는 곳: 경품을 제공하는 매장(경품 안내에 표시) / 항목: 성함, 휴대폰 번호 / 목적: 경품 전달과 이용 확인 / 보유 기간: 경품 이용 완료 시까지</p>
+                  <p>동의하지 않을 수 있으며, 이 경우 이벤트에 응모할 수 없습니다.</p>
+                </div>
+              )}
+            </div>
+            <button onClick={submit} disabled={busy} className="mt-3 w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:opacity-40">
               {busy ? '처리중' : applied ? '저장' : ev.buttonLabel}
             </button>
             {applied && <button onClick={() => setEditing(false)} className="mt-2 w-full py-2 text-xs text-gray-500">취소</button>}
@@ -165,7 +188,7 @@ export default function EventLaunch() {
         )}
 
         <p className="text-[11px] text-gray-400 leading-relaxed">
-          적어 주신 성함·연락처·인스타그램 아이디는 당첨자 선정과 안내에만 쓰고, 이벤트가 끝나면 지웁니다. 당첨 안내는 스노우판 앱 채팅으로 드려요.
+          적어 주신 정보는 당첨자 선정·안내와 경품 전달에만 쓰고, 이벤트 마감 60일 뒤에 지웁니다. 당첨 안내는 스노우판 앱 채팅으로 드려요.
         </p>
       </div>
     </div>
