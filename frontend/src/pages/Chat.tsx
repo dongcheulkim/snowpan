@@ -10,6 +10,7 @@ import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 import AdInvitePanel from '../components/AdInvitePanel';
 import ReservationActions from '../components/ReservationActions';
 import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty, WORK_LABEL, EVENT_SHORT } from '../utils/reservation';
+import MyChatList from './MyChatList';
 
 // 방문 예약 상세 (GET /reservations/:id) — owner/customer 로 내가 어느 쪽인지 판단
 type ResDetail = Reservation & { customer?: ReservationParty; owner?: ReservationParty; viewerRole?: 'shop' | 'customer' }; // viewerRole: 서버가 정한 내 역할 (직원·관리자도 매장 쪽)
@@ -496,10 +497,15 @@ const Chat = () => {
   };
 
   return (
+    <>
+    {/* PC(lg~): 왼쪽에 대화 목록을 붙여 2단으로 — 사장님이 여러 손님을 오가며 응대하기 쉽게 (2026-10-05). 폰에서는 숨김 */}
+    <aside className="hidden lg:block fixed top-16 left-0 bottom-0 w-[380px] z-[61] bg-snow border-r border-gray-200 overflow-y-auto p-4" aria-label="대화 목록">
+      <MyChatList embedded activeId={chatId} />
+    </aside>
     <div
       ref={rootRef}
       onTransitionEnd={(e) => { if (e.propertyName === 'bottom') stickToBottom(); }}
-      className="chat-root fixed inset-0 flex flex-col animate-fade-in z-[61]"
+      className="chat-root fixed inset-0 lg:top-16 lg:left-[380px] flex flex-col animate-fade-in z-[61]"
       style={{ background: '#fafafa' }}
     >
       {inviteOpen && (
@@ -1017,6 +1023,7 @@ const Chat = () => {
       )}
 
     </div>
+    </>
   );
 };
 

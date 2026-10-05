@@ -74,7 +74,7 @@ export default function ShopReservations() {
   };
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto space-y-4 animate-fade-in">
+    <div className="max-w-md lg:max-w-none mx-auto space-y-4 animate-fade-in">
       <div className="flex items-center gap-3">
         <Link to="/mypage/shops" className="text-gray-500 text-lg">←</Link>
         <h1 className="text-xl font-bold text-gray-900">예약 관리</h1>
@@ -110,7 +110,8 @@ export default function ShopReservations() {
       ) : shown.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl text-gray-500 text-sm">{emptyByFilter}</div>
       ) : (
-        <div className="space-y-2">
+        // PC(lg~): 예약 카드를 두 칸으로 — 한 화면에서 더 많이 보고 바로 확정·거절 (2026-10-05)
+        <div className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
           {shown.map((r) => {
             const nights = r.shopType === 'accommodation' ? nightsBetween(r.date, r.endDate) : 0;
             const when = `${formatDateRange(r.date, r.endDate)}${nights > 0 ? ` (${nights}박)` : ''}${r.time ? ` ${r.time}` : ''}`;

@@ -50,7 +50,8 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
   return msg.content;
 };
 
-const MyChatList = () => {
+// embedded: PC 채팅 화면 왼쪽에 붙는 목록 모드 (2026-10-05) — 제목 줄을 줄이고, 열려 있는 방을 표시하고, 방을 바꿀 때 기록을 쌓지 않는다
+const MyChatList = ({ embedded = false, activeId }: { embedded?: boolean; activeId?: string } = {}) => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [chatFilter, setChatFilter] = useState<'all' | 'unanswered'>('all'); // 관리자 전용 필터
   const [loading, setLoading] = useState(true);
@@ -130,11 +131,15 @@ const MyChatList = () => {
   const shownRooms = isAdmin && chatFilter === 'unanswered' ? rooms.filter(isUnanswered) : rooms;
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className={embedded ? 'space-y-3' : 'space-y-4 animate-fade-in'}>
+      {embedded ? (
+        <h2 className="text-base font-bold text-gray-900">{t('myChatList.title')}</h2>
+      ) : (
       <div className="flex items-center gap-3">
         <Link to="/" className="text-gray-500 text-lg">&larr;</Link>
         <h1 className="text-xl font-bold text-gray-900">{t('myChatList.title')}</h1>
       </div>
+      )}
       {isAdmin && rooms.length > 0 && (
         <div className="flex items-center gap-2">
           {([['all', `전체 ${rooms.length}`], ['unanswered', `답 안 한 문의 ${unansweredCount}`]] as const).map(([k, l]) => (
@@ -169,7 +174,9 @@ const MyChatList = () => {
                 to={`/chat/${room.id}`}
                 state={{ seller: other.name, sellerId: other.id, productName: '', productImage: '', productPrice: 0 }}
                 key={room.id}
-                className="card p-4 flex items-center gap-3 block"
+                replace={embedded}
+                aria-current={embedded && activeId === room.id ? 'true' : undefined}
+                className={`card flex items-center gap-3 block ${embedded ? 'p-3' : 'p-4'} ${embedded && activeId === room.id ? 'border-gray-900 bg-gray-50' : ''}`}
               >
                 <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500 border border-gray-200 overflow-hidden">
                   {other.profileImage ? <img src={imageUrl(other.profileImage)} alt="" className="w-full h-full object-cover" /> : <UserIcon size={22} />}
