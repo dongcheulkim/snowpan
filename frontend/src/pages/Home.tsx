@@ -584,7 +584,7 @@ const Home = () => {
             </button>
           </div>
           {/* 가로로 넘기며 보는 카드 — 사진 위, 제목 아래. 2초마다 한 칸씩 자동으로 넘어가고, 손대면 멈췄다가 다시 돈다 (사용자 요청 2026-09-09) */}
-          <HScroll autoScrollMs={3000} drag noArrows className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 snap-x snap-mandatory">
+          <HScroll autoScrollMs={3000} drag noArrows className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory">
             {!igLoaded && magazine.length === 0 && [0, 1].map((i) => (
               <div key={`sk-${i}`} className="card overflow-hidden flex-shrink-0 w-[64%] max-w-[260px] snap-start" aria-hidden="true">
                 <div className="aspect-[4/5] bg-gray-100" />
