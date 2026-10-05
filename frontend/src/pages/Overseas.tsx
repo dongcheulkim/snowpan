@@ -227,12 +227,17 @@ export default function Overseas() {
   const subValues = scope === '해외'
     ? CONTINENT_ORDER.filter((c) => scoped.some((r) => r.continent === c))
     : REGION_ORDER.filter((rg) => scoped.some((r) => r.region === rg));
-  const subTabs = [...(hasPopular ? ['인기'] : []), '전체', ...subValues];
+  // 실내 스키장 탭 (2026-10-05) — highlights 에 '실내스키장' 이 있는 곳. 대륙과 상관없이 한데 모아 보여준다 (각 대륙 탭에도 그대로 나옴)
+  const isIndoor = (r: { highlights?: string | null }) => (r.highlights || '').includes('실내스키장');
+  const hasIndoor = scope === '해외' && scoped.some(isIndoor);
+  const subTabs = [...(hasPopular ? ['인기'] : []), '전체', ...subValues, ...(hasIndoor ? ['실내'] : [])];
   const activeSub = subTabs.includes(sub) ? sub : '전체';
   const filtered = activeSub === '전체'
     ? scoped
     : activeSub === '인기'
       ? scoped.filter((r) => r.popular)
+      : activeSub === '실내'
+        ? scoped.filter(isIndoor)
       : scope === '해외'
         ? scoped.filter((r) => r.continent === activeSub)
         : scoped.filter((r) => r.region === activeSub);
