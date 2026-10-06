@@ -154,7 +154,7 @@ const MyPage = () => {
     { label: t('mypage.terms'), link: '/mypage/terms' },
     { label: '개인정보처리방침', link: '/privacy' },
     { label: '안전거래 가이드', link: '/safe-trade' },
-    { label: '장비 가이드 · 사이즈 계산', link: '/gear-guide' },
+    { label: '장비 브랜드 가이드', link: '/gear-guide' },
     // 고객센터(/help) 하나로 통합 — FAQ·1:1 문의·사업자 정보 모두 이 안에 있음
     { label: '고객센터', link: '/help' },
   ];

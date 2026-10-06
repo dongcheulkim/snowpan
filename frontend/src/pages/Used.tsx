@@ -326,8 +326,8 @@ const Used = () => {
                   {label}
                 </button>
               ))}
-              {/* 장비 가이드(사이즈 계산)로 — 어디서도 연결이 없어 도달 불가였음 (2026-10-06) */}
-              <Link to="/gear-guide" className="px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap bg-white border border-gray-200 text-gray-700 hover:text-gray-900">내 사이즈는?</Link>
+              {/* 장비 브랜드 가이드로 — 어디서도 연결이 없어 도달 불가였음 (2026-10-06) */}
+              <Link to="/gear-guide" className="px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap bg-white border border-gray-200 text-gray-700 hover:text-gray-900">브랜드 가이드</Link>
             </div>
           )}
         </div>

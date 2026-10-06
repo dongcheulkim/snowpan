@@ -1,4 +1,4 @@
-// 2026-10-05 기능: 스키장 개장 알림(신청→새로고침 유지→끄기, 데이터 남기지 않음), 장비 사이즈 계산기 → 길이별 중고 이동. 폰·PC 폭 모두.
+// 2026-10-05 기능: 스키장 개장 알림(신청→새로고침 유지→끄기, 데이터 남기지 않음), 장비 브랜드 가이드 진입. 폰·PC 폭 모두.
 const { chromium } = require('/Users/jason/bada-now/node_modules/playwright');
 const BASE = process.env.BASE || 'https://snowpan.kr';
 let pass = 0, fail = 0; const ok = (n, c, d = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'} | ${n}${c ? '' : ' ' + d}`); };
@@ -19,21 +19,12 @@ async function login(p, email, pw) { await p.goto(`${BASE}/login`, { waitUntil: 
     await on.click(); await p.waitForTimeout(1500); ok(`${tag} 신청하면 '받는 중'으로`, await off.isVisible().catch(() => false));
     await p.reload({ waitUntil: 'networkidle' }); await p.waitForTimeout(1500); ok(`${tag} 새로고침해도 유지`, await off.isVisible().catch(() => false));
     await off.click(); await p.waitForTimeout(1500); ok(`${tag} 끄기`, await on.isVisible().catch(() => false));
-    await p.goto(`${BASE}/gear-guide`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800);
-    await p.getByPlaceholder('170').fill('175'); await p.getByPlaceholder('65', { exact: true }).fill('70'); await p.getByPlaceholder('265').fill('263'); await p.waitForTimeout(300);
-    const body = await p.locator('body').innerText();
-    ok(`${tag} 스키 길이 계산 (175cm 입문 → 160~165cm)`, body.includes('160~165cm'), body.match(/\d+~\d+cm/)?.[0]);
-    ok(`${tag} 폴·부츠 사이즈 표시`, /폴 길이/.test(body) && body.includes('260~265mm'));
-    // 바인딩 이탈값(DIN): 75kg·175cm·30세·솔 305·타입 II → 6.5 (ISO 11088 표), 보드에선 숨김
-    await p.getByPlaceholder('65', { exact: true }).fill('75'); await p.getByPlaceholder('30', { exact: true }).fill('30'); await p.getByPlaceholder('305').fill('305'); await p.waitForTimeout(300);
-    ok(`${tag} 바인딩 이탈값 6.5`, /권장 이탈값\n6\.5\n/.test(await p.locator('body').innerText()));
-    await p.getByPlaceholder('65', { exact: true }).fill('70');
-    await p.getByRole('button', { name: '스노보드' }).click(); await p.waitForTimeout(300);
-    ok(`${tag} 보드로 바꾸면 보드 길이 (151~155cm)`, (await p.locator('body').innerText()).includes('151~155cm'));
-    ok(`${tag} 보드에선 이탈값 계산 숨김`, !(await p.locator('body').innerText()).includes('바인딩 이탈값'));
-    await p.getByPlaceholder('170').fill('99'); await p.waitForTimeout(200); ok(`${tag} 범위를 벗어난 키는 안내 문구`, (await p.locator('body').innerText()).includes('100~210cm'));
-    await p.getByPlaceholder('170').fill('175'); await p.getByRole('link', { name: /이 길이의 중고/ }).click(); await p.waitForTimeout(2000);
-    const u = new URL(p.url()); ok(`${tag} 해당 길이 중고 보드로 이동`, u.pathname === '/used' && u.searchParams.get('category') === 'board' && u.searchParams.get('len') === '150-159', p.url());
+    // 장비 가이드는 브랜드 소개만 (사이즈·DIN 계산은 사장님 결정으로 제거, 2026-10-06). 중고 길이 필터에서 진입 가능
+    await p.goto(`${BASE}/used?category=ski`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800);
+    await p.getByRole('link', { name: '브랜드 가이드' }).first().click(); await p.waitForTimeout(1500);
+    const gb = await p.locator('body').innerText();
+    ok(`${tag} 중고 → 브랜드 가이드 진입`, new URL(p.url()).pathname === '/gear-guide' && gb.includes('오가사카'), p.url());
+    ok(`${tag} 사이즈·DIN 계산 없음`, !gb.includes('내 사이즈 계산') && !gb.includes('바인딩 이탈값'));
     ok(`${tag} 가로 넘침·페이지 오류 없음`, !(await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) && errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   }

@@ -163,176 +163,6 @@ const LEVEL_INFO: Record<Level, { label: string; desc: string; badge: string }> 
   expert: { label: '전문가', desc: '데몬/티칭/프로 · 기술 시범 가능', badge: 'bg-red-500' },
 };
 
-// ── 사이즈 계산기 (2026-10-05) — 키·몸무게·레벨로 권장 길이를 계산. 일반적으로 쓰이는 기준(스키: 키 기준 -15~+5cm, 보드: 턱~코 높이)을 따른 참고값.
-const SKI_OFFSET: Record<Level, [number, number]> = { beginner: [-15, -10], intermediate: [-10, -5], advanced: [-5, 0], expert: [0, 5] };
-const BOARD_OFFSET: Record<Level, [number, number]> = { beginner: [-24, -20], intermediate: [-21, -17], advanced: [-19, -15], expert: [-18, -13] };
-
-function calcSize(sport: Sport, level: Level, height: number, weight: number) {
-  const [lo, hi] = (sport === 'ski' ? SKI_OFFSET : BOARD_OFFSET)[level];
-  // 체중 보정: 키 대비 무거우면 길게, 가벼우면 짧게 (표준 체중 = 키-105 기준 ±8kg)
-  const std = height - 105;
-  const adj = weight ? (weight - std > 8 ? (sport === 'ski' ? 3 : 2) : weight - std < -8 ? (sport === 'ski' ? -3 : -2) : 0) : 0;
-  const min = Math.round(height + lo + adj);
-  const max = Math.round(height + hi + adj);
-  const mid = (min + max) / 2;
-  const bucket = mid < 150 ? '-149' : mid < 160 ? '150-159' : mid < 170 ? '160-169' : '170-';
-  const round5 = (n: number) => Math.round(n / 5) * 5;
-  return { min, max, adj, bucket, poleMin: round5(height * 0.68), poleMax: round5(height * 0.7) };
-}
-
-// ── 바인딩 이탈값(DIN) 계산 (2026-10-06) — ISO 11088 표 기준. 몸무게·키로 스키어 코드를 정하고(둘 중 낮은 쪽),
-// 스키어 타입(+0/+1/+2)·나이(10세 미만·50세 이상 -1)로 보정한 뒤, 부츠 솔 길이 칸에서 값을 읽는다. 참고용이며 실제 세팅은 정비샵에서.
-type SkierType = 1 | 2 | 3;
-const DIN_CODES = 'ABCDEFGHIJKLMNOP';
-const DIN_WEIGHT: [number, string][] = [[13, 'A'], [17, 'B'], [21, 'C'], [25, 'D'], [30, 'E'], [35, 'F'], [41, 'G'], [48, 'H'], [57, 'I'], [66, 'J'], [78, 'K'], [94, 'L'], [Infinity, 'M']];
-const DIN_HEIGHT: [number, string][] = [[148, 'H'], [157, 'I'], [166, 'J'], [178, 'K'], [194, 'L'], [Infinity, 'M']];
-const DIN_SOLE_MAX = [230, 250, 270, 290, 310, 330, Infinity]; // 솔 길이(mm) 칸
-const DIN_TABLE: Record<string, (number | null)[]> = {
-  A: [0.75, 0.75, 0.75, null, null, null, null],
-  B: [1, 0.75, 0.75, 0.75, null, null, null],
-  C: [1.5, 1.25, 1.25, 1, null, null, null],
-  D: [2, 1.75, 1.5, 1.5, 1.25, null, null],
-  E: [2.5, 2.25, 2, 1.75, 1.5, 1.5, null],
-  F: [3, 2.75, 2.5, 2.25, 2, 1.75, 1.75],
-  G: [3.5, 3, 3, 2.75, 2.5, 2.25, 2],
-  H: [null, 3.5, 3.5, 3, 3, 2.75, 2.5],
-  I: [null, 4.5, 4.5, 4, 3.5, 3.5, 3],
-  J: [null, 5.5, 5.5, 5, 4.5, 4, 3.5],
-  K: [null, 6.5, 6.5, 6, 5.5, 5, 4.5],
-  L: [null, 7.5, 7.5, 7, 6.5, 6, 5.5],
-  M: [null, null, 8.5, 8, 7, 6.5, 6],
-  N: [null, null, 10, 9.5, 8.5, 8, 7.5],
-  O: [null, null, 11.5, 11, 10, 9.5, 9],
-  P: [null, null, null, 12, 11, 10.5, 10],
-};
-function calcDin(weight: number, height: number, age: number, sole: number, type: SkierType): { code: string; din: number | null } {
-  const wCode = DIN_WEIGHT.find(([max]) => weight <= max)![1];
-  const hCode = DIN_HEIGHT.find(([max]) => height <= max)![1];
-  let idx = Math.min(DIN_CODES.indexOf(wCode), DIN_CODES.indexOf(hCode)); // 둘 중 낮은(보수적인) 코드
-  idx += type - 1; // 타입 I 0, II +1, III +2
-  if (age < 10 || age >= 50) idx -= 1;
-  idx = Math.max(0, Math.min(DIN_CODES.length - 1, idx));
-  const code = DIN_CODES[idx];
-  const col = DIN_SOLE_MAX.findIndex((max) => sole <= max);
-  return { code, din: DIN_TABLE[code][col] };
-}
-
-function DinCalculator({ height, weight }: { height: number; weight: number }) {
-  const [age, setAge] = useState('');
-  const [sole, setSole] = useState('');
-  const [type, setType] = useState<SkierType>(2);
-  const a = Number(age); const sl = Number(sole);
-  const ready = height >= 100 && height <= 210 && weight >= 20 && weight <= 200 && a >= 5 && a <= 99 && sl >= 200 && sl <= 380;
-  const r = ready ? calcDin(weight, height, a, sl, type) : null;
-  const num = (v: string, n: number) => v.replace(/[^0-9]/g, '').slice(0, n);
-  const field = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 tabular-nums';
-  const types: [SkierType, string, string][] = [[1, '타입 I', '조심스럽게 · 완만한 슬로프'], [2, '타입 II', '보통 속도 · 다양한 슬로프'], [3, '타입 III', '빠르고 공격적 · 상급']];
-  return (
-    <div className="border-t border-gray-100 pt-3 space-y-2.5">
-      <div>
-        <h3 className="text-sm font-bold text-gray-900">바인딩 이탈값 (DIN)</h3>
-        <p className="text-xs text-gray-500 mt-0.5">위의 키·몸무게에 나이와 부츠 솔 길이를 더하면 국제 표준(ISO 11088) 표의 값을 알려드려요. 솔 길이는 부츠 옆면이나 뒤꿈치에 mm 로 적혀 있어요.</p>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block">
-          <span className="text-[11px] font-bold text-gray-600">나이</span>
-          <input inputMode="numeric" value={age} onChange={e => setAge(num(e.target.value, 2))} placeholder="30" className={field} />
-        </label>
-        <label className="block">
-          <span className="text-[11px] font-bold text-gray-600">부츠 솔 길이 (mm)</span>
-          <input inputMode="numeric" value={sole} onChange={e => setSole(num(e.target.value, 3))} placeholder="305" className={field} />
-        </label>
-      </div>
-      <div className="grid grid-cols-3 gap-1.5">
-        {types.map(([t, label, desc]) => (
-          <button key={t} type="button" onClick={() => setType(t)} aria-pressed={type === t} className={`rounded-lg px-2 py-2 text-left transition-colors ${type === t ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-            <span className="block text-xs font-bold">{label}</span>
-            <span className={`block text-[10px] leading-tight mt-0.5 ${type === t ? 'text-gray-300' : 'text-gray-500'}`}>{desc}</span>
-          </button>
-        ))}
-      </div>
-      {!(height >= 100 && height <= 210 && weight >= 20 && weight <= 200) && (age || sole) && <p className="text-xs text-gray-500">위에 키와 몸무게를 먼저 넣어 주세요.</p>}
-      {r && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs font-bold text-gray-600">권장 이탈값</span>
-            <span className="text-lg font-bold text-gray-900 tabular-nums">{r.din === null ? '표 범위 밖' : r.din.toFixed(2).replace(/\.?0+$/, '')}</span>
-          </div>
-          <p className="text-[11px] text-gray-500 leading-relaxed">
-            {r.din === null ? '이 체격과 솔 길이 조합은 표에 값이 없어요. 정비샵에서 직접 맞춰 주세요.' : `스키어 코드 ${r.code}. 앞뒤 바인딩 모두 같은 값으로 맞춰요.`}
-            {' '}참고용 값이에요. 바인딩은 정비샵에서 토크 측정까지 해서 맞추는 것이 안전해요.
-          </p>
-          <Link to="/repair" className="block text-center py-2.5 bg-white border border-gray-300 text-gray-800 rounded-lg text-xs font-bold">근처 정비샵 보기</Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SizeCalculator({ sport, level }: { sport: Sport; level: Level }) {
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [foot, setFoot] = useState('');
-  const h = Number(height); const w = Number(weight); const f = Number(foot);
-  const valid = h >= 100 && h <= 210;
-  const r = valid ? calcSize(sport, level, h, w >= 20 && w <= 200 ? w : 0) : null;
-  const footOk = f >= 150 && f <= 330;
-  const num = (v: string) => v.replace(/[^0-9]/g, '').slice(0, 3);
-  const field = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 tabular-nums';
-  return (
-    <div className="card p-4 space-y-3">
-      <div>
-        <h2 className="text-sm font-bold text-gray-900">내 사이즈 계산</h2>
-        <p className="text-xs text-gray-500 mt-0.5">키와 몸무게를 넣으면 위에서 고른 종목·레벨에 맞는 길이를 알려드려요.</p>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        <label className="block">
-          <span className="text-[11px] font-bold text-gray-600">키 (cm)</span>
-          <input inputMode="numeric" value={height} onChange={e => setHeight(num(e.target.value))} placeholder="170" className={field} />
-        </label>
-        <label className="block">
-          <span className="text-[11px] font-bold text-gray-600">몸무게 (kg)</span>
-          <input inputMode="numeric" value={weight} onChange={e => setWeight(num(e.target.value))} placeholder="65" className={field} />
-        </label>
-        <label className="block">
-          <span className="text-[11px] font-bold text-gray-600">발 길이 (mm)</span>
-          <input inputMode="numeric" value={foot} onChange={e => setFoot(num(e.target.value))} placeholder="265" className={field} />
-        </label>
-      </div>
-      {height !== '' && !valid && <p className="text-xs text-gray-500">키는 100~210cm 사이로 넣어 주세요.</p>}
-      {r && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs font-bold text-gray-600">{sport === 'ski' ? '스키 길이' : '보드 길이'}</span>
-            <span className="text-lg font-bold text-gray-900 tabular-nums">{r.min}~{r.max}cm</span>
-          </div>
-          {sport === 'ski' && (
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs font-bold text-gray-600">폴 길이</span>
-              <span className="text-sm font-bold text-gray-900 tabular-nums">{r.poleMin === r.poleMax ? `${r.poleMin}cm` : `${r.poleMin}~${r.poleMax}cm`}</span>
-            </div>
-          )}
-          {footOk && (
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs font-bold text-gray-600">부츠 사이즈</span>
-              <span className="text-sm font-bold text-gray-900 tabular-nums">{Math.floor(f / 5) * 5}~{Math.floor(f / 5) * 5 + 5}mm</span>
-            </div>
-          )}
-          <p className="text-[11px] text-gray-500 leading-relaxed">
-            {r.adj > 0 ? '체중이 있는 편이라 조금 길게 잡았어요. ' : r.adj < 0 ? '체중이 가벼운 편이라 조금 짧게 잡았어요. ' : ''}
-            {sport === 'ski' ? '회전 위주면 짧은 쪽, 속도·안정감 위주면 긴 쪽을 고르세요.' : '트릭·파크 위주면 짧은 쪽, 카빙·파우더 위주면 긴 쪽을 고르세요.'}
-            {' '}부츠는 맨발 길이 기준이고, 꼭 신어 보고 정하세요.
-          </p>
-          <Link to={`/used?category=${sport}&len=${r.bucket}`} className="block text-center py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold">
-            이 길이의 중고 {sport === 'ski' ? '스키' : '보드'} 보기
-          </Link>
-        </div>
-      )}
-      {sport === 'ski' && <DinCalculator height={valid ? h : 0} weight={w >= 20 && w <= 200 ? w : 0} />}
-    </div>
-  );
-}
-
 export default function GearGuide() {
   const user = getUser();
   const [sport, setSport] = useState<Sport>('ski');
@@ -348,7 +178,7 @@ export default function GearGuide() {
         <Link to="/" className="text-sm text-gray-500">← 홈</Link>
       </div>
 
-      <p className="text-sm text-gray-500">레벨에 맞는 길이와 브랜드·모델을 확인해보세요</p>
+      <p className="text-sm text-gray-500">레벨에 맞는 브랜드와 모델을 확인해보세요</p>
 
       {/* 스포츠 선택 */}
       <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
@@ -393,8 +223,6 @@ export default function GearGuide() {
         </span>
         <span className="text-xs text-gray-500">{LEVEL_INFO[level].desc}</span>
       </div>
-
-      <SizeCalculator sport={sport} level={level} />
 
       {/* 브랜드 목록 */}
       <div className="space-y-3">
