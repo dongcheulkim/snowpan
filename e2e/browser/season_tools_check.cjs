@@ -19,11 +19,11 @@ async function login(p, email, pw) { await p.goto(`${BASE}/login`, { waitUntil: 
     await on.click(); await p.waitForTimeout(1500); ok(`${tag} 신청하면 '받는 중'으로`, await off.isVisible().catch(() => false));
     await p.reload({ waitUntil: 'networkidle' }); await p.waitForTimeout(1500); ok(`${tag} 새로고침해도 유지`, await off.isVisible().catch(() => false));
     await off.click(); await p.waitForTimeout(1500); ok(`${tag} 끄기`, await on.isVisible().catch(() => false));
-    // 장비 가이드는 브랜드 소개만 (사이즈·DIN 계산은 사장님 결정으로 제거, 2026-10-06). 중고 길이 필터에서 진입 가능
-    await p.goto(`${BASE}/used?category=ski`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800);
-    await p.getByRole('link', { name: '브랜드 가이드' }).first().click(); await p.waitForTimeout(1500);
+    // 장비 가이드는 브랜드 소개만 (사이즈·DIN 계산은 사장님 결정으로 제거, 2026-10-06). 중고 '키워드 알림' 밑 '스키 브랜드 알아보기'로 진입
+    await p.goto(`${BASE}/used`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800);
+    await p.getByRole('link', { name: /스키 브랜드 알아보기/ }).first().click(); await p.waitForTimeout(1500);
     const gb = await p.locator('body').innerText();
-    ok(`${tag} 중고 → 브랜드 가이드 진입`, new URL(p.url()).pathname === '/gear-guide' && gb.includes('오가사카'), p.url());
+    ok(`${tag} 중고 → 브랜드 가이드 진입`, new URL(p.url()).pathname === '/gear-guide' && gb.includes('아토믹'), p.url());
     ok(`${tag} 사이즈·DIN 계산 없음`, !gb.includes('내 사이즈 계산') && !gb.includes('바인딩 이탈값'));
     ok(`${tag} 가로 넘침·페이지 오류 없음`, !(await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) && errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();

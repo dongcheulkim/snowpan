@@ -256,6 +256,20 @@ const Used = () => {
         </Link>
       )}
 
+      {/* 키워드 알림 밑 — 스키·보드 브랜드 가이드 진입 (사장님 요청 2026-10-06, 비로그인도 보임) */}
+      {vertical.slug === 'snow' && debouncedSearch.trim().length < 2 && (
+        <Link
+          to="/gear-guide"
+          className="flex items-center gap-2.5 w-full px-3.5 py-2.5 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
+        >
+          <span className="flex-1 text-left">
+            <span className="block text-xs font-bold text-gray-900">스키 브랜드 알아보기</span>
+            <span className="block text-[11px] text-gray-500">레벨에 맞는 스키·보드 브랜드와 대표 모델 소개</span>
+          </span>
+          <span className="text-gray-400 text-sm">›</span>
+        </Link>
+      )}
+
       {/* 현재 검색어 키워드 알림 등록 — 로그인 + 검색어 있을 때만 */}
       {vertical.slug === 'snow' && getUser() && debouncedSearch.trim().length >= 2 && (
         <button
@@ -326,8 +340,6 @@ const Used = () => {
                   {label}
                 </button>
               ))}
-              {/* 장비 브랜드 가이드로 — 어디서도 연결이 없어 도달 불가였음 (2026-10-06) */}
-              <Link to="/gear-guide" className="px-2.5 py-1 rounded-full font-medium text-[11px] whitespace-nowrap bg-white border border-gray-200 text-gray-700 hover:text-gray-900">브랜드 가이드</Link>
             </div>
           )}
         </div>
