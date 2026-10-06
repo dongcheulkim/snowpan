@@ -27,11 +27,11 @@ export const AD_CATEGORY_LABELS: Record<string, string> = {
   none: '전체',
 };
 
-export function slotLabelKr(slotType: string): string {
+function slotLabelKr(slotType: string): string {
   return SLOT_LABELS[slotType] || slotType;
 }
 
-export function categoryLabelKr(category: string | null | undefined): string {
+function categoryLabelKr(category: string | null | undefined): string {
   if (!category || category === 'none') return '';
   return AD_CATEGORY_LABELS[category] || category;
 }

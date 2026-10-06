@@ -4,7 +4,7 @@ import prisma from '../config/database';
 import { logAdminAccess, ACCESS_ACTIONS } from './adminAudit';
 import type { AuthRequest } from '../middleware/auth';
 
-export const LOGIN_LOG_DAYS = Math.max(1, Number(process.env.LOGIN_LOG_DAYS) || 90);
+const LOGIN_LOG_DAYS = Math.max(1, Number(process.env.LOGIN_LOG_DAYS) || 90);
 
 // 실패해도 로그인은 막지 않는다 (fire-and-forget)
 export function recordLogin(req: Request, userId: string, method: 'email' | 'register' | 'kakao' | 'apple'): void {
@@ -13,7 +13,7 @@ export function recordLogin(req: Request, userId: string, method: 'email' | 'reg
   prisma.loginLog.create({ data: { userId, ip, userAgent: ua, method } }).catch((e) => console.warn('login log failed:', e instanceof Error ? e.message : e));
 }
 
-export async function pruneLoginLogs(): Promise<number> {
+async function pruneLoginLogs(): Promise<number> {
   const cutoff = new Date(Date.now() - LOGIN_LOG_DAYS * 24 * 60 * 60 * 1000);
   const r = await prisma.loginLog.deleteMany({ where: { createdAt: { lt: cutoff } } });
   return r.count;

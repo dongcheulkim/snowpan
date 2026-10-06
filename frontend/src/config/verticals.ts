@@ -7,7 +7,7 @@
 //   3. PanTopBar 의 스위처에 자동 노출
 //   4. (선택) 별도 라우트 prefix 적용 시 App.tsx 에서 분기
 
-export type VerticalStatus = 'active' | 'coming_soon' | 'beta';
+type VerticalStatus = 'active' | 'coming_soon' | 'beta';
 
 export interface Vertical {
   slug: string;          // 'snow' | 'bike' | 'run' | ...
@@ -57,7 +57,7 @@ export interface Vertical {
   releaseDate?: string;
 }
 
-export const VERTICALS: Vertical[] = [
+const VERTICALS: Vertical[] = [
   {
     slug: 'snow',
     name: 'SNOWPAN',
@@ -378,7 +378,7 @@ export const VERTICALS: Vertical[] = [
   },
 ];
 
-export const ACTIVE_VERTICAL_SLUG = 'snow';
+const ACTIVE_VERTICAL_SLUG = 'snow';
 export function getActiveVertical(): Vertical {
   return VERTICALS.find(v => v.slug === ACTIVE_VERTICAL_SLUG)!;
 }

@@ -7,7 +7,7 @@ const CHUNK_ERR_RE = /(ChunkLoadError|Loading chunk [\w-]+ failed|Failed to fetc
 const KEY = 'snowpan.chunkReload'; // {url, at}
 const LOOP_WINDOW_MS = 30_000;
 
-export function errorMessageOf(reason: unknown): string {
+function errorMessageOf(reason: unknown): string {
   if (!reason) return '';
   if (typeof reason === 'string') return reason;
   const r = reason as { message?: unknown; reason?: unknown };

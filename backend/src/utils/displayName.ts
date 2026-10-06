@@ -6,7 +6,7 @@ export function displayName(user: { name: string; nickname?: string | null }): s
 // 공개 응답용 — 중첩 user 의 name 을 표시명(닉네임 우선)으로 치환해 실명 비노출.
 // select 에 name·nickname 이 함께 있는 목록/상세 응답에 씌운다.
 const PUBLIC_ANON = '스노우판 회원';
-export const DELETED_LABEL = '탈퇴한 회원';
+const DELETED_LABEL = '탈퇴한 회원';
 // 탈퇴 회원은 닉네임이 비어 있고 name 이 '탈퇴한 회원'(role deleted) — 익명 폴백 대신 탈퇴 표시를 유지
 function isDeletedUser(u: { name?: string | null; role?: string | null }): boolean {
   return u.role === 'deleted' || u.name === DELETED_LABEL;

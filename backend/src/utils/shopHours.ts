@@ -5,12 +5,12 @@
 //   가격: 0 이상 1천만원 이하 정수(숫자 또는 숫자 문자열). ''/null 이면 지움. 그 외 400.
 import { sanitizeText } from './sanitize';
 
-export const DAY_CODES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
-export type DayCode = (typeof DAY_CODES)[number];
+const DAY_CODES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+type DayCode = (typeof DAY_CODES)[number];
 
-export const HOURS_ERROR = '영업시간은 HH:mm 형식(00:00~24:00)으로 입력해 주세요';
-export const CLOSED_DAYS_ERROR = '휴무일은 mon,tue,wed,thu,fri,sat,sun 중에서 골라 주세요';
-export const PRICE_ERROR = '가격은 0원 이상 1천만원 이하 숫자여야 해요';
+const HOURS_ERROR = '영업시간은 HH:mm 형식(00:00~24:00)으로 입력해 주세요';
+const CLOSED_DAYS_ERROR = '휴무일은 mon,tue,wed,thu,fri,sat,sun 중에서 골라 주세요';
+const PRICE_ERROR = '가격은 0원 이상 1천만원 이하 숫자여야 해요';
 
 const TIME_RE = /^(?:(?:[01]\d|2[0-3]):[0-5]\d|24:00)$/;
 const MAX_SHOP_PRICE = 10_000_000;
@@ -58,8 +58,8 @@ export function parseShopHours(body: Record<string, unknown>): Parsed<ShopHoursI
   return { ok: true, data: out };
 }
 
-export const RENTAL_PRICE_KEYS = ['priceSkiSet', 'priceBoardSet', 'priceClothes', 'priceHelmet', 'priceGoggles'] as const;
-export type RentalPriceKey = (typeof RENTAL_PRICE_KEYS)[number];
+const RENTAL_PRICE_KEYS = ['priceSkiSet', 'priceBoardSet', 'priceClothes', 'priceHelmet', 'priceGoggles'] as const;
+type RentalPriceKey = (typeof RENTAL_PRICE_KEYS)[number];
 export type RentalPricesInput = Partial<Record<RentalPriceKey, number | null>> & { priceNote?: string | null };
 
 function parsePriceField(v: unknown): Field<number> {
@@ -98,8 +98,8 @@ export function computePriceFrom(p: { priceSkiSet?: number | null; priceBoardSet
 // ── 재심사 예외 (2026-09-17, 사장님 요청 "가격·영업시간 바꿀 때마다 심사 다시 받는 건 과함")
 // 가격표·영업시간처럼 위험 없는 항목만 바뀐 수정(또는 아무것도 안 바뀐 저장)은 approved 를 유지한다.
 // 수정 폼이 모든 필드를 같이 보내므로 요청 키가 아니라 "기존 값과 실제로 달라진 키"로 판단한다.
-export const SAFE_EDIT_KEYS = new Set(['openTime', 'closeTime', 'closedDays', 'hours', 'priceSkiSet', 'priceBoardSet', 'priceClothes', 'priceHelmet', 'priceGoggles', 'priceNote', 'priceFrom']);
-export function changedKeys(existing: Record<string, unknown>, data: Record<string, unknown>): string[] {
+const SAFE_EDIT_KEYS = new Set(['openTime', 'closeTime', 'closedDays', 'hours', 'priceSkiSet', 'priceBoardSet', 'priceClothes', 'priceHelmet', 'priceGoggles', 'priceNote', 'priceFrom']);
+function changedKeys(existing: Record<string, unknown>, data: Record<string, unknown>): string[] {
   const norm = (v: unknown) => (v === undefined || v === null || v === '' ? '' : v instanceof Date ? v.toISOString() : String(v));
   return Object.keys(data).filter((k) => norm(data[k]) !== norm(existing[k]));
 }

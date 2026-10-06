@@ -10,8 +10,8 @@ export const APP_VERSION_KEYS = {
   androidLatest: 'app_version_android_latest', androidMin: 'app_version_android_min',
 } as const;
 // 스토어에 올라간 버전 기준 기본값 — 관리자 설정이 없을 때
-export const APP_VERSION_DEFAULTS = { iosLatest: '1.7', iosMin: '1.6', androidLatest: '1.2', androidMin: '1.0' };
-export const STORE_URLS = {
+const APP_VERSION_DEFAULTS = { iosLatest: '1.7', iosMin: '1.6', androidLatest: '1.2', androidMin: '1.0' };
+const STORE_URLS = {
   ios: 'https://apps.apple.com/kr/app/%EC%8A%A4%EB%85%B8%EC%9A%B0%ED%8C%90/id6810708515?l=ko',
   android: 'https://play.google.com/store/apps/details?id=kr.snowpan.app', // 구글 승인 전엔 스토어에 없음 — 앱은 링크가 열리지 않으면 안내만 함
 };

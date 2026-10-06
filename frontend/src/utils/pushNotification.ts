@@ -5,7 +5,7 @@
 const PROMPT_DISMISSED_KEY = 'push_prompt_dismissed_at';
 const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 
-export function isPushSupported(): boolean {
+function isPushSupported(): boolean {
   return typeof window !== 'undefined' && 'Notification' in window;
 }
 

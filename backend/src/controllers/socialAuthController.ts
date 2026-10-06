@@ -46,7 +46,7 @@ function takeLinkUserId(req: Request, res: Response): string | null {
   res.clearCookie(LINK_COOKIE, { path: '/api/auth' });
   return t ? verifyLinkTicket(t) : null;
 }
-export function signLinkTicket(userId: string): string {
+function signLinkTicket(userId: string): string {
   return jwt.sign({ userId, purpose: 'link' }, process.env.JWT_SECRET!, { expiresIn: '10m' });
 }
 function verifyLinkTicket(t: string): string | null {
@@ -127,8 +127,8 @@ async function linkProfileToUser(user: User, profile: SocialProfile): Promise<Us
   return Object.keys(data).length ? prisma.user.update({ where: { id: user.id }, data }) : user;
 }
 
-export type LoginMethod = { provider: string; createdAt: Date; email: string | null };
-export async function listLoginMethods(userId: string): Promise<LoginMethod[]> {
+type LoginMethod = { provider: string; createdAt: Date; email: string | null };
+async function listLoginMethods(userId: string): Promise<LoginMethod[]> {
   const rows = await prisma.userLogin.findMany({ where: { userId }, orderBy: { createdAt: 'asc' }, select: { provider: true, createdAt: true, email: true } });
   return rows;
 }

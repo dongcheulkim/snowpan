@@ -7,7 +7,7 @@ import prisma from '../config/database';
 import { sendSms, smsConfigured, normalizePhone } from './sms';
 import { sendEmail } from './email';
 
-export type AlertKind = 'reservation_request' | 'reservation_result' | 'chat' | 'approval';
+type AlertKind = 'reservation_request' | 'reservation_result' | 'chat' | 'approval';
 const SITE = process.env.FRONTEND_URL || 'https://snowpan.kr';
 const THROTTLE_MS: Record<AlertKind, number> = { reservation_request: 0, reservation_result: 0, chat: 3 * 60 * 60 * 1000, approval: 0 };
 const recent = new Map<string, number>(); // `${userId}:${kind}:${key}` → 마지막 발송 시각

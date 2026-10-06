@@ -1,5 +1,5 @@
 // 쿠키 동의 저장·조회 — 배너(components/CookieConsent.tsx)와 분석 도구(utils/analytics.ts)가 같이 쓴다.
-export const STORAGE_KEY = 'cookie-consent-v1';
+const STORAGE_KEY = 'cookie-consent-v1';
 export type Consent = 'all' | 'essential' | null;
 
 export function getCookieConsent(): Consent {

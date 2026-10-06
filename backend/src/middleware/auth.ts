@@ -9,7 +9,7 @@ interface JwtPayload {
   role: string;
 }
 
-export interface AuthUser {
+interface AuthUser {
   id: string;
   email: string;
   role: string;

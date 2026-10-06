@@ -6,7 +6,7 @@ import prisma from '../config/database';
 import { sanitizeText } from '../utils/sanitize';
 import { SHOP_KINDS, type ShopKind } from '../utils/shopKinds';
 
-export const OUTREACH_STATUS = ['none', 'absent', 'called', 'yes', 'no', 'del'] as const;
+const OUTREACH_STATUS = ['none', 'absent', 'called', 'yes', 'no', 'del'] as const;
 type OutreachStatus = (typeof OUTREACH_STATUS)[number];
 const TEMPLATE_KEY = 'outreach.sms';
 const MEMO_MAX = 500;

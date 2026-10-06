@@ -17,7 +17,7 @@ async function kakaoKeyword(query: string): Promise<NaverPlace[]> {
 }
 
 type Kind = 'skishop' | 'repair' | 'rental';
-export interface EnrichPlan { kind: Kind; id: string; name: string; fill: Record<string, string>; from: string }
+interface EnrichPlan { kind: Kind; id: string; name: string; fill: Record<string, string>; from: string }
 export interface EnrichReport { configured: boolean; dryRun: boolean; scanned: number; matched: number; applied: number; noFill: number; plan: EnrichPlan[]; unmatched: string[]; noFillSample: string[] }
 
 const strip = (s: string | null | undefined) => (s || '').replace(/<[^>]+>/g, '').replace(/[\s\-()·・.,]/g, '').toLowerCase();

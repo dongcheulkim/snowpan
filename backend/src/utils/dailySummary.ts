@@ -71,7 +71,7 @@ export async function buildDailySummary(): Promise<DailySummary> {
   };
 }
 
-export function summaryText(s: DailySummary): string {
+function summaryText(s: DailySummary): string {
   const a = s.pendingApprovals;
   const lines = [
     `신고 대기 ${s.pendingReports}건`,

@@ -2,7 +2,7 @@ import prisma from '../config/database';
 import { cacheDel } from './cache';
 
 // 광고 예약 상태 자동 전환 스케줄러
-export async function updateAdBookingStatuses(): Promise<void> {
+async function updateAdBookingStatuses(): Promise<void> {
   const now = new Date();
 
   try {

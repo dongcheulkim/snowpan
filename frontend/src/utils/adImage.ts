@@ -10,7 +10,7 @@ import type { CSSProperties } from 'react';
 export const AD_IMAGE_SCALE_MIN = 1;
 export const AD_IMAGE_SCALE_MAX = 3;
 
-export type AdImageFit = 'cover' | 'contain';
+type AdImageFit = 'cover' | 'contain';
 export interface AdImageFocus { x: number; y: number; scale: number; fit: AdImageFit }
 
 export function parseImagePos(v?: string | null): AdImageFocus {

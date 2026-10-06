@@ -5,8 +5,8 @@ import prisma from '../config/database';
 import { probeStream } from './webcamLive';
 import { notifyAdmins } from '../controllers/notificationController';
 
-export type Target = { kind: 'link' | 'image' | 'stream'; src: string; label: string; url: string; fixPath?: string };
-export type Result = Target & { status: 'ok' | 'dead' | 'blocked' | 'unknown'; code: number | string };
+type Target = { kind: 'link' | 'image' | 'stream'; src: string; label: string; url: string; fixPath?: string };
+type Result = Target & { status: 'ok' | 'dead' | 'blocked' | 'unknown'; code: number | string };
 export interface HealthReport {
   ranAt: string; durationMs: number;
   total: { links: number; images: number; streams: number };
@@ -23,7 +23,7 @@ function splitImgs(v: string | null | undefined): string[] {
   return String(v || '').split(',').map((s) => s.trim()).filter((s) => /^https?:\/\//.test(s));
 }
 
-export async function collectTargets(): Promise<Target[]> {
+async function collectTargets(): Promise<Target[]> {
   const t: Target[] = [];
   const add = (kind: Target['kind'], src: string, label: string, url: string | null | undefined, fixPath?: string) => {
     if (url && /^https?:\/\//.test(url)) t.push({ kind, src, label, url, fixPath });
@@ -75,7 +75,7 @@ async function fetchStatus(url: string, method: 'HEAD' | 'GET', extra?: Record<s
   }
 }
 
-export async function checkTarget(t: Target): Promise<Result> {
+async function checkTarget(t: Target): Promise<Result> {
   if (t.kind === 'stream') {
     const live = await probeStream(t.url);
     return { ...t, status: live === true ? 'ok' : live === false ? 'dead' : 'unknown', code: live === null ? 'n/a' : live ? 200 : 'off' };

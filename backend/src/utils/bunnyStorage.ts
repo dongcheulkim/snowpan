@@ -6,7 +6,7 @@ const BUNNY_STORAGE_HOST = process.env.BUNNY_STORAGE_HOST || 'sg.storage.bunnycd
 const BUNNY_CDN_HOST = process.env.BUNNY_CDN_HOST || 'snowpankr.b-cdn.net';
 
 export function isStorageConfigured(): boolean { return Boolean(BUNNY_KEY); }
-export function cdnUrl(objectPath: string): string { return `https://${BUNNY_CDN_HOST}/${objectPath}`; }
+function cdnUrl(objectPath: string): string { return `https://${BUNNY_CDN_HOST}/${objectPath}`; }
 export function isOurCdn(url: string): boolean { return url.startsWith(`https://${BUNNY_CDN_HOST}/`); }
 
 export async function putObject(objectPath: string, body: Buffer, mime: string): Promise<string> {

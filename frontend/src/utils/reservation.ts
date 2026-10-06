@@ -56,7 +56,7 @@ export interface ReservationCard {
   workStatus?: WorkStatus | null; // 정비 작업 현황 (카드 표시)
 }
 
-export const SHOP_TYPES: ShopType[] = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'];
+const SHOP_TYPES: ShopType[] = ['rental', 'skishop', 'repair', 'lesson', 'accommodation'];
 const STATUSES: ReservationStatus[] = ['requested', 'confirmed', 'declined', 'cancelled'];
 const EVENTS: ReservationEvent[] = [...STATUSES, 'work_received', 'work_working', 'work_done'];
 const WORK_STATUSES: WorkStatus[] = ['received', 'working', 'done'];
@@ -90,7 +90,7 @@ function ymd(s: string): { y: number; m: number; d: number } | null {
   return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
 }
 
-export function formatMD(s: string): string {
+function formatMD(s: string): string {
   const p = ymd(s);
   return p ? `${p.m}/${p.d}` : s;
 }

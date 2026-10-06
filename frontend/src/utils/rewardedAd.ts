@@ -12,7 +12,7 @@ const REAL_REWARD: { android: string | null; ios: string | null } = {
   ios: 'ca-app-pub-5238113676351064/9295030881', // 끌어올리기 보상 (iOS)
 };
 function platformKey(): 'android' | 'ios' { return Capacitor.getPlatform() === 'ios' ? 'ios' : 'android'; }
-export function admobIsTestFor(pf: 'android' | 'ios' = platformKey()): boolean { return !REAL_REWARD[pf]; }
+function admobIsTestFor(pf: 'android' | 'ios' = platformKey()): boolean { return !REAL_REWARD[pf]; }
 function rewardUnitId(): string { const pf = platformKey(); return REAL_REWARD[pf] || TEST_REWARD[pf]; }
 
 let inited: Promise<void> | null = null;

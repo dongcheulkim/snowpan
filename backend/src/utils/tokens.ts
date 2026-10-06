@@ -23,7 +23,7 @@ function getSecrets(): { access: string; refresh: string } {
   return { access, refresh };
 }
 
-export interface AccessPayload { userId: string; email: string; role: string; type: 'access'; tv?: number; }
+interface AccessPayload { userId: string; email: string; role: string; type: 'access'; tv?: number; }
 // jti = unique token ID, fam = token family (rotation 추적용). rem = 자동로그인 선택 여부.
 export interface RefreshPayload { userId: string; type: 'refresh'; jti: string; fam: string; rem?: boolean; tv?: number; }
 

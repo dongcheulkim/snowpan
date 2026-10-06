@@ -65,7 +65,7 @@ function layout(c: OgCardInput, photo: string | null) {
   );
 }
 
-export async function renderOgCard(c: OgCardInput): Promise<Buffer> {
+async function renderOgCard(c: OgCardInput): Promise<Buffer> {
   const font = loadFont();
   const photo = c.photo ? await fetchPhoto(c.photo) : null;
   const svg = await satori(layout(c, photo) as never, { width: W, height: H, fonts: [{ name: 'Noto Sans KR', data: font, weight: 700, style: 'normal' }] });

@@ -15,7 +15,7 @@ export async function getAdminIds(): Promise<string[]> {
   return rows.map((r) => r.id);
 }
 
-export type ShopPair = { shopType: StaffShopType; shopId: string };
+type ShopPair = { shopType: StaffShopType; shopId: string };
 export type RoomShopLink = { shopType: string; shopId: string; shopName: string; ownerUserId: string; createdAt: Date };
 type RoomLite = { user1Id: string; user2Id: string; shops?: RoomShopLink[] };
 type RoomRead = RoomLite & { id: string; user1LastReadAt: Date | null; user2LastReadAt: Date | null };
@@ -125,7 +125,7 @@ export async function unreadByRoom(rooms: RoomRead[], viewer: Viewer): Promise<R
 }
 
 // 메시지 수신자 — 관리자가 보내면 손님에게, 손님이 고객센터 방에 보내면 관리자 전원에게
-export function recipientsOf(room: RoomLite, senderId: string, adminIds: string[]): string[] {
+function recipientsOf(room: RoomLite, senderId: string, adminIds: string[]): string[] {
   const side = adminSideOf(room, adminIds);
   const isSupportRoom = side !== null;
   const senderIsAdmin = adminIds.includes(senderId);

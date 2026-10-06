@@ -4,8 +4,8 @@
 import type { Request } from 'express';
 import prisma from '../config/database';
 
-export const RETENTION_YEARS = 5;
-export const ACCESS_LOG_YEARS = 2;
+const RETENTION_YEARS = 5;
+const ACCESS_LOG_YEARS = 2;
 
 export const ACCESS_ACTIONS = {
   withdrawnIdentity: 'withdrawn_identity_view',

@@ -13,7 +13,7 @@ const KEY_RE = /^[a-z0-9-]{1,40}$/;
 const IG_RE = /^[A-Za-z0-9._]{1,30}$/;
 const PHONE_RE = /^01[016789]\d{7,8}$/;
 
-export interface EventConfig { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; appOnly: boolean }
+interface EventConfig { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; appOnly: boolean }
 const DEFAULTS: Record<string, EventConfig> = {
   launch: {
     active: true,
@@ -26,7 +26,7 @@ const DEFAULTS: Record<string, EventConfig> = {
   },
 };
 
-export async function readEventConfig(key: string): Promise<EventConfig | null> {
+async function readEventConfig(key: string): Promise<EventConfig | null> {
   const base = DEFAULTS[key];
   const row = await prisma.adminSetting.findUnique({ where: { key: `event_${key}` } });
   if (!row) return base ?? null;
@@ -152,7 +152,7 @@ router.delete('/admin/:key/entries/:id', authenticateToken, requireAdmin, async 
 });
 
 // 이벤트 응모 정보 파기 — 마감일(endsAt)부터 60일이 지난 이벤트의 신청 내역을 지운다 (개인정보처리방침 3항). 하루 한 번.
-export async function purgeExpiredEventEntries(): Promise<number> {
+async function purgeExpiredEventEntries(): Promise<number> {
   const keys = await prisma.eventEntry.findMany({ distinct: ['eventKey'], select: { eventKey: true } });
   let removed = 0;
   for (const { eventKey } of keys) {

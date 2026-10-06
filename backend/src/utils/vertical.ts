@@ -5,7 +5,7 @@
 //   - 'snow' | 'bike' | 'run' | 'surf' | 'golf' | 'camp' → 그대로 반환
 //   - 그 외 → null (잘못된 값, 400 으로 응답해야 함)
 
-export const VERTICAL_SLUGS = ['snow', 'bike', 'run', 'surf', 'golf', 'camp'] as const;
+const VERTICAL_SLUGS = ['snow', 'bike', 'run', 'surf', 'golf', 'camp'] as const;
 export type VerticalSlug = typeof VERTICAL_SLUGS[number];
 
 export function pickVertical(value: unknown): VerticalSlug | null {

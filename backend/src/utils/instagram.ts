@@ -165,7 +165,7 @@ export async function refreshInstagramPosts(throwOnError = false): Promise<IgPos
 }
 
 // 만료가 가까우면 토큰 연장 (60일짜리를 다시 60일로).
-export async function refreshInstagramTokenIfNeeded(): Promise<void> {
+async function refreshInstagramTokenIfNeeded(): Promise<void> {
   const [token, expires] = await Promise.all([getSetting(KEY_TOKEN), getSetting(KEY_EXPIRES)]);
   if (!token) return;
   const exp = expires ? new Date(expires).getTime() : 0;

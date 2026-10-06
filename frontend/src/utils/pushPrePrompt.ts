@@ -16,7 +16,7 @@ export async function askPushPermission(): Promise<boolean> {
 let updateBusy = true; // 앱 시작 직후엔 버전 확인 전이라 바쁜 상태로 시작
 let updateWaiters: (() => void)[] = [];
 export function setUpdatePromptBusy(busy: boolean): void { updateBusy = busy; if (!busy) { const w = updateWaiters; updateWaiters = []; w.forEach((r) => r()); } }
-export function waitForUpdatePrompt(): Promise<void> {
+function waitForUpdatePrompt(): Promise<void> {
   if (!updateBusy) return Promise.resolve();
   return new Promise<void>((resolve) => { updateWaiters.push(resolve); setTimeout(resolve, 15_000); });
 }

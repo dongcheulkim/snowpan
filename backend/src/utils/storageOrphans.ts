@@ -28,7 +28,7 @@ function encodePath(p: string): string {
 }
 
 // 저장소 폴더를 재귀로 훑어 파일 목록을 만든다.
-export async function listStorageFiles(prefix = ''): Promise<StorageFile[]> {
+async function listStorageFiles(prefix = ''): Promise<StorageFile[]> {
   const out: StorageFile[] = [];
   const walk = async (dir: string): Promise<void> => {
     const url = `https://${BUNNY_STORAGE_HOST}/${BUNNY_ZONE}/${dir ? encodePath(dir) + '/' : ''}`;
@@ -46,7 +46,7 @@ export async function listStorageFiles(prefix = ''): Promise<StorageFile[]> {
 }
 
 // DB 의 모든 문자열 컬럼에서 CDN 경로를 뽑는다. 값은 URL 그대로일 수도, 콤마로 여러 개일 수도, 본문 속에 섞여 있을 수도 있다.
-export async function referencedStoragePaths(): Promise<Set<string>> {
+async function referencedStoragePaths(): Promise<Set<string>> {
   const cols = await prisma.$queryRawUnsafe<Array<{ table_name: string; column_name: string }>>(
     `SELECT table_name, column_name FROM information_schema.columns
      WHERE table_schema = 'public' AND data_type IN ('text', 'character varying')`,

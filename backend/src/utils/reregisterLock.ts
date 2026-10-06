@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import prisma from '../config/database';
 import { normalizeEmail } from './validate';
 
-export const REREGISTER_DAYS = Math.max(1, Number(process.env.REREGISTER_BLOCK_DAYS) || 90);
+const REREGISTER_DAYS = Math.max(1, Number(process.env.REREGISTER_BLOCK_DAYS) || 90);
 
 type Kind = 'phone' | 'email' | 'social';
 
@@ -16,7 +16,7 @@ function hashKey(kind: Kind, value: string): string {
 const normPhone = (p: string) => p.replace(/[^0-9]/g, '');
 const socialKey = (provider: string, providerId: string) => `${provider}:${providerId}`;
 
-export function fmtKst(d: Date): string {
+function fmtKst(d: Date): string {
   const k = new Date(d.getTime() + 9 * 60 * 60 * 1000);
   return `${k.getUTCFullYear()}년 ${k.getUTCMonth() + 1}월 ${k.getUTCDate()}일`;
 }

@@ -9,7 +9,7 @@ const WINDOW_MS = 30 * DAY_MS;
 
 export interface ResponseSummary { label: string | null; medianMinutes: number | null; replyRate: number | null; sampleCount: number }
 
-export function responseLabel(medianMinutes: number | null | undefined, sampleCount: number): string | null {
+function responseLabel(medianMinutes: number | null | undefined, sampleCount: number): string | null {
   if (medianMinutes == null || sampleCount < 3) return null;
   if (medianMinutes <= 10) return '보통 10분 안에 답장';
   if (medianMinutes <= 60) return '보통 1시간 안에 답장';

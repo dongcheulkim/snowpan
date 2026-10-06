@@ -52,7 +52,7 @@ async function processNameOnly(delegate: any, label: string, item: { id: string;
 
 let verifyRunning = false;
 
-export async function verifyPendingShops(): Promise<void> {
+async function verifyPendingShops(): Promise<void> {
   if (!naverConfigured()) return; // 네이버 키 미설정 → 조용히 스킵
   if (verifyRunning) return; // 이전 tick 이 아직 진행 중이면 스킵 (중복 처리·알림 방지)
   verifyRunning = true;

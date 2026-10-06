@@ -24,10 +24,10 @@ export const SIZES: { id: string; label: string; css: string }[] = [
   { id: 'xl', label: '제목', css: '1.9rem' },
 ];
 
-export function fontCss(id?: string): string {
+function fontCss(id?: string): string {
   return (FONTS.find((f) => f.id === id) || FONTS[0]).css;
 }
-export function sizeCss(id?: string): string {
+function sizeCss(id?: string): string {
   return (SIZES.find((s) => s.id === id) || SIZES[1]).css;
 }
 

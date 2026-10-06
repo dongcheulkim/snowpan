@@ -293,7 +293,7 @@ export type LoginMethod = 'email' | 'kakao' | 'apple';
 // 네이티브에서 받은 identityToken 을 백엔드 /auth/apple 로 보내 검증하고 우리 토큰을 받는다. 웹에서는 쓰지 않음.
 // iOS 번들 ID — 'kr.snowpan.app' 은 애플에 이미 다른 팀이 등록해 둔 상태라(2026-09-10 "not available") iOS 만 kr.snowpan.ios 를 쓴다.
 // 안드로이드 패키지명·딥링크 스킴(kr.snowpan.app://)은 그대로. 백엔드 APPLE_BUNDLE_ID 기본값과 같아야 한다.
-export const IOS_BUNDLE_ID = 'kr.snowpan.ios';
+const IOS_BUNDLE_ID = 'kr.snowpan.ios';
 async function appleAuthorize() {
   const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -314,7 +314,7 @@ export async function linkApple(): Promise<{ logins: LoginMethods['logins'] }> {
 }
 
 // 소셜 로그인 시작 — 백엔드 OAuth 라우트로 브라우저 이동시킬 URL.
-export function oauthStartUrl(provider: 'kakao'): string {
+function oauthStartUrl(provider: 'kakao'): string {
   return `${API_BASE}/auth/${provider}`;
 }
 
