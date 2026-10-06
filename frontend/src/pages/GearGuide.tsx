@@ -204,6 +204,15 @@ export default function GearGuide() {
   const [sport, setSport] = useState<Sport>('ski');
 
   const brands = sport === 'ski' ? SKI_BRANDS : BOARD_BRANDS;
+  // 브랜드가 44개라 접어서 보여준다 — 위 이름 목록에서 누르면 그 카드만 펼치고 스크롤 (2026-10-06)
+  const [openName, setOpenName] = useState<string | null>(null);
+  const [seenSport, setSeenSport] = useState(sport);
+  if (seenSport !== sport) { setSeenSport(sport); setOpenName(null); }
+  const cardId = (name: string) => 'brand-' + name.replace(/[^0-9A-Za-z가-힣]+/g, '-');
+  const jumpTo = (name: string) => {
+    setOpenName(name);
+    requestAnimationFrame(() => document.getElementById(cardId(name))?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5 animate-fade-in">
@@ -230,30 +239,46 @@ export default function GearGuide() {
         </button>
       </div>
 
-      {/* 브랜드 목록 */}
-      <div className="space-y-3">
-        {brands.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 text-sm">등록된 브랜드가 없습니다.</div>
-        ) : (
-          brands.map(brand => (
-            <div key={brand.name} className="card p-4">
-              <div className="flex items-start justify-between mb-2">
-                <div>
+      {/* 이름 목록 — 누르면 해당 브랜드로 */}
+      <div className="flex flex-wrap gap-1.5">
+        {brands.map(brand => {
+          const short = brand.name.replace(/\s*\(.*\)$/, '');
+          const on = openName === brand.name;
+          return (
+            <button key={brand.name} type="button" onClick={() => jumpTo(brand.name)} aria-pressed={on} className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${on ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+              {short}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 브랜드 목록 — 접힌 카드. 제목을 누르면 펼침 */}
+      <div className="space-y-2">
+        {brands.map(brand => {
+          const open = openName === brand.name;
+          return (
+            <div key={brand.name} id={cardId(brand.name)} className="card scroll-mt-20">
+              <button type="button" onClick={() => setOpenName(open ? null : brand.name)} aria-expanded={open} className="w-full flex items-center justify-between gap-3 p-4 text-left">
+                <div className="min-w-0">
                   <h3 className="text-sm font-bold text-gray-900">{brand.name}</h3>
-                  <span className="text-[10px] text-gray-500">{brand.country} · {brand.since}년 시작</span>
+                  <span className="text-[10px] text-gray-500">{brand.country} · {brand.since}년 시작 · {brand.style}</span>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">{brand.style}</span>
-              </div>
-              <p className="text-xs text-gray-500 leading-relaxed mb-1.5">{brand.history}</p>
-              <p className="text-xs text-gray-600 leading-relaxed mb-2">{brand.desc}</p>
-              <p className="text-xs text-gray-900 leading-relaxed mb-3"><span className="font-bold">이런 분께</span> {brand.pick}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-500">추천 모델</span>
-                <span className="text-xs text-primary-dark font-medium">{brand.models}</span>
-              </div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              {open && (
+                <div className="px-4 pb-4">
+                  <p className="text-xs text-gray-500 leading-relaxed mb-1.5">{brand.history}</p>
+                  <p className="text-xs text-gray-600 leading-relaxed mb-2">{brand.desc}</p>
+                  <p className="text-xs text-gray-900 leading-relaxed mb-3"><span className="font-bold">이런 분께</span> {brand.pick}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-gray-500">추천 모델</span>
+                    <span className="text-xs text-primary-dark font-medium">{brand.models}</span>
+                  </div>
+                </div>
+              )}
             </div>
-          ))
-        )}
+          );
+        })}
       </div>
 
       {/* 중고 매물 연결 */}
