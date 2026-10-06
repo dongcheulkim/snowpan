@@ -221,6 +221,8 @@ export default function Help() {
           <span className="mx-1.5">·</span>
           <Link to="/safe-trade" className="underline underline-offset-2 hover:text-gray-700">안전거래</Link>
           <span className="mx-1.5">·</span>
+          <Link to="/gear-guide" className="underline underline-offset-2 hover:text-gray-700">장비 가이드</Link>
+          <span className="mx-1.5">·</span>
           <a href="https://www.instagram.com/snowpan.kr/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-gray-700">인스타그램</a>
         </p>
         <p className="mt-2 text-gray-500">스노우판은 통신판매중개자로서 거래 당사자가 아니며, 회원 간 거래 정보·상품의 책임은 판매자에게 있습니다.</p>
