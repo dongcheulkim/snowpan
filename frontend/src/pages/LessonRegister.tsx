@@ -5,6 +5,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import MultiImageUpload from '../components/MultiImageUpload';
+import LessonProfileFields from '../components/LessonProfileFields';
+import { emptyProfile, profileToBody } from '../utils/lessonProfile';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
 interface Resort { id: string; name: string; location?: string | null }
@@ -26,6 +28,7 @@ const LessonRegister = () => {
   const [phone, setPhone] = useState(''); // 연락처 (선택) — 상세 전화 버튼·관리자 매장 관리에 표시 // 소속 구분 — 관리자 심사용(공개 안 됨)
   const [region, setRegion] = useState('강원'); // 대분류: 지역 → 스키장 선택지 좁힘
   const [specialties, setSpecialties] = useState<string[]>([]);
+  const [profile, setProfile] = useState(emptyProfile()); // 가격표·경력·언어·시간·영상 (2026-10-07)
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
 
   useEffect(() => { api<Resort[]>('/resorts').then(setResorts).catch(() => {}); }, []);
@@ -57,6 +60,7 @@ const LessonRegister = () => {
           description: form.description.trim(),
           images: images || undefined, image: images ? images.split(',')[0] : undefined,
           instructorCert, businessLicense,
+          ...profileToBody(profile),
         },
       });
       toastSuccess('등록 신청이 완료되었습니다. 관리자 승인 후 노출됩니다.');
@@ -124,8 +128,10 @@ const LessonRegister = () => {
 
       <div>
         <label className={labelClass}>상세 설명 *</label>
-        <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="강사 경력, 레슨 내용, 가격·시간·인원, 예약 방법 등을 자유롭게 적어주세요." rows={7} className={`${inputClass} resize-none`} />
+        <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="레슨 내용, 장비·리프트권 포함 여부, 만나는 장소, 예약 방법 등을 자유롭게 적어주세요." rows={7} className={`${inputClass} resize-none`} />
       </div>
+
+      <LessonProfileFields value={profile} onChange={setProfile} inputClass={inputClass} labelClass={labelClass} />
 
       <div>
         <label className={labelClass}>사진 (포스터)</label>

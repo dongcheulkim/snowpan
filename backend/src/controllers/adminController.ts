@@ -545,10 +545,13 @@ export const approveLesson = async (req: AuthRequest, res: Response): Promise<vo
     // 승인하면서 '사업자 확인' 배지 부여 여부 (사업자등록증을 확인한 관리자가 체크) — 2026-09-23
     const bv = req.body?.businessVerified;
     const badgeData = bv === undefined ? {} : { businessVerified: !!bv, businessVerifiedAt: bv ? new Date() : null };
+    // 승인하면서 '자격 확인' 배지 — 강사 자격증을 확인한 관리자가 체크 (2026-10-07)
+    const cv = req.body?.certVerified;
+    const certData = cv === undefined ? {} : { certVerified: !!cv, certVerifiedAt: cv ? new Date() : null };
 
     const lesson = await prisma.lesson.update({
       where: { id },
-      data: { approved: true, ...badgeData },
+      data: { approved: true, ...badgeData, ...certData },
       include: {
         resort: true,
         user: {
@@ -836,6 +839,23 @@ export const createReviewAccount = async (req: AuthRequest, res: Response): Prom
   } catch (error) {
     console.error('Review account error:', error);
     res.status(500).json({ error: '심사용 계정을 만들지 못했습니다.' });
+  }
+};
+
+// 레슨 '자격 확인' 배지 켜기/끄기 — 강사 자격증(instructorCert)을 보고 (2026-10-07)
+export const setLessonCertBadge = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (req.user!.role !== 'admin') { res.status(403).json({ error: '관리자만 접근할 수 있습니다.' }); return; }
+    const { id } = req.params;
+    const verified = !!req.body?.verified;
+    const lesson = await prisma.lesson.findUnique({ where: { id }, select: { id: true, name: true, userId: true, certVerified: true } });
+    if (!lesson) { res.status(404).json({ error: '레슨을 찾을 수 없어요.' }); return; }
+    const updated = await prisma.lesson.update({ where: { id }, data: { certVerified: verified, certVerifiedAt: verified ? new Date() : null }, select: { id: true, certVerified: true, certVerifiedAt: true } });
+    if (verified && !lesson.certVerified) createNotification(lesson.userId, 'approve', '자격 확인 배지가 붙었어요', `'${lesson.name}' 레슨에 강사 자격 확인 배지가 표시돼요.`, `/lesson/${lesson.id}`).catch(() => {});
+    res.json({ ...updated, message: verified ? '자격 확인 배지를 붙였어요.' : '자격 확인 배지를 뗐어요.' });
+  } catch (error) {
+    console.error('Set lesson cert badge error:', error);
+    res.status(500).json({ error: '처리 중 오류가 발생했어요.' });
   }
 };
 

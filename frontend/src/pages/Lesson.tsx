@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useUrlFilters, useListHere } from '../hooks/useUrlFilters';
-const FILTER_DEFAULTS = { sport: '스키', region: 'all', resort: 'all', spec: 'all' };
+const FILTER_DEFAULTS = { sport: '스키', region: 'all', resort: 'all', spec: 'all', sort: '' };
 import { api, imageUrl } from '../api';
 import Pagination from '../components/Pagination';
 import CategoryAdBanner from '../components/CategoryAdBanner';
@@ -15,6 +15,9 @@ import { RESORT_REGION_ORDER, resortRegion } from '../utils/resortRegion';
 interface LessonItem {
   isPremium?: boolean;
   businessVerified?: boolean; // 관리자가 사업자등록증 확인 후 부여 (2026-09-23)
+  certVerified?: boolean; // 강사 자격증 확인 배지 (2026-10-07)
+  minPrice?: number | null; // 가격표 최저가
+  languages?: string | null;
   id: string;
   name: string;
   type?: string | null;
@@ -41,6 +44,7 @@ const Lesson = () => {
   const [filters, setFilters] = useUrlFilters(FILTER_DEFAULTS);
   const selectedResort = filters.resort;
   const selectedSpec = filters.spec;
+  const sort = filters.sort === 'price' ? 'price' : '';
   const sport: '스키' | '보드' = filters.sport === '보드' ? '보드' : '스키';
   const setSelectedResort = (v: string) => setFilters({ resort: v });
   const setSelectedSpec = (v: string) => setFilters({ spec: v });
@@ -61,7 +65,7 @@ const Lesson = () => {
   }, []);
 
   // 필터 변경 시 페이지 리셋
-  useEffect(() => { setPage(1); }, [selectedResort, selectedRegion, selectedSpec, sport]);
+  useEffect(() => { setPage(1); }, [selectedResort, selectedRegion, selectedSpec, sort, sport]);
 
   const reqSeqRef = useRef(0); // 필터 변경 직후 페이지리셋 이펙트와 겹치는 요청 레이스 방지
   useEffect(() => {
@@ -79,6 +83,7 @@ const Lesson = () => {
           if (ids.length) params.set('resortId', ids.join(','));
         }
         if (selectedSpec !== 'all') params.set('specialty', selectedSpec);
+        if (sort) params.set('sort', sort);
         const data = await api<{ items: LessonItem[]; totalCount: number }>(`/lessons?${params}`);
         if (seq !== reqSeqRef.current) return; // 늦게 도착한 이전 요청 무시
         setLessonItems(data.items);
@@ -95,7 +100,7 @@ const Lesson = () => {
     };
     fetchLessons();
 
-  }, [selectedResort, selectedRegion, resorts, selectedSpec, sport, page, retryKey]);
+  }, [selectedResort, selectedRegion, resorts, selectedSpec, sort, sport, page, retryKey]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -170,6 +175,16 @@ const Lesson = () => {
         ))}
       </HScroll>
 
+      {/* 정렬 — 기본(최신) / 가격 낮은 순. 가격표를 넣은 레슨이 앞에 온다 (2026-10-07) */}
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] text-gray-500">가격·경력·가능 시간을 보고 바로 예약 문의할 수 있어요. 수수료 없음.</p>
+        <div className="flex gap-1 shrink-0">
+          {([['', '기본'], ['price', '가격순']] as const).map(([v, label]) => (
+            <button key={v || 'default'} onClick={() => setFilters({ sort: v })} aria-pressed={sort === v} className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${sort === v ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
+          ))}
+        </div>
+      </div>
+
       {/* Lesson Items — 촘촘한 리스트 (매장 목록과 같은 형태로, 한 화면에 더 많이) 2026-09-22 */}
       {loading ? (
         <RowListSkeleton count={8} />
@@ -201,9 +216,17 @@ const Lesson = () => {
                       <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
                       {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
                       {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900 flex-shrink-0">사업자 확인</span>}
+                      {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-0.5 rounded flex-shrink-0">자격 확인</span>}
                     </div>
                     {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
                   </div>
+                  {/* 가격표 최저가 — 가격을 넣은 강사가 눈에 띄게 (2026-10-07) */}
+                  {item.minPrice != null && (
+                    <div className="text-right shrink-0">
+                      <span className="block text-sm font-bold text-gray-900 tabular-nums">{item.minPrice.toLocaleString()}원~</span>
+                      {item.languages && item.languages !== '한국어' && <span className="block text-[10px] text-gray-500">{item.languages.split(',').filter((l) => l !== '한국어').join('·')}</span>}
+                    </div>
+                  )}
                 </div>
               </Link>
             );
@@ -243,6 +266,14 @@ const Lesson = () => {
       ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {/* 강사·스쿨 모집 — 등록 무료·수수료 없음 (레슨 전문 앱과의 차별점, 2026-10-07) */}
+      {!loading && lessonItems.length > 0 && (
+        <Link to="/mypage/shops" className="block card p-4 hover:bg-gray-50 transition-colors">
+          <span className="block text-sm font-bold text-gray-900">강사·스키학교 등록은 무료, 수수료 없음</span>
+          <span className="block text-xs text-gray-500 mt-1">가격표·경력·가능 시간을 올리면 손님이 바로 예약 문의해요. 예약 관리는 사장님 대시보드에서.</span>
+        </Link>
+      )}
     </div>
   );
 };

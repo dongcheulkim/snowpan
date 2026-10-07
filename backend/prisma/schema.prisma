@@ -479,6 +479,15 @@ model Lesson {
   businessVerified      Boolean   @default(false) // 관리자가 사업자등록증 확인 후 부여하는 공개 배지 '사업자 확인' (2026-09-23 사용자 요청)
   businessVerifiedAt    DateTime?
   phone                 String?   // 연락처 (선택, 공개 — 상세 전화 버튼·관리자 매장 관리) 2026-09-19
+  // 강사 프로필·가격표 (2026-10-07) — 레슨 전문 앱과 겨루기 위해 가격·경력·가능 시간을 구조화
+  career                String?   // 경력·자격 소개 (예: KSIA 레벨2, 경력 8년, 전 국가대표)
+  languages             String?   // 가능 언어 콤마 (한국어,영어,중국어,일본어)
+  schedule              String?   // 가능 시간 (예: 주중 09~17시, 주말 가능, 야간 가능)
+  videoUrl              String?   // 소개 영상 (유튜브·인스타그램 주소만)
+  priceTable            String?   // JSON [{label, price}] 최대 8줄 (예: 1:1 2시간 120000)
+  minPrice              Int?      // 가격표 최저가 — 목록 "N원~" 표시·가격순 정렬
+  certVerified          Boolean   @default(false) // 관리자가 강사 자격증 확인 후 붙이는 공개 배지 '자격 확인'
+  certVerifiedAt        DateTime?
   providerType          String?   // 소속 구분 'business'(스키학교·샵 사업자) | 'freelance'(개인 강사) — 관리자 심사용, 공개 응답에서 제거 (2026-09-17 사용자 결정 "우리만 보이게")
   // (구) 상세 필드 — 선택
   price                 Int?

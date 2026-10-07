@@ -3,12 +3,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getUser, uploadImages } from '../api';
 import MultiImageUpload from '../components/MultiImageUpload';
+import LessonProfileFields from '../components/LessonProfileFields';
+import { emptyProfile, profileFromServer, profileToBody } from '../utils/lessonProfile';
 import { resortRegion, RESORT_REGION_ORDER } from '../utils/resortRegion';
 
 interface Resort { id: string; name: string; location?: string | null }
 interface LessonData {
   id: string; userId?: string; name: string; type?: string | null; specialties?: string | null; description?: string | null;
   images?: string | null; image?: string | null; resort?: { id: string } | null;
+  career?: string | null; languages?: string | null; schedule?: string | null; videoUrl?: string | null; priceTable?: string | null;
 }
 
 const TYPES = ['스키', '보드', '스키·보드'];
@@ -25,6 +28,7 @@ const LessonEdit = () => {
   const [bizLicenseFile, setBizLicenseFile] = useState<File | null>(null);
   const [phone, setPhone] = useState('');
   const [specialties, setSpecialties] = useState<string[]>([]);
+  const [profile, setProfile] = useState(emptyProfile());
   const [region, setRegion] = useState('강원');
   const toggleSpecialty = (sp: string) => setSpecialties(prev => prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]);
 
@@ -50,6 +54,7 @@ const LessonEdit = () => {
       setPhone((d as { phone?: string | null }).phone || '');
       setSpecialties(d.specialties ? d.specialties.split(',') : []);
       setImages(d.images || d.image || '');
+      setProfile(profileFromServer(d));
     }).catch(() => { toastError('불러오지 못했습니다.'); navigate('/lesson', { replace: true }); });
   }, [id, navigate]);
 
@@ -68,6 +73,7 @@ const LessonEdit = () => {
           name: form.name.trim(), resortId: form.resortId, type: form.type, providerType: providerType || undefined, phone: phone.trim(),
           specialties: specialties.join(','),
           description: form.description.trim(), images, image: images ? images.split(',')[0] : null,
+          ...profileToBody(profile),
         },
       });
       toastSuccess('수정되었습니다. 관리자 재검토 후 다시 노출됩니다.');
@@ -134,6 +140,8 @@ const LessonEdit = () => {
         <p className="text-[11px] text-gray-500 mt-1">첨부하면 관리자가 확인한 뒤 레슨에 "사업자 확인" 배지가 붙어요. 수정 내용은 다시 한 번 확인을 거쳐요.</p>
       </div>
       <div><label className={labelClass}>상세 설명</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={7} className={`${inputClass} resize-none`} /></div>
+      <LessonProfileFields value={profile} onChange={setProfile} inputClass={inputClass} labelClass={labelClass} />
+
       <div><label className={labelClass}>사진 (포스터)</label><MultiImageUpload value={images} onChange={setImages} /></div>
 
       <button onClick={submit} disabled={loading} className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm active:bg-primary-dark transition-colors disabled:opacity-50">

@@ -19,6 +19,45 @@ const cleanSpecialties = (v: unknown): string | null => {
   return picked.length ? [...new Set(picked)].join(',') : null;
 };
 
+// 가능 언어 화이트리스트
+const LESSON_LANGUAGES = ['한국어', '영어', '중국어', '일본어'];
+const cleanLanguages = (v: unknown): string | null => {
+  if (typeof v !== 'string' || !v.trim()) return null;
+  const picked = v.split(',').map((x) => x.trim()).filter((x) => LESSON_LANGUAGES.includes(x));
+  return picked.length ? [...new Set(picked)].join(',') : null;
+};
+// 소개 영상 — 유튜브·인스타그램 https 주소만 (아무 링크나 공개 페이지에 박히는 것 방지)
+const VIDEO_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be', 'instagram.com', 'www.instagram.com'];
+function parseVideoUrl(v: unknown): { ok: true; value: string | null } | { ok: false; error: string } {
+  if (v === undefined || v === null || String(v).trim() === '') return { ok: true, value: null };
+  if (typeof v !== 'string' || v.length > 300) return { ok: false, error: '영상 주소가 너무 길어요.' };
+  try {
+    const u = new URL(v.trim());
+    if (u.protocol !== 'https:' || !VIDEO_HOSTS.includes(u.hostname)) return { ok: false, error: '소개 영상은 유튜브 또는 인스타그램 주소만 넣을 수 있어요.' };
+    return { ok: true, value: u.toString() };
+  } catch { return { ok: false, error: '영상 주소 형식이 잘못됐어요.' }; }
+}
+// 가격표 — [{label, price}] 최대 8줄. 문자열(JSON)·배열 모두 받음. 최저가를 함께 돌려줘 정렬·목록에 씀
+const PRICE_ROWS_MAX = 8;
+function parsePriceTable(v: unknown): { ok: true; json: string | null; min: number | null } | { ok: false; error: string } {
+  if (v === undefined || v === null || v === '' ) return { ok: true, json: null, min: null };
+  let rows: unknown = v;
+  if (typeof v === 'string') { try { rows = JSON.parse(v); } catch { return { ok: false, error: '가격표 형식이 잘못됐어요.' }; } }
+  if (!Array.isArray(rows)) return { ok: false, error: '가격표 형식이 잘못됐어요.' };
+  if (rows.length > PRICE_ROWS_MAX) return { ok: false, error: `가격표는 ${PRICE_ROWS_MAX}줄까지 넣을 수 있어요.` };
+  const out: { label: string; price: number }[] = [];
+  for (const r of rows) {
+    if (!r || typeof r !== 'object') return { ok: false, error: '가격표 형식이 잘못됐어요.' };
+    const label = sanitizeText((r as { label?: unknown }).label, 40);
+    const pr = parsePrice((r as { price?: unknown }).price);
+    if (!label) return { ok: false, error: '가격표의 항목 이름을 적어 주세요. (예: 1:1 2시간)' };
+    if (!pr.ok) return { ok: false, error: `가격표 "${label}": ${pr.error}` };
+    out.push({ label, price: pr.value });
+  }
+  if (!out.length) return { ok: true, json: null, min: null };
+  return { ok: true, json: JSON.stringify(out), min: Math.min(...out.map((r) => r.price)) };
+}
+
 export const getLessons = async (req: Request, res: Response): Promise<void> => {
   try {
     const { resortId, level, specialty, type, limit, offset, vertical } = req.query;
@@ -46,6 +85,11 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
     const skipParsed = offset ? parseInt(offset as string, 10) : 0;
     const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
+    // 정렬 — 기본(프리미엄→최신) | price(가격표 최저가 낮은 순, 가격 없는 레슨은 뒤) (2026-10-07)
+    const sort = typeof req.query.sort === 'string' ? req.query.sort : '';
+    const orderBy: any[] = sort === 'price'
+      ? [{ isPremium: 'desc' }, { minPrice: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }]
+      : [{ isPremium: 'desc' }, { createdAt: 'desc' }]; // 프리미엄 최상단
     const [lessons, totalCount] = await Promise.all([
       prisma.lesson.findMany({
         where,
@@ -53,7 +97,7 @@ export const getLessons = async (req: Request, res: Response): Promise<void> => 
           resort: true,
           user: { select: { id: true, name: true, nickname: true } },
         },
-        orderBy: [{ isPremium: 'desc' }, { createdAt: 'desc' }], // 프리미엄 최상단
+        orderBy,
         take,
         ...(skip !== undefined && { skip }),
       }),
@@ -99,8 +143,19 @@ export const createLesson = async (req: AuthRequest, res: Response): Promise<voi
       price = r.value;
     }
 
+    const video = parseVideoUrl(b.videoUrl);
+    if (!video.ok) { res.status(400).json({ error: video.error }); return; }
+    const table = parsePriceTable(b.priceTable);
+    if (!table.ok) { res.status(400).json({ error: table.error }); return; }
+
     const lesson = await prisma.lesson.create({
       data: {
+        career: sanitizeText(b.career, 300) || null,
+        languages: cleanLanguages(b.languages),
+        schedule: sanitizeText(b.schedule, 200) || null,
+        videoUrl: video.value,
+        priceTable: table.json,
+        minPrice: table.min,
         name: sanitizeText(b.name, 100) || b.name,
         type: sanitizeText(b.type, 30) || null,
         specialties: cleanSpecialties(b.specialties),
@@ -194,6 +249,11 @@ export const updateLesson = async (req: AuthRequest, res: Response): Promise<voi
       if (b.price === null || b.price === '') data.price = null;
       else { const r = parsePrice(b.price); if (!r.ok) { res.status(400).json({ error: r.error }); return; } data.price = r.value; }
     }
+    if (b.career !== undefined) data.career = sanitizeText(b.career, 300) || null;
+    if (b.languages !== undefined) data.languages = cleanLanguages(b.languages);
+    if (b.schedule !== undefined) data.schedule = sanitizeText(b.schedule, 200) || null;
+    if (b.videoUrl !== undefined) { const v = parseVideoUrl(b.videoUrl); if (!v.ok) { res.status(400).json({ error: v.error }); return; } data.videoUrl = v.value; }
+    if (b.priceTable !== undefined) { const t = parsePriceTable(b.priceTable); if (!t.ok) { res.status(400).json({ error: t.error }); return; } data.priceTable = t.json; data.minPrice = t.min; }
     if (b.duration !== undefined) data.duration = b.duration ? (sanitizeText(b.duration, 60) || b.duration) : null;
     if (b.level !== undefined) data.level = b.level ? (sanitizeText(b.level, 30) || b.level) : null;
     if (b.maxStudents !== undefined) data.maxStudents = b.maxStudents ? Math.max(1, Number(b.maxStudents) || 1) : null;

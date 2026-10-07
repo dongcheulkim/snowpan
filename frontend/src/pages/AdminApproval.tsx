@@ -170,7 +170,8 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
   const [badgeOverrides, setBadgeOverrides] = useState<Record<string, string>>({});
-  const [bizBadge, setBizBadge] = useState<Record<string, boolean>>({}); // 레슨 승인 시 '사업자 확인' 배지 부여 여부 (기본: 사업자등록증 첨부됐으면 켬)
+  const [bizBadge, setBizBadge] = useState<Record<string, boolean>>({});
+  const [certBadge, setCertBadge] = useState<Record<string, boolean>>({}); // 레슨 승인 시 '자격 확인' 배지 (기본: 자격증 첨부됐으면 켬) 2026-10-07 // 레슨 승인 시 '사업자 확인' 배지 부여 여부 (기본: 사업자등록증 첨부됐으면 켬)
 
   const handleApprove = async (tab: TabId, id: string) => {
     try {
@@ -202,7 +203,7 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
       const body = tab === 'badge'
         ? { badgeType: badgeOverrides[id] }
         : tab === 'lesson'
-          ? { businessVerified: bizBadge[id] ?? !!pendingLessons.find((l) => l.id === id)?.businessLicense }
+          ? { businessVerified: bizBadge[id] ?? !!pendingLessons.find((l) => l.id === id)?.businessLicense, certVerified: certBadge[id] ?? !!pendingLessons.find((l) => l.id === id)?.instructorCert }
           : undefined;
       await api(`/admin/${path}/${id}/approve`, { method: 'PUT', body });
       toastSuccess('승인되었습니다!');
@@ -484,6 +485,11 @@ const AdminApproval = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 <label className="flex items-center gap-2 mt-2 text-xs text-gray-800">
                   <input type="checkbox" checked={bizBadge[item.id] ?? !!item.businessLicense} onChange={(e) => setBizBadge((m) => ({ ...m, [item.id]: e.target.checked }))} />
                   승인하면서 "사업자 확인" 배지 부여
+                </label>
+                {!item.instructorCert && <p className="text-[11px] text-gray-500 mt-2">강사 자격증 첨부 없음</p>}
+                <label className="flex items-center gap-2 mt-1 text-xs text-gray-800">
+                  <input type="checkbox" checked={certBadge[item.id] ?? !!item.instructorCert} onChange={(e) => setCertBadge((m) => ({ ...m, [item.id]: e.target.checked }))} />
+                  승인하면서 "자격 확인" 배지 부여
                 </label>
               </>
             )}

@@ -18,7 +18,7 @@ type Status = 'none' | 'absent' | 'called' | 'yes' | 'no' | 'del';
 interface Shop {
   // 레슨 전용: approved / providerType / instructor
   approved?: boolean; providerType?: 'business' | 'freelance' | null; instructor?: { id: string; name: string; email: string } | null;
-  businessLicense?: string; instructorCert?: string; businessVerified?: boolean; // 첨부 서류(관리자만)·사업자 확인 배지 (2026-09-23)
+  businessLicense?: string; instructorCert?: string; businessVerified?: boolean; certVerified?: boolean; // 첨부 서류(관리자만)·사업자 확인·자격 확인 배지
   id: string; kind: BoardKind; name: string; area: string; resortId: string; resort: string; address: string; phone: string; hours: string;
   naver: string; extraKinds: string; owner: boolean; viewCount: number; status: Status; memo: string; priority: number; updatedAt: string | null;
 }
@@ -157,6 +157,17 @@ export default function OutreachBoard() {
       await api(`/admin/lessons/${s.id}/business-badge`, { method: 'PUT', body: { verified: next } });
       setData((d) => d ? { ...d, shops: d.shops.map((x) => (x.kind === s.kind && x.id === s.id ? { ...x, businessVerified: next } : x)) } : d);
       toastSuccess(next ? '사업자 확인 배지를 붙였어요.' : '배지를 뗐어요.');
+    } catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
+  };
+
+  // 레슨 '자격 확인' 배지 — 강사 자격증 보고 켜기/끄기 (2026-10-07)
+  const toggleCert = async (s: Shop) => {
+    const next = !s.certVerified;
+    if (!confirm(next ? `"${s.name}" 레슨에 자격 확인 배지를 붙일까요?` : `"${s.name}" 레슨의 자격 확인 배지를 뗄까요?`)) return;
+    try {
+      await api(`/admin/lessons/${s.id}/cert-badge`, { method: 'PUT', body: { verified: next } });
+      setData((d) => d ? { ...d, shops: d.shops.map((x) => (x.kind === s.kind && x.id === s.id ? { ...x, certVerified: next } : x)) } : d);
+      toastSuccess(next ? '자격 확인 배지를 붙였어요.' : '배지를 뗐어요.');
     } catch (e) { toastError(e instanceof Error ? e.message : '처리하지 못했어요.'); }
   };
 
@@ -331,6 +342,7 @@ export default function OutreachBoard() {
                           {s.businessLicense && <button onClick={() => openExternal(imageUrl(s.businessLicense!))} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-900 text-gray-900 text-xs font-bold">사업자등록증</button>}
                           {s.kind === 'lesson' && s.instructorCert && <button onClick={() => openExternal(imageUrl(s.instructorCert!))} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-900 text-gray-900 text-xs font-bold">자격증</button>}
                           {s.kind === 'lesson' && s.approved && <button onClick={() => toggleBadge(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${s.businessVerified ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-900 text-gray-900'}`}>{s.businessVerified ? '사업자 확인 해제' : '사업자 확인 배지'}</button>}
+                          {s.kind === 'lesson' && s.approved && <button onClick={() => toggleCert(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${s.certVerified ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-900 text-gray-900'}`}>{s.certVerified ? '자격 확인 해제' : '자격 확인 배지'}</button>}
                           <button onClick={() => removeShop(s)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'del' ? 'bg-red-500 text-white border-red-500' : 'bg-white border-red-200 text-red-600'}`}>{st === 'del' ? '삭제 실행' : '삭제'}</button>
                           {!s.owner && <button onClick={() => copySms(s)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">문자 복사</button>}
                         </div>
