@@ -10,6 +10,7 @@ import CookieConsent from '../components/CookieConsent';
 import AppUpdatePrompt from '../components/AppUpdatePrompt';
 import PushPrePrompt from '../components/PushPrePrompt';
 import AppInstallCard from '../components/AppInstallCard';
+import PcAppQrPrompt from '../components/PcAppQrPrompt';
 import PullToRefresh from '../components/PullToRefresh';
 import { setupAnalytics, trackPageView } from '../utils/analytics';
 import { SITE_URL } from '../config/site';
@@ -127,6 +128,7 @@ const MainLayout = () => {
         <AppUpdatePrompt />
         <PushPrePrompt />
         <AppInstallCard />
+        <PcAppQrPrompt />
         <ToastHost />
         <PushPermissionPrompt />
         <ReviewPromptModal />
