@@ -486,12 +486,21 @@ export async function uploadImages(files: File[]): Promise<string[]> {
   const formData = new FormData();
   compressed.forEach(f => formData.append('images', f));
 
-  const token = getToken();
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  const res = await fetch(`${API_BASE}/upload`, { method: 'POST', headers, body: formData });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || '업로드 실패');
+  // access 토큰은 1시간이라, 앱을 켜둔 채 한참 뒤 사진을 올리면 만료돼 있다. api() 와 달리 여기는 refresh·재시도가 없어
+  // "세션이 만료되었습니다"가 그대로 떴음 (2026-10-08 사장님 신고). 401 이면 refresh 하고 한 번 다시 보낸다.
+  const send = async (token: string | null) => {
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/upload`, { method: 'POST', headers, body: formData });
+    let data: { error?: string; urls?: string[] } = {};
+    try { data = await res.json(); } catch { data = {}; }
+    return { res, data };
+  };
+  let { res, data } = await send(getToken());
+  if (res.status === 401) {
+    const fresh = await tryRefreshAccessToken();
+    if (fresh) ({ res, data } = await send(fresh));
+  }
+  if (!res.ok) throw new Error(res.status === 401 ? '로그인을 다시 해주세요.' : (data.error || '업로드 실패'));
   return data.urls as string[];
 }
