@@ -591,7 +591,7 @@ io.on('connection', (socket) => {
         const recipientActive = roomSockets.some((s) => s.rooms.has(`user:${recipientId}`));
         if (recipientActive) continue;
         await createNotification(recipientId, 'chat', notifTitle, preview, `/chat/${data.roomId}`);
-        io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: notifTitle, message: preview });
+        io.to(`user:${recipientId}`).emit('new_notification', { type: 'chat', title: notifTitle, message: preview, link: `/chat/${data.roomId}` }); // link: 프론트가 '지금 보는 방'인지 판단 (2026-10-08)
         sendPushToUser(recipientId, notifTitle, preview, `/chat/${data.roomId}`);
         // 앱이 없는 사장님도 놓치지 않게 문자·메일 (관리자는 제외 — 푸시·하루 요약으로 충분, 방당 3시간에 1회)
         if (!(await getAdminIds()).includes(recipientId)) alertUser(recipientId, { kind: 'chat', key: data.roomId, title: `${senderName}님의 새 메시지`, text: preview, link: `/chat/${data.roomId}` }).catch(() => {});
