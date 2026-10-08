@@ -228,7 +228,9 @@ const Chat = () => {
   }, [roomId]);
 
   const markAsRead = (id: string) => {
-    api(`/chat/rooms/${id}/read`, { method: 'PUT' }).catch(() => { /* ignore */ });
+    api(`/chat/rooms/${id}/read`, { method: 'PUT' })
+      .then(() => { try { window.dispatchEvent(new CustomEvent('snowpan:chat-read', { detail: id })); } catch { /* 무시 */ } }) // 상단·하단 점 갱신
+      .catch(() => { /* ignore */ });
   };
 
   const connectToRoom = (id: string) => {

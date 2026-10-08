@@ -39,7 +39,8 @@ const BottomNav = () => {
   // 새 채팅 메시지 dot — Navbar 소켓이 쏘는 전역 이벤트 소비, 채팅 목록 방문 시 해제
   const [chatUnread, setChatUnread] = useState(false);
   useEffect(() => {
-    const on = () => setChatUnread(true);
+    // detail: true=안 읽은 채팅 있음, false=없음(서버 확인 결과). Navbar 가 읽음 처리·채팅 이탈 때 false 를 보낸다
+    const on = (e: Event) => setChatUnread((e as CustomEvent<boolean>).detail !== false);
     window.addEventListener('snowpan:chat-unread', on);
     return () => window.removeEventListener('snowpan:chat-unread', on);
   }, []);

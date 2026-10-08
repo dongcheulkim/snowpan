@@ -76,28 +76,43 @@ const Navbar = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!user]);
 
-  useEffect(() => {
-    if (!user) { setHasUnread(false); return; }
-    const token = getToken();
-    if (!token) return;
-
+  // 안 읽은 채팅이 있는지 서버에 물어 PC 점(hasUnread)과 폰 하단 탭 점(snowpan:chat-unread 이벤트)을 같이 맞춘다.
+  // force=false 면 30초 안엔 다시 묻지 않음. 채팅 화면을 떠날 때·읽음 처리 직후엔 force 로 바로 갱신
+  // (2026-10-08 사장님 "다 읽었는데 아직도 빨간 점": 읽고 30초 안에 나오면 옛 결과가 남아 있었음).
+  const refreshChatUnread = useCallback((force = false) => {
+    if (!user || !getToken()) return;
     const now = Date.now();
-    if (now - lastFetchRef.current < 30000) return;
+    if (!force && now - lastFetchRef.current < 30000) return;
     lastFetchRef.current = now;
-
     api<ChatRoomRow[]>('/chat/rooms')
       .then(data => {
         try {
           const rooms = Array.isArray(data) ? data : [];
           const total = rooms.reduce((sum: number, r: ChatRoomRow) => sum + (r.unreadCount || 0), 0);
           setHasUnread(total > 0);
+          window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: total > 0 }));
         } catch { /* 형식 오류는 무시 */ }
       })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!user]);
 
+  const prevPathRef = useRef(location.pathname);
+  useEffect(() => {
+    if (!user) { setHasUnread(false); return; }
+    const leftChat = prevPathRef.current.startsWith('/chat') && !location.pathname.startsWith('/chat');
+    prevPathRef.current = location.pathname;
+    refreshChatUnread(leftChat); // 채팅에서 나올 땐 방금 읽은 걸 바로 반영
     fetchNotifCount();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
+
+  // 채팅 화면이 읽음 처리를 보내면 잠시 뒤(서버 반영 후) 다시 조회
+  useEffect(() => {
+    const on = () => { setTimeout(() => refreshChatUnread(true), 400); };
+    window.addEventListener('snowpan:chat-read', on);
+    return () => window.removeEventListener('snowpan:chat-read', on);
+  }, [refreshChatUnread]);
 
   useEffect(() => {
     const token = getToken();
@@ -130,8 +145,12 @@ const Navbar = () => {
       if (data?.type === 'chat') {
         // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
         // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).
-        setTimeout(() => setHasUnread(true), 0);
-        try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: true })); } catch { /* 무시 */ }
+        // 지금 그 방을 보고 있으면 바로 읽히므로 점을 켜지 않는다 (방 안에서 켜진 점이 나온 뒤에도 남던 원인)
+        const inThatRoom = !!data?.link && window.location.pathname === data.link;
+        if (!inThatRoom) {
+          setTimeout(() => setHasUnread(true), 0);
+          try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: true })); } catch { /* 무시 */ }
+        }
         showBrowserNotification({
           title: data?.title || '새 메시지',
           body: data?.message || data?.body,
