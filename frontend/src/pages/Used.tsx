@@ -381,7 +381,7 @@ const Used = () => {
                 onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
                 className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}
               >
-                <div className="relative h-28 lg:h-auto lg:aspect-[4/3] flex items-center justify-center text-4xl overflow-hidden bg-gray-100">{/* PC: 사진 4:3 로 키워 사진 70·정보 30 (2026-10-08 사장님 요청). 폰은 그대로 */}
+                <div className="relative h-28 lg:h-auto lg:aspect-[4/5] flex items-center justify-center text-4xl overflow-hidden bg-gray-100">{/* PC: 사진 4:5(세로) 로 키워 사진 70·정보 30 — 스키 사진이 세로라 세로 칸이 맞음 (2026-10-08 사장님 요청). 폰은 그대로 */}
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img
                       src={imageUrl(product.image, 600)}
@@ -417,7 +417,7 @@ const Used = () => {
                     <span className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</span>
                     {product.size && <span className="text-[9px] text-gray-500 bg-gray-50 px-1 rounded">{product.size}</span>}
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{product.name}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 truncate mb-2 lg:mb-1">{product.name}</h3>
                   <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
                   {((product.viewCount ?? 0) > 0 || (product.wishlistCount ?? 0) > 0) && (
                     <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
