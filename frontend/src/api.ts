@@ -50,10 +50,14 @@ interface ApiOptions {
 // 401 발생 → /auth/refresh (HttpOnly 쿠키 자동 전송) → 새 access 토큰 → 원 요청 재시도.
 // refresh 도 실패면 진짜 만료 → /login 리다이렉트.
 let refreshPromise: Promise<string | null> | null = null;
+// 마지막 갱신 실패 원인 — 'invalid'(서버가 세션을 거절, 401) | 'transient'(네트워크·서버 일시 장애).
+// transient 면 로그아웃하지 않는다 (2026-10-08 "앱 로그인 안 풀리게": 지하철·엘리베이터에서 앱을 열면 로그인이 풀리던 원인).
+export let lastRefreshFailure: 'invalid' | 'transient' | null = null;
 export async function tryRefreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {
+      lastRefreshFailure = null;
       // 앱: 저장된 refresh 토큰을 body 로 전송 (쿠키가 웹뷰에 없음). 웹: 쿠키 자동 전송.
       const appRt = getAppRefreshToken();
       const res = await fetch(`${API_BASE}/auth/refresh`, {
@@ -61,9 +65,9 @@ export async function tryRefreshAccessToken(): Promise<string | null> {
         credentials: 'include',
         ...(appRt ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: appRt }) } : {}),
       });
-      if (!res.ok) return null;
+      if (!res.ok) { lastRefreshFailure = res.status === 401 || res.status === 403 ? 'invalid' : 'transient'; return null; }
       const data = await res.json();
-      if (!data?.token) return null;
+      if (!data?.token) { lastRefreshFailure = 'transient'; return null; }
       // 앱: rotation 된 refresh 토큰 저장 (옛 토큰은 재사용 시 도난으로 간주됨).
       if (data.refreshToken) setAppRefreshToken(data.refreshToken);
       // user 정보도 함께 갱신 (role 변경 등 반영).
@@ -73,6 +77,7 @@ export async function tryRefreshAccessToken(): Promise<string | null> {
       authStore().setItem('token', data.token);
       return data.token as string;
     } catch {
+      lastRefreshFailure = 'transient'; // fetch 자체 실패 = 오프라인·DNS·타임아웃
       return null;
     } finally {
       // 다음 호출은 새로 시도.
@@ -157,7 +162,9 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
       if (newToken) {
         return api<T>(path, { ...options, _retried: true });
       }
-      // 세션 상태와 무관하게 항상 로그인 화면으로 — 만료 시 사용자가 헤매지 않게.
+      // 일시 장애(오프라인 등)로 갱신을 못 한 것이면 세션을 지우지 않는다 — 다음 요청에서 다시 시도.
+      if (lastRefreshFailure === 'transient') throw new Error('네트워크 연결을 확인하고 다시 시도해 주세요.');
+      // 서버가 세션을 거절한 경우만 로그인 화면으로 — 만료 시 사용자가 헤매지 않게.
       if (!window.location.pathname.includes('/login')) {
         logout();
         if (data) data.error = '로그인을 다시 해주세요.';

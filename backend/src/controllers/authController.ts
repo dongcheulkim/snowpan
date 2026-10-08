@@ -5,7 +5,7 @@ import { revokeAppleToken } from './socialAuthController';
 import prisma from '../config/database';
 import { sendEmail, verificationEmailHtml } from '../utils/email';
 import { sendSMS } from '../utils/sms';
-import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens, isTokenVersionStale } from '../utils/tokens';
+import { signAccessToken, signRefreshToken, refreshCookieOptions, setRefreshCookie, clearRefreshCookie, verifyRefreshToken, REFRESH_COOKIE_NAME, consumeRefresh, makeJti, isFamilyRevoked, revokeFamily, isTokenIatStale, isIatBeforeInvalidation, invalidateUserTokens, isTokenVersionStale } from '../utils/tokens';
 import { isLocked, recordFailure, recordSuccess, DUMMY_BCRYPT_HASH, canSendEmail, recordResetAttempt, clearResetAttempts } from '../utils/loginGuard';
 import { isHttpUrl, normalizeEmail, isAllowedImageUrl } from '../utils/validate';
 import { notifyAdmins } from './notificationController';
@@ -1028,8 +1028,9 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // jti 재사용 감지 — 도난(replay)이면 family 무효화. 단 10초 내 재사용은 멀티탭 동시 갱신으로 보고 허용(grace).
-    if (consumeJti(payload.jti) === 'replay') {
+    // jti 재사용 감지 — 도난(replay)이면 family 무효화. 직전 토큰 1회 재사용(응답 유실·멀티탭)은 허용.
+    const newJti = makeJti();
+    if (consumeRefresh(payload.fam, payload.jti, newJti) === 'replay') {
       revokeFamily(payload.fam);
       clearRefreshCookie(res);
       res.status(401).json({ error: '비정상 접근이 감지되어 로그아웃되었습니다. 다시 로그인해주세요.' });
@@ -1069,7 +1070,7 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
     // remember 는 최초 로그인 선택을 그대로 계승 (자동로그인 미선택이 14일로 승격되지 않게).
     const token = signAccessToken(user);
     const remember = payload.rem !== false;
-    const newRefresh = signRefreshToken(user.id, payload.fam, remember, user.tokenVersion);
+    const newRefresh = signRefreshToken(user.id, payload.fam, remember, user.tokenVersion, newJti);
     res.cookie(REFRESH_COOKIE_NAME, newRefresh, refreshCookieOptions(remember));
 
     res.json({

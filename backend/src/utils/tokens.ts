@@ -1,6 +1,6 @@
 // Access + Refresh 듀얼 토큰 시스템.
 // - access: 1시간 짧게, JS 가 읽음 (sessionStorage). XSS 탈취 시 영향 1h 로 제한.
-// - refresh: 14일, HttpOnly Secure 쿠키 — JS 접근 불가, XSS 무력.
+// - refresh: 90일(자동 로그인)/14일, HttpOnly Secure 쿠키 — JS 접근 불가, XSS 무력.
 //   별도 시크릿 (JWT_REFRESH_SECRET) 으로 서명 → access 시크릿 유출돼도 refresh 안 풀림.
 
 import jwt from 'jsonwebtoken';
@@ -8,8 +8,11 @@ import type { Response, CookieOptions } from 'express';
 import prisma from '../config/database';
 
 const ACCESS_TTL = '1h';
-const REFRESH_TTL = '14d';
-const REFRESH_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+// refresh 수명 — 자동 로그인(앱·'로그인 유지')은 90일, 미선택은 14일. 매 갱신마다 새로 발급되므로 쓰는 동안은 계속 연장된다.
+// (2026-10-08 "앱 로그인 안 풀리게": 14일 동안 앱을 안 열면 풀리던 것 → 90일)
+const REFRESH_TTL_REMEMBER = '90d';
+const REFRESH_TTL_SESSION = '14d';
+const REFRESH_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 // "이 브라우저에서 자동 로그인" 미선택 시 — 세션 쿠키 (브라우저 닫으면 만료).
 const SESSION_TTL_MS = undefined;
 
@@ -33,11 +36,11 @@ export function signAccessToken(user: { id: string; email: string; role: string;
   return jwt.sign({ userId: user.id, email: user.email, role: user.role, type: 'access', tv: user.tokenVersion ?? 0 }, access, { expiresIn: ACCESS_TTL });
 }
 
-export function signRefreshToken(userId: string, family?: string, remember = true, tokenVersion = 0): string {
+export function makeJti(): string { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+export function signRefreshToken(userId: string, family?: string, remember = true, tokenVersion = 0, jti = makeJti()): string {
   const { refresh } = getSecrets();
-  const jti = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const fam = family || `${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return jwt.sign({ userId, type: 'refresh', jti, fam, rem: remember, tv: tokenVersion }, refresh, { expiresIn: REFRESH_TTL });
+  return jwt.sign({ userId, type: 'refresh', jti, fam, rem: remember, tv: tokenVersion }, refresh, { expiresIn: remember ? REFRESH_TTL_REMEMBER : REFRESH_TTL_SESSION });
 }
 
 export function verifyRefreshToken(token: string): RefreshPayload {
@@ -51,15 +54,20 @@ export function verifyRefreshToken(token: string): RefreshPayload {
   return decoded;
 }
 
-// 사용된 jti 추적 — rotation 시 옛 jti 가 재사용되면 도난 의심 → family 통째로 무효화.
-// 메모리 캐시 (재시작 시 초기화 OK — 재시작이 곧 강제 rotation).
-const usedJtis = new Map<string, number>(); // jti → timestamp
+// family 별 rotation 상태 — latest(마지막으로 발급한 jti) / prev(그 직전 jti).
+// 도난 감지: latest 도 prev 도 아닌 옛 jti 가 오면 replay → family 통째로 무효화.
+// prev 를 한 번은 허용하는 이유 (2026-10-08 "앱 로그인 안 풀리게"): 앱이 refresh 를 보내고 서버는 회전했는데
+// 응답이 유실돼(모바일 망 끊김) 앱엔 옛 토큰만 남는 경우, 다음 시도가 '도난'으로 오판돼 강제 로그아웃되던 문제.
+// 멀티탭 동시 갱신도 같은 경로로 흡수된다. prev 는 한 번 쓰면 비워서 세 번째 사용은 replay.
+// 메모리 캐시 (재시작 시 초기화 OK — 상태 없는 family 는 첫 사용으로 간주).
+interface FamilyState { latest: string; prev: string | null; ts: number }
+const families = new Map<string, FamilyState>();
 const revokedFamilies = new Map<string, number>(); // family → timestamp
-const TOKEN_DEDUP_MS = 14 * 24 * 60 * 60_000;
+const TOKEN_DEDUP_MS = REFRESH_TTL_MS;
 
 setInterval(() => {
   const now = Date.now();
-  for (const [k, ts] of usedJtis) if (now - ts > TOKEN_DEDUP_MS) usedJtis.delete(k);
+  for (const [k, f] of families) if (now - f.ts > TOKEN_DEDUP_MS) families.delete(k);
   for (const [k, ts] of revokedFamilies) if (now - ts > TOKEN_DEDUP_MS) revokedFamilies.delete(k);
 }, 60 * 60_000);
 
@@ -69,17 +77,15 @@ export function isFamilyRevoked(fam: string): boolean {
 
 export function revokeFamily(fam: string): void {
   revokedFamilies.set(fam, Date.now());
+  families.delete(fam);
 }
 
-// jti 소비 결과: 'ok'(첫 사용) | 'grace'(짧은 시간 내 재사용 = 멀티탭 동시 갱신, 도난 아님) | 'replay'(도난 의심).
-// 여러 탭이 같은 refresh 쿠키로 동시에 갱신하면 같은 jti 를 거의 동시에 쓰는데, 이를 도난으로 오판해
-// 양쪽 다 강제 로그아웃하던 문제를 유예창(10초)으로 방지.
-const JTI_GRACE_MS = 10_000;
-export function consumeJti(jti: string): 'ok' | 'grace' | 'replay' {
+// 회전 시도: 'ok' 면 newJti 가 이 family 의 최신이 된다. 'replay' 면 호출 쪽에서 family 를 무효화한다.
+export function consumeRefresh(fam: string, jti: string, newJti: string): 'ok' | 'replay' {
   const now = Date.now();
-  const prev = usedJtis.get(jti);
-  if (prev === undefined) { usedJtis.set(jti, now); return 'ok'; }
-  if (now - prev < JTI_GRACE_MS) return 'grace';
+  const f = families.get(fam);
+  if (!f || jti === f.latest) { families.set(fam, { latest: newJti, prev: jti, ts: now }); return 'ok'; }
+  if (f.prev !== null && jti === f.prev) { families.set(fam, { latest: newJti, prev: null, ts: now }); return 'ok'; } // 응답 유실·멀티탭 — 한 번만
   return 'replay';
 }
 
@@ -129,7 +135,7 @@ export function isIatBeforeInvalidation(iat: number | undefined, sessionInvalidB
 
 // 쿠키 옵션 — cross-domain (vercel ↔ render) 대응.
 // SameSite=None + Secure 필수, HttpOnly 로 JS 접근 차단.
-// remember=true 면 14일 만료, false 면 세션 쿠키.
+// remember=true 면 90일 만료, false 면 세션 쿠키.
 export function refreshCookieOptions(remember: boolean): CookieOptions {
   return {
     httpOnly: true,
