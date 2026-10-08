@@ -86,4 +86,14 @@ api GET "/community?category=free" ""; AN=$(echo "$RESP" | jq -r "[.posts[] | se
 api PUT "/community/$AP" '{"sport":"ski"}' "$BUYER_TOKEN"; PS=$(echo "$RESP" | jq -r '.sport'); [ "$CODE" = "200" ] && [ "$PS" = "ski" ] && ok "공개 범위 수정 (all → ski)" || bad "공개 범위 수정 CODE=$CODE $PS"
 api PUT "/community/$AP" '{"sport":"golf"}' "$BUYER_TOKEN"; [ "$CODE" = "400" ] && ok "잘못된 공개 범위 400" || bad "공개 범위 400 기대, CODE=$CODE"
 
+# ── 관리자가 남의 글 카테고리·종목 옮기기 (잘못 올린 글 정리, 2026-10-08) — 글쓴이가 아닌 일반 회원은 403
+source "$(cd "$(dirname "$0")" && pwd)/lib.sh"
+MV_ADM=$(register_verified "01099990071" "mv_admin@s7.test" "글옮김관리자" "글옮김관리자"); pq "UPDATE users SET role='admin' WHERE email='mv_admin@s7.test'" >/dev/null; MV_ADM=$(login "mv_admin@s7.test" 'Re!pass1234')
+api PUT "/community/$AP" '{"category":"carpool"}' "$SELLER_TOKEN"; [ "$CODE" = "403" ] && ok "남의 글 카테고리 변경은 403" || bad "남의 글 변경 CODE=$CODE"
+api PUT "/community/$AP" '{"category":"carpool","sport":"board"}' "$MV_ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.category')" = "carpool" ] && [ "$(echo "$RESP" | jq -r '.sport')" = "board" ] && ok "관리자가 카테고리·종목 옮김 (free/ski → carpool/board)" || bad "관리자 옮김 CODE=$CODE $(echo "$RESP" | head -c 120)"
+api GET "/community?sport=board&category=carpool" ""; [ "$(echo "$RESP" | jq -r "[.posts[] | select(.id==\"$AP\")] | length")" = "1" ] && ok "옮긴 뒤 보드·카풀 목록에 노출" || bad "옮긴 목록 노출 안 됨"
+api PUT "/community/$AP" '{"category":"bogus"}' "$MV_ADM"; [ "$CODE" = "400" ] && ok "없는 카테고리 400" || bad "없는 카테고리 CODE=$CODE"
+api PUT "/community/$AP" '{"category":"notice"}' "$MV_ADM"; [ "$CODE" = "200" ] && [ "$(echo "$RESP" | jq -r '.sport')" = "all" ] && [ "$(echo "$RESP" | jq -r '.pinned')" = "true" ] && ok "공지로 옮기면 공용·상단 고정" || bad "공지 옮김 CODE=$CODE $(echo "$RESP" | head -c 120)"
+api PUT "/community/$AP" '{"category":"free"}' "$MV_ADM"; [ "$(echo "$RESP" | jq -r '.pinned')" = "false" ] && ok "공지에서 되돌리면 고정 해제" || bad "고정 해제 안 됨"
+
 echo "----- STEP7: PASS=$PASS FAIL=$FAIL -----"

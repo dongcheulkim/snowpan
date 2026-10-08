@@ -281,6 +281,45 @@ const CommunityDetail = () => {
         </div>
       </div>
 
+      {/* 관리자: 잘못 올라온 글의 카테고리·종목 옮기기 (2026-10-08 사장님 요청). 공지·매거진은 항상 공용이라 종목 선택 숨김 */}
+      {user?.role === 'admin' && post.category !== 'news' && (
+        <div className="card p-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-gray-900 mr-1">관리자 · 글 옮기기</span>
+          <select
+            aria-label="카테고리"
+            value={post.category}
+            onChange={async (e) => {
+              const category = e.target.value;
+              try {
+                const u = await api<{ category: string; sport: string }>(`/community/${post.id}`, { method: 'PUT', body: { category } });
+                setPost({ ...post, category: u.category, sport: u.sport });
+                toastSuccess(`"${badgeMap[u.category] || u.category}"(으)로 옮겼어요.`);
+              } catch (err) { toastError(err instanceof Error ? err.message : '옮기지 못했어요.'); }
+            }}
+            className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs text-gray-900"
+          >
+            {['free', 'meetup', 'carpool', 'review', 'gear', 'resort', 'tip', 'job', 'jobseek', 'notice'].map((c) => <option key={c} value={c}>{badgeMap[c] || c}</option>)}
+          </select>
+          {post.category !== 'notice' && (
+            <select
+              aria-label="종목"
+              value={post.sport}
+              onChange={async (e) => {
+                const sport = e.target.value;
+                try {
+                  const u = await api<{ category: string; sport: string }>(`/community/${post.id}`, { method: 'PUT', body: { sport } });
+                  setPost({ ...post, sport: u.sport });
+                  toastSuccess(sport === 'all' ? '전체 공용으로 바꿨어요.' : `${sport === 'ski' ? '스키' : '보드'} 게시판으로 옮겼어요.`);
+                } catch (err) { toastError(err instanceof Error ? err.message : '옮기지 못했어요.'); }
+              }}
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs text-gray-900"
+            >
+              <option value="ski">스키</option><option value="board">보드</option><option value="all">전체 공용</option>
+            </select>
+          )}
+        </div>
+      )}
+
       {user && (post.userId === user.id || user.role === 'admin') && (
         <div className="flex gap-2">
           {post.userId === user.id && (
