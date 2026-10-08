@@ -27,7 +27,6 @@ export default function PcAppQrPrompt() {
     const tryOpen = () => { if (getCookieConsent() === null) { timer = setTimeout(tryOpen, 1500); return; } setOpen(true); };
     timer = setTimeout(tryOpen, 2000);
     return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   if (!open) return null;
