@@ -1,7 +1,7 @@
 import { toastSuccess, toastError } from '../utils/toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api, uploadImages, imageUrl } from '../api';
+import { api, uploadImages, imageUrl, compressImage } from '../api';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';
 
@@ -186,12 +186,14 @@ const UsedEdit = () => {
               multiple
               id="photo-upload"
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const files = Array.from(e.target.files || []);
                 const total = existingImages.length + images.length;
                 const remaining = 10 - total;
-                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); return; }
-                files.slice(0, remaining).forEach(file => {
+                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); e.target.value = ''; return; }
+                // 고르자마자 압축 (등록 화면과 동일, 2026-10-08)
+                const compressed = await Promise.all(files.slice(0, remaining).map((f) => compressImage(f, 1000, 0.82).catch(() => f)));
+                compressed.forEach(file => {
                   const reader = new FileReader();
                   reader.onload = (ev) => {
                     setImages(prev => [...prev, ev.target?.result as string]);

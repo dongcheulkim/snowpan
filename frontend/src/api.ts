@@ -417,7 +417,8 @@ function canvasHasAlpha(ctx: CanvasRenderingContext2D, width: number, height: nu
   } catch { return true; } // 읽기 실패 시 안전하게 PNG 유지
 }
 
-function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
+// 고른 즉시 압축(등록 화면)에도 쓴다 — 폰 원본(5~12MB)을 미리보기·메모리에 그대로 들고 있지 않게 (2026-10-08)
+export function compressImage(file: File, maxWidth: number, quality: number): Promise<File> {
   return new Promise((resolve) => {
     // Skip compression for videos
     if (file.type.startsWith('video/')) {

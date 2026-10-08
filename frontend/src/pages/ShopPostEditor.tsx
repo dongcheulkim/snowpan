@@ -69,15 +69,8 @@ export default function ShopPostEditor() {
       toastError('사진은 최대 5장까지 가능해요.');
       return;
     }
-    // 실제 업로드 대상 (남은 슬롯만큼) 에만 크기 검증 — 잘려나갈 파일 때문에 차단 안 되게.
+    // 크기 검사는 하지 않는다 — uploadImages 가 1000px·WebP 로 압축해 보내므로 폰 원본(5~12MB)도 문제없음 (2026-10-08)
     const toUpload = files.slice(0, remaining);
-    const MAX_SIZE = 5 * 1024 * 1024;
-    const tooBig = toUpload.filter((f) => f.size > MAX_SIZE);
-    if (tooBig.length) {
-      toastError(`5MB 초과 파일: ${tooBig.map((f) => f.name).join(', ')}`);
-      e.target.value = '';
-      return;
-    }
     setUploading(true);
     try {
       const urls = await uploadImages(toUpload);

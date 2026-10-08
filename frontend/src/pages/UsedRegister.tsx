@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
-import { api, getUser, uploadImages } from '../api';
+import { api, getUser, uploadImages, compressImage } from '../api';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../utils/toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
@@ -190,19 +190,15 @@ const UsedRegister = () => {
               multiple
               id="photo-upload"
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const files = Array.from(e.target.files || []);
                 const remaining = 10 - images.length;
-                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); return; }
-                const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-                const tooBig = files.filter(f => f.size > MAX_SIZE);
-                if (tooBig.length > 0) {
-                  toastError(`다음 파일이 5MB를 초과합니다: ${tooBig.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(', ')}. 이미지 크기를 줄여서 다시 시도해주세요.`);
-                  e.target.value = '';
-                  return;
-                }
+                if (remaining <= 0) { toastError('사진은 최대 10장까지 가능합니다.'); e.target.value = ''; return; }
+                // 폰 원본은 5~12MB 가 보통이라 "5MB 초과" 거절은 사진을 못 올리게 막을 뿐이었음 (2026-10-08 사장님 신고).
+                // 고르자마자 1000px·WebP 로 압축해 미리보기도 압축본으로 — 업로드 때 다시 압축하지 않아도 작다.
                 const toProcess = files.slice(0, remaining);
-                toProcess.forEach((file) => {
+                const compressed = await Promise.all(toProcess.map((f) => compressImage(f, 1000, 0.82).catch(() => f)));
+                compressed.forEach((file) => {
                   const reader = new FileReader();
                   reader.onload = (ev) => {
                     setImages((prev) => {
