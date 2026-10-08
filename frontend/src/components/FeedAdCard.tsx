@@ -23,18 +23,18 @@ export default function FeedAdCard({ ad }: { ad: FeedAd }) {
   const label = ad.kind === 'coupang' ? '쿠팡 광고' : '광고';
   return (
     <a href={ad.url} target="_blank" rel="noopener noreferrer sponsored" onClick={() => trackFeedAdClick(ad)} className="card overflow-hidden card-hover block" aria-label={`${label}: ${ad.title}`}>
-      <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
         {ad.image ? <img src={imageUrl(ad.image, 400)} alt={ad.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />}
         <span className="absolute top-1 left-1 text-[8px] font-bold px-1 py-px rounded bg-black/55 text-white">{label}</span>
       </div>
-      <div className="p-3">
-        <div className="flex items-center gap-1.5 mb-1">
+      <div className="p-2.5">
+        <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-[10px] text-gray-500 font-medium truncate">{ad.advertiser || (ad.kind === 'coupang' ? '쿠팡' : '스노우판 광고')}</span>
         </div>
-        <h3 className="text-sm font-bold text-gray-900 truncate mb-1">{ad.title}</h3>
-        <div className="min-h-6 flex items-center">{ad.price ? <span className="text-base font-bold text-gray-900">{ad.price.toLocaleString()}원</span> : ad.description ? <p className="text-[11px] text-gray-500 truncate">{ad.description}</p> : null}</div>
+        <h3 className="text-[13px] font-bold text-gray-900 truncate mb-0.5">{ad.title}</h3>
+        <div className="min-h-6 flex items-center">{ad.price ? <span className="text-[15px] font-bold text-gray-900">{ad.price.toLocaleString()}원</span> : ad.description ? <p className="text-[11px] text-gray-500 truncate">{ad.description}</p> : null}</div>
         {/* 매물 카드의 조회·찜 줄과 같은 높이 — 카드 높이를 맞춘다 */}
-        <div className="mt-1 text-[10px] text-gray-500">{ad.kind === 'coupang' ? '쿠팡 파트너스 · 새 창' : '광고 · 새 창'}</div>
+        <div className="mt-0.5 text-[10px] text-gray-500">{ad.kind === 'coupang' ? '쿠팡 파트너스 · 새 창' : '광고 · 새 창'}</div>
       </div>
     </a>
   );

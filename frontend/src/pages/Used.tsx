@@ -364,7 +364,7 @@ const Used = () => {
       {loading ? (
         <ProductGridSkeleton count={PAGE_SIZE} />
       ) : (<>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6 lg:gap-3">
           {products.map((product, idx) => {
             const st = statusLabel[product.status] || statusLabel.selling;
             // 당근식 피드 광고 — 매물 20개마다 1개, 20번째 매물 뒤에 매물 모양 카드로 끼움 (광고가 없으면 아무것도 안 끼움)
@@ -381,7 +381,7 @@ const Used = () => {
                 onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
                 className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}
               >
-                <div className="relative aspect-[4/5] flex items-center justify-center text-4xl overflow-hidden bg-gray-100">{/* 사진 4:5(세로) 로 키워 사진 70·정보 30 — 폰·PC 공통 (2026-10-08 사장님 "앱도 바꿔") (2026-10-08 사장님 요청). 폰은 그대로 */}
+                <div className="relative aspect-square flex items-center justify-center text-4xl overflow-hidden bg-gray-100">{/* 사진 1:1 — 4:5 는 카드가 너무 커서 정사각으로, PC 는 6열 (2026-10-08 사장님 "카드 사이즈가 너무 큰 거 같아") (2026-10-08 사장님 요청). 폰은 그대로 */}
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img
                       src={imageUrl(product.image, 600)}
@@ -412,16 +412,16 @@ const Used = () => {
                   )}
                   <WishlistButton productId={product.id} initial={wishedIds.has(product.id)} />
                 </div>
-                <div className="p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
+                <div className="p-2.5">
+                  <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</span>
                     {product.size && <span className="text-[9px] text-gray-500 bg-gray-50 px-1 rounded">{product.size}</span>}
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 truncate mb-1">{product.name}</h3>
-                  <span className="text-base font-bold text-mint">{product.price.toLocaleString()}원</span>
+                  <h3 className="text-[13px] font-bold text-gray-900 truncate mb-0.5">{product.name}</h3>
+                  <span className="text-[15px] font-bold text-mint">{product.price.toLocaleString()}원</span>
                   {/* 조회·찜은 0이어도 항상 표시 — 있는 카드만 한 줄 길어져 카드 높이가 들쭉날쭉했음 (2026-10-08 사장님 "같은 사이즈 맞아?") */}
                   {(
-                    <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
+                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-gray-500">
                       <span className="inline-flex items-center gap-0.5">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         {(product.viewCount ?? 0).toLocaleString()}
