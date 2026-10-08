@@ -23,7 +23,7 @@ export default function FeedAdCard({ ad }: { ad: FeedAd }) {
   const label = ad.kind === 'coupang' ? '쿠팡 광고' : '광고';
   return (
     <a href={ad.url} target="_blank" rel="noopener noreferrer sponsored" onClick={() => trackFeedAdClick(ad)} className="card overflow-hidden card-hover block" aria-label={`${label}: ${ad.title}`}>
-      <div className="relative h-28 lg:h-auto lg:aspect-[4/5] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
         {ad.image ? <img src={imageUrl(ad.image, 400)} alt={ad.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />}
         <span className="absolute top-1 left-1 text-[8px] font-bold px-1 py-px rounded bg-black/55 text-white">{label}</span>
       </div>
