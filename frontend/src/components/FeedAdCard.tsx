@@ -31,8 +31,10 @@ export default function FeedAdCard({ ad }: { ad: FeedAd }) {
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-[10px] text-gray-500 font-medium truncate">{ad.advertiser || (ad.kind === 'coupang' ? '쿠팡' : '스노우판 광고')}</span>
         </div>
-        <h3 className="text-sm font-bold text-gray-900 truncate mb-2">{ad.title}</h3>
-        {ad.price ? <span className="text-base font-bold text-gray-900">{ad.price.toLocaleString()}원</span> : ad.description ? <p className="text-[11px] text-gray-500 line-clamp-2">{ad.description}</p> : null}
+        <h3 className="text-sm font-bold text-gray-900 truncate mb-1">{ad.title}</h3>
+        <div className="min-h-6 flex items-center">{ad.price ? <span className="text-base font-bold text-gray-900">{ad.price.toLocaleString()}원</span> : ad.description ? <p className="text-[11px] text-gray-500 truncate">{ad.description}</p> : null}</div>
+        {/* 매물 카드의 조회·찜 줄과 같은 높이 — 카드 높이를 맞춘다 */}
+        <div className="mt-1 text-[10px] text-gray-500">{ad.kind === 'coupang' ? '쿠팡 파트너스 · 새 창' : '광고 · 새 창'}</div>
       </div>
     </a>
   );
