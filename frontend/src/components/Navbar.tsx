@@ -64,12 +64,13 @@ const Navbar = () => {
       if (!user) return;
       const token = getToken();
       if (!token) return;
-      api<NotifRow[] | { notifications?: NotifRow[] }>('/notifications?limit=50')
+      api<NotifRow[] | { notifications?: NotifRow[]; unreadCount?: number }>('/notifications?limit=1')
         .then(data => {
           try {
+            // 서버가 세어 준 안 읽은 수(채팅 제외) — 전엔 최근 50개만 받아 세서 50 넘으면 틀렸음 (2026-10-08)
+            if (!Array.isArray(data) && typeof data?.unreadCount === 'number') { setUnreadNotifCount(data.unreadCount); return; }
             const notifs = Array.isArray(data) ? data : (data?.notifications || []);
-            const count = notifs.filter((n: NotifRow) => !n.read && n.type !== 'chat').length; // 채팅은 벨 제외(자체 점 dot)
-            setUnreadNotifCount(count);
+            setUnreadNotifCount(notifs.filter((n: NotifRow) => !n.read && n.type !== 'chat').length);
           } catch { /* 응답 형식이 달라도 벨 숫자만 건너뜀 */ }
         })
         .catch(() => {});
@@ -176,6 +177,7 @@ const Navbar = () => {
         return;
       }
       setTimeout(() => setUnreadNotifCount((prev) => prev + 1), 0);
+      setTimeout(() => fetchNotifCount(), 800); // 먼저 날아간 조회 응답이 +1 을 덮어쓰는 경우 대비 — 서버 값으로 한 번 더 맞춤
       showBrowserNotification({
         title: data?.title || '새 알림',
         body: data?.message || data?.body,

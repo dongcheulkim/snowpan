@@ -168,6 +168,12 @@ ANID=$(pq "SELECT id FROM notifications WHERE \"userId\"='$A_ID' AND title='E2E�
 api GET /notifications "" "$U_TOKEN"; NC=$(echo "$RESP" | jq -r "[(.notifications // .)[]? | select(.id==\"$NID\")] | length"); [ "$NC" = "1" ] && ok "내 알림 목록" || bad "알림 목록 cnt=$NC"
 api PUT "/notifications/$ANID/read" "{}" "$U_TOKEN"
 AR=$(pq "SELECT read FROM notifications WHERE id='$ANID'"); [ "$AR" = "f" ] && ok "타인 알림 읽음 처리 불가" || bad "타인 알림 read=$AR"
+# 벨 숫자용 unreadCount — 안 읽은 알림 수(채팅 타입 제외), limit 과 무관 (2026-10-08)
+pq "INSERT INTO notifications (id, \"userId\", type, title, message, read, \"createdAt\") VALUES (gen_random_uuid(), '$U_ID', 'chat', 'E2E채팅알림', 'm', false, now()), (gen_random_uuid(), '$U_ID', 'system', 'E2E안읽음2', 'm', false, now())" >/dev/null
+EXP=$(pq "SELECT count(*) FROM notifications WHERE \"userId\"='$U_ID' AND read=false AND type<>'chat'")
+api GET "/notifications?limit=1" "" "$U_TOKEN"; UC=$(echo "$RESP" | jq -r '.unreadCount'); [ "$UC" = "$EXP" ] && [ "$(echo "$RESP" | jq -r '.notifications | length')" = "1" ] && ok "unreadCount=$UC (채팅 제외, limit=1 이어도 전체 기준)" || bad "unreadCount=$UC 기대=$EXP"
+api PUT /notifications/read-all "{}" "$U_TOKEN"; api GET "/notifications?limit=1" "" "$U_TOKEN"; [ "$(echo "$RESP" | jq -r '.unreadCount')" = "0" ] && ok "모두 읽음 뒤 unreadCount=0" || bad "read-all 뒤 unreadCount=$(echo "$RESP" | jq -r '.unreadCount')"
+pq "DELETE FROM notifications WHERE \"userId\"='$U_ID' AND title IN ('E2E채팅알림','E2E안읽음2')" >/dev/null
 api PUT "/notifications/$NID/read" "{}" "$U_TOKEN"; R=$(pq "SELECT read FROM notifications WHERE id='$NID'"); [ "$R" = "t" ] && ok "내 알림 읽음" || bad "읽음 read=$R"
 api DELETE "/notifications/$ANID" "" "$U_TOKEN"; AC=$(pq "SELECT count(*) FROM notifications WHERE id='$ANID'"); [ "$AC" = "1" ] && ok "타인 알림 삭제 불가" || bad "타인 알림 삭제됨"
 api PUT /notifications/read-all "{}" "$U_TOKEN"; expect 200 "전체 읽음"

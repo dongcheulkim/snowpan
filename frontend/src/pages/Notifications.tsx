@@ -104,7 +104,7 @@ const Notifications = () => {
     return `${d.getMonth() + 1}/${d.getDate()}`;
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read && n.type !== 'chat').length; // 상단 벨과 같은 기준(채팅 제외)
 
   if (!user) {
     return (

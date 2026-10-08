@@ -14,7 +14,7 @@ export const getNotifications = async (req: AuthRequest, res: Response): Promise
     const skipParsed = parseInt(offset as string, 10);
     const skip = Number.isFinite(skipParsed) && skipParsed > 0 ? skipParsed : undefined;
 
-    const [notifications, totalCount] = await Promise.all([
+    const [notifications, totalCount, unreadCount] = await Promise.all([
       prisma.notification.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -22,8 +22,10 @@ export const getNotifications = async (req: AuthRequest, res: Response): Promise
         ...(skip !== undefined && { skip }),
       }),
       prisma.notification.count({ where: { userId } }),
+      // 벨 숫자용 — 채팅 알림은 채팅 탭 점으로 따로 보여서 제외. 프론트가 최근 50개만 세던 상한 제거 (2026-10-08)
+      prisma.notification.count({ where: { userId, read: false, type: { not: 'chat' } } }),
     ]);
-    res.json({ notifications, totalCount });
+    res.json({ notifications, totalCount, unreadCount });
   } catch (error) {
     console.error('Get notifications error:', error);
     res.status(500).json({ error: '알림 조회 중 오류가 발생했습니다.' });
