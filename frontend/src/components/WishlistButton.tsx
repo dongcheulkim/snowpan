@@ -16,9 +16,11 @@ interface Props {
   size?: number;
   /** 카드 위 우상단 플로팅용 (기본). false 면 인라인. */
   floating?: boolean;
+  /** 토글 결과를 부모에 알림 — 목록의 찜 id 집합 갱신용 (페이지 이동 뒤 돌아오면 옛 값으로 되돌아가던 버그, 2026-10-08) */
+  onChange?: (wished: boolean) => void;
 }
 
-export default function WishlistButton({ productId, initial = false, size = 18, floating = true }: Props) {
+export default function WishlistButton({ productId, initial = false, size = 18, floating = true, onChange }: Props) {
   const navigate = useNavigate();
   const [wished, setWished] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -45,6 +47,7 @@ export default function WishlistButton({ productId, initial = false, size = 18, 
     try {
       const res = await api<{ wishlisted: boolean }>(`/products/${productId}/wishlist`, { method: 'POST' });
       setWished(res.wishlisted);
+      onChange?.(res.wishlisted);
     } catch (err) {
       setWished(!next); // 롤백
       toastError(err instanceof Error ? err.message : '찜 처리에 실패했습니다.');

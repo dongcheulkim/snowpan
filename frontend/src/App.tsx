@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import BrandLoader from './components/BrandLoader';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
@@ -34,6 +34,8 @@ const Accommodation = lazy(() => import('./pages/Accommodation'));
 const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
 const CommunityDetail = lazy(() => import('./pages/CommunityDetail'));
 const Chat = lazy(() => import('./pages/Chat'));
+// 방 id 가 바뀌면 새로 마운트 — Chat 의 연결 effect 가 한 번만 돌아 PC 목록에서 다른 방을 눌러도 이전 방에 머물던 버그 (2026-10-08)
+function ChatByRoom() { const { chatId } = useParams(); return <Chat key={chatId} />; }
 const MyChatList = lazy(() => import('./pages/MyChatList'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const GearGuide = lazy(() => import('./pages/GearGuide'));
@@ -121,7 +123,7 @@ function App() {
             <Route path="notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
             <Route path="chat" element={<Navigate to="/chat/rooms" replace />} />
             <Route path="chat/rooms" element={<RequireAuth><MyChatList /></RequireAuth>} />
-            <Route path="chat/:chatId" element={<RequireAuth><Chat /></RequireAuth>} />
+            <Route path="chat/:chatId" element={<RequireAuth><ChatByRoom /></RequireAuth>} />
             <Route path="rental" element={<Rental />} />
             <Route path="rental/register" element={<RequireAuth><RentalRegister /></RequireAuth>} />
             <Route path="rental/:id/edit" element={<RequireAuth><RentalEdit /></RequireAuth>} />

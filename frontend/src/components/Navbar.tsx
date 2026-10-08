@@ -55,6 +55,7 @@ const Navbar = () => {
      
   }, [user?.id]);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [sessionTick, setSessionTick] = useState(0); // 세션 복구 때 +1 → 소켓·조회 다시
   const socketRef = useRef<Socket | null>(null);
   const lastFetchRef = useRef<number>(0);
 
@@ -98,8 +99,15 @@ const Navbar = () => {
   }, [!!user]);
 
   const prevPathRef = useRef(location.pathname);
+  // 새 탭·앱 재실행에서 토큰이 뒤늦게 복구되면 소켓 연결·벨·채팅 점 조회를 다시 한다
   useEffect(() => {
-    if (!user) { setHasUnread(false); return; }
+    const on = () => { setSessionTick((t) => t + 1); refreshChatUnread(true); fetchNotifCount(); };
+    window.addEventListener('snowpan:session-restored', on);
+    return () => window.removeEventListener('snowpan:session-restored', on);
+  }, [refreshChatUnread, fetchNotifCount]);
+
+  useEffect(() => {
+    if (!user) { setHasUnread(false); setUnreadNotifCount(0); try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: false })); } catch { /* 무시 */ } return; } // 로그아웃·계정 전환 땐 이전 계정 점·숫자 지움
     const leftChat = prevPathRef.current.startsWith('/chat') && !location.pathname.startsWith('/chat');
     prevPathRef.current = location.pathname;
     refreshChatUnread(leftChat); // 채팅에서 나올 땐 방금 읽은 걸 바로 반영
@@ -113,6 +121,12 @@ const Navbar = () => {
     window.addEventListener('snowpan:chat-read', on);
     return () => window.removeEventListener('snowpan:chat-read', on);
   }, [refreshChatUnread]);
+  // 알림 화면에서 읽음 처리하면 벨 숫자도 바로 (화면을 안 옮겨도)
+  useEffect(() => {
+    const on = () => { setTimeout(() => fetchNotifCount(), 300); };
+    window.addEventListener('snowpan:notif-read', on);
+    return () => window.removeEventListener('snowpan:notif-read', on);
+  }, [fetchNotifCount]);
 
   useEffect(() => {
     const token = getToken();
@@ -145,9 +159,11 @@ const Navbar = () => {
       if (data?.type === 'chat') {
         // 채팅: 벨 카운트 제외(자체 점 dot). 다른 화면에 있을 때도 포그라운드 알림 표시
         // (new_message 는 room 조인해야 오는데 Navbar 는 user 채널만 조인 → 여기서 처리).
-        // 지금 그 방을 보고 있으면 바로 읽히므로 점을 켜지 않는다 (방 안에서 켜진 점이 나온 뒤에도 남던 원인)
-        const inThatRoom = !!data?.link && window.location.pathname === data.link;
-        if (!inThatRoom) {
+        // 채팅 화면(목록·방) 안에 있으면 점을 바로 켜지 않고 1초 뒤 서버 기준으로 맞춘다 — 보고 있는 방의 메시지는 바로 읽히고,
+        // 목록에선 방 옆 숫자로 이미 보인다 (방 안에서 켜진 점이 나온 뒤에도 남던 원인)
+        if (window.location.pathname.startsWith('/chat')) {
+          setTimeout(() => refreshChatUnread(true), 1000);
+        } else {
           setTimeout(() => setHasUnread(true), 0);
           try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: true })); } catch { /* 무시 */ }
         }
@@ -176,7 +192,7 @@ const Navbar = () => {
       socketRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, sessionTick]);
 
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {

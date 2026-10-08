@@ -76,6 +76,8 @@ const MyChatList = ({ embedded = false, activeId }: { embedded?: boolean; active
         const list = Array.isArray(data) ? data : (data as { items?: ChatRoom[] })?.items || [];
         setRooms(list);
         setLoadError(null);
+        // 하단 탭 점을 목록 기준으로 맞춤 (안 읽은 방이 없으면 끔)
+        try { window.dispatchEvent(new CustomEvent('snowpan:chat-unread', { detail: list.some((r) => (r.unreadCount || 0) > 0) })); } catch { /* 무시 */ }
       })
       .catch((err) => { if (alive) setLoadError(err instanceof Error ? err.message : '채팅 목록을 불러오지 못했어요.'); })
       .finally(() => { if (alive) setLoading(false); });
@@ -99,6 +101,7 @@ const MyChatList = ({ embedded = false, activeId }: { embedded?: boolean; active
     try {
       await api(`/chat/rooms/${roomId}`, { method: 'DELETE' });
       toastSuccess('내 목록에서 지웠어요');
+      try { window.dispatchEvent(new CustomEvent('snowpan:chat-read', { detail: roomId })); } catch { /* 무시 */ } // 안 읽은 방을 지우면 점도 다시 계산
     } catch (err) {
       setRooms(prev);
       toastError(err instanceof Error ? err.message : '삭제에 실패했습니다');

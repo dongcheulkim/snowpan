@@ -30,12 +30,21 @@ export default function ShopReservations() {
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    setLoadError(null);
-    api<{ items: ShopReservation[] }>('/reservations/shop')
-      .then((r) => setItems(Array.isArray(r?.items) ? r.items : []))
-      .catch((err) => { setItems([]); setLoadError(err instanceof Error ? err.message : '예약을 불러오지 못했어요.'); })
-      .finally(() => setLoading(false));
+    let alive = true;
+    // 새 예약 요청은 새로고침해야만 보였음 → 화면 복귀·앱 복귀·30초마다 다시 (채팅 목록과 같은 방식, 2026-10-08)
+    const load = (first = false) => {
+      if (first) { setLoading(true); setLoadError(null); }
+      api<{ items: ShopReservation[] }>('/reservations/shop')
+        .then((r) => { if (alive) setItems(Array.isArray(r?.items) ? r.items : []); })
+        .catch((err) => { if (!alive) return; if (first) { setItems([]); setLoadError(err instanceof Error ? err.message : '예약을 불러오지 못했어요.'); } })
+        .finally(() => { if (alive && first) setLoading(false); });
+    };
+    load(true);
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onVis);
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') load(); }, 30000);
+    return () => { alive = false; document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', onVis); window.clearInterval(timer); };
   }, [retryKey]);
 
   const shown = items.filter((r) => matches(r, filter));

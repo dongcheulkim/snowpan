@@ -262,7 +262,9 @@ export function isPersistentLogin() {
 export async function restoreSession(): Promise<void> {
   if (sessionStorage.getItem('token')) return;
   if (!getUser()) return;
-  await tryRefreshAccessToken();
+  const t = await tryRefreshAccessToken();
+  // 새 탭·앱 재실행 땐 자식 화면의 effect 가 토큰보다 먼저 돌아 소켓·벨·채팅이 조용히 안 붙었음 → 복구되면 알려 다시 붙게 (2026-10-08)
+  if (t) { try { window.dispatchEvent(new CustomEvent('snowpan:session-restored')); } catch { /* 무시 */ } }
 }
 
 export function logout() {

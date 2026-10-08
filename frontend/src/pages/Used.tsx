@@ -158,6 +158,7 @@ const Used = () => {
   }, [searchQuery]);
 
   useEffect(() => {
+    let cancelled = false; // 필터를 빠르게 바꿀 때 늦게 도착한 옛 응답이 새 목록을 덮지 않게 (2026-10-08)
     const fetchProducts = async () => {
       setLoading(true);
       setLoadError(null);
@@ -179,19 +180,29 @@ const Used = () => {
         }
         if (sort && sort !== 'newest') params.set('sort', sort);
         const data = await api<{ products: Product[]; totalCount: number }>(`/products?${params}`);
+        if (cancelled) return;
         setProducts(data.products);
         setTotalCount(data.totalCount);
       } catch (err) {
+        if (cancelled) return;
         setProducts([]);
         setTotalCount(0);
         // 토스트 대신 목록 자리에 재시도 안내 (LoadError) — 빈 상태로 오해하지 않게
         setLoadError(err instanceof Error ? err.message : '매물 목록을 불러오지 못했어요.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchProducts();
+    return () => { cancelled = true; };
   }, [selectedCategory, selectedGroup, debouncedSearch, page, sort, brandParam, lenBucket, retryKey]);
+
+  // 뒤로가기·링크로 URL 의 q 가 바뀌면 입력창·목록도 따라가게 (전엔 처음 값만 읽었음)
+  const urlQ = searchParams.get('q') || '';
+  useEffect(() => {
+    if (urlQ !== searchQuery) { setSearchQuery(urlQ); setDebouncedSearch(urlQ); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQ]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -410,7 +421,7 @@ const Used = () => {
                   {product.status !== 'selling' && (
                     <span className={`absolute bottom-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${st.color}`}>{st.text}</span>
                   )}
-                  <WishlistButton productId={product.id} initial={wishedIds.has(product.id)} />
+                  <WishlistButton productId={product.id} initial={wishedIds.has(product.id)} onChange={(w) => setWishedIds((prev) => { const n = new Set(prev); if (w) n.add(product.id); else n.delete(product.id); return n; })} />
                 </div>
                 <div className="p-2.5">
                   <div className="flex items-center gap-1.5 mb-0.5">

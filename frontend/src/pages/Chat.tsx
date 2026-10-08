@@ -304,13 +304,16 @@ const Chat = () => {
 
   useEffect(() => {
     if (!user) return;
-    const token = getToken();
-    if (!token) return;
 
     // 언마운트 후 async resolve 로 생성된 소켓이 cleanup 에 안 잡혀 유령 소켓으로
     // 잔존하던 누수 차단. cancelled 면 connectToRoom 을 아예 스킵.
     let cancelled = false;
     const safeConnect = (roomId: string) => { if (!cancelled) connectToRoom(roomId); };
+
+    (async () => {
+    // 새 탭·앱 재실행 땐 토큰이 아직 없을 수 있음 — 복구를 기다렸다가 연결 (전엔 조용히 빈 화면, 2026-10-08)
+    const token = getToken() || await tryRefreshAccessToken();
+    if (!token || cancelled) return;
 
     if (state?.isAdmin) setIsAdminChat(true);
 
@@ -342,6 +345,7 @@ const Chat = () => {
       // /chat/new 를 라우터 state 없이 직접 열면 연결할 방이 없음 — 가짜 방('new') 접속 대신 목록으로
       navigate('/chat', { replace: true });
     }
+    })();
 
     return () => {
       cancelled = true;
@@ -441,6 +445,7 @@ const Chat = () => {
       for (const url of urls) {
         // Bunny URL 은 확장자로 판별 (.mp4/.mov/.webm). 옛 Cloudinary /video/ 도 호환.
         const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(url) || url.includes('/video/');
+        if (!socketRef.current) break; // 업로드 중 방을 나감 — 이전 방으로 보내지 않는다
         socketRef.current.emit('send_message', {
           roomId,
           content: isVideo ? t('chat.sentVideo') : t('chat.sentPhoto'),

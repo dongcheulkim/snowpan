@@ -63,6 +63,7 @@ const Notifications = () => {
     try {
       await api('/notifications/read-all', { method: 'PUT' });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      try { window.dispatchEvent(new CustomEvent('snowpan:notif-read')); } catch { /* 무시 */ } // 상단 벨 숫자 즉시 갱신 (2026-10-08)
     } catch { /* ignore */ }
   };
 
@@ -70,6 +71,7 @@ const Notifications = () => {
     try {
       await api(`/notifications/${id}/read`, { method: 'PUT' });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      try { window.dispatchEvent(new CustomEvent('snowpan:notif-read')); } catch { /* 무시 */ }
     } catch { /* ignore */ }
   };
 
@@ -79,6 +81,7 @@ const Notifications = () => {
     try {
       await api(`/notifications/${id}`, { method: 'DELETE' });
       setNotifications(prev => prev.filter(n => n.id !== id));
+      try { window.dispatchEvent(new CustomEvent('snowpan:notif-read')); } catch { /* 무시 */ }
     } catch { /* ignore */ }
   };
 
@@ -87,6 +90,7 @@ const Notifications = () => {
     try {
       await api('/notifications/all', { method: 'DELETE' });
       setNotifications([]);
+      try { window.dispatchEvent(new CustomEvent('snowpan:notif-read')); } catch { /* 무시 */ }
     } catch { /* ignore */ }
   };
 

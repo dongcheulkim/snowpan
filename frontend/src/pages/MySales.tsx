@@ -60,7 +60,7 @@ const MySales = () => {
     try {
       await api(`/products/${id}`, { method: 'DELETE' });
       setProducts(prev => prev.filter(p => p.id !== id));
-      loadProducts();
+      setTotal(t => Math.max(0, t - 1)); // 전체 재조회(스피너·'더 보기' 초기화) 대신 숫자만 (2026-10-08)
     } catch (err) {
       toastError(err instanceof Error ? err.message : '삭제 실패');
     }

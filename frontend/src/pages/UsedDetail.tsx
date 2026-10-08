@@ -70,6 +70,7 @@ const UsedDetail = () => {
   // 이미지 한 장 깨져도 다른 썸네일 선택 시 다시 시도 (한 번 실패로 갤러리 전체 placeholder 되는 것 방지).
   useEffect(() => { setImgError(false); }, [selectedImage]);
   const [wishlisted, setWishlisted] = useState(false);
+  const wishBusy = useRef(false); // 찜 연타 가드 (훅 순서 때문에 early return 위에 둔다)
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDesc, setReportDesc] = useState('');
@@ -172,8 +173,13 @@ const UsedDetail = () => {
 
   useEffect(() => {
     if (!id) return;
+    // 다른 상품으로 넘어오면(관련 매물 등) 이전 상품이 남지 않게 초기화 + 늦게 온 옛 응답 무시 (2026-10-08)
+    let cancelled = false;
+    setLoading(true);
+    setSelectedImage(0);
     api<Product>(`/products/${id}`)
       .then(p => {
+        if (cancelled) return;
         setProduct(p);
         setWishlisted(p.wishlisted);
 
@@ -187,8 +193,9 @@ const UsedDetail = () => {
           localStorage.setItem(key, JSON.stringify(updated));
         } catch { /* ignore */ }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => { if (!cancelled) setProduct(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [id]);
 
   const formatDate = (dateStr: string) => {
@@ -316,12 +323,17 @@ const UsedDetail = () => {
   };
   const toggleWish = async () => {
     if (!user) { navigate(loginPath()); return; }
+    if (wishBusy.current) return; // 연타 가드 (토글식 API)
+    wishBusy.current = true;
+    const before = wishlisted;
+    setWishlisted(!before); // 낙관적 — 응답 올 때까지 하트가 안 바뀌던 것
     try {
       const res = await api<{ wishlisted: boolean }>(`/products/${product!.id}/wishlist`, { method: 'POST' });
       setWishlisted(res.wishlisted);
       setProduct(p => p ? { ...p, wishlistCount: Math.max(0, (p.wishlistCount ?? 0) + (res.wishlisted ? 1 : -1)) } : p);
       toastSuccess(res.wishlisted ? '찜 목록에 추가되었습니다' : '찜을 해제했습니다');
-    } catch (e) { toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+    } catch (e) { setWishlisted(before); toastError(e instanceof Error ? e.message : '찜 처리에 실패했습니다.'); }
+    finally { wishBusy.current = false; }
   };
 
   return (
