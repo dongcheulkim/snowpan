@@ -381,10 +381,10 @@ const Used = () => {
                 onClick={(e) => { document.querySelectorAll('img[style*="hero-img"]').forEach((el) => { (el as HTMLElement).style.viewTransitionName = ''; }); const im = e.currentTarget.querySelector('img'); if (im) (im as HTMLElement).style.viewTransitionName = 'hero-img'; }}
                 className={`card overflow-hidden card-hover block ${product.status === 'sold' ? 'opacity-60' : ''}`}
               >
-                <div className="relative h-28 flex items-center justify-center text-4xl overflow-hidden bg-gray-100">
+                <div className="relative h-28 lg:h-auto lg:aspect-[4/3] flex items-center justify-center text-4xl overflow-hidden bg-gray-100">{/* PC: 사진 4:3 로 키워 사진 70·정보 30 (2026-10-08 사장님 요청). 폰은 그대로 */}
                   {product.image.startsWith('/') || product.image.startsWith('http') ? (
                     <img
-                      src={imageUrl(product.image, 400)}
+                      src={imageUrl(product.image, 600)}
                       alt={product.name}
                       className="w-full h-full object-cover"
                       loading={idx < 4 ? 'eager' : 'lazy'} // 첫 화면 4장은 바로 받는다 (LCP, 2026-09-27)
