@@ -109,6 +109,22 @@ export default function ShopReviews({ shopType, shopId, ownerId }: { shopType: s
     catch (e) { toastError(e instanceof Error ? e.message : '삭제 실패'); }
   };
 
+  // 리뷰가 없고 쓰는 중도 아니면 한 줄로 — 큰 빈 상자 대신 제목 + "첫 리뷰 쓰기" (2026-10-09 사장님 결정)
+  if (!loading && reviews.length === 0 && !writing) {
+    return (
+      <section id="reviews" className="card px-5 py-3 flex items-center justify-between gap-3">
+        <p className="text-xs text-gray-500 min-w-0"><span className="font-bold text-gray-700">{isLesson ? '레슨 리뷰' : '방문자 리뷰'}</span> · {isOwner ? `내 ${noun}에는 리뷰를 쓸 수 없어요` : '아직 없어요'}</p>
+        {!isOwner && (
+          <button
+            type="button"
+            onClick={() => { if (!user) { navigate(loginPath()); return; } setWriting(true); }}
+            className="min-h-9 px-3 rounded-full bg-sky-50 text-sky-600 text-xs font-bold border border-sky-100 hover:bg-sky-100 transition-colors flex-shrink-0"
+          >첫 리뷰 쓰기 &gt;</button>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section id="reviews" className="card p-5">
       <div className="flex items-center justify-between mb-3">

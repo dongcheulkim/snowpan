@@ -52,6 +52,10 @@ api GET "/products?limit=abc" ""; expect 400 "limit 비정수"
 api GET "/products?offset=-1" ""; expect 400 "offset 음수"
 api GET "/search?q=a" ""; C=$(echo "$RESP" | jq -r '.products|length'); [ "$CODE" = "200" ] && [ "$C" = "0" ] && ok "검색 1자 → 빈 결과" || bad "검색 1자 CODE=$CODE"
 api GET "/community?sport=<script>" ""; expect 200 "sport 이상값 200 (빈 결과)"
+# 통합검색 넓히기 (2026-10-09): "곤지암 렌탈" → 종류 단어를 빼고 리조트(시드 곤지암)를 찾아 resorts·rentals 키로 돌려준다. "휘닉스 웹캠"은 리조트 없어도 500 없이 빈 결과.
+api GET "/search?q=%EA%B3%A4%EC%A7%80%EC%95%94%20%EB%A0%8C%ED%83%88" ""; R=$(echo "$RESP" | jq -r '.resorts|length'); K=$(echo "$RESP" | jq -r 'has("rentals") and has("resorts")'); [ "$CODE" = "200" ] && [ "$K" = "true" ] && [ "$R" -ge 1 ] && ok "검색 '곤지암 렌탈' → 리조트 $R + rentals 키" || bad "검색 장소+종류 CODE=$CODE K=$K R=$R"
+api GET "/search?q=%ED%9C%98%EB%8B%89%EC%8A%A4%20%EC%9B%B9%EC%BA%A0" ""; expect 200 "검색 '휘닉스 웹캠' 500 없음"
+api GET "/search?q=%EB%A0%8C%ED%83%88%EC%83%B5" ""; K=$(echo "$RESP" | jq -r '.rentals|type'); [ "$CODE" = "200" ] && [ "$K" = "array" ] && ok "검색 종류만('렌탈샵') → rentals 배열" || bad "검색 종류만 CODE=$CODE K=$K"
 
 # ── 보호 라우트: 토큰 없이 401
 for m_p in "GET /auth/profile" "GET /auth/my-badges" "GET /auth/business-status" "GET /auth/my-ad-requests" "GET /notifications" "GET /chat/rooms" "GET /products/wishlist" "GET /saved-searches" "GET /referral/me" "GET /ski-shops/my" "GET /repair-shops/my" "GET /rentals/my" "GET /lessons/my" "GET /accommodations/my" "GET /agencies/my" "GET /ad-booking/my-bookings" "GET /reviews/eligible" "POST /upload" "POST /shop-posts" "POST /shop-reviews" "POST /reports" "POST /shop-claims" "POST /polls" "POST /community" "POST /products/used" "POST /ad-booking/create" "POST /auth/fcm-token" "POST /auth/badge-request" "PUT /notifications/read-all" "DELETE /notifications/all"; do

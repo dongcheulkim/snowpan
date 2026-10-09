@@ -10,9 +10,10 @@ export default function UnverifiedShopBadge({ claimable, compact }: Props) {
   if (compact) {
     return <span className="text-[9px] font-bold px-1 py-px rounded bg-gray-100 text-gray-500 border border-gray-200 flex-shrink-0">확인 전</span>;
   }
+  // 상세 안내는 한 줄 회색으로 — 노란 경고 박스가 첫 화면을 차지하던 것을 줄임 (2026-10-09 사장님 결정)
   return (
-    <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[11px] text-amber-800 leading-relaxed">
-      공개된 기본 정보로 등록된 매장이에요. 사장님이 아직 확인하지 않아 정보가 실제와 다를 수 있습니다. 방문 전 전화로 확인해 주세요.
-    </div>
+    <p className="rounded-lg bg-gray-100 px-3 py-1.5 text-[11px] text-gray-500 leading-relaxed" title="공개된 기본 정보로 등록된 매장이에요. 사장님이 아직 확인하지 않아 정보가 실제와 다를 수 있습니다.">
+      사장님 확인 전 매장 · 방문 전 전화로 확인해 주세요
+    </p>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api, imageUrl } from '../api';
-import { ChatIcon, CloseIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
-import { MaintenanceIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
+import { ChatIcon, CloseIcon, MountainIcon, PackageIcon, SadIcon, SearchIcon } from '../components/Icons';
+import { MaintenanceIcon, RentalIcon, SecondHandIcon, SkiShopIcon } from '../components/CategoryIcons';
+import UnverifiedShopBadge from '../components/UnverifiedShopBadge';
 import { communityCategoryLabel } from '../utils/communityLabels';
 import { useVertical } from '../hooks/useVertical';
 import LoadError from '../components/LoadError';
@@ -11,6 +12,10 @@ interface SearchResult {
   products: { id: string; name: string; price: number; brand: string; image: string }[];
   posts: { id: string; title: string; category: string; sport: string }[];
   shops: { id: string; name: string; area: string; type: string }[];
+  // 통합검색 넓히기 (2026-10-09) — 렌탈샵·스키장(웹캠)까지
+  rentals?: { id: string; name: string; area: string | null; resortName: string | null; claimable: boolean; priceFrom: number | null }[];
+  resorts?: { id: string; name: string; location: string; webcamId: string | null }[];
+  rentalCount?: number;
 }
 
 const RECENT_KEY = 'snowpan:recent-searches';
@@ -76,7 +81,9 @@ export default function Search() {
     return () => { alive = false; clearTimeout(t); };
   }, [query]);
 
-  const hasResults = results && (results.products.length > 0 || results.posts.length > 0 || results.shops.length > 0);
+  const rentals = results?.rentals || [];
+  const resorts = results?.resorts || [];
+  const hasResults = results && (results.products.length > 0 || results.posts.length > 0 || results.shops.length > 0 || rentals.length > 0 || resorts.length > 0);
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto space-y-4">
@@ -90,7 +97,7 @@ export default function Search() {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder={isSnow ? "장비, 게시글, 스키·보드샵 검색..." : "장비, 게시글 검색..."}
+          placeholder={isSnow ? "렌탈샵, 스키장, 웹캠, 중고, 글 검색..." : "장비, 게시글 검색..."}
           className="flex-1 min-w-0 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent" // min-w-0: 사파리는 input 의 기본 최소 너비 때문에 flex 줄이 넘쳐 지우기 버튼이 화면 밖으로 밀림 (2026-09-24 WebKit 검사)
         />
         {query && (
@@ -131,7 +138,8 @@ export default function Search() {
       {!debounced && !loading && (
         <div className="text-center py-12">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SearchIcon size={44} strokeWidth={1.4} /></div>
-          <p className="text-sm text-gray-500">{isSnow ? '중고장비, 커뮤니티 글, 스키·보드샵을 검색해보세요' : '중고장비, 커뮤니티 글을 검색해보세요'}</p>
+          <p className="text-sm text-gray-500">{isSnow ? '렌탈샵, 스키장, 웹캠, 중고장비, 커뮤니티 글을 검색해보세요' : '중고장비, 커뮤니티 글을 검색해보세요'}</p>
+          {isSnow && <p className="text-xs text-gray-500 mt-1.5">예: "곤지암 렌탈", "휘닉스 웹캠", "살로몬 부츠"</p>}
         </div>
       )}
 
@@ -148,6 +156,42 @@ export default function Search() {
         <div className="text-center py-12">
           <div className="mx-auto mb-3 w-12 h-12 flex items-center justify-center text-gray-500"><SadIcon size={44} strokeWidth={1.4} /></div>
           <p className="text-sm text-gray-500">"{debounced}"에 대한 검색 결과가 없습니다.</p>
+        </div>
+      )}
+
+      {/* 스키장 — 리조트 페이지·실시간 웹캠 바로가기 칩 (2026-10-09) */}
+      {!loading && isSnow && resorts.length > 0 && (
+        <div>
+          <h2 className="text-sm font-bold text-gray-900 mb-2 px-1 inline-flex items-center gap-1.5"><MountainIcon size={16} /> 스키장</h2>
+          <div className="flex flex-wrap gap-1.5">
+            {resorts.map((r) => (
+              <span key={r.id} className="inline-flex gap-1.5">
+                <Link to={`/resort/${encodeURIComponent(r.name)}`} className="min-h-9 inline-flex items-center px-3 rounded-full border border-gray-900 bg-gray-900 text-white text-xs font-bold">{r.name}</Link>
+                {r.webcamId && <Link to={`/webcam/${r.webcamId}`} className="min-h-9 inline-flex items-center px-3 rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-800">실시간 웹캠</Link>}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 렌탈샵 결과 (2026-10-09) — 리조트 소속 매장까지 */}
+      {!loading && isSnow && rentals.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-sm font-bold text-gray-900 inline-flex items-center gap-1.5"><RentalIcon size={16} /> 렌탈샵{resorts[0] ? <span className="text-gray-500 font-normal">{resorts[0].name}</span> : null}</h2>
+            <Link to={resorts[0] ? `/rental?resort=${resorts[0].id}` : '/rental'} className="text-xs text-sky-600">{results?.rentalCount && results.rentalCount > rentals.length ? `${results.rentalCount}곳 모두 보기` : '더보기'}</Link>
+          </div>
+          <div className="space-y-2">
+            {rentals.map((r) => (
+              <Link key={r.id} to={`/rental/${r.id}`} className="card p-3 flex items-center gap-3 card-hover block">
+                <span className="text-gray-700"><RentalIcon size={22} /></span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 inline-flex items-center gap-1.5">{r.name}<UnverifiedShopBadge claimable={r.claimable} compact /></p>
+                  <p className="text-[10px] text-gray-500">{[r.resortName, r.area].filter(Boolean).join(' · ')}{r.priceFrom ? ` · ${r.priceFrom.toLocaleString()}원~` : ''}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

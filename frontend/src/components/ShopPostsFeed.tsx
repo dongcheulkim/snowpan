@@ -59,6 +59,15 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
     );
   }
 
+  // 소식이 없으면 한 줄로 — 빈 박스가 상세 페이지를 길게 만들던 것을 접음 (2026-10-09 사장님 결정)
+  if (posts.length === 0) {
+    return (
+      <section className="pt-4">
+        <p className="text-xs text-gray-500"><span className="font-bold text-gray-700">매장 소식</span> · {isOwner ? '아직 없어요. 마이 탭의 사장님 대시보드에서 올릴 수 있어요.' : '아직 올라온 소식이 없어요'}</p>
+      </section>
+    );
+  }
+
   return (
     <section className="pt-6">
       {/* 소식 작성·관리는 사장님 대시보드(/mypage/shops)에서만 — 상세 페이지는 방문자 화면 유지 */}
@@ -66,13 +75,7 @@ export default function ShopPostsFeed({ shopType, shopId, ownerId, compact = tru
         <h2 className="text-base font-bold text-gray-900">매장 소식</h2>
       </div>
 
-      {posts.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-2xl">
-          <p className="text-xs text-gray-500">
-            {isOwner ? '아직 등록한 소식이 없어요. 마이 탭의 사장님 대시보드에서 올릴 수 있어요.' : '아직 등록된 소식이 없어요.'}
-          </p>
-        </div>
-      ) : (
+      {(
         <>
           <ul className="space-y-3">
             {visible.map((p) => {

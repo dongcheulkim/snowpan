@@ -193,7 +193,7 @@ const Home = () => {
     if (hotTab === 'resort') return it.category === 'resort' || it.category === 'tip';
     if (hotTab === 'job') return it.category === 'job' || it.category === 'jobseek';
     return it.category === hotTab;
-  }).slice(0, 5);
+  }).slice(0, 3); // 홈 길이 줄이기 — 5 → 3 (사장님 결정 2026-10-09)
 
   // 홈 "스노우판 매거진" = 인스타 @snowpan.kr 게시물 (사용자 결정 2026-09-09: "인스타에서 불러오는 스노우판 소식 통이 스노우판 매거진").
   // 최신 7개만 (사용자 요청 2026-09-09). 인스타 API 가 최신순으로 주지만 시간 기준으로 한 번 더 정렬한다.
@@ -693,8 +693,8 @@ const Home = () => {
         </div>
       )}
 
-      {/* 매장 소식·이벤트 — 전 매장 최신 소식. 비어도 섹션은 항상 표시 ("곧 올라와요") */}
-      {isSnow && (
+      {/* 매장 소식·이벤트 — 전 매장 최신 소식. 소식이 3개 이상 쌓일 때만 표시 (홈 길이 줄이기, 사장님 결정 2026-10-09 — 1~2개일 땐 빈 느낌이라 숨김, 쌓이면 자동으로 켜짐) */}
+      {isSnow && news.length >= 3 && (
         <div className="px-4 pt-2 pb-4 lg:px-0 lg:pt-6 lg:col-span-6 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-bold text-gray-900">매장 소식·이벤트</h2>

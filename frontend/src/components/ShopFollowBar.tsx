@@ -44,7 +44,7 @@ export default function ShopFollowBar({ shopType, shopId }: { shopType: string; 
           onClick={toggle}
           disabled={busy}
           aria-pressed={status.following}
-          className={`min-h-10 px-4 rounded-xl text-sm font-bold border transition-colors disabled:opacity-60 ${status.following ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'}`}
+          className={`flex-1 min-h-12 px-6 rounded-xl text-base font-bold border transition-colors disabled:opacity-60 ${status.following ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'}`}
         >
           {status.following ? '찜한 매장' : '매장 찜'}{status.count > 0 ? ` ${status.count}` : ''}
         </button>

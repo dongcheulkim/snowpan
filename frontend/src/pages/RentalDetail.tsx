@@ -153,10 +153,11 @@ const RentalDetail = () => {
 
       {/* 연락 / 링크 */}
       <div className="flex flex-wrap gap-2">
-        {item.phone && <a href={`tel:${item.phone}`} className="flex-1 min-w-[100px] py-3 bg-gray-900 text-white rounded-xl font-bold text-sm text-center inline-flex items-center justify-center gap-1.5"><PhoneIcon size={14} /> 전화</a>}
-        {item.naverMap && <button onClick={() => openExternal(item.naverMap!)} className="px-4 py-3 bg-green-500 text-white rounded-xl font-bold text-sm">네이버지도</button>}
-        {item.website && <button onClick={() => openExternal(item.website!)} className="px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm">홈페이지</button>}
-        {item.instagram && <button onClick={() => openExternal(`https://instagram.com/${item.instagram}`)} className="px-4 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm">인스타</button>}
+        {/* 전화·지도 버튼을 키움 — 확인 전 매장은 이 둘이 사실상 전부라서 (2026-10-09 사장님 결정) */}
+        {item.phone && <a href={`tel:${item.phone}`} className="flex-1 min-w-[100px] min-h-14 py-4 bg-gray-900 text-white rounded-xl font-bold text-base text-center inline-flex items-center justify-center gap-1.5"><PhoneIcon size={16} /> 전화</a>}
+        {item.naverMap && <button onClick={() => openExternal(item.naverMap!)} className="px-5 min-h-14 py-4 bg-green-500 text-white rounded-xl font-bold text-base">네이버지도</button>}
+        {item.website && <button onClick={() => openExternal(item.website!)} className="px-5 min-h-14 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base">홈페이지</button>}
+        {item.instagram && <button onClick={() => openExternal(`https://instagram.com/${item.instagram}`)} className="px-5 min-h-14 py-4 bg-pink-500 text-white rounded-xl font-bold text-base">인스타</button>}
       </div>
 
       {/* 문의 채팅 — 전화/링크가 없는 매장도 연락 가능하게 (레슨과 동일 UX).
