@@ -456,9 +456,12 @@ export function compressImage(file: File, maxWidth: number, quality: number): Pr
         // 투명 픽셀이 있는 PNG 만 PNG 로 유지 — 사진(불투명)은 WebP, 안 되면 JPEG.
         // iOS Safari/WKWebView 는 canvas 가 WebP 인코딩을 못 해 조용히 PNG 를 돌려주는데,
         // 1000px 사진 PNG 는 2MB 를 넘어 커뮤니티 글 한 개에 10MB 가 실렸음 (2026-09-09 실측). → JPEG 로 다시 인코딩.
-        const keepPng = file.type === 'image/png' && canvasHasAlpha(ctx, width, height);
-        let blob = await encode(keepPng ? 'image/png' : 'image/webp');
-        if (blob && !keepPng && blob.type !== 'image/webp') blob = await encode('image/jpeg');
+        // 2026-10-09 전체검사: 투명 PNG(스크린샷 등)를 PNG 로 유지하니 1000px 에도 2MB 였음 → WebP 는 투명을
+        // 지원하므로 먼저 WebP, WebP 를 못 만드는 사파리는 투명이면 PNG 유지하되 600KB 를 넘으면 투명을 포기하고 JPEG.
+        const hasAlpha = file.type === 'image/png' && canvasHasAlpha(ctx, width, height);
+        let blob = await encode('image/webp');
+        if (blob && blob.type !== 'image/webp') blob = await encode(hasAlpha ? 'image/png' : 'image/jpeg');
+        if (blob && blob.type === 'image/png' && blob.size > 600 * 1024) blob = await encode('image/jpeg');
         if (!blob) { resolve(file); return; }
         // 압축 결과가 원본보다 크면(이미 작게 저장된 JPEG 등) 원본 그대로 — 단 브라우저가 못 보는 HEIC 는 변환본 사용
         if (blob.size >= file.size && /^image\/(jpeg|png|webp)$/.test(file.type)) { resolve(file); return; }
