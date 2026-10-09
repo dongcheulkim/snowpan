@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { loginHistoryHandler } from '../utils/loginLog';
 import { runReservationReminders } from '../utils/reservationReminders';
+import { runTradeMeetingReminders } from '../utils/tradeMeetingReminders';
 import { updateResponseStats } from '../utils/responseStats';
 import { cleanupOrphanShopRows } from '../utils/shopRows';
 import { findStorageOrphans, deleteStorageOrphans } from '../utils/storageOrphans';
@@ -93,6 +94,17 @@ router.post('/daily-summary', async (_req, res) => {
 });
 
 // 예약 자동 알림 즉시 실행 (E2E·운영 점검용) — body.at 이 있으면 그 시각 기준으로 창을 판단한다
+// 거래 약속 리마인더 즉시 실행 (E2E·운영 점검용, 2026-10-09)
+router.post('/jobs/trade-meeting-reminders', async (req: any, res) => {
+  try {
+    const at = req.body?.at ? new Date(String(req.body.at)) : new Date();
+    if (isNaN(at.getTime())) { res.status(400).json({ error: 'at 형식이 올바르지 않습니다.' }); return; }
+    res.json(await runTradeMeetingReminders(at));
+  } catch (e) {
+    console.error('trade meeting reminders job error:', e);
+    res.status(500).json({ error: '거래 약속 리마인더 실행 실패' });
+  }
+});
 router.post('/jobs/reservation-reminders', async (req: any, res) => {
   try {
     const at = req.body?.at ? new Date(String(req.body.at)) : new Date();

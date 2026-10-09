@@ -9,6 +9,7 @@ import { ListRowSkeleton } from '../components/Skeleton';
 import { ChatIcon, CloseIcon, UserIcon } from '../components/Icons';
 import { toastSuccess, toastError } from '../utils/toast';
 import { parseReservationCard, formatDateRange, peopleLabel, EVENT_SHORT } from '../utils/reservation';
+import { parseMeetingCard, meetingWhen, MEETING_STATUS_LABEL } from '../utils/tradeMeeting';
 
 interface ChatRoom {
   id: string;
@@ -40,6 +41,12 @@ const renderPreview = (msg: { content: string; type?: string }): string => {
       const parsed = JSON.parse(msg.content) as { slotLabel?: string };
       return `[광고] ${parsed.slotLabel || '광고'} 신청 링크`;
     } catch { return '[광고] 광고 신청 링크'; }
+  }
+  if (msg.type === 'trade_meeting') {
+    // 거래 약속 카드 (2026-10-09) — "[약속 확정] 10/12(토) 14:00 · 곤지암리조트 정문"
+    const c = parseMeetingCard(msg.content);
+    if (!c) return '[약속] 거래 약속';
+    return `[약속 ${MEETING_STATUS_LABEL[c.event]}] ${meetingWhen(c)}`;
   }
   if (msg.type === 'reservation') {
     // 방문 예약 카드 — "[예약 요청] 12/20 · 성인 2" (이벤트별 요청/확정/거절/취소)

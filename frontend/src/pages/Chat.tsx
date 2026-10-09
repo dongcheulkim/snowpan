@@ -9,6 +9,9 @@ import { toastError, toastSuccess } from '../utils/toast';
 import { CloseIcon, PackageIcon, UserIcon } from '../components/Icons';
 import AdInvitePanel from '../components/AdInvitePanel';
 import ReservationActions from '../components/ReservationActions';
+import TradeMeetingActions from '../components/TradeMeetingActions';
+import TradeMeetingForm from '../components/TradeMeetingForm';
+import { parseMeetingCard, MEETING_EVENT_TITLE, MEETING_STATUS_CHIP, MEETING_STATUS_LABEL, formatMeetingDate, type TradeMeeting } from '../utils/tradeMeeting';
 import { parseReservationCard, detailPairs, formatDateRange, nightsBetween, peopleLabel, EVENT_TITLE, STATUS_CHIP, SHOP_TYPE_LABEL, type Reservation, type ReservationParty, WORK_LABEL, EVENT_SHORT } from '../utils/reservation';
 import MyChatList from './MyChatList';
 
@@ -206,6 +209,55 @@ const Chat = () => {
       setResBusy(null);
     }
   };
+
+  // 거래 약속 카드 (2026-10-09) — meetingId 별 최신 상태를 GET /trade-meetings/:id 로 조회. 버튼은 그 약속의 마지막 카드에만.
+  const [meetInfo, setMeetInfo] = useState<Record<string, TradeMeeting>>({});
+  const meetFetchedRef = useRef<Record<string, string>>({});
+  const [meetBusy, setMeetBusy] = useState<string | null>(null);
+  const [meetingFormOpen, setMeetingFormOpen] = useState(false);
+  const latestMeetCard = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const m of messages) {
+      if (m.type !== 'trade_meeting') continue;
+      const c = parseMeetingCard(m.content);
+      if (c) map[c.meetingId] = m.id;
+    }
+    return map;
+  }, [messages]);
+  // 이 방의 진행 중(제안·확정) 약속 — 있으면 "약속" 버튼 대신 카드로 안내
+  const openMeeting = useMemo(() => Object.values(meetInfo).find((m) => m.status === 'proposed' || m.status === 'confirmed') || null, [meetInfo]);
+  // 카드가 올 때마다 상세를 다시 읽고, 약속이 바꾼 매물 상태(예약중/판매중/판매완료)를 상대 화면의 상단 칩·버튼에도 반영
+  const loadMeeting = (mid: string) =>
+    api<TradeMeeting>(`/trade-meetings/${mid}`).then((m) => {
+      if (!m?.id) return;
+      setMeetInfo((prev) => ({ ...prev, [mid]: m }));
+      if (m.productStatus) setDealProduct((prev) => (prev && prev.id === m.productId && prev.status !== m.productStatus ? { ...prev, status: m.productStatus as string } : prev));
+    }).catch(() => {});
+  useEffect(() => {
+    for (const [mid, msgId] of Object.entries(latestMeetCard)) {
+      if (meetFetchedRef.current[mid] === msgId) continue;
+      meetFetchedRef.current[mid] = msgId;
+      loadMeeting(mid);
+    }
+  }, [latestMeetCard]);
+  const runMeetAction = async (mid: string, action: 'accept' | 'decline' | 'cancel' | 'complete', reason?: string) => {
+    if (meetBusy) return;
+    setMeetBusy(mid);
+    try {
+      const r = await api<{ meeting: TradeMeeting }>(`/trade-meetings/${mid}/${action}`, { method: 'PUT', ...(reason ? { body: { reason } } : {}) });
+      setMeetInfo((prev) => ({ ...prev, [mid]: { ...prev[mid], ...r.meeting } }));
+      // 약속에 따라 바뀐 매물 상태(예약중/판매중/판매완료)를 상단 칩에도 반영
+      if (r.meeting.productStatus) setDealProduct((prev) => (prev && prev.id === r.meeting.productId ? { ...prev, status: r.meeting.productStatus as string } : prev));
+      toastSuccess(action === 'accept' ? '약속을 확정했어요. 매물이 예약중으로 바뀌었어요.' : action === 'decline' ? '제안을 거절했어요.' : action === 'complete' ? '거래를 확정했어요. 매물이 판매완료로 바뀌었어요.' : '약속을 취소했어요.');
+      loadMeeting(mid);
+    } catch (e) {
+      toastError(e instanceof Error ? e.message : '처리하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setMeetBusy(null);
+    }
+  };
+  // "약속" 버튼을 보여줄 조건 — 매물 대화, 고객센터 아님, 수락된 방, 아직 안 팔린 매물
+  const canProposeMeeting = !!(dealProduct && dealProduct.status !== 'sold' && !isAdminChat && roomStatus === 'accepted' && roomId && otherId);
 
   // 탭이 백그라운드면 방에서 나감 — 서버가 "보고 있다"고 오판해 푸시·알림을 생략하는 것 방지.
   // 복귀 시 재조인 + 그 사이 메시지 refetch + 읽음 처리.
@@ -622,6 +674,18 @@ const Chat = () => {
         )}
       </header>
 
+      {/* 거래 약속 제안 바텀시트 (2026-10-09) */}
+      {dealProduct && roomId && (
+        <TradeMeetingForm
+          open={meetingFormOpen}
+          roomId={roomId}
+          productId={dealProduct.id}
+          productName={dealProduct.name}
+          onClose={() => setMeetingFormOpen(false)}
+          onCreated={(m) => { setMeetingFormOpen(false); setMeetInfo((prev) => ({ ...prev, [m.id]: m })); }}
+        />
+      )}
+
       {/* 고객센터 안내 메뉴 — 스크롤 영역 밖(헤더 바로 아래)에 두어 대화가 길어져도 항상 위에 떠 있다. 손님만 본다 */}
       {isAdminChat && user?.role !== 'admin' && (
         <ChatBotGuide
@@ -713,6 +777,73 @@ const Chat = () => {
                           </Link>
                         )}
                         {expStr && <p className={`text-[10px] mt-2 ${isMe ? 'text-white/50' : 'text-gray-500'}`}>{expStr}</p>}
+                      </div>
+                      <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
+                        {showRead && <span className="text-gray-900 font-medium">읽음</span>}
+                        <span>{formatTime(msg.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (msg.type === 'trade_meeting') {
+              // 거래 약속 카드 (2026-10-09) — 이벤트(제안/확정/취소/거절/거래 완료)마다 한 장. 최신 카드에만 버튼
+              const card = parseMeetingCard(msg.content);
+              const info = card ? meetInfo[card.meetingId] : undefined;
+              const isLatest = !!card && latestMeetCard[card.meetingId] === msg.id;
+              const muted = isMe ? 'text-white/60' : 'text-gray-500';
+              const rows: [string, string][] = card ? [
+                ['매물', card.productName || '매물'],
+                ['날짜', `${formatMeetingDate(card.date)}${card.time ? ' ' + card.time : ''}`],
+                ['장소', card.place],
+                ...(card.note ? [['한마디', card.note] as [string, string]] : []),
+                ...(card.reason ? [['사유', card.reason] as [string, string]] : []),
+              ] : [];
+              return (
+                <div key={msg.id}>
+                  {showDateSep && <DateSeparator label={formatDateSeparator(msg.createdAt)} />}
+                  <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[85%] w-[320px]">
+                      {!isMe && isFirstInGroup && <div className="text-[10px] text-gray-500 mb-1 ml-1">{msg.sender.nickname || msg.sender.name}</div>}
+                      <div className={`rounded-2xl px-4 py-4 ${isMe ? 'bg-gray-900 text-white' : 'bg-snow border border-gray-200 text-gray-900'}`}>
+                        {card ? (
+                          <>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className={`text-[10px] font-semibold tracking-wide ${muted}`}>중고 거래 약속</span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isMe ? 'border-white/30 text-white/90' : MEETING_STATUS_CHIP[card.event]}`}>{MEETING_STATUS_LABEL[card.event]}</span>
+                            </div>
+                            <p className="text-base font-bold leading-snug">{MEETING_EVENT_TITLE[card.event]}</p>
+                            <dl className="mt-2 space-y-1 text-xs">
+                              {rows.map(([k, v]) => (
+                                <div key={k} className="flex gap-2">
+                                  <dt className={`w-12 flex-shrink-0 ${muted}`}>{k}</dt>
+                                  <dd className="flex-1 min-w-0 break-words whitespace-pre-wrap">{v}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                            {card.event === 'confirmed' && <p className={`mt-2 text-[10px] ${muted}`}>매물이 예약중으로 바뀌었어요. 거래가 끝나면 판매자가 '거래 확정'을 눌러 주세요.</p>}
+                            {card.event === 'done' && <p className={`mt-2 text-[10px] ${muted}`}>매물이 판매완료로 바뀌었어요. 구매자는 판매자에게 후기를 남길 수 있어요.</p>}
+                            {isLatest && info && user && info.viewerRole && (
+                              <TradeMeetingActions
+                                status={info.status}
+                                role={info.viewerRole}
+                                isProposer={info.proposerId === user.id}
+                                productSold={info.productStatus === 'sold'}
+                                busy={meetBusy === info.id}
+                                tone={isMe ? 'dark' : 'light'}
+                                onAccept={() => runMeetAction(info.id, 'accept')}
+                                onDecline={(r) => runMeetAction(info.id, 'decline', r)}
+                                onCancel={(r) => runMeetAction(info.id, 'cancel', r)}
+                                onComplete={() => runMeetAction(info.id, 'complete')}
+                                onRepropose={() => setMeetingFormOpen(true)}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm">약속 카드를 불러오지 못했어요. 마이 → 거래 약속에서 확인해 주세요.</p>
+                        )}
                       </div>
                       <div className={`text-[10px] text-gray-500 mt-1 flex items-center gap-1 ${isMe ? 'justify-end mr-1' : 'justify-start ml-1'}`}>
                         {showRead && <span className="text-gray-900 font-medium">읽음</span>}
@@ -975,6 +1106,15 @@ const Chat = () => {
                 aria-label="답장 문구"
                 className={`min-w-11 min-h-11 h-11 px-2 flex items-center justify-center rounded-full text-[11px] font-bold transition-colors active:scale-95 flex-shrink-0 ${templatesOpen ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-snow'}`}
               >문구</button>
+            )}
+            {canProposeMeeting && (
+              <button
+                type="button"
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => { if (openMeeting) { toastError(openMeeting.status === 'confirmed' ? '이미 확정된 약속이 있어요. 바꾸려면 카드에서 약속을 취소해 주세요.' : '제안 중인 약속이 있어요. 카드에서 답하거나 다른 시간을 제안해 주세요.'); return; } setMeetingFormOpen(true); }}
+                aria-label="거래 약속 잡기"
+                className="min-w-11 min-h-11 h-11 px-2 flex items-center justify-center rounded-full text-[11px] font-bold text-gray-700 hover:bg-snow transition-colors active:scale-95 flex-shrink-0"
+              >약속</button>
             )}
             <button
               onClick={() => fileInputRef.current?.click()}

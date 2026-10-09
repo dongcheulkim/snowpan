@@ -85,6 +85,7 @@ import ogRoutes from './routes/ogRoutes';
 import resortReviewRoutes from './routes/resortReviewRoutes';
 import competitionRoutes from './routes/competitionRoutes';
 import reservationRoutes from './routes/reservationRoutes';
+import tradeMeetingRoutes from './routes/tradeMeetingRoutes';
 import { startDailySummaryScheduler } from './utils/dailySummary';
 import { alertUser } from './utils/ownerAlerts';
 import { authMiddleware as authenticate, validateAuthHeaderIfPresent } from './middleware/auth';
@@ -101,6 +102,7 @@ import { startLoginLogPruner } from './utils/loginLog';
 import { trustProxy } from './utils/trustedProxies';
 import { startShopVerifyScheduler } from './utils/shopVerifyScheduler';
 import { startReservationReminderScheduler } from './utils/reservationReminders';
+import { startTradeMeetingReminderScheduler } from './utils/tradeMeetingReminders';
 import { backfillChatRoomShops } from './utils/chatRoomShops';
 import { cleanupOrphanShopRows } from './utils/shopRows';
 import { startRetentionScheduler } from './utils/adminAudit';
@@ -380,6 +382,7 @@ app.use('/api/owner', ownerRoutes); // 사장님 현황(오늘 할 일·일정·
 app.use('/api/polls', strictWriteLimiter, pollRoutes);
 app.use('/api/competitions', strictWriteLimiter, competitionRoutes);
 app.use('/api/reservations', strictWriteLimiter, reservationRoutes); // 방문 예약 요청·확정·거절·취소 (2026-09-17) // 시합 일정 등록·신청·승인 (2026-09-17)
+app.use('/api/trade-meetings', strictWriteLimiter, tradeMeetingRoutes); // 중고 거래 약속 제안·수락·취소·거래 확정 (2026-10-09)
 app.use('/api/overseas', overseasRoutes);
 app.use('/api/agencies', travelAgencyRoutes);
 app.use('/api/resort-reviews', strictWriteLimiter, resortReviewRoutes); // 스키장 후기·별점 (2026-09-17)
@@ -688,6 +691,7 @@ httpServer.listen(PORT, async () => {
 
   try {
     startReservationReminderScheduler(); // 예약 전날·당일 리마인더 + 방문 다음 날 리뷰 요청
+    startTradeMeetingReminderScheduler(); // 거래 약속 전날·당일 리마인더 + 약속 뒤 '거래 확정' 안내 (2026-10-09)
   } catch (err) {
     console.error('예약 리마인더 스케줄러 시작 실패:', err);
   }

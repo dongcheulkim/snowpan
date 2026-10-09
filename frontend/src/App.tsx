@@ -78,6 +78,7 @@ const MyWishlist = lazy(() => import('./pages/MyWishlist'));
 const MyShopFollows = lazy(() => import('./pages/MyShopFollows'));
 const MyPosts = lazy(() => import('./pages/MyPosts'));
 const MyReservations = lazy(() => import('./pages/MyReservations'));
+const MyMeetings = lazy(() => import('./pages/MyMeetings'));
 const ShopReservations = lazy(() => import('./pages/ShopReservations'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Terms = lazy(() => import('./pages/Terms'));
@@ -200,6 +201,7 @@ function App() {
             <Route path="recruit/:id" element={<RecruitDetail />} />
             {/* 방문 예약 (결제 없음) — 손님: 내 예약, 사장님: 받은 예약 관리 */}
             <Route path="mypage/reservations" element={<RequireAuth><MyReservations /></RequireAuth>} />
+            <Route path="mypage/meetings" element={<RequireAuth><MyMeetings /></RequireAuth>} /> {/* 중고 거래 약속 (2026-10-09) */}
             <Route path="mypage/shop-reservations" element={<RequireAuth><ShopReservations /></RequireAuth>} />
             <Route path="mypage/ads" element={<RequireAuth><MyAds /></RequireAuth>} />
             <Route path="mypage/password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
