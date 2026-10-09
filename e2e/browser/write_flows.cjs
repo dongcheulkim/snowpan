@@ -37,7 +37,8 @@ async function waitText(p, re, ms = 8000) { const end = Date.now() + ms; while (
     await p.goto(BASE + target, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800);
     await p.getByRole('button', { name: /^차단$/ }).first().click(); ok('차단 처리', await waitText(p, /차단했어요/, 6000));
     await p.goto(`${BASE}/mypage/blocks`, { waitUntil: 'networkidle', timeout: 45000 }); await p.waitForTimeout(800); const un = p.getByRole('button', { name: /해제/ }).first(); ok('차단 목록에 표시', await un.count() > 0);
-    if (await un.count()) { await un.click(); await p.waitForTimeout(1500); ok('차단 해제', (await p.getByRole('button', { name: /해제/ }).count()) === 0 || /없어요|없습니다/.test(await txt(p))); }
+    // 이전 검사에서 남은 차단(예: 탈퇴한 회원)이 있어도 오판하지 않게 — 해제 전후 개수 비교 (2026-10-09)
+    if (await un.count()) { const before = await p.getByRole('button', { name: /해제/ }).count(); await un.click(); await p.waitForTimeout(1500); const after = await p.getByRole('button', { name: /해제/ }).count(); ok('차단 해제', after === before - 1 || /없어요|없습니다/.test(await txt(p)), `${before}→${after}`); }
   }
 
   // 3) 프로필 닉네임 변경 → 원복

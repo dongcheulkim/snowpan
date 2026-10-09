@@ -19,6 +19,7 @@ node offline_check.cjs # SW precache 유지 + 진짜 오프라인 새로고침(�
 node admin_new_check.cjs # 2026-09-26 관리자 신규: 탈퇴 회원 마스킹·원래 정보 보기, 설정 탭 열람 기록·앱 버전 패널, 이용 안내 페이지
 node chat_dot_check.cjs # 채팅 안 읽음 점(폰 하단 탭): 방 안에서 받으면 안 켜짐·밖에서 받으면 켜짐·읽고 나오면 바로 꺼짐 (고객센터 방 사용, chat_test 와 동시 실행 금지)
 node season_tools_check.cjs # 2026-10-05 기능: 스키장 개장 알림(신청·유지·끄기, 데이터 안 남김), 장비 브랜드 가이드 진입 (폰·PC)
+node upload_test.cjs # 업로드 압축: 커뮤니티 글쓰기에서 RGBA PNG 를 골라 /api/upload·글 POST 를 가로채 결과 타입·용량만 확인 (크롬=WebP, 사파리 흉내=JPEG, 저장 안 됨)
 node webkit_smoke.cjs # 사파리 엔진(WebKit)으로 17개 경로 렌더·문구·가로 스크롤·페이지 오류
 ```
 

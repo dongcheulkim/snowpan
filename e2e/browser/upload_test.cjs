@@ -20,11 +20,11 @@ async function makeRgbaPng(browser) {
 }
 
 async function login(page) {
-  await page.goto(`${BASE}/login`, { waitUntil: 'load' });
-  const emailLink = page.getByText('이메일로 로그인'); if (await emailLink.count()) await emailLink.click();
-  await page.fill('input[type="email"]', process.env.U_EMAIL); await page.fill('input[type="password"]', process.env.U_PW);
-  await page.locator('button[type="submit"]').first().click(); await page.waitForTimeout(2500);
-  return !page.url().includes('/login');
+  await page.goto(`${BASE}/login`, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.getByText('이메일로 로그인').first().click(); await page.waitForTimeout(400);
+  await page.fill('input[type="email"], input[name="email"]', process.env.U_EMAIL); await page.fill('input[type="password"]', process.env.U_PW);
+  await page.keyboard.press('Enter'); await page.waitForTimeout(3500);
+  return !page.url().endsWith('/login');
 }
 
 async function run(browser, label, safari, png) {
