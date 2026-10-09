@@ -1,6 +1,7 @@
 // 실시간(소켓) 참조 홀더 — 컨트롤러가 index.ts 를 순환 import 하지 않고
 // 특정 유저의 소켓을 끊을 수 있게 io 참조만 얇게 공유.
 import type { Server } from 'socket.io';
+import { legacyMessage } from './utils/legacyCard';
 
 let ioRef: Server | null = null;
 
@@ -19,6 +20,17 @@ export function disconnectUser(userId: string): void {
 // 서버가 만든 메시지(광고 초대 링크 등)를 그 방을 보고 있는 소켓에 바로 전달 — 소켓 핸들러의 new_message 와 같은 모양으로 보낼 것.
 export function emitToRoom(roomId: string, event: string, payload: unknown): void {
   if (!ioRef) return;
+  const p = payload as { type?: string; content?: string } | null;
+  if (event === 'new_message' && p && p.type === 'trade_meeting') {
+    // 약속 카드는 옛 앱(auth.client 없음)에 문장으로 — 소켓마다 따로 보낸다 (2026-10-09)
+    const io = ioRef;
+    io.in(`room:${roomId}`).fetchSockets().then((sockets) => {
+      for (const s of sockets) {
+        try { s.emit(event, s.data?.client ? payload : legacyMessage(p as { type: string; content: string })); } catch { /* 무시 */ }
+      }
+    }).catch(() => {});
+    return;
+  }
   try { ioRef.to(`room:${roomId}`).emit(event, payload); } catch { /* 소켓 없음 — 무시 */ }
 }
 

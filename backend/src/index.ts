@@ -449,6 +449,7 @@ io.use((socket, next) => {
         if ((decoded.tv ?? 0) !== user.tokenVersion) return next(new Error('세션 만료'));
         socket.data.userId = user.id;
         socket.data.role = user.role;
+        socket.data.client = typeof socket.handshake.auth.client === 'string' ? socket.handshake.auth.client : ''; // 새 클라이언트 표시 (없으면 옛 앱)
         next();
       })
       .catch(() => next(new Error('인증 실패')));

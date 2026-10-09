@@ -103,13 +103,13 @@
   },
   {
     "section": "1.홈",
-    "name": "홈 내부 링크 34개 전부 열림",
+    "name": "홈 내부 링크 33개 전부 열림",
     "ok": true,
     "extra": ""
   },
   {
     "section": "1.홈",
-    "name": "홈 버튼 7개 눌러봄 (이동 0회) 오류 없음",
+    "name": "홈 버튼 8개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -289,9 +289,15 @@
   },
   {
     "section": "2.카테고리",
+    "name": "중고거래 페이지 넘김 오류 없음",
+    "ok": true,
+    "extra": ""
+  },
+  {
+    "section": "2.카테고리",
     "name": "중고거래 상세 열림",
     "ok": true,
-    "extra": "/used/d273eece-f8ac-4463-b693-1c93bdf90243"
+    "extra": "/used/b17dc4d0-ef3a-4981-b2dd-3273b5f50616"
   },
   {
     "section": "2.카테고리",
@@ -343,7 +349,7 @@
   },
   {
     "section": "2.카테고리",
-    "name": "렌탈샵 버튼 31개 눌러봄 (이동 0회) 오류 없음",
+    "name": "렌탈샵 버튼 24개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -403,7 +409,7 @@
   },
   {
     "section": "2.카테고리",
-    "name": "강습 버튼 15개 눌러봄 (이동 0회) 오류 없음",
+    "name": "강습 버튼 17개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -417,7 +423,7 @@
     "section": "2.카테고리",
     "name": "강습 상세 열림",
     "ok": true,
-    "extra": "/lesson/7f241b9f-737a-46a0-b012-b732769841f5"
+    "extra": "/lesson/5343e417-0a05-436e-bc82-1f0238246383"
   },
   {
     "section": "2.카테고리",
@@ -501,7 +507,7 @@
     "section": "2.카테고리",
     "name": "커뮤니티 상세 열림",
     "ok": true,
-    "extra": "/community/post/b0fd6f04-8851-4294-ae23-03c005fbbd04"
+    "extra": "/community/post/62581043-7294-4455-8cb3-9162eddfbe3b"
   },
   {
     "section": "2.카테고리",
@@ -631,7 +637,7 @@
   },
   {
     "section": "2.카테고리",
-    "name": "스키장 투어 버튼 13개 눌러봄 (이동 0회) 오류 없음",
+    "name": "스키장 투어 버튼 27개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -751,7 +757,7 @@
   },
   {
     "section": "2.카테고리",
-    "name": "장비 가이드 버튼 6개 눌러봄 (이동 0회) 오류 없음",
+    "name": "장비 가이드 버튼 4개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -1017,17 +1023,11 @@
     "section": "4.알림",
     "name": "알림 페이지 열림",
     "ok": true,
-    "extra": "ok 본문 바로가기 1 ← 알림 3 모두 읽음 전체 삭제 신고 처리 결과 신고하신 게시글을(를) 검토했지만 규정 위반이 확인되지 않아 그대로 두었어요. 알려 주셔서 감사해요. 3시간 전"
+    "extra": "ok 본문 바로가기 ← 알림 전체 삭제 신고 처리 결과 신고하신 게시글을(를) 검토했지만 규정 위반이 확인되지 않아 그대로 두었어요. 알려 주셔서 감사해요. 18시간 전 고객센터님의 메"
   },
   {
     "section": "4.알림",
     "name": "알림 버튼 0개 눌러봄 (이동 0회) 오류 없음",
-    "ok": true,
-    "extra": ""
-  },
-  {
-    "section": "4.알림",
-    "name": "모두 읽음 처리 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -1051,13 +1051,13 @@
   },
   {
     "section": "5.알람",
-    "name": "키워드 \"점검2177\" 추가됨",
+    "name": "키워드 \"점검8454\" 추가됨",
     "ok": true,
     "extra": ""
   },
   {
     "section": "5.알람",
-    "name": "키워드 \"점검2177\" 삭제됨",
+    "name": "키워드 \"점검8454\" 삭제됨",
     "ok": true,
     "extra": ""
   },
@@ -1117,7 +1117,7 @@
   },
   {
     "section": "6.검색",
-    "name": "검색 결과 탭 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "name": "검색 결과 탭 버튼 2개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -1141,6 +1141,60 @@
   },
   {
     "section": "7.마이",
+    "name": "마이 /new-equipment",
+    "ok": true,
+    "extra": "ok /new-equipment "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /repair",
+    "ok": true,
+    "extra": "ok /repair "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /rental",
+    "ok": true,
+    "extra": "ok /rental "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /used",
+    "ok": true,
+    "extra": "ok /used "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /lesson",
+    "ok": true,
+    "extra": "ok /lesson "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /accommodation",
+    "ok": true,
+    "extra": "ok /accommodation "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /community",
+    "ok": true,
+    "extra": "ok /community "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /webcam",
+    "ok": true,
+    "extra": "ok /webcam "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /overseas",
+    "ok": true,
+    "extra": "ok /overseas "
+  },
+  {
+    "section": "7.마이",
     "name": "마이 /search",
     "ok": true,
     "extra": "ok /search "
@@ -1150,6 +1204,18 @@
     "name": "마이 /notifications",
     "ok": true,
     "extra": "ok /notifications "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /chat/rooms",
+    "ok": true,
+    "extra": "ok /chat/rooms "
+  },
+  {
+    "section": "7.마이",
+    "name": "마이 /mypage",
+    "ok": true,
+    "extra": "ok /mypage "
   },
   {
     "section": "7.마이",
@@ -1165,7 +1231,7 @@
   },
   {
     "section": "7.마이",
-    "name": "마이 /mypage/sales 버튼 0개 눌러봄 (이동 0회) 오류 없음",
+    "name": "마이 /mypage/sales 버튼 1개 눌러봄 (이동 0회) 오류 없음",
     "ok": true,
     "extra": ""
   },
@@ -1249,12 +1315,6 @@
   },
   {
     "section": "7.마이",
-    "name": "마이 /chat/rooms",
-    "ok": true,
-    "extra": "ok /chat/rooms "
-  },
-  {
-    "section": "7.마이",
     "name": "마이 /mypage/password",
     "ok": true,
     "extra": "ok /mypage/password "
@@ -1279,6 +1339,12 @@
   },
   {
     "section": "7.마이",
+    "name": "마이 /gear-guide",
+    "ok": true,
+    "extra": "ok /gear-guide "
+  },
+  {
+    "section": "7.마이",
     "name": "마이 /help",
     "ok": true,
     "extra": "ok /help "
@@ -1300,18 +1366,6 @@
     "name": "마이 /partners",
     "ok": true,
     "extra": "ok /partners "
-  },
-  {
-    "section": "7.마이",
-    "name": "마이 /community",
-    "ok": true,
-    "extra": "ok /community "
-  },
-  {
-    "section": "7.마이",
-    "name": "마이 /mypage",
-    "ok": true,
-    "extra": "ok /mypage "
   },
   {
     "section": "7.마이",
@@ -1353,7 +1407,7 @@
     "section": "7.마이",
     "name": "찜 추가 → 찜 목록 → 찜 해제 왕복 오류 없음",
     "ok": true,
-    "extra": "본문 바로가기 ← 찜 목록 25/26 다이나스타 월드컵 1,100,000원 사업자정보·광고안내 · 입점안내·고객센터 스노우판은 통신판매중개자로서 "
+    "extra": "본문 바로가기 ← 찜 목록 오가사카 tc sk 165 350,000원 25/26 아토믹 s9i 프로 1,000,000원 사업자정보·광고안내 ·  "
   },
   {
     "section": "7.마이",

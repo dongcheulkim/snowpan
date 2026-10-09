@@ -63,8 +63,14 @@ M1=$(echo "$RESP" | jq -r '.meeting.id // empty'); ST=$(echo "$RESP" | jq -r '.m
 [ "$REPL" = "$M0" ] && ok "새 제안이 기존 제안 대체(replaced)" || bad "replaced=$REPL 기대 $M0"
 no_pii "제안"
 api GET "/trade-meetings/$M0" "" "$BUYER_TOKEN"; [ "$(echo "$RESP" | jq -r '.status')" = "cancelled" ] && ok "대체된 내 제안은 cancelled" || bad "대체 제안 status=$(echo "$RESP" | jq -r '.status')"
+# 옛 앱(2.4 이하, X-Snowpan-Client 헤더 없음)에는 약속 카드가 읽을 수 있는 문장(type text)으로 (2026-10-09)
 api GET "/chat/rooms/$ROOM/messages" "" "$SELLER_TOKEN"
-N=$(echo "$RESP" | jq '[.[] | select(.type=="trade_meeting")] | length'); [ "$N" -ge 2 ] && ok "채팅방에 약속 카드 $N장" || bad "약속 카드 수 $N"
+N=$(echo "$RESP" | jq '[.[] | select(.type=="trade_meeting")] | length'); T=$(echo "$RESP" | jq -r '[.[] | select(.content | startswith("[거래 약속 제안]"))] | length')
+[ "$N" = "0" ] && [ "$T" -ge 1 ] && echo "$RESP" | jq -r '.[-1].content' | grep -q "곤지암리조트 정문" && ok "옛 앱: 약속 카드가 문장으로 (JSON 노출 없음)" || bad "옛 앱 변환 trade_meeting=$N text=$T"
+api GET "/chat/rooms" "" "$SELLER_TOKEN"; echo "$RESP" | jq -r ".[] | select(.id==\"$ROOM\") | .messages[0].content" | grep -q '^\[거래 약속' && ok "옛 앱: 채팅 목록 미리보기도 문장" || bad "옛 앱 목록 미리보기 $(echo "$RESP" | jq -r ".[] | select(.id==\"$ROOM\") | .messages[0].content" | head -c 80)"
+NEWHDR=(-H 'X-Snowpan-Client: web')
+RESP=$(curl -s -m 20 -H 'X-Loadtest-Key: e2e-local-bypass' "${NEWHDR[@]}" -H "Authorization: Bearer $SELLER_TOKEN" "$BASE/chat/rooms/$ROOM/messages")
+N=$(echo "$RESP" | jq '[.[] | select(.type=="trade_meeting")] | length'); [ "$N" -ge 2 ] && ok "새 클라이언트: 채팅방에 약속 카드 $N장" || bad "약속 카드 수 $N"
 api GET "/notifications" "" "$SELLER_TOKEN"; echo "$RESP" | grep -q "거래 약속 제안" && ok "판매자 알림: 약속 제안" || bad "판매자 알림 없음"
 api GET "/trade-meetings/$M1" "" "$OTHER_TOKEN"; [ "$CODE" = "404" ] && ok "제3자 상세 404" || bad "제3자 상세 CODE=$CODE"
 api PUT "/trade-meetings/$M1/accept" "" "$BUYER_TOKEN"; [ "$CODE" = "400" ] && ok "내 제안 내가 수락 400" || bad "자기 수락 CODE=$CODE"

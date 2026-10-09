@@ -1,7 +1,7 @@
 import { useState, useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { tryRefreshAccessToken, api, getToken } from '../api';
+import { tryRefreshAccessToken, api, getToken, CLIENT_TAG } from '../api';
 import type { Socket } from 'socket.io-client';
 import { t, onLangChange } from '../i18n';
 import { showBrowserNotification } from '../utils/pushNotification';
@@ -140,7 +140,7 @@ const Navbar = () => {
     if (disposed) return;
     // 함수형 auth — 재연결 시 최신 토큰을 다시 읽음. 고정 토큰이면 1시간 만료 후
     // 재연결이 인증 거부돼 실시간 알림이 조용히 끊김.
-    const s = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
+    const s = io(SERVER_URL, { auth: (cb: (d: { token: string; client: string }) => void) => cb({ token: getToken() || '', client: CLIENT_TAG }) });
     socket = s;
     socketRef.current = s;
 

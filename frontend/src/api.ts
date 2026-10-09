@@ -11,6 +11,8 @@ export function isNativeApp(): boolean {
 // 웹은 httpOnly 쿠키로 refresh 하지만, 앱은 소셜 로그인이 인앱 브라우저에서 일어나
 // 웹뷰에 쿠키가 없음 → refresh 토큰을 앱 저장소(localStorage, 웹뷰 영속)에 보관하고
 // body 채널로 갱신. 웹에서는 아무것도 저장하지 않음.
+// 클라이언트 표시 — 서버가 새 메시지 형식(거래 약속 카드)을 아는 클라이언트인지 판단 (2026-10-09). 앱은 네이티브면 'app', 아니면 'web'
+export const CLIENT_TAG = isNativeApp() ? 'app' : 'web';
 const APP_RT_KEY = 'snowpan.appRefresh';
 export function setAppRefreshToken(t: string): void {
   if (!isNativeApp() || !t) return;
@@ -119,7 +121,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
   const { method = 'GET', body, token, _retried, _attempt = 0 } = options;
   // Content-Type 은 본문이 있을 때만 — GET 에 붙이면 브라우저가 preflight(OPTIONS)를 먼저 보내 왕복이 하나 늘어난다 (2026-09-27 성능)
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { 'X-Snowpan-Client': CLIENT_TAG }; // 서버가 옛 앱과 구분 (약속 카드 등 새 메시지 형식)
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

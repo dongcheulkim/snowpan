@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl, isNativeApp } from '../api';
+import { tryRefreshAccessToken, api, getUser, getToken, SERVER_URL, uploadImages, imageUrl, isNativeApp, CLIENT_TAG } from '../api';
 import { t, onLangChange } from '../i18n';
 import ChatBotGuide from '../components/ChatBotGuide';
 import { toastError, toastSuccess } from '../utils/toast';
@@ -314,7 +314,7 @@ const Chat = () => {
     markAsRead(id);
 
     // 재연결 시에도 최신 토큰을 읽도록 함수형 auth — 1시간 만료 후 끊겼다 붙어도 인증 유지.
-    const socket = io(SERVER_URL, { auth: (cb: (d: { token: string }) => void) => cb({ token: getToken() || '' }) });
+    const socket = io(SERVER_URL, { auth: (cb: (d: { token: string; client: string }) => void) => cb({ token: getToken() || '', client: CLIENT_TAG }) });
     socketRef.current = socket;
     let firstConnect = true;
     socket.on('connect', () => {

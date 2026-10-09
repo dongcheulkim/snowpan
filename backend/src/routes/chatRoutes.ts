@@ -1,3 +1,4 @@
+import { isLegacyClient, legacyMessage } from '../utils/legacyCard';
 import { Router, Response } from 'express';
 import prisma from '../config/database';
 import { getAdminIds, roomAccessWhere, adminSideOf, viewerOf, sideOf, staffLinkOf, isParticipant, shopSideOf, unreadByRoom } from '../utils/supportInbox';
@@ -67,10 +68,12 @@ router.get('/rooms', async (req: any, res: Response) => {
     // 방별 안읽음 — 내 쪽(나 / 관리자 전원 / 매장의 사장님+직원)이 아닌 사람이 내 쪽 읽음 시각 뒤에 보낸 메시지 수 (unnest 한 쿼리)
     const unreadCounts = await unreadByRoom(rooms, viewer);
 
+    const legacy = isLegacyClient(req); // 옛 앱: 약속 카드 미리보기를 문장으로
     const roomsWithUnread = rooms.map(room => {
       const side = sideOf(room, viewer);
       return {
         ...room,
+        messages: legacy ? room.messages.map((m) => legacyMessage(m)) : room.messages,
         // 요청자에게 거절 사실 비노출 — declined 를 pending 으로 위장 (여기 도달한 declined 는 전부 요청자 본인 것)
         status: room.status === 'declined' ? 'pending' : room.status,
         user1: { ...room.user1, name: displayName(room.user1) },
@@ -450,7 +453,8 @@ router.get('/rooms/:roomId/messages', async (req: any, res: Response) => {
       orderBy: { createdAt: 'asc' },
     });
     // 상대 실명 비노출 — 표시명(닉네임 우선)으로 치환 (rooms 목록과 정책 통일)
-    res.json(messages.map((m) => ({ ...m, sender: { ...m.sender, name: m.sender.nickname || m.sender.name } })));
+    const legacy = isLegacyClient(req); // 옛 앱(2.4 이하)은 약속 카드를 문장으로
+    res.json(messages.map((m) => legacyMessage({ ...m, sender: { ...m.sender, name: m.sender.nickname || m.sender.name } }, legacy)));
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: '메시지 조회 실패' });
