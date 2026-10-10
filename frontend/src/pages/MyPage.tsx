@@ -150,6 +150,7 @@ const MyPage = () => {
 
 
   const settings = [
+    { label: '알림 설정', link: '/mypage/notification-settings' }, // 푸시 다시 켜기·폰 설정 열기 (2026-10-10)
     // 이메일 계정만 — 소셜 계정은 비밀번호가 없음. (기존엔 어디에도 링크가 없어 페이지 도달 불가였음)
     ...(!isSocialUser ? [{ label: '비밀번호 변경', link: '/mypage/password' }] : []),
     { label: t('mypage.terms'), link: '/mypage/terms' },

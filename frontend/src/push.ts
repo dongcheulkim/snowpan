@@ -6,7 +6,35 @@ import { api, getUser } from './api';
 
 let started = false;
 
-export async function initPush(): Promise<void> {
+export type PushState = 'granted' | 'denied' | 'prompt' | 'unavailable';
+// 지금 알림 권한 상태 — 알림 설정 화면용 (2026-10-10)
+export async function getPushState(): Promise<PushState> {
+  if (!Capacitor.isNativePlatform()) return 'unavailable';
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+    const p = await PushNotifications.checkPermissions();
+    return p.receive === 'granted' ? 'granted' : p.receive === 'denied' ? 'denied' : 'prompt';
+  } catch { return 'unavailable'; }
+}
+// 사용자가 알림 설정에서 직접 "켜기"를 누른 경우 — 우리 안내창·"나중에" 3일 대기를 건너뛰고 바로 시스템 창. 이미 거절(denied)이면 OS 설정으로 보내야 함
+export async function enablePushNow(): Promise<PushState> {
+  if (!Capacitor.isNativePlatform()) return 'unavailable';
+  try { localStorage.removeItem('snowpan.pushAskLater'); } catch { /* ignore */ }
+  started = false;
+  await initPush({ interactive: true });
+  return getPushState();
+}
+// OS 의 앱 알림 설정 화면 열기 — 시스템 권한창을 한 번 거절하면(특히 iOS) 앱에서 다시 못 띄우므로 여기서 켜게 안내
+export async function openNotificationSettings(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  try {
+    const { NativeSettings, AndroidSettings, IOSSettings } = await import('capacitor-native-settings');
+    await NativeSettings.open({ optionAndroid: AndroidSettings.AppNotification, optionIOS: IOSSettings.App });
+    return true;
+  } catch { return false; }
+}
+
+export async function initPush(opts: { interactive?: boolean } = {}): Promise<void> {
   if (!Capacitor.isNativePlatform()) return; // 웹 no-op
   // iOS 도 FCM 경유 (AppDelegate 가 APNs 토큰 → FCM 토큰으로 바꿔 넘김, 2026-09-13). Firebase 미설정 빌드에선 등록이 조용히 실패한다.
   if (!getUser()) return;                     // 로그인 유저만 (토큰 저장 API 가 인증 필요)
@@ -29,12 +57,15 @@ export async function initPush(): Promise<void> {
     let perm = await PushNotifications.checkPermissions();
     if (perm.receive === 'prompt' || perm.receive === 'prompt-with-rationale') {
       // 시스템 권한창 전에 우리 안내창 먼저 ("꼭 필요한 알림만, 광고 알림 없음"). "나중에"면 3일 뒤 다시 물음.
+      // 알림 설정 화면에서 직접 켠 경우(interactive)는 안내창 없이 바로 시스템 창.
       const ASK_KEY = 'snowpan.pushAskLater';
-      let later = 0; try { later = Number(localStorage.getItem(ASK_KEY) || 0); } catch { /* ignore */ }
-      if (later && Date.now() - later < 3 * 24 * 3600_000) { started = false; return; }
-      const { askPushPermission } = await import('./utils/pushPrePrompt');
-      const ok = await askPushPermission();
-      if (!ok) { try { localStorage.setItem(ASK_KEY, String(Date.now())); } catch { /* ignore */ } started = false; return; }
+      if (!opts.interactive) {
+        let later = 0; try { later = Number(localStorage.getItem(ASK_KEY) || 0); } catch { /* ignore */ }
+        if (later && Date.now() - later < 3 * 24 * 3600_000) { started = false; return; }
+        const { askPushPermission } = await import('./utils/pushPrePrompt');
+        const ok = await askPushPermission();
+        if (!ok) { try { localStorage.setItem(ASK_KEY, String(Date.now())); } catch { /* ignore */ } started = false; return; }
+      }
       perm = await PushNotifications.requestPermissions();
     }
     if (perm.receive !== 'granted') { started = false; return; }

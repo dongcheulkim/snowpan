@@ -17,7 +17,7 @@ export default function PushPrePrompt() {
           채팅 메시지, 내 글의 댓글·답글, 예약·문의 답변처럼 <b>꼭 필요한 것만</b> 알려드려요.
         </p>
         <p className="text-sm text-gray-700 mt-2 leading-relaxed">의미 없는 광고 알림은 보내지 않아요.</p>
-        <p className="text-[11px] text-gray-400 mt-3">알림은 MY → 설정에서 언제든 끌 수 있어요.</p>
+        <p className="text-[11px] text-gray-400 mt-3">알림은 MY → 알림 설정에서 언제든 켜고 끌 수 있어요.</p>
         <button type="button" onClick={() => answer(true)} className="mt-5 w-full min-h-12 rounded-xl bg-gray-900 text-white text-sm font-bold">알림 받기</button>
         <button type="button" onClick={() => answer(false)} className="mt-2 w-full min-h-10 text-xs text-gray-500">나중에</button>
       </div>

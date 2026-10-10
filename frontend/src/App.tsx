@@ -52,6 +52,7 @@ const SkiShopRegister = lazy(() => import('./pages/SkiShopRegister'));
 const SkiShopEdit = lazy(() => import('./pages/SkiShopEdit'));
 const ResortLanding = lazy(() => import('./pages/ResortLanding'));
 const KeywordAlerts = lazy(() => import('./pages/KeywordAlerts'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const MyBlocks = lazy(() => import('./pages/MyBlocks'));
 const SkiShopDetail = lazy(() => import('./pages/SkiShopDetail'));
 const RepairShopDetail = lazy(() => import('./pages/RepairShopDetail'));
@@ -192,6 +193,7 @@ function App() {
             <Route path="mypage/wishlist" element={<RequireAuth><MyWishlist /></RequireAuth>} />
             <Route path="mypage/shop-follows" element={<RequireAuth><MyShopFollows /></RequireAuth>} />
             <Route path="mypage/keywords" element={<RequireAuth><KeywordAlerts /></RequireAuth>} />
+            <Route path="mypage/notification-settings" element={<RequireAuth><NotificationSettings /></RequireAuth>} />
             <Route path="mypage/blocks" element={<RequireAuth><MyBlocks /></RequireAuth>} />
             <Route path="mypage/recent" element={<RequireAuth><RecentlyViewed /></RequireAuth>} />
             <Route path="mypage/chats" element={<RequireAuth><MyChatList /></RequireAuth>} />
