@@ -200,3 +200,17 @@ export function startInstagramScheduler(): void {
   setInterval(() => { refreshInstagramTokenIfNeeded().catch(() => {}); }, 24 * 60 * 60 * 1000); // 토큰 하루
   console.log('📸 인스타그램 스케줄러 시작됨');
 }
+
+// 게시물 한 건의 전체 캡션 + 캐러셀 슬라이드 전부 (관리자 전용, 2026-10-10 — 인스타 포스터를 릴스로 다시 만들 때 원본 슬라이드가 필요)
+// 공식 API 그대로. 응답엔 토큰이 실리지 않는다.
+export async function getInstagramMedia(id: string): Promise<{ id: string; caption: string; mediaType: string; permalink: string; timestamp: string; slides: { id: string; mediaType: string; url: string }[] }> {
+  if (!/^\d{5,30}$/.test(id)) throw new Error('게시물 id 형식이 올바르지 않습니다.');
+  const token = await getSetting(KEY_TOKEN);
+  if (!token) throw new Error('인스타 토큰이 없습니다.');
+  const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,children{id,media_type,media_url,thumbnail_url}';
+  const m = await igFetch(`${GRAPH}/${id}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(token)}`) as Record<string, unknown>;
+  const kids = ((m.children as { data?: Record<string, unknown>[] })?.data) || [];
+  const pick = (x: Record<string, unknown>) => ({ id: String(x.id || ''), mediaType: String(x.media_type || ''), url: String((x.media_type === 'VIDEO' ? x.thumbnail_url : x.media_url) || x.media_url || '') });
+  const slides = kids.length ? kids.map(pick) : [pick(m)];
+  return { id: String(m.id || id), caption: String(m.caption || ''), mediaType: String(m.media_type || ''), permalink: String(m.permalink || ''), timestamp: String(m.timestamp || ''), slides: slides.filter((s) => s.url.startsWith('https://')) };
+}

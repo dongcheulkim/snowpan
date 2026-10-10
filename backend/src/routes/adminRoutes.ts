@@ -8,7 +8,7 @@ import { findStorageOrphans, deleteStorageOrphans } from '../utils/storageOrphan
 import { logAdminAccess, ACCESS_ACTIONS, purgeRetention } from '../utils/adminAudit';
 import { findLiveVideoIds } from '../utils/youtubeLive';
 import { readAppVersionValues, invalidateAppVersionCache, APP_VERSION_KEYS, VERSION_RE } from './appVersionRoutes';
-import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken } from '../utils/instagram';
+import { getInstagramStatus, saveInstagramToken, refreshInstagramPosts, clearInstagramToken, getInstagramMedia } from '../utils/instagram';
 import {
   getPendingRentals,
   getPendingLessons,
@@ -346,6 +346,11 @@ router.put('/outreach/:shopType/:shopId', upsertOutreach);
 router.get('/instagram', async (_req, res) => {
   try { res.json(await getInstagramStatus()); }
   catch { res.status(500).json({ error: '인스타 상태를 불러오지 못했습니다.' }); }
+});
+// 게시물 전체 캡션 + 캐러셀 슬라이드 (마케팅 재가공용, 2026-10-10)
+router.get('/instagram/media/:id', async (req, res) => {
+  try { res.json(await getInstagramMedia(String(req.params.id))); }
+  catch (e) { res.status(400).json({ error: e instanceof Error ? e.message : '게시물을 불러오지 못했습니다.' }); }
 });
 router.put('/instagram/token', async (req, res) => {
   try {
