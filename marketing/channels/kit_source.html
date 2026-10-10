@@ -1,0 +1,36 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box} body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;background:#888}
+.page{position:relative;overflow:hidden}
+/* 프로필 800 — 원형 크롭 안전하게 중앙 60% 안에 워드마크 */
+.profile{width:800px;height:800px;background:#fff;display:flex;align-items:center;justify-content:center}
+.profile img{width:520px}
+.profile.dark{background:#0f172a} .profile.dark img{filter:invert(1) brightness(2)}
+/* 유튜브 배너 2560x1440 — 모든 기기에서 보이는 안전 영역 1546x423 (중앙) */
+.banner{width:2560px;height:1440px;background:#07090f url(alpine-slope.jpg) center 45%/cover no-repeat}
+.banner .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,15,.35),rgba(7,9,15,.7))}
+.banner .safe{position:absolute;left:507px;top:508px;width:1546px;height:423px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center}
+.banner .safe img{width:560px;filter:invert(1) brightness(2)}
+.banner .safe h1{margin-top:26px;font-size:54px;font-weight:900;letter-spacing:-1px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+.banner .safe p{margin-top:12px;font-size:28px;font-weight:500;color:rgba(255,255,255,.85)}
+/* 썸네일 1280x720 — 큰 제목 + 워드마크 */
+.thumb{width:1280px;height:720px;background:#07090f url(skis-on-snow.jpg) center 30%/cover no-repeat;color:#fff}
+.thumb .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,9,15,.88) 0%,rgba(7,9,15,.55) 60%,rgba(7,9,15,.2))}
+.thumb .in{position:absolute;left:64px;top:64px;right:64px;bottom:56px;display:flex;flex-direction:column;justify-content:space-between}
+.thumb img{width:260px;filter:invert(1) brightness(2)}
+.thumb h1{font-size:92px;font-weight:900;line-height:1.12;letter-spacing:-2px;white-space:pre-line;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+.thumb .k{font-size:30px;font-weight:800;color:#FF5A5F;margin-bottom:14px}
+.thumb .f{font-size:26px;color:rgba(255,255,255,.75);font-weight:600}
+/* 워터마크 — 투명 배경, 흰 글자(그림자) */
+.wm{width:900px;height:160px;background:transparent;display:flex;align-items:center;justify-content:center}
+.wm img{width:700px;filter:invert(1) brightness(2) drop-shadow(0 2px 10px rgba(0,0,0,.6))}
+.wm.dark img{filter:none}
+</style></head><body>
+<div id="profile_white" class="page profile"><img src="snowpan-wordmark.svg"></div>
+<div id="profile_black" class="page profile dark"><img src="snowpan-wordmark.svg"></div>
+<div id="banner" class="page banner"><div class="shade"></div><div class="safe"><img src="snowpan-wordmark.svg"><h1>스키장 가기 전, 스노우판</h1><p>전국 렌탈샵 · 실시간 웹캠 · 중고 장비 · 거래 약속 · snowpan.kr</p></div></div>
+<div id="thumb" class="page thumb"><div class="shade"></div><div class="in"><img src="snowpan-wordmark.svg"><div><div class="k">26/27 시즌 준비</div><h1>스키장 개장
+전 꼭 할 것 5가지</h1></div><div class="f">snowpan.kr · App Store · Google Play</div></div></div>
+<div id="wm_white" class="page wm"><img src="snowpan-wordmark.svg"></div>
+<div id="wm_black" class="page wm dark"><img src="snowpan-wordmark.svg"></div>
+</body></html>
