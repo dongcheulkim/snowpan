@@ -480,6 +480,8 @@ router.put('/rooms/:roomId/read', async (req: any, res: Response) => {
     } else if (side === 2) {
       await prisma.chatRoom.update({ where: { id: roomId }, data: { user2LastReadAt: now } });
     }
+    // 이 방에서 온 알림(새 메시지·약속·예약 등 link 가 이 방)은 방을 열어 본 순간 읽음 — 알림 목록에 계속 남던 문제 (2026-10-10)
+    prisma.notification.updateMany({ where: { userId, read: false, link: { startsWith: `/chat/${roomId}` } }, data: { read: true } }).catch(() => {});
     const io = req.app.get('io');
     // 성사 전(pending/declined) 방은 read receipt 미방출 — 수신자가 요청을 '봤다'는
     // 사실이 요청자에게 새는 것 차단 (lastReadAt 자체는 갱신해 뱃지 정리는 정상)

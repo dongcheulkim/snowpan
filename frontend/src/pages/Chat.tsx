@@ -281,7 +281,7 @@ const Chat = () => {
 
   const markAsRead = (id: string) => {
     api(`/chat/rooms/${id}/read`, { method: 'PUT' })
-      .then(() => { try { window.dispatchEvent(new CustomEvent('snowpan:chat-read', { detail: id })); } catch { /* 무시 */ } }) // 상단·하단 점 갱신
+      .then(() => { try { window.dispatchEvent(new CustomEvent('snowpan:chat-read', { detail: id })); window.dispatchEvent(new CustomEvent('snowpan:notif-read')); } catch { /* 무시 */ } }) // 상단·하단 점 + 벨(이 방 알림도 서버가 읽음 처리) 갱신
       .catch(() => { /* ignore */ });
   };
 

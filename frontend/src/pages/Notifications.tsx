@@ -105,6 +105,7 @@ const Notifications = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.read && n.type !== 'chat').length; // 상단 벨과 같은 기준(채팅 제외)
+  const anyUnread = notifications.some(n => !n.read); // 채팅 알림만 남아도 '모두 읽음' 버튼은 보여야 함 (2026-10-10)
 
   if (!user) {
     return (
@@ -126,7 +127,7 @@ const Notifications = () => {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {unreadCount > 0 && (
+          {anyUnread && (
             <button onClick={handleMarkAllRead} className="text-xs text-gray-500 hover:text-gray-600 transition-colors">
               {t('notifications.markAllRead')}
             </button>

@@ -108,4 +108,11 @@ api POST /chat/rooms "{\"targetUserId\":\"$C_ID\",\"productName\":\"E2E 매물\"
 UST=$(pq "SELECT status FROM chat_rooms WHERE id='$ROOM2'")
 [ "$CODE" = "200" ] && [ "$UST" = "accepted" ] && ok "수신자 매물 문의로 방 승격 (accepted)" || bad "승격 CODE=$CODE status=$UST"
 
+# 방을 열어 읽음 처리하면 그 방에서 온 알림(link=/chat/방)도 읽음 — 알림 목록에 채팅 알림이 계속 남던 문제 (2026-10-10)
+pq "INSERT INTO notifications (id, \"userId\", type, title, message, link, read, \"createdAt\") VALUES (gen_random_uuid(), '$B_ID', 'chat', 'E2E방알림', 'm', '/chat/$ROOM', false, now()), (gen_random_uuid(), '$B_ID', 'chat', 'E2E다른방알림', 'm', '/chat/00000000-0000-0000-0000-000000000000', false, now())" >/dev/null
+api PUT "/chat/rooms/$ROOM/read" "" "$B_TOKEN"; sleep 1
+R1=$(pq "SELECT read FROM notifications WHERE \"userId\"='$B_ID' AND title='E2E방알림'"); R2=$(pq "SELECT read FROM notifications WHERE \"userId\"='$B_ID' AND title='E2E다른방알림'")
+[ "$CODE" = "200" ] && [ "$R1" = "t" ] && [ "$R2" = "f" ] && ok "방 읽음 처리 시 그 방 알림만 읽음 (다른 방 알림은 그대로)" || bad "방 읽음→알림 read=$R1 / 다른방=$R2 CODE=$CODE"
+pq "DELETE FROM notifications WHERE \"userId\"='$B_ID' AND title IN ('E2E방알림','E2E다른방알림')" >/dev/null
+
 echo "----- STEP11: PASS=$PASS FAIL=$FAIL -----"
