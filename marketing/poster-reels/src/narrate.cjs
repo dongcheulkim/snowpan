@@ -2,7 +2,13 @@
 // 문장마다 macOS say(Yuna)로 음성 → 길이 측정 → 그 길이만큼 슬라이드(천천히 확대) + 자막 → 프레임 합성 → ffmpeg 로 음성과 합침
 const { chromium } = require('/Users/jason/bada-now/node_modules/playwright');
 const fs = require('fs'); const path = require('path'); const { execSync } = require('child_process');
-const FPS = 25, VOICE = process.env.VOICE || 'Yuna', RATE = Number(process.env.RATE || 185), GAP = 0.35, END_SEC = 3.2;
+const FPS = 25, GAP = 0.35, END_SEC = 3.2;
+// 음성: 기본은 마이크로소프트 신경망 음성(edge-tts, 키 불필요) — 맥 내장 say 는 기계 티가 나서 사장님이 거절(2026-10-10)
+const ENGINE = process.env.ENGINE || 'edge', VOICE = process.env.VOICE || (ENGINE === 'edge' ? 'ko-KR-SunHiNeural' : 'Yuna'), RATE = process.env.RATE || (ENGINE === 'edge' ? '+8%' : '185');
+function tts(text, outBase) {
+  if (ENGINE === 'edge') { const f = outBase + '.mp3'; execSync(`python3 -m edge_tts --voice ${VOICE} --rate=${RATE} --text ${JSON.stringify(text)} --write-media "${f}"`, { stdio: 'pipe' }); return f; }
+  const f = outBase + '.aiff'; execSync(`say -v ${VOICE} -r ${RATE} -o "${f}" ${JSON.stringify(text)}`); return f;
+}
 const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const OUT = process.argv[3] || path.join(__dirname, 'out'); fs.mkdirSync(OUT, { recursive: true });
 const work = path.join(__dirname, 'work_' + spec.id); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work);
@@ -13,14 +19,13 @@ const ease = (k) => k < .5 ? 2*k*k : -1 + (4-2*k)*k;
   const timeline = []; let t = 0.6; const parts = [];
   spec.slides.forEach((sl, si) => {
     sl.lines.forEach((line, li) => {
-      const f = path.join(work, `s${si}_${li}.aiff`);
-      execSync(`say -v ${VOICE} -r ${RATE} -o "${f}" ${JSON.stringify(line)}`);
+      const f = tts(line, path.join(work, `s${si}_${li}`));
       const d = dur(f);
       timeline.push({ si, line, start: t, end: t + d }); parts.push({ f, at: t }); t += d + GAP;
     });
   });
   const endStart = t + 0.2;
-  if (spec.endLine) { const f = path.join(work, 'end.aiff'); execSync(`say -v ${VOICE} -r ${RATE} -o "${f}" ${JSON.stringify(spec.endLine)}`); parts.push({ f, at: endStart + 0.3 }); t = Math.max(endStart + END_SEC, endStart + 0.3 + dur(f) + 0.6); } else t = endStart + END_SEC;
+  if (spec.endLine) { const f = tts(spec.endLine, path.join(work, 'end')); parts.push({ f, at: endStart + 0.3 }); t = Math.max(endStart + END_SEC, endStart + 0.3 + dur(f) + 0.6); } else t = endStart + END_SEC;
   const total = t;
   // 오디오 트랙: 무음 베이스 위에 각 문장을 시작 시각에 얹는다
   const inputs = parts.map((p) => `-i "${p.f}"`).join(' ');

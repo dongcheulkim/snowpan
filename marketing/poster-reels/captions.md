@@ -21,6 +21,6 @@
 
 ## 만든 방법
 - 원본: 인스타 @snowpan.kr 캐러셀 슬라이드(공식 API로 받음), 기간 지난 곤지암 시즌권·앰버서더 모집 2개는 제외
-- 음성: macOS 한국어 음성(Yuna)로 문장마다 합성, 자막은 음성과 같은 문장을 같은 타이밍에 표시
-- 재생성: `src/narrate.cjs specs/<이름>.json out` (대본은 specs 폴더, 문장을 고치면 음성·자막이 같이 바뀜)
+- 음성: 마이크로소프트 신경망 한국어 음성(edge-tts, 기본 ko-KR-SunHiNeural 여성 · ko-KR-InJoonNeural 남성, 키 불필요)으로 문장마다 합성, 자막은 같은 문장을 같은 타이밍에 표시. `python3 -m pip install --user edge-tts` 필요. 맥 내장 음성(say)은 ENGINE=say 로만 남겨둠(기계 티가 나서 미사용)
+- 재생성: `node src/narrate.cjs specs/<이름>.json out` (남성 음성은 `VOICE=ko-KR-InJoonNeural`, 속도는 `RATE=+8%` 식으로) (대본은 specs 폴더, 문장을 고치면 음성·자막이 같이 바뀜)
 - 더 자연스러운 목소리를 원하면 같은 대본으로 사장님이 직접 녹음하거나, 유료 TTS(타입캐스트 등)로 바꿔 끼우면 됨
