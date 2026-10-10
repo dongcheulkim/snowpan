@@ -1,0 +1,39 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box} html,body{width:1080px;height:1920px;overflow:hidden;background:#07090f}
+body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;position:relative}
+#bg{position:absolute;inset:-60px;background:#07090f center/cover no-repeat;filter:blur(40px) brightness(.45);transform:scale(1.1)}
+#brand{position:absolute;top:66px;left:64px;height:40px;display:flex;align-items:center;z-index:3} #brand img{height:34px;filter:invert(1) brightness(2)}
+#handle{position:absolute;top:70px;right:64px;font-size:24px;font-weight:600;color:rgba(255,255,255,.75);z-index:3}
+#slide{position:absolute;left:60px;top:160px;width:960px;height:1200px;border-radius:36px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55);z-index:2;background:#111}
+#slide img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;transform-origin:center;will-change:transform}
+#sub{position:absolute;left:60px;right:60px;top:1400px;min-height:200px;display:flex;align-items:center;justify-content:center;text-align:center;z-index:3}
+#sub span{display:inline;background:rgba(7,9,15,.78);color:#fff;font-size:46px;font-weight:800;line-height:1.45;padding:10px 22px;border-radius:18px;box-decoration-break:clone;-webkit-box-decoration-break:clone;letter-spacing:-.5px;white-space:pre-line}
+#sub span.hl{color:#BFE7FF}
+#prog{position:absolute;left:60px;right:60px;bottom:70px;height:6px;background:rgba(255,255,255,.18);border-radius:3px;z-index:3} #prog i{display:block;height:100%;background:#fff;border-radius:3px;width:0}
+#end{position:absolute;inset:0;background:#07090f;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:5;padding:0 80px}
+#end .bgp{position:absolute;inset:0;background:center/cover no-repeat;opacity:.35}
+#end img{width:620px;filter:invert(1) brightness(2);position:relative}
+#end .t{position:relative;margin-top:50px;font-size:56px;font-weight:800;line-height:1.3;white-space:pre-line;letter-spacing:-1px}
+#end .st{position:relative;margin-top:60px;display:flex;gap:28px}
+#end .st div{border:3px solid rgba(255,255,255,.7);border-radius:28px;padding:26px 44px;font-size:34px;font-weight:700}
+#end .u{position:relative;margin-top:60px;font-size:40px;font-weight:700;color:#BFE7FF}
+#fade{position:absolute;inset:0;background:#07090f;opacity:0;z-index:9}
+</style></head><body>
+<div id="bg"></div>
+<div id="brand"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div id="handle">@snowpan.kr</div>
+<div id="slide"><img id="simg" alt=""></div>
+<div id="sub"><span id="subt"></span></div>
+<div id="prog"><i id="progi"></i></div>
+<div id="end"><div class="bgp" id="endbg"></div><img src="snowpan-wordmark.svg" alt=""><div class="t" id="endt"></div><div class="st"><div>App Store</div><div>Google Play</div></div><div class="u">snowpan.kr · @snowpan.kr</div></div>
+<div id="fade"></div>
+<script>
+const $=id=>document.getElementById(id);
+window.render=function(s){
+  if(s.img){ if($('simg').getAttribute('src')!==s.img){$('simg').src=s.img;$('bg').style.backgroundImage=`url("${s.img}")`;} $('simg').style.transform=`scale(${s.zoom||1}) translate(${s.panX||0}px,${s.panY||0}px)`; }
+  $('subt').textContent=s.sub||''; $('sub').style.display=s.sub?'flex':'none';
+  $('progi').style.width=((s.progress||0)*100)+'%';
+  const en=$('end'); if(s.end){en.style.display='flex';$('endt').textContent=s.end.t||'';$('endbg').style.backgroundImage=s.end.bg?`url("${s.end.bg}")`:'none';en.style.opacity=s.end.alpha??1}else en.style.display='none';
+  $('fade').style.opacity=s.fade||0; return true;
+};
+</script></body></html>

@@ -34,3 +34,4 @@ e2e/.state/
 scripts/seed/seed_result*.csv
 scripts/seed/seed_rollback*.txt
 e2e/browser/.env
+marketing/poster-reels/*.mp4
