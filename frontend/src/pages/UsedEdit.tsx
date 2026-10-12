@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl, compressImage } from '../api';
 import UnitInput from '../components/UnitInput';
+import BrandInput from '../components/BrandInput';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';
 
@@ -286,7 +287,7 @@ const UsedEdit = () => {
             {/* 브랜드 */}
             <div>
               <label className={labelClass}>브랜드</label>
-              <input type="text" name="brand" value={form.brand} onChange={handleChange} placeholder="예: Rossignol" className={inputClass} />
+              <BrandInput value={form.brand} onChange={(v) => setForm({ ...form, brand: v })} placeholder="예: 로시뇰" className={inputClass} />
             </div>
           </div>
 

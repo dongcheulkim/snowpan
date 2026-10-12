@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
+import { api, getUser } from '../api';
 import { toastError, toastSuccess } from '../utils/toast';
-import { RESERVE_TITLE, type Reservation, type ReservationDetails, type ShopType } from '../utils/reservation';
+import { RESERVE_TITLE, detailPairs, formatDateRange, peopleLabel, type Reservation, type ReservationDetails, type ShopType } from '../utils/reservation';
 
 // 방문 예약 바텀시트 (결제 없음) — 날짜·시간·인원·업종별 항목·요청사항을 받아 POST /reservations 로 보낸다.
 // 성공하면 서버가 사장님과의 채팅방(roomId)에 예약 카드를 넣어 주므로 onCreated(roomId) 로 그 방으로 보낸다.
@@ -69,6 +69,38 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
   const [equipment, setEquipment] = useState('');
   const [qty, setQty] = useState('1');
   const [submitting, setSubmitting] = useState(false);
+  // 지난 예약과 같게 (2026-10-12): 같은 매장에 다시 예약할 때 인원·장비·옵션·요청사항을 지난 예약에서 채우고 날짜만 고른다.
+  const [lastRes, setLastRes] = useState<Reservation | null>(null);
+  useEffect(() => {
+    if (!open || !getUser()) return;
+    let cancelled = false;
+    api<{ items: Reservation[] }>('/reservations/mine')
+      .then((r) => {
+        if (cancelled) return;
+        const found = r.items.find((x) => x.shopId === shopId && x.status !== 'declined') || null;
+        setLastRes(found);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [open, shopId]);
+  const fillFromLast = () => {
+    if (!lastRes) return;
+    const d = lastRes.details || {};
+    setAdults(String(lastRes.adults));
+    setChildren(String(lastRes.children));
+    if (lastRes.time) setTime(lastRes.time);
+    setSki(String(d.ski ?? 0));
+    setBoard(String(d.board ?? 0));
+    setOptions(d.options || []);
+    setPurpose(d.purpose || '');
+    setLevel(d.level || '');
+    setLessonType(d.lessonType || '');
+    setEquipment(d.equipment || '');
+    setQty(String(d.qty ?? 1));
+    setRooms(String(d.rooms ?? 1));
+    setNote(lastRes.note || '');
+    toastSuccess('지난 예약 내용을 채웠어요. 날짜만 골라 주세요.');
+  };
 
   // Esc 로 닫기
   useEffect(() => {
@@ -150,6 +182,16 @@ export default function ReservationForm({ open, shopType, shopId, shopName, onCl
           <h3 className="text-base font-bold text-gray-900">{shopName} {title}</h3>
           <p className="text-xs text-gray-500 mt-0.5">결제는 없어요. 사장님이 확인하고 확정하면 알림으로 알려 드려요.</p>
         </div>
+
+        {lastRes && (
+          <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl" data-testid="last-reservation">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-gray-500">지난 예약 {formatDateRange(lastRes.date, lastRes.endDate)}</p>
+              <p className="text-xs text-gray-800 truncate">{[peopleLabel(lastRes.adults, lastRes.children), ...detailPairs(lastRes.shopType, lastRes.details).map(([, v]) => v)].join(' · ')}</p>
+            </div>
+            <button type="button" onClick={fillFromLast} className="flex-shrink-0 min-h-9 px-3 rounded-lg bg-gray-900 text-white text-xs font-bold">같게 채우기</button>
+          </div>
+        )}
 
         {/* 날짜 — 렌탈은 이용일·반납일, 숙소는 체크인·체크아웃, 나머지는 방문 날짜 하나 */}
         <div>

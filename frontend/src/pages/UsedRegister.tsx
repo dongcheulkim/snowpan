@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages, compressImage } from '../api';
 import UnitInput from '../components/UnitInput';
+import BrandInput from '../components/BrandInput';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../utils/toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
@@ -50,6 +51,50 @@ const UsedRegister = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  // 작성 중 임시저장 (2026-10-12) — 사진 고르다 전화 오거나 앱이 꺼져도 글 내용은 남긴다. 사진(File)은 저장 못 하므로 다시 고른다.
+  // 글자 칸이 하나라도 차 있으면 0.5초 뒤 저장, 등록 성공 시 삭제, 7일 지나면 무시.
+  type DraftForm = typeof form;
+  const draftKey = `snowpan.usedDraft:${vertical.slug}:${getUser()?.id || 'guest'}`;
+  const [draftOffer, setDraftOffer] = useState<{ form: DraftForm; savedAt: number } | null>(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return null;
+      const d = JSON.parse(raw) as { form?: Partial<DraftForm>; savedAt?: number };
+      if (!d.form || !d.savedAt || Date.now() - d.savedAt > 7 * 24 * 60 * 60 * 1000) { localStorage.removeItem(draftKey); return null; }
+      const f = d.form;
+      if (!(f.name || f.brand || f.price || f.description)) { localStorage.removeItem(draftKey); return null; }
+      return { form: { ...form, ...f }, savedAt: d.savedAt };
+    } catch { return null; }
+  });
+  const draftTimer = useRef<number | null>(null);
+  const draftDone = useRef(false); // 등록 완료 후엔 저장 안 함
+  const hasText = form.name.trim() !== '' || form.brand.trim() !== '' || form.price !== '' || form.description.trim() !== '';
+  useEffect(() => {
+    if (!hasText || draftDone.current) return;
+    if (draftOffer) setDraftOffer(null); // 새로 쓰기 시작하면 이전 안내는 치운다 (덮어쓰므로)
+    if (draftTimer.current) window.clearTimeout(draftTimer.current);
+    draftTimer.current = window.setTimeout(() => {
+      try { localStorage.setItem(draftKey, JSON.stringify({ form, savedAt: Date.now() })); } catch { /* 저장 공간 없음 등 — 무시 */ }
+    }, 500);
+    return () => { if (draftTimer.current) window.clearTimeout(draftTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
+  const clearDraft = () => {
+    draftDone.current = true;
+    if (draftTimer.current) window.clearTimeout(draftTimer.current);
+    try { localStorage.removeItem(draftKey); } catch { /* 무시 */ }
+  };
+  const restoreDraft = () => {
+    if (!draftOffer) return;
+    const f = draftOffer.form;
+    // 저장 당시 세부 종류가 지금 판에 없으면 기본값으로
+    const sub = subcategories.some((sc) => sc.id === f.subcategory) ? f.subcategory : (subcategories[0]?.id || 'ski');
+    setForm({ ...f, subcategory: sub });
+    setDraftOffer(null);
+    toastSuccess('작성하던 내용을 불러왔어요. 사진은 다시 골라 주세요.');
+  };
+  const discardDraft = () => { setDraftOffer(null); try { localStorage.removeItem(draftKey); } catch { /* 무시 */ } };
   // 세부 종류별 사이즈 단위 — null 이면 자유 입력(의류·헬멧 등)
   const sizeUnit: string | null = !isSnow
     ? (form.subcategory === 'shoes' ? 'mm' : null)
@@ -124,6 +169,7 @@ const UsedRegister = () => {
           size: sizeWithUnit || undefined,
         },
       });
+      clearDraft();
       toastSuccess('장비가 등록되었습니다!');
       navigate(`${vbase}/used`);
     } catch (err) {
@@ -147,6 +193,17 @@ const UsedRegister = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">중고 장비 등록</h1>
           <p className="text-sm text-gray-500">판매할 장비 정보를 입력해주세요</p>
         </div>
+
+        {draftOffer && (
+          <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl" data-testid="used-draft-offer">
+            <p className="text-sm font-medium text-gray-900">작성하던 내용이 있어요</p>
+            <p className="text-xs text-gray-500 mt-1 truncate">{[draftOffer.form.brand, draftOffer.form.name].filter(Boolean).join(' ') || '제목 없음'} · {new Date(draftOffer.savedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })} 저장</p>
+            <div className="flex gap-2 mt-3">
+              <button type="button" onClick={restoreDraft} className="flex-1 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium">이어서 작성</button>
+              <button type="button" onClick={discardDraft} className="flex-1 py-2.5 bg-white text-gray-600 border border-gray-300 rounded-lg text-sm font-medium">지우기</button>
+            </div>
+          </div>
+        )}
 
         {(() => {
           const steps = [
@@ -311,12 +368,10 @@ const UsedRegister = () => {
             {/* 브랜드 */}
             <div>
               <label className={labelClass}>브랜드</label>
-              <input
-                type="text"
-                name="brand"
+              <BrandInput
                 value={form.brand}
-                onChange={handleChange}
-                placeholder={!isSnow ? '예: 나이키' : form.subcategory === 'helmet' || form.subcategory === 'goggles' ? '예: 오클리' : form.subcategory === 'board' ? '예: SG' : '예: 피셔'}
+                onChange={(v) => setForm({ ...form, brand: v })}
+                placeholder={!isSnow ? '예: 나이키' : form.subcategory === 'helmet' || form.subcategory === 'goggles' ? '예: 오클리' : form.subcategory === 'board' ? '예: 버튼' : '예: 피셔'}
                 className={inputClass}
               />
             </div>

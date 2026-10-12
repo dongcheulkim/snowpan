@@ -314,11 +314,21 @@ const UsedDetail = () => {
   const sellerImage = product.user?.profileImage || '';
   const isMyProduct = user && product.userId === user.id;
 
-  const startChat = () => {
+  // 빠른 질문 (2026-10-12): 첫 말 꺼내기 부담을 줄이려고 한 번 눌러 채팅 시작 + 자동 전송. 거래 방식에 따라 둘째 질문이 바뀐다.
+  const quickQuestions = [
+    '아직 판매 중인가요?',
+    product.tradeMethod === '직거래' ? '택배도 가능한가요?' : product.tradeMethod === '택배' ? '직거래도 가능한가요?' : '직거래 가능한가요?',
+    '가격 조정 가능한가요?',
+  ];
+  const startChat = (initialMessage?: string) => {
     // 탈퇴한 판매자 매물 — sellerId 없이 채팅방 열면 죽은 방이 생김.
     if (!sellerId) { toastError('판매자가 탈퇴하여 채팅할 수 없습니다.'); return; }
+    if (initialMessage && !user) { navigate(loginPath()); return; }
     navigate(`/chat/new`, {
-      state: { seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `${vbase}/used/${product.id}`, productPath: `${vbase}/used/${product.id}` }
+      state: {
+        seller: sellerName, sellerId, productName: product.name, productImage: product.image, productPrice: product.price, backTo: `${vbase}/used/${product.id}`, productPath: `${vbase}/used/${product.id}`,
+        ...(initialMessage ? { initialMessage: `[${product.name}] ${initialMessage}`, autoSend: true } : {}),
+      }
     });
   };
   const toggleWish = async () => {
@@ -557,11 +567,21 @@ const UsedDetail = () => {
                 {wishlisted ? <HeartFilledIcon size={24} /> : <HeartOutlineIcon size={24} />}
               </button>
               <button
-                onClick={startChat}
+                onClick={() => startChat()}
                 className="flex-1 py-3.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
               >
                 {t('usedDetail.startChat')}
               </button>
+            </div>
+          )}
+          {!isMyProduct && product.status !== 'sold' && (
+            <div className="flex flex-wrap gap-1.5" data-testid="quick-questions">
+              {quickQuestions.map((q) => (
+                <button key={q} type="button" onClick={() => startChat(q)}
+                  className="px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200 hover:bg-gray-200 active:scale-95 transition-all">
+                  {q}
+                </button>
+              ))}
             </div>
           )}
           {product.status === 'sold' && !isMyProduct && (
@@ -665,7 +685,7 @@ const UsedDetail = () => {
               {wishlisted ? <HeartFilledIcon size={20} /> : <HeartOutlineIcon size={20} />}
             </button>
             <button
-              onClick={startChat}
+              onClick={() => startChat()}
               className="flex-1 py-2.5 bg-accent text-white rounded-xl font-bold text-sm hover:bg-accent-light transition-colors active:scale-[0.98]"
             >
               {t('usedDetail.startChat')}
