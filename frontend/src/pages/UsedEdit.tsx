@@ -2,6 +2,7 @@ import { toastSuccess, toastError } from '../utils/toast';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api, uploadImages, imageUrl, compressImage } from '../api';
+import UnitInput from '../components/UnitInput';
 import { useVertical } from '../hooks/useVertical';
 import { SNOW_USED_GROUPS } from '../config/verticals';
 
@@ -19,6 +20,7 @@ interface Product {
   usageCount: string | null;
   tradeMethod?: string | null;
   location?: string | null;
+  size?: string | null; radius?: string | null; flex?: string | null; length?: string | null;
 }
 
 // 백엔드는 '상/중/하' 3단계만 사용 (UsedRegister 와 동일). '상중' 은 미지원 —
@@ -52,6 +54,7 @@ const UsedEdit = () => {
     description: '',
     tradeMethod: '직거래',
     location: '',
+    size: '', radius: '', flex: '', // 스펙 (숫자만, 단위는 저장 때 붙임) 2026-10-12
   });
 
   useEffect(() => {
@@ -69,6 +72,7 @@ const UsedEdit = () => {
           description: p.description || '',
           tradeMethod: p.tradeMethod || '직거래',
           location: p.location || '',
+          size: (p.size || '').replace(/[^0-9.]/g, '') || (p.size || ''), radius: (p.radius || '').replace(/[^0-9.]/g, ''), flex: (p.flex || '').replace(/[^0-9]/g, ''),
         });
         const imgs = p.images
           ? p.images.split(',').filter(Boolean)
@@ -83,6 +87,12 @@ const UsedEdit = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const sizeUnit: string | null = !isSnow
+    ? (form.subcategory === 'shoes' ? 'mm' : null)
+    : ['ski', 'board', 'pole'].includes(form.subcategory) ? 'cm'
+    : ['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) ? 'mm'
+    : form.subcategory === 'binding' ? ''
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +130,10 @@ const UsedEdit = () => {
           usageCount: form.usageCount ? `${form.usageCount}년식` : null,
           tradeMethod: form.tradeMethod,
           location: form.location.trim() || null,
+          size: form.size ? `${form.size}${sizeUnit || ''}` : null,
+          length: ['ski', 'board', 'pole'].includes(form.subcategory) ? (form.size || null) : undefined,
+          radius: form.subcategory === 'ski' ? (form.radius ? `${form.radius}m` : null) : undefined,
+          flex: ['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) ? (form.flex || null) : undefined,
         },
       });
       toastSuccess('수정되었습니다!');
@@ -276,10 +290,34 @@ const UsedEdit = () => {
             </div>
           </div>
 
+          {/* 스펙 — 등록 화면과 같은 칸 (전엔 수정에서 못 고쳤음) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>{['ski', 'board', 'pole'].includes(form.subcategory) ? '사이즈/길이' : form.subcategory === 'binding' ? '바인딩 강도' : '사이즈'}</label>
+              {sizeUnit !== null ? (
+                <UnitInput name="size" value={form.size} onChange={(v) => setForm({ ...form, size: v })} unit={sizeUnit || undefined} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170' : form.subcategory === 'pole' ? '예: 120' : form.subcategory === 'binding' ? '예: 16' : '예: 265'} className={inputClass} />
+              ) : (
+                <input type="text" name="size" value={form.size} onChange={handleChange} placeholder="예: L" className={inputClass} />
+              )}
+            </div>
+            {form.subcategory === 'ski' && (
+              <div>
+                <label className={labelClass}>회전반경(R)</label>
+                <UnitInput name="radius" value={form.radius} onChange={(v) => setForm({ ...form, radius: v })} unit="m" decimal placeholder="예: 18" className={inputClass} />
+              </div>
+            )}
+            {['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) && (
+              <div>
+                <label className={labelClass}>플렉스</label>
+                <UnitInput name="flex" value={form.flex} onChange={(v) => setForm({ ...form, flex: v })} placeholder="예: 130" maxLen={3} className={inputClass} />
+              </div>
+            )}
+          </div>
+
           {/* 연식 */}
           <div>
             <label className={labelClass}>연식</label>
-            <input type="text" name="usageCount" value={form.usageCount} onChange={handleChange} placeholder="예: 2022" className={inputClass} />
+            <input type="text" inputMode="numeric" name="usageCount" value={form.usageCount} onChange={(e) => setForm({ ...form, usageCount: e.target.value.replace(isSnow ? /[^0-9-]/g : /[^0-9]/g, '').slice(0, isSnow ? 5 : 4) })} placeholder={isSnow ? '예: 25-26' : '예: 2022'} className={inputClass} />
           </div>
 
           {/* 거래 방식 · 직거래 지역 */}

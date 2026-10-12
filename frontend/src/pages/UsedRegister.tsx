@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { loginPath } from '../utils/loginPath';
 import { useNavigate, Link } from 'react-router-dom';
 import { api, getUser, uploadImages, compressImage } from '../api';
+import UnitInput from '../components/UnitInput';
 import { useUnloadGuard } from '../hooks/useUnloadGuard';
 import { toastSuccess, toastError } from '../utils/toast';
 import MarketPriceBadge from '../components/MarketPriceBadge';
@@ -49,6 +50,14 @@ const UsedRegister = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  // 세부 종류별 사이즈 단위 — null 이면 자유 입력(의류·헬멧 등)
+  const sizeUnit: string | null = !isSnow
+    ? (form.subcategory === 'shoes' ? 'mm' : null)
+    : ['ski', 'board', 'pole'].includes(form.subcategory) ? 'cm'
+    : ['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) ? 'mm'
+    : form.subcategory === 'binding' ? ''
+    : null;
+  const sizeWithUnit = form.size ? `${form.size}${sizeUnit || ''}` : '';
 
   const isDirty = !loading && (
     form.name.trim() !== '' ||
@@ -108,10 +117,11 @@ const UsedRegister = () => {
           tradeMethod: form.tradeMethod || undefined,
           location: form.location || undefined,
           usageCount: form.year ? `${form.year}년식` : undefined,
-          length: form.length || undefined,
-          radius: form.radius || undefined,
+          // 스키·보드·폴은 길이(cm 숫자)를 length 에도 넣어 목록 길이 필터가 잡게 (전엔 비어 있어 필터가 안 됐음)
+          length: ['ski', 'board', 'pole'].includes(form.subcategory) && form.size ? form.size : undefined,
+          radius: form.radius ? `${form.radius}m` : undefined,
           flex: form.flex || undefined,
-          size: form.size || undefined,
+          size: sizeWithUnit || undefined,
         },
       });
       toastSuccess('장비가 등록되었습니다!');
@@ -319,32 +329,23 @@ const UsedRegister = () => {
                 {['ski', 'board', 'pole'].includes(form.subcategory) ? '사이즈/길이' :
                  form.subcategory === 'binding' ? '바인딩 강도' : '사이즈'}
               </label>
-              <input
-                type="text"
-                name="size"
-                value={form.size}
-                onChange={handleChange}
-                placeholder={
-                  !isSnow ? (form.subcategory === 'shoes' ? '예: 270' : '예: L') :
-                  ['ski', 'board'].includes(form.subcategory) ? '예: 170cm' :
-                  form.subcategory === 'pole' ? '예: 120cm' :
-                  form.subcategory === 'binding' ? '예: 16' :
-                  ['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) ? '예: 265mm' :
-                  '예: L'
-                }
-                className={inputClass}
-              />
+              {/* 숫자 스펙은 숫자만 받고 단위를 붙여 보여준다 — 길이 cm, 부츠 mm, 바인딩은 숫자(DIN). 의류 등은 자유 입력 (2026-10-12) */}
+              {sizeUnit !== null ? (
+                <UnitInput name="size" value={form.size} onChange={(v) => setForm({ ...form, size: v })} unit={sizeUnit || undefined} placeholder={['ski', 'board'].includes(form.subcategory) ? '예: 170' : form.subcategory === 'pole' ? '예: 120' : form.subcategory === 'binding' ? '예: 16' : form.subcategory === 'shoes' ? '예: 270' : '예: 265'} className={inputClass} />
+              ) : (
+                <input type="text" name="size" value={form.size} onChange={handleChange} placeholder="예: L" className={inputClass} />
+              )}
             </div>
             {form.subcategory === 'ski' && (
               <div>
                 <label className={labelClass}>회전반경(R)</label>
-                <input type="text" name="radius" value={form.radius} onChange={handleChange} placeholder="예: 18m" className={inputClass} />
+                <UnitInput name="radius" value={form.radius} onChange={(v) => setForm({ ...form, radius: v })} unit="m" decimal placeholder="예: 18" className={inputClass} />
               </div>
             )}
             {['boots', 'ski_boots', 'board_boots'].includes(form.subcategory) && (
               <div>
                 <label className={labelClass}>플렉스</label>
-                <input type="text" name="flex" value={form.flex} onChange={handleChange} placeholder="예: 130" className={inputClass} />
+                <UnitInput name="flex" value={form.flex} onChange={(v) => setForm({ ...form, flex: v })} placeholder="예: 130" maxLen={3} className={inputClass} />
               </div>
             )}
           </div>
@@ -356,9 +357,10 @@ const UsedRegister = () => {
               <label className={labelClass}>연식</label>
               <input
                 type="text"
+                inputMode="numeric"
                 name="year"
                 value={form.year}
-                onChange={handleChange}
+                onChange={(e) => setForm({ ...form, year: e.target.value.replace(isSnow ? /[^0-9-]/g : /[^0-9]/g, '').slice(0, isSnow ? 5 : 4) })}
                 placeholder={isSnow ? '예: 25-26' : '예: 2024'}
                 className={inputClass}
               />
