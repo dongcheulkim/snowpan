@@ -47,10 +47,10 @@ const RAW: Array<[string, string]> = [
 ];
 
 const seen = new Set<string>();
-export const GEAR_BRANDS: GearBrand[] = RAW.filter(([ko]) => { if (seen.has(ko)) return false; seen.add(ko); return true; }).map(([ko, en]) => ({ ko, en }));
+const GEAR_BRANDS: GearBrand[] = RAW.filter(([ko]) => { if (seen.has(ko)) return false; seen.add(ko); return true; }).map(([ko, en]) => ({ ko, en }));
 
 // 검색 정규화 — 소문자, 공백·점·하이픈 제거, 움라우트 등 발음 기호 제거 (volkl → Völkl)
-export function normalizeBrandQuery(s: string): string {
+function normalizeBrandQuery(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[\s.'-]/g, '');
 }
 

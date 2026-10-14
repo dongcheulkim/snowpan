@@ -54,7 +54,7 @@ interface ApiOptions {
 let refreshPromise: Promise<string | null> | null = null;
 // 마지막 갱신 실패 원인 — 'invalid'(서버가 세션을 거절, 401) | 'transient'(네트워크·서버 일시 장애).
 // transient 면 로그아웃하지 않는다 (2026-10-08 "앱 로그인 안 풀리게": 지하철·엘리베이터에서 앱을 열면 로그인이 풀리던 원인).
-export let lastRefreshFailure: 'invalid' | 'transient' | null = null;
+let lastRefreshFailure: 'invalid' | 'transient' | null = null;
 export async function tryRefreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {

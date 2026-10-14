@@ -10,7 +10,7 @@ function emit() {
   listeners.forEach(l => l([...items]));
 }
 
-export function toast(message: string, type: ToastType = 'info', durationMs = 2500) {
+function toast(message: string, type: ToastType = 'info', durationMs = 2500) {
   const id = nextId++;
   items = [...items, { id, message, type }];
   emit();

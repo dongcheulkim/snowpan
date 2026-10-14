@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { toastError, toastSuccess } from '../utils/toast';
+import { saveOrShareFile } from '../utils/saveFile';
 
 // 관리자 설정 → 이벤트 (2026-10-03). 앱 출시 이벤트 문구·활성·마감일 수정, 신청자 목록(인스타·이름·연락처) 확인·CSV 저장.
 interface Cfg { active: boolean; title: string; description: string; prize: string; endsAt: string | null; buttonLabel: string; open: boolean; count?: number }
@@ -28,12 +29,13 @@ export default function AdminEventPanel() {
     if (!window.confirm(`${en.name || en.user.name} 님 신청을 지울까요?`)) return;
     try { await api(`/events/admin/${KEY}/entries/${en.id}`, { method: 'DELETE' }); load(); } catch { toastError('지우지 못했어요.'); }
   };
-  const downloadCsv = () => {
+  const downloadCsv = async () => {
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [['신청일시', '이름', '닉네임', '인스타그램', '전화', '이메일', '가입방식', '응원 한마디', '개인정보 동의'].map(esc).join(',')];
     for (const e of entries) lines.push([new Date(e.createdAt).toLocaleString('ko-KR'), e.name || e.user.name, e.user.nickname || '', e.instagram ? '@' + e.instagram : '', e.phone || e.user.phone || '', e.user.email, e.user.provider || 'email', e.message || '', e.agreedAt ? '동의' : '동의 기록 없음(당첨 연락 때 받기)'].map(esc).join(','));
-    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `이벤트_신청자_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    // 앱에선 브라우저 다운로드가 없어 파일 공유창으로 (utils/saveFile.ts)
+    const r = await saveOrShareFile({ filename: `이벤트_신청자_${new Date().toISOString().slice(0, 10)}.csv`, mime: 'text/csv', text: '\ufeff' + lines.join('\n') });
+    if (r === 'failed') toastError('파일을 저장하지 못했어요.');
   };
   const input = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm';
 

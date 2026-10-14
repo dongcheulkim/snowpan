@@ -1,5 +1,6 @@
 import { toastError, toastSuccess } from '../utils/toast';
 import { shareLink } from '../utils/share';
+import { saveOrShareFile } from '../utils/saveFile';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
@@ -187,7 +188,7 @@ function QrPanel({ shopType, shopId, shopName }: { shopType: string; shopId: str
         <p className="text-xs text-gray-500 text-center py-6">{failed ? 'QR 코드를 만들지 못했어요. 새로고침해 주세요.' : '만드는 중...'}</p>
       )}
       <p className="text-[10px] text-gray-500 break-all text-center">{url}</p>
-      {dataUrl && <a href={dataUrl} download={`snowpan-qr-${shopName}.png`} className={`${BTN_OFF} block text-center`}>PNG 내려받기</a>}
+      {dataUrl && <button type="button" onClick={async () => { const r = await saveOrShareFile({ filename: `snowpan-qr-${shopName}.png`, mime: 'image/png', base64: dataUrl.split(',')[1] || '' }); if (r === 'failed') toastError('저장하지 못했어요. 화면을 캡처해 주세요.'); }} className={`${BTN_OFF} block w-full text-center`}>PNG 저장</button>}
     </div>
   );
 }
