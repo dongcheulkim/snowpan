@@ -1,4 +1,5 @@
 import { toastError, toastSuccess } from '../utils/toast';
+import { shareLink } from '../utils/share';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getUser } from '../api';
@@ -102,11 +103,10 @@ function RecruitPanel({ shopType, shopId, shopName, approved }: { shopType: stri
     try { const d = await api<{ items: Applicant[] }>(`/recruits/${r.id}/applications`); setApps((m) => ({ ...m, [r.id]: d.items || [] })); }
     catch (e) { toastError(e instanceof Error ? e.message : '신청자를 불러오지 못했어요.'); }
   };
-  const link = (r: RecruitItem) => `${window.location.origin}/recruit/${r.id}`;
   const share = async (r: RecruitItem) => {
-    const url = link(r);
-    if (navigator.share) { try { await navigator.share({ title: `${shopName} ${r.title}`, text: r.description.slice(0, 80), url }); return; } catch { /* 취소 */ } }
-    try { await navigator.clipboard.writeText(url); toastSuccess('링크를 복사했어요. 인스타·카톡에 올려 주세요.'); } catch { toastError('복사하지 못했어요.'); }
+    const res = await shareLink({ title: `${shopName} ${r.title}`, text: r.description.slice(0, 80), url: `/recruit/${r.id}` });
+    if (res === 'copied') toastSuccess('링크를 복사했어요. 인스타·카톡에 올려 주세요.');
+    else if (res === 'failed') toastError('복사하지 못했어요.');
   };
   const inputClass = 'w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-sky-400';
   return (
@@ -285,9 +285,9 @@ function StaffPanel({ shopType, shopId, shopName, approved }: { shopType: string
     catch { toastError('복사하지 못했어요. 링크를 길게 눌러 복사해 주세요.'); }
   };
   const share = async (url: string) => {
-    if (navigator.share) {
-      try { await navigator.share({ title: `${shopName} 직원 초대`, text: `스노우판에서 '${shopName}' 매장을 함께 관리해요. 링크를 열고 참여를 눌러 주세요.`, url }); } catch { /* 공유 취소 */ }
-    } else await copy(url);
+    const res = await shareLink({ title: `${shopName} 직원 초대`, text: `스노우판에서 '${shopName}' 매장을 함께 관리해요. 링크를 열고 참여를 눌러 주세요.`, url });
+    if (res === 'copied') toastSuccess('링크를 복사했어요.');
+    else if (res === 'failed') toastError('복사하지 못했어요. 링크를 길게 눌러 복사해 주세요.');
   };
   return (
     <div className="mt-2.5 pt-2.5 border-t border-gray-100 space-y-2">

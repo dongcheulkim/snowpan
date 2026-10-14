@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { shareLink } from '../utils/share';
 
 interface ShareButtonProps {
   title?: string;
@@ -11,32 +12,11 @@ export default function ShareButton({ title, text, url, className = '' }: ShareB
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const shareUrl = url || window.location.href;
-    const shareData = {
-      title: title || document.title,
-      text: text || '',
-      url: shareUrl,
-    };
-
-    // 1. 모바일 네이티브 공유 (카톡/인스타/문자 등 선택 가능)
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err) {
-        if ((err as { name?: string } | null)?.name === 'AbortError') return; // 사용자 취소
-        // 다른 오류면 fallback
-      }
-    }
-
-    // 2. Fallback: 클립보드 복사
-    try {
-      await navigator.clipboard.writeText(shareUrl);
+    // 앱은 네이티브 공유창, 웹은 브라우저 공유창 → 없으면 클립보드 (utils/share.ts)
+    const r = await shareLink({ title, text, url });
+    if (r === 'copied') {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // 3. 최후: prompt로 노출
-      window.prompt('링크를 복사하세요:', shareUrl);
     }
   };
 

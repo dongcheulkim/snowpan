@@ -27,7 +27,7 @@ export default function RecruitCard({ shopType, shopId }: { shopType: string; sh
               <h2 className="text-base font-bold text-gray-900 mt-1.5">{r.title}</h2>
               {r.deadline && <p className="text-[11px] text-gray-500 mt-0.5">{r.deadline.replace(/-/g, '.')}까지</p>}
             </div>
-            <ShareButton title={`${r.shopName} ${r.title}`} text={r.description.slice(0, 80)} url={`${window.location.origin}/recruit/${r.id}`} />
+            <ShareButton title={`${r.shopName} ${r.title}`} text={r.description.slice(0, 80)} url={`/recruit/${r.id}`} />
           </div>
           <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap line-clamp-4">{r.description}</p>
           <Link to={`/recruit/${r.id}`} className="block w-full min-h-11 py-3 mt-3 text-center bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors">자세히 보고 신청하기</Link>

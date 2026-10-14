@@ -1,4 +1,5 @@
 import { toastSuccess, toastError } from '../utils/toast';
+import { shareLink } from '../utils/share';
 import { loginPath } from '../utils/loginPath';
 import { hapticLight } from '../utils/haptics';
 import { useState, useEffect } from 'react';
@@ -145,18 +146,9 @@ const CommunityDetail = () => {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    const title = post?.title || '게시글';
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url });
-      } catch { /* ignore - user cancelled */ }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        toastSuccess('링크가 클립보드에 복사되었습니다.');
-      } catch { /* ignore */ }
-    }
+    const r = await shareLink({ title: post?.title || '게시글', text: post?.title ? `${post.title} · 스노우판 커뮤니티` : undefined });
+    if (r === 'copied') toastSuccess('링크를 복사했어요.');
+    else if (r === 'failed') toastError('공유하지 못했어요. 링크를 복사해 주세요.');
   };
 
   const handleReport = async () => {

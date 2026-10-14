@@ -69,7 +69,7 @@ export default function RecruitDetail() {
             <h1 className="text-xl font-bold text-gray-900 mt-1">{r.title}</h1>
             <p className="text-[11px] text-gray-500 mt-0.5">{r.active ? (r.deadline ? `${r.deadline.replace(/-/g, '.')}까지 신청` : '신청 받는 중') : '마감된 모집이에요'}</p>
           </div>
-          <ShareButton title={`${r.shopName} ${r.title}`} text={r.description.slice(0, 80)} url={`${window.location.origin}/recruit/${r.id}`} />
+          <ShareButton title={`${r.shopName} ${r.title}`} text={r.description.slice(0, 80)} url={`/recruit/${r.id}`} />
         </div>
         <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{r.description}</p>
       </div>

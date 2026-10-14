@@ -5,6 +5,7 @@ import { api, getUser, imageUrl } from '../api';
 import { t, onLangChange } from '../i18n';
 import { useMeta } from '../hooks/useMeta';
 import { toastSuccess, toastError } from '../utils/toast';
+import { shareLink } from '../utils/share';
 import { HeartFilledIcon, HeartOutlineIcon, ShieldIcon, UserIcon } from '../components/Icons';
 import PhotoViewer from '../components/PhotoViewer';
 import MarketPriceBadge from '../components/MarketPriceBadge';
@@ -206,18 +207,9 @@ const UsedDetail = () => {
   const conditionLabels: Record<string, string> = { '상': '새상품/거의 새 거', '중': '사용감 적음', '하': '사용감 많음' };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    const title = product?.name || '상품';
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, url });
-      } catch { /* ignore - user cancelled */ }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        toastSuccess('링크가 클립보드에 복사되었습니다.');
-      } catch { /* ignore */ }
-    }
+    const r = await shareLink({ title: product?.name || '상품', text: product ? `${product.name} ${product.price.toLocaleString()}원 · 스노우판 중고` : undefined });
+    if (r === 'copied') toastSuccess('링크를 복사했어요.');
+    else if (r === 'failed') toastError('공유하지 못했어요. 링크를 복사해 주세요.');
   };
 
   // 판매완료는 구매자 선택 모달을 거친다 (지정하면 그 구매자에게만 후기 요청).
