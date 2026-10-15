@@ -3,7 +3,7 @@
 const { chromium } = require('/Users/jason/bada-now/node_modules/playwright');
 const fs = require('fs'); const path = require('path'); const { execSync } = require('child_process');
 const FPS = 25, GAP = 0.22, END_SEC = 2.8;
-const VOICE = process.env.VOICE || 'ko-KR-SunHiNeural', RATE = process.env.RATE || '+12%';
+const VOICE = process.env.VOICE || 'none', RATE = process.env.RATE || '+12%';
 const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const OUT = process.argv[3] || path.join(__dirname, 'out_k'); fs.mkdirSync(OUT, { recursive: true });
 const work = path.join(__dirname, 'kwork_' + spec.id); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work);
@@ -15,18 +15,26 @@ const KEYS = /(스노우판|무료|0원|수수료|할인|필수|추천|주의|�
 function wordsOf(line) {
   const raw = line.replace(/[.?!]$/, '').split(/\s+/).filter(Boolean);
   const out = []; let len = 0;
-  for (const w of raw) { if (len + w.length > 13 && len > 0) { out.push({ t: '\n' }); len = 0; } out.push({ t: w, cls: /\d/.test(w) ? 'num' : KEYS.test(w) ? 'key' : '' }); len += w.length + 1; }
+  raw.forEach((w, idx) => { const lastShort = idx === raw.length - 1 && w.length <= 2; if (len + w.length > 13 && len > 0 && !lastShort) { out.push({ t: '\n' }); len = 0; } out.push({ t: w, cls: /\d/.test(w) ? 'num' : KEYS.test(w) ? 'key' : '' }); len += w.length + 1; });
   return out;
 }
 (async () => {
   // 1) 음성 타임라인
-  const timeline = []; let t = 0.5; const parts = [];
-  spec.slides.forEach((sl, si) => sl.lines.forEach((line, li) => { const f = tts(line, path.join(work, `s${si}_${li}`)); const d = dur(f); timeline.push({ si, li, line, start: t, end: t + d, words: wordsOf(line) }); parts.push({ f, at: t }); t += d + GAP; }));
+  // 음성 없음(사장님 결정 2026-10-15 "음성 빼자") — 문장 길이로 읽기 시간을 정한다. VOICE=none 이 기본, 음성이 필요하면 VOICE=ko-KR-SunHiNeural
+  const SILENT = (process.env.VOICE || 'none') === 'none';
+  const readSec = (line) => clamp(0.9 + 0.17 * line.replace(/\s/g, '').length, 1.5, 3.4);
+  const timeline = []; let t = 0.4; const parts = [];
+  spec.slides.forEach((sl, si) => sl.lines.forEach((line, li) => { let d; if (SILENT) d = readSec(line); else { const f = tts(line, path.join(work, `s${si}_${li}`)); d = dur(f); parts.push({ f, at: t }); } timeline.push({ si, li, line, start: t, end: t + d, words: wordsOf(line) }); t += d + GAP; }));
   const endStart = t + 0.15; let total = endStart + END_SEC;
-  if (spec.endLine) { const f = tts(spec.endLine, path.join(work, 'end')); parts.push({ f, at: endStart + 0.25 }); total = Math.max(total, endStart + 0.25 + dur(f) + 0.5); }
-  const inputs = parts.map((p) => `-i "${p.f}"`).join(' ');
-  const delays = parts.map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.at * 1000)}|${Math.round(p.at * 1000)}[a${i}]`).join(';');
-  execSync(`ffmpeg -hide_banner -loglevel error -y -f lavfi -t ${total.toFixed(2)} -i anullsrc=r=44100:cl=stereo ${inputs} -filter_complex "${delays};[0:a]${parts.map((_, i) => `[a${i}]`).join('')}amix=inputs=${parts.length + 1}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[out]" -map "[out]" -c:a aac -b:a 160k "${work}/audio.m4a"`);
+  if (!SILENT && spec.endLine) { const f = tts(spec.endLine, path.join(work, 'end')); parts.push({ f, at: endStart + 0.25 }); total = Math.max(total, endStart + 0.25 + dur(f) + 0.5); }
+  if (parts.length) {
+    const inputs = parts.map((p) => `-i "${p.f}"`).join(' ');
+    const delays = parts.map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.at * 1000)}|${Math.round(p.at * 1000)}[a${i}]`).join(';');
+    execSync(`ffmpeg -hide_banner -loglevel error -y -f lavfi -t ${total.toFixed(2)} -i anullsrc=r=44100:cl=stereo ${inputs} -filter_complex "${delays};[0:a]${parts.map((_, i) => `[a${i}]`).join('')}amix=inputs=${parts.length + 1}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[out]" -map "[out]" -c:a aac -b:a 160k "${work}/audio.m4a"`);
+  } else {
+    // 무음 트랙(플랫폼 호환용) — 올릴 때 앱에서 음악을 입힌다
+    execSync(`ffmpeg -hide_banner -loglevel error -y -f lavfi -t ${total.toFixed(2)} -i anullsrc=r=44100:cl=stereo -c:a aac -b:a 64k "${work}/audio.m4a"`);
+  }
   // 2) 샷 배정 — 문장마다 한 컷. 종류: hook(첫 문장, 사진 배경), text(흐린 포스터 배경 + 큰 글자), punch(포스터 확대 패닝 + 아래쪽 글자), close(마지막, 사진 배경)
   const n = timeline.length; const slideCount = spec.slides.length;
   timeline.forEach((x, i) => {
