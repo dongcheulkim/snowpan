@@ -19,7 +19,11 @@
 ## 올리는 순서 (하루 1개, 저녁 7~9시)
 1 ski_trip_checklist → 2 ski_wear_fabric → 3 app_launch → 4 group_vs_private → 5 lesson_consumer_rights → 6 junior_badge → 7 cert_not_only_instructor → 8 cert_level_vs_teaching → 9 lesson_no_fee → 10 muju_o2_seasonpass(10/24 전에)
 
-## 만든 방법
+## 2026-10-15 키네틱 버전 (사장님 "지루하다" 피드백)
+- 포스터가 천천히 커지는 방식(narrate.cjs) 대신 `src/kinetic.cjs specs_k/<이름>.json out_k`: 문장마다 컷, 말하는 단어가 큰 글자로 켜짐(숫자 노랑·키워드 하늘색), 새 슬라이드 첫 문장에만 포스터를 보여주고 나머지는 사진 배경 + 글자. 대본은 `specs_k/`(짧게 다시 씀, 35~60초).
+- 음성은 edge-tts `ko-KR-SunHiNeural`, 속도 +12%.
+
+## 만든 방법 (처음 버전)
 - 원본: 인스타 @snowpan.kr 캐러셀 슬라이드(공식 API로 받음), 기간 지난 곤지암 시즌권·앰버서더 모집 2개는 제외
 - 음성: 마이크로소프트 신경망 한국어 음성(edge-tts, 기본 ko-KR-SunHiNeural 여성 · ko-KR-InJoonNeural 남성, 키 불필요)으로 문장마다 합성, 자막은 같은 문장을 같은 타이밍에 표시. `python3 -m pip install --user edge-tts` 필요. 맥 내장 음성(say)은 ENGINE=say 로만 남겨둠(기계 티가 나서 미사용)
 - 재생성: `node src/narrate.cjs specs/<이름>.json out` (남성 음성은 `VOICE=ko-KR-InJoonNeural`, 속도는 `RATE=+8%` 식으로) (대본은 specs 폴더, 문장을 고치면 음성·자막이 같이 바뀜)

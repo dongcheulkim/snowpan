@@ -1,0 +1,55 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box} html,body{width:1080px;height:1920px;overflow:hidden;background:#07090f}
+body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;position:relative}
+#cam{position:absolute;inset:0;transform-origin:center;will-change:transform}
+#bg{position:absolute;inset:-80px;background:#07090f center/cover no-repeat;will-change:transform,filter}
+#shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,15,.35),rgba(7,9,15,.55) 55%,rgba(7,9,15,.92))}
+#poster{position:absolute;left:0;top:0;width:1080px;height:1350px;background:center/cover no-repeat;transform-origin:top center;will-change:transform;display:none;box-shadow:0 40px 120px rgba(0,0,0,.6);border-radius:28px}
+#pshade{position:absolute;left:0;right:0;top:1150px;height:770px;background:linear-gradient(180deg,rgba(7,9,15,0),rgba(7,9,15,.95) 35%);z-index:3;display:none}
+#brand{position:absolute;top:66px;left:64px;height:40px;display:flex;align-items:center;z-index:5} #brand img{height:34px;filter:invert(1) brightness(2)}
+#handle{position:absolute;top:70px;right:64px;font-size:24px;font-weight:600;color:rgba(255,255,255,.75);z-index:5}
+#kicker{position:absolute;left:72px;top:300px;z-index:4;display:inline-flex;align-items:center;gap:14px;font-size:30px;font-weight:800;color:#FF5A5F;letter-spacing:1px}
+#kicker:empty{display:none} #kicker::before{content:"";width:10px;height:34px;background:#FF5A5F}
+#txt{position:absolute;left:72px;right:72px;top:360px;z-index:4;font-size:88px;font-weight:900;line-height:1.18;letter-spacing:-2.5px;text-shadow:0 4px 30px rgba(0,0,0,.55)}
+#txt.low{top:1470px;font-size:62px;line-height:1.2}
+#txt .w{display:inline-block;opacity:.28;transform:translateY(18px);margin-right:.22em}
+#txt .w.on,#txt .w.said{opacity:1;transform:none;color:#fff}
+#txt .w.on.num,#txt .w.said.num{color:#FFD54A}
+#txt .w.on.key,#txt .w.said.key{color:#BFE7FF}
+#txt .br{display:block;height:0}
+#prog{position:absolute;left:60px;right:60px;bottom:70px;height:6px;background:rgba(255,255,255,.18);border-radius:3px;z-index:5} #prog i{display:block;height:100%;background:#fff;border-radius:3px;width:0}
+#end{position:absolute;inset:0;background:#07090f;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:6;padding:0 80px}
+#end .bgp{position:absolute;inset:0;background:center/cover no-repeat;opacity:.3;filter:blur(6px)}
+#end img{width:620px;filter:invert(1) brightness(2);position:relative}
+#end .t{position:relative;margin-top:50px;font-size:58px;font-weight:900;line-height:1.3;white-space:pre-line;letter-spacing:-1px}
+#end .st{position:relative;margin-top:56px;display:flex;gap:28px}
+#end .st div{border:3px solid rgba(255,255,255,.7);border-radius:28px;padding:26px 44px;font-size:34px;font-weight:700}
+#end .u{position:relative;margin-top:56px;font-size:40px;font-weight:700;color:#BFE7FF}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:8;pointer-events:none}
+#fade{position:absolute;inset:0;background:#07090f;opacity:0;z-index:9}
+</style></head><body>
+<div id="cam"><div id="bg"></div><div id="shade"></div><div id="poster"></div></div>
+<div id="brand"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div id="handle">@snowpan.kr</div>
+<div id="pshade"></div><div id="kicker"></div><div id="txt"></div>
+<div id="prog"><i id="progi"></i></div>
+<div id="end"><div class="bgp" id="endbg"></div><img src="snowpan-wordmark.svg" alt=""><div class="t" id="endt"></div><div class="st"><div>App Store</div><div>Google Play</div></div><div class="u">snowpan.kr · @snowpan.kr</div></div>
+<div id="flash"></div><div id="fade"></div>
+<script>
+const $=id=>document.getElementById(id); let lastKey='';
+window.render=function(s){
+  $('cam').style.transform=`scale(${s.cam||1})`;
+  if(s.bg!==undefined){ $('bg').style.backgroundImage=s.bg?`url("${s.bg}")`:'none'; }
+  $('bg').style.transform=`scale(${s.bgZoom||1}) translate(${s.bgX||0}px,${s.bgY||0}px)`; $('bg').style.filter=s.bgBlur?`blur(${s.bgBlur}px) brightness(${s.bgBright??.5})`:`brightness(${s.bgBright??1})`;
+  $('shade').style.opacity=s.shade??1;
+  const po=$('poster'); $('pshade').style.display=s.poster?'block':'none'; if(s.poster){po.style.display='block';po.style.backgroundImage=`url("${s.poster}")`;po.style.transform=`translate(${s.posterX||0}px,${s.posterY||0}px) scale(${s.posterZoom||1})`;}else po.style.display='none';
+  $('kicker').textContent=s.kicker||'';
+  const key=(s.words||[]).map(w=>w.t).join('|')+'|'+(s.low?1:0);
+  const tx=$('txt'); if(key!==lastKey){ lastKey=key; tx.className=s.low?'low':''; tx.innerHTML=(s.words||[]).map(w=>w.t==='\n'?'<span class="br"></span>':`<span class="w${w.cls?' '+w.cls:''}">${w.t}</span>`).join(''); }
+  const spans=tx.querySelectorAll('.w'); let i=0; (s.words||[]).forEach(w=>{ if(w.t==='\n') return; const el=spans[i++]; if(el) el.className='w'+(w.cls?' '+w.cls:'')+(w.state==='on'?' on':w.state==='said'?' said':''); });
+  tx.style.opacity=s.txtAlpha??1; tx.style.transform=`translateY(${s.txtY||0}px)`;
+  $('progi').style.width=((s.progress||0)*100)+'%';
+  const en=$('end'); if(s.end){en.style.display='flex';$('endt').textContent=s.end.t||'';$('endbg').style.backgroundImage=s.end.bg?`url("${s.end.bg}")`:'none';en.style.opacity=s.end.alpha??1}else en.style.display='none';
+  $('flash').style.opacity=s.flash||0; $('fade').style.opacity=s.fade||0; return true;
+};
+</script></body></html>
