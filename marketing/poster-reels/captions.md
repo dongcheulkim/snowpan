@@ -19,6 +19,9 @@
 ## 올리는 순서 (하루 1개, 저녁 7~9시)
 1 ski_trip_checklist → 2 ski_wear_fabric → 3 app_launch → 4 group_vs_private → 5 lesson_consumer_rights → 6 junior_badge → 7 cert_not_only_instructor → 8 cert_level_vs_teaching → 9 lesson_no_fee → 10 muju_o2_seasonpass(10/24 전에)
 
+## 2026-10-15 빠른 버전 (사장님 "더 짧고 빠르게")
+- `specs_f/` 대본(슬라이드당 한 문장, 13~25초), 문장당 1.0~2.2초, 컷 간격 0.12초, 무음. `node src/kinetic.cjs specs_f/<이름>.json out`
+
 ## 2026-10-15 키네틱 버전 (사장님 "지루하다" 피드백)
 - 포스터가 천천히 커지는 방식(narrate.cjs) 대신 `src/kinetic.cjs specs_k/<이름>.json out_k`: 문장마다 컷, 말하는 단어가 큰 글자로 켜짐(숫자 노랑·키워드 하늘색), 새 슬라이드 첫 문장에만 포스터를 보여주고 나머지는 사진 배경 + 글자. 대본은 `specs_k/`(짧게 다시 씀, 35~60초).
 - **음성 없음**(사장님 결정 2026-10-15 "음성 빼자"): 문장 길이로 읽기 시간을 정하고(1.5~3.4초) 무음 트랙만 넣음. 올릴 때 앱에서 음악 선택. 음성을 다시 넣으려면 `VOICE=ko-KR-SunHiNeural node src/kinetic.cjs ...`.

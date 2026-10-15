@@ -2,7 +2,7 @@
 // 포스터는 핵심 부분을 빠르게 확대해 보여준다. 입력 spec 은 narrate.cjs 와 같은 형식 (slides[].img, slides[].lines, endText, endLine).
 const { chromium } = require('/Users/jason/bada-now/node_modules/playwright');
 const fs = require('fs'); const path = require('path'); const { execSync } = require('child_process');
-const FPS = 25, GAP = 0.22, END_SEC = 2.8;
+const FPS = 25, GAP = Number(process.env.GAP || 0.12), END_SEC = Number(process.env.END_SEC || 1.8);
 const VOICE = process.env.VOICE || 'none', RATE = process.env.RATE || '+12%';
 const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const OUT = process.argv[3] || path.join(__dirname, 'out_k'); fs.mkdirSync(OUT, { recursive: true });
@@ -22,8 +22,8 @@ function wordsOf(line) {
   // 1) 음성 타임라인
   // 음성 없음(사장님 결정 2026-10-15 "음성 빼자") — 문장 길이로 읽기 시간을 정한다. VOICE=none 이 기본, 음성이 필요하면 VOICE=ko-KR-SunHiNeural
   const SILENT = (process.env.VOICE || 'none') === 'none';
-  const readSec = (line) => clamp(0.9 + 0.17 * line.replace(/\s/g, '').length, 1.5, 3.4);
-  const timeline = []; let t = 0.4; const parts = [];
+  const readSec = (line) => clamp(0.55 + 0.11 * line.replace(/\s/g, '').length, 1.0, 2.2); // 빠르게 (사장님 2026-10-15 "더 짧고 빠르게")
+  const timeline = []; let t = 0.25; const parts = [];
   spec.slides.forEach((sl, si) => sl.lines.forEach((line, li) => { let d; if (SILENT) d = readSec(line); else { const f = tts(line, path.join(work, `s${si}_${li}`)); d = dur(f); parts.push({ f, at: t }); } timeline.push({ si, li, line, start: t, end: t + d, words: wordsOf(line) }); t += d + GAP; }));
   const endStart = t + 0.15; let total = endStart + END_SEC;
   if (!SILENT && spec.endLine) { const f = tts(spec.endLine, path.join(work, 'end')); parts.push({ f, at: endStart + 0.25 }); total = Math.max(total, endStart + 0.25 + dur(f) + 0.5); }
@@ -53,7 +53,7 @@ function wordsOf(line) {
     const tt = i / FPS; const st = { progress: clamp(tt / endStart, 0, 1) };
     let cur = timeline.find((x) => tt >= x.start - 0.12 && tt < x.end + GAP); if (!cur && tt < endStart) cur = timeline[timeline.length - 1];
     if (cur && tt < endStart) {
-      const sStart = cur.start - 0.12, sLen = (cur.end + GAP) - sStart, k = clamp((tt - sStart) / sLen, 0, 1); const punch = 1 + 0.07 * (1 - ease(clamp((tt - sStart) / 0.28, 0, 1)));
+      const sStart = cur.start - 0.12, sLen = (cur.end + GAP) - sStart, k = clamp((tt - sStart) / sLen, 0, 1); const punch = 1 + 0.1 * (1 - ease(clamp((tt - sStart) / 0.2, 0, 1)));
       // 단어 상태 — 문장 길이에 글자 수 비례 배분
       const chars = cur.words.filter((w) => w.t !== "\n").reduce((a, w) => a + w.t.length, 0); let acc = 0;
       st.words = cur.words.map((w) => { if (w.t === '\n') return w; const ws = cur.start + (acc / chars) * (cur.end - cur.start); acc += w.t.length; const we = cur.start + (acc / chars) * (cur.end - cur.start); return { ...w, state: tt >= we ? 'said' : tt >= ws ? 'on' : '' }; });
@@ -65,7 +65,7 @@ function wordsOf(line) {
       st.txtY = 12 * (1 - ease(clamp((tt - sStart) / 0.3, 0, 1)));
     }
     if (tt >= endStart) { const ek = clamp((tt - endStart) / 0.45, 0, 1); st.end = { t: spec.endText, bg: lastImg, alpha: ek }; st.words = []; st.bg = lastImg; st.bgBlur = 0; }
-    if (tt < 0.35) st.fade = 1 - tt / 0.35; if (tt > total - 0.5) st.fade = (tt - (total - 0.5)) / 0.5;
+    if (tt < 0.2) st.fade = 1 - tt / 0.2; if (tt > total - 0.35) st.fade = (tt - (total - 0.35)) / 0.35;
     await page.evaluate((s) => window.render(s), st);
     await page.screenshot({ type: 'jpeg', quality: 90, path: path.join(fdir, String(i).padStart(5, '0') + '.jpg') });
   }
