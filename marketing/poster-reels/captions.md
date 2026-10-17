@@ -25,6 +25,11 @@
   - Voltaic: `Music: Voltaic by Kevin MacLeod (incompetech.com), CC BY 4.0`
   - Hyperfun: `Music: Hyperfun by Kevin MacLeod (incompetech.com), CC BY 4.0`
 - 합치기: `ffmpeg -i 영상.mp4 -ss 12 -i Voltaic.mp3 -filter_complex "[1:a]atrim=0:길이,afade=t=in:d=0.3,afade=t=out:st=길이-0.9:d=0.9,volume=-5dB,loudnorm=I=-14:TP=-1[m]" -map 0:v -map "[m]" -c:v copy -c:a aac -shortest out.mp4` (Voltaic 은 12초, Hyperfun 은 6초 지점부터)
+- 2026-10-17 사장님 요청 "베이스 울리는 약간 느린 테크노" → `음악버전_BasementFloor`(98bpm, 묵직한 신스 베이스, 어둡고 그루비 — 1순위) · `음악버전_CutAndRun`(109bpm, 모던 클럽). 같은 Kevin MacLeod CC BY 4.0. 설명란 크레딧:
+  - `Music: Basement Floor by Kevin MacLeod (incompetech.com), CC BY 4.0`
+  - `Music: Cut and Run by Kevin MacLeod (incompetech.com), CC BY 4.0`
+  - 예비곡(음원_CC-BY 폴더): Misuse(115, 다크 댄스), Ethernight Club(117, 새벽 클럽), Rocket(116, 유로테크)
+- 곡 고르는 법: incompetech `pieces.json`(제목·bpm·feel·설명)을 받아 bpm·feel 로 거르고, ffmpeg `lowpass=f=120,volumedetect` 로 120Hz 이하 에너지를 재서 베이스 센 곡을 고름.
 - 다른 곡 후보(같은 라이선스, 받아 둠): Electro Cabello(일렉트로 스윙), Dance Monster, Carefree(밝은 우쿨렐레), Cipher2(전자음)
 
 ## 2026-10-15 빠른 버전 (사장님 "더 짧고 빠르게")
