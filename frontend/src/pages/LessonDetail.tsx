@@ -81,13 +81,14 @@ const LessonDetail = () => {
       {gallery && <div className={DETAIL_PHOTO}><PhotoGallery images={gallery} /></div>}
 
       <div className="card rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-1">
-          {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded">{item.type}</span>}
-          {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">{item.resort.name}</span>}
-          {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900">사업자 확인</span>}
-          {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-0.5 rounded">자격 확인</span>}
-          {item.specialties && item.specialties.split(',').map((sp) => (
-            <span key={sp} className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">{sp}</span>
+        {/* 배지가 많으면 줄바꿈 — 한 줄에 눌려 글자가 세로로 쪼개지던 것 (2026-10-17 사장님 "뱃지가 다 짤려 보여") */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded whitespace-nowrap">{item.type}</span>}
+          {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 whitespace-nowrap">{item.resort.name}</span>}
+          {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900 whitespace-nowrap">사업자 확인</span>}
+          {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-0.5 rounded whitespace-nowrap">자격 확인</span>}
+          {item.specialties && item.specialties.split(',').map((sp) => sp.trim()).filter(Boolean).map((sp) => (
+            <span key={sp} className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">{sp}</span>
           ))}
         </div>
         <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>

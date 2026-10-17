@@ -211,22 +211,22 @@ const Lesson = () => {
                       ? <img src={imageUrl(cover, 200)} alt="" loading="lazy" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       : (/보드/.test(item.type || '') ? <SnowboardIcon size={22} className="text-white" /> : <SkiIcon size={22} className="text-white" />)}
                   </div>
+                  {/* 이름 + 가격 한 줄, 배지는 아랫줄 — 배지 3개와 가격이 한 줄에 몰려 이름이 "올라운드 ···" 로 잘리던 것 (2026-10-17 사장님 "너무 이상하게 보인다") */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-baseline justify-between gap-2">
                       <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
-                      {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
-                      {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900 flex-shrink-0">사업자 확인</span>}
-                      {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-0.5 rounded flex-shrink-0">자격 확인</span>}
+                      {item.minPrice != null && <span className="text-sm font-bold text-gray-900 tabular-nums shrink-0">{item.minPrice.toLocaleString()}원~</span>}
                     </div>
                     {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
+                    {(item.type || item.businessVerified || item.certVerified || (item.languages && item.languages !== '한국어')) && (
+                      <div className="flex items-center gap-1 mt-1 overflow-hidden">
+                        {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-px rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
+                        {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-px rounded border border-gray-900 flex-shrink-0">사업자 확인</span>}
+                        {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-px rounded flex-shrink-0">자격 확인</span>}
+                        {item.languages && item.languages !== '한국어' && <span className="text-[10px] text-gray-500 truncate">{item.languages.split(',').filter((l) => l !== '한국어').join('·')} 가능</span>}
+                      </div>
+                    )}
                   </div>
-                  {/* 가격표 최저가 — 가격을 넣은 강사가 눈에 띄게 (2026-10-07) */}
-                  {item.minPrice != null && (
-                    <div className="text-right shrink-0">
-                      <span className="block text-sm font-bold text-gray-900 tabular-nums">{item.minPrice.toLocaleString()}원~</span>
-                      {item.languages && item.languages !== '한국어' && <span className="block text-[10px] text-gray-500">{item.languages.split(',').filter((l) => l !== '한국어').join('·')}</span>}
-                    </div>
-                  )}
                 </div>
               </Link>
             );
