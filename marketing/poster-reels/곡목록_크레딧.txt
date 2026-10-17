@@ -1,22 +1,28 @@
-app_launch → Cut and Run (모던 클럽, 사장님 픽)
-   Music: Cut and Run by Kevin MacLeod (incompetech.com), CC BY 4.0
-ski_trip_checklist → EDM Detection Mode (묵직한 백비트)
-   Music: EDM Detection Mode by Kevin MacLeod (incompetech.com), CC BY 4.0
-ski_wear_fabric → The Lift (트랜스 섞인 댄스 133bpm)
-   Music: The Lift by Kevin MacLeod (incompetech.com), CC BY 4.0
-group_vs_private → Consequence (다크 드라이빙 101bpm, Cut and Run과 가장 가까운 곡)
-   Music: Consequence by Kevin MacLeod (incompetech.com), CC BY 4.0
-lesson_consumer_rights → Long Time Coming (긴장감 있는 다크 드라이빙 (교체))
-   Music: Long Time Coming by Kevin MacLeod (incompetech.com), CC BY 4.0
-junior_badge → Pop Goes the Weasel (묵직한 베이스 드럼 108bpm)
-   Music: Pop Goes the Weasel by Kevin MacLeod (incompetech.com), CC BY 4.0
-cert_not_only_instructor → Misuse (다크 댄스)
-   Music: Misuse by Kevin MacLeod (incompetech.com), CC BY 4.0
-cert_level_vs_teaching → Cephalopod (세미 인더스트리얼)
-   Music: Cephalopod by Kevin MacLeod (incompetech.com), CC BY 4.0
-lesson_no_fee → Harmful or Fatal (테크노·라이트 인더스트리얼 135bpm)
-   Music: Harmful or Fatal by Kevin MacLeod (incompetech.com), CC BY 4.0
-muju_o2_seasonpass → Invariance (다크 드라이빙 108bpm (교체))
-   Music: Invariance by Kevin MacLeod (incompetech.com), CC BY 4.0
+인스타에 올라온 순서(오래된 것부터). 파일명 앞 번호가 순서.
 
-음량: 전체 -17 LUFS (이전 -14, 약 3dB 낮춤). 예비곡: Invariance(108, 다크 드라이빙)
+01_ski_trip_checklist → EDM Detection Mode (묵직한 백비트)
+   Music: EDM Detection Mode by Kevin MacLeod (incompetech.com), CC BY 4.0
+02_ski_wear_fabric → The Lift (트랜스 섞인 댄스 133bpm)
+   Music: The Lift by Kevin MacLeod (incompetech.com), CC BY 4.0
+03_muju_o2_seasonpass → Invariance (다크 드라이빙 108bpm (교체))
+   Music: Invariance by Kevin MacLeod (incompetech.com), CC BY 4.0
+04_group_vs_private → Consequence (다크 드라이빙 101bpm, Cut and Run과 가장 가까운 곡)
+   Music: Consequence by Kevin MacLeod (incompetech.com), CC BY 4.0
+05_lesson_consumer_rights → Long Time Coming (긴장감 있는 다크 드라이빙 (교체))
+   Music: Long Time Coming by Kevin MacLeod (incompetech.com), CC BY 4.0
+06_cert_level_vs_teaching → Cephalopod (세미 인더스트리얼)
+   Music: Cephalopod by Kevin MacLeod (incompetech.com), CC BY 4.0
+07_cert_not_only_instructor → Misuse (다크 댄스)
+   Music: Misuse by Kevin MacLeod (incompetech.com), CC BY 4.0
+08_junior_badge → Pop Goes the Weasel (묵직한 베이스 드럼 108bpm)
+   Music: Pop Goes the Weasel by Kevin MacLeod (incompetech.com), CC BY 4.0
+09_lesson_no_fee → Harmful or Fatal (테크노·라이트 인더스트리얼 135bpm)
+   Music: Harmful or Fatal by Kevin MacLeod (incompetech.com), CC BY 4.0
+10_app_launch → Cut and Run (모던 클럽, 사장님 픽)
+   Music: Cut and Run by Kevin MacLeod (incompetech.com), CC BY 4.0
+11_phoenix_venue → The Way Out (다크 드라이빙 128bpm)
+   Music: The Way Out by Kevin MacLeod (incompetech.com), CC BY 4.0
+12_vivaldi_seasonpass → Blue Scorpion (어둡고 공격적인 130bpm)
+   Music: Blue Scorpion by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+음량: 전체 -17 LUFS. 전곡 Kevin MacLeod (incompetech.com) CC BY 4.0 — 올릴 때 설명란에 해당 줄 넣기.

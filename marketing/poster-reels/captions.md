@@ -19,6 +19,10 @@
 ## 올리는 순서 (하루 1개, 저녁 7~9시)
 1 ski_trip_checklist → 2 ski_wear_fabric → 3 app_launch → 4 group_vs_private → 5 lesson_consumer_rights → 6 junior_badge → 7 cert_not_only_instructor → 8 cert_level_vs_teaching → 9 lesson_no_fee → 10 muju_o2_seasonpass(10/24 전에)
 
+## 2026-10-17 정렬·추가
+- 파일명 앞 번호 = 인스타 업로드 순서(01 준비물 9/10 → 12 비발디 10/14). 무음 원본·음악버전_곡별·저장소 모두 같은 번호.
+- 새 포스터 2개 추가: 11_phoenix_venue(휘닉스 행사 개최지 확정, 10/13), 12_vivaldi_seasonpass(비발디 시즌패스 NOL 선착순 10/14~11/8 — **11/8 전에 올릴 것**).
+
 ## 음악 버전 (2026-10-17, 사장님 "노래까지 가능할까")
 - 바탕화면 `포스터_릴스/음악버전_Voltaic`(전자음·에너지) · `음악버전_Hyperfun`(밝은 업비트). 둘 중 하나 골라 올리기. 무음 원본은 그대로 두고 앱 안에서 유행 음원을 고르는 것도 방법(노출에 유리).
 - 음원: Kevin MacLeod (incompetech.com), **CC BY 4.0 — 올릴 때 설명란에 아래 한 줄을 꼭 넣을 것**
