@@ -1,20 +1,22 @@
 app_launch → Cut and Run (모던 클럽, 사장님 픽)
    Music: Cut and Run by Kevin MacLeod (incompetech.com), CC BY 4.0
-ski_trip_checklist → EDM Detection Mode (묵직한 백비트, 가장 비슷한 곡)
+ski_trip_checklist → EDM Detection Mode (묵직한 백비트)
    Music: EDM Detection Mode by Kevin MacLeod (incompetech.com), CC BY 4.0
-ski_wear_fabric → Rocket (유로테크, 처리된 기타)
+ski_wear_fabric → Rocket (유로테크)
    Music: Rocket by Kevin MacLeod (incompetech.com), CC BY 4.0
-group_vs_private → Go Cart (깔끔하고 날 선 클럽, 베이스 드롭부터)
-   Music: Go Cart by Kevin MacLeod (incompetech.com), CC BY 4.0
-lesson_consumer_rights → In a Heartbeat (인더스트리얼 댄스, 단단한 톤)
-   Music: In a Heartbeat by Kevin MacLeod (incompetech.com), CC BY 4.0
-junior_badge → Cut and Dry (Cut and Run 자매곡)
-   Music: Cut and Dry by Kevin MacLeod (incompetech.com), CC BY 4.0
+group_vs_private → Raving Energy (그루비한 드라이빙 (교체))
+   Music: Raving Energy by Kevin MacLeod (incompetech.com), CC BY 4.0
+lesson_consumer_rights → Future Gladiator (어둡고 공격적인 드라이빙 (교체))
+   Music: Future Gladiator by Kevin MacLeod (incompetech.com), CC BY 4.0
+junior_badge → Twisting (베이스 묵직한 그루브 (교체))
+   Music: Twisting by Kevin MacLeod (incompetech.com), CC BY 4.0
 cert_not_only_instructor → Misuse (다크 댄스)
    Music: Misuse by Kevin MacLeod (incompetech.com), CC BY 4.0
-cert_level_vs_teaching → Cephalopod (세미 인더스트리얼 일렉)
+cert_level_vs_teaching → Cephalopod (세미 인더스트리얼)
    Music: Cephalopod by Kevin MacLeod (incompetech.com), CC BY 4.0
 lesson_no_fee → Cut Trance (세미 트랜스·테크노)
    Music: Cut Trance by Kevin MacLeod (incompetech.com), CC BY 4.0
-muju_o2_seasonpass → Latin Industries (끊어치는 일렉 댄스)
-   Music: Latin Industries by Kevin MacLeod (incompetech.com), CC BY 4.0
+muju_o2_seasonpass → Wepa (어반 업비트 (교체))
+   Music: Wepa by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+음량: 전체 -17 LUFS (이전 -14, 약 3dB 낮춤). 예비곡: Invariance(108, 다크 드라이빙)
