@@ -19,6 +19,14 @@
 ## 올리는 순서 (하루 1개, 저녁 7~9시)
 1 ski_trip_checklist → 2 ski_wear_fabric → 3 app_launch → 4 group_vs_private → 5 lesson_consumer_rights → 6 junior_badge → 7 cert_not_only_instructor → 8 cert_level_vs_teaching → 9 lesson_no_fee → 10 muju_o2_seasonpass(10/24 전에)
 
+## 음악 버전 (2026-10-17, 사장님 "노래까지 가능할까")
+- 바탕화면 `포스터_릴스/음악버전_Voltaic`(전자음·에너지) · `음악버전_Hyperfun`(밝은 업비트). 둘 중 하나 골라 올리기. 무음 원본은 그대로 두고 앱 안에서 유행 음원을 고르는 것도 방법(노출에 유리).
+- 음원: Kevin MacLeod (incompetech.com), **CC BY 4.0 — 올릴 때 설명란에 아래 한 줄을 꼭 넣을 것**
+  - Voltaic: `Music: Voltaic by Kevin MacLeod (incompetech.com), CC BY 4.0`
+  - Hyperfun: `Music: Hyperfun by Kevin MacLeod (incompetech.com), CC BY 4.0`
+- 합치기: `ffmpeg -i 영상.mp4 -ss 12 -i Voltaic.mp3 -filter_complex "[1:a]atrim=0:길이,afade=t=in:d=0.3,afade=t=out:st=길이-0.9:d=0.9,volume=-5dB,loudnorm=I=-14:TP=-1[m]" -map 0:v -map "[m]" -c:v copy -c:a aac -shortest out.mp4` (Voltaic 은 12초, Hyperfun 은 6초 지점부터)
+- 다른 곡 후보(같은 라이선스, 받아 둠): Electro Cabello(일렉트로 스윙), Dance Monster, Carefree(밝은 우쿨렐레), Cipher2(전자음)
+
 ## 2026-10-15 빠른 버전 (사장님 "더 짧고 빠르게")
 - `specs_f/` 대본(슬라이드당 한 문장, 13~25초), 문장당 1.0~2.2초, 컷 간격 0.12초, 무음. `node src/kinetic.cjs specs_f/<이름>.json out`
 
