@@ -11,6 +11,7 @@ import PhotoViewer from '../components/PhotoViewer';
 import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
+import { sizeLabel } from '../utils/sizeLabel';
 import HScroll from '../components/HScroll';
 import BuyerPickerModal from '../components/BuyerPickerModal';
 import { useBumpWithAd } from '../components/BumpWithAd';
@@ -434,7 +435,7 @@ const UsedDetail = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {/* Share button */}
                 <button
                   onClick={handleShare}
@@ -449,9 +450,9 @@ const UsedDetail = () => {
                 {user && !isMyProduct && (
                   <button
                     onClick={() => setShowReportModal(true)}
-                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-coral hover:bg-coral/5 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-coral hover:bg-coral/5 rounded-lg transition-colors whitespace-nowrap shrink-0"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     신고
@@ -492,7 +493,7 @@ const UsedDetail = () => {
               {product.size && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-xs text-gray-500">사이즈</span>
-                  <span className="text-sm text-gray-900 font-medium">{product.size}</span>
+                  <span className="text-sm text-gray-900 font-medium">{sizeLabel(product.size, product.subcategory)}</span>
                 </div>
               )}
               {product.usageCount && (

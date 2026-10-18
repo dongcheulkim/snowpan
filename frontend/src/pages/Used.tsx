@@ -13,6 +13,7 @@ import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import FeedAdCard, { type FeedAd } from '../components/FeedAdCard';
 import { toastError, toastSuccess } from '../utils/toast';
 import { useVertical } from '../hooks/useVertical';
+import { sizeLabel } from '../utils/sizeLabel';
 import { SNOW_USED_GROUPS } from '../config/verticals';
 
 interface Product {
@@ -426,7 +427,7 @@ const Used = () => {
                 <div className="p-2.5">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="text-[10px] text-accent-light font-medium uppercase tracking-wider">{product.brand}</span>
-                    {product.size && <span className="text-[9px] text-gray-500 bg-gray-50 px-1 rounded">{product.size}</span>}
+                    {product.size && <span className="text-[9px] text-gray-500 bg-gray-50 px-1 rounded">{sizeLabel(product.size, product.subcategory)}</span>}
                   </div>
                   <h3 className="text-[13px] font-bold text-gray-900 truncate mb-0.5">{product.name}</h3>
                   <span className="text-[15px] font-bold text-mint">{product.price.toLocaleString()}원</span>
