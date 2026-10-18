@@ -1,5 +1,6 @@
 import { toastSuccess, toastError } from '../utils/toast';
 import { useState, useEffect } from 'react';
+import { memberDuration } from '../utils/memberDuration';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api, imageUrl, getUser } from '../api';
 import { t, onLangChange } from '../i18n';
@@ -22,19 +23,6 @@ const VERTICAL_LABEL: Record<string, string> = {
   snow: 'SNOWPAN', bike: 'BIKEPAN', run: 'RUNPAN',
   surf: 'SURFPAN', golf: 'GOLFPAN', camp: 'CAMPPAN',
 };
-
-// 가입일 → 자연어 (예: "3개월째 활동 중", "1년 2개월째 활동 중").
-function memberDuration(createdAt: string): string {
-  const ms = Date.now() - new Date(createdAt).getTime();
-  const days = Math.floor(ms / 86400000);
-  if (days < 14) return `가입한 지 ${days}일`;
-  if (days < 60) return `가입한 지 ${Math.floor(days / 7)}주`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}개월째 활동 중`;
-  const years = Math.floor(months / 12);
-  const rem = months % 12;
-  return rem === 0 ? `${years}년째 활동 중` : `${years}년 ${rem}개월째 활동 중`;
-}
 
 interface ReviewData {
   id: string;

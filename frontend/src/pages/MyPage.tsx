@@ -28,6 +28,7 @@ const badgeDisplay: Record<string, { label: string; desc: string; color: string 
 
 const MyPage = () => {
   const navigate = useNavigate();
+  const [guidesOpen, setGuidesOpen] = useState(false); // MY '안내' 접기 (2026-10-18)
   const [user, setUser] = useState<{ id: string; name: string; nickname?: string; displayName?: string; email: string; role?: string; createdAt?: string; profileImage?: string; activeBadge?: string | null; provider?: string | null } | null>(null);
   const [badges, setBadges] = useState<BadgeRequest[]>([]);
   const [isOwner, setIsOwner] = useState(false);
@@ -153,12 +154,15 @@ const MyPage = () => {
     { label: '알림 설정', link: '/mypage/notification-settings' }, // 푸시 다시 켜기·폰 설정 열기 (2026-10-10)
     // 이메일 계정만 — 소셜 계정은 비밀번호가 없음. (기존엔 어디에도 링크가 없어 페이지 도달 불가였음)
     ...(!isSocialUser ? [{ label: '비밀번호 변경', link: '/mypage/password' }] : []),
+    // 고객센터(/help) 하나로 통합 — FAQ·1:1 문의·사업자 정보 모두 이 안에 있음
+    { label: '고객센터', link: '/help' },
+  ];
+  // 약관·가이드류는 '안내' 한 줄로 접어 둠 — MY 화면이 길게 이어지던 것 (2026-10-18 사장님 선택)
+  const guides = [
     { label: t('mypage.terms'), link: '/mypage/terms' },
     { label: '개인정보처리방침', link: '/privacy' },
     { label: '안전거래 가이드', link: '/safe-trade' },
     { label: '장비 브랜드 가이드', link: '/gear-guide' },
-    // 고객센터(/help) 하나로 통합 — FAQ·1:1 문의·사업자 정보 모두 이 안에 있음
-    { label: '고객센터', link: '/help' },
   ];
 
   return (
@@ -284,9 +288,19 @@ const MyPage = () => {
 
       {/* Settings */}
       <div className="card overflow-hidden">
-        {settings.map((item, idx) => (
-          <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block ${idx < settings.length - 1 ? 'border-b border-gray-200' : ''}`}>
+        {settings.map((item) => (
+          <Link key={item.link} to={item.link} className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all block border-b border-gray-200">
             <span className="text-sm font-medium text-gray-500">{item.label}</span>
+            <span className="text-gray-500 text-xs">→</span>
+          </Link>
+        ))}
+        <button type="button" onClick={() => setGuidesOpen((v) => !v)} aria-expanded={guidesOpen} className={`w-full flex items-center justify-between px-5 py-4 hover:bg-gray-100 transition-all ${guidesOpen ? 'border-b border-gray-200' : ''}`}>
+          <span className="text-sm font-medium text-gray-500">안내 <span className="text-xs text-gray-400">약관 · 개인정보 · 가이드</span></span>
+          <svg className={`w-4 h-4 text-gray-500 transition-transform ${guidesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+        {guidesOpen && guides.map((item, idx) => (
+          <Link key={item.link} to={item.link} className={`w-full flex items-center justify-between pl-9 pr-5 py-3.5 bg-gray-50/60 hover:bg-gray-100 transition-all block ${idx < guides.length - 1 ? 'border-b border-gray-200' : ''}`}>
+            <span className="text-sm text-gray-500">{item.label}</span>
             <span className="text-gray-500 text-xs">→</span>
           </Link>
         ))}

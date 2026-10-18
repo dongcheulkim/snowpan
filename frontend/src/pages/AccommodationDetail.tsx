@@ -114,12 +114,7 @@ const AccommodationDetail = () => {
 
       {/* Info */}
       <div className="card rounded-2xl p-5">
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-300 whitespace-nowrap">
-            {item.resort?.name}
-          </span>
-          <span className="text-[10px] text-gray-500">{item.guests}</span>
-        </div>
+        <p className="text-xs text-gray-500 mb-2">{[item.resort?.name, item.guests].filter(Boolean).join(' · ')}</p>
         <h1 className="text-2xl font-bold text-gray-900 mb-1">{item.name}</h1>
         {item.resort?.location && (
           <p className="text-xs text-gray-500 mb-3">{item.resort.location}</p>

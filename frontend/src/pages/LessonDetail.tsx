@@ -81,17 +81,19 @@ const LessonDetail = () => {
       {gallery && <div className={DETAIL_PHOTO}><PhotoGallery images={gallery} /></div>}
 
       <div className="card rounded-2xl p-5">
-        {/* 배지가 많으면 줄바꿈 — 한 줄에 눌려 글자가 세로로 쪼개지던 것 (2026-10-17 사장님 "뱃지가 다 짤려 보여") */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          {item.type && <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded whitespace-nowrap">{item.type}</span>}
-          {item.resort?.name && <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 whitespace-nowrap">{item.resort.name}</span>}
-          {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-0.5 rounded border border-gray-900 whitespace-nowrap">사업자 확인</span>}
-          {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-0.5 rounded whitespace-nowrap">자격 확인</span>}
-          {item.specialties && item.specialties.split(',').map((sp) => sp.trim()).filter(Boolean).map((sp) => (
-            <span key={sp} className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">{sp}</span>
-          ))}
-        </div>
+        {/* 배지 대신 글자 — 종목·리조트·분야 한 줄, 확인 상태 한 줄 (2026-10-18 사장님 선택 1안) */}
         <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
+        {(() => {
+          const specs = (item.specialties || '').split(',').map((sp) => sp.trim()).filter(Boolean);
+          const line1 = [item.type, item.resort?.name, specs.length ? specs.join('·') : ''].filter(Boolean).join(' · ');
+          const line2 = [item.businessVerified && '사업자 확인', item.certVerified && '자격 확인'].filter(Boolean).join(' · ');
+          return (
+            <>
+              {line1 && <p className="text-sm text-gray-600 mt-1">{line1}</p>}
+              {line2 && <p className="text-xs text-gray-500 mt-0.5">{line2}</p>}
+            </>
+          );
+        })()}
       </div>
 
       {/* 가격표 — 강사가 넣은 구조화 가격. 없으면 카드 자체를 숨김 (2026-10-07) */}

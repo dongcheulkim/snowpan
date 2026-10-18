@@ -12,6 +12,7 @@ import MarketPriceBadge from '../components/MarketPriceBadge';
 import CategoryPlaceholder from '../components/CategoryPlaceholder';
 import { useVertical } from '../hooks/useVertical';
 import { sizeLabel } from '../utils/sizeLabel';
+import { memberDuration } from '../utils/memberDuration';
 import HScroll from '../components/HScroll';
 import BuyerPickerModal from '../components/BuyerPickerModal';
 import { useBumpWithAd } from '../components/BumpWithAd';
@@ -69,6 +70,17 @@ const UsedDetail = () => {
   const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [sellerRating, setSellerRating] = useState<{ avg: number; count: number } | null>(null);
+  // 판매자 활동 기간·판매 중 매물 수 — "신규 판매자" 한 줄만 있어 허전하던 것 (2026-10-18)
+  const [sellerInfo, setSellerInfo] = useState<{ createdAt: string; selling: number } | null>(null);
+  useEffect(() => {
+    const sid = product?.userId;
+    if (!sid) return;
+    let cancelled = false;
+    api<{ createdAt: string; products?: { id: string; status?: string }[]; stats?: { listingCount: number } }>(`/auth/seller/${sid}`)
+      .then((d) => { if (cancelled) return; const selling = d.stats?.listingCount ?? (d.products || []).filter((p) => (p.status || 'selling') === 'selling').length; setSellerInfo({ createdAt: d.createdAt, selling }); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [product?.userId]);
   // 이미지 한 장 깨져도 다른 썸네일 선택 시 다시 시도 (한 번 실패로 갤러리 전체 placeholder 되는 것 방지).
   useEffect(() => { setImgError(false); }, [selectedImage]);
   const [wishlisted, setWishlisted] = useState(false);
@@ -533,13 +545,14 @@ const UsedDetail = () => {
               </div>
               <div>
                 <div className="text-sm font-bold text-gray-900">{sellerName}</div>
-                {sellerRating && (
-                  sellerRating.count > 0 ? (
-                    <div className="text-[11px] text-gold font-bold mt-0.5">★ {sellerRating.avg.toFixed(1)} <span className="text-gray-500 font-medium">· 후기 {sellerRating.count}</span></div>
-                  ) : (
-                    <div className="text-[10px] text-gray-500 mt-0.5">신규 판매자</div>
-                  )
+                {sellerRating && sellerRating.count > 0 && (
+                  <div className="text-[11px] text-gold font-bold mt-0.5">★ {sellerRating.avg.toFixed(1)} <span className="text-gray-500 font-medium">· 후기 {sellerRating.count}</span></div>
                 )}
+                {sellerInfo ? (
+                  <div className="text-[11px] text-gray-500 mt-0.5">{memberDuration(sellerInfo.createdAt)} · 판매 중 {sellerInfo.selling}개</div>
+                ) : sellerRating && sellerRating.count === 0 ? (
+                  <div className="text-[10px] text-gray-500 mt-0.5">신규 판매자</div>
+                ) : null}
               </div>
             </div>
             {sellerId && (

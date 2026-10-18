@@ -218,14 +218,12 @@ const Lesson = () => {
                       {item.minPrice != null && <span className="text-sm font-bold text-gray-900 tabular-nums shrink-0">{item.minPrice.toLocaleString()}원~</span>}
                     </div>
                     {sub && <p className="text-[11px] text-gray-500 mt-0.5 truncate">{sub}</p>}
-                    {(item.type || item.businessVerified || item.certVerified || (item.languages && item.languages !== '한국어')) && (
-                      <div className="flex items-center gap-1 mt-1 overflow-hidden">
-                        {item.type && <span className="text-[10px] bg-sky-50 text-sky-600 px-1.5 py-px rounded border border-sky-200 flex-shrink-0">{item.type}</span>}
-                        {item.businessVerified && <span className="text-[10px] font-bold bg-white text-gray-900 px-1.5 py-px rounded border border-gray-900 flex-shrink-0">사업자 확인</span>}
-                        {item.certVerified && <span className="text-[10px] font-bold bg-gray-900 text-white px-1.5 py-px rounded flex-shrink-0">자격 확인</span>}
-                        {item.languages && item.languages !== '한국어' && <span className="text-[10px] text-gray-500 truncate">{item.languages.split(',').filter((l) => l !== '한국어').join('·')} 가능</span>}
-                      </div>
-                    )}
+                    {/* 배지 대신 글자 한 줄 — 매장 목록과 같은 모양 (2026-10-18 사장님 선택 1안) */}
+                    {(() => {
+                      const langs = item.languages && item.languages !== '한국어' ? item.languages.split(',').map((l) => l.trim()).filter((l) => l && l !== '한국어') : [];
+                      const bits = [item.type, item.businessVerified && '사업자 확인', item.certVerified && '자격 확인', langs.length ? `${langs.join('·')} 가능` : ''].filter(Boolean);
+                      return bits.length ? <p className="text-[11px] text-gray-500 mt-0.5 truncate">{bits.join(' · ')}</p> : null;
+                    })()}
                   </div>
                 </div>
               </Link>
