@@ -1,0 +1,66 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>
+*{margin:0;box-sizing:border-box} body{background:#0f172a;font-family:"Apple SD Gothic Neo",sans-serif;color:#fff;width:1800px;padding:40px}
+h2{font-size:28px;font-weight:900;margin:10px 0 18px;letter-spacing:-1px} h2 span{color:#BFE7FF;font-size:18px;font-weight:600;margin-left:12px}
+.row{display:flex;gap:24px;margin-bottom:34px}
+.card{flex:1;background:linear-gradient(180deg,#1e293b,#0b1120);border-radius:32px;position:relative;height:520px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.card svg{position:absolute;left:50%;top:60px;transform:translateX(-50%);width:330px;height:330px}
+.tag{position:absolute;top:22px;left:26px;font-size:20px;font-weight:900}
+.desc{position:absolute;bottom:24px;left:26px;right:26px;font-size:16px;color:#cbd5e1;line-height:1.4}
+.bubble{position:absolute;left:26px;right:26px;bottom:72px;background:#fff;color:#0f172a;border-radius:20px;padding:12px 16px;font-size:19px;font-weight:800}
+</style></head><body>
+<h2>A. 스노판다 <span>고글 쓴 판다 — 변형 4종</span></h2><div class="row" id="rowA"></div>
+<h2>B. 눈이 <span>작은 설인 — 변형 4종</span></h2><div class="row" id="rowB"></div>
+<script>
+const defs=`<defs><radialGradient id="gf" cx="40%" cy="35%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e5e7eb"/></radialGradient><radialGradient id="gy" cx="40%" cy="30%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#dbeafe"/></radialGradient>
+<linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#312e81"/></linearGradient>
+<linearGradient id="gRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fda4af"/><stop offset=".5" stop-color="#FF5A5F"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient>
+<linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#f59e0b"/><stop offset="1" stop-color="#78350f"/></linearGradient>
+<linearGradient id="gMir" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#f0abfc"/><stop offset="1" stop-color="#1e1b4b"/></linearGradient></defs>`;
+// 공통 부품
+const shadow='<ellipse cx="200" cy="378" rx="115" ry="13" fill="#000" opacity=".25"/>';
+function goggles(g,up){ const y=up?118:182; return `<path d="M60 ${y-12} h280 a18 18 0 0 1 18 18 v44 a22 22 0 0 1 -22 22 h-272 a22 22 0 0 1 -22 -22 v-44 a18 18 0 0 1 18 -18z" fill="#0f172a"/><rect x="68" y="${y}" width="124" height="60" rx="26" fill="url(#${g})"/><rect x="208" y="${y}" width="124" height="60" rx="26" fill="url(#${g})"/><path d="M82 ${y+14} q40 -12 90 -4" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".55" fill="none"/><path d="M222 ${y+14} q40 -12 90 -4" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".55" fill="none"/>`; }
+const eyes=(mood)=> mood==='wink'?'<circle cx="150" cy="215" r="13" fill="#0f172a"/><path d="M232 212 q18 10 36 0" stroke="#0f172a" stroke-width="8" stroke-linecap="round" fill="none"/>'
+ : mood==='star'?'<path d="M150 200 l6 14 15 1 -12 10 4 15 -13 -8 -13 8 4 -15 -12 -10 15 -1z" fill="#f59e0b"/><path d="M250 200 l6 14 15 1 -12 10 4 15 -13 -8 -13 8 4 -15 -12 -10 15 -1z" fill="#f59e0b"/>'
+ : mood==='cold'?'<path d="M135 215 q15 -12 30 0 M235 215 q15 -12 30 0" stroke="#0f172a" stroke-width="8" stroke-linecap="round" fill="none"/>'
+ : '<circle cx="150" cy="215" r="13" fill="#0f172a"/><circle cx="250" cy="215" r="13" fill="#0f172a"/><circle cx="155" cy="210" r="4" fill="#fff"/><circle cx="255" cy="210" r="4" fill="#fff"/>';
+const mouth=(m)=> m==='o'?'<ellipse cx="200" cy="318" rx="14" ry="18" fill="#0f172a"/>' : m==='grin'?'<path d="M150 308 q50 50 100 0z" fill="#0f172a"/><path d="M165 312 q35 20 70 0z" fill="#fff"/>' : m==='flat'?'<path d="M170 318 h60" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>' : '<path d="M160 312 q40 34 80 0" stroke="#0f172a" stroke-width="9" stroke-linecap="round" fill="none"/>';
+const cheeks='<circle cx="120" cy="298" r="16" fill="#fda4af" opacity=".6"/><circle cx="280" cy="298" r="16" fill="#fda4af" opacity=".6"/>';
+const beanie=(c)=>`<path d="M62 150 q138 -150 276 0 z" fill="${c}"/><rect x="52" y="128" width="296" height="40" rx="20" fill="#fff"/><circle cx="200" cy="40" r="26" fill="#fff"/>`;
+const helmet=(c)=>`<path d="M55 165 a145 130 0 0 1 290 0 v20 h-290z" fill="${c}"/><rect x="48" y="170" width="304" height="26" rx="13" fill="#0f172a"/><path d="M120 95 q80 -40 160 0" stroke="#fff" stroke-width="8" opacity=".5" fill="none"/>`;
+const scarf=(c)=>`<path d="M110 352 q90 44 180 0 l10 30 q-100 40 -200 0z" fill="${c}"/><path d="M280 365 l40 60 l-50 0z" fill="${c}"/>`;
+function panda({g='gBlue',hat,mood,m,scarfC,desc,label,bubble}){
+  const ears='<circle cx="118" cy="110" r="46" fill="#0f172a"/><circle cx="282" cy="110" r="46" fill="#0f172a"/>';
+  const face='<circle cx="200" cy="215" r="150" fill="url(#gf)"/>';
+  const nose='<ellipse cx="200" cy="290" rx="26" ry="18" fill="#0f172a"/>';
+  const eyepatch = hat==='gogglesUp' ? '<ellipse cx="150" cy="215" rx="34" ry="40" fill="#0f172a"/><ellipse cx="250" cy="215" rx="34" ry="40" fill="#0f172a"/><circle cx="150" cy="215" r="13" fill="#fff"/><circle cx="250" cy="215" r="13" fill="#fff"/><circle cx="150" cy="215" r="6" fill="#0f172a"/><circle cx="250" cy="215" r="6" fill="#0f172a"/>' : '';
+  const top = hat==='beanie'?beanie('#FF5A5F'):hat==='helmet'?helmet('#0f172a'):'';
+  const gg = hat==='gogglesUp'?goggles(g,true):(hat==='helmet'||hat==='beanie')?goggles(g,false):goggles(g,false);
+  return `<svg viewBox="0 0 400 400">${defs}${shadow}${hat==='gogglesUp'?'':ears}${face}${eyepatch}${hat==='gogglesUp'?'':''}${top}${gg}${nose}${mouth(m)}${cheeks}${scarfC?scarf(scarfC):''}</svg>`;
+}
+function yeti({g='gBlue',hat,mood,m,desc,label,bubble,fur='#dbeafe'}){
+  const body=`<path d="M200 50 c90 0 150 70 150 160 c0 60 -30 110 -60 140 l-20 -30 l-25 35 l-25 -35 l-20 35 l-20 -35 l-25 35 l-20 -30 c-30 -30 -60 -80 -60 -140 c0 -90 60 -160 150 -160z" fill="url(#gy)"/>`;
+  const faceY=`<ellipse cx="200" cy="225" rx="95" ry="80" fill="${fur}"/>`;
+  const brow=hat==='gogglesUp'?'':'<path d="M110 160 q90 -60 180 0" stroke="#0f172a" stroke-width="12" stroke-linecap="round" fill="none"/>';
+  const gUp=`<rect x="120" y="135" width="160" height="34" rx="17" fill="#0f172a"/><rect x="128" y="141" width="60" height="22" rx="11" fill="url(#${g})"/><rect x="212" y="141" width="60" height="22" rx="11" fill="url(#${g})"/>`;
+  const gOn=`<rect x="95" y="186" width="210" height="58" rx="29" fill="#0f172a"/><rect x="104" y="194" width="88" height="42" rx="21" fill="url(#${g})"/><rect x="208" y="194" width="88" height="42" rx="21" fill="url(#${g})"/>`;
+  const ey = hat==='gogglesOn'?'':(mood==='star'?eyes('star').replace(/cx="150"/g,'cx="165"').replace(/cx="250"/g,'cx="235"'):'<circle cx="165" cy="210" r="17" fill="#0f172a"/><circle cx="235" cy="210" r="17" fill="#0f172a"/><circle cx="171" cy="203" r="6" fill="#fff"/><circle cx="241" cy="203" r="6" fill="#fff"/>');
+  const top = hat==='beanie'?`<path d="M100 150 q100 -120 200 0z" fill="#FF5A5F"/><rect x="92" y="135" width="216" height="30" rx="15" fill="#fff"/><circle cx="200" cy="55" r="22" fill="#fff"/>`:hat==='helmet'?`<path d="M90 170 a110 100 0 0 1 220 0 v14 h-220z" fill="#0f172a"/><path d="M130 110 q70 -35 140 0" stroke="#fff" stroke-width="7" opacity=".5" fill="none"/>`:'';
+  const mo = m==='o'?'<ellipse cx="200" cy="262" rx="12" ry="15" fill="#0f172a"/>':m==='grin'?'<path d="M165 252 q35 40 70 0z" fill="#0f172a"/>':'<path d="M170 255 q30 30 60 0" stroke="#0f172a" stroke-width="9" stroke-linecap="round" fill="none"/>';
+  return `<svg viewBox="0 0 400 400">${defs}${shadow}${body}${faceY}${brow}${top}${hat==='gogglesOn'?gOn:(hat==='beanie'?'':gUp)}${ey}${mo}<circle cx="140" cy="250" r="14" fill="#fda4af" opacity=".7"/><circle cx="260" cy="250" r="14" fill="#fda4af" opacity=".7"/></svg>`;
+}
+const A=[
+ {label:'A1 기본',g:'gBlue',hat:'goggles',m:'smile',scarfC:'#FF5A5F',desc:'하늘색 고글 + 빨간 스카프. 첫 시안.',bubble:'스키장 가기 전, 스노우판!'},
+ {label:'A2 비니',g:'gRed',hat:'beanie',m:'grin',scarfC:'',desc:'빨간 비니 + 붉은 미러 고글. 더 발랄.',bubble:'오늘 눈 상태 최고예요!'},
+ {label:'A3 헬멧',g:'gGold',hat:'helmet',m:'o',scarfC:'',desc:'검정 헬멧 + 골드 미러. 안전·정비 콘텐츠용.',bubble:'헬멧은 필수예요!'},
+ {label:'A4 고글 올림',g:'gMir',hat:'gogglesUp',m:'smile',scarfC:'#38bdf8',desc:'고글을 이마에 올려 눈이 보임. 감정 표현 넓음.',bubble:'잠깐, 이건 알고 가요'},
+];
+const B=[
+ {label:'B1 기본',g:'gBlue',hat:'gogglesUp',m:'smile',desc:'고글 올린 설인. 첫 시안.',bubble:'자외선이 엄청 세요!'},
+ {label:'B2 고글 착용',g:'gBlue',hat:'gogglesOn',m:'grin',desc:'고글 내려 쓴 라이딩 모드.',bubble:'정설 직후가 제일 좋아요'},
+ {label:'B3 비니',g:'gRed',hat:'beanie',m:'o',desc:'빨간 비니. 귀여움 쪽으로.',bubble:'생각보다 훨씬 추워요'},
+ {label:'B4 헬멧·회색 털',g:'gGold',hat:'helmet',m:'smile',fur:'#e2e8f0',mood:'star',desc:'헬멧 + 반짝 눈. 추천·이벤트 콘텐츠용.',bubble:'정비권 20명 이벤트!'},
+];
+const card=(v,svg)=>`<div class="card"><div class="tag">${v.label}</div>${svg}<div class="bubble">${v.bubble}</div><div class="desc">${v.desc}</div></div>`;
+document.getElementById('rowA').innerHTML=A.map(v=>card(v,panda(v))).join('');
+document.getElementById('rowB').innerHTML=B.map(v=>card(v,yeti(v))).join('');
+</script></body></html>
