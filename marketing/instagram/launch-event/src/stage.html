@@ -18,7 +18,15 @@ body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;posit
 #kicker:empty::before{display:none}
 #hl{margin-top:22px;font-size:76px;font-weight:900;line-height:1.16;letter-spacing:-2px;text-shadow:0 2px 24px rgba(0,0,0,.5);white-space:pre-line}
 #sub{margin-top:18px;font-size:32px;font-weight:500;color:rgba(255,255,255,.85);letter-spacing:-.5px;white-space:pre-line}
-#phone{position:absolute;left:160px;top:500px;width:760px;height:1351px;border-radius:56px;overflow:hidden;background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 8px #1b1f2a;display:none}
+#stage3d{position:absolute;left:0;top:0;width:1080px;height:1920px;perspective:2200px;pointer-events:none}
+#phone{position:absolute;left:160px;top:470px;width:760px;height:1351px;border-radius:56px;overflow:hidden;background:#fff;box-shadow:0 60px 120px rgba(0,0,0,.7),0 0 0 8px #1b1f2a,0 0 80px rgba(56,189,248,.25);display:none;transform-origin:center}
+#snow{position:absolute;inset:0;z-index:1;pointer-events:none}
+#glow{position:absolute;left:-200px;top:200px;width:1480px;height:1480px;background:radial-gradient(circle at 50% 45%,rgba(56,189,248,.22),rgba(56,189,248,0) 55%);pointer-events:none}
+#hl{font-size:84px}
+#hl .w{display:inline-block;opacity:.3;transform:translateY(14px);margin-right:.2em}
+#hl .w.on{opacity:1;transform:none}
+#hl .w.key{color:#BFE7FF}
+#hl .w.num{color:#FFD54A}
 #phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
 #tap{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,90,95,.45);border:4px solid rgba(255,255,255,.9);transform:translate(-50%,-50%);display:none;pointer-events:none}
 #big{position:absolute;left:0;right:0;top:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 80px}
@@ -63,7 +71,7 @@ body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;posit
 <div id="photo"></div><div id="shade"></div><div id="red"></div><div id="grain"></div>
 <div id="brand"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div id="foot">@snowpan.kr</div>
 <div id="head"><div id="kicker"></div><div id="hl"></div><div id="sub"></div></div>
-<div id="phone"><img id="pimg" alt=""></div>
+<div id="glow"></div><canvas id="snow" width="1080" height="1920"></canvas><div id="stage3d"><div id="phone"><img id="pimg" alt=""></div></div>
 <div id="form"><div class="bar"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div class="body"><h2>이벤트 신청</h2><p class="d">30초면 끝나요</p>
 <div class="f"><label>성함</label><div class="in" id="f1"></div></div>
 <div class="f"><label>연락처</label><div class="in" id="f2"></div></div>
@@ -85,9 +93,13 @@ const inp=(el,val,ph,on,cur)=>{el.className='in'+(on?' on':'');el.innerHTML=val?
 window.render=function(s){
   $('photo').style.opacity=s.photo??0; $('red').style.opacity=s.red??0;
   $('brand').style.opacity=$('foot').style.opacity=s.chrome===false?0:1;
-  $('kicker').textContent=s.kicker||''; $('hl').textContent=s.headline||''; $('sub').textContent=s.sub||'';
+  $('kicker').textContent=s.kicker||''; if(!s.hlWords){$('hl').dataset.key='';$('hl').textContent=s.headline||'';} $('sub').textContent=s.sub||'';
   $('head').style.opacity=s.headAlpha??1; $('head').style.transform=`translateY(${s.headY||0}px)`;
-  const ph=$('phone'); if(s.phoneImg){ph.style.display='block';$('pimg').src=s.phoneImg;ph.style.transform=`translateY(${s.phoneY||0}px) scale(${s.phoneScale??1})`;ph.style.opacity=s.phoneAlpha??1}else ph.style.display='none';
+  const ph=$('phone'); if(s.phoneImg){ph.style.display='block';if($('pimg').getAttribute('src')!==s.phoneImg)$('pimg').src=s.phoneImg;const rx=s.rotX??6,ry=s.rotY??-14;ph.style.transformOrigin=s.origin||'center';ph.style.transform=`translateY(${s.phoneY||0}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${s.phoneScale??1})`;ph.style.opacity=s.phoneAlpha??1}else ph.style.display='none';
+  // 눈 입자 — 시간(s.t)으로 결정되는 위치라 프레임 단위 렌더에서도 흔들림 없음
+  const cv=$('snow'),cx=cv.getContext('2d');cx.clearRect(0,0,1080,1920);if(s.snow!==false){const tt=s.t||0;for(let i=0;i<70;i++){const sp=.6+(i%5)*.18,x=((i*173)%1080+Math.sin(tt*.6+i)*40+1080)%1080,y=((i*311)%1920+tt*(60+sp*60))%1920,r=1.2+(i%4);cx.globalAlpha=.25+(i%3)*.2;cx.fillStyle='#fff';cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fill();}cx.globalAlpha=1;}
+  // 단어 하이라이트 헤드라인
+  if(s.hlWords){const el=$('hl');const key=s.hlWords.map(w=>w.t).join('|');if(el.dataset.key!==key){el.dataset.key=key;el.innerHTML=s.hlWords.map(w=>w.t==='\n'?'<br>':`<span class="w${w.cls?' '+w.cls:''}">${w.t}</span>`).join('');}const sp=el.querySelectorAll('.w');let i=0;s.hlWords.forEach(w=>{if(w.t==='\n')return;const e=sp[i++];if(e)e.className='w'+(w.cls?' '+w.cls:'')+(w.on?' on':'');});}
   const tp=$('tap'); if(s.tap){tp.style.display='block';tp.style.left=s.tap.x+'px';tp.style.top=s.tap.y+'px';tp.style.transform=`translate(-50%,-50%) scale(${s.tap.scale})`;tp.style.opacity=s.tap.alpha}else tp.style.display='none';
   const bg=$('big'); if(s.big){bg.style.display='flex';bg.querySelector('.n').textContent=s.big.n||'';bg.querySelector('.n').style.display=s.big.n?'block':'none';bg.querySelector('.t').textContent=s.big.t||'';bg.querySelector('.s').textContent=s.big.s||'';bg.style.opacity=s.big.alpha??1;bg.style.transform=`scale(${s.big.scale??1})`;bg.querySelector('.n').style.color=s.big.color||'#fff'}else bg.style.display='none';
   const pz=$('prizes'); if(s.prizes){pz.style.display='flex';[...pz.children].forEach((el,i)=>{const p=s.prizes[i]||{alpha:0,y:80};el.style.opacity=p.alpha;el.style.transform=`translateY(${p.y}px)`})}else pz.style.display='none';

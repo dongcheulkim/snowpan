@@ -35,7 +35,7 @@ async function renderReel(name, segments) {
     const frames = Math.round(seg.dur * FPS);
     for (let i = 0; i < frames; i++) {
       const t = i / FPS; const st = await seg.frame(t);
-      const f = seg.fade === false ? 0 : Math.max(1 - io(t, 0, .12), io(t, seg.dur - .12, seg.dur)); // 컷 전후 짧은 페이드
+      const f = seg.fade === false ? 0 : Math.max(1 - io(t, 0, .08), io(t, seg.dur - .08, seg.dur)); // 컷 전후 짧은 페이드
       st.fade = Math.max(st.fade || 0, f);
       await stage.evaluate(s => window.render(s), st);
       await stage.screenshot({ type: 'jpeg', quality: 92, path: path.join(dir, String(n++).padStart(5, '0') + '.jpg') });
@@ -47,51 +47,55 @@ async function renderReel(name, segments) {
   fs.rmSync(dir, { recursive: true, force: true }); console.log('OK', out);
 }
 // ---------- 공통 세그먼트 ----------
-const bigTitle = (dur, big, extra = {}) => ({ dur, frame: async t => ({ photo: extra.photo ?? .9, red: extra.red ?? 0, chrome: true, big: { ...big, scale: lerp(1.12, 1, ease(io(t, 0, .6))), alpha: io(t, 0, .35) } }) });
+const bigTitle = (dur, big, extra = {}) => ({ dur, frame: async t => ({ t, photo: extra.photo ?? .9, red: extra.red ?? 0, chrome: true, big: { ...big, scale: lerp(1.12, 1, ease(io(t, 0, .6))), alpha: io(t, 0, .35) } }) });
 const prizeSeg = (dur, headline, kicker, stagger = .8, photo = .35) => ({ dur, frame: async t => ({ photo, kicker, headline, prizes: [0,1,2,3,4].map(i => { const k = ease(io(t, .2 + i*stagger, .2 + i*stagger + .5)); return { alpha: k, y: lerp(90, 0, k) }; }) }) });
 const formSeg = (dur, headline, sub, kicker, speed = 1) => ({ dur, frame: async t => { const u = t * speed; const name = typed(u, .2, .9, '김민준'), phone = typed(u, 1.0, 1.9, '010-1234-5678'), insta = typed(u, 2.0, 2.8, '@minjun_ski'); const focus = u < 1 ? 1 : u < 2 ? 2 : u < 2.9 ? 3 : 0; const press = u > 3.05 && u < 3.3; const done = u >= 3.35; const b = { x: 160 + 380, y: 500 + 1210 }; return { photo: .25, kicker, headline, sub, form: { name, phone, insta, msg: '', focus, press, done }, tap: u > 2.95 && u < 3.4 ? { ...b, scale: lerp(.6, 1.4, io(u, 2.95, 3.4)), alpha: 1 - io(u, 2.95, 3.4) } : null }; } });
-const endSeg = (dur, t, photo = .9) => ({ dur, frame: async tt => ({ photo, chrome: false, end: { t, scale: lerp(1.06, 1, ease(io(tt, 0, .7))), alpha: io(tt, 0, .4) } }) });
-const appSeg = (dur, { prep, kicker, headline, sub, scroll = [[0, 0, 0, 0]], taps = [] }) => ({ dur, prep, frame: async t => {
+const endSeg = (dur, t, photo = .9) => ({ dur, frame: async tt => ({ t: tt, photo, chrome: false, end: { t, scale: lerp(1.06, 1, ease(io(tt, 0, .7))), alpha: io(tt, 0, .4) } }) });
+const KEYS = /(가격|낮은|웹캠|LIVE|예약|약속|확정|0원|수수료|검색|한눈에|자동|채팅)/;
+const wordsOf = (line) => (line || '').split('\n').flatMap((ln, i) => [...(i ? [{ t: '\n' }] : []), ...ln.split(/\s+/).filter(Boolean).map((w) => ({ t: w, cls: /\d/.test(w) ? 'num' : KEYS.test(w) ? 'key' : '' }))]);
+const appSeg = (dur, { prep, kicker, headline, sub, scroll = [[0, 0, 0, 0]], taps = [], zoom = true }) => ({ dur, prep, frame: async t => {
   let y = 0; for (const [a, b, y0, y1] of scroll) { if (t >= a) y = lerp(y0, y1, ease(io(t, a, b))); }
-  let tap = null; for (const tp of taps) { if (t >= tp.at && t < tp.at + .45 && !tp.box) tp.box = await box(tp.sel); if (tp.box) { const r = tapAt(t, tp.at, tp.box); if (r) tap = r; } if (tp.clickAt !== undefined && t >= tp.clickAt && !tp.done) { tp.done = true; await click(tp.sel); } }
-  return { photo: .25, kicker, headline, sub, phoneImg: await shot(y), tap };
+  let tap = null, zoomK = 0, origin = 'center';
+  for (const tp of taps) { if (t >= tp.at && t < tp.at + .45 && !tp.box) tp.box = await box(tp.sel); if (tp.box) { const r = tapAt(t, tp.at, tp.box); if (r) tap = r; if (zoom && t >= tp.at && t < tp.at + 1.1) { const k = io(t, tp.at, tp.at + .25) * (1 - io(t, tp.at + .75, tp.at + 1.1)); zoomK = Math.max(zoomK, k); const c = toStage(tp.box.x + tp.box.width / 2, tp.box.y + tp.box.height / 2); origin = `${c.x - 160}px ${c.y - 470}px`; } } if (tp.clickAt !== undefined && t >= tp.clickAt && !tp.done) { tp.done = true; await click(tp.sel); } }
+  const words = wordsOf(headline); const chars = words.filter((w) => w.t !== '\n').reduce((a, w) => a + w.t.length, 0); let acc = 0; const hl = words.map((w) => { if (w.t === '\n') return w; acc += w.t.length; return { ...w, on: t >= .08 + (acc / chars) * .55 }; });
+  return { photo: .3, t, kicker, headline, hlWords: hl, sub, headAlpha: 1 - .85 * zoomK, phoneImg: await shot(y), tap, phoneScale: 1 + .24 * zoomK, origin, rotY: -14 + 6 * Math.sin(t * .9), rotX: 6 + 2 * Math.cos(t * .7), phoneY: 8 * Math.sin(t * 1.3) };
 } });
 // ---------- 릴스 정의 ----------
 // 정적 화면(파일) 세그먼트 — 로그인 필요한 화면(거래 약속 카드 등)은 미리 찍어 둔 PNG 를 폰 프레임에 넣는다 (2026-10-22 앱 기능 소개)
-const imgSeg = (dur, file, { kicker, headline, sub, scroll = 0 }) => { let data = null; return { dur, prep: async () => { data = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64'); }, frame: async t => ({ photo: .25, kicker, headline, sub, phoneImg: data, phoneY: -scroll * ease(io(t, .3, dur - .3)) }) }; };
+const imgSeg = (dur, file, { kicker, headline, sub, scroll = 0 }) => { let data = null; return { dur, prep: async () => { data = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64'); }, frame: async t => { const words = wordsOf(headline); const chars = words.filter((w) => w.t !== '\n').reduce((a, w) => a + w.t.length, 0); let acc = 0; const hl = words.map((w) => { if (w.t === '\n') return w; acc += w.t.length; return { ...w, on: t >= .08 + (acc / chars) * .55 }; }); return { photo: .3, t, kicker, headline, hlWords: hl, sub, phoneImg: data, rotY: -14 + 6 * Math.sin(t * .9), rotX: 6 + 2 * Math.cos(t * .7), phoneY: 8 * Math.sin(t * 1.3) - scroll * ease(io(t, .3, dur - .3)) }; } }; };
 const MEET = __dirname + '/meet/';
 const REELS = {
   feat1_rental: () => [
     bigTitle(1.3, { t: '전국 렌탈샵 가격,\n한눈에', s: '스노우판 앱 기능 1' }),
-    appSeg(5.2, { prep: () => goto('/rental', 'text=가격 낮은 순'), kicker: '렌탈샵', headline: '지역 → 리조트 → 가격 낮은 순', sub: '전국 369곳',
+    appSeg(5.2, { prep: () => goto('/rental', 'text=가격 낮은 순'), kicker: '렌탈샵', headline: '지역 → 리조트 →\n가격 낮은 순', sub: '전국 369곳',
       taps: [{ sel: 'text="경기"', at: .5, clickAt: .75 }, { sel: 'text="곤지암리조트"', at: 1.6, clickAt: 1.85 }, { sel: 'text="가격 낮은 순"', at: 2.7, clickAt: 2.95 }], scroll: [[3.6, 5.0, 0, 380]] }),
-    appSeg(3.2, { prep: () => goto('/search?q=' + encodeURIComponent('곤지암 렌탈'), 'a[href^="/rental/"]'), kicker: '통합검색', headline: '"곤지암 렌탈" 치면 끝', sub: '리조트·웹캠·렌탈샵 한 번에', scroll: [[.8, 2.8, 0, 300]] }),
+    appSeg(3.2, { prep: () => goto('/search?q=' + encodeURIComponent('곤지암 렌탈'), 'a[href^="/rental/"]'), kicker: '통합검색', headline: '"곤지암 렌탈"\n치면 끝', sub: '리조트·웹캠·렌탈샵 한 번에', scroll: [[.8, 2.8, 0, 300]] }),
     endSeg(2.2, '스키장 가기 전,\n스노우판'),
   ],
   feat2_webcam: () => [
     bigTitle(1.3, { t: '지금 슬로프 상태는?', s: '스노우판 앱 기능 2' }),
-    appSeg(2.6, { prep: () => goto('/webcam', 'a[href^="/webcam/"]'), kicker: '실시간 웹캠', headline: '국내 스키장 웹캠 한곳에', sub: 'LIVE · 기온 · 슬로프 수', taps: [{ sel: 'a[href^="/webcam/"]', at: 1.4 }], scroll: [[.3, 1.2, 0, 200]] }),
-    appSeg(3.4, { prep: async () => { await click('a[href^="/webcam/"]'); await app.waitForTimeout(2500); }, kicker: '실시간 웹캠', headline: '리프트 타기 전에 확인', sub: '카메라별로 골라 보기', scroll: [[1.6, 3.0, 0, 260]] }),
+    appSeg(2.6, { prep: () => goto('/webcam', 'a[href^="/webcam/"]'), kicker: '실시간 웹캠', headline: '국내 스키장 웹캠\n한곳에', sub: 'LIVE · 기온 · 슬로프 수', taps: [{ sel: 'a[href^="/webcam/"]', at: 1.4 }], scroll: [[.3, 1.2, 0, 200]] }),
+    appSeg(3.4, { prep: async () => { await click('a[href^="/webcam/"]'); await app.waitForTimeout(2500); }, kicker: '실시간 웹캠', headline: '리프트 타기 전에\n확인', sub: '카메라별로 골라 보기', scroll: [[1.6, 3.0, 0, 260]] }),
     endSeg(2.2, '스키장 가기 전,\n스노우판'),
   ],
   feat3_used: () => [
     bigTitle(1.3, { t: '중고 장비,\n거래 약속까지', s: '스노우판 앱 기능 3' }),
-    appSeg(3.0, { prep: () => goto('/used', 'a[href^="/used/"]:not([href$="/register"])'), kicker: '중고장비', headline: '스키·보드·부츠·시즌권', sub: '사진 보고 채팅으로 문의', scroll: [[.4, 2.8, 0, 900]] }),
-    imgSeg(3.0, MEET + '2_buyer_form.png', { kicker: '거래 약속', headline: '날짜·시간·장소 제안', sub: '채팅에서 "약속" 버튼 한 번' }),
-    imgSeg(3.0, MEET + '5_seller_confirmed.png', { kicker: '거래 약속', headline: '수락하면 자동 예약중', sub: '취소하면 판매중으로 복귀' }),
-    imgSeg(2.6, MEET + '7_seller_done.png', { kicker: '거래 확정', headline: '거래 끝, 판매완료', sub: '구매자 지정 · 후기 요청까지 자동' }),
+    appSeg(3.0, { prep: () => goto('/used', 'a[href^="/used/"]:not([href$="/register"])'), kicker: '중고장비', headline: '스키·보드·부츠\n시즌권', sub: '사진 보고 채팅으로 문의', scroll: [[.4, 2.8, 0, 900]] }),
+    imgSeg(3.0, MEET + '2_buyer_form.png', { kicker: '거래 약속', headline: '날짜·시간·장소\n제안', sub: '채팅에서 "약속" 버튼 한 번' }),
+    imgSeg(3.0, MEET + '5_seller_confirmed.png', { kicker: '거래 약속', headline: '수락하면\n자동 예약중', sub: '취소하면 판매중으로 복귀' }),
+    imgSeg(2.6, MEET + '7_seller_done.png', { kicker: '거래 확정', headline: '거래 끝,\n판매완료', sub: '구매자 지정 · 후기 요청까지 자동' }),
     endSeg(2.2, '스키장 가기 전,\n스노우판'),
   ],
   feat4_lesson: () => [
     bigTitle(1.3, { t: '강습 매칭,\n수수료 0원', s: '스노우판 앱 기능 4' }),
-    appSeg(4.0, { prep: () => goto('/community', 'text=구인구직'), kicker: '커뮤니티', headline: '조건만 올리면 등록 끝', sub: '강사와 수강생이 직접 소통', taps: [{ sel: 'text="구인구직"', at: .5, clickAt: .75 }], scroll: [[1.8, 3.6, 0, 500]] }),
+    appSeg(4.0, { prep: () => goto('/community', 'text=구인구직'), kicker: '커뮤니티', headline: '조건만 올리면\n등록 끝', sub: '강사와 수강생이 직접 소통', taps: [{ sel: 'text="구인구직"', at: .5, clickAt: .75 }], scroll: [[1.8, 3.6, 0, 500]] }),
     appSeg(3.2, { prep: () => goto('/lesson'), kicker: '레슨', headline: '강사·스쿨 찾기', sub: '리조트별 · 스키/보드', scroll: [[.6, 2.8, 0, 400]] }),
     endSeg(2.2, '스키장 가기 전,\n스노우판'),
   ],
   feat5_reserve: () => [
     bigTitle(1.3, { t: '전화 없이\n방문 예약', s: '스노우판 앱 기능 5' }),
-    appSeg(4.2, { prep: () => goto('/repair/88a519c8-9e42-41a1-8261-8f0fbf507f91', 'text=채팅 문의'), kicker: '매장 상세', headline: '방문 예약 · 채팅 문의', sub: '사장님 인증 매장', scroll: [[.5, 3.8, 0, 420]] }),
-    appSeg(3.0, { prep: () => goto('/repair', 'a[href^="/repair/"]:not([href$="/register"])'), kicker: '정비샵', headline: '정비·왁싱 맡길 곳 찾기', sub: '지역·리조트별', scroll: [[.5, 2.7, 0, 400]] }),
+    appSeg(4.2, { prep: () => goto('/repair/88a519c8-9e42-41a1-8261-8f0fbf507f91', 'text=채팅 문의'), kicker: '매장 상세', headline: '방문 예약 ·\n채팅 문의', sub: '사장님 인증 매장', scroll: [[.5, 3.8, 0, 420]] }),
+    appSeg(3.0, { prep: () => goto('/repair', 'a[href^="/repair/"]:not([href$="/register"])'), kicker: '정비샵', headline: '정비·왁싱\n맡길 곳 찾기', sub: '지역·리조트별', scroll: [[.5, 2.7, 0, 400]] }),
     endSeg(2.2, '스키장 가기 전,\n스노우판'),
   ],
   reel1_prizes: () => [
