@@ -332,6 +332,12 @@ OS=$(echo "$RESP" | jq -r '.status + ":" + .memo'); [ "$CODE" = "200" ] && [ "$O
 api PUT "/admin/outreach/skishop/$SEED" '{"status":"maybe"}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "잘못된 상태값 400" || bad "상태값 CODE=$CODE"
 api PUT "/admin/outreach/alien/$SEED" '{"status":"called"}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "지원하지 않는 업종 400" || bad "업종 CODE=$CODE"
 api PUT "/admin/outreach/skishop/00000000-0000-4000-8000-000000000000" '{"status":"called"}' "$ADM_TOKEN"; [ "$CODE" = "404" ] && ok "없는 매장 404" || bad "없는 매장 CODE=$CODE"
+# 인스타 핸들 저장 (2026-10-22): 주소·@ 를 떼고 핸들만, 형식 오류 400, 빈 값은 지우기
+api PUT "/admin/outreach/skishop/$SEED" '{"instagram":"https://www.instagram.com/bhs_1996/?hl=ko"}' "$ADM_TOKEN"; [ "$CODE" = "200" ] && echo "$RESP" | grep -q '"instagram":"bhs_1996"' && ok "인스타 주소 → 핸들 저장" || bad "인스타 저장 CODE=$CODE RESP=$(echo $RESP | head -c 120)"
+api GET /admin/outreach "" "$ADM_TOKEN"; echo "$RESP" | grep -q '"instagram":"bhs_1996"' && ok "보드 목록에 인스타 핸들" || bad "보드 인스타 없음"
+api PUT "/admin/outreach/skishop/$SEED" '{"instagram":"bad handle!"}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "인스타 형식 오류 400" || bad "인스타 형식 CODE=$CODE"
+api PUT "/admin/outreach/skishop/$SEED" '{"instagram":""}' "$ADM_TOKEN"; [ "$CODE" = "200" ] && echo "$RESP" | grep -q '"instagram":null' && ok "인스타 지우기" || bad "인스타 지우기 CODE=$CODE"
+api POST /admin/outreach/bulk "{\"items\":[{\"shopType\":\"skishop\",\"shopId\":\"$SEED\",\"instagram\":\"@bhs_1996\"}]}" "$ADM_TOKEN"; [ "$CODE" = "200" ] && echo "$RESP" | grep -q '"updated":1' && ok "인스타 일괄 저장" || bad "인스타 일괄 CODE=$CODE RESP=$(echo $RESP | head -c 120)"
 api PUT "/admin/outreach/skishop/$SEED" '{}' "$ADM_TOKEN"; [ "$CODE" = "400" ] && ok "빈 수정 400" || bad "빈 수정 CODE=$CODE"
 api POST /admin/outreach/bulk "{\"items\":[{\"shopType\":\"skishop\",\"shopId\":\"$SEED\",\"priority\":42},{\"shopType\":\"rental\",\"shopId\":\"nope\",\"priority\":1}]}" "$ADM_TOKEN"
 BU=$(echo "$RESP" | jq -r '(.updated|tostring) + ":" + (.skipped|length|tostring)'); [ "$CODE" = "200" ] && [ "$BU" = "1:1" ] && ok "일괄 우선순위 저장(없는 매장은 건너뜀)" || bad "bulk CODE=$CODE $BU"

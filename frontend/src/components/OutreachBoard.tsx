@@ -21,6 +21,7 @@ interface Shop {
   businessLicense?: string; instructorCert?: string; businessVerified?: boolean; certVerified?: boolean; // 첨부 서류(관리자만)·사업자 확인·자격 확인 배지
   id: string; kind: BoardKind; name: string; area: string; resortId: string; resort: string; address: string; phone: string; hours: string;
   naver: string; extraKinds: string; owner: boolean; viewCount: number; status: Status; memo: string; priority: number; updatedAt: string | null;
+  instagram?: string; // 인스타 핸들 (렌탈·스키샵·정비샵)
 }
 interface ResortLite { id: string; name: string; location?: string | null }
 interface BoardData { shops: Shop[]; resorts: ResortLite[]; template: string | null }
@@ -224,6 +225,22 @@ export default function OutreachBoard() {
     try { await navigator.clipboard.writeText(text); toastSuccess('문자 내용을 복사했습니다.'); }
     catch { setModalText(text); }
   };
+  // 인스타 DM (2026-10-22): 자동 발송은 인스타 약관 위반·계정 정지 위험이라 안 함 — 문구를 복사해 두고 프로필을 열어 사장님이 붙여넣어 보낸다.
+  const instaDm = async (s: Shop) => {
+    if (!s.instagram) return;
+    const text = smsFor(template, s);
+    try { await navigator.clipboard.writeText(text); toastSuccess('문구를 복사했습니다. 인스타 DM 창에 붙여넣어 보내세요.'); } catch { setModalText(text); }
+    openExternal(`https://www.instagram.com/${s.instagram}/`);
+  };
+  const saveInstagram = async (s: Shop, raw: string) => {
+    const v = raw.trim();
+    if ((s.instagram || '') === v.replace(/^@/, '')) return;
+    try {
+      const r = await api<{ instagram: string | null }>(`/admin/outreach/${s.kind}/${s.id}`, { method: 'PUT', body: { instagram: v } });
+      setData((d) => d ? { ...d, shops: d.shops.map((x) => (x.kind === s.kind && x.id === s.id ? { ...x, instagram: r.instagram || '' } : x)) } : d);
+      toastSuccess(r.instagram ? `인스타 @${r.instagram} 저장` : '인스타 아이디를 지웠습니다.');
+    } catch (e) { toastError(e instanceof Error ? e.message : '저장하지 못했습니다.'); }
+  };
   const toggle = (key: string, force?: boolean) => setOpen((o) => { const n = { ...o, [key]: force ?? !o[key] }; try { localStorage.setItem(OPEN_KEY, JSON.stringify(n)); } catch { /* ignore */ } return n; });
 
   // 필터·정렬
@@ -371,6 +388,19 @@ export default function OutreachBoard() {
                             <span className="px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold">전화번호 없음</span>
                           )}
                           {s.naver && <button onClick={() => openExternal(s.naver)} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">네이버</button>}
+                          {s.kind !== 'lesson' && (s.instagram
+                            ? <button onClick={() => instaDm(s)} className="px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold" title={`@${s.instagram} 프로필을 열고 문구를 복사합니다`}>인스타 DM</button>
+                            : null)}
+                          {s.kind !== 'lesson' && (
+                            <input
+                              type="text"
+                              defaultValue={s.instagram || ''}
+                              placeholder="인스타 아이디"
+                              onBlur={(e) => saveInstagram(s, e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                              className="w-32 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400"
+                            />
+                          )}
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}`} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs font-bold">스노우판</Link>
                           <Link to={`${KIND_PATH[s.kind]}/${s.id}/edit`} className="px-2.5 py-1.5 rounded-lg bg-white border border-sky-200 text-sky-700 text-xs font-bold">수정</Link>
                           {s.businessLicense && <button onClick={() => openExternal(imageUrl(s.businessLicense!))} className="px-2.5 py-1.5 rounded-lg bg-white border border-gray-900 text-gray-900 text-xs font-bold">사업자등록증</button>}

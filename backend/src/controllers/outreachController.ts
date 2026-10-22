@@ -18,6 +18,23 @@ const BOARD_KINDS: readonly string[] = [...SHOP_KINDS, 'lesson'];
 const isKind = (v: unknown): v is BoardKind => typeof v === 'string' && BOARD_KINDS.includes(v);
 const isStatus = (v: unknown): v is OutreachStatus => typeof v === 'string' && (OUTREACH_STATUS as readonly string[]).includes(v);
 
+// 인스타 핸들 정규화 — 주소·@ 를 떼고 핸들만. 빈 값이면 null(지우기). 형식이 틀리면 undefined (2026-10-22)
+export function normalizeInstagram(v: unknown): string | null | undefined {
+  if (v === null || v === '') return null;
+  if (typeof v !== 'string') return undefined;
+  let h = v.trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '').trim();
+  if (!h) return null;
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(h)) return undefined;
+  return h;
+}
+async function saveInstagram(kind: BoardKind, id: string, instagram: string | null): Promise<void> {
+  const args = { where: { id }, data: { instagram } } as const;
+  if (kind === 'skishop') await prisma.skiShop.update(args);
+  else if (kind === 'repair') await prisma.repairShop.update(args);
+  else if (kind === 'rental') await prisma.rental.update(args);
+  // 레슨엔 인스타 칸이 없음 — 무시
+}
+
 async function shopExists(kind: BoardKind, id: string): Promise<boolean> {
   const where = { where: { id }, select: { id: true } } as const;
   const row = kind === 'skishop' ? await prisma.skiShop.findUnique(where)
@@ -34,6 +51,7 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
       id: true, name: true, area: true, resortId: true, address: true, phone: true, hours: true, naverMap: true,
       extraKinds: true, claimable: true, viewCount: true, resort: { select: { name: true } },
       businessLicense: true, // 관리자 보드에서 첨부 서류 바로 보기 (2026-09-23)
+      instagram: true, // 인스타 DM 보내기 (2026-10-22)
     } as const;
     const [ski, rep, ren, lessons, marks, resorts, tpl] = await Promise.all([
       prisma.skiShop.findMany({ where: { approved: true }, select: sel }),
@@ -48,14 +66,14 @@ export const listOutreach = async (_req: AuthRequest, res: Response): Promise<vo
     const markOf = new Map(marks.map((m) => [`${m.shopType}:${m.shopId}`, m]));
     type Row = {
       id: string; name: string; area: string | null; resortId: string | null; address: string | null; phone: string | null; hours: string | null;
-      naverMap: string | null; extraKinds: string | null; claimable: boolean; viewCount: number; resort: { name: string } | null; businessLicense: string | null;
+      naverMap: string | null; extraKinds: string | null; claimable: boolean; viewCount: number; resort: { name: string } | null; businessLicense: string | null; instagram: string | null;
     };
     const tag = (rows: Row[], kind: ShopKind) => rows.map((r) => {
       const m = markOf.get(`${kind}:${r.id}`);
       return {
         id: r.id, kind, name: r.name, area: r.area || '', resortId: r.resortId || '', resort: r.resort?.name || '',
         address: r.address || '', phone: r.phone || '', hours: r.hours || '', naver: r.naverMap || '',
-        extraKinds: r.extraKinds || '', owner: !r.claimable, viewCount: r.viewCount, businessLicense: r.businessLicense || '',
+        extraKinds: r.extraKinds || '', owner: !r.claimable, viewCount: r.viewCount, businessLicense: r.businessLicense || '', instagram: r.instagram || '',
         status: m?.status || 'none', memo: m?.memo || '', priority: m?.priority || 0, updatedAt: m?.updatedAt || null,
       };
     });
@@ -104,8 +122,12 @@ export const upsertOutreach = async (req: AuthRequest, res: Response): Promise<v
     if (!isKind(shopType)) { res.status(400).json({ error: '업종이 올바르지 않습니다.' }); return; }
     const { data, error } = parsePatch(req.body || {});
     if (error) { res.status(400).json({ error }); return; }
-    if (!Object.keys(data).length) { res.status(400).json({ error: '바꿀 내용이 없습니다.' }); return; }
+    const ig = req.body?.instagram !== undefined ? normalizeInstagram(req.body.instagram) : undefined;
+    if (req.body?.instagram !== undefined && ig === undefined) { res.status(400).json({ error: '인스타그램 아이디 형식이 올바르지 않습니다. (영문·숫자·점·밑줄 30자 이내)' }); return; }
+    if (!Object.keys(data).length && ig === undefined) { res.status(400).json({ error: '바꿀 내용이 없습니다.' }); return; }
     if (!(await shopExists(shopType, shopId))) { res.status(404).json({ error: '매장을 찾을 수 없습니다.' }); return; }
+    if (ig !== undefined) await saveInstagram(shopType, shopId, ig);
+    if (!Object.keys(data).length) { res.json({ shopType, shopId, instagram: ig }); return; }
     const row = await prisma.shopOutreach.upsert({
       where: { shopType_shopId: { shopType, shopId } },
       create: { shopType, shopId, ...data },
@@ -118,7 +140,7 @@ export const upsertOutreach = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
-// 일괄 갱신(우선순위 시딩 등). POST /admin/outreach/bulk { items: [{ shopType, shopId, status?, memo?, priority? }] } 최대 500
+// 일괄 갱신(우선순위 시딩·인스타 핸들 등). POST /admin/outreach/bulk { items: [{ shopType, shopId, status?, memo?, priority?, instagram? }] } 최대 500
 export const bulkOutreach = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const items = Array.isArray(req.body?.items) ? req.body.items : null;
@@ -128,8 +150,10 @@ export const bulkOutreach = async (req: AuthRequest, res: Response): Promise<voi
       const shopType = it?.shopType; const shopId = typeof it?.shopId === 'string' ? it.shopId : '';
       if (!isKind(shopType) || !shopId) { skipped.push(`${shopType}:${shopId}`); continue; }
       const { data, error } = parsePatch(it);
-      if (error || !Object.keys(data).length || !(await shopExists(shopType, shopId))) { skipped.push(`${shopType}:${shopId}`); continue; }
-      await prisma.shopOutreach.upsert({ where: { shopType_shopId: { shopType, shopId } }, create: { shopType, shopId, ...data }, update: data });
+      const ig = it?.instagram !== undefined ? normalizeInstagram(it.instagram) : undefined;
+      if (error || (it?.instagram !== undefined && ig === undefined) || (!Object.keys(data).length && ig === undefined) || !(await shopExists(shopType, shopId))) { skipped.push(`${shopType}:${shopId}`); continue; }
+      if (ig !== undefined) await saveInstagram(shopType, shopId, ig);
+      if (Object.keys(data).length) await prisma.shopOutreach.upsert({ where: { shopType_shopId: { shopType, shopId } }, create: { shopType, shopId, ...data }, update: data });
       updated++;
     }
     res.json({ updated, skipped });
