@@ -1,6 +1,7 @@
 // 매장 3업종(스키·보드샵=판매, 정비샵, 렌탈샵) 공통 — 겸업 태그와 카테고리 목록 합치기.
 // 사용자 결정(2026-09-06): 카테고리는 3개 그대로 두고, 매장에 겸업 칩을 달아 여러 카테고리 목록에 같이 보이게 한다.
 import prisma from '../config/database';
+import { cacheGet, cacheSet } from './cache';
 import { maskRowUserAll } from './displayName';
 import { stripPrivateAll } from './publicFields';
 import { isAllowedImageUrl, isHttpUrl } from './validate';
@@ -62,7 +63,18 @@ function baseWhere(f: ShopListFilter): Record<string, unknown> {
 // kind 카테고리 목록 = 그 업종 매장 + 다른 업종이지만 extraKinds 에 kind 를 겸업으로 단 매장.
 // 각 행에 kind(원 업종, 상세 링크용)·kinds(칩 표시용)를 붙여 돌려준다.
 // 정렬: 프리미엄 → 본 업종 먼저 → 최신순.
+// 매장 목록은 요청마다 세 테이블을 전부 읽어 정렬하므로 60초 캐시 (2026-10-22 부하 측정: 동시 40건에 4.9초 → 캐시로 해소).
+// 매장 테이블에 쓰기가 있으면 config/database.ts 의 Prisma 훅이 'shops:' 캐시를 바로 비운다.
+export const SHOP_LIST_CACHE_PREFIX = 'shops:';
 export async function listShopsForKind(kind: ShopKind, f: ShopListFilter): Promise<Record<string, unknown>[]> {
+  const key = `${SHOP_LIST_CACHE_PREFIX}${kind}:${f.vertical || ''}:${f.area || ''}:${f.resortId || ''}:${f.sort || ''}`;
+  const hit = cacheGet<Record<string, unknown>[]>(key);
+  if (hit) return hit;
+  const rows = await listShopsForKindUncached(kind, f);
+  cacheSet(key, rows, 60);
+  return rows;
+}
+async function listShopsForKindUncached(kind: ShopKind, f: ShopListFilter): Promise<Record<string, unknown>[]> {
   const w = baseWhere(f);
   const extra = (k: ShopKind) => (k === kind ? {} : { extraKinds: { contains: kind } });
   const [ski, rep, ren] = await Promise.all([
