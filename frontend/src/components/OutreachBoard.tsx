@@ -43,15 +43,14 @@ const PRIORITY = ['곤지암리조트', '지산리조트', '비발디파크', '�
 const MERGE: Record<string, string> = { '알펜시아': '용평리조트' }; // 붙어 있는 리조트는 한 묶음
 const MERGED_NAME: Record<string, string> = { '용평리조트': '용평·알펜시아' };
 const SITE = 'https://snowpan.kr';
-const DEFAULT_SMS = `[스노우판] {상호} 사장님께. 스키어들이 리조트 근처 매장을 찾는 앱 '스노우판'에 매장 기본 정보가 등록되어 있습니다.
+const DEFAULT_SMS = `[스노우판] {상호} 사장님께. {리조트} 근처 {업종}을 찾는 스키어들이 쓰는 앱 '스노우판'에 {상호} 기본 정보가 등록되어 있습니다.
 매장 페이지: {링크}
-위 페이지에서 '직접 관리하기'를 누르고 사업자등록증을 올리시면 무료로 다음을 하실 수 있습니다.
+{등록안내}
 - 매장 사진, 영업시간, 취급 장비, 가격 수정
 - 매장 소식과 이벤트를 올려 앱 이용자에게 노출, 리뷰에 답글
-- 손님 방문 예약 접수와 확정, 1:1 채팅 문의 답변
+- {업종안내}
 - 직원을 추가해 매장을 여러 사람이 함께 관리, 매장 QR 코드 출력
 스노우판은 앱 기반으로 운영됩니다. 웹(snowpan.kr)에서도 관리는 가능하지만 예약·문의 알림은 앱에서만 옵니다. App Store 또는 Google Play 에서 '스노우판'을 검색해 설치하고 로그인해 두시기 바랍니다.
-2주 안에 등록이 없으면 매장 정보는 내립니다.
 문의: https://snowpan.kr/mypage/support`;
 const SCRIPT = `안녕하세요, 스키·보드 앱 '스노우판'입니다. 스키어들이 리조트별로 근처 렌탈샵·정비샵·스키샵을 찾는 앱인데요, 사장님 매장이 지금 [리조트] 목록에 기본 정보만 올라가 있어요.
 사진이랑 매장 소식을 무료로 직접 올리실 수 있게 관리 링크를 문자로 보내드려도 될까요? 사업자등록증 한 장만 올리시면 되고 1~2분이면 끝납니다.
@@ -63,7 +62,28 @@ const shortAddr = (a: string) => a.replace(/^(강원특별자치도|전북특별
 const shortHours = (h: string) => { const f = h.split(/,\s*/)[0] || ''; return f.length > 24 ? f.slice(0, 24) + '…' : f; };
 const fmtWhen = (iso: string | null) => { if (!iso) return ''; const d = new Date(iso); return isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`; };
 const shopUrl = (s: Shop) => `${SITE}${KIND_PATH[s.kind]}/${s.id}`;
-const smsFor = (tpl: string, s: Shop) => tpl.replace(/\{상호\}/g, s.name).replace(/\{링크\}/g, shopUrl(s)).replace(/\{리조트\}/g, s.resort || '리조트');
+// 업종별 맞춤 문구 — 사장님이 매장마다 손으로 고치지 않아도 되게 (2026-10-22). 자리표시자는 템플릿 어디에 넣어도 치환된다.
+const KIND_NOUN: Record<BoardKind, string> = { skishop: '스키·보드샵', repair: '정비샵', rental: '렌탈샵', lesson: '레슨' };
+const KIND_GUIDE: Record<BoardKind, string> = {
+  rental: '렌탈 방문 예약을 앱에서 받고 확정, 가격을 올려 두면 "가격 낮은 순" 정렬에 노출',
+  skishop: '구매 상담·부츠 피팅 방문 예약 접수, 취급 브랜드와 신상품 소식 노출',
+  repair: '정비 예약 접수와 접수·작업 중·완료 현황을 손님에게 알림',
+  lesson: '가격표·경력·가능 시간을 올리면 손님이 바로 예약 문의, 자격증을 올리면 "자격 확인" 표시',
+};
+const KIND_CLAIM: Record<BoardKind, string> = {
+  skishop: "위 페이지에서 '직접 관리하기'를 누르고 사업자등록증을 올리시면 무료로 다음을 하실 수 있습니다.",
+  repair: "위 페이지에서 '직접 관리하기'를 누르고 사업자등록증을 올리시면 무료로 다음을 하실 수 있습니다.",
+  rental: "위 페이지에서 '직접 관리하기'를 누르고 사업자등록증을 올리시면 무료로 다음을 하실 수 있습니다.",
+  lesson: '앱에 로그인해 레슨 정보를 채우시면 무료로 다음을 하실 수 있습니다.',
+};
+const smsFor = (tpl: string, s: Shop) => tpl
+  .replace(/\{상호\}/g, s.name)
+  .replace(/\{링크\}/g, shopUrl(s))
+  .replace(/\{리조트\}/g, s.resort || s.area || '리조트')
+  .replace(/\{지역\}/g, s.area || shortAddr(s.address || '') || '')
+  .replace(/\{업종\}/g, KIND_NOUN[s.kind])
+  .replace(/\{업종안내\}/g, KIND_GUIDE[s.kind])
+  .replace(/\{등록안내\}/g, KIND_CLAIM[s.kind]);
 const effStatus = (s: Shop): Status | 'owner' => (s.owner ? 'owner' : s.status);
 const contacted = (s: Shop) => effStatus(s) !== 'none';
 
@@ -281,7 +301,7 @@ export default function OutreachBoard() {
           <div>
             <p className="text-[11px] font-bold text-gray-500 mb-1">문자 템플릿 (매장별 "문자 복사"를 누르면 상호·링크가 자동으로 들어갑니다)</p>
             <textarea value={tplDraft} onChange={(e) => setTplDraft(e.target.value)} onBlur={saveTemplate} rows={6} spellCheck={false} className="w-full px-3 py-2 bg-snow border border-gray-200 rounded-lg text-xs text-gray-900 leading-relaxed focus:outline-none focus:border-gray-400 resize-y" />
-            <p className="text-[11px] text-gray-500 mt-1">자리표시자: {'{상호} {링크} {리조트}'}. 칸을 벗어나면 저장됩니다.</p>
+            <p className="text-[11px] text-gray-500 mt-1">자리표시자: {'{상호} {링크} {리조트} {지역} {업종} {업종안내} {등록안내}'} — 매장마다 자동으로 채워집니다. 칸을 벗어나면 저장됩니다.</p>
           </div>
           <ul className="text-xs text-gray-700 leading-relaxed list-disc pl-4 space-y-0.5">
             <li>리조트 한 곳씩 끝내기. 곤지암 → 지산 → 비발디 → 휘닉스 → 용평·알펜시아 → 하이원 → 무주 순으로, 리뷰 많은 매장부터.</li>
