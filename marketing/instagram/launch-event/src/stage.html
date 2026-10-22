@@ -7,11 +7,11 @@ body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;posit
 #shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,15,.55),rgba(7,9,15,.85) 60%,#07090f)}
 #red{position:absolute;inset:0;background:#E8333A;opacity:0}
 #grain{position:absolute;inset:0;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
-#brand{position:absolute;top:66px;left:64px;height:40px;display:flex;align-items:center}
+#brand{position:absolute;top:66px;left:64px;height:40px;display:flex;align-items:center;z-index:7}
 #brand img{height:34px;filter:invert(1) brightness(2)}
 
-#foot{position:absolute;top:70px;right:64px;font-size:24px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,.75)}
-#head{position:absolute;left:64px;right:64px;top:160px}
+#foot{position:absolute;top:70px;right:64px;font-size:24px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,.75);z-index:7}
+#head{position:absolute;left:64px;right:64px;top:160px;z-index:6}
 #kicker{display:flex;align-items:center;gap:14px;font-size:28px;font-weight:800;color:#FF5A5F;letter-spacing:1px;min-height:34px}
 #kicker:empty{display:none}
 #kicker::before{content:"";width:10px;height:32px;background:#FF5A5F}
@@ -20,7 +20,15 @@ body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;posit
 #sub{margin-top:18px;font-size:32px;font-weight:500;color:rgba(255,255,255,.85);letter-spacing:-.5px;white-space:pre-line}
 #stage3d{position:absolute;left:0;top:0;width:1080px;height:1920px;perspective:2200px;pointer-events:none}
 #phone{position:absolute;left:160px;top:470px;width:760px;height:1351px;border-radius:56px;overflow:hidden;background:#fff;box-shadow:0 60px 120px rgba(0,0,0,.7),0 0 0 8px #1b1f2a,0 0 80px rgba(56,189,248,.25);display:none;transform-origin:center}
-#snow{position:absolute;inset:0;z-index:1;pointer-events:none}
+#snow{position:absolute;inset:0;z-index:3;pointer-events:none}
+#full{position:absolute;inset:0;display:none;overflow:hidden;background:#07090f;z-index:1}
+body.fullmode #glow,body.fullmode #shade,body.fullmode #grain,body.fullmode #photo{display:none}
+#full img{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover;object-position:top;transform-origin:center}
+#full .top{position:absolute;left:0;right:0;top:0;height:760px;background:linear-gradient(180deg,rgba(7,9,15,.97) 0%,rgba(7,9,15,.9) 40%,rgba(7,9,15,.55) 70%,rgba(7,9,15,0) 100%)}
+#full .bot{position:absolute;left:0;right:0;bottom:0;height:420px;background:linear-gradient(0deg,rgba(7,9,15,.9),rgba(7,9,15,0))}
+body.fullmode #head{top:150px}
+body.fullmode #hl{font-size:96px;line-height:1.14}
+body.fullmode #sub{font-size:34px}
 #glow{position:absolute;left:-200px;top:200px;width:1480px;height:1480px;background:radial-gradient(circle at 50% 45%,rgba(56,189,248,.22),rgba(56,189,248,0) 55%);pointer-events:none}
 #hl{font-size:84px}
 #hl .w{display:inline-block;opacity:.3;transform:translateY(14px);margin-right:.2em}
@@ -66,12 +74,12 @@ body{font-family:"Apple SD Gothic Neo",-apple-system,sans-serif;color:#fff;posit
 #end .st div{border:3px solid rgba(255,255,255,.7);border-radius:28px;padding:26px 44px;font-size:34px;font-weight:700}
 #end .u{margin-top:70px;font-size:40px;font-weight:700;color:#BFE7FF;letter-spacing:1px}
 #bottom{position:absolute;left:64px;right:64px;bottom:60px;display:none;justify-content:space-between;font-size:26px;font-weight:600;color:rgba(255,255,255,.6)}
-#fade{position:absolute;inset:0;background:#07090f;opacity:0;pointer-events:none}
+#fade{position:absolute;inset:0;background:#07090f;opacity:0;pointer-events:none;z-index:9}
 </style></head><body>
 <div id="photo"></div><div id="shade"></div><div id="red"></div><div id="grain"></div>
 <div id="brand"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div id="foot">@snowpan.kr</div>
 <div id="head"><div id="kicker"></div><div id="hl"></div><div id="sub"></div></div>
-<div id="glow"></div><canvas id="snow" width="1080" height="1920"></canvas><div id="stage3d"><div id="phone"><img id="pimg" alt=""></div></div>
+<div id="full"><img id="fimg" alt=""><div class="top"></div><div class="bot"></div></div><div id="glow"></div><canvas id="snow" width="1080" height="1920"></canvas><div id="stage3d"><div id="phone"><img id="pimg" alt=""></div></div>
 <div id="form"><div class="bar"><img src="snowpan-wordmark.svg" alt="SNOW PAN"></div><div class="body"><h2>이벤트 신청</h2><p class="d">30초면 끝나요</p>
 <div class="f"><label>성함</label><div class="in" id="f1"></div></div>
 <div class="f"><label>연락처</label><div class="in" id="f2"></div></div>
@@ -95,6 +103,7 @@ window.render=function(s){
   $('brand').style.opacity=$('foot').style.opacity=s.chrome===false?0:1;
   $('kicker').textContent=s.kicker||''; if(!s.hlWords){$('hl').dataset.key='';$('hl').textContent=s.headline||'';} $('sub').textContent=s.sub||'';
   $('head').style.opacity=s.headAlpha??1; $('head').style.transform=`translateY(${s.headY||0}px)`;
+  const fu=$('full'); if(s.fullImg){fu.style.display='block';document.body.classList.add('fullmode');if($('fimg').getAttribute('src')!==s.fullImg)$('fimg').src=s.fullImg;$('fimg').style.transformOrigin=s.origin||'center';$('fimg').style.transform=`scale(${s.fullScale||1}) translate(${s.fullX||0}px,${s.fullY||0}px)`;}else{fu.style.display='none';document.body.classList.remove('fullmode');}
   const ph=$('phone'); if(s.phoneImg){ph.style.display='block';if($('pimg').getAttribute('src')!==s.phoneImg)$('pimg').src=s.phoneImg;const rx=s.rotX??6,ry=s.rotY??-14;ph.style.transformOrigin=s.origin||'center';ph.style.transform=`translateY(${s.phoneY||0}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${s.phoneScale??1})`;ph.style.opacity=s.phoneAlpha??1}else ph.style.display='none';
   // 눈 입자 — 시간(s.t)으로 결정되는 위치라 프레임 단위 렌더에서도 흔들림 없음
   const cv=$('snow'),cx=cv.getContext('2d');cx.clearRect(0,0,1080,1920);if(s.snow!==false){const tt=s.t||0;for(let i=0;i<70;i++){const sp=.6+(i%5)*.18,x=((i*173)%1080+Math.sin(tt*.6+i)*40+1080)%1080,y=((i*311)%1920+tt*(60+sp*60))%1920,r=1.2+(i%4);cx.globalAlpha=.25+(i%3)*.2;cx.fillStyle='#fff';cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fill();}cx.globalAlpha=1;}

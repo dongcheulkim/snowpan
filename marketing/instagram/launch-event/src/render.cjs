@@ -12,7 +12,7 @@ const typed = (t, a, b, s) => t < a ? '' : s.slice(0, Math.round(s.length * io(t
 
 let browser, app, stage, shotCache = new Map(), shotKey = '';
 async function appPage() {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 693 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: UA, locale: 'ko-KR' });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 693 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: UA, locale: 'ko-KR', geolocation: { latitude: 37.337, longitude: 127.287 }, permissions: ['geolocation'] });
   await ctx.addInitScript(() => { try { localStorage.setItem('cookie-consent-v1', 'essential'); localStorage.setItem('pwa-install-dismissed', '1'); localStorage.setItem('snowpan.appCardDismissed', String(Date.now())); } catch {} });
   return ctx.newPage();
 }
@@ -64,7 +64,25 @@ const appSeg = (dur, { prep, kicker, headline, sub, scroll = [[0, 0, 0, 0]], tap
 // 정적 화면(파일) 세그먼트 — 로그인 필요한 화면(거래 약속 카드 등)은 미리 찍어 둔 PNG 를 폰 프레임에 넣는다 (2026-10-22 앱 기능 소개)
 const imgSeg = (dur, file, { kicker, headline, sub, scroll = 0 }) => { let data = null; return { dur, prep: async () => { data = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64'); }, frame: async t => { const words = wordsOf(headline); const chars = words.filter((w) => w.t !== '\n').reduce((a, w) => a + w.t.length, 0); let acc = 0; const hl = words.map((w) => { if (w.t === '\n') return w; acc += w.t.length; return { ...w, on: t >= .08 + (acc / chars) * .55 }; }); return { photo: .3, t, kicker, headline, hlWords: hl, sub, phoneImg: data, rotY: -14 + 6 * Math.sin(t * .9), rotX: 6 + 2 * Math.cos(t * .7), phoneY: 8 * Math.sin(t * 1.3) - scroll * ease(io(t, .3, dur - .3)) }; } }; };
 const MEET = __dirname + '/meet/';
+// 화면 꽉 채우기 세그먼트 (2026-10-22, 사장님 "폰 프레임 간지 안 남") — 앱 캡처를 1080x1920 전체에 깔고 탭 지점으로 줌, 위에 큰 글자
+const toFull = (x, y) => ({ x: x * (1080 / 390), y: y * (1080 / 390) });
+const fullSeg = (dur, { prep, kicker, headline, sub, scroll = [[0, 0, 0, 0]], taps = [], drift = 1 }) => ({ dur, prep, frame: async t => {
+  let y = 0; for (const [a, b, y0, y1] of scroll) { if (t >= a) y = lerp(y0, y1, ease(io(t, a, b))); }
+  let tap = null, zoomK = 0, origin = 'center';
+  for (const tp of taps) { if (t >= tp.at && t < tp.at + .45 && !tp.box) tp.box = await box(tp.sel); if (tp.box) { const c = toFull(tp.box.x + tp.box.width / 2, tp.box.y + tp.box.height / 2); if (t >= tp.at && t < tp.at + .45) { const k = (t - tp.at) / .45; tap = { ...c, scale: lerp(.6, 1.5, k), alpha: 1 - k }; } if (t >= tp.at && t < tp.at + 1.0) { const k = io(t, tp.at, tp.at + .22) * (1 - io(t, tp.at + .7, tp.at + 1.0)); zoomK = Math.max(zoomK, k); origin = `${c.x}px ${c.y}px`; } } if (tp.clickAt !== undefined && t >= tp.clickAt && !tp.done) { tp.done = true; await click(tp.sel); } }
+  const words = wordsOf(headline); const chars = words.filter((w) => w.t !== '\n').reduce((a, w) => a + w.t.length, 0); let acc = 0; const hl = words.map((w) => { if (w.t === '\n') return w; acc += w.t.length; return { ...w, on: t >= .08 + (acc / chars) * .5 }; });
+  return { t, snow: true, kicker, headline, hlWords: hl, sub, headAlpha: 1 - .45 * zoomK, fullImg: await shot(y), fullScale: 1.04 + .02 * drift * Math.sin(t * .8) + .3 * zoomK, fullX: 6 * Math.sin(t * .5), fullY: 0, origin, tap };
+} });
 const REELS = {
+  feat1_rental_v3: () => [
+    bigTitle(1.6, { t: '근처 렌탈샵 정보,\n궁금하지 않으세요?', s: '스키장 가기 전' }),
+    fullSeg(4.2, { prep: () => goto('/rental', 'text=가격 낮은 순'), kicker: '렌탈샵 369곳', headline: '스노우판에는\n다 있습니다', sub: '지역 → 리조트 → 가격 낮은 순',
+      taps: [{ sel: 'text="경기"', at: .5, clickAt: .72 }, { sel: 'text="곤지암리조트"', at: 1.6, clickAt: 1.82 }, { sel: 'text="가격 낮은 순"', at: 2.7, clickAt: 2.92 }] }),
+    fullSeg(3.6, { prep: () => goto('/rental', 'text=내 주변'), kicker: '내 주변', headline: '내 위치 기반으로\n알려드립니다', sub: '가까운 렌탈샵부터 차례로', taps: [{ sel: 'text="내 주변"', at: .5, clickAt: .72 }], scroll: [[1.8, 3.4, 0, 380]] }),
+    fullSeg(3.0, { prep: () => goto('/search?q=' + encodeURIComponent('곤지암 렌탈'), 'a[href^="/rental/"]'), kicker: '통합검색', headline: '검색도 한 번이면\n끝납니다', sub: '리조트 · 웹캠 · 렌탈샵 한 번에', scroll: [[.5, 2.7, 0, 320]] }),
+    bigTitle(1.5, { t: '되게 좋잖아요,\n이런 거.', s: '' }, { photo: .5 }),
+    endSeg(2.0, '스키장 가기 전,\n스노우판'),
+  ],
   feat1_rental: () => [
     bigTitle(1.3, { t: '전국 렌탈샵 가격,\n한눈에', s: '스노우판 앱 기능 1' }),
     appSeg(5.2, { prep: () => goto('/rental', 'text=가격 낮은 순'), kicker: '렌탈샵', headline: '지역 → 리조트 →\n가격 낮은 순', sub: '전국 369곳',
