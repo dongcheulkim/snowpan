@@ -57,7 +57,43 @@ const appSeg = (dur, { prep, kicker, headline, sub, scroll = [[0, 0, 0, 0]], tap
   return { photo: .25, kicker, headline, sub, phoneImg: await shot(y), tap };
 } });
 // ---------- 릴스 정의 ----------
+// 정적 화면(파일) 세그먼트 — 로그인 필요한 화면(거래 약속 카드 등)은 미리 찍어 둔 PNG 를 폰 프레임에 넣는다 (2026-10-22 앱 기능 소개)
+const imgSeg = (dur, file, { kicker, headline, sub, scroll = 0 }) => { let data = null; return { dur, prep: async () => { data = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64'); }, frame: async t => ({ photo: .25, kicker, headline, sub, phoneImg: data, phoneY: -scroll * ease(io(t, .3, dur - .3)) }) }; };
+const MEET = __dirname + '/meet/';
 const REELS = {
+  feat1_rental: () => [
+    bigTitle(1.3, { t: '전국 렌탈샵 가격,\n한눈에', s: '스노우판 앱 기능 1' }),
+    appSeg(5.2, { prep: () => goto('/rental', 'text=가격 낮은 순'), kicker: '렌탈샵', headline: '지역 → 리조트 → 가격 낮은 순', sub: '전국 369곳',
+      taps: [{ sel: 'text="경기"', at: .5, clickAt: .75 }, { sel: 'text="곤지암리조트"', at: 1.6, clickAt: 1.85 }, { sel: 'text="가격 낮은 순"', at: 2.7, clickAt: 2.95 }], scroll: [[3.6, 5.0, 0, 380]] }),
+    appSeg(3.2, { prep: () => goto('/search?q=' + encodeURIComponent('곤지암 렌탈'), 'a[href^="/rental/"]'), kicker: '통합검색', headline: '"곤지암 렌탈" 치면 끝', sub: '리조트·웹캠·렌탈샵 한 번에', scroll: [[.8, 2.8, 0, 300]] }),
+    endSeg(2.2, '스키장 가기 전,\n스노우판'),
+  ],
+  feat2_webcam: () => [
+    bigTitle(1.3, { t: '지금 슬로프 상태는?', s: '스노우판 앱 기능 2' }),
+    appSeg(2.6, { prep: () => goto('/webcam', 'a[href^="/webcam/"]'), kicker: '실시간 웹캠', headline: '국내 스키장 웹캠 한곳에', sub: 'LIVE · 기온 · 슬로프 수', taps: [{ sel: 'a[href^="/webcam/"]', at: 1.4 }], scroll: [[.3, 1.2, 0, 200]] }),
+    appSeg(3.4, { prep: async () => { await click('a[href^="/webcam/"]'); await app.waitForTimeout(2500); }, kicker: '실시간 웹캠', headline: '리프트 타기 전에 확인', sub: '카메라별로 골라 보기', scroll: [[1.6, 3.0, 0, 260]] }),
+    endSeg(2.2, '스키장 가기 전,\n스노우판'),
+  ],
+  feat3_used: () => [
+    bigTitle(1.3, { t: '중고 장비,\n거래 약속까지', s: '스노우판 앱 기능 3' }),
+    appSeg(3.0, { prep: () => goto('/used', 'a[href^="/used/"]:not([href$="/register"])'), kicker: '중고장비', headline: '스키·보드·부츠·시즌권', sub: '사진 보고 채팅으로 문의', scroll: [[.4, 2.8, 0, 900]] }),
+    imgSeg(3.0, MEET + '2_buyer_form.png', { kicker: '거래 약속', headline: '날짜·시간·장소 제안', sub: '채팅에서 "약속" 버튼 한 번' }),
+    imgSeg(3.0, MEET + '5_seller_confirmed.png', { kicker: '거래 약속', headline: '수락하면 자동 예약중', sub: '취소하면 판매중으로 복귀' }),
+    imgSeg(2.6, MEET + '7_seller_done.png', { kicker: '거래 확정', headline: '거래 끝, 판매완료', sub: '구매자 지정 · 후기 요청까지 자동' }),
+    endSeg(2.2, '스키장 가기 전,\n스노우판'),
+  ],
+  feat4_lesson: () => [
+    bigTitle(1.3, { t: '강습 매칭,\n수수료 0원', s: '스노우판 앱 기능 4' }),
+    appSeg(4.0, { prep: () => goto('/community', 'text=구인구직'), kicker: '커뮤니티', headline: '조건만 올리면 등록 끝', sub: '강사와 수강생이 직접 소통', taps: [{ sel: 'text="구인구직"', at: .5, clickAt: .75 }], scroll: [[1.8, 3.6, 0, 500]] }),
+    appSeg(3.2, { prep: () => goto('/lesson'), kicker: '레슨', headline: '강사·스쿨 찾기', sub: '리조트별 · 스키/보드', scroll: [[.6, 2.8, 0, 400]] }),
+    endSeg(2.2, '스키장 가기 전,\n스노우판'),
+  ],
+  feat5_reserve: () => [
+    bigTitle(1.3, { t: '전화 없이\n방문 예약', s: '스노우판 앱 기능 5' }),
+    appSeg(4.2, { prep: () => goto('/repair/88a519c8-9e42-41a1-8261-8f0fbf507f91', 'text=채팅 문의'), kicker: '매장 상세', headline: '방문 예약 · 채팅 문의', sub: '사장님 인증 매장', scroll: [[.5, 3.8, 0, 420]] }),
+    appSeg(3.0, { prep: () => goto('/repair', 'a[href^="/repair/"]:not([href$="/register"])'), kicker: '정비샵', headline: '정비·왁싱 맡길 곳 찾기', sub: '지역·리조트별', scroll: [[.5, 2.7, 0, 400]] }),
+    endSeg(2.2, '스키장 가기 전,\n스노우판'),
+  ],
   reel1_prizes: () => [
     bigTitle(1.6, { n: '20명', t: '정비·왁싱권\n공짜로 받는 법', s: '스노우판 앱 출시 기념' }),
     prizeSeg(5.6, '스노우메타 제공\n총 20명에게', '앱 출시 기념 이벤트'),

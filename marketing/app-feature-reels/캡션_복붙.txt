@@ -1,0 +1,29 @@
+[01_feat1_rental] 전국 렌탈샵 가격, 한눈에 비교
+스노우판 앱 기능 1. 지역 → 리조트 → 가격 낮은 순으로 전국 렌탈샵 369곳을 비교해요. 검색창에 "곤지암 렌탈"만 쳐도 리조트·웹캠·렌탈샵이 한 번에 나옵니다.
+앱스토어·구글플레이에서 "스노우판" · snowpan.kr
+#스키렌탈 #보드렌탈 #렌탈샵 #스노우판 #스키
+Music: Cut and Run by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+[02_feat2_webcam] 지금 슬로프 상태, 리프트 타기 전에 확인
+스노우판 앱 기능 2. 국내 스키장 실시간 웹캠을 한곳에서. LIVE 여부, 기온, 슬로프 수가 바로 보이고 카메라별로 골라 볼 수 있어요.
+앱스토어·구글플레이에서 "스노우판" · snowpan.kr
+#스키장웹캠 #실시간웹캠 #스키장 #스노우판 #스키
+Music: EDM Detection Mode by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+[03_feat3_used] 중고 장비 거래, 약속 잡기부터 거래 확정까지
+스노우판 앱 기능 3. 스키·보드·부츠·시즌권 중고 거래. 채팅에서 "약속" 버튼으로 날짜·장소를 제안하고, 상대가 수락하면 매물이 자동으로 예약중, 거래 확정하면 판매완료와 후기 요청까지 자동이에요.
+앱스토어·구글플레이에서 "스노우판" · snowpan.kr
+#중고스키 #중고보드 #스키장비 #스노우판 #스키
+Music: Misuse by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+[04_feat4_lesson] 강습 매칭, 수수료 0원
+스노우판 앱 기능 4. 커뮤니티 구인구직에 조건만 올리면 등록 끝. 강사와 수강생이 직접 소통하고 중개 수수료가 없어요. 레슨 탭에서 리조트별 강사·스쿨도 찾을 수 있어요.
+앱스토어·구글플레이에서 "스노우판" · snowpan.kr
+#스키강습 #보드강습 #스키강사 #스노우판 #스키
+Music: Consequence by Kevin MacLeod (incompetech.com), CC BY 4.0
+
+[05_feat5_reserve] 전화 없이 매장 방문 예약
+스노우판 앱 기능 5. 사장님이 직접 관리하는 매장은 상세 화면에서 방문 예약과 채팅 문의가 바로 돼요. 정비·왁싱 맡길 정비샵도 지역·리조트별로 찾을 수 있어요.
+앱스토어·구글플레이에서 "스노우판" · snowpan.kr
+#스키정비 #왁싱 #정비샵 #스노우판 #스키
+Music: Cephalopod by Kevin MacLeod (incompetech.com), CC BY 4.0

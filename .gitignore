@@ -36,3 +36,4 @@ scripts/seed/seed_rollback*.txt
 e2e/browser/.env
 marketing/poster-reels/*.mp4
 backend/scripts/tour/node_modules/
+marketing/app-feature-reels/*.mp4
